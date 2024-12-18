@@ -35,8 +35,8 @@ const MENUS:Menus[] = [
 const Footer = () => {
   return (
     <footer style={{backgroundColor: 'rgba(51, 51, 51, 1)'}} className="border-t border-gray-200 py-8">
-      <div className='flex items-center justify-between'>
-        <h4 className="font-medium mb-3 text-sm">Follow Us</h4>
+      <div className='flex items-center justify-between p-2'>
+      <img src="/logo-white.png" alt="logo" className="h-10" />
         <div className="flex gap-4">
           <a href="#" className="text-gray-600 hover:text-black">
             <FaFacebookF className="w-4 h-4" />
@@ -50,7 +50,7 @@ const Footer = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-6">
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-6 p-2">
 
 
         {MENUS.map((menu) => ( 
