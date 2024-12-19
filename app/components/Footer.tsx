@@ -35,8 +35,8 @@ const MENUS:Menus[] = [
 
 const Footer = () => {
   return (
-    <footer style={{backgroundColor: 'rgba(51, 51, 51, 1)'}} className="border-t border-gray-200">
-      <div className='flex items-center justify-between pt-4 pr-4'>
+    <footer style={{backgroundColor: 'rgba(51, 51, 51, 1)'}} className="border-t border-gray-200 md:flex md:justify-between md:flex-row-reverse md:p-8">
+      <div className='flex items-center justify-between pt-4 pr-4 md:flex-col'>
         <Image src="/logo-white.png" alt="logo" width={124} height={48} />
         <div className="flex gap-4">
           <a href="#" className="text-gray-600 hover:text-black">
@@ -51,7 +51,7 @@ const Footer = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-6 p-4">
+      <div className="grid grid-cols-3 gap-6 p-4">
 
 
         {MENUS.map((menu) => ( 
@@ -67,9 +67,6 @@ const Footer = () => {
 
 
         
-      </div>
-      <div className="mt-8 text-center text-xs text-gray-600">
-        <p>&copy; {new Date().getFullYear()} Your Bookstore. All rights reserved.</p>
       </div>
     </footer>
   );
