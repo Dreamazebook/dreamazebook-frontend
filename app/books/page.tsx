@@ -1,8 +1,5 @@
-'use client';
-
 import Image from 'next/image';
 import { FaStar, FaStarHalf } from 'react-icons/fa';
-import { useState } from 'react';
 
 interface Book {
   id: number;
@@ -69,10 +66,6 @@ const books: Book[] = [
   }
 ];
 
-const allCategories = Array.from(
-  new Set(books.flatMap(book => book.categories))
-).sort();
-
 const StarRating = ({ rating, reviews }: { rating: number; reviews?: number }) => {
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 !== 0;
@@ -94,37 +87,9 @@ const StarRating = ({ rating, reviews }: { rating: number; reviews?: number }) =
 };
 
 export default function BooksPage() {
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
-  const [sortBy, setSortBy] = useState<'price-asc' | 'price-desc' | 'rating'>('rating');
-
-  const toggleCategory = (category: string) => {
-    setSelectedCategories(prev =>
-      prev.includes(category)
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
-    );
-  };
-
-  const filteredBooks = books.filter(book =>
-    selectedCategories.length === 0 ||
-    book.categories.some(category => selectedCategories.includes(category))
-  ).sort((a, b) => {
-    switch (sortBy) {
-      case 'price-asc':
-        return a.price - b.price;
-      case 'price-desc':
-        return b.price - a.price;
-      case 'rating':
-        return b.rating - a.rating;
-      default:
-        return 0;
-    }
-  });
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
       <nav className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
@@ -142,69 +107,9 @@ export default function BooksPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-6">
-        {/* Filters and Sort */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-full border border-gray-300 hover:border-black transition-colors sm:hidden"
-            >
-              <FaStar className="w-4 h-4" />
-              Filters {selectedCategories.length > 0 && `(${selectedCategories.length})`}
-            </button>
-            <div className="flex-1 w-full sm:w-auto">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                className="w-full sm:w-auto px-4 py-2 rounded-full border border-gray-300 text-sm focus:outline-none focus:border-black"
-              >
-                <option value="rating">Sort by: Rating</option>
-                <option value="price-asc">Sort by: Price (Low to High)</option>
-                <option value="price-desc">Sort by: Price (High to Low)</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Category Filters - Mobile */}
-          <div className={`sm:hidden ${showFilters ? 'block' : 'hidden'} mb-4`}>
-            <div className="grid grid-cols-2 gap-2">
-              {allCategories.map(category => (
-                <button
-                  key={category}
-                  onClick={() => toggleCategory(category)}
-                  className={`px-3 py-2 text-sm rounded-full transition-colors ${
-                    selectedCategories.includes(category)
-                      ? 'bg-black text-white'
-                      : 'bg-gray-100 hover:bg-gray-200'
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Category Filters - Desktop */}
-          <div className="hidden sm:flex flex-wrap gap-2">
-            {allCategories.map(category => (
-              <button
-                key={category}
-                onClick={() => toggleCategory(category)}
-                className={`px-4 py-2 text-sm rounded-full transition-colors ${
-                  selectedCategories.includes(category)
-                    ? 'bg-black text-white'
-                    : 'bg-gray-100 hover:bg-gray-200'
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Books Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-          {filteredBooks.map((book) => (
+          {books.map((book) => (
             <div key={book.id} className="flex flex-col">
               <div className="relative aspect-[3/4] mb-2">
                 <Image
