@@ -1,4 +1,5 @@
 import { FaFacebookF, FaTwitter, FaInstagram } from 'react-icons/fa';
+import Image from 'next/image';
 
 interface Menus {
   title: string;
@@ -34,23 +35,23 @@ const MENUS:Menus[] = [
 
 const Footer = () => {
   return (
-    <footer style={{backgroundColor: 'rgba(51, 51, 51, 1)'}} className="border-t border-gray-200 py-8">
-      <div className='flex items-center justify-between p-2'>
-      <img src="/logo-white.png" alt="logo" className="h-10" />
+    <footer style={{backgroundColor: 'rgba(51, 51, 51, 1)'}} className="border-t border-gray-200">
+      <div className='flex items-center justify-between pt-4 pr-4'>
+        <Image src="/logo-white.png" alt="logo" width={124} height={48} />
         <div className="flex gap-4">
           <a href="#" className="text-gray-600 hover:text-black">
-            <FaFacebookF className="w-4 h-4" />
+            <FaFacebookF className="w-6 h-6" />
           </a>
           <a href="#" className="text-gray-600 hover:text-black">
-            <FaTwitter className="w-4 h-4" />
+            <FaTwitter className="w-6 h-6" />
           </a>
           <a href="#" className="text-gray-600 hover:text-black">
-            <FaInstagram className="w-4 h-4" />
+            <FaInstagram className="w-6 h-6" />
           </a>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-6 p-2">
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-6 p-4">
 
 
         {MENUS.map((menu) => ( 
