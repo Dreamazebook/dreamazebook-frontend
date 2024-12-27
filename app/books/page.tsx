@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { FaStar, FaStarHalf } from 'react-icons/fa';
 import axios from 'axios';
 
@@ -92,7 +93,7 @@ export default function BooksPage() {
         {/* Books Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
           {books.map((book) => (
-            <div key={book.id} className="flex flex-col">
+            <Link href={`/books/${book.id}`} key={book.id} className="flex flex-col group">
               <div className="relative aspect-[3/4] mb-2">
                 <Image
                   src={book.showpic}
@@ -105,10 +106,10 @@ export default function BooksPage() {
               {/* <p className="text-xs text-gray-600 mb-1">{book.author}</p>
               <StarRating rating={book.rating} reviews={book.reviews} /> */}
               <p className="text-xs font-medium mt-1">${book.price.toFixed(2)}</p>
-              <button className="mt-2 bg-black text-white px-3 py-1 rounded text-xs">
-                Add to cart
-              </button>
-            </div>
+              <span className="mt-2 bg-black text-white px-3 py-1 rounded text-xs">
+                Personalize
+              </span>
+            </Link>
           ))}
           {/* Pre-order placeholder */}
           <div className="flex flex-col">
