@@ -77,42 +77,48 @@ export default function PersonalizePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF5F5] p-4">
-      <Link href={`/books/${bookId}`} className="flex items-center text-sm mb-8">
-        ← Back to the product page
-      </Link>
+    <div className="min-h-screen bg-[#FFF5F5]">
+      {/* 顶部导航栏 */}
+      <div className="h-14 bg-white border-b border-black flex items-center px-32">
+        <Link href={`/books/${bookId}`} className="flex items-center text-sm">
+          <span className="mr-2">←</span> Back to the product page
+        </Link>
+      </div>
 
-      {/* 只在 formid 为 3 时显示选择模态窗口 */}
-      {showModal && book?.formid === 3 && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-lg max-w-md w-full">
-            <h2 className="text-2xl text-center mb-6">选择角色数量</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                onClick={() => {
-                  setSelectedFormType('SINGLE');
-                  setShowModal(false);
-                }}
-                className="p-4 border rounded-lg hover:bg-gray-50"
-              >
-                单人故事
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedFormType('DOUBLE');
-                  setShowModal(false);
-                }}
-                className="p-4 border rounded-lg hover:bg-gray-50"
-              >
-                双人故事
-              </button>
+      {/* 主要内容区域 */}
+      <div className="p-4">
+        {/* 只在 formid 为 3 时显示选择模态窗口 */}
+        {showModal && book?.formid === 3 && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-lg max-w-md w-full">
+              <h2 className="text-2xl text-center mb-6">选择角色数量</h2>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={() => {
+                    setSelectedFormType('SINGLE');
+                    setShowModal(false);
+                  }}
+                  className="p-4 border rounded-lg hover:bg-gray-50"
+                >
+                  单人故事
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedFormType('DOUBLE');
+                    setShowModal(false);
+                  }}
+                  className="p-4 border rounded-lg hover:bg-gray-50"
+                >
+                  双人故事
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="max-w-md mx-auto bg-white rounded-lg p-6 shadow-sm">
-        {renderForm()}
+        <div className="max-w-md mx-auto bg-white rounded-lg p-6 shadow-sm">
+          {renderForm()}
+        </div>
       </div>
     </div>
   );
