@@ -5,19 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FaStar, FaStarHalf } from 'react-icons/fa';
 import api from "@/utils/api";
-
-interface Book {
-  id: number;
-  bookname: string;
-  showpic: string;
-  intro: string;
-  description: string;
-  pricesymbol: string;
-  price: number;
-  rating: number;
-  language: string;
-  formid: number;
-}
+import { BaseBook } from '@/types/book';
 
 const StarRating = ({ rating, reviews }: { rating: number; reviews?: number }) => {
   const fullStars = Math.floor(rating);
@@ -40,7 +28,7 @@ const StarRating = ({ rating, reviews }: { rating: number; reviews?: number }) =
 };
 
 export default function BooksPage() {
-  const [books, setBooks] = useState<Book[]>([]); // 动态书籍数据
+  const [books, setBooks] = useState<BaseBook[]>([]); // 动态书籍数据
   const [loading, setLoading] = useState<boolean>(true); // 加载状态
   const [error, setError] = useState<string | null>(null); // 错误状态
 
@@ -48,7 +36,7 @@ export default function BooksPage() {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const response = await api.get<Book[]>(`/books`);
+        const response = await api.get<BaseBook[]>(`/books`);
         // @ts-ignore - API response is correctly typed but TypeScript doesn't recognize it
         setBooks(response);
         setLoading(false);

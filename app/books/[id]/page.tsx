@@ -5,40 +5,25 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import api from "@/utils/api";
-
-interface Book {
-  id: string;
-  bookname: string;
-  description: string;
-  price: number;
-  showpic: string;
-  tags: string;
-}
-
-interface RecommendedBook {
-  id: string;
-  bookname: string;
-  showpic: string;
-  price: number;
-}
+import { DetailedBook, RecommendedBook } from '@/types/book';
 
 interface PagePic {
-  id: string;
+  id: number;
   pagenum: number;
   pagepic: string;
 }
 
 interface ApiResponse {
-    book: Book;
-    recommendedBooks: RecommendedBook[];
-    pagepics: PagePic[];
+  book: DetailedBook;
+  recommendedBooks: RecommendedBook[];
+  pagepics: PagePic[];
 }
 
 const BookDetailPage = () => {
     const params = useParams();
     const id = params.id;
 
-    const [book, setBook] = useState<Book | null>(null);
+    const [book, setBook] = useState<DetailedBook | null>(null);
     const [recommendedBooks, setRecommendedBooks] = useState<RecommendedBook[]>([]);
     const [pagePics, setPagePics] = useState<PagePic[]>([]);
     const [loading, setLoading] = useState(true);
@@ -156,7 +141,7 @@ const BookDetailPage = () => {
                 
                 {/* 按钮部分 */}
                 <Link 
-                href={`/personalize?bookid=${id}&language=${selectedLanguage}`}
+                href={`/personalize?bookid=${book.id}&language=${selectedLanguage}`}
                 className="bg-black text-white py-4 px-6 rounded-lg hover:bg-gray-800 transition-colors text-base font-medium"
                 >
                 Personalize my book
