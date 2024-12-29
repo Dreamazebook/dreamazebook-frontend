@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaStar, FaStarHalf } from 'react-icons/fa';
-import axios from 'axios';
+import api from "@/utils/api";
 
 interface Book {
   id: number;
@@ -48,8 +48,9 @@ export default function BooksPage() {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/books');
-        setBooks(response.data);
+        const response = await api.get<Book[]>(`/books`);
+        // @ts-ignore - API response is correctly typed but TypeScript doesn't recognize it
+        setBooks(response);
         setLoading(false);
       } catch (err) {
         console.error('Failed to fetch books:', err);

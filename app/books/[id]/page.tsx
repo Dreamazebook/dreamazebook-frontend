@@ -1,8 +1,10 @@
 "use client";
+
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import Image from 'next/image';
+import Link from 'next/link';
+import api from "@/utils/api";
 
 interface Book {
   id: string;
@@ -26,9 +28,13 @@ interface PagePic {
   pagepic: string;
 }
 
-const BookDetailPage = () => {
-    axios.defaults.baseURL = 'http://127.0.0.1:8000';
+interface ApiResponse {
+    book: Book;
+    recommendedBooks: RecommendedBook[];
+    pagepics: PagePic[];
+}
 
+const BookDetailPage = () => {
     const params = useParams();
     const id = params.id;
 
@@ -36,17 +42,16 @@ const BookDetailPage = () => {
     const [recommendedBooks, setRecommendedBooks] = useState<RecommendedBook[]>([]);
     const [pagePics, setPagePics] = useState<PagePic[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedLanguage, setSelectedLanguage] = useState('English');
-
+    const [selectedLanguage, setSelectedLanguage] = useState('en');
     const [openFaq, setOpenFaq] = useState<number>(1);
 
     useEffect(() => {
         const fetchBookDetails = async () => {
             try {
-                const response = await axios.get(`/api/books/${id}`);
-                setBook(response.data.book);
-                setRecommendedBooks(response.data.recommendedBooks);
-                setPagePics(response.data.pagepics);
+                const response = await api.get(`/books/${id}`) as ApiResponse;
+                setBook(response.book);
+                setRecommendedBooks(response.recommendedBooks);
+                setPagePics(response.pagepics);
             } catch (error) {
                 console.error('Failed to fetch book details:', error);
             } finally {
@@ -136,8 +141,8 @@ const BookDetailPage = () => {
                     onChange={(e) => setSelectedLanguage(e.target.value)}
                     className="w-full p-4 border border-gray-200 rounded-lg text-gray-600 appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQgNkw4IDEwTDEyIDYiIHN0cm9rZT0iIzY2NjY2NiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==')] bg-no-repeat bg-[center_right_1rem]"
                 >
-                    <option value="English">English</option>
-                    <option value="中文">中文</option>
+                    <option value="en">English</option>
+                    <option value="zh">中文</option>
                 </select>
                 </div>
 
@@ -150,9 +155,12 @@ const BookDetailPage = () => {
                 </div>
                 
                 {/* 按钮部分 */}
-                <button className="bg-black text-white py-4 px-6 rounded-lg hover:bg-gray-800 transition-colors text-base font-medium">
-                    Personalize my book
-                </button>
+                <Link 
+                href={`/personalize?bookid=${id}&language=${selectedLanguage}`}
+                className="bg-black text-white py-4 px-6 rounded-lg hover:bg-gray-800 transition-colors text-base font-medium"
+                >
+                Personalize my book
+                </Link>
                 </div>
 
                 {/* FAQ 部分 */}
