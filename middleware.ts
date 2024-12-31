@@ -1,9 +1,12 @@
 import createMiddleware from 'next-intl/middleware';
-import {routing} from './i18n/routing';
  
-export default createMiddleware(routing);
+export default createMiddleware({
+  // 配置支持的语言
+  locales: ['en', 'zh'],
+  defaultLocale: 'en'
+});
  
 export const config = {
-  // Match only internationalized pathnames
-  matcher: ['/', '/(fr|en)/:path*']
+  // 匹配所有路径
+  matcher: ['/((?!api|_next|.*\\..*).*)']
 };

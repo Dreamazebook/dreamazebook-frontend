@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { FaStar, FaStarHalf } from 'react-icons/fa';
 import api from "@/utils/api";
 import { BaseBook } from '@/types/book';
+import { useLocale } from 'next-intl';
 
 const StarRating = ({ rating, reviews }: { rating: number; reviews?: number }) => {
   const fullStars = Math.floor(rating);
@@ -28,6 +29,7 @@ const StarRating = ({ rating, reviews }: { rating: number; reviews?: number }) =
 };
 
 export default function BooksPage() {
+  const locale = useLocale();
   const [books, setBooks] = useState<BaseBook[]>([]); // 动态书籍数据
   const [loading, setLoading] = useState<boolean>(true); // 加载状态
   const [error, setError] = useState<string | null>(null); // 错误状态
@@ -82,7 +84,7 @@ export default function BooksPage() {
         {/* Books Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
           {books.map((book) => (
-            <Link href={`/books/${book.id}`} key={book.id} className="flex flex-col group">
+            <Link href={`/${locale}/books/${book.id}`} key={book.id} className="flex flex-col group">
               <div className="relative aspect-[3/4] mb-2">
                 <Image
                   src={book.showpic}

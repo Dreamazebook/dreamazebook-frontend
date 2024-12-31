@@ -17,6 +17,11 @@ interface ApiResponse {
   book: DetailedBook;
   recommendedBooks: RecommendedBook[];
   pagepics: PagePic[];
+  tags: string[];
+}
+
+interface Tag {
+  tname: string;
 }
 
 const BookDetailPage = () => {
@@ -26,6 +31,7 @@ const BookDetailPage = () => {
     const [book, setBook] = useState<DetailedBook | null>(null);
     const [recommendedBooks, setRecommendedBooks] = useState<RecommendedBook[]>([]);
     const [pagePics, setPagePics] = useState<PagePic[]>([]);
+    const [tags, setTags] = useState<Tag[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedLanguage, setSelectedLanguage] = useState('en');
     const [openFaq, setOpenFaq] = useState<number>(1);
@@ -37,6 +43,7 @@ const BookDetailPage = () => {
                 setBook(response.book);
                 setRecommendedBooks(response.recommendedBooks);
                 setPagePics(response.pagepics);
+                setTags(response.tags.map(tag => ({ tname: tag })));
             } catch (error) {
                 console.error('Failed to fetch book details:', error);
             } finally {
@@ -91,9 +98,9 @@ const BookDetailPage = () => {
                         ))}
                     </div>
                     {/* 标签 */}
-                    {book.tags && book.tags.split(',').map((tag, index) => (
+                    {tags && tags.map((tag, index) => (
                         <span key={index} className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded">
-                            {tag.trim()}
+                            {tag.tname}
                         </span>
                     ))}
                 </div>
