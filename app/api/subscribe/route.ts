@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
 
   // Basic validation
   if (!email || !validateEmail(email)) {
-    return new Response("Invalid email", { status: 400 });
+    return Response.json({msg: "Invalid Email"},{status:400});
   }
 
   try {

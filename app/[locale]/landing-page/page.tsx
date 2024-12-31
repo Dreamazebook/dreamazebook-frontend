@@ -87,7 +87,7 @@ export default function LandingPage() {
               <p className='py-4'>At Dreamaze, professional writers weave heartfelt, inspiring stories, and talented illustrators bring to life enchanting worlds of magic and wonder. With a touch of AI magic, we create seamless, one-of-a-kind personalized books, crafted just for you. Here, every reader is truly seen, valud, and joyfulling celebrated.</p>
               
               <form className="flex justify-between gap-4" onSubmit={handleSubmit}>
-                <input type="text" name="email" placeholder='example@gmail.com' className='w-1/2 p-1' />
+                <input required type="email" name="email" placeholder='example@gmail.com' className='w-1/2 p-1' />
                 <button className='bg-landing-page-btn text-white p-1 uppercase w-1/2'>reserve launch invite</button>
               </form>
               {responseMessage && <p className="text-green-600 bg-green-100 p-4 rounded-md mt-4">{responseMessage}</p>}
