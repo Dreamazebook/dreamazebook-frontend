@@ -147,7 +147,7 @@ const SingleCharacterForm1 = () => {
   const [formData, setFormData] = useState<PersonalizeFormData>({
     fullName: '',
     gender: 'girl',
-    skinColor: '#FFEFEF',
+    skinColor: '#FFE2CF',
     photo: null
   });
   const [isDragging, setIsDragging] = useState(false);
@@ -392,7 +392,11 @@ const SingleCharacterForm1 = () => {
                 style={{ 
                   backgroundColor: color.value,
                   ...(formData.skinColor === color.value ? {
-                    boxShadow: `0 0 0 3px ${color.value}50`
+                    boxShadow: `0 0 0 3px ${
+                      color.label === 'Fair' 
+                        ? '#FFCDAC'
+                        : color.value + '80'  // 添加 80 作为 50% 透明度
+                    }`
                   } : {})
                 }}
                 onClick={() => setFormData(prev => ({ ...prev, skinColor: color.value }))}
