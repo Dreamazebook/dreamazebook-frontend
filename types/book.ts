@@ -13,6 +13,7 @@ export interface BaseBook {
 
 // 带有详细信息的 Book 接口
 export interface DetailedBook extends BaseBook {
+  reviews_count: number;
   description: string;
   tags: string;
 }
