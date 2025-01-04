@@ -28,10 +28,10 @@ export default function HomePage() {
         <section className='flex flex-wrap'>
           {[1,2,3,4,5].map((item, index) => (
             <article key={index} className="w-1/2 md:w-1/2 lg:w-1/3 p-4">
-              <div className="relative w-full h-[91px]">
-                <Image src="/home-page/hero-cover.png" alt="hero-cover" className="object-cover" fill />
+              <div className="relative w-[71px] h-[91px] mx-auto">
+                <Image src="/book.png" alt="hero-cover" className="object-cover" fill />
               </div>
-              <h3 className="text-xl font-bold">Where Are You? Save the Multiverse!</h3>
+              <h3 className="text-xl font-semibold">Where Are You? Save the Multiverse!</h3>
               <p className="text-gray-600">A search-and-find adventure for 1–3 kids</p>
               <button className="bg-black text-white px-4 py-2 rounded-md w-full">Personalize</button>
             </article>
@@ -55,7 +55,9 @@ export default function HomePage() {
           <div className='p-4'>
             <h3>Personalized stickers</h3>
             <a>View More</a>
-            <div>Image</div>
+            <div className='relative w-full h-[145px]'>
+              <Image src="/home-page/personalize-stickers.png" alt="hero-cover" className="object-cover" fill />
+            </div>
           </div>
 
           <div>
@@ -63,12 +65,16 @@ export default function HomePage() {
               <div className='p-4'>
                 <h3>Gift package</h3>
                 <a>View More</a>
-                <div>Image</div>
+                <div className='relative w-full h-[145px]'>
+                  <Image src="/home-page/gift-package.png" alt="hero-cover" className="object-cover" fill />
+                </div>
               </div>
               <div className='p-4'>
                 <h3>Envelopes and writting paper</h3>
                 <a>View More</a>
-                <div>Image</div>
+                <div className='relative w-full h-[145px]'>
+                  <Image src="/home-page/envelopes.png" alt="hero-cover" className="object-cover" fill />
+                </div>
               </div>
             </div>
 
@@ -78,11 +84,37 @@ export default function HomePage() {
                 <a>View More</a>
               </div>
               <div className='p-4'>
-                <div>Image</div>
+                <div className='relative w-full h-[145px]'>
+                  <Image src="/home-page/postcard.png" alt="hero-cover" className="object-cover" fill />
+                </div>
               </div>
             </div>
           </div>
         </section>
+      </section>
+
+      <section className="p-5 bg-black text-white">
+        <h2 className="text-2xl text-center pb-4">Three Steps To Create A Lasting Memorial</h2>
+        <div className="flex flex-col md:flex-row gap-4">
+          {[1,2,3].map((item,index)=>(
+            <div className="px-4 w-full md:w-1/3 border-l border-gray-500" key={index}>
+              <h3>Find a book they’ll love</h3>
+              <p>texttexttexttexttexttexttexttext</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="pt-4">
+        <h2 className="text-2xl text-center">Frequently Asked Questions</h2>
+        <ul className="p-4">
+          {[1].map((item, index) => (
+            <li className="py-3 border-b border-black" key={index}>
+              <h3 className='font-bold'>{'0' + item} Where Are You? Save the Multiverse!</h3>
+              <p>We pour hours of care into making every book – to help you show the people who matter just how much they mean to you.We pour hours of care into making every book – to help you show the people who matter just how much they mean to you.</p>
+            </li>
+          ))}
+        </ul>
       </section>
     </main>
   );
