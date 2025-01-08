@@ -1,4 +1,4 @@
-name: Deploy to aws
+name: Deploy Dreamazebook Frontend to aws
  
 on:
   push:
