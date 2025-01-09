@@ -40,7 +40,7 @@ const Header = () => {
           className="text-lg relative" 
           href="/categories/1"
         >
-          Mother's Day
+          Mother&apos;s Day
           {pathname?.includes('/categories/1') && <UnderlineIcon />}
         </Link>
         <Link 

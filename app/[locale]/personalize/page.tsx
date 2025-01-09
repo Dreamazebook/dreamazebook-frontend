@@ -21,13 +21,13 @@ interface PersonalizeFormData {
 export default function PersonalizePage() {
   const searchParams = useSearchParams();
   const bookId = searchParams.get('bookid');
-  const language = searchParams.get('language');
+  //const language = searchParams.get('language');
 
   const [showModal, setShowModal] = useState(false);
   const [book, setBook] = useState<BaseBook | null>(null);
   const [selectedFormType, setSelectedFormType] = useState<'SINGLE' | 'DOUBLE' | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);  // 添加错误状态
+  //const [error, setError] = useState<string | null>(null);  // 添加错误状态
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -347,7 +347,7 @@ const SingleCharacterForm1 = () => {
                 name="gender"
                 value="boy"
                 checked={formData.gender === 'boy'}
-                onChange={(e) => setFormData(prev => ({ ...prev, gender: 'boy' }))}
+                //onChange={(e) => setFormData(prev => ({ ...prev, gender: 'boy' }))}
                 className="hidden"
               />
               <div className={`w-6 h-6 rounded-full border-2 mr-2 flex items-center justify-center
@@ -364,7 +364,7 @@ const SingleCharacterForm1 = () => {
                 name="gender"
                 value="girl"
                 checked={formData.gender === 'girl'}
-                onChange={(e) => setFormData(prev => ({ ...prev, gender: 'girl' }))}
+                //onChange={(e) => setFormData(prev => ({ ...prev, gender: 'girl' }))}
                 className="hidden"
               />
               <div className={`w-6 h-6 rounded-full border-2 mr-2 flex items-center justify-center
@@ -459,15 +459,6 @@ const SingleCharacterForm1 = () => {
   );
 };
 
-const SingleCharacterForm2 = () => {
-  // 表单类型 2 的实现
-  return (
-    <div>
-      <h1>Single Character Form Type 2</h1>
-      {/* 表单内容 */}
-    </div>
-  );
-};
 
 const DoubleCharacterForm = () => {
   // 双人表单的实现

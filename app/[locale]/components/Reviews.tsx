@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import Image from "next/image";
+import React from "react";
+//import Image from "next/image";
 import { DetailedBook } from "@/types/book";
 
 // 定义关键词的类型
@@ -24,13 +24,13 @@ interface ReviewsSectionProps {
   reviews: Review[]; // 评论数组
 }
 
-const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews }) => {
-  const [currentReviewIndex, setCurrentReviewIndex] = useState(0); // 当前展示的评论索引
+const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords }) => {
+  //const [currentReviewIndex, setCurrentReviewIndex] = useState(0); // 当前展示的评论索引
 
   // 翻页函数，用于切换评论
-  const handlePageChange = (index: number) => {
-    setCurrentReviewIndex(index);
-  };
+  // const handlePageChange = (index: number) => {
+    //setCurrentReviewIndex(index);
+  //};
 
   return (
     <div className="py-12">

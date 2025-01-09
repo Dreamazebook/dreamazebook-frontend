@@ -39,7 +39,6 @@ export default function BooksPage() {
     const fetchBooks = async () => {
       try {
         const response = await api.get<BaseBook[]>(`/books`);
-        // @ts-ignore - API response is correctly typed but TypeScript doesn't recognize it
         setBooks(response);
         setLoading(false);
       } catch (err) {

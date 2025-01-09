@@ -44,7 +44,7 @@ const BookDetailPage = () => {
   const id = params.id;
 
   const [book, setBook] = useState<DetailedBook | null>(null);
-  const [recommendedBooks, setRecommendedBooks] = useState<RecommendedBook[]>([]);
+  //const [recommendedBooks, setRecommendedBooks] = useState<RecommendedBook[]>([]);
   const [pagePics, setPagePics] = useState<PagePic[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -58,7 +58,7 @@ const BookDetailPage = () => {
       try {
         const response = await api.get(`/books/${id}`) as ApiResponse;
         setBook(response.book);
-        setRecommendedBooks(response.recommendedBooks);
+        //setRecommendedBooks(response.recommendedBooks);
         setPagePics(response.pagepics);
         setTags(response.tags.map(tag => ({ tname: tag })));
         setReviews(response.reviews);
