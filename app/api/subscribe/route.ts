@@ -1,6 +1,7 @@
 import { type NextRequest } from 'next/server'
 
 const ACCESS_TOKEN = process.env.HUBSPOT_ACCESS_TOKEN;
+console.log(ACCESS_TOKEN);
 
 export async function POST(request: NextRequest) {
   const { email } = await request.json();
@@ -28,18 +29,17 @@ export async function POST(request: NextRequest) {
     );
 
     if (!response.ok) {
+      console.error(response);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
     console.log("Subscription successful:", data);
+    return Response.json({msg: "Subscription successful"},{status:200});
   } catch (error) {
     console.error("Error subscribing email:", error);
+    return Response.json({msg: "Error subscribing email"},{status:500});
   }
-
-  // Here you would add your logic to handle the subscription, e.g., saving to a database
-
-  return Response.json({msg: "Subscription successful"},{status:200});
 }
 
 // Utility function to validate email format

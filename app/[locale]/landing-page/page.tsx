@@ -18,9 +18,14 @@ const CHILD_NAMES: ChildName[] = [
 export default function LandingPage() {
 
   const [responseMessage, setResponseMessage] = useState('');
+  const [isError, setIsError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsLoading(true);
+    setIsError(false);
+    setResponseMessage('');
     const form = event.currentTarget;
     const emailInput = (form.elements.namedItem('email') as HTMLInputElement).value;
 
@@ -36,15 +41,21 @@ export default function LandingPage() {
         }
       );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
       const data = await response.json();
       
+      if (!response.ok) {
+        setIsError(true);
+        setResponseMessage(data.error || 'An error occurred. Please try again.');
+        return;
+      }
+
       setResponseMessage(data.msg);
     } catch (error) {
       console.error("Error subscribing email:", error);
+      setIsError(true);
+      setResponseMessage('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -88,9 +99,26 @@ export default function LandingPage() {
               
               <form className="flex justify-between gap-4" onSubmit={handleSubmit}>
                 <input required type="email" name="email" placeholder='example@gmail.com' className='w-1/2 p-1' />
-                <button className='bg-landing-page-btn text-white p-1 uppercase w-1/2'>reserve launch invite</button>
+                <button 
+                  disabled={isLoading}
+                  className='bg-landing-page-btn text-white p-1 uppercase w-1/2 disabled:opacity-50 flex justify-center items-center'
+                >
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    'reserve launch invite'
+                  )}
+                </button>
               </form>
-              {responseMessage && <p className="text-green-600 bg-green-100 p-4 rounded-md mt-4">{responseMessage}</p>}
+              {responseMessage && (
+                <p className={`p-4 rounded-md mt-4 ${
+                  isError 
+                    ? 'text-red-600 bg-red-100' 
+                    : 'text-green-600 bg-green-100'
+                }`}>
+                  {responseMessage}
+                </p>
+              )}
             </div>
           </div>
         </div>
