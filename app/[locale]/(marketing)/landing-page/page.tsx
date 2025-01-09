@@ -90,18 +90,27 @@ export default function LandingPage() {
         <div className='bg-landing-page p-4 md:bg-transparent z-1 relative md:w-3/5'>
           <div className='md:flex md:flex-col-reverse'>
             <div className='flex justify-between md:mt-20'>
-              {['Perfect for all age','Worldwide shipping','Eco friendly baby safe'].map((world)=>
-                (<h4 key={world} className=''>{world}</h4>)
-              )}
+              {['Perfect for all ages', 'Worldwide shipping', 'Eco friendly & baby safe'].map((feature) => (
+                <h4 key={feature} className='text-sm md:text-base font-medium'>{feature}</h4>
+              ))}
             </div>
             <div className=''>
-              <p className='py-4'>At Dreamaze, professional writers weave heartfelt, inspiring stories, and talented illustrators bring to life enchanting worlds of magic and wonder. With a touch of AI magic, we create seamless, one-of-a-kind personalized books, crafted just for you. Here, every reader is truly seen, valud, and joyfulling celebrated.</p>
+              <p className='py-4'>
+                At Dreamaze, professional writers weave heartfelt, inspiring stories, and talented illustrators bring to life enchanting worlds of magic and wonder. With a touch of AI magic, we create seamless, one-of-a-kind personalized books, crafted just for you. Here, every reader is truly seen, valued, and joyfully celebrated.
+              </p>
               
               <form className="flex justify-between gap-4" onSubmit={handleSubmit}>
-                <input required type="email" name="email" placeholder='example@gmail.com' className='w-1/2 p-1' />
+                <input 
+                  required 
+                  type="email" 
+                  name="email" 
+                  placeholder='example@gmail.com' 
+                  className='w-1/2 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
+                  aria-label="Email address"
+                />
                 <button 
                   disabled={isLoading}
-                  className='bg-landing-page-btn text-white p-1 uppercase w-1/2 disabled:opacity-50 flex justify-center items-center'
+                  className='bg-landing-page-btn text-white px-4 py-2 rounded uppercase w-1/2 disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center'
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
