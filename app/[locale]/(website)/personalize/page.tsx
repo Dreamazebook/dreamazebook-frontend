@@ -308,6 +308,10 @@ const SingleCharacterForm1 = () => {
     );
   };
 
+  const handleGenderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, gender: event.target.value as 'boy' | 'girl' }));
+  };
+
   return (
     <form className="space-y-6">
       <div className="flex justify-center mb-6">
@@ -347,7 +351,7 @@ const SingleCharacterForm1 = () => {
                 name="gender"
                 value="boy"
                 checked={formData.gender === 'boy'}
-                //onChange={(e) => setFormData(prev => ({ ...prev, gender: 'boy' }))}
+                onChange={handleGenderChange}
                 className="hidden"
               />
               <div className={`w-6 h-6 rounded-full border-2 mr-2 flex items-center justify-center
@@ -364,7 +368,7 @@ const SingleCharacterForm1 = () => {
                 name="gender"
                 value="girl"
                 checked={formData.gender === 'girl'}
-                //onChange={(e) => setFormData(prev => ({ ...prev, gender: 'girl' }))}
+                onChange={handleGenderChange}
                 className="hidden"
               />
               <div className={`w-6 h-6 rounded-full border-2 mr-2 flex items-center justify-center
