@@ -1,7 +1,6 @@
 import { type NextRequest } from 'next/server'
 
 const ACCESS_TOKEN = process.env.HUBSPOT_ACCESS_TOKEN;
-console.log(ACCESS_TOKEN);
 
 export async function POST(request: NextRequest) {
   const { email } = await request.json();
@@ -9,6 +8,10 @@ export async function POST(request: NextRequest) {
   // Basic validation
   if (!email || !validateEmail(email)) {
     return Response.json({msg: "Invalid Email"},{status:400});
+  }
+
+  if (!ACCESS_TOKEN) {
+    return Response.json({msg:"Error subscribing email", code:'MISSING_TOKEN'}, {status: 500});
   }
 
   try {
