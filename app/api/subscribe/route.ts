@@ -10,6 +10,10 @@ export async function POST(request: NextRequest) {
     return Response.json({msg: "Invalid Email"},{status:400});
   }
 
+  if (!ACCESS_TOKEN) {
+    return Response.json({msg:"Error subscribing email", code:'MISSING_TOKEN'}, {status: 500});
+  }
+
   try {
     const response = await fetch(
       "https://api.hubapi.com/crm/v3/objects/contacts",
