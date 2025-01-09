@@ -60,7 +60,7 @@ export default function LandingPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="bg-white">
       <div className='relative md:p-10'>
         <div className='hidden md:block absolute top-0 left-0 w-full h-full -z-1'>
           <Image
