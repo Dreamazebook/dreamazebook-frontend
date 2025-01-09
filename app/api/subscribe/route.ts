@@ -1,7 +1,6 @@
 import { type NextRequest } from 'next/server'
 
 const ACCESS_TOKEN = process.env.HUBSPOT_ACCESS_TOKEN;
-console.log(ACCESS_TOKEN);
 
 export async function POST(request: NextRequest) {
   const { email } = await request.json();
