@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       console.error(response);
-      throw new Error(`HTTP error! status: ${response.status}`);
+      return Response.json({msg: `Error subscribing email ${response.statusText}`},{status:response.status});
     }
 
     const data = await response.json();
