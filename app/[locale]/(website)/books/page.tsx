@@ -1,70 +1,12 @@
+"use client";
+
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { FaStar, FaStarHalf } from 'react-icons/fa';
-
-interface Book {
-  id: number;
-  title: string;
-  author: string;
-  price: number;
-  rating: number;
-  coverImage: string;
-  isPreorder?: boolean;
-  reviews?: number;
-  categories: string[];
-}
-
-const books: Book[] = [
-  {
-    id: 1,
-    title: "Where the Sun Sets Like Red Paint",
-    author: "Author Name",
-    price: 19.99,
-    rating: 4.5,
-    reviews: 12,
-    coverImage: "/book.png",
-    categories: ["Fiction", "Contemporary"]
-  },
-  {
-    id: 2,
-    title: "The Last Journey",
-    author: "Writer Smith",
-    price: 24.99,
-    rating: 5,
-    reviews: 8,
-    coverImage: "/book.png",
-    categories: ["Adventure", "Fiction"]
-  },
-  {
-    id: 3,
-    title: "Letters from Yesterday",
-    author: "Jane Wordsworth",
-    price: 15.99,
-    rating: 4,
-    reviews: 15,
-    coverImage: "/book.png",
-    categories: ["Romance", "Historical"]
-  },
-  {
-    id: 4,
-    title: "Ocean's Memory",
-    author: "Mark Waters",
-    price: 21.99,
-    rating: 4.5,
-    reviews: 6,
-    coverImage: "/book.png",
-    categories: ["Mystery", "Thriller"]
-  },
-  {
-    id: 5,
-    title: "The Silent Echo",
-    author: "Sarah Winters",
-    price: 18.99,
-    rating: 4,
-    reviews: 9,
-    coverImage: "/book.png",
-    categories: ["Science Fiction", "Mystery"]
-  }
-];
+import api from "@/utils/api";
+import { BaseBook } from '@/types/book';
+import { useLocale } from 'next-intl';
 
 const StarRating = ({ rating, reviews }: { rating: number; reviews?: number }) => {
   const fullStars = Math.floor(rating);
@@ -87,6 +29,37 @@ const StarRating = ({ rating, reviews }: { rating: number; reviews?: number }) =
 };
 
 export default function BooksPage() {
+  const locale = useLocale();
+  const [books, setBooks] = useState<BaseBook[]>([]); // 动态书籍数据
+  const [loading, setLoading] = useState<boolean>(true); // 加载状态
+  const [error, setError] = useState<string | null>(null); // 错误状态
+
+  // 从后端获取书籍数据
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const response = await api.get<BaseBook[]>(`/books`);
+        setBooks(response);
+        setLoading(false);
+      } catch (err) {
+        console.error('Failed to fetch books:', err);
+        setError('Failed to load books. Please try again later.');
+        setLoading(false);
+      }
+    };
+
+    fetchBooks();
+  }, []);
+
+  // 如果在加载中，显示加载提示
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  // 如果加载失败，显示错误提示
+  if (error) {
+    return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -110,23 +83,23 @@ export default function BooksPage() {
         {/* Books Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
           {books.map((book) => (
-            <div key={book.id} className="flex flex-col">
+            <Link href={`/${locale}/books/${book.id}`} key={book.id} className="flex flex-col group">
               <div className="relative aspect-[3/4] mb-2">
                 <Image
-                  src={book.coverImage}
-                  alt={book.title}
+                  src={book.showpic}
+                  alt={book.bookname}
                   fill
                   className="object-cover rounded-sm"
                 />
               </div>
-              <h3 className="text-xs font-medium mb-1 line-clamp-2">{book.title}</h3>
-              <p className="text-xs text-gray-600 mb-1">{book.author}</p>
-              <StarRating rating={book.rating} reviews={book.reviews} />
+              <h3 className="text-xs font-medium mb-1 line-clamp-2">{book.bookname}</h3>
+              {/* <p className="text-xs text-gray-600 mb-1">{book.author}</p>
+              <StarRating rating={book.rating} reviews={book.reviews} /> */}
               <p className="text-xs font-medium mt-1">${book.price.toFixed(2)}</p>
-              <button className="mt-2 bg-black text-white px-3 py-1 rounded text-xs">
-                Add to cart
-              </button>
-            </div>
+              <span className="mt-2 bg-black text-white px-3 py-1 rounded text-xs">
+                Personalize
+              </span>
+            </Link>
           ))}
           {/* Pre-order placeholder */}
           <div className="flex flex-col">
