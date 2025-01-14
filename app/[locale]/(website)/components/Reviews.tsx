@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState }from "react";
 //import Image from "next/image";
 import { DetailedBook } from "@/types/book";
 
@@ -10,10 +10,10 @@ interface Keyword {
 
 // 定义评论的类型
 interface Review {
-  reviewerName: string;
+  reviewer_name: string;
   rating: number;
   comment: string; // 评论内容
-  reviewDate: string; // 评论日期
+  review_date: string; // 评论日期
   pagepic?: string; // 用户图片，可能是可选的
 }
 
@@ -24,13 +24,13 @@ interface ReviewsSectionProps {
   reviews: Review[]; // 评论数组
 }
 
-const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords }) => {
-  //const [currentReviewIndex, setCurrentReviewIndex] = useState(0); // 当前展示的评论索引
+const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews }) => {
+  const [currentReviewIndex, setCurrentReviewIndex] = useState(0); // 当前展示的评论索引
 
   // 翻页函数，用于切换评论
-  // const handlePageChange = (index: number) => {
-    //setCurrentReviewIndex(index);
-  //};
+  const handleUserClick = (index: number) => {
+    setCurrentReviewIndex(index);
+  };
 
   return (
     <div className="py-12">
@@ -76,6 +76,88 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords }) => {
           ))}
         </div>
       </div>
+      
+      {/* 评论区域 */}
+      <div
+        className="flex flex-col mx-auto bg-[#F7F2EC] overflow-hidden"
+        style={{
+          width: "1440px", // 填充整个宽度
+          height: "551px", // 高度固定为 551px
+          padding: "64px 120px", // 内边距设置为上下 64px，左右 120px
+          gap: "48px", // 子元素间距为 48px
+          marginTop: "48px", // 设置评论区顶部与上方部件的距离
+        }}
+      >
+        {/* 评论卡片 */}
+        <div className="flex bg-white rounded-lg shadow-md overflow-hidden">
+          {/* 左侧：当前用户名 */}
+          <div className="w-1/12 bg-[#F5E3E3] flex items-center justify-center">
+            <div className="transform rotate-90 text-sm font-bold text-gray-700">
+              {reviews[currentReviewIndex].reviewer_name}
+            </div>
+          </div>
+
+          {/* 中间部分：评论内容 */}
+          <div className="w-10/12 p-6">
+            <p className="text-xl font-semibold mb-4">
+              {`"${reviews[currentReviewIndex].comment}"`}
+            </p>
+            <div className="flex items-center mb-2">
+              <div className="flex">
+                {[...Array(5)].map((_, index) => (
+                  <svg
+                    key={index}
+                    className={`w-6 h-6 ${
+                      index < reviews[currentReviewIndex].rating ? "text-yellow-500" : "text-gray-300"
+                    }`}
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+              <span className="ml-4 text-sm text-gray-500">
+                {reviews[currentReviewIndex].review_date}
+              </span>
+            </div>
+            <p className="text-sm text-gray-500">
+              {reviews[currentReviewIndex].reviewer_name}
+            </p>
+          </div>
+
+          {/* 右侧：用户名索引 */}
+          <div className="w-1/12 bg-[#F5E3E3] flex items-start justify-center">
+            {reviews.map((review, index) => (
+              <React.Fragment key={index}>
+                {/* 用户名按钮 */}
+                <button
+                  className={`text-sm text-gray-700 ${
+                    index === currentReviewIndex ? "font-bold text-black" : ""
+                  }`}
+                  onClick={() => handleUserClick(index)}
+                  style={{
+                    writingMode: "vertical-rl", // 垂直文字排列
+                  }}
+                >
+                  {review.reviewer_name}
+                </button>
+                {/* 分割线 */}
+                {index < reviews.length - 1 && (
+                  <div
+                    className="bg-black"
+                    style={{
+                      width: "1px", // 分割线宽度
+                      height: "100%", // 分割线高度
+                      alignSelf: "stretch", // 强制拉伸以填满父容器
+                    }}
+                  />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      </div> 
     </div>
   );
 };
