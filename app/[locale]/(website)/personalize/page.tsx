@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import api from '@/utils/api';
 import { BaseBook } from '@/types/book';
-import { FaQuestionCircle, FaCheck } from 'react-icons/fa';
+import { FaQuestionCircle, FaCheck, FaRegTrashAlt } from 'react-icons/fa';
 
 // 定义表单数据接口
 interface PersonalizeFormData {
@@ -154,6 +154,19 @@ const SingleCharacterForm1 = () => {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    if (imageUrl) {
+      const img: HTMLImageElement = document.createElement('img');
+      img.src = imageUrl;
+      
+      img.onload = () => {
+        setImageSize({ width: img.width, height: img.height });
+      };
+    }
+  }, [imageUrl]);
 
   const skinColors = [
     { value: '#FFE2CF', label: 'Fair' },
@@ -202,7 +215,9 @@ const SingleCharacterForm1 = () => {
 
     xhr.addEventListener('load', () => {
       setIsUploading(false);
-      // 处理上传成功
+      // 上传成功后返回的 URL
+      const uploadedImageUrl = URL.createObjectURL(file);
+      setImageUrl(uploadedImageUrl);
     });
 
     xhr.addEventListener('error', () => {
@@ -310,6 +325,11 @@ const SingleCharacterForm1 = () => {
 
   const handleGenderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, gender: event.target.value as 'boy' | 'girl' }));
+  };
+
+  const handleDeleteImage = () => {
+    setImageUrl(null);
+    setFormData(prev => ({ ...prev, photo: null }));
   };
 
   return (
@@ -439,7 +459,7 @@ const SingleCharacterForm1 = () => {
         </ul>
         
         <div
-          className={`rounded-md p-8 text-center transition-colors h-[200px] flex flex-col items-center justify-center ${
+          className={`rounded-md p-8 text-center transition-colors min-h-[200px] flex flex-col items-center justify-center relative ${
             isDragging ? 'border border-[#012CCE]' : 'bg-gray-50'
           }`}
           onDragEnter={handleDragEnter}
@@ -447,18 +467,50 @@ const SingleCharacterForm1 = () => {
           onDragOver={handleDragOver}
           onDrop={handleDrop}
         >
-          <div className="h-full w-full flex flex-col items-center justify-center">
-            {renderUploadContent()}
-          </div>
+          {imageUrl ? (
+            <>
+              <div
+                className="relative bg-gray-100 rounded overflow-hidden"
+                style={{
+                  maxHeight: '168px',
+                  width: imageSize.width
+                    ? `${(Math.min(168, imageSize.height) * imageSize.width) / imageSize.height}px`
+                    : 'auto',
+                }}
+              >
+                {imageSize.width > 0 && imageSize.height > 0 ? (
+                  <Image
+                    src={imageUrl}
+                    alt="Uploaded preview"
+                    width={imageSize.width}
+                    height={imageSize.height}
+                    layout="responsive"
+                    className="rounded"
+                  />
+                ) : (
+                  <p>Loading...</p>
+                )}
+              </div>
+              <button
+                onClick={handleDeleteImage}
+                className="absolute top-2 right-2 bg-white rounded p-2 shadow-md z-10"
+              >
+                <FaRegTrashAlt className="text-gray-500 w-6 h-6" />
+              </button>
+            </>
+          ) : (
+            renderUploadContent()
+          )}
         </div>
-          <input
-            id="file-upload"
-            type="file"
-            className="hidden"
-            accept="image/*"
-            onChange={handleFileUpload}
-          />
-        </div>
+
+        <input
+          id="file-upload"
+          type="file"
+          className="hidden"
+          accept="image/*"
+          onChange={handleFileUpload}
+        />
+      </div>
     </form>
   );
 };
