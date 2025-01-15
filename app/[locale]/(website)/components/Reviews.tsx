@@ -89,7 +89,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
         }}
       >
         {/* 评论卡片 */}
-        <div className="flex bg-white rounded-lg shadow-md overflow-hidden h-full">
+        <div className="flex bg-white overflow-hidden h-full">
           {/* 左侧：当前用户名 */}
           <div className="w-12 bg-[#F5E3E3] flex items-center justify-center">
             <div
