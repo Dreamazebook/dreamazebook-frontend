@@ -89,16 +89,24 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
         }}
       >
         {/* 评论卡片 */}
-        <div className="flex bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="flex bg-white rounded-lg shadow-md overflow-hidden h-full">
           {/* 左侧：当前用户名 */}
-          <div className="w-1/12 bg-[#F5E3E3] flex items-center justify-center">
-            <div className="transform rotate-90 text-sm font-bold text-gray-700">
+          <div className="w-12 bg-[#F5E3E3] flex items-center justify-center">
+            <div
+              className="text-sm font-bold text-gray-700 text-center"
+              style={{
+                width: "48px", // 固定宽度
+                transform: "rotate(-90deg)", // 将文字旋转
+                display: "flex", // 内部内容居中
+                justifyContent: "center",
+              }}
+            >
               {reviews[currentReviewIndex].reviewer_name}
             </div>
           </div>
 
           {/* 中间部分：评论内容 */}
-          <div className="w-10/12 p-6">
+          <div className="w-10/12 p-6 flex flex-col justify-center">
             <p className="text-xl font-semibold mb-4">
               {`"${reviews[currentReviewIndex].comment}"`}
             </p>
@@ -108,7 +116,9 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
                   <svg
                     key={index}
                     className={`w-6 h-6 ${
-                      index < reviews[currentReviewIndex].rating ? "text-yellow-500" : "text-gray-300"
+                      index < reviews[currentReviewIndex].rating
+                        ? "text-yellow-500"
+                        : "text-gray-300"
                     }`}
                     fill="currentColor"
                     viewBox="0 0 20 20"
@@ -127,37 +137,40 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
           </div>
 
           {/* 右侧：用户名索引 */}
-          <div className="w-1/12 bg-[#F5E3E3] flex items-start justify-center">
-            {reviews.map((review, index) => (
-              <React.Fragment key={index}>
-                {/* 用户名按钮 */}
-                <button
-                  className={`text-sm text-gray-700 ${
-                    index === currentReviewIndex ? "font-bold text-black" : ""
-                  }`}
-                  onClick={() => handleUserClick(index)}
-                  style={{
-                    writingMode: "vertical-rl", // 垂直文字排列
-                  }}
-                >
-                  {review.reviewer_name}
-                </button>
-                {/* 分割线 */}
-                {index < reviews.length - 1 && (
-                  <div
-                    className="bg-black"
+          <div className="w-48 bg-[#F5E3E3] flex justify-center items-center">
+            <div className="flex items-center h-full">
+              {reviews.map((review, index) => (
+                <React.Fragment key={index}>
+                  {/* 用户名按钮 */}
+                  <button
+                    className={`text-sm text-gray-700 ${
+                      index === currentReviewIndex ? "font-bold text-black" : ""
+                    }`}
+                    onClick={() => handleUserClick(index)}
                     style={{
-                      width: "1px", // 分割线宽度
-                      height: "100%", // 分割线高度
-                      alignSelf: "stretch", // 强制拉伸以填满父容器
+                      writingMode: "vertical-rl", // 垂直文字排列
+                      padding: "8px 0", // 控制上下方向的空白
+                      width: "48px",
                     }}
-                  />
-                )}
-              </React.Fragment>
-            ))}
+                  >
+                    {review.reviewer_name}
+                  </button>
+                  {/* 分割线 */}
+                  {index < reviews.length - 1 && (
+                    <div
+                      className="bg-black"
+                      style={{
+                        width: "1px", // 分割线宽度
+                        height: "100%", // 分割线高度
+                      }}
+                    />
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
           </div>
         </div>
-      </div> 
+      </div>
     </div>
   );
 };
