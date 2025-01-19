@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (!response.ok) {
-      console.error(response);
+      console.error(await response.json());
       return Response.json({msg: `Error subscribing email ${response.statusText}`},{status:response.status});
     }
 
