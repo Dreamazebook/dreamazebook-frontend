@@ -9,6 +9,9 @@ import { useSearchParams } from 'next/navigation';
 import api from '@/utils/api';
 import { BaseBook } from '@/types/book';
 import { FaQuestionCircle, FaCheck, FaRegTrashAlt } from 'react-icons/fa';
+import UploadArea from '../components/UploadArea'; // Import your UploadArea component here
+import useImageUpload from '../hooks/useImageUpload'; // Import your custom hook here
+
 
 // 定义表单数据接口
 interface PersonalizeFormData {
@@ -144,29 +147,26 @@ export default function PersonalizePage() {
 
 // 不同的表单组件
 const SingleCharacterForm1 = () => {
-  const [formData, setFormData] = useState<PersonalizeFormData>({
+  const [formData, setFormData] = React.useState<PersonalizeFormData>({
     fullName: '',
     gender: 'girl',
     skinColor: '#FFE2CF',
-    photo: null
+    photo: null,
   });
-  const [isDragging, setIsDragging] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
-  const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
 
-  useEffect(() => {
-    if (imageUrl) {
-      const img: HTMLImageElement = document.createElement('img');
-      img.src = imageUrl;
-      
-      img.onload = () => {
-        setImageSize({ width: img.width, height: img.height });
-      };
-    }
-  }, [imageUrl]);
+  const {
+    imageUrl,
+    isUploading,
+    uploadProgress,
+    error,
+    isDragging,
+    handleFileUpload,
+    handleDragEnter,
+    handleDragLeave,
+    handleDragOver,
+    handleDrop,
+    handleDeleteImage,
+  } = useImageUpload();
 
   const skinColors = [
     { value: '#FFE2CF', label: 'Fair' },
@@ -174,162 +174,12 @@ const SingleCharacterForm1 = () => {
     { value: '#665444', label: 'Dark' },
   ];
 
-  const validateFile = (file: File): boolean => {
-    // 检查文件类型
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-    if (!allowedTypes.includes(file.type)) {
-      setError('Please upload JPG or PNG files only');
-      return false;
-    }
-
-    // 检查文件大小 (2MB = 2 * 1024 * 1024 bytes)
-    const maxSize = 2 * 1024 * 1024;
-    if (file.size > maxSize) {
-      setError('Pictures cannot exceed 2M');
-      return false;
-    }
-
-    setError(null);
-    return true;
-  };
-
-  const handleUpload = async (file: File) => {
-    if (!validateFile(file)) {
-      return;
-    }
-
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const xhr = new XMLHttpRequest();
-
-    xhr.upload.addEventListener('progress', (event) => {
-      if (event.lengthComputable) {
-        const progress = Math.round((event.loaded / event.total) * 100);
-        setUploadProgress(progress);
-      }
-    });
-
-    xhr.addEventListener('load', () => {
-      setIsUploading(false);
-      // 上传成功后返回的 URL
-      const uploadedImageUrl = URL.createObjectURL(file);
-      setImageUrl(uploadedImageUrl);
-    });
-
-    xhr.addEventListener('error', () => {
-      setIsUploading(false);
-      // 处理上传失败
-    });
-
-    xhr.open('POST', '/api/upload');
-    xhr.send(formData);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      setFormData(prev => ({ ...prev, photo: file }));
-      handleUpload(file);
-    }
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      const file = event.target.files[0];
-      setFormData(prev => ({ ...prev, photo: file }));
-      handleUpload(file);
-    }
-  };
-
-  // 处理拖拽事件
-  const handleDragEnter = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // 只有当鼠标真正离开容器时才设置为 false
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX;
-    const y = e.clientY;
-    
-    if (
-      x <= rect.left ||
-      x >= rect.right ||
-      y <= rect.top ||
-      y >= rect.bottom
-    ) {
-      setIsDragging(false);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  // 在拖拽区域显示上传进度
-  const renderUploadContent = () => {
-    if (isUploading) {
-      return (
-        <div className="text-center w-full max-w-md mx-auto">
-          <div className="w-[80%] mx-auto h-1 bg-gray-200 rounded-full overflow-hidden mb-4">
-            <div 
-              className="h-full bg-[#012CCE] transition-all duration-00"
-              style={{ width: `${uploadProgress}%` }}
-            />
-          </div>
-          <p className="text-[#222222] text-lg">Uploading...</p>
-        </div>
-      );
-    }
-
-    if (isDragging) {
-      return (
-        <div className="h-full flex flex-col items-center justify-center">
-          <p className="text-[#012CCE] text-lg">Please loosen</p>
-        </div>
-      );
-    }
-
-    return (
-      <div>
-        <div className="space-y-1 mb-3">
-          <p className="text-[#222222]">Please drag the photo in</p>
-          <p className="text-[#222222]">or</p>
-          <button
-            type="button"
-            onClick={() => document.getElementById('file-upload')?.click()}
-            className="px-6 py-2 border border-[#222222] text-[#222222] rounded-md"
-          >
-            Browse Files
-          </button>
-        </div>
-        {error && (
-          <p className="text-red-500">{error}</p>
-        )}
-      </div>
-    );
-  };
-
   const handleGenderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, gender: event.target.value as 'boy' | 'girl' }));
+    setFormData((prev) => ({ ...prev, gender: event.target.value as 'boy' | 'girl' }));
   };
 
-  const handleDeleteImage = () => {
-    setImageUrl(null);
-    setFormData(prev => ({ ...prev, photo: null }));
+  const handleFullNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({ ...prev, fullName: event.target.value }));
   };
 
   return (
@@ -361,6 +211,7 @@ const SingleCharacterForm1 = () => {
         />
       </div>
 
+      {/* 性别选择 */}
       <div>
         <div className="flex items-center justify-between">
           <label className="font-[500]">Gender</label>
@@ -403,6 +254,8 @@ const SingleCharacterForm1 = () => {
         </div>
       </div>
 
+
+      {/* 皮肤颜色选择 */}
       <div>
         <div className="flex items-center justify-between">
           <label className="font-[500]">Skin color</label>
@@ -430,6 +283,7 @@ const SingleCharacterForm1 = () => {
         </div>
       </div>
 
+      {/* 图片上传区域 */}
       <div>
         <label className="block mb-2 flex items-center font-[500]">
           <span>Photo</span>
@@ -458,63 +312,31 @@ const SingleCharacterForm1 = () => {
           </div>
         </ul>
         
-        <div
-          className={`rounded-md p-8 text-center transition-colors min-h-[200px] flex flex-col items-center justify-center relative ${
-            isDragging ? 'border border-[#012CCE]' : 'bg-gray-50'
-          }`}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-        >
-          {imageUrl ? (
-            <>
-              <div
-                className="relative bg-gray-100 rounded overflow-hidden"
-                style={{
-                  maxHeight: '168px',
-                  width: imageSize.width
-                    ? `${(Math.min(168, imageSize.height) * imageSize.width) / imageSize.height}px`
-                    : 'auto',
-                }}
-              >
-                {imageSize.width > 0 && imageSize.height > 0 ? (
-                  <Image
-                    src={imageUrl}
-                    alt="Uploaded preview"
-                    width={imageSize.width}
-                    height={imageSize.height}
-                    layout="responsive"
-                    className="rounded"
-                  />
-                ) : (
-                  <p>Loading...</p>
-                )}
-              </div>
-              <button
-                onClick={handleDeleteImage}
-                className="absolute top-2 right-2 bg-white rounded p-2 shadow-md z-10"
-              >
-                <FaRegTrashAlt className="text-gray-500 w-6 h-6" />
-              </button>
-            </>
-          ) : (
-            renderUploadContent()
-          )}
+        <div>
+          {/* 图片上传区域 */}
+          <UploadArea
+            imageUrl={imageUrl}
+            isUploading={isUploading}
+            uploadProgress={uploadProgress}
+            error={error}
+            isDragging={isDragging}
+            handleDragEnter={handleDragEnter}
+            handleDragLeave={handleDragLeave}
+            handleDragOver={handleDragOver}
+            handleDrop={(e) => handleDrop(e, (file) => setFormData((prev) => ({ ...prev, photo: file })))}
+            handleFileUpload={(e) =>
+              handleFileUpload(e, (file) => setFormData((prev) => ({ ...prev, photo: file })))
+            }
+            handleDeleteImage={() => {
+              handleDeleteImage();
+              setFormData((prev) => ({ ...prev, photo: null }));
+            }}
+          />
         </div>
-
-        <input
-          id="file-upload"
-          type="file"
-          className="hidden"
-          accept="image/*"
-          onChange={handleFileUpload}
-        />
       </div>
     </form>
   );
 };
-
 
 const DoubleCharacterForm = () => {
   // 双人表单的实现
