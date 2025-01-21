@@ -120,7 +120,7 @@ export default function PersonalizePage() {
           </div>
         )}
 
-        <div className="max-w-[40%] mx-auto">
+        <div className="w-[95vw] sm:w-[60vw] md:w-[40%] mx-auto">
           {/* 标题 */}
           <h1 className="text-2xl text-center my-6">Please fill in the basic information</h1>
           

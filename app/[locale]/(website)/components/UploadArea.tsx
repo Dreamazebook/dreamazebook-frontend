@@ -46,7 +46,7 @@ const UploadArea: React.FC<UploadAreaProps> = ({
           <div
             className="relative bg-gray-100 rounded overflow-hidden"
             style={{
-              maxWidth: '100%',
+              maxWidth: '80%',
               maxHeight: '144px',
             }}
           >
