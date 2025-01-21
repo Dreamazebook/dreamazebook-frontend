@@ -10,6 +10,7 @@ import api from '@/utils/api';
 import { BaseBook } from '@/types/book';
 import { FaQuestionCircle, FaCheck, FaRegTrashAlt } from 'react-icons/fa';
 import { BsCheck } from "react-icons/bs";
+import { IoIosArrowBack } from "react-icons/io";
 import UploadArea from '../components/UploadArea';
 import useImageUpload from '../hooks/useImageUpload';
 
@@ -86,8 +87,26 @@ export default function PersonalizePage() {
   return (
     <div className="min-h-screen bg-[#F8F8F8]">
       {/* 顶部导航栏 */}
-      <div className="h-14 bg-white flex items-center px-32">
-        <Link href={`/books/${bookId}`} className="flex items-center text-sm">
+      <div className="h-14 bg-white flex items-center px-4 sm:px-32">
+        {/* 手机端导航栏 */}
+        <div className="flex items-center justify-between w-full sm:hidden">
+          {/* 返回按钮 */}
+          <Link href={`/books/${bookId}`} className="flex items-center text-gray-700 hover:text-blue-500">
+            <IoIosArrowBack size={24} />
+          </Link>
+
+          {/* Home 按钮 */}
+          <Link href="/" className="flex items-center justify-center flex-grow p-2">
+            <img
+              src="/logo.png"
+              alt="Home"
+              className="w-[114.29px] h-[40px]"
+            />
+          </Link>
+        </div>
+
+        {/* 网页端导航栏 */}
+        <Link href={`/books/${bookId}`} className="hidden sm:flex flex items-center text-sm">
           <span className="mr-2">←</span> Back to the product page
         </Link>
       </div>
