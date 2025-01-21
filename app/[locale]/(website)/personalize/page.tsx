@@ -18,6 +18,8 @@ interface PersonalizeFormData {
   gender: 'boy' | 'girl';
   skinColor: string;
   photo: File | null;
+  singleChoice: string; // For single-choice buttons
+  multipleChoice: string[]; // For multiple-choice buttons
 }
 
 export default function PersonalizePage() {
@@ -151,6 +153,8 @@ const SingleCharacterForm1 = () => {
     gender: 'girl',
     skinColor: '#FFE2CF',
     photo: null,
+    singleChoice: '',
+    multipleChoice: [],
   });
 
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
@@ -297,9 +301,9 @@ const SingleCharacterForm1 = () => {
 
       {/* 图片上传区域 */}
       <div>
-        <label className="block mb-2 flex items-center font-[500]">
-          <span>Photo</span>
-          <span className="text-gray-400 inline-flex items-center group relative">
+        <label className="block mb-2 flex items-center">
+          <span className="font-[500]">Photo</span>
+          <span className="text-gray-400 inline-flex items-center group relative font-[400]">
             <FaQuestionCircle className="w-4 h-4 ml-1" />
             <div className="hidden group-hover:block absolute left-0 top-6 w-64 p-2 bg-white/80 text-[#222222] text-sm rounded shadow-lg z-10 backdrop-blur-2xl">
               <p className="mb-2">Upload a photo so we can create a unique image of you. 
@@ -345,6 +349,67 @@ const SingleCharacterForm1 = () => {
               setFormData((prev) => ({ ...prev, photo: null }));
             }}
           />
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        {/* Single Choice Buttons */}
+        <div>
+          <label className="block mb-2 font-[500]">
+            Features <span className="ml-2 text-[#999999]">(Single choice)</span>
+          </label>
+          <div className="flex gap-2 font-[400]">
+            {['lively', 'Quiet', 'kind hearted', 'cute', 'humor'].map((feature) => (
+              <button
+                key={feature}
+                type="button"
+                className={`px-4 py-2 rounded border ${
+                  formData.singleChoice === feature
+                    ? 'bg-red-50 border-black text-black'
+                    : 'bg-gray-100 border-transparent text-gray-800'
+                }`}
+                
+                onClick={() => setFormData((prev) => ({ ...prev, singleChoice: feature }))}
+              >
+                {feature}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Multiple Choice Buttons */}
+        <div>
+          <label className="block mb-2 font-[500]">
+            Features <span className="ml-2 text-[#999999]">(Multiple choice)</span>
+          </label>
+          <div className="flex gap-2 font-[400]">
+            {['lively', 'Quiet', 'kind hearted', 'cute', 'humor'].map((feature) => (
+              <button
+                key={feature}
+                type="button"
+                className={`relative px-4 py-2 rounded border ${
+                  formData.multipleChoice.includes(feature)
+                    ? 'border-black bg-[#FCF2F2] text-black'
+                    : 'bg-gray-100 border-transparent text-gray-800'
+                }`}
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    multipleChoice: prev.multipleChoice.includes(feature)
+                      ? prev.multipleChoice.filter((item) => item !== feature)
+                      : [...prev.multipleChoice, feature],
+                  }))
+                }
+              >
+                {feature}
+                {formData.multipleChoice.includes(feature) && (
+                  <span className="absolute bottom-1 right-1 bg-black text-white w-4 h-4 flex items-center justify-center text-xs rounded-full">
+                    ✓
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </form>
