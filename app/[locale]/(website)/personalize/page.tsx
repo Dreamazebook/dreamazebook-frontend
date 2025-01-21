@@ -9,6 +9,7 @@ import { useSearchParams } from 'next/navigation';
 import api from '@/utils/api';
 import { BaseBook } from '@/types/book';
 import { FaQuestionCircle, FaCheck, FaRegTrashAlt } from 'react-icons/fa';
+import { BsCheck } from "react-icons/bs";
 import UploadArea from '../components/UploadArea';
 import useImageUpload from '../hooks/useImageUpload';
 
@@ -403,10 +404,18 @@ const SingleCharacterForm1 = () => {
               >
                 {feature}
                 {formData.multipleChoice.includes(feature) && (
-                  <span className="absolute bottom-1 right-1 bg-black text-white w-4 h-4 flex items-center justify-center text-xs rounded-full">
-                    ✓
+                  <span
+                    className="absolute bottom-0 right-0 bg-black text-white flex items-center justify-center text-s"
+                    style={{
+                      width: '18px',
+                      height: '12px',
+                      borderRadius: '4px 0 0 0',
+                    }}
+                  >
+                    <BsCheck className="w-4 h-4" />
                   </span>
                 )}
+
               </button>
             ))}
           </div>
