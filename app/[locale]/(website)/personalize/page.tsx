@@ -9,9 +9,8 @@ import { useSearchParams } from 'next/navigation';
 import api from '@/utils/api';
 import { BaseBook } from '@/types/book';
 import { FaQuestionCircle, FaCheck, FaRegTrashAlt } from 'react-icons/fa';
-import UploadArea from '../components/UploadArea'; // Import your UploadArea component here
-import useImageUpload from '../hooks/useImageUpload'; // Import your custom hook here
-
+import UploadArea from '../components/UploadArea';
+import useImageUpload from '../hooks/useImageUpload';
 
 // 定义表单数据接口
 interface PersonalizeFormData {
@@ -82,9 +81,9 @@ export default function PersonalizePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF5F5]">
+    <div className="min-h-screen bg-[#F8F8F8]">
       {/* 顶部导航栏 */}
-      <div className="h-14 bg-white border-b border-black flex items-center px-32">
+      <div className="h-14 bg-white flex items-center px-32">
         <Link href={`/books/${bookId}`} className="flex items-center text-sm">
           <span className="mr-2">←</span> Back to the product page
         </Link>
@@ -126,7 +125,7 @@ export default function PersonalizePage() {
           <h1 className="text-2xl text-center my-6">Please fill in the basic information</h1>
           
           {/* 白色模块 */}
-          <div className="bg-white rounded-lg p-6 shadow-sm mb-8">
+          <div className="bg-white rounded p-6 shadow-sm mb-8">
             {renderForm()}
           </div>
 
@@ -134,7 +133,7 @@ export default function PersonalizePage() {
           <div className="flex justify-center">
             <button
               type="submit"
-              className="w-1/3 bg-black text-white py-3 rounded-md hover:bg-gray-800 mb-16"
+              className="w-1/3 bg-black text-white py-3 rounded hover:bg-gray-800 mb-16"
             >
               Continue
             </button>
@@ -154,6 +153,8 @@ const SingleCharacterForm1 = () => {
     photo: null,
   });
 
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  
   const {
     imageUrl,
     isUploading,
@@ -167,6 +168,17 @@ const SingleCharacterForm1 = () => {
     handleDrop,
     handleDeleteImage,
   } = useImageUpload();
+
+  useEffect(() => {
+    if (imageUrl) {
+      const img: HTMLImageElement = document.createElement('img');
+      img.src = imageUrl;
+      
+      img.onload = () => {
+        setImageSize({ width: img.width, height: img.height });
+      };
+    }
+  }, [imageUrl]);
 
   const skinColors = [
     { value: '#FFE2CF', label: 'Fair' },
@@ -200,7 +212,7 @@ const SingleCharacterForm1 = () => {
 
       <div>
         <label className="block mb-2 font-[500]">
-          Full name <span className="text-gray-500">(Can also be a nickname)</span>
+          Full name
         </label>
         <input
           type="text"
@@ -226,7 +238,7 @@ const SingleCharacterForm1 = () => {
                 className="hidden"
               />
               <div className={`w-6 h-6 rounded-full border-2 mr-2 flex items-center justify-center
-                ${formData.gender === 'boy' ? 'border-[#0066FF] bg-[#0066FF]' : 'border-gray-300'}`}>
+                ${formData.gender === 'boy' ? 'border-[#012CCE] bg-[#012CCE]' : 'border-gray-300'}`}>
                 {formData.gender === 'boy' && (
                   <FaCheck className="w-3 h-3 text-white" />
                 )}
@@ -243,7 +255,7 @@ const SingleCharacterForm1 = () => {
                 className="hidden"
               />
               <div className={`w-6 h-6 rounded-full border-2 mr-2 flex items-center justify-center
-                ${formData.gender === 'girl' ? 'border-[#0066FF] bg-[#0066FF]' : 'border-gray-300'}`}>
+                ${formData.gender === 'girl' ? 'border-[#012CCE] bg-[#012CCE]' : 'border-gray-300'}`}>
                 {formData.gender === 'girl' && (
                   <FaCheck className="w-3 h-3 text-white" />
                 )}
@@ -299,15 +311,15 @@ const SingleCharacterForm1 = () => {
         <p className="text-sm mb-2 text-[#222222]">Please upload a photo of your character !</p>
         <ul className="text-sm text-gray-500 mb-4 space-y-1">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-gray-300 rounded"></div>
+            <div className="w-4 h-4 bg-gray-300"></div>
             <li>Make sure the subject is facing the camera.</li>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-gray-300 rounded"></div>
+            <div className="w-4 h-4 bg-gray-300"></div>
             <li>Use a close-up photo.</li>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-gray-300 rounded"></div>
+            <div className="w-4 h-4 bg-gray-300"></div>
             <li>The higher the quality, the better the result!</li>
           </div>
         </ul>
@@ -320,6 +332,7 @@ const SingleCharacterForm1 = () => {
             uploadProgress={uploadProgress}
             error={error}
             isDragging={isDragging}
+            imageSize={imageSize}
             handleDragEnter={handleDragEnter}
             handleDragLeave={handleDragLeave}
             handleDragOver={handleDragOver}

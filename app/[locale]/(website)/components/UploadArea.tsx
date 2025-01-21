@@ -1,4 +1,6 @@
 import React from 'react';
+import Image from 'next/image';
+import { FaRegTrashAlt } from 'react-icons/fa';
 
 interface UploadAreaProps {
   imageUrl: string | null;
@@ -6,6 +8,7 @@ interface UploadAreaProps {
   uploadProgress: number;
   error: string | null;
   isDragging: boolean;
+  imageSize: { width: number; height: number };
   handleDragEnter: (e: React.DragEvent<HTMLDivElement>) => void;
   handleDragLeave: (e: React.DragEvent<HTMLDivElement>) => void;
   handleDragOver: (e: React.DragEvent<HTMLDivElement>) => void;
@@ -20,6 +23,7 @@ const UploadArea: React.FC<UploadAreaProps> = ({
   uploadProgress,
   error,
   isDragging,
+  imageSize,
   handleDragEnter,
   handleDragLeave,
   handleDragOver,
@@ -29,8 +33,8 @@ const UploadArea: React.FC<UploadAreaProps> = ({
 }) => {
   return (
     <div
-      className={`rounded-md p-8 text-center transition-colors min-h-[200px] flex flex-col items-center justify-center relative ${
-        isDragging ? 'border-2 border-blue-500 bg-blue-100' : 'bg-gray-50'
+      className={`rounded p-4 text-center transition-colors min-h-[200px] flex flex-col items-center justify-center relative ${
+        isDragging ? 'border-2 border-[#012CCE]' : 'bg-[#F8F8F8]'
       }`}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
@@ -39,19 +43,45 @@ const UploadArea: React.FC<UploadAreaProps> = ({
     >
       {imageUrl ? (
         <>
-          <div className="relative bg-gray-100 rounded overflow-hidden">
-            <img
+          <div
+            className="relative bg-gray-100 rounded overflow-hidden"
+            style={{
+              maxWidth: '100%',
+              maxHeight: '144px',
+            }}
+          >
+            <Image
               src={imageUrl}
               alt="Uploaded preview"
-              className="rounded max-h-[168px] object-contain"
+              width={imageSize.width}
+              height={imageSize.height}
+              style={{
+                maxWidth: '100%',
+                maxHeight: '144px',
+                objectFit: 'contain',
+              }}
+              className="rounded-lg"
             />
+            <button
+              onClick={handleDeleteImage}
+              className="absolute top-0 right-0 bg-white shadow-md flex items-center justify-center"
+              style={{
+                width: '24px',
+                height: '24px',
+                backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                borderRadius: '0 0 0 4px', // 左下角 4px 的圆角
+              }}
+            >
+              <FaRegTrashAlt
+            style={{
+              color: 'white',
+              width: '18px',
+              height: '18px',
+            }}
+          />
+
+            </button>
           </div>
-          <button
-            onClick={handleDeleteImage}
-            className="mt-4 bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
-          >
-            Delete Image
-          </button>
         </>
       ) : (
         <>
@@ -59,24 +89,24 @@ const UploadArea: React.FC<UploadAreaProps> = ({
             <div className="text-center w-full max-w-md mx-auto">
               <div className="w-[80%] mx-auto h-1 bg-gray-200 rounded-full overflow-hidden mb-4">
                 <div
-                  className="h-full bg-blue-500 transition-all duration-300"
+                  className="h-full bg-[#012CCE] transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
-              <p className="text-blue-600 text-lg">Uploading...</p>
+              <p className="text-gray-700 text-lg">Uploading...</p>
             </div>
           ) : (
             <>
               {isDragging ? (
-                <p className="text-blue-600 text-lg">Please loosen</p>
+                <p className="text-gray-700 text-lg">Please loosen</p>
               ) : (
-                <div className="space-y-1 mb-3">
-                  <p className="text-gray-600">Please drag the photo in</p>
-                  <p className="text-gray-600">or</p>
+                <div className="space-y-2 text-[#222222]">
+                  <p>Please drag the photo in</p>
+                  <p>or</p>
                   <button
                     type="button"
                     onClick={() => document.getElementById('file-upload')?.click()}
-                    className="px-6 py-2 border border-gray-400 text-gray-600 rounded-md"
+                    className="px-6 py-2 border border-[#222222] rounded"
                   >
                     Browse Files
                   </button>
@@ -84,7 +114,7 @@ const UploadArea: React.FC<UploadAreaProps> = ({
               )}
             </>
           )}
-          {error && <p className="text-red-500">{error}</p>}
+          {error && <p className="text-red-500 mt-2">{error}</p>}
         </>
       )}
       <input
