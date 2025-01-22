@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -24,6 +24,19 @@ interface PersonalizeFormData {
   multipleChoice: string[]; // For multiple-choice buttons
 }
 
+export interface SingleCharacterForm1Handle {
+  validateForm: () => boolean; // 点 Continue 时可以触发的校验
+  formData: PersonalizeFormData;
+}
+
+// 定义 errors 对象结构：key 对应表单字段名，value 是错误提示字符串
+interface FormErrors {
+  fullName?: string;
+  photo?: string;
+  singleChoice?: string;
+  multipleChoice?: string;
+}
+
 export default function PersonalizePage() {
   const searchParams = useSearchParams();
   const bookId = searchParams.get('bookid');
@@ -34,6 +47,8 @@ export default function PersonalizePage() {
   const [selectedFormType, setSelectedFormType] = useState<'SINGLE' | 'DOUBLE' | null>(null);
   const [loading, setLoading] = useState(true);
   //const [error, setError] = useState<string | null>(null);  // 添加错误状态
+
+  const singleFormRef = useRef<SingleCharacterForm1Handle>(null);
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -72,11 +87,22 @@ export default function PersonalizePage() {
     
     switch (selectedFormType) {
       case 'SINGLE':
-        return <SingleCharacterForm1 />;
+        return <SingleCharacterForm1 ref={singleFormRef} />;
       case 'DOUBLE':
         return <DoubleCharacterForm />;
       default:
         return null;
+    }
+  };
+
+  const handleContinue = () => {
+    // 若是单人表单，则执行校验
+    if (selectedFormType === 'SINGLE' && singleFormRef.current) {
+      const isValid = singleFormRef.current.validateForm();
+      if (!isValid) return;   // 阻止后续
+    }
+    if (selectedFormType === 'DOUBLE') {
+      // 双人表单校验...
     }
   };
 
@@ -154,7 +180,8 @@ export default function PersonalizePage() {
           {/* 提交按钮 */}
           <div className="flex justify-center">
             <button
-              type="submit"
+              type="button"
+              onClick={handleContinue}
               className="w-1/3 bg-black text-white py-3 rounded hover:bg-gray-800 mb-16"
             >
               Continue
@@ -167,7 +194,7 @@ export default function PersonalizePage() {
 }
 
 // 不同的表单组件
-const SingleCharacterForm1 = () => {
+const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref) => {
   const [formData, setFormData] = React.useState<PersonalizeFormData>({
     fullName: '',
     gender: 'girl',
@@ -176,8 +203,9 @@ const SingleCharacterForm1 = () => {
     singleChoice: '',
     multipleChoice: [],
   });
-
+  const [errors, setErrors] = useState<FormErrors>({});
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  const [touched, setTouched] = useState<{ [K in keyof PersonalizeFormData]?: boolean }>({});
   
   const {
     imageUrl,
@@ -210,13 +238,128 @@ const SingleCharacterForm1 = () => {
     { value: '#665444', label: 'Dark' },
   ];
 
+  useImperativeHandle(ref, () => ({
+    validateForm() {
+      setTouched({
+        fullName: true,
+        photo: true,
+        singleChoice: true,
+        multipleChoice: true,
+      });
+
+      const newErrors: FormErrors = {};
+
+      // fullName 为空时
+      if (!formData.fullName.trim()) {
+        newErrors.fullName = 'Please enter the full name';
+      }
+
+      // photo 为空时
+      if (!formData.photo) {
+        newErrors.photo = 'Please upload a photo';
+      }
+
+      // singleChoice 未选择时
+      if (!formData.singleChoice) {
+        newErrors.singleChoice = 'Please select one feature';
+      }
+
+      // multipleChoice 未选择时
+      if (formData.multipleChoice.length === 0) {
+        newErrors.multipleChoice = 'Please select at least one feature';
+      }      
+
+      setErrors(newErrors);
+
+      // 如果还有字段错误，则返回 false
+      if (Object.keys(newErrors).length > 0) {
+        return false;
+      }
+
+      // 如果校验通过
+      return true;
+    },
+    formData,
+  }));
+
+  // 校验单个字段
+  const validateField = (fieldName: keyof PersonalizeFormData, value: any) => {
+    let error = '';
+
+    if (fieldName === 'fullName') {
+      if (!value.trim()) {
+        error = 'Please enter the full name';
+      }
+    }
+
+    if (fieldName === 'photo') {
+      if (!value) {
+        error = 'Please upload a photo';
+      }
+    }
+
+    if (fieldName === 'singleChoice') {
+      if (!value) {
+        error = 'Please select one feature';
+      }
+    }
+
+    if (fieldName === 'multipleChoice') {
+      if (!value || value.length === 0) {
+        error = 'Please select at least one feature';
+      }
+    }    
+    
+    setErrors((prev) => ({
+      ...prev,
+      [fieldName]: error || undefined, // 没有错误就删除该字段错误
+    }));
+  };
+
+  // onChange：只有当用户已经 touched 过这个字段，才进行实时校验
+  const handleFullNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setFormData((prev) => ({ ...prev, fullName: value }));
+    // 如果已经 touched，则实时校验
+    if (touched.fullName) {
+      validateField('fullName', value);
+    }
+  };
+
+  // onBlur：标记 touched，并做一次校验
+  const handleFullNameBlur = () => {
+    setTouched((prev) => ({ ...prev, fullName: true }));
+    validateField('fullName', formData.fullName);
+  };
+
   const handleGenderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, gender: event.target.value as 'boy' | 'girl' }));
   };
 
-  const handleFullNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, fullName: event.target.value }));
+  const handleUploadPhoto = (file: File) => {
+    setFormData((prev) => ({ ...prev, photo: file }));
+    setTouched((prev) => ({ ...prev, photo: true }));
+    validateField('photo', file);
   };
+
+  const handleSingleChoiceClick = (feature: string) => {
+    setFormData((prev) => ({ ...prev, singleChoice: feature }));
+    setTouched((prev) => ({ ...prev, singleChoice: true }));
+    validateField('singleChoice', feature);
+  };
+
+  const handleMultipleChoiceClick = (feature: string) => {
+    setFormData((prev) => {
+      const newArray = prev.multipleChoice.includes(feature)
+        ? prev.multipleChoice.filter((item) => item !== feature)
+        : [...prev.multipleChoice, feature];
+  
+      setTouched((prevTouched) => ({ ...prevTouched, multipleChoice: true }));
+      validateField('multipleChoice', newArray);
+      
+      return { ...prev, multipleChoice: newArray };
+    });
+  };  
 
   return (
     <form className="space-y-6">
@@ -243,8 +386,13 @@ const SingleCharacterForm1 = () => {
           placeholder="please enter..."
           className="w-full p-2 border rounded"
           value={formData.fullName}
-          onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+          onChange={handleFullNameChange}
+          onBlur={handleFullNameBlur}
         />
+        {/* 若有错误信息则显示 */}
+        {touched.fullName && errors.fullName && (
+          <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
+        )}
       </div>
 
       {/* 性别选择 */}
@@ -360,15 +508,21 @@ const SingleCharacterForm1 = () => {
             handleDragEnter={handleDragEnter}
             handleDragLeave={handleDragLeave}
             handleDragOver={handleDragOver}
-            handleDrop={(e) => handleDrop(e, (file) => setFormData((prev) => ({ ...prev, photo: file })))}
+            handleDrop={(e) => 
+              handleDrop(e, (file) => handleUploadPhoto(file))}
             handleFileUpload={(e) =>
-              handleFileUpload(e, (file) => setFormData((prev) => ({ ...prev, photo: file })))
+              handleFileUpload(e, (file) => handleUploadPhoto(file))
             }
             handleDeleteImage={() => {
               handleDeleteImage();
               setFormData((prev) => ({ ...prev, photo: null }));
+              setTouched((prev) => ({ ...prev, photo: true }));
+              validateField('photo', null);
             }}
           />
+          {touched.photo && errors.photo && (
+            <p className="text-red-500 text-sm">{errors.photo}</p>
+          )}
         </div>
       </div>
 
@@ -378,7 +532,7 @@ const SingleCharacterForm1 = () => {
           <label className="block mb-2 font-[500]">
             Features <span className="ml-2 text-[#999999]">(Single choice)</span>
           </label>
-          <div className="flex gap-2 font-[400]">
+          <div className="flex flex-wrap gap-2 font-[400]">
             {['lively', 'Quiet', 'kind hearted', 'cute', 'humor'].map((feature) => (
               <button
                 key={feature}
@@ -389,12 +543,15 @@ const SingleCharacterForm1 = () => {
                     : 'bg-gray-100 border-transparent text-gray-800'
                 }`}
                 
-                onClick={() => setFormData((prev) => ({ ...prev, singleChoice: feature }))}
+                onClick={() => handleSingleChoiceClick(feature)}
               >
                 {feature}
               </button>
             ))}
           </div>
+          {touched.singleChoice && errors.singleChoice && (
+            <p className="text-red-500 text-sm">{errors.singleChoice}</p>
+          )}
         </div>
 
         {/* Multiple Choice Buttons */}
@@ -402,7 +559,7 @@ const SingleCharacterForm1 = () => {
           <label className="block mb-2 font-[500]">
             Features <span className="ml-2 text-[#999999]">(Multiple choice)</span>
           </label>
-          <div className="flex gap-2 font-[400]">
+          <div className="flex flex-wrap gap-2 font-[400]">
             {['lively', 'Quiet', 'kind hearted', 'cute', 'humor'].map((feature) => (
               <button
                 key={feature}
@@ -412,14 +569,7 @@ const SingleCharacterForm1 = () => {
                     ? 'border-black bg-[#FCF2F2] text-black'
                     : 'bg-gray-100 border-transparent text-gray-800'
                 }`}
-                onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    multipleChoice: prev.multipleChoice.includes(feature)
-                      ? prev.multipleChoice.filter((item) => item !== feature)
-                      : [...prev.multipleChoice, feature],
-                  }))
-                }
+                onClick={() => handleMultipleChoiceClick(feature)}
               >
                 {feature}
                 {formData.multipleChoice.includes(feature) && (
@@ -438,11 +588,14 @@ const SingleCharacterForm1 = () => {
               </button>
             ))}
           </div>
+          {touched.multipleChoice && errors.multipleChoice && (
+            <p className="text-red-500 text-sm">{errors.multipleChoice}</p>
+          )}
         </div>
       </div>
     </form>
   );
-};
+});
 
 const DoubleCharacterForm = () => {
   // 双人表单的实现
