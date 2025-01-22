@@ -17,7 +17,7 @@ import useImageUpload from '../hooks/useImageUpload';
 // 定义表单数据接口
 interface PersonalizeFormData {
   fullName: string;
-  gender: 'boy' | 'girl';
+  gender: '' | 'boy' | 'girl';
   skinColor: string;
   photo: File | null;
   singleChoice: string; // For single-choice buttons
@@ -32,6 +32,8 @@ export interface SingleCharacterForm1Handle {
 // 定义 errors 对象结构：key 对应表单字段名，value 是错误提示字符串
 interface FormErrors {
   fullName?: string;
+  gender?: string;
+  skinColor?: string;
   photo?: string;
   singleChoice?: string;
   multipleChoice?: string;
@@ -197,8 +199,8 @@ export default function PersonalizePage() {
 const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref) => {
   const [formData, setFormData] = React.useState<PersonalizeFormData>({
     fullName: '',
-    gender: 'girl',
-    skinColor: '#FFE2CF',
+    gender: '',
+    skinColor: '',
     photo: null,
     singleChoice: '',
     multipleChoice: [],
@@ -242,6 +244,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref)
     validateForm() {
       setTouched({
         fullName: true,
+        gender: true,
+        skinColor: true,
         photo: true,
         singleChoice: true,
         multipleChoice: true,
@@ -254,7 +258,12 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref)
         newErrors.fullName = 'Please enter the full name';
       }
 
-      // photo 为空时
+      if (!formData.gender) {
+        newErrors.gender = 'Please select gender';
+      }
+      if (!formData.skinColor) {
+        newErrors.skinColor = 'Please select skin color';
+      }
       if (!formData.photo) {
         newErrors.photo = 'Please upload a photo';
       }
@@ -289,6 +298,18 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref)
     if (fieldName === 'fullName') {
       if (!value.trim()) {
         error = 'Please enter the full name';
+      }
+    }
+
+    if (fieldName === 'gender') {
+      if (!value) {
+        error = 'Please select gender';
+      }
+    }
+
+    if (fieldName === 'skinColor') {
+      if (!value) {
+        error = 'Please select skin color';
       }
     }
 
@@ -333,7 +354,16 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref)
   };
 
   const handleGenderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, gender: event.target.value as 'boy' | 'girl' }));
+    const chosen = event.target.value as 'boy' | 'girl';
+    setFormData((prev) => ({ ...prev, gender: chosen }));
+    setTouched((prev) => ({ ...prev, gender: true }));
+    validateField('gender', chosen);
+  };
+
+  const handleSkinColorSelect = (colorValue: string) => {
+    setFormData((prev) => ({ ...prev, skinColor: colorValue }));
+    setTouched((prev) => ({ ...prev, skinColor: true }));
+    validateField('skinColor', colorValue);
   };
 
   const handleUploadPhoto = (file: File) => {
@@ -436,6 +466,9 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref)
             </label>
           </div>
         </div>
+        {touched.gender && errors.gender && (
+          <p className="text-red-500 text-sm mt-1">{errors.gender}</p>
+        )}
       </div>
 
 
@@ -460,11 +493,14 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref)
                     }`
                   } : {})
                 }}
-                onClick={() => setFormData(prev => ({ ...prev, skinColor: color.value }))}
+                onClick={() => handleSkinColorSelect(color.value)}
               />
             ))}
           </div>
         </div>
+        {touched.skinColor && errors.skinColor && (
+            <p className="text-red-500 text-sm mt-1">{errors.skinColor}</p>
+          )}
       </div>
 
       {/* 图片上传区域 */}
