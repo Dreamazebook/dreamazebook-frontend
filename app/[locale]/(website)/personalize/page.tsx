@@ -340,7 +340,24 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref)
   // onChange：只有当用户已经 touched 过这个字段，才进行实时校验
   const handleFullNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+
+    if (value.length > 13) {
+      // 显示错误提示
+      setErrors((prev) => ({
+        ...prev,
+        fullName: 'Full name cannot exceed 13 characters.',
+      }));
+      return;
+    } else {
+      // 清除错误提示
+      setErrors((prev) => ({
+        ...prev,
+        fullName: '',
+      }));
+    }
+
     setFormData((prev) => ({ ...prev, fullName: value }));
+
     // 如果已经 touched，则实时校验
     if (touched.fullName) {
       validateField('fullName', value);
