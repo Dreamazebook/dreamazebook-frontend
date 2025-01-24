@@ -7,12 +7,13 @@ import Footer from "./components/Footer";
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const segments = useSelectedLayoutSegments();
   const isPersonalizePage = segments.includes("personalize");
+  const isPreviewPage = segments.includes("preview");
 
   return (
     <>
-      {!isPersonalizePage && <Header />}
+      {!isPersonalizePage && !isPreviewPage && <Header />}
       {children}
-      {!isPersonalizePage && <Footer />}
+      {!isPersonalizePage && !isPreviewPage  && <Footer />}
     </>
   );
 } 
