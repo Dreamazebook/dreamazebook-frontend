@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { match as matchLocale } from '@formatjs/intl-localematcher'
 import Negotiator from 'negotiator'
 
-const locales = ['en', 'zh']
+const locales = ['en', 'fr']
 const defaultLocale = 'en'
 
 function getLocale(request: NextRequest): string {
@@ -17,6 +17,13 @@ function getLocale(request: NextRequest): string {
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
+  const curLocale = getLocale(request)
+
+  const redirectURL = process.env.REDIRECT_URL;
+  if (redirectURL && pathname !== `/${curLocale}${redirectURL}`) {
+    request.nextUrl.pathname = `/${curLocale}${redirectURL}`;
+    return NextResponse.redirect(request.nextUrl);
+  }
   
   // Check if the pathname already has a locale
   const pathnameHasLocale = locales.some(
@@ -26,8 +33,7 @@ export function middleware(request: NextRequest) {
   if (pathnameHasLocale) return
 
   // Redirect if there is no locale
-  const locale = getLocale(request)
-  request.nextUrl.pathname = `/${locale}${pathname}`
+  request.nextUrl.pathname = `/${curLocale}${pathname}`
   return NextResponse.redirect(request.nextUrl)
 }
 
