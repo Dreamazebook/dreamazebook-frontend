@@ -7,6 +7,24 @@ interface TopNavBarProps {
   onViewModeChange: (mode: 'single' | 'double') => void;
 }
 
+const UnderlineIcon = () => (
+  <svg 
+    className="absolute bottom-[3px] left-0 w-full" 
+    height="4" 
+    viewBox="0 0 100 4" 
+    preserveAspectRatio="none"
+  >
+    <line 
+      x1="0" 
+      y1="2" 
+      x2="100" 
+      y2="2" 
+      stroke="#012CCE" 
+      strokeWidth="4"
+    />
+  </svg>
+);
+
 export default function TopNavBarWithTabs({
   activeTab,
   onTabChange,
@@ -26,28 +44,28 @@ export default function TopNavBarWithTabs({
       {/* 中间 Tab 切换 */}
       <div className="flex items-center justify-center space-x-8 w-1/3">
         {/* Book preview 按钮 */}
-        <button
-          onClick={() => onTabChange('Book preview')}
-          className={`text-l font-normal ${
-            activeTab === 'Book preview'
-              ? 'text-black underline decoration-blue-600 decoration-4 underline-offset-2'
-              : 'text-gray-600'
-          }`}
-        >
-          Book preview
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => onTabChange('Book preview')}
+            className="relative z-10 text-sm font-medium text-black bg-transparent"
+          >
+            Book preview
+          </button>
+          {activeTab === 'Book preview' && <UnderlineIcon />}
+        </div>
+
         {/* Others 按钮 */}
-        <button
-          onClick={() => onTabChange('Others')}
-          className={`text-l font-normal ${
-            activeTab === 'Others'
-              ? 'text-black underline decoration-[#012CCE] decoration-[6px] underline-offset-2'
-              : 'text-gray-600'
-          }`}
-        >
-          Others
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => onTabChange('Others')}
+            className="relative z-10 text-sm font-medium text-black bg-transparent"
+          >
+            Others
+          </button>
+          {activeTab === 'Others' && <UnderlineIcon />}
+        </div>
       </div>
+
 
       {/* 右侧单页/双页切换 */}
       <div className="flex items-center space-x-4 w-1/3 justify-end">
