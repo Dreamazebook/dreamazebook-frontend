@@ -14,11 +14,13 @@ interface PagePic {
   pagepic: string;
 }
 
+// 定义评论的类型
 interface Review {
-  reviewerName: string;
+  reviewer_name: string;
   rating: number;
-  comment: string;
-  reviewDate: string; // 格式为 YYYY/MM
+  comment: string; // 评论内容
+  review_date: string; // 评论日期
+  pagepic?: string; // 用户图片，可能是可选的
 }
 
 interface Keyword {

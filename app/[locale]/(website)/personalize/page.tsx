@@ -5,7 +5,7 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/utils/api';
 import { BaseBook } from '@/types/book';
 import { FaQuestionCircle, FaCheck, FaRegTrashAlt } from 'react-icons/fa';
@@ -42,6 +42,7 @@ interface FormErrors {
 export default function PersonalizePage() {
   const searchParams = useSearchParams();
   const bookId = searchParams.get('bookid');
+  const router = useRouter();
   //const language = searchParams.get('language');
 
   const [showModal, setShowModal] = useState(false);
@@ -98,14 +99,18 @@ export default function PersonalizePage() {
   };
 
   const handleContinue = () => {
-    // 若是单人表单，则执行校验
+    // 校验单人表单
     if (selectedFormType === 'SINGLE' && singleFormRef.current) {
       const isValid = singleFormRef.current.validateForm();
-      if (!isValid) return;   // 阻止后续
+      if (!isValid) return; // 如果校验失败，阻止后续操作
     }
+
+    // 校验双人表单
     if (selectedFormType === 'DOUBLE') {
-      // 双人表单校验...
+      // 双人表单校验逻辑...
     }
+
+    router.push(`/preview?bookId=${bookId}`);
   };
 
   if (loading) {
