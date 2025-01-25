@@ -53,7 +53,7 @@ export default function PreviewPageWithTopNav() {
           className="h-screen flex items-center justify-center border-b"
         >
           <h1 className="text-2xl font-semibold">
-            Section {index + 1} - {activeTab} - {viewMode === 'single' ? '单页' : '双页'}
+            Section {index + 1} - {activeTab} - {viewMode === 'double' ? '双页' : '单页'}
           </h1>
         </div>
       ))}
