@@ -25,15 +25,29 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           properties: {
-            email
-          }
+            email,
+            hs_lead_status: 'NEW', // Add lead status to help with list filtering
+            lifecyclestage: 'subscriber' // Add lifecycle stage
+          },
+          associations: [
+            {
+              to: {
+                id: "17", // Replace with your actual HubSpot list ID
+                type: "LISTS",
+              }
+            }
+          ]
         }),
       }
     );
 
     if (!response.ok) {
-      console.error(await response.json());
-      return Response.json({msg: `Error subscribing email ${response.statusText}`},{status:response.status});
+      const responseData = await response.json();
+      let msg = `Error subscribing email ${response.statusText}`;
+      if (responseData.category == 'CONFLICT') {
+        msg = 'You have already subscribed';
+      }
+      return Response.json({msg},{status:response.status});
     }
 
     const data = await response.json();

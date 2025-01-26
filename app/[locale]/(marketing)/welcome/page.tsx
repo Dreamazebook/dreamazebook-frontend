@@ -45,7 +45,7 @@ export default function LandingPage() {
       
       if (!response.ok) {
         setIsError(true);
-        setResponseMessage(data.error || 'An error occurred. Please try again.');
+        setResponseMessage(data.msg);
         return;
       }
 
