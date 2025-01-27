@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
     console.log("Subscription successful:", data);
-    return Response.json({msg: "Subscription successful"},{status:200});
+    return Response.json({msg: "Subscription Successful"},{status:200});
   } catch (error) {
     console.error("Error subscribing email:", error);
     return Response.json({msg: "Error subscribing email"},{status:500});
