@@ -99,7 +99,7 @@ function ViewModeToggle({
         </button>
         {/* Tooltip */}
         <div
-          className="absolute hidden group-hover:block top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-xs text-white bg-black rounded-md shadow-md whitespace-nowrap z-20"
+          className="absolute hidden group-hover:block top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 text-xs text-black bg-white rounded-md shadow-md whitespace-nowrap z-20"
         >
           Single-Page View
         </div>

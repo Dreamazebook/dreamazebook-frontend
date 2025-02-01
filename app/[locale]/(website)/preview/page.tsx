@@ -2,103 +2,149 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
+import { create } from 'zustand';
 import TopNavBarWithTabs from '../components/TopNavBarWithTabs';
-import { FaLeaf, FaCheck, FaBook, FaGift } from 'react-icons/fa';
 
-const steps = [
-  { label: '赠与人 & 寄语', icon: <FaLeaf />, active: false },
-  { label: '确认事项', icon: <FaCheck />, active: false },
-  { label: 'Cover design', icon: <FaBook />, active: true },
-  { label: '装帧', icon: <FaBook />, active: false },
-  { label: '其他礼物', icon: <FaGift />, active: false },
-];
+const useStore = create<{
+  activeStep: number;
+  activeTab: 'Book preview' | 'Others';
+  viewMode: 'single' | 'double';
+  dedication: string;
+  giver: string;
+  editField: 'giver' | 'dedication' | null;
+  setActiveStep: (step: number) => void;
+  setActiveTab: (tab: 'Book preview' | 'Others') => void;
+  setViewMode: (mode: 'single' | 'double') => void;
+  setDedication: (dedication: string) => void;
+  setGiver: (giver: string) => void;
+  setEditField: (field: 'giver' | 'dedication' | null) => void;
+}>((set) => ({
+  activeStep: 2,
+  activeTab: 'Book preview',
+  viewMode: 'single',
+  dedication: 'As you both grow, and change, and head off in different directions, always remember that wherever life takes you, you’ll always have each other.',
+  giver: 'John Doe',
+  editField: null,
+  setActiveStep: (step: number) => set({ activeStep: step }),
+  setActiveTab: (tab: 'Book preview' | 'Others') => set({ activeTab: tab }),
+  setViewMode: (mode: 'single' | 'double') => set({ viewMode: mode }),
+  setDedication: (dedication: string) => set({ dedication }),
+  setGiver: (giver: string) => set({ giver }),
+  setEditField: (field: 'giver' | 'dedication' | null) => set({ editField: field })
+}));
 
 export default function PreviewPageWithTopNav() {
-  const [activeStep, setActiveStep] = useState(2); // 当前激活步骤的索引
-  const [activeTab, setActiveTab] = useState<'Book preview' | 'Others'>('Book preview'); // 顶部Tab
-  const [viewMode, setViewMode] = useState<'single' | 'double'>('single'); // 单页/双页切换
-
-  const handleStepClick = (index: number) => {
-    setActiveStep(index);
-  };
-
-  const handleTabChange = (tab: 'Book preview' | 'Others') => {
-    setActiveTab(tab);
-  };
-
-  const handleViewModeChange = (mode: 'single' | 'double') => {
-    setViewMode(mode);
-  };
+  const {
+    activeTab,
+    viewMode,
+    dedication,
+    giver,
+    editField,
+    setActiveTab,
+    setViewMode,
+    setDedication,
+    setGiver,
+    setEditField,
+  } = useStore();
 
   return (
-    <div className="flex gap-[24px] min-h-screen bg-[#F8F8F8]">
-  {/* 主内容区域 */}
-  <div className="w-[80%] flex flex-col">
-    {/* 顶部导航栏 */}
-    <div className="p-[12px] ml-6">
-      <TopNavBarWithTabs
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        viewMode={viewMode}
-        onViewModeChange={handleViewModeChange}
-      />
-    </div>
-
-    {/* 主内容 */}
-    <main className="flex-1 flex flex-col">
-      {[...Array(5)].map((_, index) => (
-        <div
-          key={index}
-          className="h-screen flex items-center justify-center border-b"
-        >
-          <h1 className="text-2xl font-semibold">
-            Section {index + 1} - {activeTab} - {viewMode === 'double' ? '双页' : '单页'}
-          </h1>
+    <div className="flex min-h-screen bg-[#F8F8F8]">
+      <div className="w-[80%] flex flex-col items-center">
+        <div className="p-[12px] w-[95%] mx-auto">
+          <TopNavBarWithTabs
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+          />
         </div>
-      ))}
-    </main>
-  </div>
 
-  {/* 右侧侧边栏 */}
-  <aside className="w-[20%] min-h-screen bg-white flex flex-col py-8 px-4 border-l">
-    <nav className="space-y-6 flex-1">
-      {steps.map((step, index) => (
-        <div key={index} className="flex flex-col items-start">
-          <button
-            onClick={() => handleStepClick(index)}
-            className="flex items-center space-x-4 w-full text-left px-4 py-2"
-          >
-            <span
-              className={`w-6 h-6 flex items-center justify-center rounded-full ${
-                activeStep === index
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-300 text-gray-600'
-              }`}
-            >
-              {step.icon}
-            </span>
-            <span
-              className={`text-sm ${
-                activeStep === index ? 'text-black font-medium' : 'text-gray-600'
-              }`}
-            >
-              {step.label}
-            </span>
-          </button>
-          {index < steps.length - 1 && (
-            <div className="w-px h-6 bg-gray-300 ml-6"></div>
-          )}
-        </div>
-      ))}
-    </nav>
-    <div className="mt-8">
-      <button className="w-full bg-black text-white py-2 rounded hover:bg-gray-800">
-        Continue
-      </button>
+        {activeTab === 'Book preview' ? (
+          <main className="flex-1 flex flex-col items-center justify-center w-full">
+            <h1 className="text-2xl font-bold mb-4 text-center w-full">Your Book Preview</h1>
+            <div className="flex flex-col items-center w-full max-w-3xl">
+              <div className="w-full flex justify-center mb-8">
+                <img
+                  src="../book.png"
+                  alt="Book Cover"
+                  className="max-w-sm rounded-lg shadow-md"
+                  style={{ height: '392px', objectFit: 'cover' }}
+                />
+              </div>
+            </div>
+            <div className={`w-full max-w-5xl ${viewMode === 'double' ? 'flex flex-row justify-center items-center mb-8' : 'flex flex-col items-center gap-8 mb-8'}`}> 
+              {/* Giver & Dedication Pages */}
+              <div className="relative flex flex-col items-center">
+                <img
+                  src="../giver_page.png"
+                  alt="Giver Page"
+                  className="rounded-lg"
+                  style={{ height: '500px', objectFit: 'cover', marginRight: viewMode === 'double' ? '0px' : 'auto' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setEditField('giver')}
+                  className={`${viewMode === 'double' ? 'absolute bottom-36' : 'mt-4'} text-black py-2 px-4 rounded border border-black`}
+                >
+                  Edit Giver
+                </button>
+              </div>
+
+              <div className="relative flex flex-col items-center">
+                <img
+                  src="../giver_page.png"
+                  alt="Dedication Page"
+                  className="rounded-lg"
+                  style={{ height: '500px', objectFit: 'cover', marginLeft: viewMode === 'double' ? '0px' : 'auto' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setEditField('dedication')}
+                  className={`${viewMode === 'double' ? 'absolute bottom-36' : 'mt-4'} text-black py-2 px-4 rounded border border-black`}
+                >
+                  Edit Dedication
+                </button>
+              </div>
+            </div>
+            <div className="h-[48px] p-[12px_24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
+            The book preview is currently queued for generation, and you are number 7 out of 249 in line.
+            </div>
+          </main>
+        ) : (
+          <main className="flex-1 flex items-center justify-center">
+            <h1 className="text-xl font-medium">Other Content</h1>
+          </main>
+        )}
+
+        {editField && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+              <h2 className="text-lg font-semibold mb-4">{editField === 'giver' ? 'Edit Giver' : 'Edit Dedication'}</h2>
+              {editField === 'giver' ? (
+                <input
+                  type="text"
+                  value={giver}
+                  onChange={(e) => setGiver(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              ) : (
+                <textarea
+                  value={dedication}
+                  onChange={(e) => setDedication(e.target.value)}
+                  className="w-full h-40 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              )}
+              <button
+                className="mt-4 w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+                onClick={() => setEditField(null)}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-  </aside>
-</div>
-
   );
 }
