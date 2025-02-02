@@ -50,7 +50,7 @@ export default function PreviewPageWithTopNav() {
 
   return (
     <div className="flex min-h-screen bg-[#F8F8F8]">
-      <div className="w-[80%] flex flex-col items-center">
+      <div className="w-full p-[8px] md:w-[80%] flex flex-col items-center">
         <div className="p-[12px] w-[95%] mx-auto">
           <TopNavBarWithTabs
             activeTab={activeTab}
@@ -107,7 +107,7 @@ export default function PreviewPageWithTopNav() {
                 </button>
               </div>
             </div>
-            <div className="h-[48px] p-[12px_24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
+            <div className="p-[12px_24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
             The book preview is currently queued for generation, and you are number 7 out of 249 in line.
             </div>
           </main>
