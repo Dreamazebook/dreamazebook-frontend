@@ -1,5 +1,5 @@
 "use client";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import Image from 'next/image'
 
 interface ChildName {
@@ -17,9 +17,28 @@ const CHILD_NAMES: ChildName[] = [
 
 export default function LandingPage() {
 
+  // Add useEffect to handle tab close
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      console.log(e);
+      e.preventDefault();
+      e.returnValue = ''
+      window.open('https://forms.google.com', '_blank');
+      return '';
+    };
+    window.open('https://forms.google.com', '_blank');
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
   const [responseMessage, setResponseMessage] = useState('');
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showButtons, setShowButtons] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -50,6 +69,7 @@ export default function LandingPage() {
       }
 
       setResponseMessage(data.msg);
+      setShowButtons(true);
     } catch (error) {
       console.error("Error subscribing email:", error);
       setIsError(true);
@@ -99,6 +119,7 @@ export default function LandingPage() {
                 At Dreamaze, professional writers weave heartfelt, inspiring stories, and talented illustrators bring to life enchanting worlds of magic and wonder. With a touch of AI magic, we create seamless, one-of-a-kind personalized books, crafted just for you. Here, every reader is truly seen, valued, and joyfully celebrated.
               </p>
               
+              {!showButtons && 
               <form className="flex justify-between gap-4" onSubmit={handleSubmit}>
                 <input 
                   required 
@@ -118,15 +139,38 @@ export default function LandingPage() {
                     'reserve launch invite'
                   )}
                 </button>
-              </form>
+              </form>}
+
+
               {responseMessage && (
-                <p className={`p-4 rounded-md mt-4 ${
-                  isError 
-                    ? 'text-red-600 bg-red-100' 
-                    : 'text-green-600 bg-green-100'
-                }`}>
-                  {responseMessage}
-                </p>
+                <div>
+                  <p className={`p-4 rounded-md ${
+                    isError 
+                      ? 'text-red-600 bg-red-100' 
+                      : 'text-green-600 bg-green-100'
+                  }`}>
+                    {responseMessage}
+                  </p>
+                  
+                  {showButtons && !isError && (
+                    <div className="flex gap-4 mt-4">
+                      <a
+                        href="https://app.hubspot.com/payments/purchase/hscs_WUZTsI2Lke1ZkFGqH3oyWtaxKn8ZpxaFyQOOKXWcpGuK0SUIz8mswZKYJyXriPHe?referrer=PAYMENT_LINK"
+                        className="text-center bg-blue-600 text-white px-4 py-2 rounded w-1/2 hover:bg-blue-700 transition-colors"
+                      >
+                        Reserve for $1
+                      </a>
+                      <a
+                        href="https://forms.google.com" // Replace with your actual Google Form URL
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-gray-200 text-gray-800 px-4 py-2 rounded w-1/2 text-center hover:bg-gray-300 transition-colors"
+                      >
+                        No thanks
+                      </a>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>

@@ -43,9 +43,11 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const responseData = await response.json();
-      let msg = `Error subscribing email ${response.statusText}`;
+      let msg;
       if (responseData.category == 'CONFLICT') {
-        msg = 'You have already subscribed';
+        return Response.json({msg: "Subscription Successful"},{status:200});
+      } else {
+        msg = `Error subscribing email ${response.statusText}`;
       }
       return Response.json({msg},{status:response.status});
     }
