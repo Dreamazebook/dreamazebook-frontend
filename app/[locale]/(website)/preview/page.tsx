@@ -50,8 +50,8 @@ export default function PreviewPageWithTopNav() {
 
   return (
     <div className="flex min-h-screen bg-[#F8F8F8]">
-      <div className="w-full p-[8px] md:w-[80%] flex flex-col items-center">
-        <div className="p-[12px] w-[95%] mx-auto">
+      <div className="w-full pt-[8px] px-4 md:w-[80%] flex flex-col items-center">
+        <div className="pb-[12px] w-[95%] mx-auto">
           <TopNavBarWithTabs
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -73,41 +73,100 @@ export default function PreviewPageWithTopNav() {
                 />
               </div>
             </div>
-            <div className={`w-full max-w-5xl ${viewMode === 'double' ? 'flex flex-row justify-center items-center mb-8' : 'flex flex-col items-center gap-8 mb-8'}`}> 
-              {/* Giver & Dedication Pages */}
-              <div className="relative flex flex-col items-center">
-                <img
-                  src="../giver_page.png"
-                  alt="Giver Page"
-                  className="rounded-lg"
-                  style={{ height: '500px', objectFit: 'cover', marginRight: viewMode === 'double' ? '0px' : 'auto' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setEditField('giver')}
-                  className={`${viewMode === 'double' ? 'absolute bottom-36' : 'mt-4'} text-black py-2 px-4 rounded border border-black`}
-                >
-                  Edit Giver
-                </button>
+            <div
+              className={`w-full max-w-5xl ${
+                viewMode === 'double'
+                  ? 'flex flex-row justify-center items-stretch mb-8'
+                  : 'flex flex-col items-center gap-8 mb-8'
+              }`}
+            >
+              {/* Giver Page */}
+              <div className="flex-1 flex flex-col items-center">
+                {viewMode === 'double' ? (
+                  // double-page view：图片宽度自适应，高度由图片自身比例决定
+                  <div className="w-full relative">
+                    <img
+                      src="../giver_page.png"
+                      alt="Giver Page"
+                      className="w-full h-auto rounded-lg object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setEditField('giver')}
+                      className="absolute bottom-[20%] left-1/2 transform -translate-x-1/2
+                                text-black rounded border border-black
+                                py-2 px-4 text-sm 
+                                sm:text-base
+                                md:text-base"
+                    >
+                      Edit Giver
+                    </button>
+                  </div>
+                ) : (
+                  // single-page view：图片高度固定，按钮在图片下方
+                  <>
+                    <div className="w-full relative">
+                      <img
+                        src="../giver_page.png"
+                        alt="Giver Page"
+                        className="w-full h-auto rounded-lg object-contain"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditField('giver')}
+                      className="mt-4 text-black py-2 px-4 rounded border border-black"
+                    >
+                      Edit Giver
+                    </button>
+                  </>
+                )}
               </div>
 
-              <div className="relative flex flex-col items-center">
-                <img
-                  src="../giver_page.png"
-                  alt="Dedication Page"
-                  className="rounded-lg"
-                  style={{ height: '500px', objectFit: 'cover', marginLeft: viewMode === 'double' ? '0px' : 'auto' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setEditField('dedication')}
-                  className={`${viewMode === 'double' ? 'absolute bottom-36' : 'mt-4'} text-black py-2 px-4 rounded border border-black`}
-                >
-                  Edit Dedication
-                </button>
+              {/* Dedication Page */}
+              <div className="flex-1 flex flex-col items-center">
+                {viewMode === 'double' ? (
+                  // double-page view：图片宽度自适应，高度由图片自身比例决定
+                  <div className="w-full relative">
+                    <img
+                      src="../giver_page.png"
+                      alt="Dedication Page"
+                      className="w-full h-auto rounded-lg object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setEditField('dedication')}
+                      className="absolute bottom-[20%] left-1/2 transform -translate-x-1/2
+                                text-black rounded border border-black
+                                py-2 px-4 text-sm 
+                                sm:text-base
+                                md:text-base"
+                    >
+                      Edit Dedication
+                    </button>
+                  </div>
+                ) : (
+                  // single-page view：图片高度固定，按钮在图片下方
+                  <>
+                    <div className="w-full relative">
+                      <img
+                        src="../giver_page.png"
+                        alt="Dedication Page"
+                        className="w-full h-auto rounded-lg object-contain"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditField('dedication')}
+                      className="mt-4 text-black py-2 px-4 rounded border border-black"
+                    >
+                      Edit Dedication
+                    </button>
+                  </>
+                )}
               </div>
             </div>
-            <div className="p-[12px_24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
+            <div className="w-full max-w-5xl mx-auto p-[12px_24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
             The book preview is currently queued for generation, and you are number 7 out of 249 in line.
             </div>
           </main>
