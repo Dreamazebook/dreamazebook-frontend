@@ -3,79 +3,49 @@ import {useEffect, useState} from "react";
 import Image from 'next/image'
 
 function PromotionBanner() {
+  const PROMOTION_BANNERS = [
+    {tl: 'Lock in 40% Off', desc: 'Reserve now before this exclusive VIP discount disappears!'},
+    {tl: 'First Access', desc: 'Early sign-ups get an exclusive bonus with their first order!'},
+    {tl: 'Limited Gift Package', desc: 'Early sign-ups get an exclusive bonus with their first order!'}
+  ];
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12 sm:py-16">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Why Sign Up <span className="text-orange-600">Today?</span>
-        </h1>
-        
-        <div className="mt-8 max-w-2xl mx-auto">
-          <button className="bg-orange-600 hover:bg-orange-700 text-white font-semibold px-8 py-3 rounded-full 
-            transform transition-all duration-200 hover:scale-105">
-            Reserve Now - 40% Off
-          </button>
+    <section className="px-4 py-12 sm:py-16 bg-gray-100">
+      <div className="max-w-3xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            Why Sign Up Today?
+          </h2>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
+          {PROMOTION_BANNERS.map(({tl,desc})=>
+            <div key={tl} className="bg-white p-6 text-center">
+              <div className="flex items-center mb-4">
+              </div>
+              <h3 className="text-xl text-blue-800 font-semibold mb-2">{tl}</h3>
+              <p className="text-gray-600">{desc}</p>
+            </div>
+          )}
+
         </div>
       </div>
-
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-        {/* First Access Card */}
-        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-          <div className="flex items-center mb-4">
-            <div className="bg-blue-100 p-2 rounded-lg">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-          </div>
-          <h3 className="text-xl font-semibold mb-2">First Access</h3>
-          <p className="text-gray-600">Be the first to explore and even influence our personalized books.</p>
-          <span className="inline-block mt-4 text-sm text-orange-600 font-medium">Exclusive Preview →</span>
-        </div>
-
-        {/* Discount Card */}
-        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-          <div className="flex items-center mb-4">
-            <div className="bg-green-100 p-2 rounded-lg">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-          </div>
-          <h3 className="text-xl font-semibold mb-2">Lock In 40% Off</h3>
-          <p className="text-gray-600">Early sign-ups get an exclusive VIP discount before it disappears!</p>
-          <div className="mt-3 flex items-center">
-            <span className="bg-red-100 text-red-800 text-sm font-medium px-2.5 py-0.5 rounded">Limited Time</span>
-          </div>
-        </div>
-
-        {/* Gift Package Card */}
-        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-          <div className="flex items-center mb-4">
-            <div className="bg-purple-100 p-2 rounded-lg">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4l14-5M5 12l14 5" />
-              </svg>
-            </div>
-          </div>
-          <h3 className="text-xl font-semibold mb-2">Limited Gift Package</h3>
-          <p className="text-gray-600">Reserve now before this exclusive bonus with their first order!</p>
-          <div className="mt-4 flex items-center text-sm text-purple-600 font-medium">
-            <span>Free Gift Included</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    </section>
   )
 };
 
-const ReserveSection = ({title}:any) => {
+interface ReserveSectionProps {
+  title: string
+  desc: string
+}
+
+const ReserveSection = ({title,desc}:ReserveSectionProps) => {
   return (
-    <section className="bg-pink-100 p-20">
-      <h2 className="text-center text-4xl">{title}</h2>
-      <div className="flex justify-center items-center mt-3 gap-3">
-        <input placeholder="example@gmail.com" className="rounded p-2 bg-white" />
-        <button className="bg-blue-600 text-white p-2 rounded uppercase">Reserve</button>
+    <section className="bg-black p-20 text-white text-center ">
+      <h2 className="text-4xl">{title}</h2>
+      <p className="">{desc}</p>
+      <div className="mt-3 max-w-lg mx-auto">
+        <input placeholder="example@gmail.com" className="block w-full rounded p-3 bg-white mb-5" />
+        <button className="block bg-blue-600 w-full text-white p-3 rounded uppercase">Reserve Save 40%</button>
       </div>
     </section>
   )
@@ -258,19 +228,20 @@ export default function LandingPage() {
 
       <PromotionBanner />
 
-      <ReserveSection title={"Reserve Now and Save 40%"} />
+      <ReserveSection title={"Early Access"} desc={'Be the first to explore and even help shape our personalized books.'} />
 
       {/* The Only Book Section */}
       <div className="bg-blue-50 py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-5xl font-bold text-center mb-8 leading-15">The Only Book<br/>Where You Are <span className="text-blue-500">Truly Seen</span></h2>
-          <p className="text-lg text-center text-gray-700 mb-8">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-5xl font-bold mb-8 leading-15">The Only Book<br/>Where You Are <span className="text-blue-500">Truly Seen</span></h2>
+          <p className="text-lg text-gray-700 mb-8">
             If you want to personalize a book that truly reflects your loved ones, not generic avatars but their real name, image, and uniqueness, Dreamazebook is the best choice!
           </p>
+          <p className="font-bold">Dreamazebook is the best choice!</p>
         </div>
       </div>
 
-      <ReserveSection title={"See Yourself in the Story—Reserve Now!"} />
+      <ReserveSection title={"Make It Extra Special"} desc={'Create a magical story starring your little one.'} />
 
       {/* Super Strong Emotional Connection Section */}
       <div className="container mx-auto px-4 py-16">
@@ -281,62 +252,98 @@ export default function LandingPage() {
       </div>
 
       {/* Effortless Gifting Section */}
-      <div className="bg-blue-50 py-16">
+      <div className="bg-pink-100 py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-5xl font-bold text-center mb-8">Effortless Gifting<br/> With Maximum Impact</h2>
+          <h2 className="text-5xl font-bold text-center mb-8">Expertly Crafted<br/>And <span className="text-blue-500">Beautifully</span> Illustrated</h2>
           <p className="text-lg text-center text-gray-700 mb-8 max-w-2xl mx-auto">
-            Create the perfect personalized storybook with just a few clicks—choose a design, upload a photo, and you're done. It's a thoughtful gift without the hassle.
+          Every book is thoughtfully written by professional educators and features exclusive hand-drawn art It’s a one-of-a-kind keepsake made with care and love.
           </p>
         </div>
       </div>
 
-      {/* Easy Steps Section */}
-      <div className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-8">Easy 3 Steps to Get Your Book</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="text-center">
-            <h3 className="text-2xl font-semibold mb-4 text-blue-600">01 Personalize It</h3>
-            <p className="text-gray-600">Add the hero's name, upload a photo, and make a few fun choices—it's that easy!</p>
-          </div>
-          <div className="text-center">
-            <h3 className="text-2xl font-semibold mb-4 text-blue-600">02 Preview & Confirm</h3>
-            <p className="text-gray-600">Take a peek at your book and give it a thumbs-up.</p>
-          </div>
-          <div className="text-center">
-            <h3 className="text-2xl font-semibold mb-4 text-blue-600">03 Receive & Enjoy</h3>
-            <p className="text-gray-600">Sit back and get ready for a one-of-a-kind gift to arrive at your door!</p>
+      {/* Effortless Gifting Section */}
+      <div className="bg-blue-50 py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-5xl font-bold text-center mb-8">Effortless Gifting<br/> With <span className="text-blue-500">Maximum</span> Impact</h2>
+          <p className="text-lg text-center text-gray-700 mb-8 max-w-2xl mx-auto">
+            Create the perfect personalized storybook with just a few clicks—choose a design, upload a photo, and you’re done. It’s a thoughtful gift without the hassle.
+          </p>
+        </div>
+        
+
+        {/* Easy Steps Section */}
+        <div className="container mx-auto px-4 py-16">
+          <h2 className="text-3xl font-bold text-center mb-8">Easy 3 Steps to Get Your Book</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {tl:'01 Personalize It',desc:"Add the hero's name, upload a photo, and make a few fun choices—it's that easy!"},
+              {tl:'02 Preview & Confirm',desc:"Take a peek at your book and give it a thumbs-up."},
+              {tl:'03 Receive & Enjoy',desc:"Sit back and get ready for a one-of-a-kind gift to arrive at your door!"}
+            ].map(({tl,desc})=>
+            <div key={tl} className="text-center">
+              <h3 className="text-2xl font-semibold mb-4 text-blue-600">{tl}</h3>
+              <p className="text-gray-600">{desc}</p>
+            </div>
+            )}
           </div>
         </div>
+
       </div>
 
-      <ReserveSection title={"Reserve and Choose Your Personalized Keepsake!"} />
+      <ReserveSection title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it’s gone!" />
 
       {/* About Us Section */}
       <div className="bg-blue-50 py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">About Us</h2>
-          <p className="text-lg text-center text-gray-700 mb-8">
-            The heart of Dreamaze is simple: everyone deserves to be the hero of their own story. As a mother, I witnessed the pure joy on my daughter's face when she saw herself in a book—a unique experience she had never had before. We believe personalized books should go beyond pieced-together avatars to create immersive experiences where you or your loved ones are the true protagonists.
+          <h2 className="text-5xl font-bold text-center mb-8">About Us</h2>
+          <p className="text-lg max-w-2xl mx-auto text-center text-gray-700 mb-8">
+            The heart of Dreamaze is simple: <b>everyone deserves to be the hero of their own story.</b> As a mother I witnessed the pure joy on my daughter’s face when she saw herself in a book—a unique experience she had never had before. We believe personalized books should go beyond pieced-together avatars to create immersive experiences where you or your loved ones are the true protagonists.
           </p>
         </div>
       </div>
 
       {/* Testimonials Section */}
-      <div className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-8">Beloved By Early Testers</h2>
+      <div className="container bg-pink-100 mx-auto px-4 py-16">
+        <h2 className="text-5xl font-bold text-center mb-8"><span className="text-blue-500">Beloved</span> By Early Testers</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="text-center">
-            <p className="text-gray-600 italic">"My daughter wants me to read this book to her all the time! It's the first time she has ever been the hero of a story, and she loves showing it to everyone."</p>
-            <p className="text-gray-800 font-semibold mt-4">— Lily's mother</p>
-          </div>
-          <div className="text-center">
-            <p className="text-gray-600 italic">"Seeing my own child as the hero of the story is such a wonderful idea! I love how this book captures precious moments—I'll treasure it as a keepsake of all their milestones."</p>
-            <p className="text-gray-800 font-semibold mt-4">— Absalom’s father</p>
-          </div>
-          <div className="text-center">
-            <p className="text-gray-600 italic">"This is the perfect gift for my grandson! The story is heartwarming, the illustrations are beautiful, and most importantly, my little cutie looks amazing in the book. I can't wait to create one for all of my grandkids."</p>
-            <p className="text-gray-800 font-semibold mt-4">— Aaron's grandma</p>
-          </div>
+          {[{
+            tl: "My daughter wants me to read this book to her all the time! It’s the first time she has ever been the hero of a story, and she loves showing it to everyone.",
+            desc: "LIli‘s mother"
+          },
+          {
+            tl: "Seeing my own child as the hero of the story is such a wonderful idea! I love how this book captures precious moments—I’ll treasure it as a keepsake of all their milestones.",
+            desc: "Absalom’s father"
+          },
+          {
+            tl: "This is the perfect gift for my grandson! The story is heartwarming, the illustrations are beautiful, and most importantly, my little cutie looks amazing in the book. I can’t wait to create one for all of my grandkids！",
+            desc: "Aaron‘s grandma"
+          }].map(({tl, desc}) => 
+            <div className="text-center bg-white p-5" key={tl}>
+              <p className="text-gray-600">{tl}</p>
+              <p className="text-gray-800 font-semibold mt-4">{desc}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Dreamaze book's growth Section */}
+      <div className="container bg-white mx-auto px-4 py-16">
+        <h2 className="text-5xl font-bold text-center mb-8">Dreamaze Book&apos;s <span className="text-blue-500">growth</span></h2>
+        <div className="max-w-96 mx-auto">
+          {[
+            {tl: 'Initial Idea Sparked', date:'May 2023'},
+            {tl: 'Product Research', date:'June 2023'},
+            {tl: 'AI Workflow Development', date:'July 2023'},
+            {tl: 'Illustration&Content Development', date:'October 2023'},
+            {tl: 'Prototype Creation', date:'January 2024'},
+            {tl: 'Factory Visits', date:'May 2024'},
+            {tl: 'Early Tester Feedback', date:'September 2024'},
+          ].map(({tl, date}, idx)=>
+            <div key={idx} className="mb-3 border-l border-dotted pl-4">
+              <h3 className="font-bold text-xl">{tl}</h3>
+              <p className="text-gray-400 mt-2">{date}</p>
+            </div>
+          )}
         </div>
       </div>
 
