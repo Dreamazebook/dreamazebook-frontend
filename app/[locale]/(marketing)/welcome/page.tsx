@@ -6,20 +6,18 @@ function PromotionBanner() {
   const PROMOTION_BANNERS = [
     {tl: 'Lock in 40% Off', desc: 'Reserve now before this exclusive VIP discount disappears!'},
     {tl: 'First Access', desc: 'Early sign-ups get an exclusive bonus with their first order!'},
-    {tl: 'Limited Gift Package', desc: 'Early sign-ups get an exclusive bonus with their first order!'}
+    {tl: 'Limited Gift Package', desc: 'Early sign-ups get an exclusive bonus with their first order!', cssClasses:'col-span-full md:col-span-1'}
   ];
   return (
     <section className="px-4 py-12 sm:py-16 bg-gray-100">
       <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Why Sign Up Today?
-          </h2>
-        </div>
+        <h2 className="text-4xl font-bold text-gray-900 text-center mb-12">
+          Why Sign Up Today?
+        </h2>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-          {PROMOTION_BANNERS.map(({tl,desc})=>
-            <div key={tl} className="bg-white p-6 text-center">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mt-12">
+          {PROMOTION_BANNERS.map(({tl,desc, cssClasses})=>
+            <div key={tl} className={`bg-white p-6 text-center ${cssClasses}`}>
               <div className="flex items-center mb-4">
               </div>
               <h3 className="text-xl text-blue-800 font-semibold mb-2">{tl}</h3>
@@ -143,7 +141,7 @@ export default function LandingPage() {
         <div className="flex flex-col lg:flex-row items-center gap-8 z-1 relative md:w-3/5">
           {/* Hero Content */}
           <h1 className="text-4xl font-bold text-black px-4">
-            The Ultimate Personalized Books That Let Your Loved Ones See Themselves As The Heroes
+          The Ultimate Personalized Books to Truly See Your Child
           </h1>
           <div className="relative w-full h-[500px] md:hidden">
             <Image
@@ -158,29 +156,21 @@ export default function LandingPage() {
 
         <div className='bg-landing-page p-4 md:bg-transparent z-1 relative md:w-3/5'>
           <div className='md:flex md:flex-col-reverse'>
-            <div className='flex justify-between md:mt-20'>
-              {['Perfect for all ages', 'Worldwide shipping', 'Eco friendly & baby safe'].map((feature) => (
-                <h4 key={feature} className='text-sm md:text-base font-medium'>{feature}</h4>
-              ))}
-            </div>
             <div className=''>
-              <p className='py-4'>
-                At Dreamaze, professional writers weave heartfelt, inspiring stories, and talented illustrators bring to life enchanting worlds of magic and wonder. With a touch of AI magic, we create seamless, one-of-a-kind personalized books, crafted just for you. Here, every reader is truly seen, valued, and joyfully celebrated.
-              </p>
               
               {!showButtons && 
-              <form className="flex justify-between gap-4" onSubmit={handleSubmit}>
+              <form className="space-y-3" onSubmit={handleSubmit}>
                 <input 
                   required 
                   type="email" 
                   name="email" 
                   placeholder='example@gmail.com' 
-                  className='w-1/2 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
+                  className='w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
                   aria-label="Email address"
                 />
                 <button 
                   disabled={isLoading}
-                  className='bg-landing-page-btn text-white px-4 py-2 rounded uppercase w-1/2 disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center'
+                  className='bg-landing-page-btn text-white px-4 py-2 rounded uppercase w-full disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center'
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -338,22 +328,61 @@ export default function LandingPage() {
             {tl: 'Prototype Creation', date:'January 2024'},
             {tl: 'Factory Visits', date:'May 2024'},
             {tl: 'Early Tester Feedback', date:'September 2024'},
-          ].map(({tl, date}, idx)=>
+            {icon:'',isCur:true,tl: 'Kickstarter Prelaunch', date:'February-March 2025'},
+            {icon:'',isCur:true,tl: 'Finalize Website', date:'March 2024'},
+            {icon:'',isCur:true,tl: 'Kickstart launching', date:'April 2024'},
+            {icon:'',isCur:true,tl: 'Ship to customers', date:'June 2024'}
+          ].map(({tl, date, isCur, icon}, idx)=>
             <div key={idx} className="mb-3 border-l border-dotted pl-4">
-              <h3 className="font-bold text-xl">{tl}</h3>
-              <p className="text-gray-400 mt-2">{date}</p>
+              {
+              icon?
+              <div></div>:
+              <svg width="27" height="19" viewBox="0 0 27 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2.33398 8.39583L10.5007 16.5625L24.5007 2.5625" stroke="#999999" strokeWidth="4.66667" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>}
+              
+
+              <h3 className={`font-bold text-xl ${isCur?'text-blue-700':''}`}>{tl}</h3>
+              <p className={`${isCur?'text-black':'text-gray-400'} mt-2`}>{date}</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Footer Section */}
-      <div className="bg-blue-900 text-white py-8 text-center">
-        <p className="text-lg">Reserve Now and Save 40%!</p>
-        <button className="bg-white text-blue-900 px-8 py-3 rounded-full font-semibold mt-4 hover:bg-blue-100 transition duration-300">
-          Reserve Now
-        </button>
-      </div>
+      {/* FAQ section */}
+      <section className="bg-gray-100 py-16">
+        <h2 className="text-4xl text-center mb-10">FAQ</h2>
+        <div className="max-w-2xl mx-auto">
+          {[
+            {
+              tl:'01 How can I support Dreamaze on Kickstarter?',
+              ans: 'Reserve your spot with just $1 to unlock the best discount and VIP access. Sign up now, and we’ll guide you through the next steps via email!'
+            },
+            {
+              tl:'02  What happens after I register?',
+              ans: 'Reserve your spot with just $1 to unlock the best discount and VIP access. Sign up now, and we’ll guide you through the next steps via email!'
+            },
+            {
+              tl:'03  When will my book be delivered if I back you on Kickstarter?',
+              ans: 'Reserve your spot with just $1 to unlock the best discount and VIP access. Sign up now, and we’ll guide you through the next steps via email!'
+            },
+            {
+              tl:'04  Can I make changes to my personalization after ordering?',
+              ans: 'Reserve your spot with just $1 to unlock the best discount and VIP access. Sign up now, and we’ll guide you through the next steps via email!'
+            },
+          ].map(({tl,ans})=>
+            <div key={tl} className="mb-4 pb-3 border-b border-black/20">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold mb-3">{tl}</h3>
+                <span className="cursor">+</span>
+              </div>
+              <p className="font-thin ml-7">{ans}</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <ReserveSection title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it’s gone!" />
 
       <h2 className='hidden md:block text-center bg-landing-page p-4 text-2xl font-bold'>See Yourself in Personalised Amazing Dream</h2>
 
