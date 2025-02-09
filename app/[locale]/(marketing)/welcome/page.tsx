@@ -4,9 +4,22 @@ import Image from 'next/image'
 
 function PromotionBanner() {
   const PROMOTION_BANNERS = [
-    {tl: 'Lock in 40% Off', desc: 'Reserve now before this exclusive VIP discount disappears!'},
-    {tl: 'First Access', desc: 'Early sign-ups get an exclusive bonus with their first order!'},
-    {tl: 'Limited Gift Package', desc: 'Early sign-ups get an exclusive bonus with their first order!', cssClasses:'col-span-full md:col-span-1'}
+    {
+      tl: 'Lock in 40% Off',
+      desc: 'Reserve now before this exclusive VIP discount disappears!',
+      img: '/welcome/why-sign-up-today/lock-in-40-off.png'
+    },
+    {
+      tl: 'First Access',
+      desc: 'Early sign-ups get an exclusive bonus with their first order!',
+      img: '/welcome/why-sign-up-today/first-access.png'
+    },
+    {
+      tl: 'Limited Gift Package',
+      desc: 'Early sign-ups get an exclusive bonus with their first order!',
+      img: '/welcome/why-sign-up-today/limited-gift-package.png',
+      cssClasses:'col-span-full md:col-span-1'
+    }
   ];
   return (
     <section className="px-4 py-12 sm:py-16 bg-gray-100">
@@ -16,11 +29,12 @@ function PromotionBanner() {
         </h2>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mt-12">
-          {PROMOTION_BANNERS.map(({tl,desc, cssClasses})=>
+          {PROMOTION_BANNERS.map(({tl,desc, img, cssClasses})=>
             <div key={tl} className={`bg-white p-6 text-center ${cssClasses}`}>
               <div className="flex items-center mb-4">
               </div>
-              <h3 className="text-xl text-blue-800 font-semibold mb-2">{tl}</h3>
+              <h3 className="text-xl text-blue-800 font-semibold mb-2 text-nowrap">{tl}</h3>
+              <Image src={img} alt={tl} width={370} height={219} className="hover:scale-105 transition-transform" />
               <p className="text-gray-600">{desc}</p>
             </div>
           )}
@@ -34,11 +48,12 @@ function PromotionBanner() {
 interface ReserveSectionProps {
   title: string
   desc: string
+  cssClass?: string
 }
 
-const ReserveSection = ({title,desc}:ReserveSectionProps) => {
+const ReserveSection = ({title,desc,cssClass}:ReserveSectionProps) => {
   return (
-    <section className="bg-black p-20 text-white text-center ">
+    <section className={`bg-black p-20 text-center ${cssClass}`}>
       <h2 className="text-4xl">{title}</h2>
       <p className="">{desc}</p>
       <div className="mt-3 max-w-lg mx-auto">
@@ -218,7 +233,7 @@ export default function LandingPage() {
 
       <PromotionBanner />
 
-      <ReserveSection title={"Early Access"} desc={'Be the first to explore and even help shape our personalized books.'} />
+      <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/early-access.png)]"} title={"Early Access"} desc={'Be the first to explore and even help shape our personalized books.'} />
 
       {/* The Only Book Section */}
       <div className="bg-blue-50 py-16">
@@ -228,10 +243,25 @@ export default function LandingPage() {
             If you want to personalize a book that truly reflects your loved ones, not generic avatars but their real name, image, and uniqueness, Dreamazebook is the best choice!
           </p>
           <p className="font-bold">Dreamazebook is the best choice!</p>
+          <video src="/welcome/the-only-book/video.mp4" autoPlay controls loop />
+
+          <div className="flex flex-col md:flex-row gap-4 mt-4">
+            <div className="w-full md:w-2/3 relative aspect-square">
+              <Image src="/welcome/the-only-book/lucas.png" alt="Lucas" className="object-cover" fill />
+            </div>
+            <div className="w-full md:w-1/3 flex gap-4 flex-row md:flex-col">
+              <div className="w-1/2 md:w-full relative aspect-square">
+                <Image src="/welcome/the-only-book/melody.png" alt="Melody" className="object-cover" fill />
+              </div>
+              <div className="w-1/2 md:w-full relative aspect-square">
+                <Image src="/welcome/the-only-book/mia.png" alt="Mia" className="object-cover" fill />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <ReserveSection title={"Make It Extra Special"} desc={'Create a magical story starring your little one.'} />
+      <ReserveSection cssClass={"bg-white"} title={"Make It Extra Special"} desc={'Create a magical story starring your little one.'} />
 
       {/* Super Strong Emotional Connection Section */}
       <div className="container mx-auto px-4 py-16">
@@ -280,10 +310,10 @@ export default function LandingPage() {
 
       </div>
 
-      <ReserveSection title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it’s gone!" />
+      <ReserveSection cssClass={"bg-pink-100"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it’s gone!" />
 
       {/* About Us Section */}
-      <div className="bg-blue-50 py-16">
+      <div className="bg-blue-50 py-16 bg-[url(/welcome/about-us-bg.png)] h-screen flex items-center">
         <div className="container mx-auto px-4">
           <h2 className="text-5xl font-bold text-center mb-8">About Us</h2>
           <p className="text-lg max-w-2xl mx-auto text-center text-gray-700 mb-8">
@@ -293,24 +323,30 @@ export default function LandingPage() {
       </div>
 
       {/* Testimonials Section */}
-      <div className="container bg-pink-100 mx-auto px-4 py-16">
+      <div className="bg-pink-100 mx-auto px-4 py-20">
         <h2 className="text-5xl font-bold text-center mb-8"><span className="text-blue-500">Beloved</span> By Early Testers</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[{
             tl: "My daughter wants me to read this book to her all the time! It’s the first time she has ever been the hero of a story, and she loves showing it to everyone.",
-            desc: "LIli‘s mother"
+            desc: "LIli‘s mother",
+            img: '/welcome/beloved-by-early-testers/lIli-mother.png'
           },
           {
             tl: "Seeing my own child as the hero of the story is such a wonderful idea! I love how this book captures precious moments—I’ll treasure it as a keepsake of all their milestones.",
-            desc: "Absalom’s father"
+            desc: "Absalom’s father",
+            img: '/welcome/beloved-by-early-testers/absalom-father.png'
           },
           {
             tl: "This is the perfect gift for my grandson! The story is heartwarming, the illustrations are beautiful, and most importantly, my little cutie looks amazing in the book. I can’t wait to create one for all of my grandkids！",
-            desc: "Aaron‘s grandma"
-          }].map(({tl, desc}) => 
+            desc: "Aaron‘s grandma",
+            img: '/welcome/beloved-by-early-testers/aaron-grandma.png'
+          }].map(({tl, desc, img}) => 
             <div className="text-center bg-white p-5" key={tl}>
               <p className="text-gray-600">{tl}</p>
-              <p className="text-gray-800 font-semibold mt-4">{desc}</p>
+              <div className="flex justify-center gap-1 items-center mt-4">
+                <Image src={img} height={48} width={48} alt={desc} />
+                <p className="text-gray-800 font-semibold">{desc}</p>
+              </div>
             </div>
           )}
         </div>
@@ -382,7 +418,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <ReserveSection title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it’s gone!" />
+      <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/40-vip-discount.png)]"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it’s gone!" />
 
       <h2 className='hidden md:block text-center bg-landing-page p-4 text-2xl font-bold'>See Yourself in Personalised Amazing Dream</h2>
 
