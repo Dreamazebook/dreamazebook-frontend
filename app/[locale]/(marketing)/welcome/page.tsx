@@ -53,7 +53,7 @@ interface ReserveSectionProps {
 
 const ReserveSection = ({title,desc,cssClass}:ReserveSectionProps) => {
   return (
-    <section className={`bg-black p-20 text-center ${cssClass}`}>
+    <section className={`bg-black p-20 text-center bg-no-repeat bg-cover ${cssClass}`}>
       <h2 className="text-4xl">{title}</h2>
       <p className="">{desc}</p>
       <div className="mt-3 max-w-lg mx-auto">
@@ -243,7 +243,7 @@ export default function LandingPage() {
             If you want to personalize a book that truly reflects your loved ones, not generic avatars but their real name, image, and uniqueness, Dreamazebook is the best choice!
           </p>
           <p className="font-bold">Dreamazebook is the best choice!</p>
-          <video src="/welcome/the-only-book/video.mp4" autoPlay controls loop />
+          <video className="w-full" src="/welcome/the-only-book/video.mp4" autoPlay controls loop />
 
           <div className="flex flex-col md:flex-row gap-4 mt-4">
             <div className="w-full md:w-2/3 relative aspect-square">
@@ -313,7 +313,7 @@ export default function LandingPage() {
       <ReserveSection cssClass={"bg-pink-100"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it’s gone!" />
 
       {/* About Us Section */}
-      <div className="bg-blue-50 py-16 bg-[url(/welcome/about-us-bg.png)] h-screen flex items-center">
+      <div className="bg-blue-50 py-16 bg-[url(/welcome/about-us-bg.png)] bg-cover h-screen flex items-center">
         <div className="container mx-auto px-4">
           <h2 className="text-5xl font-bold text-center mb-8">About Us</h2>
           <p className="text-lg max-w-2xl mx-auto text-center text-gray-700 mb-8">
