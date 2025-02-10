@@ -284,12 +284,32 @@ export default function LandingPage() {
       </div>
 
       {/* Effortless Gifting Section */}
-      <div className="bg-blue-50 py-16">
+      <div className="py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-5xl font-bold text-center mb-8">Effortless Gifting<br/> With <span className="text-blue-500">Maximum</span> Impact</h2>
-          <p className="text-lg text-center text-gray-700 mb-8 max-w-2xl mx-auto">
+          <p className="text-lg text-center text-gray-700 mb-8 max-w-4xl mx-auto">
             Create the perfect personalized storybook with just a few clicks—choose a design, upload a photo, and you’re done. It’s a thoughtful gift without the hassle.
           </p>
+          
+          <div className="max-w-4xl mx-auto flex flex-col gap-4">
+            <div className="w-full relative aspect-square">
+              <Image src="/welcome/the-only-book/lucas.png" alt="Lucas" className="object-cover" fill />
+            </div>
+            <div className="flex gap-4">
+              <div className="w-1/2 flex flex-col gap-4">
+                <div className="relative aspect-square w-full">
+                  <Image src="/welcome/the-only-book/lucas.png" alt="Lucas" className="object-cover" fill />
+                </div>
+                <div className="relative aspect-square w-full">
+                  <Image src="/welcome/the-only-book/lucas.png" alt="Lucas" className="object-cover" fill />
+                </div>
+              </div>
+              <div className="w-1/2 relative">
+                <Image src="/welcome/the-only-book/lucas.png" alt="Lucas" className="object-cover" fill />
+              </div>
+            </div>
+          </div>
+
         </div>
         
 
