@@ -1,6 +1,7 @@
 "use client";
 import {useEffect, useState} from "react";
 import Image from 'next/image'
+import FAQ from "../components/FAQ";
 
 function PromotionBanner() {
   const PROMOTION_BANNERS = [
@@ -385,38 +386,7 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* FAQ section */}
-      <section className="bg-gray-100 py-16">
-        <h2 className="text-4xl text-center mb-10">FAQ</h2>
-        <div className="max-w-2xl mx-auto">
-          {[
-            {
-              tl:'01 How can I support Dreamaze on Kickstarter?',
-              ans: 'Reserve your spot with just $1 to unlock the best discount and VIP access. Sign up now, and we’ll guide you through the next steps via email!'
-            },
-            {
-              tl:'02  What happens after I register?',
-              ans: 'Reserve your spot with just $1 to unlock the best discount and VIP access. Sign up now, and we’ll guide you through the next steps via email!'
-            },
-            {
-              tl:'03  When will my book be delivered if I back you on Kickstarter?',
-              ans: 'Reserve your spot with just $1 to unlock the best discount and VIP access. Sign up now, and we’ll guide you through the next steps via email!'
-            },
-            {
-              tl:'04  Can I make changes to my personalization after ordering?',
-              ans: 'Reserve your spot with just $1 to unlock the best discount and VIP access. Sign up now, and we’ll guide you through the next steps via email!'
-            },
-          ].map(({tl,ans})=>
-            <div key={tl} className="mb-4 pb-3 border-b border-black/20">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold mb-3">{tl}</h3>
-                <span className="cursor">+</span>
-              </div>
-              <p className="font-thin ml-7">{ans}</p>
-            </div>
-          )}
-        </div>
-      </section>
+      <FAQ />
 
       <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/40-vip-discount.png)]"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it’s gone!" />
 
