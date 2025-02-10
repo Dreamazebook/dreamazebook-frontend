@@ -25,3 +25,19 @@ body {
 .bg-landing-page-btn {
   background-color: #012DCE;
 }
+
+.animation-opacity {
+  animation: spin 1.5s infinite; /* spin 1s linear infinite */
+}
+
+@keyframes spin {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}

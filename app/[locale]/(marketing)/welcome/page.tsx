@@ -280,6 +280,11 @@ export default function LandingPage() {
           <p className="text-lg text-center text-gray-700 mb-8 max-w-2xl mx-auto">
           Every book is thoughtfully written by professional educators and features exclusive hand-drawn art It’s a one-of-a-kind keepsake made with care and love.
           </p>
+          
+          <div className="max-w-4xl relative aspect-[4/1] mx-auto">
+            <Image src="/welcome/reserve-banner/early-access.png" alt="Dreamazebook" className="object-cover transition-opacity animation-opacity z-10" fill />
+            <Image src="/welcome/reserve-banner/40-vip-discount.png" alt="Dreamazebook" className="object-cover" fill />
+          </div>
         </div>
       </div>
 
