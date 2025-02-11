@@ -6,6 +6,7 @@ import Growth from "../components/Growth";
 import PromotionBanner from "../components/PromotionBanner";
 import ReserveSection from "../components/ReserveSection";
 import TheOnlyBook from "../components/TheOnlyBook";
+import DreamzeImage from "@/app/components/DreamzeImage";
 
 interface ChildName {
   name: string;
@@ -199,8 +200,8 @@ export default function LandingPage() {
           </p>
           
           <div className="max-w-4xl relative aspect-[4/1] mx-auto">
-            <Image src="/welcome/reserve-banner/early-access.png" alt="Dreamazebook" className="object-cover transition-opacity animation-opacity z-10" fill />
-            <Image src="/welcome/reserve-banner/40-vip-discount.png" alt="Dreamazebook" className="object-cover" fill />
+            <DreamzeImage src="/welcome/reserve-banner/early-access.png" alt="Dreamazebook" cssClass="transition-opacity animation-opacity z-10" />
+            <DreamzeImage src="/welcome/reserve-banner/40-vip-discount.png" alt="Dreamazebook" />
           </div>
         </div>
       </div>
@@ -215,19 +216,19 @@ export default function LandingPage() {
           
           <div className="max-w-4xl mx-auto flex flex-col gap-4">
             <div className="w-full relative aspect-square">
-              <Image src="/welcome/the-only-book/lucas.png" alt="Lucas" className="object-cover" fill />
+              <DreamzeImage src="/welcome/the-only-book/lucas.png" alt="Lucas" />
             </div>
             <div className="flex gap-4">
               <div className="w-1/2 flex flex-col gap-4">
                 <div className="relative aspect-square w-full">
-                  <Image src="/welcome/the-only-book/lucas.png" alt="Lucas" className="object-cover" fill />
+                  <DreamzeImage src="/welcome/the-only-book/lucas.png" alt="Lucas" />
                 </div>
                 <div className="relative aspect-square w-full">
-                  <Image src="/welcome/the-only-book/lucas.png" alt="Lucas" className="object-cover" fill />
+                  <DreamzeImage src="/welcome/the-only-book/lucas.png" alt="Lucas" />
                 </div>
               </div>
               <div className="w-1/2 relative">
-                <Image src="/welcome/the-only-book/lucas.png" alt="Lucas" className="object-cover" fill />
+                <DreamzeImage src="/welcome/the-only-book/lucas.png" alt="Lucas" />
               </div>
             </div>
           </div>
