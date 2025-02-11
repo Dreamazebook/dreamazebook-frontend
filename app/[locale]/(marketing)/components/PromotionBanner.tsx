@@ -1,3 +1,4 @@
+import DreamzeImage from '@/app/components/DreamzeImage';
 import Image from 'next/image';
 
 export default function PromotionBanner() {
@@ -32,7 +33,9 @@ export default function PromotionBanner() {
               <div className="flex items-center mb-4">
               </div>
               <h3 className="text-xl p-6 text-blue-800 font-semibold mb-2 text-nowrap">{tl}</h3>
-              <Image src={img} alt={tl} width={370} height={219} className="hover:scale-105 transition-transform overflow-hidden" />
+              <div className='relative w-full aspect-[4/3]'>
+                <DreamzeImage src={img} alt={tl} cssClass="hover:scale-105 transition-transform overflow-hidden" />
+              </div>
               <p className="text-gray-600 p-6">{desc}</p>
             </div>
           )}
