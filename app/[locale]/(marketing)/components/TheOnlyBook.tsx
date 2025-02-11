@@ -1,4 +1,4 @@
-import Image from "next/image";
+import DreamzeImage from "@/app/components/DreamzeImage";
 export default function TheOnlyBook() {
   return (
     <div className="bg-blue-50 py-16">
@@ -12,14 +12,14 @@ export default function TheOnlyBook() {
 
         <div className="flex flex-col md:flex-row gap-4 mt-4">
           <div className="w-full md:w-2/3 relative aspect-square">
-            <Image src="/welcome/the-only-book/lucas.png" alt="Lucas" className="object-cover" fill />
+            <DreamzeImage src="/welcome/the-only-book/lucas.png" alt="Lucas" />
           </div>
           <div className="w-full md:w-1/3 flex gap-4 flex-row md:flex-col">
             <div className="w-1/2 md:w-full relative aspect-square">
-              <Image src="/welcome/the-only-book/melody.png" alt="Melody" className="object-cover" fill />
+              <DreamzeImage src="/welcome/the-only-book/melody.png" alt="Melody" />
             </div>
             <div className="w-1/2 md:w-full relative aspect-square">
-              <Image src="/welcome/the-only-book/mia.png" alt="Mia" className="object-cover" fill />
+              <DreamzeImage src="/welcome/the-only-book/mia.png" alt="Mia" />
             </div>
           </div>
         </div>
