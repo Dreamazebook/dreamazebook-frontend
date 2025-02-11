@@ -4,25 +4,7 @@ import Image from 'next/image'
 import FAQ from "../components/FAQ";
 import Growth from "../components/Growth";
 import PromotionBanner from "../components/PromotionBanner";
-
-interface ReserveSectionProps {
-  title: string
-  desc: string
-  cssClass?: string
-}
-
-const ReserveSection = ({title,desc,cssClass}:ReserveSectionProps) => {
-  return (
-    <section className={`bg-black p-20 text-center bg-no-repeat bg-cover ${cssClass}`}>
-      <h2 className="text-4xl">{title}</h2>
-      <p className="">{desc}</p>
-      <div className="mt-3 max-w-lg mx-auto">
-        <input placeholder="example@gmail.com" className="block w-full rounded p-3 bg-white mb-5" />
-        <button className="block bg-blue-600 w-full text-white p-3 rounded uppercase">Reserve Save 40%</button>
-      </div>
-    </section>
-  )
-}
+import ReserveSection from "../components/ReserveSection";
 
 interface ChildName {
   name: string;
