@@ -8,6 +8,7 @@ import ReserveSection from "../components/ReserveSection";
 import TheOnlyBook from "../components/TheOnlyBook";
 import DreamzeImage from "@/app/components/DreamzeImage";
 import EffortlessGifting from "../components/EffortlessGifting";
+import SuperStrongEmotionalConnection from "./components/SuperStrongEmotionalConnection";
 
 interface ChildName {
   name: string;
@@ -185,12 +186,8 @@ export default function LandingPage() {
       <ReserveSection cssClass={"bg-white"} title={"Make It Extra Special"} desc={'Create a magical story starring your little one.'} />
 
       {/* Super Strong Emotional Connection Section */}
-      <div className="container mx-auto px-4 py-16">
-        <h2 className="text-5xl font-bold text-center mb-8">Super Strong<br/><span className="text-blue-500">Emotional</span> Connection</h2>
-        <p className="text-lg text-center text-gray-700 mb-8 max-w-2xl mx-auto">
-          Reading a story where you and your child are the heroes strengthens bonds and creates cherished memories. These shared moments become treasures that last a lifetime.
-        </p>
-      </div>
+      <SuperStrongEmotionalConnection />
+      
 
       {/* Effortless Gifting Section */}
       <div className="bg-pink-100 py-16">
