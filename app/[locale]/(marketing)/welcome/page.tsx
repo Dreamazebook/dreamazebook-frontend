@@ -1,69 +1,14 @@
 "use client";
 import {useEffect, useState} from "react";
 import Image from 'next/image'
+import FAQ from "../components/FAQ";
+import Growth from "../components/Growth";
+import PromotionBanner from "../components/PromotionBanner";
+import ReserveSection from "../components/ReserveSection";
+import TheOnlyBook from "../components/TheOnlyBook";
+import DreamzeImage from "@/app/components/DreamzeImage";
+import EffortlessGifting from "../components/EffortlessGifting";
 import SuperStrongEmotionalConnection from "./components/SuperStrongEmotionalConnection";
-
-function PromotionBanner() {
-  const PROMOTION_BANNERS = [
-    {
-      tl: 'Lock in 40% Off',
-      desc: 'Reserve now before this exclusive VIP discount disappears!',
-      img: '/welcome/why-sign-up-today/lock-in-40-off.png'
-    },
-    {
-      tl: 'First Access',
-      desc: 'Early sign-ups get an exclusive bonus with their first order!',
-      img: '/welcome/why-sign-up-today/first-access.png'
-    },
-    {
-      tl: 'Limited Gift Package',
-      desc: 'Early sign-ups get an exclusive bonus with their first order!',
-      img: '/welcome/why-sign-up-today/limited-gift-package.png',
-      cssClasses:'col-span-full md:col-span-1'
-    }
-  ];
-  return (
-    <section className="px-4 py-12 sm:py-16 bg-gray-100">
-      <div className="max-w-3xl mx-auto">
-        <h2 className="text-4xl font-bold text-gray-900 text-center mb-12">
-          Why Sign Up Today?
-        </h2>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mt-12">
-          {PROMOTION_BANNERS.map(({tl,desc, img, cssClasses})=>
-            <div key={tl} className={`bg-white p-6 text-center ${cssClasses}`}>
-              <div className="flex items-center mb-4">
-              </div>
-              <h3 className="text-xl text-blue-800 font-semibold mb-2 text-nowrap">{tl}</h3>
-              <Image src={img} alt={tl} width={370} height={219} className="hover:scale-105 transition-transform" />
-              <p className="text-gray-600">{desc}</p>
-            </div>
-          )}
-
-        </div>
-      </div>
-    </section>
-  )
-};
-
-interface ReserveSectionProps {
-  title: string
-  desc: string
-  cssClass?: string
-}
-
-const ReserveSection = ({title,desc,cssClass}:ReserveSectionProps) => {
-  return (
-    <section className={`bg-black p-20 text-center ${cssClass}`}>
-      <h2 className="text-4xl">{title}</h2>
-      <p className="">{desc}</p>
-      <div className="mt-3 max-w-lg mx-auto">
-        <input placeholder="example@gmail.com" className="block w-full rounded p-3 bg-white mb-5" />
-        <button className="block bg-blue-600 w-full text-white p-3 rounded uppercase">Reserve Save 40%</button>
-      </div>
-    </section>
-  )
-}
 
 interface ChildName {
   name: string;
@@ -236,31 +181,7 @@ export default function LandingPage() {
 
       <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/early-access.png)]"} title={"Early Access"} desc={'Be the first to explore and even help shape our personalized books.'} />
 
-      {/* The Only Book Section */}
-      <div className="bg-blue-50 py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-5xl font-bold mb-8 leading-15">The Only Book<br/>Where You Are <span className="text-blue-500">Truly Seen</span></h2>
-          <p className="text-lg text-gray-700 mb-8">
-            If you want to personalize a book that truly reflects your loved ones, not generic avatars but their real name, image, and uniqueness, Dreamazebook is the best choice!
-          </p>
-          <p className="font-bold">Dreamazebook is the best choice!</p>
-          <video src="/welcome/the-only-book/video.mp4" autoPlay controls loop />
-
-          <div className="flex flex-col md:flex-row gap-4 mt-4">
-            <div className="w-full md:w-2/3 relative aspect-square">
-              <Image src="/welcome/the-only-book/lucas.png" alt="Lucas" className="object-cover" fill />
-            </div>
-            <div className="w-full md:w-1/3 flex gap-4 flex-row md:flex-col">
-              <div className="w-1/2 md:w-full relative aspect-square">
-                <Image src="/welcome/the-only-book/melody.png" alt="Melody" className="object-cover" fill />
-              </div>
-              <div className="w-1/2 md:w-full relative aspect-square">
-                <Image src="/welcome/the-only-book/mia.png" alt="Mia" className="object-cover" fill />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <TheOnlyBook />
 
       <ReserveSection cssClass={"bg-white"} title={"Make It Extra Special"} desc={'Create a magical story starring your little one.'} />
 
@@ -275,42 +196,20 @@ export default function LandingPage() {
           <p className="text-lg text-center text-gray-700 mb-8 max-w-2xl mx-auto">
           Every book is thoughtfully written by professional educators and features exclusive hand-drawn art It’s a one-of-a-kind keepsake made with care and love.
           </p>
-        </div>
-      </div>
-
-      {/* Effortless Gifting Section */}
-      <div className="bg-blue-50 py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-5xl font-bold text-center mb-8">Effortless Gifting<br/> With <span className="text-blue-500">Maximum</span> Impact</h2>
-          <p className="text-lg text-center text-gray-700 mb-8 max-w-2xl mx-auto">
-            Create the perfect personalized storybook with just a few clicks—choose a design, upload a photo, and you’re done. It’s a thoughtful gift without the hassle.
-          </p>
-        </div>
-        
-
-        {/* Easy Steps Section */}
-        <div className="container mx-auto px-4 py-16">
-          <h2 className="text-3xl font-bold text-center mb-8">Easy 3 Steps to Get Your Book</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {tl:'01 Personalize It',desc:"Add the hero's name, upload a photo, and make a few fun choices—it's that easy!"},
-              {tl:'02 Preview & Confirm',desc:"Take a peek at your book and give it a thumbs-up."},
-              {tl:'03 Receive & Enjoy',desc:"Sit back and get ready for a one-of-a-kind gift to arrive at your door!"}
-            ].map(({tl,desc})=>
-            <div key={tl} className="text-center">
-              <h3 className="text-2xl font-semibold mb-4 text-blue-600">{tl}</h3>
-              <p className="text-gray-600">{desc}</p>
-            </div>
-            )}
+          
+          <div className="max-w-4xl relative aspect-[4/1] mx-auto">
+            <DreamzeImage src="/welcome/reserve-banner/early-access.png" alt="Dreamazebook" cssClass="transition-opacity animation-opacity z-10" />
+            <DreamzeImage src="/welcome/reserve-banner/40-vip-discount.png" alt="Dreamazebook" />
           </div>
         </div>
-
       </div>
+      
+      <EffortlessGifting />
 
-      <ReserveSection cssClass={"bg-pink-100"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it’s gone!" />
+      <ReserveSection cssClass={"bg-pink-50"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it’s gone!" />
 
       {/* About Us Section */}
-      <div className="bg-blue-50 py-16 bg-[url(/welcome/about-us-bg.png)] h-screen flex items-center">
+      <div className="bg-blue-50 py-16 bg-[url(/welcome/about-us-bg.png)] bg-cover h-screen flex items-center">
         <div className="container mx-auto px-4">
           <h2 className="text-5xl font-bold text-center mb-8">About Us</h2>
           <p className="text-lg max-w-2xl mx-auto text-center text-gray-700 mb-8">
@@ -320,9 +219,9 @@ export default function LandingPage() {
       </div>
 
       {/* Testimonials Section */}
-      <div className="bg-pink-100 mx-auto px-4 py-20">
+      <div className="bg-pink-50 mx-auto px-4 py-20">
         <h2 className="text-5xl font-bold text-center mb-8"><span className="text-blue-500">Beloved</span> By Early Testers</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           {[{
             tl: "My daughter wants me to read this book to her all the time! It’s the first time she has ever been the hero of a story, and she loves showing it to everyone.",
             desc: "LIli‘s mother",
@@ -349,71 +248,9 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Dreamaze book's growth Section */}
-      <div className="container bg-white mx-auto px-4 py-16">
-        <h2 className="text-5xl font-bold text-center mb-8">Dreamaze Book&apos;s <span className="text-blue-500">growth</span></h2>
-        <div className="max-w-96 mx-auto">
-          {[
-            {tl: 'Initial Idea Sparked', date:'May 2023'},
-            {tl: 'Product Research', date:'June 2023'},
-            {tl: 'AI Workflow Development', date:'July 2023'},
-            {tl: 'Illustration&Content Development', date:'October 2023'},
-            {tl: 'Prototype Creation', date:'January 2024'},
-            {tl: 'Factory Visits', date:'May 2024'},
-            {tl: 'Early Tester Feedback', date:'September 2024'},
-            {icon:'',isCur:true,tl: 'Kickstarter Prelaunch', date:'February-March 2025'},
-            {icon:'',isCur:true,tl: 'Finalize Website', date:'March 2024'},
-            {icon:'',isCur:true,tl: 'Kickstart launching', date:'April 2024'},
-            {icon:'',isCur:true,tl: 'Ship to customers', date:'June 2024'}
-          ].map(({tl, date, isCur, icon}, idx)=>
-            <div key={idx} className="mb-3 border-l border-dotted pl-4">
-              {
-              icon?
-              <div></div>:
-              <svg width="27" height="19" viewBox="0 0 27 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2.33398 8.39583L10.5007 16.5625L24.5007 2.5625" stroke="#999999" strokeWidth="4.66667" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>}
-              
+      <Growth />
 
-              <h3 className={`font-bold text-xl ${isCur?'text-blue-700':''}`}>{tl}</h3>
-              <p className={`${isCur?'text-black':'text-gray-400'} mt-2`}>{date}</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* FAQ section */}
-      <section className="bg-gray-100 py-16">
-        <h2 className="text-4xl text-center mb-10">FAQ</h2>
-        <div className="max-w-2xl mx-auto">
-          {[
-            {
-              tl:'01 How can I support Dreamaze on Kickstarter?',
-              ans: 'Reserve your spot with just $1 to unlock the best discount and VIP access. Sign up now, and we’ll guide you through the next steps via email!'
-            },
-            {
-              tl:'02  What happens after I register?',
-              ans: 'Reserve your spot with just $1 to unlock the best discount and VIP access. Sign up now, and we’ll guide you through the next steps via email!'
-            },
-            {
-              tl:'03  When will my book be delivered if I back you on Kickstarter?',
-              ans: 'Reserve your spot with just $1 to unlock the best discount and VIP access. Sign up now, and we’ll guide you through the next steps via email!'
-            },
-            {
-              tl:'04  Can I make changes to my personalization after ordering?',
-              ans: 'Reserve your spot with just $1 to unlock the best discount and VIP access. Sign up now, and we’ll guide you through the next steps via email!'
-            },
-          ].map(({tl,ans})=>
-            <div key={tl} className="mb-4 pb-3 border-b border-black/20">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold mb-3">{tl}</h3>
-                <span className="cursor">+</span>
-              </div>
-              <p className="font-thin ml-7">{ans}</p>
-            </div>
-          )}
-        </div>
-      </section>
+      <FAQ />
 
       <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/40-vip-discount.png)]"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it’s gone!" />
 
