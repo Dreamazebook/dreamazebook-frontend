@@ -20,7 +20,8 @@ export function middleware(request: NextRequest) {
   const curLocale = getLocale(request)
 
   const redirectURL = process.env.REDIRECT_URL;
-  if (redirectURL && pathname !== `/${curLocale}${redirectURL}`) {
+  console.log(pathname);
+  if (redirectURL && pathname.indexOf(`/${curLocale}${redirectURL}`) === -1) {
     request.nextUrl.pathname = `/${curLocale}${redirectURL}`;
     return NextResponse.redirect(request.nextUrl);
   }
