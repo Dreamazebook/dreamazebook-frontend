@@ -11,19 +11,19 @@ export default function EffortlessGifting() {
         
         <div className="max-w-4xl mx-auto flex flex-col gap-4">
           <div className="w-full relative aspect-square">
-            <DreamzeImage src="/welcome/the-only-book/lucas.png" alt="Lucas" />
+            <DreamzeImage src="/welcome/effortless-gifting/main.png" alt="Lucas" />
           </div>
           <div className="flex gap-4">
             <div className="w-1/2 flex flex-col gap-4">
               <div className="relative aspect-square w-full">
-                <DreamzeImage src="/welcome/the-only-book/lucas.png" alt="Lucas" />
+                <DreamzeImage src="/welcome/effortless-gifting/melody.png" alt="Lucas" />
               </div>
               <div className="relative aspect-square w-full">
-                <DreamzeImage src="/welcome/the-only-book/lucas.png" alt="Lucas" />
+                <DreamzeImage src="/welcome/effortless-gifting/dreamaze.png" alt="Lucas" />
               </div>
             </div>
             <div className="w-1/2 relative">
-              <DreamzeImage src="/welcome/the-only-book/lucas.png" alt="Lucas" />
+              <DreamzeImage src="/welcome/effortless-gifting/dore.png" alt="Lucas" />
             </div>
           </div>
         </div>

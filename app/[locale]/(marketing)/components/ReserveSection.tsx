@@ -6,7 +6,7 @@ interface ReserveSectionProps {
 
 export default function ReserveSection({title,desc,cssClass}:ReserveSectionProps) {
   return (
-    <section className={`bg-black p-20 text-center bg-no-repeat bg-cover ${cssClass}`}>
+    <section className={`bg-black py-20 px-5 text-center bg-no-repeat bg-cover ${cssClass}`}>
       <h2 className="text-4xl">{title}</h2>
       <p className="mt-3">{desc}</p>
       <div className="mt-3 max-w-lg mx-auto">

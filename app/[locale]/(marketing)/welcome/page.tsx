@@ -10,19 +10,6 @@ import DreamzeImage from "@/app/components/DreamzeImage";
 import EffortlessGifting from "../components/EffortlessGifting";
 import SuperStrongEmotionalConnection from "./components/SuperStrongEmotionalConnection";
 
-interface ChildName {
-  name: string;
-  image: string;
-  called: string;
-}
-
-const CHILD_NAMES: ChildName[] = [
-  { name: 'Alex', image: '/landing-page/alex.png', called: 'Himself' },
-  { name: 'Olivia', image: '/landing-page/olivia.png', called: 'Herself' },
-  { name: 'Ashley', image: '/landing-page/ashley.png', called: 'Himself' },
-  { name: 'Maria', image: '/landing-page/maria.png', called: 'Herself' },
-];
-
 export default function LandingPage() {
 
   // Add useEffect to handle tab close
@@ -116,64 +103,71 @@ export default function LandingPage() {
         </div>
 
         <div className='bg-landing-page p-4 md:bg-transparent z-1 relative md:w-3/5'>
-          <div className='md:flex md:flex-col-reverse'>
-            <div className=''>
-              
-              {!showButtons && 
-              <form className="space-y-3" onSubmit={handleSubmit}>
-                <input 
-                  required 
-                  type="email" 
-                  name="email" 
-                  placeholder='example@gmail.com' 
-                  className='w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
-                  aria-label="Email address"
-                />
-                <button 
-                  disabled={isLoading}
-                  className='bg-landing-page-btn text-white px-4 py-2 rounded uppercase w-full disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center'
-                >
-                  {isLoading ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    'reserve launch invite'
-                  )}
-                </button>
-              </form>}
+          <p>Imagine the joy on your child’s face when they see themselves as the hero of their very own story. At Dreamaze, we create magical, personalized storybooks that inspire imagination, celebrate individuality, and strengthen family bonds.</p>
+          <p className="mb-4">We’re launching on Kickstarter soon—stay tuned!</p>
 
-
-              {responseMessage && (
-                <div>
-                  <p className={`p-4 rounded-md ${
-                    isError 
-                      ? 'text-red-600 bg-red-100' 
-                      : 'text-green-600 bg-green-100'
-                  }`}>
-                    {responseMessage}
-                  </p>
-                  
-                  {showButtons && !isError && (
-                    <div className="flex gap-4 mt-4">
-                      <a
-                        href="https://app.hubspot.com/payments/purchase/hscs_WUZTsI2Lke1ZkFGqH3oyWtaxKn8ZpxaFyQOOKXWcpGuK0SUIz8mswZKYJyXriPHe?referrer=PAYMENT_LINK"
-                        className="text-center bg-blue-600 text-white px-4 py-2 rounded w-1/2 hover:bg-blue-700 transition-colors"
-                      >
-                        Reserve for $1
-                      </a>
-                      <a
-                        href="https://forms.google.com" // Replace with your actual Google Form URL
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-gray-200 text-gray-800 px-4 py-2 rounded w-1/2 text-center hover:bg-gray-300 transition-colors"
-                      >
-                        No thanks
-                      </a>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+          <div className="text-center flex flex-col gap-3 mb-4">
+            <h3 className="font-bold text-xl">Limited Spots Available</h3>
+            <p className="">Once they’re gone, they’re gone! Don’t miss out</p>
+            <p>800+ people have reserved</p>
           </div>
+
+          <div className=''>
+            {!showButtons && 
+            <form className="space-y-3" onSubmit={handleSubmit}>
+              <input 
+                required 
+                type="email" 
+                name="email" 
+                placeholder='example@gmail.com' 
+                className='w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
+                aria-label="Email address"
+              />
+              <button 
+                disabled={isLoading}
+                className='bg-landing-page-btn text-white px-4 py-2 rounded uppercase w-full disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center'
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  'reserve launch invite'
+                )}
+              </button>
+            </form>}
+
+
+            {responseMessage && (
+              <div>
+                <p className={`p-4 rounded-md ${
+                  isError 
+                    ? 'text-red-600 bg-red-100' 
+                    : 'text-green-600 bg-green-100'
+                }`}>
+                  {responseMessage}
+                </p>
+                
+                {showButtons && !isError && (
+                  <div className="flex gap-4 mt-4">
+                    <a
+                      href="https://app.hubspot.com/payments/purchase/hscs_WUZTsI2Lke1ZkFGqH3oyWtaxKn8ZpxaFyQOOKXWcpGuK0SUIz8mswZKYJyXriPHe?referrer=PAYMENT_LINK"
+                      className="text-center bg-blue-600 text-white px-4 py-2 rounded w-1/2 hover:bg-blue-700 transition-colors"
+                    >
+                      Reserve for $1
+                    </a>
+                    <a
+                      href="https://forms.google.com" // Replace with your actual Google Form URL
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-gray-200 text-gray-800 px-4 py-2 rounded w-1/2 text-center hover:bg-gray-300 transition-colors"
+                    >
+                      No thanks
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
 
@@ -198,9 +192,12 @@ export default function LandingPage() {
           </p>
           
           <div className="max-w-4xl relative aspect-[4/1] mx-auto">
-            <DreamzeImage src="/welcome/reserve-banner/early-access.png" alt="Dreamazebook" cssClass="transition-opacity animation-opacity z-10" />
-            <DreamzeImage src="/welcome/reserve-banner/40-vip-discount.png" alt="Dreamazebook" />
+            <DreamzeImage src="/welcome/expertly-crafted/draft.png" alt="Dreamazebook" cssClass="transition-opacity animation-opacity z-10" />
+            <DreamzeImage src="/welcome/expertly-crafted/done.png" alt="Dreamazebook" />
           </div>
+
+          <video className="w-full mt-5" src="/welcome/expertly-crafted/video.mp4" autoPlay controls loop />
+
         </div>
       </div>
       
@@ -254,26 +251,10 @@ export default function LandingPage() {
 
       <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/40-vip-discount.png)]"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it’s gone!" />
 
-      <h2 className='hidden md:block text-center bg-landing-page p-4 text-2xl font-bold'>See Yourself in Personalised Amazing Dream</h2>
-
-      {/* Book Showcase Section */}
-      <div className="grid grid-cols-1 md:grid-cols-4">
-        {CHILD_NAMES.map(({ name, image, called }, index) => (
-          <div key={name} className={`bg-white flex ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse bg-landing-page'}`}>
-            <div className="relative w-1/2 md:w-full aspect-square">
-              <Image
-                src={image}
-                alt={`Book preview ${name}`}
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="w-1/2 p-4 flex justify-center items-center md:hidden">
-              <h3 className="text-xl text-blue-900 font-semibold text-center">{name} See {called} In Amazing Dream</h3>
-            </div>
-          </div>
-        ))}
-      </div>
+      <section className="bg-pink-100 p-10">
+        <p className="text-blue-700 text-center text-2xl font-bold">See Yourself in A Personalised Amazing Dream</p>
+        <Image className="mx-auto" src={'/welcome/dreamaze-logo.png'} alt="Logo" width={200} height={70} />
+      </section>
     </main>
   )
 }

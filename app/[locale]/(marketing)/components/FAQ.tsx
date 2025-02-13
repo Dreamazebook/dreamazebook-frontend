@@ -32,7 +32,7 @@ export default function FAQ() {
   return (
     <section className="bg-gray-100 py-16">
     <h2 className="text-4xl text-center mb-10">FAQ</h2>
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto px-5">
       {faqs.map(({tl,ans,show},idx)=>
         <div key={tl} className="mb-4 pb-3 border-b border-black/20">
           <div className="flex justify-between items-center mb-3">
