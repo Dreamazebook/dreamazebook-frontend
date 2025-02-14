@@ -76,19 +76,11 @@ export default function LandingPage() {
 
   return (
     <main className="bg-white">
-      <div className='relative md:p-10'>
-        <div className='hidden md:block absolute top-0 left-0 w-full h-full -z-1'>
-          <Image
-            src="/landing-page/desktop-cover.png"
-            alt="Happy child reading a personalized book"
-            fill
-            className="object-cover"
-            priority
-          />
-        </div>
-        <div className="flex flex-col lg:flex-row items-center gap-8 z-1 relative md:w-3/5">
+      <div className="md:bg-[url(/landing-page/desktop-cover.png)] md:px-10 md:min-h-[760px]">
+        <Image src={'/welcome/dreamaze-logo.png'} alt="Logo" width={168} height={56} />
+        <div className="flex flex-col items-center gap-8 z-1 relative md:w-3/5 my-5">
           {/* Hero Content */}
-          <h1 className="text-4xl font-bold text-black px-4">
+          <h1 className="text-5xl font-bold text-black">
           The Ultimate Personalized Books to Truly See Your Child
           </h1>
           <div className="relative w-full h-[500px] md:hidden">
@@ -102,13 +94,16 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div className='bg-landing-page p-4 md:bg-transparent z-1 relative md:w-3/5'>
+        <div className='bg-landing-page md:bg-transparent z-1 relative md:w-3/5'>
           <p>Imagine the joy on your child’s face when they see themselves as the hero of their very own story. At Dreamaze, we create magical, personalized storybooks that inspire imagination, celebrate individuality, and strengthen family bonds.</p>
           <p className="mb-4">We’re launching on Kickstarter soon—stay tuned!</p>
 
-          <div className="text-center flex flex-col gap-3 mb-4">
-            <h3 className="font-bold text-xl">Limited Spots Available</h3>
-            <p className="">Once they’re gone, they’re gone! Don’t miss out</p>
+          <div className="text-center md:text-left flex flex-col gap-3 mb-4">
+            <div className="flex flex-col md:flex-row gap-3 items-center">
+              <h3 className="font-bold text-xl">Limited Spots Available</h3>
+              <span className="hidden md:block h-[1px] bg-black w-6"></span>
+              <p className="">Once they’re gone, they’re gone! Don’t miss out</p>
+            </div>
             <p>800+ people have reserved</p>
           </div>
 
@@ -170,6 +165,7 @@ export default function LandingPage() {
 
         </div>
       </div>
+      
 
       <PromotionBanner />
 
