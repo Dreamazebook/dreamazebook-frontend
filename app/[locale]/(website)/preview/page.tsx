@@ -29,11 +29,11 @@ const useStore = create<{
   setEditField: (field: 'giver' | 'dedication' | null) => void;
 }>((set) => ({
   activeStep: 2,
-  activeTab: 'Others',
+  activeTab: 'Book preview',
   viewMode: 'single',
   dedication:
-    'As you both grow, and change, and head off in different directions, always remember that wherever life takes you, you’ll always have each other.',
-  giver: 'John Doe',
+    ' ',
+  giver: ' ',
   editField: null,
   setActiveStep: (step: number) => set({ activeStep: step }),
   setActiveTab: (tab: 'Book preview' | 'Others') => set({ activeTab: tab }),
@@ -182,7 +182,7 @@ export default function PreviewPageWithTopNav() {
   const handleContinue = () => {
     const allComplete = Object.values(completedSections).every(Boolean);
     if (!allComplete) {
-      const order = ["giverDedication", "confirmation", "coverDesign", "bookFormat", "otherGifts"];
+      const order = ["giverDedication", "coverDesign", "bookFormat", "otherGifts"];
       const firstIncomplete = order.find(id => !completedSections[id as keyof typeof completedSections]);
       if (firstIncomplete) {
         scrollToSection(firstIncomplete);
@@ -190,6 +190,33 @@ export default function PreviewPageWithTopNav() {
     } else {
       alert("All sections complete! Navigating to next page...");
     }
+  };
+
+  //寄语
+  const MAX_LINES = 10;
+  const MAX_CHARS = 300;
+  const defaultName = "User"; // 定义 defaultName
+
+  const defaultMessage = `Dear ${defaultName},
+  The world is full of wonderful, surprising places to explore. May your days be full of discoveries, adventure and joy!`;
+
+  const [message, setMessage] = React.useState(defaultMessage);
+
+  const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const { value } = e.target;
+
+    // 限制行数：按换行符拆分后行数不能超过 MAX_LINES
+    const lines = value.split('\n');
+    if (lines.length > MAX_LINES) {
+      return;
+    }
+
+    // 限制字数
+    if (value.length > MAX_CHARS) {
+      return;
+    }
+
+    setMessage(value);
   };
 
   return (
@@ -588,32 +615,89 @@ export default function PreviewPageWithTopNav() {
         )}
 
         {editField && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-              <h2 className="text-lg font-semibold mb-4">
-                {editField === 'giver' ? 'Edit Giver' : 'Edit Dedication'}
-              </h2>
-              {editField === 'giver' ? (
-                <input
-                  type="text"
-                  value={giver}
-                  onChange={(e) => setGiver(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              ) : (
-                <textarea
-                  value={dedication}
-                  onChange={(e) => setDedication(e.target.value)}
-                  className="w-full h-40 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              )}
-              <button
-                className="mt-4 w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
-                onClick={() => setEditField(null)}
-              >
-                Save
-              </button>
-            </div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            {editField === 'giver' ? (
+              // Giver's name 弹窗
+              <div className="bg-white w-[400px] h-[196px] rounded-sm pt-6 pr-6 pb-3 pl-6 flex flex-col gap-9">
+                {/* 标题和关闭按钮 */}
+                <div className="w-[352px] h-[80px] flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">Giver's name</h2>
+                    <button
+                      className="text-xl text-gray-500 hover:text-gray-700"
+                      onClick={() => setEditField(null)}
+                    >
+                      &#x2715;
+                    </button>
+                  </div>
+                  {/* 输入区域 */}
+                  <div className="w-full">
+                    <textarea
+                      value={giver}
+                      onChange={(e) => setGiver(e.target.value)}
+                      placeholder="Please enter..."
+                      className="w-full h-[40px] p-2 border border-[#E5E5E5] rounded placeholder-[#999999] focus:outline-none ring-0"
+                    />
+                  </div>
+                </div>
+                {/* 保存按钮 */}
+                <div className="flex justify-end">
+                  <button
+                    className="bg-[#222222] text-[#F5E3E3] py-2 px-4 rounded-sm"
+                    onClick={() => setEditField(null)}
+                  >
+                    Submit
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // 寄语弹窗
+              <div className="bg-white w-[600px] h-[464px] rounded-sm pt-6 pr-6 pb-3 pl-6 flex flex-col gap-7">
+                {/* 标题、关闭按钮和填写区域 */}
+                <div className="w-full flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">Dedication</h2>
+                    <button
+                      className="text-xl text-gray-500 hover:text-gray-700"
+                      onClick={() => setEditField(null)}
+                    >
+                      &#x2715;
+                    </button>
+                  </div>
+                  <div className="flex text-gray-500 text-sm">
+                    <span>
+                    There's  10 line limit (inciuding blank lines)
+                    </span>
+                  </div>
+                  <div className="w-full">
+                    <textarea
+                      rows={10}
+                      value={message}
+                      onChange={handleMessageChange}
+                      placeholder="Please enter your message..."
+                      className="w-full p-2 border border-[#E5E5E5] placeholder-[#999999] rounded focus:outline-none ring-0 resize-none"
+                    />
+                    <div className="flex justify-end space-x-4 text-[#999999] text-sm">
+                      <span>
+                        {message.length}/{MAX_CHARS} left
+                      </span>
+                      <span>
+                        {message.split('\n').length}/{MAX_LINES} line
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                {/* 保存按钮 */}
+                <div className="flex justify-end">
+                  <button
+                    className="bg-[#222222] text-[#F5E3E3] py-2 px-4 rounded-sm"
+                    onClick={() => setEditField(null)}
+                  >
+                    Submit
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -634,6 +718,14 @@ export default function PreviewPageWithTopNav() {
             <span>{item.label}</span>
           </div>
         ))}
+        <div className="my-8 flex justify-center">
+          <button
+            onClick={handleContinue}
+            className="px-6 py-2 bg-blue-500 text-white rounded"
+          >
+            Continue
+          </button>
+        </div>
       </aside>
     </div>
   );
