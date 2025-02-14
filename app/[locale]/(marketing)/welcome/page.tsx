@@ -75,94 +75,87 @@ export default function LandingPage() {
   };
 
   return (
-    <main className="bg-white">
-      <div className="md:bg-[url(/landing-page/desktop-cover.png)] md:px-10 md:min-h-[760px]">
-        <Image src={'/welcome/dreamaze-logo.png'} alt="Logo" width={168} height={56} />
-        <div className="flex flex-col items-center gap-8 z-1 relative md:w-3/5 my-5">
-          {/* Hero Content */}
-          <h1 className="text-5xl font-bold text-black">
-          The Ultimate Personalized Books to Truly See Your Child
-          </h1>
-          <div className="relative w-full h-[500px] md:hidden">
-            <Image
-              src="/landing-page/cover.png"
-              alt="Happy child reading a personalized book"
-              fill
-              className="object-cover"
-              priority
-            />
-          </div>
-        </div>
-
-        <div className='bg-landing-page md:bg-transparent z-1 relative md:w-3/5'>
-          <p>Imagine the joy on your child’s face when they see themselves as the hero of their very own story. At Dreamaze, we create magical, personalized storybooks that inspire imagination, celebrate individuality, and strengthen family bonds.</p>
-          <p className="mb-4">We’re launching on Kickstarter soon—stay tuned!</p>
-
-          <div className="text-center md:text-left flex flex-col gap-3 mb-4">
-            <div className="flex flex-col md:flex-row gap-3 items-center">
-              <h3 className="font-bold text-xl">Limited Spots Available</h3>
-              <span className="hidden md:block h-[1px] bg-black w-6"></span>
-              <p className="">Once they’re gone, they’re gone! Don’t miss out</p>
-            </div>
-            <p>800+ people have reserved</p>
+    <main className="bg-white relative">
+      <Image className="absolute top-0 left-10" src={'/welcome/dreamaze-logo.png'} alt="Logo" width={168} height={56} />
+      <div className="flex items-center md:bg-[url(/landing-page/desktop-cover.png)] bg-cover md:px-10 md:min-h-[760px]">
+        <div className="container bg-landing-page md:bg-transparent md:px-10">
+          <div className="gap-8 md:w-3/5 pt-20 md:pt-0 mb-5 bg-[url(/landing-page/cover.png)] bg-cover md:bg-none h-screen md:h-auto ">
+            {/* Hero Content */}
+            <h1 className="text-4xl md:text-5xl font-bold text-black p-4">
+            The Ultimate Personalized Books to Truly See Your Child
+            </h1>
           </div>
 
-          <div className=''>
-            {!showButtons && 
-            <form className="space-y-3" onSubmit={handleSubmit}>
-              <input 
-                required 
-                type="email" 
-                name="email" 
-                placeholder='example@gmail.com' 
-                className='w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
-                aria-label="Email address"
-              />
-              <button 
-                disabled={isLoading}
-                className='bg-landing-page-btn text-white px-4 py-2 rounded uppercase w-full disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center'
-              >
-                {isLoading ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  'reserve launch invite'
-                )}
-              </button>
-            </form>}
+          <div className='p-4 md:w-3/5'>
+            <p>Imagine the joy on your child’s face when they see themselves as the hero of their very own story. At Dreamaze, we create magical, personalized storybooks that inspire imagination, celebrate individuality, and strengthen family bonds.</p>
+            <p className="mb-4">We’re launching on Kickstarter soon—stay tuned!</p>
 
-
-            {responseMessage && (
-              <div>
-                <p className={`p-4 rounded-md ${
-                  isError 
-                    ? 'text-red-600 bg-red-100' 
-                    : 'text-green-600 bg-green-100'
-                }`}>
-                  {responseMessage}
-                </p>
-                
-                {showButtons && !isError && (
-                  <div className="flex gap-4 mt-4">
-                    <a
-                      href="https://app.hubspot.com/payments/purchase/hscs_WUZTsI2Lke1ZkFGqH3oyWtaxKn8ZpxaFyQOOKXWcpGuK0SUIz8mswZKYJyXriPHe?referrer=PAYMENT_LINK"
-                      className="text-center bg-blue-600 text-white px-4 py-2 rounded w-1/2 hover:bg-blue-700 transition-colors"
-                    >
-                      Reserve for $1
-                    </a>
-                    <a
-                      href="https://forms.google.com" // Replace with your actual Google Form URL
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-gray-200 text-gray-800 px-4 py-2 rounded w-1/2 text-center hover:bg-gray-300 transition-colors"
-                    >
-                      No thanks
-                    </a>
-                  </div>
-                )}
+            <div className="text-center md:text-left flex flex-col gap-3 mb-4">
+              <div className="flex flex-col md:flex-row gap-3 items-center">
+                <h3 className="font-bold text-xl">Limited Spots Available</h3>
+                <span className="hidden md:block h-[1px] bg-black w-6"></span>
+                <p className="">Once they’re gone, they’re gone! Don’t miss out</p>
               </div>
-            )}
-          </div>
+              <p>800+ people have reserved</p>
+            </div>
 
+            <div className='max-w-xl'>
+              {!showButtons && 
+              <form className="space-y-3" onSubmit={handleSubmit}>
+                <input 
+                  required 
+                  type="email" 
+                  name="email" 
+                  placeholder='example@gmail.com' 
+                  className='w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
+                  aria-label="Email address"
+                />
+                <button 
+                  disabled={isLoading}
+                  className='bg-landing-page-btn text-white px-4 py-2 rounded uppercase w-full disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center'
+                >
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    'reserve launch invite'
+                  )}
+                </button>
+              </form>}
+
+
+              {responseMessage && (
+                <div>
+                  <p className={`p-4 rounded-md ${
+                    isError 
+                      ? 'text-red-600 bg-red-100' 
+                      : 'text-green-600 bg-green-100'
+                  }`}>
+                    {responseMessage}
+                  </p>
+                  
+                  {showButtons && !isError && (
+                    <div className="flex gap-4 mt-4">
+                      <a
+                        href="https://app.hubspot.com/payments/purchase/hscs_WUZTsI2Lke1ZkFGqH3oyWtaxKn8ZpxaFyQOOKXWcpGuK0SUIz8mswZKYJyXriPHe?referrer=PAYMENT_LINK"
+                        className="text-center bg-blue-600 text-white px-4 py-2 rounded w-1/2 hover:bg-blue-700 transition-colors"
+                      >
+                        Reserve for $1
+                      </a>
+                      <a
+                        href="https://forms.google.com" // Replace with your actual Google Form URL
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-gray-200 text-gray-800 px-4 py-2 rounded w-1/2 text-center hover:bg-gray-300 transition-colors"
+                      >
+                        No thanks
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+          </div>
         </div>
       </div>
       
