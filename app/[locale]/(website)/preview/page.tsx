@@ -128,7 +128,7 @@ export default function PreviewPageWithTopNav() {
     },
   ];
   
-  // 处理点击 “View Details” 链接
+  // 处理点击 "View Details" 链接
   const handleViewDetails = (option: typeof bookWrapOptions[0], e: React.MouseEvent) => {
     // 阻止事件冒泡，避免触发整个选项的 onClick
     e.stopPropagation();
@@ -552,65 +552,97 @@ export default function PreviewPageWithTopNav() {
                 {/* 左侧空白区域，点击关闭弹窗 */}
                 <div className="flex-1" onClick={() => setDetailModal(null)}></div>
                 {/* 右侧窗口 */}
-                <div className="relative w-80 bg-white p-4 shadow-lg p-[24px]">
-                  {/* Back 按钮 */}
-                  <button
-                    onClick={() => setDetailModal(null)}
-                    className="absolute inline-flex items-center gap-x-2"
-                  >
-                    <svg
-                      width="17"
-                      height="10"
-                      viewBox="0 0 17 10"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
+                <div className="relative w-[400px] bg-white p-[24px] shadow-lg flex flex-col h-full">
+                  <div className="relative flex flex-col gap-3">
+                    {/* Back 按钮 */}
+                    <button
+                      onClick={() => setDetailModal(null)}
+                      className="absolute inline-flex items-center gap-x-2"
                     >
-                      <path
-                        d="M17 5H1M1 5L5.5 1M1 5L5.5 9"
-                        stroke="#222222"
-                      />
-                    </svg>
-                    <span>Back</span>
-                  </button>
+                      <svg
+                        width="17"
+                        height="10"
+                        viewBox="0 0 17 10"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M17 5H1M1 5L5.5 1M1 5L5.5 9"
+                          stroke="#222222"
+                        />
+                      </svg>
+                      <span>Back</span>
+                    </button>
 
-                  <div className="mt-8">
-                    {/* 可翻页图片区域 */}
-                    <div className="relative">
-                      <img
-                        src={detailModal.images[currentIndex]}
-                        alt={detailModal.title}
-                        className="w-full h-auto"
-                      />
-                      {/* 左侧翻页按钮 */}
-                      {currentIndex > 0 && (
-                        <button
-                          onClick={() => setCurrentIndex((prev) => prev - 1)}
-                          className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-200 p-1 rounded"
-                        >
-                          {"<"}
-                        </button>
-                      )}
-                      {/* 右侧翻页按钮 */}
-                      {currentIndex < detailModal.images.length - 1 && (
-                        <button
-                          onClick={() => setCurrentIndex((prev) => prev + 1)}
-                          className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-200 p-1 rounded"
-                        >
-                          {">"}
-                        </button>
-                      )}
+                    {/* 图片和控制区域 */}
+                    <div className='mt-8 flex flex-col gap-4'>
+                      <div>
+                        <img
+                          src={detailModal.images[currentIndex]}
+                          alt={detailModal.title}
+                          className="w-full h-auto"
+                        />
+                        {/* 控制区域 */}
+                        <div className="flex items-center justify-center mt-2 gap-[10px]">
+                          {/* 左侧翻页按钮 */}
+                          <button
+                            onClick={() => setCurrentIndex((prev) => prev - 1)}
+                            disabled={currentIndex === 0}
+                            className="p-2"
+                          >
+                            <svg
+                              width="18"
+                              height="10"
+                              viewBox="0 0 18 10"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M5 1L1 5M1 5L5 9M1 5H17" stroke="#222222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </button>
+                          {/* 页码显示 */}
+                          <span className="text-sm text-gray-700">
+                            {currentIndex + 1} / {detailModal.images.length}
+                          </span>
+                          {/* 右侧翻页按钮 */}
+                          <button
+                            onClick={() => setCurrentIndex((prev) => prev + 1)}
+                            disabled={currentIndex === detailModal.images.length - 1}
+                            className="p-2"
+                          >
+                            <svg
+                              width="18"
+                              height="10"
+                              viewBox="0 0 18 10"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M13 1L17 5M17 5L13 9M17 5H1" stroke="#222222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      {/* 详情文本 */}
+                      <div>
+                        <h2 className="text-xl">{detailModal.title}</h2>
+                        <p className="text-gray-600 mt-2">{detailModal.fullDescription}</p>
+                      </div>
                     </div>
-                    <h2 className="text-xl mt-4">
-                      {detailModal.title}
-                    </h2>
-                    <p className="text-gray-600 mt-2">
-                      {detailModal.fullDescription}
-                    </p>
+                  </div>
+                  
+                  <div className="mt-auto flex gap-6 h-[44px] justify-between">
+                    {/* 价格区域 */}
+                    <div className="flex items-end gap-3">
+                      <span className="text-[#012CCE] items-center text-3xl font-semibold">$320</span>
+                      <span className="text-gray-400 line-through">$540</span>
+                    </div>
+                    <button className="bg-black text-[#F5E3E3] py-2 px-8 rounded">
+                      Add to order
+                    </button>
                   </div>
                 </div>
               </div>
-            )}
-            
+            )} 
           </main>
         )}
 
