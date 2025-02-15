@@ -818,7 +818,7 @@ export default function PreviewPageWithTopNav() {
                       </div>
                       {/* 除最后一项外，图标下方添加灰色竖线 */}
                       {index !== sidebarItems.length - 1 && (
-                        <div className="w-px h-[60px] bg-[#CCCCCC] mt-2"></div>
+                        <div className="w-px h-[60px] bg-[#CCCCCC] mt-1"></div>
                       )}
                     </div>
                     {/* 文本标签，位于图标右侧并顶端对齐 */}
