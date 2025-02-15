@@ -1,9 +1,9 @@
 import DreamzeImage from "@/app/components/DreamzeImage";
 
 const PRICES = [
-  {tl: 'Softcover', price: '$35', tag: 'Budget-friendly'},
-  {tl: 'Hardcover', price: '$45', tag: 'Durable and elegant'},
-  {tl: 'Premium Lay-Flat Hardcover', price: '$58', tag: 'Lifelong Keepsake'}
+  {bg:'bg-white', tl: 'Softcover', discount: '$35', price: '$59', desc: 'Light yet durable, this softcover edition offers a flexible and travel-friendly option'},
+  {header: 'Creator\'s Recommendation',bg:'bg-[#FFFBF3]', tl: 'Hardcover', discount: '$45', price: '$75', desc: 'Premium hardcover with a smooth matte finish, designed for lasting reading and enjoyment.'},
+  {header: 'Most People\'s Choice', bg:'bg-white', tl: 'Premium Lay-Flat Hardcover', discount: '$58', price: '$97', desc: 'Luxurious layflat design with seamless panoramic spreads—perfect for a lifelong keepsake gift.'},
 ];
 
 export default function Reserve() {
@@ -19,13 +19,19 @@ export default function Reserve() {
           <h1 className="text-3xl text-center font-bold">Reserve Your Special Discount</h1>
           <p className="my-4">Choose your preferred format and reserve the lowest price ever.</p>
           
-          {PRICES.map(({price,tl,tag}, index) => (
-            <article key={tl} className="bg-white p-4 mb-3">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl">{tl}</h2>
-                <span className="text-blue-600">{price}</span>
+          {PRICES.map(({price,discount,tl,desc,header,bg}, index) => (
+            <article key={tl} className="mb-3 from-[#FFF4F4] to-[#FFE5E5]">
+              {header && <h2 className="text-red-400 font-semibold bg-red-50 py-2 px-4">{header}</h2>}
+              <div className={`${bg} p-4`}>
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-bold">{tl}</h2>
+                  <div className="flex items-center gap-4">
+                    <span className="text-[#222222] font-bold">{discount}</span>
+                    <span className="line-through text-[$999999]">{price}</span>
+                  </div>
+                </div>
+                <span className="mt-3 text-xl text-[#999999]">{desc}</span>
               </div>
-              <span className="mt-3 inline-block text-red-400 p-1 border border-red-300 rounded">{tag}</span>
             </article>
           ))}
 
