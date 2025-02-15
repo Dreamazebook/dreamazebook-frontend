@@ -167,7 +167,7 @@ export default function PreviewPageWithTopNav() {
       ref.current.scrollIntoView({ behavior: "smooth" });
       setActiveSection(sectionId);
     }
-  };  
+  };
 
   // 各部分的完成状态判断
   const completedSections = {
@@ -182,11 +182,29 @@ export default function PreviewPageWithTopNav() {
   const handleContinue = () => {
     const allComplete = Object.values(completedSections).every(Boolean);
     if (!allComplete) {
-      const order = ["giverDedication", "coverDesign", "bookFormat", "otherGifts"];
+      const order = ["giverDedication", "confirmation", "coverDesign", "bookFormat", "otherGifts"];
       const firstIncomplete = order.find(id => !completedSections[id as keyof typeof completedSections]);
       if (firstIncomplete) {
-        scrollToSection(firstIncomplete);
-      }
+        switch (firstIncomplete) {
+          case "giverDedication":
+          case "confirmation":
+            setActiveTab("Book preview");
+            setTimeout(() => {
+              scrollToSection(firstIncomplete);
+            }, 100);
+            break;
+          case "coverDesign":
+          case "bookFormat":
+          case "otherGifts":
+            setActiveTab("Others");
+            setTimeout(() => {
+              scrollToSection(firstIncomplete);
+            }, 100);
+            break;
+          default:
+            break;
+        }
+      }      
     } else {
       alert("All sections complete! Navigating to next page...");
     }
@@ -328,11 +346,11 @@ export default function PreviewPageWithTopNav() {
                 )}
               </div>
             </div>
-            <div className="w-full max-w-5xl mx-auto p-[12px_24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
+            <div className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
               The book preview is currently queued for generation, and you are number 7 out of 249 in line.
             </div>
 
-            <div className="w-full max-w-5xl mx-auto p-[12px_24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222] flex flex-col gap-4">
+            <div ref={confirmationRef} className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222] flex flex-col gap-4">
               <div>
                 <p>We will only provide a preview of 7 pages of book content.</p>
                 <p>
@@ -765,7 +783,18 @@ export default function PreviewPageWithTopNav() {
         {sidebarItems.map((item) => (
           <div
             key={item.id}
-            onClick={() => scrollToSection(item.id)}
+            onClick={() => {
+              // Update activeTab if needed. For example, if the giverDedication section belongs to the 'Book preview' tab:
+              if (item.id === "giverDedication" || item.id === "confirmation") {
+                setActiveTab("Book preview");
+              } else {
+                setActiveTab("Others");
+              }
+              // 延迟调用滚动函数
+              setTimeout(() => {
+                scrollToSection(item.id);
+              }, 100); // 100ms 的延迟
+            }}
             className={`flex items-center p-2 mb-2 cursor-pointer ${
               activeSection === item.id ? 'font-medium text-blue-500' : 'text-gray-600'
             }`}
