@@ -222,17 +222,20 @@ export default function PreviewPageWithTopNav() {
   return (
     <div className="flex min-h-screen bg-[#F8F8F8]">
       <div className="w-full pt-[12px] px-4 md:w-[80%] flex flex-col items-center">
-        <div className="pb-[12px] w-[95%] mx-auto">
-          <TopNavBarWithTabs
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-          />
+        {/* 固定的导航栏 */}
+        <div className="fixed top-0 left-0 w-full pt-[12px] px-4 z-50 md:w-[80%] flex flex-col items-center">
+          <div className="w-[95%] mx-auto">
+            <TopNavBarWithTabs
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+            />
+          </div>
         </div>
 
         {activeTab === 'Book preview' ? (
-          <main className="flex-1 flex flex-col items-center justify-start w-full">
+          <main className="flex-1 flex flex-col items-center justify-start w-full pt-14">
             <h1 className="text-xl mt-2 mb-4 text-center w-full">Your Book Preview</h1>
             <div className="flex flex-col items-center w-full max-w-3xl">
               <div className="w-full flex justify-center mb-8">
@@ -354,7 +357,7 @@ export default function PreviewPageWithTopNav() {
           </main>
         ) : (
           // Others 标签页内容
-          <main className="flex-1 flex flex-col items-center justify-center w-full gap-[64px]">
+          <main className="flex-1 flex flex-col items-center justify-center w-full gap-[64px] pt-14">
             {/* Book Cover Section */}
             <section ref={coverDesignRef} className="w-full mt-2 max-w-3xl mx-auto">
               <h1 className="text-xl text-center mb-2">Book Cover</h1>
