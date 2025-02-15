@@ -779,41 +779,67 @@ export default function PreviewPageWithTopNav() {
       </div>
 
       {/* 右侧侧边栏 */}
-      <aside className="hidden md:flex flex-col fixed right-0 top-0 h-full w-[20%] p-4 border-l border-gray-300 bg-white">
-        {sidebarItems.map((item) => (
-          <div
-            key={item.id}
-            onClick={() => {
-              // Update activeTab if needed. For example, if the giverDedication section belongs to the 'Book preview' tab:
-              if (item.id === "giverDedication" || item.id === "confirmation") {
-                setActiveTab("Book preview");
-              } else {
-                setActiveTab("Others");
-              }
-              // 延迟调用滚动函数
-              setTimeout(() => {
-                scrollToSection(item.id);
-              }, 100); // 100ms 的延迟
-            }}
-            className={`flex items-center p-2 mb-2 cursor-pointer ${
-              activeSection === item.id ? 'font-medium text-blue-500' : 'text-gray-600'
-            }`}
-          >
-            {completedSections[item.id as keyof typeof completedSections]
-              ? item.completedIcon
-              : item.icon}
-            <span>{item.label}</span>
+      <aside className="hidden md:flex fixed right-0 top-0 h-full w-[280px] bg-white p-[73px]">
+        <div className="flex flex-col justify-between h-full">
+          {/* 顶部区域：侧边栏条目 */}
+          <div className="mx-auto w-[134px] flex flex-col gap-[4px] pt-[24px] pb-[24px]">
+            {sidebarItems.map((item, index) => {
+              const isActive = activeSection === item.id;
+              const isCompleted = completedSections[item.id as keyof typeof completedSections];
+              const iconClass = isCompleted
+              ? "w-full h-full text-[#012CCE]"
+              : isActive
+              ? "w-full h-full text-[#012CCE]"
+              : "w-full h-full text-[#CCCCCC]";
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => {
+                    if (item.id === "giverDedication" || item.id === "confirmation") {
+                      setActiveTab("Book preview");
+                    } else {
+                      setActiveTab("Others");
+                    }
+                    setTimeout(() => {
+                      scrollToSection(item.id);
+                    }, 100);
+                  }}
+                  className={`w-full flex flex-col cursor-pointer ${isActive ? 'font-medium' : 'font-normal'}`}
+                >
+                  {/* 图标和文本在同一行，左对齐 */}
+                  <div className="flex">
+                    {/* 图标及竖线容器 */}
+                    <div className="flex flex-col items-center">
+                      {/* 固定为 24x24 的图标 */}
+                      <div className="w-[24px] h-[24px]">
+                        {completedSections[item.id as keyof typeof completedSections]
+                          ? React.cloneElement(item.completedIcon, { className: iconClass })
+                          : React.cloneElement(item.icon, { className: iconClass })}
+                      </div>
+                      {/* 除最后一项外，图标下方添加灰色竖线 */}
+                      {index !== sidebarItems.length - 1 && (
+                        <div className="w-px h-[60px] bg-[#CCCCCC] mt-2"></div>
+                      )}
+                    </div>
+                    {/* 文本标签，位于图标右侧并顶端对齐 */}
+                    <span className="ml-2 self-start">{item.label}</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        ))}
-        <div className="my-8 flex justify-center">
-          <button
-            onClick={handleContinue}
-            className="px-6 py-2 bg-blue-500 text-white rounded"
-          >
-            Continue
-          </button>
+
+          <div className="mx-auto">
+            <button
+              onClick={handleContinue}
+              className="w-full px-6 py-2 bg-[#222222] text-[#F5E3E3] rounded"
+            >
+              Add to cart
+            </button>
+          </div>
         </div>
       </aside>
+
     </div>
   );
 }
