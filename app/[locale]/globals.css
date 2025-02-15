@@ -27,7 +27,8 @@ body {
 }
 
 .animation-opacity {
-  animation: spin 1.5s infinite; /* spin 1s linear infinite */
+  animation: spin 2.5s infinite; /* spin 1s linear infinite */
+  animation-delay: 1.5s;
 }
 
 @keyframes spin {

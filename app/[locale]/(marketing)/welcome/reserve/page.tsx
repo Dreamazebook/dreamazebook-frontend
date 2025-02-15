@@ -1,4 +1,5 @@
 import DreamzeImage from "@/app/components/DreamzeImage";
+import FAQReserve from "../../components/FAQReserve";
 
 const PRICES = [
   {bg:'bg-white', tl: 'Softcover', discount: '$35', price: '$59', desc: 'Light yet durable, this softcover edition offers a flexible and travel-friendly option'},
@@ -40,6 +41,8 @@ export default function Reserve() {
         </div>
 
       </div>
+
+      <FAQReserve />
 
       <div className="p-10">
         <h2 className="text-center text-4xl font-bold">Get A Sneak Peek:</h2>
