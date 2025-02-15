@@ -239,9 +239,9 @@ export default function PreviewPageWithTopNav() {
 
   return (
     <div className="flex min-h-screen bg-[#F8F8F8]">
-      <div className="w-full pt-[12px] px-4 md:w-[80%] flex flex-col items-center">
+      <div className="w-full pt-[12px] px-4 md:mr-[280px] flex flex-col items-center">
         {/* 固定的导航栏 */}
-        <div className="fixed top-0 left-0 w-full pt-[12px] px-4 z-50 md:w-[80%] flex flex-col items-center">
+        <div className="fixed top-0 left-0 pt-[12px] px-4 z-50 w-full md:w-[calc(100%-280px)] flex flex-col items-center">
           <div className="w-[95%] mx-auto">
             <TopNavBarWithTabs
               activeTab={activeTab}
