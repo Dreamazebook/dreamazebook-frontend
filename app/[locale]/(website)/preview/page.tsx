@@ -328,6 +328,29 @@ export default function PreviewPageWithTopNav() {
             <div className="w-full max-w-5xl mx-auto p-[12px_24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
               The book preview is currently queued for generation, and you are number 7 out of 249 in line.
             </div>
+
+            <div className="w-full max-w-5xl mx-auto p-[12px_24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222] flex flex-col gap-4">
+              <div>
+                <p>We will only provide a preview of 7 pages of book content.</p>
+                <p>
+                  After you pay, we will send the entire book content to you via email for confirmation within 48 hours.
+                  Please confirm within 48 hours of receiving the information, otherwise the system will automatically determine.
+                </p>
+              </div>
+              <label className="justify-center inline-flex items-center cursor-pointer h-10">
+                <input
+                  type="checkbox"
+                  className="hidden"
+                  checked={confirmationDone}
+                  onChange={(e) => setConfirmationDone(e.target.checked)}
+                />
+                <div className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-[#222222]">
+                  {confirmationDone && <FaCheck className="w-3 h-3" />}
+                </div>
+                <span className="ml-2 text-gray-800 leading-10">I understand and accept</span>
+              </label>
+            </div>
+
           </main>
         ) : (
           // Others 标签页内容
