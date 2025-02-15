@@ -19,7 +19,7 @@ export default function Reserve() {
           <h1 className="text-3xl text-center font-bold">Reserve Your Special Discount</h1>
           <p className="my-4">Choose your preferred format and reserve the lowest price ever.</p>
           
-          {PRICES.map(({price,discount,tl,desc,header,bg}, index) => (
+          {PRICES.map(({price,discount,tl,desc,header,bg}) => (
             <article key={tl} className="mb-3 from-[#FFF4F4] to-[#FFE5E5]">
               {header && <h2 className="text-red-400 font-semibold bg-red-50 py-2 px-4">{header}</h2>}
               <div className={`${bg} p-4`}>

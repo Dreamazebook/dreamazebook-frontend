@@ -81,12 +81,12 @@ export default function LandingPage() {
         <div className="container bg-landing-page md:bg-transparent md:px-10">
           <div className="gap-8 md:w-3/5 pt-20 md:pt-0 mb-5 bg-[url(/landing-page/cover.png)] bg-cover md:bg-none h-screen md:h-auto ">
             {/* Hero Content */}
-            <h1 className="text-4xl md:text-5xl font-bold text-black p-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-black p-4 md:p-0">
             The Ultimate Personalized Books to Truly See Your Child
             </h1>
           </div>
 
-          <div className='p-4 md:w-3/5'>
+          <div className='p-4 md:p-0 md:w-3/5'>
             <p>Imagine the joy on your child’s face when they see themselves as the hero of their very own story. At Dreamaze, we create magical, personalized storybooks that inspire imagination, celebrate individuality, and strengthen family bonds.</p>
             <p className="mb-4">We’re launching on Kickstarter soon—stay tuned!</p>
 
@@ -117,7 +117,7 @@ export default function LandingPage() {
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   ) : (
-                    'reserve launch invite'
+                    'Reserve Save 40%'
                   )}
                 </button>
               </form>}

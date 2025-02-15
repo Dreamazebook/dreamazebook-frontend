@@ -1,5 +1,4 @@
 import DreamzeImage from '@/app/components/DreamzeImage';
-import Image from 'next/image';
 
 export default function PromotionBanner() {
   const PROMOTION_BANNERS = [
