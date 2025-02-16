@@ -254,7 +254,7 @@ export default function PreviewPageWithTopNav() {
 
         {activeTab === 'Book preview' ? (
           <main className="flex-1 flex flex-col items-center justify-start w-full pt-14">
-            <h1 className="text-xl mt-2 mb-4 text-center w-full">Your Book Preview</h1>
+            <h1 className="text-[28px] mt-2 mb-4 text-center w-full">Your Book Preview</h1>
             <div className="flex flex-col items-center w-full max-w-3xl">
               <div className="w-full flex justify-center mb-8">
                 <img
@@ -378,7 +378,7 @@ export default function PreviewPageWithTopNav() {
           <main className="flex-1 flex flex-col items-center justify-center w-full gap-[64px] pt-14">
             {/* Book Cover Section */}
             <section ref={coverDesignRef} className="w-full mt-2 max-w-3xl mx-auto">
-              <h1 className="text-xl text-center mb-2">Book Cover</h1>
+              <h1 className="text-[28px] text-center mb-2">Book Cover</h1>
               <p className="text-center text-gray-600 mb-4">
                 Please select your preferred cover design.
               </p>
@@ -441,7 +441,7 @@ export default function PreviewPageWithTopNav() {
             
             {/* Book Format Section */}
             <section  ref={bookFormatRef} className="w-full mt-2 max-w-3xl mx-auto">
-              <h1 className="text-xl text-center mb-2">Choose a format for your book</h1>
+              <h1 className="text-[28px] text-center mb-2">Choose a format for your book</h1>
               <p className="text-center text-gray-600 mb-4">
                 Please select your preferred book format.
               </p>
@@ -505,7 +505,7 @@ export default function PreviewPageWithTopNav() {
 
             {/* Book Wrap Section */}
             <section ref={otherGiftsRef} className="w-full mt-2 max-w-3xl mb-8 mx-auto">
-              <h1 className="text-xl text-center mb-2">Wrap it up in magic</h1>
+              <h1 className="text-[28px] text-center mb-2">Wrap it up in magic</h1>
               <p className="text-center text-gray-600 mb-4">
                 Please select your preferred book wrap option.
               </p>
