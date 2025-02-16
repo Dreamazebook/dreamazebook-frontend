@@ -16,12 +16,10 @@ export default function LandingPage() {
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       console.log(e);
+      window.open('https://docs.google.com/forms/d/e/1FAIpQLSehhcKV1PW221dtmrw5hQVo2oD5i98gdSmV_IhKUmc5URjKFw/viewform?embedded=true', '_blank');
       e.preventDefault();
-      e.returnValue = ''
-      window.open('https://forms.google.com', '_blank');
-      return '';
+      e.returnValue = '';
     };
-    window.open('https://forms.google.com', '_blank');
 
     window.addEventListener('beforeunload', handleBeforeUnload);
 
@@ -77,8 +75,8 @@ export default function LandingPage() {
   return (
     <main className="bg-white relative">
       <Image className="absolute top-0 left-10" src={'/welcome/dreamaze-logo.png'} alt="Logo" width={168} height={56} />
-      <div className="flex items-center md:bg-[url(/landing-page/desktop-cover.png)] bg-cover md:px-10 md:min-h-[760px]">
-        <div className="container bg-landing-page md:bg-transparent md:px-10">
+      <div className="md:flex md:items-center md:bg-[url(/landing-page/desktop-cover.png)] bg-cover md:px-10 md:min-h-[760px]">
+        <div className="md:container bg-[##f5e3e3] md:bg-transparent md:px-10">
           <div className="gap-8 md:w-3/5 pt-20 md:pt-0 mb-5 bg-[url(/landing-page/cover.png)] bg-cover md:bg-none h-screen md:h-auto ">
             {/* Hero Content */}
             <h1 className="text-4xl md:text-5xl font-bold text-black p-4 md:p-0">

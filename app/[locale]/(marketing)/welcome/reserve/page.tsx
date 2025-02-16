@@ -1,5 +1,7 @@
+'use client';
 import DreamzeImage from "@/app/components/DreamzeImage";
 import FAQReserve from "../../components/FAQReserve";
+import { useState } from "react";
 
 const PRICES = [
   {
@@ -30,8 +32,9 @@ const PRICES = [
 ];
 
 export default function Reserve() {
+  const [curPrice, setCurPrice] = useState('');
   return (
-    <main className="bg-gray-100">
+    <main className="bg-[#F8F8F8]">
 
       <div className="w-full md:flex">
         <div className="relative w-full aspect-square md:w-1/2">
@@ -43,8 +46,12 @@ export default function Reserve() {
           <p className="my-4">Choose your preferred format and reserve the lowest price ever.</p>
           
           {PRICES.map(({price,discount,tl,desc,header,headerStyle,bg}) => (
-            <article key={tl} className="mb-3 from-[#FFF4F4] to-[#FFE5E5]">
-              {header && <h2 className={`font-semibold py-2 px-4 bg-red-50 ${headerStyle}`}>{header}</h2>}
+            <article onClick={()=>setCurPrice(tl)} key={tl} className={`mb-3 rounded border ${curPrice===tl?'border-[#012CCE]':'border-transparent'}`}>
+              {header && 
+                <div className="from-[#FFE5E5] to-[#FFF4F4] bg-linear-to-r">
+                <h2 className={`font-semibold py-2 px-4 ${headerStyle}`}>{header}</h2>
+                </div>
+              }
               <div className={`${bg} p-4`}>
                 <div className="flex justify-between items-center">
                   <h2 className="text-xl font-bold">{tl}</h2>
@@ -58,7 +65,7 @@ export default function Reserve() {
             </article>
           ))}
 
-          <button className="cursor-pointer w-full bg-blue-700 text-white p-3 rounded-sm uppercase">Reserve save 40%</button>
+          <button className="cursor-pointer w-full bg-blue-700 text-white p-3 rounded-sm uppercase">Reserve Discount for $1</button>
           <button className="cursor-pointer w-full p-3 text-center mt-3">No thanks</button>
         </div>
 
