@@ -1,7 +1,8 @@
 /** @jsxImportSource react */
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Drawer } from "antd";
 import { create } from 'zustand';
 import TopNavBarWithTabs from '../components/TopNavBarWithTabs';
 import {
@@ -67,7 +68,6 @@ export default function PreviewPageWithTopNav() {
   const [confirmationDone, setConfirmationDone] = React.useState(false);
   const [activeSection, setActiveSection] = React.useState<string>("");
 
-
   // 定义 Book Cover 的 4 个选项
   const bookCoverOptions = [
     { id: 1, image: '../book.png', price: 'Free' },
@@ -127,22 +127,41 @@ export default function PreviewPageWithTopNav() {
       fullDescription: 'Modern Wrap offers a contemporary look with bold lines and vibrant colors, perfect for those who want their book to stand out with a modern flair.',
     },
   ];
-  
-  // 处理点击 "View Details" 链接
-  const handleViewDetails = (option: typeof bookWrapOptions[0], e: React.MouseEvent) => {
-    // 阻止事件冒泡，避免触发整个选项的 onClick
-    e.stopPropagation();
-    setDetailModal(option);
-    setCurrentIndex(0);
-  };
 
   // 定义侧边栏各项，并为每个项配置默认图标和完成后的图标
   const sidebarItems = [
-    { id: "giverDedication", label: "Giver & Dedication", icon: <FaUser className="mr-2" />, completedIcon: <FaCheck className="mr-2 text-blue-500" /> },
-    { id: "confirmation", label: "Confirmation", icon: <FaClipboard className="mr-2" />, completedIcon: <FaCheck className="mr-2 text-blue-500" /> },
-    { id: "coverDesign", label: "Cover Design", icon: <FaImage className="mr-2" />, completedIcon: <FaCheck className="mr-2 text-blue-500" /> },
-    { id: "bookFormat", label: "Format", icon: <FaBookOpen className="mr-2" />, completedIcon: <FaCheck className="mr-2 text-blue-500" /> },
-    { id: "otherGifts", label: "Other Gifts", icon: <FaGift className="mr-2" />, completedIcon: <FaCheck className="mr-2 text-blue-500" /> },
+    { id: "giverDedication", label: "Giver & Dedication", 
+      icon: 
+        <svg width="18" height="21" viewBox="0 0 18 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17.8188 13.2969C18.0788 14.3398 18.0788 15.2523 17.6888 16.2952C17.4289 17.3381 16.909 18.2506 16.1291 18.9025C15.7392 19.2935 15.3492 19.5543 14.8293 19.815C14.3094 20.0757 13.7895 20.3364 13.1396 20.4668C12.6197 20.5972 11.9698 20.7275 11.3199 20.7275H8.20039V12.3844C7.29054 12.254 6.51066 12.1236 5.86077 11.7326C5.34085 11.4718 4.82094 11.0808 4.30102 10.6897C3.78111 10.2986 3.39117 9.77713 3.13121 9.25569C2.74128 8.73424 2.48132 8.08243 2.35134 7.43062C2.22136 6.77881 2.09138 6.127 2.09138 5.47519C2.09138 4.56266 2.22136 3.65013 2.6113 2.7376C3.26119 2.86796 3.91109 3.12868 4.56098 3.51977C5.21088 3.91085 5.73079 4.30194 6.12073 4.82339C6.25071 3.78049 6.64064 2.86796 7.16056 2.08579C7.68047 1.30362 8.33037 0.521447 9.11024 0C9.89011 0.521447 10.67 1.30362 11.1899 2.08579C11.7098 2.99832 11.9698 3.91085 12.0998 4.95375C12.6197 4.4323 13.1396 4.04121 13.6595 3.65013C14.3094 3.25904 14.9593 2.99832 15.6092 2.86796C15.9991 3.65013 16.1291 4.56266 16.1291 5.47519C16.1291 6.127 15.9991 6.77881 15.8691 7.43062C15.7392 8.08243 15.4792 8.60388 15.0893 9.25569C14.6993 9.77713 14.3094 10.2986 13.9195 10.6897C13.3995 11.0808 12.8796 11.4718 12.3597 11.7326C11.9698 11.9933 11.5798 12.1236 11.0599 12.254C10.67 12.3844 10.1501 12.5147 9.76014 12.5147V18.5114C9.89011 17.8596 10.1501 17.3381 10.54 16.8167C10.9299 16.2952 11.3199 15.7738 11.8398 15.2523C12.2297 14.8612 12.6197 14.4702 13.1396 14.2094C13.6595 13.9487 14.1794 13.688 14.6993 13.5576L16.2591 13.1665C16.779 13.1665 17.2989 13.2969 17.8188 13.2969ZM0.141699 13.2969C1.18153 13.0362 2.22136 13.1665 3.13121 13.4273C4.17104 13.688 5.0809 14.2094 5.86077 14.9916C6.25071 15.3827 6.51066 15.7738 6.77062 16.2952C7.03058 16.8167 7.29054 17.2078 7.42052 17.7292C7.55049 18.2506 7.68047 18.7721 7.68047 19.2935C7.68047 19.815 7.68047 20.3364 7.55049 20.8579C6.51066 21.1186 5.60081 20.9882 4.56098 20.7275C3.52115 20.3364 2.6113 19.815 1.83142 19.0328C1.05155 18.2506 0.531636 17.3381 0.271678 16.4256C0.0117201 15.3827 -0.118259 14.3398 0.141699 13.2969Z" fill="currentColor"/>
+        </svg>
+    },
+    { id: "confirmation", label: "Confirmation", 
+      icon: 
+        <svg width="22" height="24" viewBox="0 0 22 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18.9846 23.0767H3.0154C2.43418 23.0699 1.8794 22.8328 1.47274 22.4175C1.06608 22.0022 0.840747 21.4425 0.846165 20.8613V4.98439C0.840747 4.40316 1.06608 3.84351 1.47274 3.4282C1.8794 3.01289 2.43418 2.77582 3.0154 2.76901H3.75386C3.80352 2.7643 3.8536 2.77061 3.90054 2.78751C3.94748 2.8044 3.9901 2.83144 4.02538 2.86672C4.06065 2.90199 4.0877 2.94462 4.10459 2.99155C4.12148 3.03849 4.1278 3.08858 4.12309 3.13824V4.61516C4.11792 5.39216 4.42114 6.1395 4.96623 6.69324C5.51133 7.24699 6.25379 7.56193 7.03078 7.56901H14.9692C15.7462 7.56193 16.4887 7.24699 17.0338 6.69324C17.5789 6.1395 17.8821 5.39216 17.8769 4.61516V3.13824C17.8722 3.08858 17.8785 3.03849 17.8954 2.99155C17.9123 2.94462 17.9394 2.90199 17.9746 2.86672C18.0099 2.83144 18.0525 2.8044 18.0995 2.78751C18.1464 2.77061 18.1965 2.7643 18.2462 2.76901H18.9846C19.5658 2.77582 20.1206 3.01289 20.5273 3.4282C20.9339 3.84351 21.1593 4.40316 21.1539 4.98439V20.8613C21.1593 21.4425 20.9339 22.0022 20.5273 22.4175C20.1206 22.8328 19.5658 23.0699 18.9846 23.0767ZM7.37232 13.7195C7.22562 13.7235 7.08651 13.7856 6.98555 13.8921L6.24709 14.6305C6.1968 14.6697 6.15541 14.719 6.12565 14.7754C6.09589 14.8317 6.07845 14.8937 6.07447 14.9573C6.07259 15.0342 6.08699 15.1107 6.11674 15.1816C6.14649 15.2526 6.19091 15.3164 6.24709 15.369L8.92401 18.0459C9.01814 18.1478 9.13234 18.2292 9.25943 18.2848C9.38652 18.3404 9.52374 18.3691 9.66247 18.3691C9.8012 18.3691 9.93843 18.3404 10.0655 18.2848C10.1926 18.2292 10.3068 18.1478 10.4009 18.0459L15.9394 12.5075C15.9894 12.4542 16.027 12.3904 16.0493 12.3208C16.0717 12.2512 16.0783 12.1775 16.0686 12.105C16.0635 12.0464 16.0449 11.9898 16.0143 11.9395C15.9837 11.8892 15.942 11.8467 15.8923 11.8152L15.1539 11.0767C15.1124 11.0229 15.0591 10.9793 14.9981 10.9494C14.9371 10.9195 14.8701 10.904 14.8022 10.9041C14.6555 10.9081 14.5164 10.9702 14.4154 11.0767L9.66155 15.8305L7.72309 13.8921C7.68172 13.8384 7.62858 13.7949 7.56777 13.765C7.50696 13.7351 7.44009 13.7195 7.37232 13.7195ZM15.0154 5.35362H7.03078C6.93092 5.35492 6.8319 5.33521 6.74014 5.29577C6.64839 5.25633 6.56595 5.19805 6.49817 5.1247C6.43677 5.05605 6.39076 4.97508 6.36322 4.8872C6.33568 4.79932 6.32724 4.70657 6.33847 4.61516V3.13824C6.33306 2.55701 6.55839 1.99736 6.96505 1.58205C7.37171 1.16674 7.92649 0.92967 8.5077 0.922852H13.5846C14.1658 0.92967 14.7206 1.16674 15.1273 1.58205C15.5339 1.99736 15.7593 2.55701 15.7539 3.13824V4.61516C15.755 4.71244 15.7366 4.80897 15.6999 4.89907C15.6632 4.98917 15.6088 5.07102 15.54 5.13981C15.4713 5.20861 15.3894 5.26296 15.2993 5.29968C15.2092 5.33639 15.1127 5.35473 15.0154 5.35362Z" fill="currentColor"/>
+        </svg>
+    },
+    {
+      id: "coverDesign",
+      label: "Cover Design",
+      icon: 
+        <svg width="20" height="22" viewBox="0 0 20 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fillRule="evenodd" clipRule="evenodd" d="M18.1727 3.36602C18.1727 2.94414 18.5149 2.60195 18.9368 2.60195C19.3586 2.60195 19.7008 2.94414 19.7008 3.36602V19.498C19.7008 20.5973 18.8102 21.4879 17.711 21.4879H2.2938C1.19458 21.4879 0.303955 20.5973 0.303955 19.498V1.72539C0.303955 1.05039 0.852393 0.501953 1.52739 0.501953H15.7211C16.3961 0.501953 16.9446 1.04805 16.9446 1.72539V14.6113C16.9446 15.2863 16.3985 15.8348 15.7211 15.8348H3.05786C2.38286 15.8348 1.83442 16.3809 1.83442 17.0582V18.7316C1.83442 19.4066 2.38286 19.9551 3.05786 19.9551H16.9493C17.6243 19.9551 18.1727 19.4066 18.1727 18.7316V3.36602ZM2.91956 17.7621C2.91956 17.3402 3.26174 16.998 3.68362 16.998H16.0539C16.4758 16.998 16.818 17.3402 16.818 17.7621C16.818 18.184 16.4758 18.5262 16.0539 18.5262H3.68362C3.26174 18.5262 2.91956 18.184 2.91956 17.7621Z" fill="currentColor"/>
+        </svg>
+    },
+    { id: "bookFormat", label: "Format", 
+      icon: 
+        <svg width="19" height="22" viewBox="0 0 19 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fillRule="evenodd" clipRule="evenodd" d="M1.65002 0.5H16.95C17.85 0.5 18.6 1.1 18.3 1.85V13.65C18.3 14.55 17.7 15.15 16.8 15.15H14.25C13.5 15.15 12.75 15.9 12.75 16.65V19.8C12.75 20.7 12.15 21.3 11.25 21.3H1.65002C0.900024 21.3 0.150024 20.55 0.150024 19.8V2C0.150024 1.1 0.750024 0.5 1.65002 0.5ZM11.25 13.55C11.7 13.55 12 13.25 12 12.8C12 12.2 11.7 11.9 11.25 11.9H4.50002C4.05002 11.9 3.75002 12.2 3.75002 12.65V12.8C3.75002 13.25 4.05002 13.55 4.50002 13.55H11.25ZM14.55 9.5C15 9.5 15.3 9.2 15.3 8.75C15.3 8.15 15 7.85 14.4 7.85H4.35002C3.90002 7.85 3.60002 8.15 3.60002 8.6V8.75C3.60002 9.05 4.05002 9.35 4.50002 9.5H14.55ZM14.55 5.45C15 5.45 15.3 5.15 15.3 4.7C15.3 4.1 15 3.8 14.55 3.8H4.50002C4.05002 3.8 3.75002 4.1 3.75002 4.55V4.7C3.75002 5.15 4.05002 5.45 4.50002 5.45H14.55ZM13.8 19.7998V17.6998C13.8 16.7998 14.55 16.0498 15.45 16.0498H17.55C18.3 16.0498 18.6 16.9498 18.15 17.3998L15.15 20.3998C14.7 20.8498 13.8 20.5498 13.8 19.7998Z" fill="currentColor"/>
+        </svg>
+    },
+    { id: "otherGifts", label: "Other Gifts", 
+      icon: 
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13.2313 3.77614C12.8615 4.14596 12.5157 4.36523 12.207 4.52123H11.2677C11.3037 4.18196 11.5622 3.51214 12.2648 2.80851C13.2008 1.87469 14.0757 1.71978 14.1968 1.84305C14.3168 1.96305 14.1662 2.84014 13.2313 3.77614ZM7.82477 4.52123C7.44529 4.33087 7.0996 4.07953 6.8015 3.77723C5.8655 2.84014 5.71604 1.96523 5.83604 1.84414C5.85895 1.82232 5.90804 1.80923 5.97786 1.80923C6.28768 1.80923 7.00768 2.05032 7.76804 2.81069C8.4695 3.51214 8.72804 4.17978 8.76404 4.52123H7.82477ZM9.3335 9.98451V19.5452H3.18732C2.84901 19.5459 2.52254 19.4207 2.27134 19.1941C2.02014 18.9675 1.86215 18.6556 1.82804 18.3191L1.8215 18.1794V9.98451H9.3335ZM18.2102 9.98451V18.1794C18.2105 18.3589 18.1754 18.5366 18.1068 18.7024C18.0383 18.8683 17.9377 19.019 17.8108 19.1458C17.6839 19.2727 17.5333 19.3733 17.3674 19.4419C17.2016 19.5104 17.0238 19.5455 16.8444 19.5452H10.6993V9.98451H18.2102ZM15.1633 0.877598C15.9106 1.62705 15.628 3.05942 14.5459 4.34669L14.3931 4.52123H18.2113C18.9182 4.52123 19.4997 5.05796 19.5706 5.74742L19.5771 5.88705V7.25287C19.5771 7.96196 19.0393 8.54233 18.351 8.61214L18.2113 8.61869H10.6993V4.52123H9.33459V8.61869H1.82041C1.48224 8.61884 1.15604 8.49353 0.904944 8.26702C0.653847 8.04051 0.495708 7.7289 0.461135 7.39251L0.45459 7.25287V5.88705C0.45459 5.17905 0.992408 4.59869 1.68077 4.52887L1.82041 4.52123H5.63859C4.42986 3.19032 4.08732 1.66196 4.8695 0.879779C5.69314 0.0506884 7.35677 0.468507 8.7335 1.84523C9.39568 2.50851 9.82986 3.23723 10.0153 3.90705C10.2008 3.23723 10.6339 2.50851 11.2982 1.84523C12.675 0.466325 14.3397 0.0539614 15.1622 0.878689L15.1633 0.877598Z" fill="currentColor"/>
+        </svg>
+    },
   ];
 
   // 为每个部分创建 ref（用于滚动定位）
@@ -236,6 +255,39 @@ export default function PreviewPageWithTopNav() {
 
     setMessage(value);
   };
+
+  //定义状态控制抽屉显示
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const modalRef = useRef<HTMLDivElement | null>(null);
+
+  // 处理点击 "View Details" 链接
+  const handleViewDetails = (
+    option: typeof bookWrapOptions[0],
+    e: React.MouseEvent<HTMLAnchorElement>
+  ) => {
+    e.stopPropagation(); // 阻止冒泡
+    setDetailModal(option);
+    setCurrentIndex(0);
+    if (!drawerOpen) {
+      setDrawerOpen(true);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      // 如果点击目标在 More Details 链接内，不做关闭处理
+      if ((e.target as HTMLElement).closest('.more-details')) {
+        return;
+      }
+      // 如果点击在弹窗外，关闭弹窗
+      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+        setDetailModal(null);
+      }
+    };
+  
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-[#F8F8F8]">
@@ -366,7 +418,9 @@ export default function PreviewPageWithTopNav() {
                   onChange={(e) => setConfirmationDone(e.target.checked)}
                 />
                 <div className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-[#222222]">
-                  {confirmationDone && <FaCheck className="w-3 h-3" />}
+                  {confirmationDone && <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1.5 3.5L5 7L11 1" stroke="#012CCE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>}
                 </div>
                 <span className="ml-2 text-gray-800 leading-10">I understand and accept</span>
               </label>
@@ -530,7 +584,7 @@ export default function PreviewPageWithTopNav() {
                     
                     <a
                       onClick={(e) => handleViewDetails(option, e)}
-                      className="text-[#012CCE] inline-flex items-center justify-center gap-x-2 cursor-pointer mb-2"
+                      className="more-details text-[#012CCE] inline-flex items-center justify-center gap-x-2 cursor-pointer mb-2"
                     >
                       More Details
                       <svg
@@ -590,17 +644,26 @@ export default function PreviewPageWithTopNav() {
               </div>
             </section>
 
-            {/* 弹出窗口 */}
-            {detailModal && (
-              <div className="fixed inset-0 z-50 flex">
-                {/* 左侧空白区域，点击关闭弹窗 */}
-                <div className="flex-1" onClick={() => setDetailModal(null)}></div>
-                {/* 右侧窗口 */}
-                <div className="relative w-[400px] bg-white p-[24px] shadow-lg flex flex-col h-full">
+            <Drawer
+              placement="right"
+              onClose={() => setDrawerOpen(false)}
+              open={drawerOpen}
+              closable={false}
+              width={400}
+            >
+              {/* 弹出窗口 */}
+              {detailModal && (
+                <div 
+                  ref={modalRef} 
+                  className="
+                    w-full flex flex-col h-full"
+                >
                   <div className="relative flex flex-col gap-3">
-                    {/* Back 按钮 */}
                     <button
-                      onClick={() => setDetailModal(null)}
+                      onClick={() => {
+                        setDetailModal(null);
+                        setDrawerOpen(false);
+                      }}
                       className="absolute inline-flex items-center gap-x-2"
                     >
                       <svg
@@ -610,25 +673,20 @@ export default function PreviewPageWithTopNav() {
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
                       >
-                        <path
-                          d="M17 5H1M1 5L5.5 1M1 5L5.5 9"
-                          stroke="#222222"
-                        />
+                        <path d="M17 5H1M1 5L5.5 1M1 5L5.5 9" stroke="#222222" />
                       </svg>
                       <span>Back</span>
                     </button>
 
-                    {/* 图片和控制区域 */}
-                    <div className='mt-8 flex flex-col gap-4'>
+                    {/* 弹窗内容 */}
+                    <div className="mt-8 flex flex-col gap-4">
                       <div>
                         <img
                           src={detailModal.images[currentIndex]}
                           alt={detailModal.title}
                           className="w-full h-auto"
                         />
-                        {/* 控制区域 */}
                         <div className="flex items-center justify-center mt-2 gap-[10px]">
-                          {/* 左侧翻页按钮 */}
                           <button
                             onClick={() => setCurrentIndex((prev) => prev - 1)}
                             disabled={currentIndex === 0}
@@ -641,14 +699,18 @@ export default function PreviewPageWithTopNav() {
                               fill="none"
                               xmlns="http://www.w3.org/2000/svg"
                             >
-                              <path d="M5 1L1 5M1 5L5 9M1 5H17" stroke="#222222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path
+                                d="M5 1L1 5M1 5L5 9M1 5H17"
+                                stroke="#222222"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
                             </svg>
                           </button>
-                          {/* 页码显示 */}
                           <span className="text-sm text-gray-700">
                             {currentIndex + 1} / {detailModal.images.length}
                           </span>
-                          {/* 右侧翻页按钮 */}
                           <button
                             onClick={() => setCurrentIndex((prev) => prev + 1)}
                             disabled={currentIndex === detailModal.images.length - 1}
@@ -661,32 +723,38 @@ export default function PreviewPageWithTopNav() {
                               fill="none"
                               xmlns="http://www.w3.org/2000/svg"
                             >
-                              <path d="M13 1L17 5M17 5L13 9M17 5H1" stroke="#222222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path
+                                d="M13 1L17 5M17 5L13 9M17 5H1"
+                                stroke="#222222"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
                             </svg>
                           </button>
                         </div>
                       </div>
-                      {/* 详情文本 */}
                       <div>
                         <h2 className="text-xl">{detailModal.title}</h2>
-                        <p className="text-gray-600 mt-2">{detailModal.fullDescription}</p>
+                        <p className="text-gray-600 mt-2">
+                          {detailModal.fullDescription}
+                        </p>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-auto flex gap-6 h-[44px] justify-between">
-                    {/* 价格区域 */}
                     <div className="flex items-end gap-3">
-                      <span className="text-[#012CCE] items-center text-3xl font-semibold">$320</span>
+                      <span className="text-[#012CCE] text-3xl font-semibold">$320</span>
                       <span className="text-gray-400 line-through">$540</span>
                     </div>
                     <button className="bg-black text-[#F5E3E3] py-2 px-8 rounded">
                       Add to order
                     </button>
                   </div>
-                </div>
-              </div>
-            )} 
+                </div>         
+              )}
+            </Drawer>
           </main>
         )}
 
@@ -779,10 +847,10 @@ export default function PreviewPageWithTopNav() {
       </div>
 
       {/* 右侧侧边栏 */}
-      <aside className="hidden md:flex fixed right-0 top-0 h-full w-[280px] bg-white p-[73px]">
-        <div className="flex flex-col justify-between h-full">
+      <aside className="hidden md:flex fixed right-0 top-0 h-full w-[280px] bg-white py-[64px]">
+        <div className="mx-auto flex flex-col justify-between h-full">
           {/* 顶部区域：侧边栏条目 */}
-          <div className="mx-auto w-[134px] flex flex-col gap-[4px] pt-[24px] pb-[24px]">
+          <div className="flex flex-col gap-[4px] py-[24px]">
             {sidebarItems.map((item, index) => {
               const isActive = activeSection === item.id;
               const isCompleted = completedSections[item.id as keyof typeof completedSections];
@@ -811,10 +879,15 @@ export default function PreviewPageWithTopNav() {
                     {/* 图标及竖线容器 */}
                     <div className="flex flex-col items-center">
                       {/* 固定为 24x24 的图标 */}
-                      <div className="w-[24px] h-[24px]">
-                        {completedSections[item.id as keyof typeof completedSections]
-                          ? React.cloneElement(item.completedIcon, { className: iconClass })
-                          : React.cloneElement(item.icon, { className: iconClass })}
+                      <div className="w-[24px] h-[24px] flex items-center justify-center">
+                        {completedSections[item.id as keyof typeof completedSections] ? (
+                          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1.5 3.5L5 7L11 1" stroke="#012CCE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        ) : React.cloneElement(item.icon, {
+                          className: `${item.icon.props.className ?? ""} ${iconClass}`,
+                        })}
+                        
                       </div>
                       {/* 除最后一项外，图标下方添加灰色竖线 */}
                       {index !== sidebarItems.length - 1 && (
@@ -839,7 +912,6 @@ export default function PreviewPageWithTopNav() {
           </div>
         </div>
       </aside>
-
     </div>
   );
 }
