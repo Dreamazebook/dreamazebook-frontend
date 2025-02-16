@@ -1,5 +1,5 @@
 "use client";
-import {useEffect, useState} from "react";
+import {useEffect} from "react";
 import Image from 'next/image'
 import Growth from "../components/Growth";
 import PromotionBanner from "../components/PromotionBanner";
@@ -9,6 +9,7 @@ import EffortlessGifting from "../components/EffortlessGifting";
 import SuperStrongEmotionalConnection from "./components/SuperStrongEmotionalConnection";
 import ExpertlyCrafted from "../components/ExpertlyCrafted";
 import FAQWelcome from "../components/FAQWelcome";
+import EmailForm from "../components/EmailForm";
 
 export default function LandingPage() {
 
@@ -27,50 +28,6 @@ export default function LandingPage() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
-
-  const [responseMessage, setResponseMessage] = useState('');
-  const [isError, setIsError] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showButtons, setShowButtons] = useState(false);
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsLoading(true);
-    setIsError(false);
-    setResponseMessage('');
-    const form = event.currentTarget;
-    const emailInput = (form.elements.namedItem('email') as HTMLInputElement).value;
-
-    try {
-      const response = await fetch(
-        "/api/subscribe",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({email: emailInput})
-        }
-      );
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        setIsError(true);
-        setResponseMessage(data.msg);
-        return;
-      }
-
-      setResponseMessage(data.msg);
-      setShowButtons(true);
-    } catch (error) {
-      console.error("Error subscribing email:", error);
-      setIsError(true);
-      setResponseMessage('An error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <main className="bg-white relative">
@@ -97,60 +54,8 @@ export default function LandingPage() {
               <p>800+ people have reserved</p>
             </div>
 
-            <div className='max-w-xl'>
-              {!showButtons && 
-              <form className="space-y-3" onSubmit={handleSubmit}>
-                <input 
-                  required 
-                  type="email" 
-                  name="email" 
-                  placeholder='example@gmail.com' 
-                  className='w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
-                  aria-label="Email address"
-                />
-                <button 
-                  disabled={isLoading}
-                  className='bg-landing-page-btn text-white px-4 py-2 rounded uppercase w-full disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center'
-                >
-                  {isLoading ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    'Reserve Save 40%'
-                  )}
-                </button>
-              </form>}
-
-
-              {responseMessage && (
-                <div>
-                  <p className={`p-4 rounded-md ${
-                    isError 
-                      ? 'text-red-600 bg-red-100' 
-                      : 'text-green-600 bg-green-100'
-                  }`}>
-                    {responseMessage}
-                  </p>
-                  
-                  {showButtons && !isError && (
-                    <div className="flex gap-4 mt-4">
-                      <a
-                        href="https://app.hubspot.com/payments/purchase/hscs_WUZTsI2Lke1ZkFGqH3oyWtaxKn8ZpxaFyQOOKXWcpGuK0SUIz8mswZKYJyXriPHe?referrer=PAYMENT_LINK"
-                        className="text-center bg-blue-600 text-white px-4 py-2 rounded w-1/2 hover:bg-blue-700 transition-colors"
-                      >
-                        Reserve for $1
-                      </a>
-                      <a
-                        href="https://forms.google.com" // Replace with your actual Google Form URL
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-gray-200 text-gray-800 px-4 py-2 rounded w-1/2 text-center hover:bg-gray-300 transition-colors"
-                      >
-                        No thanks
-                      </a>
-                    </div>
-                  )}
-                </div>
-              )}
+            <div className="max-w-lg">
+              <EmailForm />
             </div>
 
           </div>

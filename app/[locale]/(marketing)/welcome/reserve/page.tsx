@@ -2,6 +2,7 @@
 import DreamzeImage from "@/app/components/DreamzeImage";
 import FAQReserve from "../../components/FAQReserve";
 import { useState } from "react";
+import Popup from "../../components/Popup";
 
 const PRICES = [
   {
@@ -33,8 +34,18 @@ const PRICES = [
 
 export default function Reserve() {
   const [curPrice, setCurPrice] = useState('');
+  const [showPopup, setShowPopup] = useState(false);
   return (
     <main className="bg-[#F8F8F8]">
+
+      {showPopup &&
+      <Popup
+        tl="Unlock a Premium Gift for You!"
+        desc="Just a few quick questions will help us make your personalized book even more special and perfectly match your expectations. 💖"
+        surveyTxt="Yes, serve a survey!"
+        surveyLink="https://docs.google.com/forms/d/e/1FAIpQLSf_vXsRvJgZGvD-munfborQT39pkdB-Eh3NSi3XcA8MyyqZKA/viewform?embedded=true"
+        cancelTxt="It’s OK, you’ll nail it!"
+      />}
 
       <div className="w-full md:flex">
         <div className="relative w-full aspect-square md:w-1/2">
@@ -42,7 +53,7 @@ export default function Reserve() {
         </div>
 
         <div className="p-6 w-full md:w-1/2">
-          <h1 className="text-3xl text-center font-bold">Reserve Your Special Discount</h1>
+          <h1 className="text-3xl font-bold">Reserve Your Special Discount</h1>
           <p className="my-4">Choose your preferred format and reserve the lowest price ever.</p>
           
           {PRICES.map(({price,discount,tl,desc,header,headerStyle,bg}) => (
@@ -65,8 +76,8 @@ export default function Reserve() {
             </article>
           ))}
 
-          <button className="cursor-pointer w-full bg-blue-700 text-white p-3 rounded-sm uppercase">Reserve Discount for $1</button>
-          <button className="cursor-pointer w-full p-3 text-center mt-3">No thanks</button>
+          <a href="https://app.hubspot.com/payments/purchase/hscs_Cz0UnuV7mHso8hvrwi3Q1dAL8gOC32F4r4UDwyURd2kbJvopCinbXis9o2aQM245" className="cursor-pointer w-full block text-center bg-blue-700 text-white p-3 rounded-sm uppercase">Reserve Discount for $1</a>
+          <button onClick={()=>setShowPopup(true)} className="cursor-pointer w-full p-3 text-center mt-3">No thanks</button>
         </div>
 
       </div>
