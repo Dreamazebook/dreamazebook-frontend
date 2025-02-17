@@ -258,7 +258,8 @@ export default function PreviewPageWithTopNav() {
 
   //定义状态控制抽屉显示
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const modalRef = useRef<HTMLDivElement | null>(null);
+  // 用来获取 Drawer 内部 DOM 节点
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   // 处理点击 "View Details" 链接
   const handleViewDetails = (
@@ -273,21 +274,31 @@ export default function PreviewPageWithTopNav() {
     }
   };
 
+  // 当抽屉打开时添加 document 级别点击监听
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      // 如果点击目标在 More Details 链接内，不做关闭处理
-      if ((e.target as HTMLElement).closest('.more-details')) {
+    if (!drawerOpen) return;
+
+    const handleDocumentClick = (event: MouseEvent) => {
+      // 如果点击的是“more details”链接
+      if ((event.target as HTMLElement).closest('.more-details')) {
+        // 不关闭抽屉，直接更新内容（more details 点击处理函数会在点击时调用 event.stopPropagation()）
         return;
       }
-      // 如果点击在弹窗外，关闭弹窗
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-        setDetailModal(null);
+      // 如果点击在 Drawer 内部，不关闭
+      if (drawerRef.current && drawerRef.current.contains(event.target as Node)) {
+        return;
       }
+      // 否则关闭抽屉
+      setDrawerOpen(false);
+      // 延迟清除 detailModal，等动画结束后再清除
+      setTimeout(() => setDetailModal(null), 300);
     };
-  
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+
+    document.addEventListener('click', handleDocumentClick);
+    return () => {
+      document.removeEventListener('click', handleDocumentClick);
+    };
+  }, [drawerOpen]);
 
   return (
     <div className="flex min-h-screen bg-[#F8F8F8]">
@@ -646,23 +657,27 @@ export default function PreviewPageWithTopNav() {
 
             <Drawer
               placement="right"
-              onClose={() => setDrawerOpen(false)}
+              onClose={() => {
+                setDrawerOpen(false);
+                setTimeout(() => setDetailModal(null), 300);
+              }}
               open={drawerOpen}
               closable={false}
+              mask={false}
               width={400}
             >
               {/* 弹出窗口 */}
               {detailModal && (
                 <div 
-                  ref={modalRef} 
+                  ref={drawerRef} 
                   className="
                     w-full flex flex-col h-full"
                 >
                   <div className="relative flex flex-col gap-3">
                     <button
                       onClick={() => {
-                        setDetailModal(null);
                         setDrawerOpen(false);
+                        setTimeout(() => setDetailModal(null), 300);
                       }}
                       className="absolute inline-flex items-center gap-x-2"
                     >
@@ -678,7 +693,7 @@ export default function PreviewPageWithTopNav() {
                       <span>Back</span>
                     </button>
 
-                    {/* 弹窗内容 */}
+                    {/* 抽屉内容 */}
                     <div className="mt-8 flex flex-col gap-4">
                       <div>
                         <img
