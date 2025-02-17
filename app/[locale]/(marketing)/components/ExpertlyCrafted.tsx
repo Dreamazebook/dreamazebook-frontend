@@ -10,7 +10,7 @@ export default function ExpertlyCrafted() {
         </p>
         
         <div className="max-w-4xl relative aspect-[4/1] mx-auto">
-          <DreamzeImage src="/welcome/expertly-crafted/draft.png" alt="Dreamazebook" cssClass="transition-opacity animation-opacity z-10 hover:hidden" />
+          <DreamzeImage src="/welcome/expertly-crafted/draft.png" alt="Dreamazebook" cssClass="transition-opacity animation-opacity z-10 hover:hidden hover:animation-none" />
           <DreamzeImage src="/welcome/expertly-crafted/done.png" alt="Dreamazebook" />
         </div>
 

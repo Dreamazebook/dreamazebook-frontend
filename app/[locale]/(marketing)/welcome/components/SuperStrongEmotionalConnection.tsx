@@ -17,17 +17,14 @@ export default function SuperStrongEmotionalConnection() {
           spaceBetween={10}
           centeredSlides={true}
           grabCursor={true}
-          autoplay={{
-            delay: 2500,
-            disableOnInteraction: false,
-          }}
           loop={true}
           effect={'coverflow'}
           coverflowEffect={{
-            rotate: 50,
+            rotate: 80,
+            depth: -100,
+            modifier: .2,
+            scale: 1.2,
             stretch: 0,
-            depth: 100,
-            modifier: 1,
             slideShadows: true,
           }}
           className="mySwiper"

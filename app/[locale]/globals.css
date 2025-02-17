@@ -25,11 +25,11 @@ body {
 }
 
 .animation-opacity {
-  animation: spin 2.5s infinite; /* spin 1s linear infinite */
+  animation: opacity 2.5s infinite; /* opacity 1s linear infinite */
   animation-delay: 1.5s;
 }
 
-@keyframes spin {
+@keyframes opacity {
   0% {
     opacity: 1;
   }
