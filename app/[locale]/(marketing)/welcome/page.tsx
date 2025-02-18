@@ -1,6 +1,8 @@
 "use client";
 import {useEffect} from "react";
 import Image from 'next/image'
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
 import Growth from "../components/Growth";
 import PromotionBanner from "../components/PromotionBanner";
 import ReserveSection from "../components/ReserveSection";
@@ -10,6 +12,24 @@ import SuperStrongEmotionalConnection from "./components/SuperStrongEmotionalCon
 import ExpertlyCrafted from "../components/ExpertlyCrafted";
 import FAQWelcome from "../components/FAQWelcome";
 import EmailForm from "../components/EmailForm";
+
+// Add a reusable animated section component
+const AnimatedSection = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+      transition={{ duration: 0.5 }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 export default function LandingPage() {
 
@@ -42,14 +62,14 @@ export default function LandingPage() {
           </div>
 
           <div className='p-4 md:p-0 md:w-3/5'>
-            <p>Imagine the joy on your child’s face when they see themselves as the hero of their very own story. At Dreamaze, we create magical, personalized storybooks that inspire imagination, celebrate individuality, and strengthen family bonds.</p>
-            <p className="mb-4">We’re launching on Kickstarter soon—stay tuned!</p>
+            <p>Imagine the joy on your child&apos;s face when they see themselves as the hero of their very own story. At Dreamaze, we create magical, personalized storybooks that inspire imagination, celebrate individuality, and strengthen family bonds.</p>
+            <p className="mb-4">We&apos;re launching on Kickstarter soon—stay tuned!</p>
 
             <div className="text-center md:text-left flex flex-col gap-3 mb-4">
               <div className="flex flex-col md:flex-row gap-3 items-center">
                 <h3 className="font-bold text-xl">Limited Spots Available</h3>
                 <span className="hidden md:block h-[1px] bg-black w-6"></span>
-                <p className="">Once they’re gone, they’re gone! Don’t miss out</p>
+                <p className="">Once they&apos;re gone, they&apos;re gone! Don&apos;t miss out</p>
               </div>
               <p>800+ people have reserved</p>
             </div>
@@ -63,52 +83,64 @@ export default function LandingPage() {
       </div>
       
 
-      <PromotionBanner />
+      <AnimatedSection>
+        <PromotionBanner />
+      </AnimatedSection>
 
-      <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/early-access.png)]"} title={"Early Access"} desc={'Be the first to explore and even help shape our personalized books.'} />
+      <AnimatedSection>
+        <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/early-access.png)]"} title={"Early Access"} desc={'Be the first to explore and even help shape our personalized books.'} />
+      </AnimatedSection>
 
-      <TheOnlyBook />
+      <AnimatedSection>
+        <TheOnlyBook />
+      </AnimatedSection>
 
-      <ReserveSection cssClass={"bg-white"} title={"Make It Extra Special"} desc={'Create a magical story starring your little one.'} />
+      <AnimatedSection>
+        <ReserveSection cssClass={"bg-white"} title={"Make It Extra Special"} desc={'Create a magical story starring your little one.'} />
+      </AnimatedSection>
 
-      {/* Super Strong Emotional Connection Section */}
-      <SuperStrongEmotionalConnection />
+      <AnimatedSection>
+        <SuperStrongEmotionalConnection />
+      </AnimatedSection>
       
 
-      {/* Effortless Gifting Section */}
-      <ExpertlyCrafted />
+      <AnimatedSection>
+        <ExpertlyCrafted />
+      </AnimatedSection>
       
-      <EffortlessGifting />
+      <AnimatedSection>
+        <EffortlessGifting />
+      </AnimatedSection>
 
-      <ReserveSection cssClass={"bg-pink-50"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it’s gone!" />
+      <AnimatedSection>
+        <ReserveSection cssClass={"bg-pink-50"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it's gone!" />
+      </AnimatedSection>
 
-      {/* About Us Section */}
-      <div className="bg-blue-50 py-16 bg-[url(/welcome/about-us-bg.png)] bg-cover h-screen flex items-center">
+      <AnimatedSection className="bg-blue-50 py-16 bg-[url(/welcome/about-us-bg.png)] bg-cover h-screen flex items-center">
         <div className="container mx-auto px-4">
           <h2 className="text-5xl font-bold text-center mb-8">About Us</h2>
           <p className="text-lg max-w-2xl mx-auto text-center text-gray-700 mb-8">
-            The heart of Dreamaze is simple: <b>everyone deserves to be the hero of their own story.</b> As a mother I witnessed the pure joy on my daughter’s face when she saw herself in a book—a unique experience she had never had before. We believe personalized books should go beyond pieced-together avatars to create immersive experiences where you or your loved ones are the true protagonists.
+            The heart of Dreamaze is simple: <b>everyone deserves to be the hero of their own story.</b> As a mother I witnessed the pure joy on my daughter&apos;s face when she saw herself in a book—a unique experience she had never had before. We believe personalized books should go beyond pieced-together avatars to create immersive experiences where you or your loved ones are the true protagonists.
           </p>
         </div>
-      </div>
+      </AnimatedSection>
 
-      {/* Testimonials Section */}
-      <div className="bg-pink-50 mx-auto px-4 py-20">
+      <AnimatedSection className="bg-pink-50 mx-auto px-4 py-20">
         <h2 className="text-5xl font-bold text-center mb-8"><span className="text-blue-500">Beloved</span> By Early Testers</h2>
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           {[{
-            tl: "My daughter wants me to read this book to her all the time! It’s the first time she has ever been the hero of a story, and she loves showing it to everyone.",
-            desc: "LIli‘s mother",
+            tl: "My daughter wants me to read this book to her all the time! It's the first time she has ever been the hero of a story, and she loves showing it to everyone.",
+            desc: "LIli's mother",
             img: '/welcome/beloved-by-early-testers/lIli-mother.png'
           },
           {
-            tl: "Seeing my own child as the hero of the story is such a wonderful idea! I love how this book captures precious moments—I’ll treasure it as a keepsake of all their milestones.",
-            desc: "Absalom’s father",
+            tl: "Seeing my own child as the hero of the story is such a wonderful idea! I love how this book captures precious moments—I'll treasure it as a keepsake of all their milestones.",
+            desc: "Absalom's father",
             img: '/welcome/beloved-by-early-testers/absalom-father.png'
           },
           {
-            tl: "This is the perfect gift for my grandson! The story is heartwarming, the illustrations are beautiful, and most importantly, my little cutie looks amazing in the book. I can’t wait to create one for all of my grandkids！",
-            desc: "Aaron‘s grandma",
+            tl: "This is the perfect gift for my grandson! The story is heartwarming, the illustrations are beautiful, and most importantly, my little cutie looks amazing in the book. I can't wait to create one for all of my grandkids！",
+            desc: "Aaron's grandma",
             img: '/welcome/beloved-by-early-testers/aaron-grandma.png'
           }].map(({tl, desc, img}) => 
             <div className="text-center bg-white p-5" key={tl}>
@@ -120,18 +152,24 @@ export default function LandingPage() {
             </div>
           )}
         </div>
-      </div>
+      </AnimatedSection>
 
-      <Growth />
+      <AnimatedSection>
+        <Growth />
+      </AnimatedSection>
 
-      <FAQWelcome />
+      <AnimatedSection>
+        <FAQWelcome />
+      </AnimatedSection>
 
-      <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/40-vip-discount.png)]"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it’s gone!" />
+      <AnimatedSection>
+        <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/40-vip-discount.png)]"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it's gone!" />
+      </AnimatedSection>
 
-      <section className="bg-pink-100 p-10">
+      <AnimatedSection className="bg-pink-100 p-10">
         <p className="text-blue-700 text-center text-2xl font-bold">See Yourself in A Personalised Amazing Dream</p>
         <Image className="mx-auto" src={'/welcome/dreamaze-logo.png'} alt="Logo" width={200} height={70} />
-      </section>
+      </AnimatedSection>
     </main>
   )
 }
