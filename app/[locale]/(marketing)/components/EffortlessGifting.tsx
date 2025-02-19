@@ -5,7 +5,7 @@ export default function EffortlessGifting() {
     <div className="py-16">
       <div className="container mx-auto px-4">
         <h2 className="text-5xl font-bold text-center mb-8">Effortless Gifting<br/> With <span className="text-blue-500">Maximum</span> Impact</h2>
-        <p className="text-lg text-center text-gray-700 mb-10 max-w-4xl mx-auto">
+        <p className="text-lg text-center text-gray-700 mb-10 max-w-4xl mx-auto font-light">
           Create the perfect personalized storybook with just a few clicks—choose a design, upload a photo, and you’re done. It’s a thoughtful gift without the hassle.
         </p>
         
@@ -42,7 +42,7 @@ export default function EffortlessGifting() {
           ].map(({tl,desc})=>
           <div key={tl} className="text-center">
             <h3 className="text-2xl font-semibold mb-4 text-blue-600">{tl}</h3>
-            <p className="text-gray-600">{desc}</p>
+            <p className="text-[#000000] font-light">{desc}</p>
           </div>
           )}
         </div>

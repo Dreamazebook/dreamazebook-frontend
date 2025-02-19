@@ -57,8 +57,8 @@ export default function EmailForm() {
           required 
           type="email" 
           name="email" 
-          placeholder='example@gmail.com' 
-          className='w-full text-black bg-white p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
+          placeholder='Enter your email' 
+          className='w-full text-black bg-white p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
           aria-label="Email address"
         />
         <Button tl={'Reserve Save 40%'} isLoading={isLoading} />

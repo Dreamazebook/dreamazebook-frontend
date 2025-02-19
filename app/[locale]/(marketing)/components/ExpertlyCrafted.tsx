@@ -5,7 +5,7 @@ export default function ExpertlyCrafted() {
     <div className="bg-pink-100 py-16">
       <div className="container mx-auto px-4">
         <h2 className="text-5xl font-bold text-center mb-8">Expertly Crafted<br/>And <span className="text-blue-500">Beautifully</span> Illustrated</h2>
-        <p className="text-lg text-center text-gray-700 mb-8 max-w-2xl mx-auto">
+        <p className="text-lg text-center text-gray-700 mb-8 max-w-2xl mx-auto font-light">
         Every book is thoughtfully written by professional educators and features exclusive hand-drawn art It’s a one-of-a-kind keepsake made with care and love.
         </p>
         

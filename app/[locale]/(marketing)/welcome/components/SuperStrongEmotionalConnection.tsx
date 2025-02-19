@@ -7,7 +7,7 @@ export default function SuperStrongEmotionalConnection() {
   return (
     <div className="px-4 py-16 bg-yellow-50">
       <h2 className="text-5xl font-bold text-center mb-8">Super Strong<br/><span className="text-blue-500">Emotional</span> Connection</h2>
-      <p className="text-lg text-center text-gray-700 mb-8 max-w-2xl mx-auto">
+      <p className="text-lg text-center text-[#222222] font-light mb-8 max-w-4xl mx-auto">
         Reading a story where you and your child are the heroes strengthens bonds and creates cherished memories. These shared moments become treasures that last a lifetime.
       </p>
       
