@@ -9,8 +9,8 @@ export default function ExpertlyCrafted() {
         Every book is thoughtfully written by professional educators and features exclusive hand-drawn art It’s a one-of-a-kind keepsake made with care and love.
         </p>
         
-        <div className="max-w-4xl relative aspect-[4/1] mx-auto">
-          <DreamzeImage src="/welcome/expertly-crafted/draft.png" alt="Dreamazebook" cssClass="transition-opacity animation-opacity z-10 hover:hidden hover:animation-none" />
+        <div className="max-w-4xl relative aspect-[4/1] mx-auto group">
+          <DreamzeImage src="/welcome/expertly-crafted/draft.png" alt="Dreamazebook" cssClass="transition-opacity animation-opacity z-10 group-hover:hidden group-hover:animation-none" />
           <DreamzeImage src="/welcome/expertly-crafted/done.png" alt="Dreamazebook" />
         </div>
 
