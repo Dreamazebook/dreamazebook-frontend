@@ -7,28 +7,33 @@ import { useEffect } from 'react';
 const VIDEOS = [
   {
     video: '/welcome/super-strong-emotional-connection/20250209-212016.mp4',
-    title: 'Bedtime Stories',
-    desc: 'Create magical moments every night'
   },
   {
     video: '/welcome/super-strong-emotional-connection/20250209-212024.mp4', 
-    title: 'Family Time',
-    desc: 'Share adventures together'
   },
   {
     video: '/welcome/super-strong-emotional-connection/20250209-212132.mp4',
-    title: 'Learning Together',
-    desc: 'Make education fun and personal'
   },
   {
     video: '/welcome/super-strong-emotional-connection/20250209-212138.mp4',
-    title: 'Learning Together',
-    desc: 'Make education fun and personal'
   },
   {
     video: '/welcome/super-strong-emotional-connection/20250209-212147.mp4',
-    title: 'Learning Together',
-    desc: 'Make education fun and personal'
+  },
+  {
+    video: '/welcome/super-strong-emotional-connection/20250209-212016.mp4',
+  },
+  {
+    video: '/welcome/super-strong-emotional-connection/20250209-212024.mp4', 
+  },
+  {
+    video: '/welcome/super-strong-emotional-connection/20250209-212132.mp4',
+  },
+  {
+    video: '/welcome/super-strong-emotional-connection/20250209-212138.mp4',
+  },
+  {
+    video: '/welcome/super-strong-emotional-connection/20250209-212147.mp4',
   },
 ];
 
@@ -110,8 +115,8 @@ export default function SuperStrongEmotionalConnection() {
     <div className="panorama-slider  ">
       <div className="swiper h-[240px]">
         <div className="swiper-wrapper gap-5">
-          {VIDEOS.map(({video}) => (
-            <div className="swiper-slide" key={video}>
+          {VIDEOS.map(({video}, idx) => (
+            <div className="swiper-slide" key={idx}>
               <video 
                 src={video}
                 className="slide-image w-full h-full object-cover pointer-events-none"
