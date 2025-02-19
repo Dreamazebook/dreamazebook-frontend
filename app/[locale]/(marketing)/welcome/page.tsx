@@ -1,8 +1,6 @@
 "use client";
 import {useEffect} from "react";
 import Image from 'next/image'
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
 import Growth from "../components/Growth";
 import PromotionBanner from "../components/PromotionBanner";
 import ReserveSection from "../components/ReserveSection";
@@ -12,24 +10,8 @@ import SuperStrongEmotionalConnection from "./components/SuperStrongEmotionalCon
 import ExpertlyCrafted from "../components/ExpertlyCrafted";
 import FAQWelcome from "../components/FAQWelcome";
 import EmailForm from "../components/EmailForm";
+import {AnimatedSection} from "@/app/components/AnimatedSection";
 
-// Add a reusable animated section component
-const AnimatedSection = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 50 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
-      transition={{ duration: 0.5 }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-};
 
 export default function LandingPage() {
 
@@ -55,6 +37,7 @@ export default function LandingPage() {
     <main className="bg-white relative">
       <Image className="absolute top-0 left-10" src={'/welcome/dreamaze-logo.png'} alt="Logo" width={168} height={56} />
       <div className="md:flex md:items-center md:bg-[url(/landing-page/desktop-cover.png)] bg-cover md:px-10 md:min-h-[760px]">
+        <AnimatedSection>
         <div className="md:container bg-[##f5e3e3] md:bg-transparent md:px-10">
           <div className="gap-8 md:w-3/5 pt-20 md:pt-0 mb-5 bg-[url(/landing-page/cover.png)] bg-cover md:bg-none h-screen md:h-auto ">
             {/* Hero Content */}
@@ -82,6 +65,7 @@ export default function LandingPage() {
 
           </div>
         </div>
+        </AnimatedSection>
       </div>
       
 
