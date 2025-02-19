@@ -36,10 +36,12 @@ export default function LandingPage() {
   // Add useEffect to handle tab close
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      console.log(e);
-      window.open('https://docs.google.com/forms/d/e/1FAIpQLSehhcKV1PW221dtmrw5hQVo2oD5i98gdSmV_IhKUmc5URjKFw/viewform?embedded=true', '_blank');
       e.preventDefault();
-      e.returnValue = '';
+      const confirmNavigation = window.confirm('Are you sure you want to leave? You will be redirected to a specific link.');
+
+      if (confirmNavigation) {
+        window.location.href = 'https://docs.google.com/forms/d/e/1FAIpQLSehhcKV1PW221dtmrw5hQVo2oD5i98gdSmV_IhKUmc5URjKFw/viewform?embedded=true';
+      }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
