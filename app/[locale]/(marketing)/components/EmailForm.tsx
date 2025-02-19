@@ -1,6 +1,7 @@
 'use client';
 import { useState } from "react";
 import {useRouter} from 'next/navigation'
+import Button from "@/app/components/Button";
 
 export default function EmailForm() {
   const router = useRouter();
@@ -60,16 +61,7 @@ export default function EmailForm() {
           className='w-full text-black bg-white p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
           aria-label="Email address"
         />
-        <button 
-          disabled={isLoading}
-          className='bg-landing-page-btn text-white px-4 py-2 rounded uppercase w-full disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center'
-        >
-          {isLoading ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-          ) : (
-            'Reserve Save 40%'
-          )}
-        </button>
+        <Button tl={'Reserve Save 40%'} isLoading={isLoading} />
       </form>
 
 

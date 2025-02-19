@@ -3,6 +3,7 @@ import DreamzeImage from "@/app/components/DreamzeImage";
 import FAQReserve from "../../components/FAQReserve";
 import { useState } from "react";
 import Popup from "../../components/Popup";
+import Button from "@/app/components/Button";
 
 const PRICES = [
   {
@@ -40,6 +41,7 @@ export default function Reserve() {
 
       {showPopup &&
       <Popup
+        handleCancel={setShowPopup}
         tl="Unlock a Premium Gift for You!"
         desc="Just a few quick questions will help us make your personalized book even more special and perfectly match your expectations. 💖"
         surveyTxt="Yes, serve a survey!"
@@ -76,7 +78,8 @@ export default function Reserve() {
             </article>
           ))}
 
-          <a href="https://app.hubspot.com/payments/purchase/hscs_Cz0UnuV7mHso8hvrwi3Q1dAL8gOC32F4r4UDwyURd2kbJvopCinbXis9o2aQM245" className="cursor-pointer w-full block text-center bg-blue-700 text-white p-3 rounded-sm uppercase">Reserve Discount for $1</a>
+          {/* <a href="https://app.hubspot.com/payments/purchase/hscs_Cz0UnuV7mHso8hvrwi3Q1dAL8gOC32F4r4UDwyURd2kbJvopCinbXis9o2aQM245" className="cursor-pointer w-full block text-center bg-blue-700 text-white p-3 rounded-sm uppercase">Reserve Discount for $1</a> */}
+          <Button tl={'Reserve Discount for $1'} url="https://app.hubspot.com/payments/purchase/hscs_Cz0UnuV7mHso8hvrwi3Q1dAL8gOC32F4r4UDwyURd2kbJvopCinbXis9o2aQM245" />
           <button onClick={()=>setShowPopup(true)} className="cursor-pointer w-full p-3 text-center mt-3">No thanks</button>
         </div>
 
