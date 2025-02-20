@@ -1,10 +1,10 @@
 'use client';
-import DreamzeImage from "@/app/components/DreamzeImage";
 import FAQReserve from "../../components/FAQReserve";
 import { useState } from "react";
 import Popup from "../../components/Popup";
 import Button from "@/app/components/Button";
 import Previews from "../components/Previews";
+import BookCovers from "../components/BookCovers";
 
 const PRICES = [
   {
@@ -51,11 +51,11 @@ export default function Reserve() {
       />}
 
       <div className="w-full md:flex">
-        <div className="relative w-full aspect-square md:w-1/2">
-          <DreamzeImage src="/welcome/the-only-book/lucas.png" alt="Test" />
+        <div className="md:w-1/2">
+          <BookCovers />
         </div>
 
-        <div className="p-6 w-full md:w-1/2">
+        <div className="p-6 md:p-20 w-full md:w-1/2">
           <h1 className="text-3xl font-bold">Reserve Your Special Discount</h1>
           <p className="my-4">Choose your preferred format and reserve the lowest price ever.</p>
           
