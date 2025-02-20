@@ -79,7 +79,7 @@ export default function Reserve() {
           ))}
 
           {/* <a href="https://app.hubspot.com/payments/purchase/hscs_Cz0UnuV7mHso8hvrwi3Q1dAL8gOC32F4r4UDwyURd2kbJvopCinbXis9o2aQM245" className="cursor-pointer w-full block text-center bg-blue-700 text-white p-3 rounded-sm uppercase">Reserve Discount for $1</a> */}
-          <Button tl={'Reserve Discount for $1'} url="https://app.hubspot.com/payments/purchase/hscs_Cz0UnuV7mHso8hvrwi3Q1dAL8gOC32F4r4UDwyURd2kbJvopCinbXis9o2aQM245" />
+          <Button tl={'Reserve Discount for $1'} url="https://app.hubspot.com/payments/ZzxZb6v2p4?referrer=PAYMENT_LINK" />
           <button onClick={()=>setShowPopup(true)} className="cursor-pointer w-full p-3 text-center mt-3">No thanks</button>
         </div>
 

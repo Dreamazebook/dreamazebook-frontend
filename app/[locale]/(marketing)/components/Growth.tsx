@@ -53,7 +53,7 @@ export default function Growth() {
           {icon:'done' ,tl: 'Initial Idea Sparked', date:'May 2023'},
           {icon:'done' ,tl: 'Product Research', date:'June 2023'},
           {icon:'done' ,tl: 'AI Workflow Development', date:'July 2023'},
-          {icon:'done' ,tl: 'Illustration&Content Development', date:'October 2023'},
+          {icon:'done' ,tl: 'Illustration & Content Development', date:'October 2023'},
           {icon:'done' ,tl: 'Prototype Creation', date:'January 2024'},
           {icon:'done' ,tl: 'Factory Visits', date:'May 2024'},
           {icon:'done' ,tl: 'Early Tester Feedback', date:'September 2024'},

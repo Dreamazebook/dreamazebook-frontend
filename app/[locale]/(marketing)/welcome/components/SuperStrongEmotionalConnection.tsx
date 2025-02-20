@@ -12,7 +12,7 @@ const VIDEOS = [
     video: '/welcome/super-strong-emotional-connection/20250209-212024.mp4', 
   },
   {
-    video: '/welcome/super-strong-emotional-connection/20250209-212132.mp4',
+    video: '/welcome/super-strong-emotional-connection/20250209-212147.mp4',
   },
   {
     video: '/welcome/super-strong-emotional-connection/20250209-212138.mp4',
@@ -33,7 +33,7 @@ const VIDEOS = [
     video: '/welcome/super-strong-emotional-connection/20250209-212138.mp4',
   },
   {
-    video: '/welcome/super-strong-emotional-connection/20250209-212147.mp4',
+    video: '/welcome/super-strong-emotional-connection/20250209-212132.mp4',
   },
 ];
 
