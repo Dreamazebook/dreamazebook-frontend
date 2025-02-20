@@ -4,6 +4,7 @@ import FAQReserve from "../../components/FAQReserve";
 import { useState } from "react";
 import Popup from "../../components/Popup";
 import Button from "@/app/components/Button";
+import Previews from "../components/Previews";
 
 const PRICES = [
   {
@@ -87,12 +88,7 @@ export default function Reserve() {
 
       <FAQReserve />
 
-      <div className="p-10">
-        <h2 className="text-center text-4xl font-bold">Get A Sneak Peek:</h2>
-        <h2 className="text-center text-4xl font-bold">Preview Of Some Dreamaze Books!</h2>
-
-        
-      </div>
+      <Previews />
 
     </main>
   )
