@@ -10,6 +10,7 @@ import { BaseBook } from '@/types/book';
 import { IoIosArrowBack } from "react-icons/io";
 import { BsCheck } from "react-icons/bs";
 import BasicInfoForm, { BasicInfoData } from '../components/BasicInfoForm';
+import springImage from '@/public/spring.jpeg';
 
 // 扩展 BasicInfoData，增加额外字段
 export interface PersonalizeFormData extends BasicInfoData {
@@ -29,6 +30,16 @@ interface FormErrors {
   photo?: string;
   singleChoice?: string;
   multipleChoice?: string;
+  birthSeason?: string;
+}
+
+export interface PersonalizeFormData2 extends BasicInfoData {
+  birthSeason: '' | 'spring' | 'summer' | 'autumn' | 'winter';
+}
+
+export interface SingleCharacterForm2Handle {
+  validateForm: () => boolean;
+  formData: PersonalizeFormData2;
 }
 
 export default function PersonalizePage() {
@@ -41,7 +52,7 @@ export default function PersonalizePage() {
   const [selectedFormType, setSelectedFormType] = useState<'SINGLE' | 'DOUBLE' | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const singleFormRef = useRef<SingleCharacterForm1Handle>(null);
+  const singleFormRef = useRef<SingleCharacterForm2Handle>(null);
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -78,7 +89,7 @@ export default function PersonalizePage() {
     if (!selectedFormType) return null;
     switch (selectedFormType) {
       case 'SINGLE':
-        return <SingleCharacterForm1 ref={singleFormRef} />;
+        return <SingleCharacterForm2 ref={singleFormRef} />;
       case 'DOUBLE':
         return <DoubleCharacterForm />;
       default:
@@ -166,7 +177,6 @@ export default function PersonalizePage() {
   );
 }
 
-// 单人表单组件，引用 BasicInfoForm 处理公共部分
 // 单人表单组件，引用 BasicInfoForm 处理公共部分
 const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref) => {
   const [formData, setFormData] = useState<PersonalizeFormData>({
@@ -342,6 +352,134 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref)
           )}
         </div>
       </div>
+    </form>
+  );
+});
+
+// 单人表单组件，引用 BasicInfoForm 处理公共部分
+const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle>((props, ref) => {
+  const [formData, setFormData] = useState<PersonalizeFormData2>({
+    fullName: '',
+    gender: '',
+    skinColor: '',
+    photo: null,
+    birthSeason: '',
+  });
+
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [touched, setTouched] = useState<Partial<Record<keyof PersonalizeFormData2, boolean>>>({});
+
+  // 定义季节选项
+  const seasons: { label: string; value: "" | "spring" | "summer" | "autumn" | "winter"; src: string }[] = [
+    { label: 'Spring', value: 'spring', src: '/season-spring.png' },
+    { label: 'Summer', value: 'summer', src: '/season-spring.png' },
+    { label: 'Autumn', value: 'autumn', src: '/season-spring.png' },
+    { label: 'Winter', value: 'winter', src: '/season-spring.png' },
+  ];  
+
+  // 更新公共部分数据
+  const handleBasicInfoChange = (field: keyof BasicInfoData, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    setTouched(prev => ({ ...prev, [field]: true }));
+  };
+
+  // 定义 onErrorChange 回调，用于更新指定字段的错误状态
+  const handleErrorChange = (field: keyof BasicInfoData, errorMsg: string) => {
+    setErrors(prev => ({ ...prev, [field]: errorMsg }));
+  };
+
+  useImperativeHandle(ref, () => ({
+    validateForm() {
+      // 标记所有字段为 touched
+      setTouched({
+        fullName: true,
+        gender: true,
+        skinColor: true,
+        photo: true,
+        birthSeason: true,
+      });
+
+      const newErrors: FormErrors = {};
+      if (!formData.fullName.trim()) newErrors.fullName = 'Please enter the full name';
+      if (!formData.gender) newErrors.gender = 'Please select gender';
+      if (!formData.skinColor) newErrors.skinColor = 'Please select skin color';
+      if (!formData.photo) newErrors.photo = 'Please upload a photo';
+      if (!formData.birthSeason) newErrors.birthSeason = 'Please select a birth season';
+
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
+    },
+    formData,
+  }));
+
+  // 处理季节点击
+  const handleSeasonClick = (value: "" | "spring" | "summer" | "autumn" | "winter") => {
+    setFormData(prev => ({ ...prev, birthSeason: value }));
+    setTouched(prev => ({ ...prev, birthSeason: true }));
+    setErrors(prev => ({ ...prev, birthSeason: '' }));
+  };  
+
+  return (
+    <form className="space-y-6">
+      {/* 公共基本信息部分，传入 onErrorChange 回调 */}
+      <BasicInfoForm
+        data={{
+          fullName: formData.fullName,
+          gender: formData.gender,
+          skinColor: formData.skinColor,
+          photo: formData.photo,
+        }}
+        errors={{
+          fullName: errors.fullName,
+          gender: errors.gender,
+          skinColor: errors.skinColor,
+          photo: errors.photo,
+        }}
+        touched={{
+          fullName: touched.fullName,
+          gender: touched.gender,
+          skinColor: touched.skinColor,
+          photo: touched.photo,
+        }}
+        onChange={handleBasicInfoChange}
+        onErrorChange={handleErrorChange}
+      />
+
+      {/* 季节选择（放在图片上传上方的概念区） */}
+      <div>
+        <label className="block mb-2 font-medium">Birth season</label>
+        <div
+          className="flex flex-wrap gap-[10px]"
+          tabIndex={0}
+          onBlur={() => {
+            if (!formData.birthSeason) {
+              setErrors(prev => ({ ...prev, birthSeason: 'Please select a birth season' }));
+            } else {
+              setErrors(prev => ({ ...prev, birthSeason: '' }));
+            }
+          }}
+        >
+          {seasons.map(season => (
+            <button
+              key={season.value}
+              type="button"
+              onClick={() => handleSeasonClick(season.value)}
+              className={`relative border p-2 rounded w-[126px] h-[172px] p-[8px] flex flex-col items-center gap-[10px] ${
+                formData.birthSeason === season.value
+                  ? 'border-[#012CCE]'
+                  : 'border-transparent'
+              }`}
+            >
+              <Image src={season.src} alt={season.label} width={122} height={110} layout="fixed" className="rounded"  />
+              <span>{season.label}</span>
+            </button>
+          ))}
+        </div>
+        {touched.birthSeason && errors.birthSeason && (
+          <p className="text-red-500 text-sm mt-1">{errors.birthSeason}</p>
+        )}
+      </div>
+      
     </form>
   );
 });
