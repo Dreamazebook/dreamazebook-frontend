@@ -9,7 +9,7 @@ export default function EffortlessGifting() {
           Create the perfect personalized storybook with just a few clicks—choose a design, upload a photo, and you’re done. It’s a thoughtful gift without the hassle.
         </p>
         
-        <div className="max-w-4xl mx-auto flex flex-col gap-4">
+        <div className="container mx-auto flex flex-col gap-4">
           <div className="w-full relative aspect-square">
             <DreamzeImage src="/welcome/effortless-gifting/main.png" alt="Lucas" />
           </div>

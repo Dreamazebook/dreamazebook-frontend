@@ -12,6 +12,7 @@ import FAQWelcome from "../components/FAQWelcome";
 import EmailForm from "../components/EmailForm";
 import {AnimatedSection} from "@/app/components/AnimatedSection";
 import DreamzeImage from "@/app/components/DreamzeImage";
+import Footer from "../components/Footer";
 
 
 export default function LandingPage() {
@@ -37,10 +38,10 @@ export default function LandingPage() {
   return (
     <main className="bg-white relative">
       <Image className="absolute top-0 left-10" src={'/welcome/dreamaze-logo.png'} alt="Logo" width={168} height={56} />
-      <div className="md:flex md:items-center md:bg-[url(/landing-page/desktop-cover.png)] bg-cover md:px-10 md:min-h-[760px]">
+      <div className="md:flex md:items-center md:bg-[url(/landing-page/desktop-cover.png)] bg-cover md:px-10 md:aspect-[2/1]">
         <AnimatedSection>
-        <div className="md:container bg-[##f5e3e3] md:bg-transparent md:px-10">
-          <div className="gap-8 md:w-3/5 pt-20 md:pt-0 mb-5 bg-[url(/landing-page/cover.png)] bg-cover md:bg-none h-screen md:h-auto ">
+        <div className="md:container bg-[##f5e3e3] md:bg-transparent">
+          <div className="gap-8 md:w-3/5 pt-20 md:pt-0 mb-5 bg-[url(/landing-page/cover.png)] bg-cover md:bg-none h-screen md:h-auto">
             {/* Hero Content */}
             <h1 className="text-4xl md:text-5xl font-bold text-black p-4 md:p-0">
             The Ultimate Personalized Books to Truly See Your Child
@@ -155,10 +156,7 @@ export default function LandingPage() {
         <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/40-vip-discount.png)]"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it's gone!" />
       </AnimatedSection>
 
-      <AnimatedSection className="bg-pink-100 p-10">
-        <p className="text-blue-700 text-center text-2xl font-bold">See Yourself in A Personalised Amazing Dream</p>
-        <Image className="mx-auto" src={'/welcome/dreamaze-logo.png'} alt="Logo" width={200} height={70} />
-      </AnimatedSection>
+      <Footer />
     </main>
   )
 }
