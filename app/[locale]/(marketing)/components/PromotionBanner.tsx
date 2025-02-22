@@ -24,9 +24,9 @@ export default function PromotionBanner() {
   return (
     <Container cssClass="bg-[#F8F8F8]">
       <div className="container mx-auto">
-        <ContainerTitle cssClass='mb-21'>Why Sign Up Today?</ContainerTitle>
+        <ContainerTitle cssClass='mb-16 md:mb-21'>Why Sign Up Today?</ContainerTitle>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-15">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-15">
           {PROMOTION_BANNERS.map(({tl,desc, img, cssClasses})=>
             <div key={tl} className={`bg-white text-center ${cssClasses}`}>
               <div className="flex items-center mb-4">
