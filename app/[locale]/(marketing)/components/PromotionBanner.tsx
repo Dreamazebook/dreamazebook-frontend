@@ -1,4 +1,6 @@
 import DreamzeImage from '@/app/components/DreamzeImage';
+import { Container } from './Container';
+import { ContainerTitle } from './ContainerTitle';
 
 export default function PromotionBanner() {
   const PROMOTION_BANNERS = [
@@ -20,27 +22,25 @@ export default function PromotionBanner() {
     }
   ];
   return (
-    <section className="px-4 py-12 sm:py-16 bg-gray-100">
+    <Container cssClass="bg-[#F8F8F8]">
       <div className="container mx-auto">
-        <h2 className="text-4xl font-bold text-gray-900 text-center mb-12">
-          Why Sign Up Today?
-        </h2>
+        <ContainerTitle cssClass='mb-21'>Why Sign Up Today?</ContainerTitle>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mt-12">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-15">
           {PROMOTION_BANNERS.map(({tl,desc, img, cssClasses})=>
             <div key={tl} className={`bg-white text-center ${cssClasses}`}>
               <div className="flex items-center mb-4">
               </div>
-              <h3 className="text-xl p-6 text-blue-800 font-semibold mb-2 text-nowrap">{tl}</h3>
+              <h3 className="text-[28px] p-3 text-[#022CCE] font-bold text-nowrap">{tl}</h3>
               <div className='relative w-full aspect-[4/3]'>
                 <DreamzeImage src={img} alt={tl} cssClass="hover:scale-105 transition-transform overflow-hidden" />
               </div>
-              <p className="text-gray-600 p-6">{desc}</p>
+              <p className="text-[#000000] font-light p-3">{desc}</p>
             </div>
           )}
 
         </div>
       </div>
-    </section>
+    </Container>
   )
 };

@@ -1,15 +1,21 @@
 import DreamzeImage from "@/app/components/DreamzeImage";
+import { Container } from "./Container";
+import { ContainerTitle } from "./ContainerTitle";
+import { ContainerDesc } from "./ContainerDesc";
 
 export default function EffortlessGifting() {
   return (
-    <div className="py-16">
+    <Container cssClass="bg-[#F8F8F8]">
       <div className="container mx-auto px-4">
-        <h2 className="text-5xl font-bold text-center mb-8">Effortless Gifting<br/> With <span className="text-blue-500">Maximum</span> Impact</h2>
-        <p className="text-lg text-center text-gray-700 mb-10 max-w-4xl mx-auto font-light">
-          Create the perfect personalized storybook with just a few clicks—choose a design, upload a photo, and you’re done. It’s a thoughtful gift without the hassle.
-        </p>
+        <ContainerTitle cssClass="mb-6">
+          Deeply Meaningful <br/> Yet <span className="text-[#022CCE]">Surprisingly</span> Simple
+        </ContainerTitle>
+        <ContainerDesc cssClass="mb-16">
+        Create the perfect personalized storybook with just a few clicks—choose a design, upload a photo, and you’re done<br/>
+        It’s a thoughtful gift without the hassle.
+        </ContainerDesc>
         
-        <div className="container mx-auto flex flex-col gap-4">
+        <div className="container mx-auto flex flex-col gap-6 mb-32">
           <div className="w-full relative aspect-square">
             <DreamzeImage src="/welcome/effortless-gifting/main.png" alt="Lucas" />
           </div>
@@ -32,22 +38,22 @@ export default function EffortlessGifting() {
       
 
       {/* Easy Steps Section */}
-      <div className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-16">Easy 3 Steps to Get Your Book</h2>
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="container mx-auto px-4">
+        <h2 className="text-[28px] text-[#222222] font-bold text-center mb-16">Easy 3 Steps to Get Your Book</h2>
+        <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
           {[
             {tl:'01 Personalize It',desc:"Add the hero's name, upload a photo, and make a few fun choices—it's that easy!"},
             {tl:'02 Preview & Confirm',desc:"Take a peek at your book and give it a thumbs-up."},
             {tl:'03 Receive & Enjoy',desc:"Sit back and get ready for a one-of-a-kind gift to arrive at your door!"}
           ].map(({tl,desc})=>
           <div key={tl} className="text-center">
-            <h3 className="text-2xl font-semibold mb-4 text-blue-600">{tl}</h3>
-            <p className="text-[#000000] font-light">{desc}</p>
+            <h3 className="text-[28px] font-bold mb-4 text-[#022CCE]">{tl}</h3>
+            <p className="text-[#000000] text-xl font-light">{desc}</p>
           </div>
           )}
         </div>
       </div>
 
-    </div>
+    </Container>
   )
 }

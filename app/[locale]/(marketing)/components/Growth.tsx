@@ -1,5 +1,7 @@
 import { JSX } from "react"
 import Image from 'next/image';
+import { Container } from "./Container";
+import { ContainerTitle } from "./ContainerTitle";
 
 interface IconProps {
   cssClass:string
@@ -41,10 +43,12 @@ function Icon({cssClass, icon}:IconProps) {
 
 export default function Growth() {
   return (
-    <div className="container bg-white mx-auto px-4 py-16">
-      <h2 className="text-5xl font-bold text-center mb-8">Dreamaze Book&apos;s <span className="text-blue-800">Growth</span></h2>
+    <Container cssClass="bg-[#F8F8F8]">
+      <ContainerTitle>
+        Dreamaze Book&apos;s <span className="text-[#022CCE]">Growth</span>
+      </ContainerTitle>
 
-      <div className="flex justify-center my-7">
+      <div className="flex justify-center my-16">
         <Image src="/welcome/growth/magic-wand.png" alt="Magic Wand" width={64} height={64} />
       </div>
 
@@ -81,6 +85,6 @@ export default function Growth() {
           
         )}
       </div>
-    </div>
+    </Container>
   )
 }

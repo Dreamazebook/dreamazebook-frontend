@@ -4,9 +4,17 @@ interface DreamzeImageProps {
   src:string
   alt:string
   cssClass?:string
+  style?:React.CSSProperties
 }
-export default function DreamzeImage({src,alt,cssClass=''}: DreamzeImageProps) {
+export default function DreamzeImage({src,alt,cssClass='',style}: DreamzeImageProps) {
   return (
-    <Image src={src} alt={alt} className={`object-cover ${cssClass}`} fill loading="lazy" />
+    <Image 
+      src={src} 
+      alt={alt} 
+      className={`object-cover ${cssClass}`} 
+      style={style as React.CSSProperties} 
+      fill 
+      loading="lazy" 
+    />
   )
 }

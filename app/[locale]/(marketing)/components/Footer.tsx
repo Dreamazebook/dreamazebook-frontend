@@ -1,10 +1,13 @@
 import { AnimatedSection } from "@/app/components/AnimatedSection";
+import DreamzeImage from "@/app/components/DreamzeImage";
 import Image from 'next/image';
 
 export default function Footer() {
   return (
-    <AnimatedSection className="bg-pink-100 p-10">
-      <p className="text-blue-700 text-center text-2xl font-bold">See Yourself in A Personalised Amazing Dream</p>
+    <AnimatedSection className="bg-[#F5E3E3]">
+      <div className="relative container aspect-[7/2]">
+        <DreamzeImage src={'/welcome/footer.png'} alt="Footer"/>
+      </div>
       <Image className="mx-auto" src={'/welcome/dreamaze-logo.png'} alt="Logo" width={200} height={70} />
     </AnimatedSection>
   )

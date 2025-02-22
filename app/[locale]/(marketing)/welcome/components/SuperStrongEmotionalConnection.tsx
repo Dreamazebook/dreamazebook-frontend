@@ -1,8 +1,11 @@
 // Import Swiper React components
-// import { Swiper, SwiperSlide } from 'swiper/react';
+import { Swiper, SwiperSlide } from 'swiper/react';
 // Import Swiper styles
 import 'swiper/css';
 import { useEffect } from 'react';
+import { Container } from '../../components/Container';
+import { ContainerTitle } from '../../components/ContainerTitle';
+import { ContainerDesc } from '../../components/ContainerDesc';
 
 const VIDEOS = [
   {
@@ -46,36 +49,38 @@ export default function SuperStrongEmotionalConnection() {
     //   "https://panorama-slider.uiinitiative.com/assets/index.c1d53924.css";
     // document.head.appendChild(link);
 
-    // Add the module preload link
-    const preloadLink = document.createElement("link");
-    preloadLink.rel = "modulepreload";
-    preloadLink.href =
-      "https://panorama-slider.uiinitiative.com/assets/vendor.dba6b2d2.js";
-    document.head.appendChild(preloadLink);
+    // // Add the module preload link
+    // const preloadLink = document.createElement("link");
+    // preloadLink.rel = "modulepreload";
+    // preloadLink.href =
+    //   "https://panorama-slider.uiinitiative.com/assets/vendor.dba6b2d2.js";
+    // document.head.appendChild(preloadLink);
 
-    // Add the external script
-    const script = document.createElement("script");
-    script.type = "module";
-    script.crossOrigin = "anonymous";
-    script.src =
-      "https://panorama-slider.uiinitiative.com/assets/index.d2ce9dca.js";
-    document.body.appendChild(script);
+    // // Add the external script
+    // const script = document.createElement("script");
+    // script.type = "module";
+    // script.crossOrigin = "anonymous";
+    // script.src =
+    //   "https://panorama-slider.uiinitiative.com/assets/index.d2ce9dca.js";
+    // document.body.appendChild(script);
 
-    // Cleanup script and links on unmount
-    return () => {
-      // document.head.removeChild(link);
-      document.head.removeChild(preloadLink);
-      document.body.removeChild(script);
-    };
+    // // Cleanup script and links on unmount
+    // return () => {
+    //   // document.head.removeChild(link);
+    //   document.head.removeChild(preloadLink);
+    //   document.body.removeChild(script);
+    // };
   }, []);
   return (
-    <div className="px-4 py-16 bg-yellow-50">
-      <h2 className="text-5xl font-bold text-center mb-8">Super Strong<br/><span className="text-blue-500">Emotional</span> Connection</h2>
-      <p className="text-lg text-center text-[#222222] font-light mb-8 max-w-4xl mx-auto">
-        Reading a story where you and your child are the heroes strengthens bonds and creates cherished memories. These shared moments become treasures that last a lifetime.
-      </p>
+    <Container cssClass="bg-[#FFFBF3]">
+      <ContainerTitle cssClass='mb-6'>
+        Super Strong<br/><span className="text-[#022CCE]">Emotional</span> Connection
+      </ContainerTitle>
+      <ContainerDesc>
+      Reading a story where you and your child are the heroes strengthens bonds and creates cherished memories. These shared moments become treasures that last a lifetime.
+      </ContainerDesc>
       
-      {/* <div className="relative">
+      <div className="relative mt-16">
         <Swiper
           slidesPerView={3}
           spaceBetween={10}
@@ -93,8 +98,8 @@ export default function SuperStrongEmotionalConnection() {
           }}
           className="mySwiper"
         >
-          {VIDEOS.map(({video}) => (
-            <SwiperSlide key={video}>
+          {VIDEOS.map(({video},idx) => (
+            <SwiperSlide key={idx}>
               <div className="relative aspect-video rounded overflow-hidden">
                 <video 
                   src={video}
@@ -108,11 +113,11 @@ export default function SuperStrongEmotionalConnection() {
             </SwiperSlide>
           ))}
         </Swiper>
-      </div> */}
+      </div>
 
 
 
-    <div className="panorama-slider  ">
+    {/* <div className="panorama-slider  ">
       <div className="swiper h-[240px]">
         <div className="swiper-wrapper gap-5">
           {VIDEOS.map(({video}, idx) => (
@@ -130,9 +135,9 @@ export default function SuperStrongEmotionalConnection() {
           
         </div>
       </div>
-    </div>
+    </div> */}
 
 
-    </div>
+    </Container>
   )
 }
