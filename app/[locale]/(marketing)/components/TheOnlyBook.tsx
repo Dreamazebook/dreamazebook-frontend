@@ -15,14 +15,14 @@ export default function TheOnlyBook() {
         <ContainerDesc cssClass="mb-6">
           If you want to personalize a book that truly reflects your loved ones, not generic avatars but their real name, image, and uniqueness
         </ContainerDesc>
-        <p className="font-bold text-[#222222] text-xl mb-16 flex items-center gap-4 justify-center">
+        <p className="font-bold text-[#222222] text-xl mb-8 md:mb-16 flex items-center gap-4 justify-center">
           <span>Dreamazebook is the best choice!</span>
           <Image src='/welcome/the-only-book/star.png' width={36} height={36} alt="Star" />
         </p>
 
         <ContainerVideo src="/welcome/the-only-book/video.mp4" />
 
-        <div className="flex flex-col md:flex-row gap-6 mt-6">
+        <div className="flex flex-col md:flex-row gap-3 md:gap-6 mt-3 md:mt-6">
           <div className="w-full md:w-2/3 relative aspect-square">
             <DreamzeImage src="/welcome/the-only-book/lucas.png" alt="Lucas" />
           </div>

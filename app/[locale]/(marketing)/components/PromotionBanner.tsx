@@ -31,7 +31,7 @@ export default function PromotionBanner() {
             <div key={tl} className={`bg-white text-center ${cssClasses}`}>
               <div className="flex items-center mb-4">
               </div>
-              <h3 className="text-[28px] p-3 text-[#022CCE] font-bold text-nowrap">{tl}</h3>
+              <h3 className="text-[16px] md:text-[28px] p-3 text-[#022CCE] font-bold text-nowrap">{tl}</h3>
               <div className='relative w-full aspect-[4/3] overflow-hidden'>
                 <DreamzeImage src={img} alt={tl} cssClass="hover:scale-105 transition-transform" />
               </div>
