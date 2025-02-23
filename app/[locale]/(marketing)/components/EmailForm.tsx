@@ -1,5 +1,5 @@
 'use client';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {useRouter} from 'next/navigation'
 import Button from "@/app/components/Button";
 
@@ -9,6 +9,37 @@ export default function EmailForm() {
   const [responseMessage, setResponseMessage] = useState('');
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [countdown, setCountDown] = useState(5);
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    
+    if (responseMessage && !isError && countdown > -1) {
+      intervalId = setInterval(() => {
+        setCountDown((prev) => prev - 1);
+      }, 1000);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [responseMessage, isError, countdown]);
+
+  if (responseMessage && !isError) {
+    if (countdown === -1) {
+      router.push('/en/welcome/reserve');
+      return null;
+    }
+    return (
+      <div className="text-center text-[20px] font-bold text-[#222222]">
+        <p>Thanks</p>
+        <p>Off we go—grab your spot and lock in your deal!</p>
+        <p className="text-[14px]">{countdown}S</p>
+      </div>
+    );
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -39,7 +70,6 @@ export default function EmailForm() {
       }
 
       setResponseMessage(data.msg);
-      router.push('/en/welcome/reserve');
       
     } catch (error) {
       console.error("Error subscribing email:", error);
@@ -67,7 +97,7 @@ export default function EmailForm() {
 
       {responseMessage && (
         <div>
-          <p className={`p-4 rounded-md ${
+          <p className={`p-4 mt-4 rounded-md ${
             isError 
               ? 'text-red-600 bg-red-100' 
               : 'text-green-600 bg-green-100'
