@@ -105,7 +105,7 @@ export default function SuperStrongEmotionalConnection() {
         >
           {VIDEOS.map(({video},idx) => (
             <SwiperSlide key={idx}>
-              <div className="relative aspect-video rounded overflow-hidden">
+              <div className="relative aspect-[4/3] rounded overflow-hidden">
                 <video 
                   src={video}
                   className="w-full h-full object-cover"

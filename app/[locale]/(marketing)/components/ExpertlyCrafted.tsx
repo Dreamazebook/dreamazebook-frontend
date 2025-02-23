@@ -32,13 +32,13 @@ export default function ExpertlyCrafted() {
   // 悬停时显示图2，离开时显示图1并暂停动画
   const handleMouseEnter = () => {
     setIsHovered(true);
-    setOpacity(100); // 显示图1
+    setOpacity(0); // 显示图1
   };
 
   const handleMouseLeave = () => {
     setIsHovered(false);
     setTimeout(() => {
-      setOpacity(0); // 开始动画
+      setOpacity(100); // 开始动画
     }, 5000); // 5s 后继续动画
   };
 
