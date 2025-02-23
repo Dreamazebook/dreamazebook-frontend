@@ -72,7 +72,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"bg-pink-50"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it's gone!" />
+        <ReserveSection cssClass={"bg-[#F5E3E3]"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it's gone!" />
       </AnimatedSection>
 
       <AboutUs />

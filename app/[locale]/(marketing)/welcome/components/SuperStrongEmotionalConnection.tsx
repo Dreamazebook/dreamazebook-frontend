@@ -87,6 +87,11 @@ export default function SuperStrongEmotionalConnection() {
           centeredSlides={true}
           grabCursor={true}
           loop={true}
+          autoplay={
+            {
+              delay: 500
+            }
+          }
           effect={'coverflow'}
           coverflowEffect={{
             rotate: 80,
