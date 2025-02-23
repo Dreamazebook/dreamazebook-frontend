@@ -41,6 +41,7 @@ const ContainerVideo: React.FC<VideoPlayerProps> = ({ src }) => {
       className='w-full'
       ref={videoRef}
       src={src}
+      loop
       //controls // 显示视频控件
       //muted // 静音（某些浏览器要求静音才能自动播放）
     />
