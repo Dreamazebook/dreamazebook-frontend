@@ -3,7 +3,6 @@ import Image from 'next/image';
 import { Container } from "./Container";
 import { ContainerTitle } from "./ContainerTitle";
 import { ContainerDesc } from "./ContainerDesc";
-import ContainerVideo from "./ContainerVideo";
 
 export default function TheOnlyBook() {
   return (
@@ -20,7 +19,7 @@ export default function TheOnlyBook() {
           <Image src='/welcome/the-only-book/star.png' width={36} height={36} alt="Star" />
         </p>
 
-        <ContainerVideo src="/welcome/the-only-book/video.mp4" />
+        <video autoPlay loop muted src="/welcome/the-only-book/video.mp4" />
 
         <div className="flex flex-col md:flex-row gap-3 md:gap-6 mt-3 md:mt-6">
           <div className="w-full md:w-2/3 relative aspect-square">
