@@ -16,7 +16,16 @@ const COVERS = [
 ]
 export default function BookCovers() {
   return (
-    <Swiper
+    <>
+    <div className='hidden lg:block'>
+      {COVERS.map(({img})=>
+      <div className='relative aspect-square w-full' key={img}>
+        <DreamzeImage src={img} alt='' />
+      </div>
+      )}
+    </div>
+    <div className='lg:hidden'>
+      <Swiper
         spaceBetween={30}
         // centeredSlides={true}
         autoplay={{
@@ -37,5 +46,8 @@ export default function BookCovers() {
       </SwiperSlide>
       )}
     </Swiper>
+    </div>
+    
+  </>
   )
 }
