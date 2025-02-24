@@ -24,7 +24,7 @@ export default function HeroBanner() {
               <span className="hidden md:block font-light">—</span>
               <p className="">Once they&apos;re gone, they&apos;re gone! Don&apos;t miss out</p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 justify-center md:justify-start">
               <div className="relative w-[114px] md:w-[156px] aspect-[19/4]">
                 <DreamzeImage src="/welcome/herobanner/email-avatars.png" alt="Email Subscribers" />
               </div>
