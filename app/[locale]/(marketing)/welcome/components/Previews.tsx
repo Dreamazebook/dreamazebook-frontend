@@ -61,7 +61,7 @@ export default function Previews() {
 
       <div className="py-16 gap-6 justify-center hidden md:flex">
         {PREVIEWS.map(({thumbnail})=>
-         <div key={thumbnail} className="relative aspect-square w-15 h-15 hover:scale-120 transition-transform">
+         <div key={thumbnail} className="relative aspect-square w-18 h-18 hover:scale-120 transition-transform">
           <DreamzeImage src={thumbnail} alt="Preivew" />
          </div>
         )}

@@ -8,6 +8,7 @@ import BookCovers from "../components/BookCovers";
 import Footer from "../../components/Footer";
 import { ContainerDesc } from "../../components/ContainerDesc";
 import { ContainerTitle } from "../../components/ContainerTitle";
+import Image from 'next/image';
 
 const PRICES = [
   {
@@ -19,6 +20,7 @@ const PRICES = [
   {
     headerStyle:'bg-linear-to-r from-[#FF638A] from-20% to-[#FF2566] to-[100%] text-transparent bg-clip-text',
      header: 'Creator\'s Recommendation',
+     headerImg: '/welcome/product-book/creator-recommendation.png',
      tl: 'Hardcover',
      discount: '$45',
      price: '$75',
@@ -27,6 +29,7 @@ const PRICES = [
   {
     headerStyle:'bg-linear-to-r from-[#FF638A] from-20% via-[#FF8383] via-46% via-[#867BFF] via-75% to-[#FF2566] to-[100%] text-transparent bg-clip-text',
      header: 'Most People\'s Choice',
+     headerImg: '/welcome/product-book/most-people-choice.png',
      tl: 'Premium Lay-Flat Hardcover',
      discount: '$58',
      price: '$97',
@@ -81,11 +84,12 @@ export default function Reserve() {
           <ContainerDesc cssClass="text-left my-4">Choose your preferred format and reserve the lowest price ever.</ContainerDesc>
           
           <div className="my-5 md:my-9 flex flex-col gap-3">
-          {PRICES.map(({price,discount,tl,desc,header,headerStyle}) => (
+          {PRICES.map(({price,discount,tl,desc,header,headerImg}) => (
             <article onClick={()=>setCurPrice(tl)} key={tl} className={`transition-all rounded border ${curPrice===tl?'border-[#022CCE]':'border-transparent'}`}>
-              {header && 
+              {headerImg && 
                 <div className="from-[#FFE5E5] to-[#FFF4F4] bg-linear-to-r">
-                <h2 className={`font-semibold text-xl px-6 py-3 ${headerStyle}`}>{header}</h2>
+                {/* <h2 className={`font-semibold text-xl px-6 py-3 ${headerStyle}`}>{header}</h2> */}
+                <Image className="" src={headerImg} alt={header} width={340} height={72} />
                 </div>
               }
               <div className={`${curPrice === tl ? 'bg-[#FFFBF3]' : 'bg-white'} px-6 pt-3 pb-4 transition-all`}>
