@@ -79,7 +79,7 @@ export default function Reserve() {
           <BookCovers />
         </div>
 
-        <div className="p-6 lg:p-20 w-full lg:w-1/2 text-[#222222]">
+        <div className="p-6 lg:p-20 w-full lg:w-1/2 text-[#222222] lg:sticky top-0 lg:h-screen overflow-y-auto">
           <ContainerTitle cssClass="text-left">Reserve Your Special Discount</ContainerTitle>
           <ContainerDesc cssClass="text-left my-4">Choose your preferred format and reserve the lowest price ever.</ContainerDesc>
           
