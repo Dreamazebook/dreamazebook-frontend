@@ -1,12 +1,13 @@
 import { AnimatedSection } from "@/app/components/AnimatedSection";
 import EmailForm from "./EmailForm";
+import DreamzeImage from "@/app/components/DreamzeImage";
 
 export default function HeroBanner() {
   return (
-    <div className="md:flex md:items-center md:bg-[url(/landing-page/desktop-cover.png)] bg-cover md:px-10 md:aspect-[2/1]">
+    <div className="md:flex md:items-center md:bg-[url(/welcome/herobanner/desktop-cover.png)] bg-cover md:px-10 md:aspect-[2/1]">
       <AnimatedSection>
       <div className="md:container bg-[#F5E3E3] md:bg-transparent">
-        <div className="gap-8 md:w-3/5 pt-20 md:pt-0 mb-5 bg-[url(/landing-page/cover.png)] bg-cover md:bg-none h-screen md:h-auto">
+        <div className="gap-8 md:w-3/5 pt-20 md:pt-0 mb-5 bg-[url(/welcome/herobanner/app-cover.png)] bg-cover md:bg-none h-screen md:h-auto">
           {/* Hero Content */}
           <h1 className="text-3xl md:text-6xl font-bold text-black p-4 md:p-0">
           The Ultimate Personalized Books to Truly See Your Child
@@ -23,7 +24,12 @@ export default function HeroBanner() {
               <span className="hidden md:block font-light">—</span>
               <p className="">Once they&apos;re gone, they&apos;re gone! Don&apos;t miss out</p>
             </div>
-            <p>800+ people have reserved</p>
+            <div className="flex items-center gap-4">
+              <div className="relative w-[114px] md:w-[156px] aspect-[19/4]">
+                <DreamzeImage src="/welcome/herobanner/email-avatars.png" alt="Email Subscribers" />
+              </div>
+              <p className="text-[#222222]">800+ people have reserved</p>
+            </div>
           </div>
 
           <div className="max-w-lg">
