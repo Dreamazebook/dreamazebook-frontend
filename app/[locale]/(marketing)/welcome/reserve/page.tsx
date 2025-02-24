@@ -43,21 +43,21 @@ export default function Reserve() {
 
 
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      const confirmNavigation = window.confirm('Are you sure you want to leave? You will be redirected to a specific link.');
+    // const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    //   e.preventDefault();
+    //   const confirmNavigation = window.confirm('Are you sure you want to leave? You will be redirected to a specific link.');
 
-      if (confirmNavigation) {
-        window.location.href = 'https://docs.google.com/forms/d/e/1FAIpQLSf_vXsRvJgZGvD-munfborQT39pkdB-Eh3NSi3XcA8MyyqZKA/viewform?embedded=true';
-      }
-      return '';
-    };
+    //   if (confirmNavigation) {
+    //     window.location.href = 'https://docs.google.com/forms/d/e/1FAIpQLSf_vXsRvJgZGvD-munfborQT39pkdB-Eh3NSi3XcA8MyyqZKA/viewform?embedded=true';
+    //   }
+    //   return '';
+    // };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    // window.addEventListener('beforeunload', handleBeforeUnload);
 
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
+    // return () => {
+    //   window.removeEventListener('beforeunload', handleBeforeUnload);
+    // };
   }, []);
 
 
