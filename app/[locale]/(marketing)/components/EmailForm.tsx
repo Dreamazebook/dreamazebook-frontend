@@ -28,7 +28,7 @@ export default function EmailForm() {
   }, [responseMessage, isError, countdown]);
 
   if (responseMessage && !isError) {
-    if (countdown === -1) {
+    if (countdown === 0) {
       router.push('/en/welcome/reserve');
       return null;
     }
