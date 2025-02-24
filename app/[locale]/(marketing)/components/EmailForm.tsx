@@ -4,10 +4,11 @@ import {useRouter} from 'next/navigation'
 import Button from "@/app/components/Button";
 
 interface EmailFormProps {
-  btnText?:string
+  btnText?: string;
+  handleCallBack?: () => void;
 }
 
-export default function EmailForm({btnText}:EmailFormProps) {
+export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
   const router = useRouter();
 
   const [responseMessage, setResponseMessage] = useState('');
@@ -74,6 +75,9 @@ export default function EmailForm({btnText}:EmailFormProps) {
       }
 
       setResponseMessage(data.msg);
+      if (typeof handleCallBack === 'function') {
+        handleCallBack();
+      }
       
     } catch (error) {
       console.error("Error subscribing email:", error);
