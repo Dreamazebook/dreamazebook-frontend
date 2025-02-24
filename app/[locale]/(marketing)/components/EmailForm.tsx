@@ -9,12 +9,12 @@ export default function EmailForm() {
   const [responseMessage, setResponseMessage] = useState('');
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [countdown, setCountDown] = useState(5);
+  const [countdown, setCountDown] = useState(3);
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
     
-    if (responseMessage && !isError && countdown > -1) {
+    if (responseMessage && !isError && countdown > 0) {
       intervalId = setInterval(() => {
         setCountDown((prev) => prev - 1);
       }, 1000);
