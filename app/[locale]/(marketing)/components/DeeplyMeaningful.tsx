@@ -15,16 +15,39 @@ export default function EffortlessGifting() {
         It’s a thoughtful gift without the hassle.
         </ContainerDesc>
         
-        <div className="container mx-auto flex flex-col gap-6 mb-32">
+        <div className="max-w-5xl mx-auto md:flex hidden flex-col gap-6 mb-32">
+          <div className="flex gap-6">
+            <div className="w-1/3 relative aspect-[4/3]">
+              <DreamzeImage src="/welcome/effortless-gifting/melody.png" alt="Lucas" />
+            </div>
+            <div className="w-1/3 relative aspect-[4/3]">
+              <DreamzeImage src="/welcome/effortless-gifting/james.png" alt="Lucas" />
+            </div>
+            <div className="w-1/3 relative aspect-[4/3]">
+              <DreamzeImage src="/welcome/effortless-gifting/dreamaze.png" alt="Lucas" />
+            </div>
+          </div>
+          <div className="flex gap-6">
+            <div className="w-2/3 relative aspect-[4/3]">
+              <DreamzeImage src="/welcome/effortless-gifting/main.png" alt="Lucas" />
+            </div>
+            <div className="w-1/3 relative aspect-[1/2]">
+              <DreamzeImage src="/welcome/effortless-gifting/dore.png" alt="Lucas" />
+            </div>
+          </div>
+
+        </div>
+
+        <div className="max-w-5xl mx-auto flex md:hidden flex-col gap-6 mb-32">
           <div className="w-full relative aspect-square">
             <DreamzeImage src="/welcome/effortless-gifting/main.png" alt="Lucas" />
           </div>
           <div className="flex gap-4">
             <div className="w-1/2 flex flex-col gap-4">
-              <div className="relative aspect-square w-full">
+              <div className="relative aspect-[4/3] w-full">
                 <DreamzeImage src="/welcome/effortless-gifting/melody.png" alt="Lucas" />
               </div>
-              <div className="relative aspect-square w-full">
+              <div className="relative aspect-[4/3] w-full">
                 <DreamzeImage src="/welcome/effortless-gifting/dreamaze.png" alt="Lucas" />
               </div>
             </div>

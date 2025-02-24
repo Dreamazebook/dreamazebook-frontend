@@ -5,7 +5,7 @@ import Growth from "../components/Growth";
 import PromotionBanner from "../components/PromotionBanner";
 import ReserveSection from "../components/ReserveSection";
 import TheOnlyBook from "../components/TheOnlyBook";
-import EffortlessGifting from "../components/EffortlessGifting";
+import EffortlessGifting from "../components/DeeplyMeaningful";
 import SuperStrongEmotionalConnection from "./components/SuperStrongEmotionalConnection";
 import ExpertlyCrafted from "../components/ExpertlyCrafted";
 import FAQWelcome from "../components/FAQWelcome";
