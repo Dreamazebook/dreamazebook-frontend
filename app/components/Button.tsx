@@ -7,7 +7,7 @@ interface ButtonProps {
   icon?: string
 }
 
-const buttonStyle = 'cursor-pointer bg-[#022CCE] text-white px-4 py-4 rounded uppercase w-full disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center';
+const buttonStyle = 'cursor-pointer bg-[#022CCE] text-white px-4 py-4 rounded capitalize w-full disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center';
 
 export default function Button({tl,isLoading,url,icon}:ButtonProps) {
   if (url) {

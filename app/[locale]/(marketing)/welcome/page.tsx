@@ -47,7 +47,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/early-access-app.png)] md:bg-[url(/welcome/reserve-banner/early-access.png)]"} title={"Early Access"} desc={'Be the first to explore and even help shape our personalized books.'} />
+        <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/early-access-app.png)] md:bg-[url(/welcome/reserve-banner/early-access.png)]"} title={"Early Access"} btnText={'Claim Your Early Access'} desc={'Be the first to explore and even help shape our personalized books.'} />
       </AnimatedSection>
 
       <AnimatedSection>

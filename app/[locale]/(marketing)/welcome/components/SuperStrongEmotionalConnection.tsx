@@ -15,28 +15,13 @@ const VIDEOS = [
     video: '/welcome/super-strong-emotional-connection/20250209-212024.mp4', 
   },
   {
-    video: '/welcome/super-strong-emotional-connection/20250209-212147.mp4',
-  },
-  {
-    video: '/welcome/super-strong-emotional-connection/20250209-212138.mp4',
-  },
-  {
-    video: '/welcome/super-strong-emotional-connection/20250209-212147.mp4',
-  },
-  {
-    video: '/welcome/super-strong-emotional-connection/20250209-212016.mp4',
-  },
-  {
-    video: '/welcome/super-strong-emotional-connection/20250209-212024.mp4', 
-  },
-  {
     video: '/welcome/super-strong-emotional-connection/20250209-212132.mp4',
   },
   {
     video: '/welcome/super-strong-emotional-connection/20250209-212138.mp4',
   },
   {
-    video: '/welcome/super-strong-emotional-connection/20250209-212132.mp4',
+    video: '/welcome/super-strong-emotional-connection/20250209-212147.mp4',
   },
 ];
 
@@ -76,7 +61,7 @@ export default function SuperStrongEmotionalConnection() {
       <ContainerTitle cssClass='mb-6'>
         Super Strong<br/><span className="text-[#022CCE]">Emotional</span> Connection
       </ContainerTitle>
-      <ContainerDesc>
+      <ContainerDesc cssClass='max-w-5xl mx-auto'>
       Reading a story where you and your child are the heroes strengthens bonds and creates cherished memories. These shared moments become treasures that last a lifetime.
       </ContainerDesc>
       

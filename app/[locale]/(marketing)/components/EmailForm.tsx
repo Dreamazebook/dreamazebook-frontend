@@ -3,7 +3,11 @@ import { useState, useEffect } from "react";
 import {useRouter} from 'next/navigation'
 import Button from "@/app/components/Button";
 
-export default function EmailForm() {
+interface EmailFormProps {
+  btnText?:string
+}
+
+export default function EmailForm({btnText}:EmailFormProps) {
   const router = useRouter();
 
   const [responseMessage, setResponseMessage] = useState('');
@@ -33,10 +37,10 @@ export default function EmailForm() {
       return null;
     }
     return (
-      <div className="text-center text-[20px] font-bold text-[#222222]">
-        <p>Thanks</p>
-        <p>Off we go—grab your spot and lock in your deal!</p>
-        <p className="text-[14px]">{countdown}S</p>
+      <div className="text-center text-[20px] font-semibold p-4 bg-[#022CCE] text-white">
+        <p className="text-[28px]">Thank!</p>
+        <p className="capitalize">Time to Lift Off,<br/>Grab Your Spot and Lock in Your Deal</p>
+        <p className="text-[18px]">{countdown}s</p>
       </div>
     );
   }
@@ -91,7 +95,7 @@ export default function EmailForm() {
           className='w-full text-black bg-white p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
           aria-label="Email address"
         />
-        <Button tl={'Reserve Save 40%'} isLoading={isLoading} />
+        <Button tl={btnText||'Reserve and Save 40%'} isLoading={isLoading} />
       </form>
 
 

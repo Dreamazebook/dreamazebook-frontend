@@ -7,7 +7,7 @@ import { ContainerDesc } from "./ContainerDesc";
 export default function TheOnlyBook() {
   return (
     <Container cssClass="bg-blue-50">
-      <div className="container mx-auto px-4 text-center">
+      <div className="max-w-5xl mx-auto px-4 text-center">
         <ContainerTitle cssClass="mb-6 leading-15">
           The Only Book<br/>Where You Are <span className="text-[#022CCE]">Truly Seen</span>
         </ContainerTitle>
