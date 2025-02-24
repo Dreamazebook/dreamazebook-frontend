@@ -1,5 +1,4 @@
 import { AnimatedSection } from "@/app/components/AnimatedSection";
-import DreamzeImage from "@/app/components/DreamzeImage";
 import { Container } from "./Container";
 import { ContainerTitle } from "./ContainerTitle";
 import { ContainerDesc } from "./ContainerDesc";
