@@ -17,7 +17,7 @@ export default function Popup({tl, desc, surveyTxt, surveyLink, cancelTxt, handl
         <p className="text-[#222222] my-3">{desc}</p>
         {/* <a className="bg-[#012CCE] px-20 py-3 rounded text-white inline-block uppercase my-5" href={surveyLink}>{surveyTxt}</a> */}
         <Button icon={'/welcome/popup/pencil.png'} tl={surveyTxt} url={surveyLink} />
-        <a className="uppercase block mt-5 cursor-pointer" onClick={()=>handleCancel(false)}>{cancelTxt}</a>
+        <a className="capitalize block mt-5 cursor-pointer" onClick={()=>handleCancel(false)}>{cancelTxt}</a>
       </div>
     </div>
   )

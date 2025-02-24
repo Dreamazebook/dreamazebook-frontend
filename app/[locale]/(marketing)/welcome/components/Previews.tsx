@@ -68,7 +68,7 @@ export default function Previews() {
       </div>
 
       
-      <div className="container mx-auto">
+      <div className="container mx-auto px-3">
         {PREVIEWS.map(({tl,desc,img:{desktop,mobile}},idx)=>
           <article key={idx} className="text-[#222222]">
             <h3 className="font-bold text-[28px] text-center">Good Night Luna{tl}</h3>
