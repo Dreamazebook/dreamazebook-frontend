@@ -11,7 +11,7 @@ export default function PromotionBanner() {
     },
     {
       tl: 'First Access',
-      desc: 'Early sign-ups get an exclusive bonus with their first order!',
+      desc: 'Be the first to explore and even influence our personalized books.',
       img: '/welcome/why-sign-up-today/first-access.png'
     },
     {
