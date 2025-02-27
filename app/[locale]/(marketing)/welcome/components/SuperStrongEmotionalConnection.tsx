@@ -9,19 +9,25 @@ import { ContainerDesc } from '../../components/ContainerDesc';
 
 const VIDEOS = [
   {
-    video: '/welcome/super-strong-emotional-connection/20250209-212016.mp4',
+    video: '/welcome/super-strong-emotional-connection/dad-baby.mp4',
   },
   {
-    video: '/welcome/super-strong-emotional-connection/20250209-212024.mp4', 
+    video: '/welcome/super-strong-emotional-connection/luna.mp4', 
   },
   {
-    video: '/welcome/super-strong-emotional-connection/20250209-212132.mp4',
+    video: '/welcome/super-strong-emotional-connection/luna-read.mp4',
   },
   {
-    video: '/welcome/super-strong-emotional-connection/20250209-212138.mp4',
+    video: '/welcome/super-strong-emotional-connection/son-read.mp4',
   },
   {
-    video: '/welcome/super-strong-emotional-connection/20250209-212147.mp4',
+    video: '/welcome/super-strong-emotional-connection/daughter-read.mp4',
+  },
+  {
+    video: '/welcome/super-strong-emotional-connection/mother-son.mp4',
+  },
+  {
+    video: '/welcome/super-strong-emotional-connection/dad-son.mp4',
   },
 ];
 
