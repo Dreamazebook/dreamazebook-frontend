@@ -39,7 +39,7 @@ export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
     }
     return (
       <div className="text-center text-[20px] font-semibold p-4 bg-[#022CCE] text-white">
-        <p className="text-[28px]">Thank!</p>
+        <p className="text-[28px]">Thanks!</p>
         <p className="capitalize">Time to Lift Off,<br/>Grab Your Spot and Lock in Your Deal</p>
         <p className="text-[18px]">{countdown}s</p>
       </div>

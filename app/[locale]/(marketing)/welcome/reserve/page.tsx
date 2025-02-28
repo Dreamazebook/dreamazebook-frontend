@@ -9,6 +9,7 @@ import Footer from "../../components/Footer";
 import { ContainerDesc } from "../../components/ContainerDesc";
 import { ContainerTitle } from "../../components/ContainerTitle";
 import Image from 'next/image';
+import Logo from "@/app/components/Logo";
 
 const NEXT_PUBLIC_STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
 
@@ -65,7 +66,9 @@ export default function Reserve() {
 
   return (
     <main className="bg-[#F8F8F8]">
-
+      <div className="container mx-auto mb-5">
+        <Image className="" src={'/welcome/dreamaze-logo.png'} alt="Logo" width={168} height={56} />
+      </div>
       {showPopup &&
       <Popup
         handleCancel={setShowPopup}
