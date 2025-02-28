@@ -5,8 +5,9 @@ interface DreamzeImageProps {
   alt:string
   cssClass?:string
   style?:React.CSSProperties
+  unoptimized?:boolean
 }
-export default function DreamzeImage({src,alt,cssClass='',style}: DreamzeImageProps) {
+export default function DreamzeImage({src,alt,cssClass='',style,unoptimized=false}: DreamzeImageProps) {
   return (
     <Image 
       src={src} 
@@ -15,6 +16,7 @@ export default function DreamzeImage({src,alt,cssClass='',style}: DreamzeImagePr
       style={style as React.CSSProperties} 
       fill 
       loading="lazy" 
+      unoptimized={unoptimized}
     />
   )
 }

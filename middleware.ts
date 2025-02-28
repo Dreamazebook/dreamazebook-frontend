@@ -38,5 +38,5 @@ export function middleware(request: NextRequest) {
   return NextResponse.redirect(request.nextUrl)
 }
 
-export const config = { matcher: ["/((?!api|_next/static|_next/image|.*\\.png$|.*\\.jpg$|.*\\.ico$|.*\\.svg$|.*\\.mp4$).*)" ]};
+export const config = { matcher: ["/((?!api|_next/static|_next/image|.*\\.png$|.*\\.jpg$|.*\\.gif$|.*\\.ico$|.*\\.svg$|.*\\.mp4$).*)" ]};
 
