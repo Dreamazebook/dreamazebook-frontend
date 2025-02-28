@@ -72,7 +72,7 @@ export default function Reserve() {
         tl="Unlock a Premium Gift for You!"
         desc="Just a few quick questions will help us make your personalized book even more special and perfectly match your expectations. 💖"
         surveyTxt="Yes, serve a survey!"
-        surveyLink="https://docs.google.com/forms/d/e/1FAIpQLSf_vXsRvJgZGvD-munfborQT39pkdB-Eh3NSi3XcA8MyyqZKA/viewform?embedded=true"
+        surveyLink="https://docs.google.com/forms/d/1w_H7VXx98p5dFTz9nkFOL0GNyozIZAoA6rPm63ZWMgY/viewform?edit_requested=true"
         cancelTxt="It’s OK, you’ll nail it!"
       />}
 
