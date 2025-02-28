@@ -9,6 +9,7 @@ import Footer from "../../components/Footer";
 import { ContainerDesc } from "../../components/ContainerDesc";
 import { ContainerTitle } from "../../components/ContainerTitle";
 import Image from 'next/image';
+import DreamzeImage from "@/app/components/DreamzeImage";
 
 const NEXT_PUBLIC_STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
 
@@ -120,6 +121,16 @@ export default function Reserve() {
       <FAQReserve />
 
       <Previews />
+
+      <section className="pt-6 pb-6 bg-white">
+        <div className="container flex flex-col md:flex-row justify-center mx-auto gap-5 items-center">
+          <p className="text-[#222222] font-light text-sm md:text-[28px] text-center">“More magical stories are coming<br/>
+          Join as a VIP and help spark ideas for our next books”</p>
+          <div className="relative w-[160px] aspect-[133/100] mx-auto md:mx-0">
+            <DreamzeImage src="/welcome/more-magic.webp" alt="More Magic" />
+          </div>
+        </div>
+      </section>
 
       <Footer />
 
