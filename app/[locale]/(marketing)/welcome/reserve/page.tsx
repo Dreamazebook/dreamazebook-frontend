@@ -9,7 +9,6 @@ import Footer from "../../components/Footer";
 import { ContainerDesc } from "../../components/ContainerDesc";
 import { ContainerTitle } from "../../components/ContainerTitle";
 import Image from 'next/image';
-import Logo from "@/app/components/Logo";
 
 const NEXT_PUBLIC_STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
 
