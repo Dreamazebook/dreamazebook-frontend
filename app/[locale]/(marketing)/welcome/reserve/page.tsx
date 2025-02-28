@@ -78,7 +78,7 @@ export default function Reserve() {
 
       <div className="container mx-auto lg:flex">
         <div className="lg:w-1/2">
-          <BookCovers />
+          <BookCovers curbook={curPrice} />
         </div>
 
         <div className="p-6 lg:p-20 w-full lg:w-1/2 text-[#222222] lg:sticky top-0 lg:h-screen overflow-y-auto">

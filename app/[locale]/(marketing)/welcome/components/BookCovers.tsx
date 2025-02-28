@@ -2,24 +2,42 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import DreamzeImage from "@/app/components/DreamzeImage"
+import { useEffect, useRef } from 'react';
 
 const COVERS = [
   {
+    tl: 'Softcover',
     img: '/welcome/product-book/softcover.png'
   },
   {
+    tl: 'Hardcover',
     img: '/welcome/product-book/hardcover.png'
   },
   {
+    tl: 'Premium Lay-Flat Hardcover',
     img: '/welcome/product-book/lay-falt.png'
   },
-]
-export default function BookCovers() {
+];
+
+interface BookCoversProps {
+  curbook: string
+}
+
+export default function BookCovers({curbook}:BookCoversProps) {
+
+  const bookCoverRef  = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (curbook && bookCoverRef .current) {
+      bookCoverRef .current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [curbook]); 
+
   return (
     <>
     <div className='hidden lg:block'>
-      {COVERS.map(({img})=>
-      <div className='relative aspect-square w-full' key={img}>
+      {COVERS.map(({img,tl})=>
+      <div className='relative aspect-square w-full' key={img} id={tl} ref={curbook === tl ? bookCoverRef  : null}>
         <DreamzeImage src={img} alt='' />
       </div>
       )}
