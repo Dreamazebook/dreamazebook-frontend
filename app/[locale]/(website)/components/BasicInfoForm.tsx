@@ -216,7 +216,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         )}
       </div>
 
-      {/* Photo Upload */}
+      {/* Photo Upload
       <div>
         <label className="block mb-2 flex items-center">
           <span className="font-medium">Photo</span>
@@ -267,7 +267,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
             <p className="text-red-500 text-sm mt-1">{errors.photo}</p>
           )}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

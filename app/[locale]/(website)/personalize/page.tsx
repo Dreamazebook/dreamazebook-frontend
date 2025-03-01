@@ -9,8 +9,12 @@ import api from '@/utils/api';
 import { BaseBook } from '@/types/book';
 import { IoIosArrowBack } from "react-icons/io";
 import { BsCheck } from "react-icons/bs";
+import { FaQuestionCircle } from 'react-icons/fa';
 import BasicInfoForm, { BasicInfoData } from '../components/BasicInfoForm';
 import springImage from '@/public/spring.jpeg';
+import UploadArea from '../components/UploadArea';
+import useImageUpload from '../hooks/useImageUpload';
+
 
 // 扩展 BasicInfoData，增加额外字段
 export interface PersonalizeFormData extends BasicInfoData {
@@ -188,7 +192,34 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref)
     multipleChoice: [],
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [touched, setTouched] = useState<{ [K in keyof PersonalizeFormData]?: boolean }>({});
+
+  const {
+    imageUrl,
+    isUploading,
+    uploadProgress,
+    error: uploadError,
+    isDragging,
+    handleFileUpload,
+    handleDragEnter,
+    handleDragLeave,
+    handleDragOver,
+    handleDrop,
+    handleDeleteImage,
+  } = useImageUpload();
+
+  useEffect(() => {
+    if (imageUrl) {
+      const img: HTMLImageElement = document.createElement('img');
+      img.src = imageUrl;
+      
+      img.onload = () => {
+        setImageSize({ width: img.width, height: img.height });
+      };
+    }
+  }, [imageUrl]);
+
 
   // 更新公共部分数据
   const handleBasicInfoChange = (field: keyof BasicInfoData, value: any) => {
@@ -199,6 +230,12 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref)
   // 定义 onErrorChange 回调，用于更新指定字段的错误状态
   const handleErrorChange = (field: keyof BasicInfoData, errorMsg: string) => {
     setErrors(prev => ({ ...prev, [field]: errorMsg }));
+  };
+
+  // 图片上传处理：清除 photo 错误并更新 photo 字段
+  const handleUploadPhoto = (file: File) => {
+    handleBasicInfoChange('photo', file);
+    handleErrorChange('photo', '');
   };
 
   useImperativeHandle(ref, () => ({
@@ -255,6 +292,58 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref)
 
       {/* 额外的单人表单内容 */}
       <div className="space-y-6">
+        {/* Photo Upload */}
+        <div>
+          <label className="block mb-2 flex items-center">
+            <span className="font-medium">Photo</span>
+            <span className="text-gray-400 inline-flex items-center group relative font-normal">
+              <FaQuestionCircle className="w-4 h-4 ml-1" />
+              <div className="hidden group-hover:block absolute left-0 top-6 w-64 p-2 bg-white/80 text-gray-800 text-sm rounded shadow-lg z-10 backdrop-blur">
+                <p className="mb-2">
+                  Upload a photo so we can create a unique image of you. Your privacy is ensured.
+                </p>
+              </div>
+            </span>
+          </label>
+          <p className="text-sm mb-2 text-gray-800">Please upload a photo of your character!</p>
+          <ul className="text-sm text-gray-500 mb-4 space-y-1">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-gray-300"></div>
+              <li>Make sure the subject is facing the camera.</li>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-gray-300"></div>
+              <li>Use a close-up photo.</li>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-gray-300"></div>
+              <li>The higher the quality, the better the result!</li>
+            </div>
+          </ul>
+          <div>
+            <UploadArea
+              imageUrl={imageUrl}
+              isUploading={isUploading}
+              uploadProgress={uploadProgress}
+              error={uploadError}
+              isDragging={isDragging}
+              imageSize={imageSize}
+              handleDragEnter={handleDragEnter}
+              handleDragLeave={handleDragLeave}
+              handleDragOver={handleDragOver}
+              handleDrop={(e) => handleDrop(e, (file) => handleUploadPhoto(file))}
+              handleFileUpload={(e) => handleFileUpload(e, (file) => handleUploadPhoto(file))}
+              handleDeleteImage={() => {
+                handleDeleteImage();
+                handleBasicInfoChange('photo', null);
+                handleErrorChange('photo', 'Please upload a photo');
+              }}
+            />
+            {touched.photo && errors.photo && (
+              <p className="text-red-500 text-sm mt-1">{errors.photo}</p>
+            )}
+          </div>
+        </div>
         {/* 单选题 */}
         <div>
           <label className="block mb-2 font-medium">
@@ -367,6 +456,7 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle>((props, ref)
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [touched, setTouched] = useState<Partial<Record<keyof PersonalizeFormData2, boolean>>>({});
 
   // 定义季节选项
@@ -377,6 +467,31 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle>((props, ref)
     { label: 'Winter', value: 'winter', src: '/season-spring.png' },
   ];  
 
+  const {
+    imageUrl,
+    isUploading,
+    uploadProgress,
+    error: uploadError,
+    isDragging,
+    handleFileUpload,
+    handleDragEnter,
+    handleDragLeave,
+    handleDragOver,
+    handleDrop,
+    handleDeleteImage,
+  } = useImageUpload();
+
+  useEffect(() => {
+    if (imageUrl) {
+      const img: HTMLImageElement = document.createElement('img');
+      img.src = imageUrl;
+      
+      img.onload = () => {
+        setImageSize({ width: img.width, height: img.height });
+      };
+    }
+  }, [imageUrl]);
+
   // 更新公共部分数据
   const handleBasicInfoChange = (field: keyof BasicInfoData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -386,6 +501,12 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle>((props, ref)
   // 定义 onErrorChange 回调，用于更新指定字段的错误状态
   const handleErrorChange = (field: keyof BasicInfoData, errorMsg: string) => {
     setErrors(prev => ({ ...prev, [field]: errorMsg }));
+  };
+
+  // 图片上传处理：清除 photo 错误并更新 photo 字段
+  const handleUploadPhoto = (file: File) => {
+    handleBasicInfoChange('photo', file);
+    handleErrorChange('photo', '');
   };
 
   useImperativeHandle(ref, () => ({
@@ -449,7 +570,7 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle>((props, ref)
       <div>
         <label className="block mb-2 font-medium">Birth season</label>
         <div
-          className="flex flex-wrap gap-[10px]"
+          className="flex flex-wrap gap-2 sm:gap-3"
           tabIndex={0}
           onBlur={() => {
             if (!formData.birthSeason) {
@@ -461,23 +582,84 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle>((props, ref)
         >
           {seasons.map(season => (
             <button
-              key={season.value}
-              type="button"
-              onClick={() => handleSeasonClick(season.value)}
-              className={`relative border p-2 rounded w-[126px] h-[172px] p-[8px] flex flex-col items-center gap-[10px] ${
+            key={season.value}
+            type="button"
+            onClick={() => handleSeasonClick(season.value)}
+            className={`relative border p-2 rounded flex flex-col items-center gap-[10px] 
+              w-[80px] bg-[#F8F8F8] sm:w-[126px] sm:bg-transparent ${
                 formData.birthSeason === season.value
                   ? 'border-[#012CCE]'
                   : 'border-transparent'
               }`}
-            >
-              <Image src={season.src} alt={season.label} width={122} height={110} layout="fixed" className="rounded"  />
-              <span>{season.label}</span>
-            </button>
+          >
+            <Image
+              src={season.src}
+              alt={season.label}
+              width={122}
+              height={110}
+              layout="fixed"
+              className="rounded"
+            />
+            <span>{season.label}</span>
+          </button>
           ))}
         </div>
         {touched.birthSeason && errors.birthSeason && (
           <p className="text-red-500 text-sm mt-1">{errors.birthSeason}</p>
         )}
+      </div>
+
+      {/* Photo Upload */}
+      <div>
+        <label className="block mb-2 flex items-center">
+          <span className="font-medium">Photo</span>
+          <span className="text-gray-400 inline-flex items-center group relative font-normal">
+            <FaQuestionCircle className="w-4 h-4 ml-1" />
+            <div className="hidden group-hover:block absolute left-0 top-6 w-64 p-2 bg-white/80 text-gray-800 text-sm rounded shadow-lg z-10 backdrop-blur">
+              <p className="mb-2">
+                Upload a photo so we can create a unique image of you. Your privacy is ensured.
+              </p>
+            </div>
+          </span>
+        </label>
+        <p className="text-sm mb-2 text-gray-800">Please upload a photo of your character!</p>
+        <ul className="text-sm text-gray-500 mb-4 space-y-1">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-gray-300"></div>
+            <li>Make sure the subject is facing the camera.</li>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-gray-300"></div>
+            <li>Use a close-up photo.</li>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-gray-300"></div>
+            <li>The higher the quality, the better the result!</li>
+          </div>
+        </ul>
+        <div>
+          <UploadArea
+            imageUrl={imageUrl}
+            isUploading={isUploading}
+            uploadProgress={uploadProgress}
+            error={uploadError}
+            isDragging={isDragging}
+            imageSize={imageSize}
+            handleDragEnter={handleDragEnter}
+            handleDragLeave={handleDragLeave}
+            handleDragOver={handleDragOver}
+            handleDrop={(e) => handleDrop(e, (file) => handleUploadPhoto(file))}
+            handleFileUpload={(e) => handleFileUpload(e, (file) => handleUploadPhoto(file))}
+            handleDeleteImage={() => {
+              handleDeleteImage();
+              handleBasicInfoChange('photo', null);
+              handleErrorChange('photo', 'Please upload a photo');
+            }}
+          />
+          {touched.photo && errors.photo && (
+            <p className="text-red-500 text-sm mt-1">{errors.photo}</p>
+          )}
+        </div>
       </div>
       
     </form>
