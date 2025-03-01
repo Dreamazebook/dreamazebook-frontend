@@ -73,7 +73,21 @@ export default function SuperStrongEmotionalConnection() {
       
       <div className="relative mt-16">
         <Swiper
-          slidesPerView={3}
+          slidesPerView={2}
+          breakpoints={{
+            // when window width is >= 640px
+            640: {
+              slidesPerView: 2,
+            },
+            // when window width is >= 768px
+            768: {
+              slidesPerView: 3,
+            },
+            // when window width is >= 1024px
+            // 1024: {
+            //   slidesPerView: 4,
+            // },
+          }}
           spaceBetween={10}
           centeredSlides={true}
           grabCursor={true}
