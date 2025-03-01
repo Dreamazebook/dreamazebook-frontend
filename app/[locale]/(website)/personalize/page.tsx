@@ -14,6 +14,10 @@ import BasicInfoForm, { BasicInfoData } from '../components/BasicInfoForm';
 import springImage from '@/public/spring.jpeg';
 import UploadArea from '../components/UploadArea';
 import useImageUpload from '../hooks/useImageUpload';
+import { TextField } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 
 // 扩展 BasicInfoData，增加额外字段
@@ -35,10 +39,12 @@ interface FormErrors {
   singleChoice?: string;
   multipleChoice?: string;
   birthSeason?: string;
+  dob?: string;
 }
 
 export interface PersonalizeFormData2 extends BasicInfoData {
   birthSeason: '' | 'spring' | 'summer' | 'autumn' | 'winter';
+  dob: Date | null;
 }
 
 export interface SingleCharacterForm2Handle {
@@ -453,8 +459,10 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle>((props, ref)
     skinColor: '',
     photo: null,
     birthSeason: '',
+    dob: null,
   });
 
+  const [dob, setDob] = useState<Date | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [touched, setTouched] = useState<Partial<Record<keyof PersonalizeFormData2, boolean>>>({});
@@ -518,6 +526,7 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle>((props, ref)
         skinColor: true,
         photo: true,
         birthSeason: true,
+        dob: true,
       });
 
       const newErrors: FormErrors = {};
@@ -526,6 +535,7 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle>((props, ref)
       if (!formData.skinColor) newErrors.skinColor = 'Please select skin color';
       if (!formData.photo) newErrors.photo = 'Please upload a photo';
       if (!formData.birthSeason) newErrors.birthSeason = 'Please select a birth season';
+      if (!formData.dob) newErrors.dob = 'Please select a date of birth';
 
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0;
@@ -565,6 +575,29 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle>((props, ref)
         onChange={handleBasicInfoChange}
         onErrorChange={handleErrorChange}
       />
+
+      {/* Date of birth (MUI date picker) */}
+      <div>
+        <label className="block mb-2 font-medium">Date of Birth</label>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <div>
+          <DatePicker
+            label="Date of birth"
+            value={formData.dob}
+            onChange={(newValue) => {
+              setFormData(prev => ({ ...prev, dob: newValue }));
+              setTouched(prev => ({ ...prev, dob: true }));
+              setErrors(prev => ({ ...prev, dob: '' }));
+            }}
+            slots={{ textField: TextField }}
+          />
+            {touched.dob && errors.dob && (
+              <p className="text-red-500 text-sm mt-1">{errors.dob}</p>
+            )}
+          </div>
+        </LocalizationProvider>
+      </div>
+      
 
       {/* 季节选择（放在图片上传上方的概念区） */}
       <div>
