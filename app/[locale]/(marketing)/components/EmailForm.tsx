@@ -15,6 +15,7 @@ export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountDown] = useState(3);
+  const [contactId, setContactId] = useState('');
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -34,7 +35,7 @@ export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
 
   if (responseMessage && !isError) {
     if (countdown === 0) {
-      router.push('/en/welcome/reserve');
+      router.push(`/en/welcome/reserve?contactId=${contactId}`);
       return null;
     }
     return (
@@ -75,6 +76,7 @@ export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
       }
 
       setResponseMessage(data.msg);
+      setContactId(data.contactId);
       if (typeof handleCallBack === 'function') {
         handleCallBack();
       }
