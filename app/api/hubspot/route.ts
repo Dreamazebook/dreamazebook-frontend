@@ -2,6 +2,26 @@ import { type NextRequest } from 'next/server'
 
 const ACCESS_TOKEN = process.env.HUBSPOT_ACCESS_TOKEN;
 
+interface sendRequestProps {
+  url: string
+  method: string
+  body?: any
+}
+const sendRequest = async ({url, method, body}:sendRequestProps) => {
+  const options:{method:string,headers:any,body?:any} = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${ACCESS_TOKEN}`,
+    },
+  };
+  if (body) {
+    options.body = JSON.stringify(body);
+  }
+  const response = await fetch(url, options);
+  return response.json();
+}
+
 export async function POST(request: NextRequest) {
   const { email } = await request.json();
 
@@ -15,15 +35,11 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const response = await fetch(
-      "https://api.hubapi.com/crm/v3/objects/contacts",
+    const response = await sendRequest(
       {
+        url:"https://api.hubapi.com/crm/v3/objects/contacts",
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${ACCESS_TOKEN}`, // Replace with your actual API key
-        },
-        body: JSON.stringify({
+        body:{
           properties: {
             email,
             hs_lead_status: 'NEW', // Add lead status to help with list filtering
@@ -37,23 +53,21 @@ export async function POST(request: NextRequest) {
               }
             }
           ]
-        }),
+        }
       }
     );
 
-    if (!response.ok) {
-      const responseData = await response.json();
+    if (response.status == 'error') {
       let msg;
-      if (responseData.category == 'CONFLICT') {
-        return Response.json({msg: "Subscription Successful", contactId:responseData.correlationId},{status:200});
+      if (response.category == 'CONFLICT') {
+        return Response.json({msg: "Subscription Successful", contactId:response.correlationId},{status:200});
       } else {
         msg = `Error subscribing email ${response.statusText}`;
       }
       return Response.json({msg},{status:response.status});
     }
 
-    const data = await response.json();
-    console.log("Subscription successful:", data);
+    console.log("Subscription successful:", response);
     return Response.json({msg: "Subscription Successful"},{status:200});
   } catch (error) {
     console.error("Error subscribing email:", error);

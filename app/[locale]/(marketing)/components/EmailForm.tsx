@@ -57,7 +57,7 @@ export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
 
     try {
       const response = await fetch(
-        "/api/subscribe",
+        "/api/hubspot",
         {
           method: "POST",
           headers: {
