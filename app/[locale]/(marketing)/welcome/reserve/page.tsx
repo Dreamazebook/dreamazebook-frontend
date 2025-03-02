@@ -67,7 +67,7 @@ export default function Reserve() {
 
   return (
     <main className="bg-[#F8F8F8]">
-      <Link href={'/'} className="block container mx-auto mb-5">
+      <Link href={'/'} className="block max-w-7xl mx-auto mb-5">
         <Image className="" src={'/welcome/dreamaze-logo.png'} alt="Logo" width={168} height={56} />
       </Link>
       {showPopup &&

@@ -27,7 +27,7 @@ export default function FAQ({FAQs, bg}:FAQProps) {
   return (
     <Container cssClass={bg}>
       <ContainerTitle cssClassmb-16>FAQ</ContainerTitle>
-      <div className="container mx-auto px-5">
+      <div className="max-w-7xl mx-auto px-5">
         {faqs.map(({tl,ans,show},idx)=>
           <div key={tl} className="py-8 border-b border-black/20">
             <div className="flex justify-between items-center cursor-pointer" onClick={()=>handleFaqClick(idx)}>

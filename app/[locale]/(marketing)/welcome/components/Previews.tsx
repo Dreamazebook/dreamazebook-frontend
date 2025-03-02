@@ -53,7 +53,7 @@ const PREVIEWS = [
 
 export default function Previews() {
   return (
-    <Container>
+    <Container cssClass="bg-white">
       <ContainerTitle cssClass="mb-16 md:mb-0">
         Get A Sneak Peek:<br/>
         Preview Of Some Dreamaze Books!
@@ -68,7 +68,7 @@ export default function Previews() {
       </div>
 
       
-      <div className="container mx-auto px-3">
+      <div className="max-w-7xl mx-auto px-3">
         {PREVIEWS.map(({tl,desc,img:{desktop,mobile}},idx)=>
           <article key={idx} className="text-[#222222]">
             <h3 className="font-bold text-[28px] text-center">{tl}</h3>
