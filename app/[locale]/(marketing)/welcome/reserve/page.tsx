@@ -10,6 +10,7 @@ import { ContainerDesc } from "../../components/ContainerDesc";
 import { ContainerTitle } from "../../components/ContainerTitle";
 import Image from 'next/image';
 import DreamzeImage from "@/app/components/DreamzeImage";
+import Link from "next/link";
 
 const NEXT_PUBLIC_STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
 
@@ -66,9 +67,9 @@ export default function Reserve() {
 
   return (
     <main className="bg-[#F8F8F8]">
-      <div className="container mx-auto mb-5">
+      <Link href={'/'} className="block container mx-auto mb-5">
         <Image className="" src={'/welcome/dreamaze-logo.png'} alt="Logo" width={168} height={56} />
-      </div>
+      </Link>
       {showPopup &&
       <Popup
         handleCancel={setShowPopup}
@@ -90,7 +91,7 @@ export default function Reserve() {
           
           <div className="my-5 md:my-9 flex flex-col gap-3">
           {PRICES.map(({price,discount,tl,desc,header,headerImg}) => (
-            <article onClick={()=>setCurPrice(tl)} key={tl} className={`transition-all rounded border ${curPrice===tl?'border-[#022CCE]':'border-transparent'}`}>
+            <article onClick={()=>setCurPrice(tl)} key={tl} className={`transition-all overflow-hidden rounded border ${curPrice===tl?'border-[#022CCE]':'border-transparent'}`}>
               {headerImg && 
                 <div className="from-[#FFE5E5] to-[#FFF4F4] bg-linear-to-r">
                 {/* <h2 className={`font-semibold text-xl px-6 py-3 ${headerStyle}`}>{header}</h2> */}
