@@ -6,14 +6,17 @@ import { useEffect, useRef } from 'react';
 
 const COVERS = [
   {
+    id: 'softcover',
     tl: 'Softcover',
     img: '/welcome/product-book/softcover.png'
   },
   {
-    tl: 'Hardcover',
+    id: 'softcover',
+    tl: 'hardcover',
     img: '/welcome/product-book/hardcover.png'
   },
   {
+    id: 'lay-flat',
     tl: 'Premium Lay-Flat Hardcover',
     img: '/welcome/product-book/lay-falt.png'
   },
@@ -36,8 +39,8 @@ export default function BookCovers({curbook}:BookCoversProps) {
   return (
     <>
     <div className='hidden lg:block'>
-      {COVERS.map(({img,tl})=>
-      <div className='relative aspect-square w-full' key={img} id={tl} ref={curbook === tl ? bookCoverRef  : null}>
+      {COVERS.map(({img,id})=>
+      <div className='relative aspect-square w-full' key={img} id={id} ref={curbook === id ? bookCoverRef  : null}>
         <DreamzeImage src={img} alt='' />
       </div>
       )}

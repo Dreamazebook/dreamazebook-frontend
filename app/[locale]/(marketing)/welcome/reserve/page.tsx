@@ -19,6 +19,7 @@ const NEXT_PUBLIC_STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_L
 const PRICES = [
   {
      tl: 'Softcover',
+     id: 'softcover',
      discount: '$35',
      price: '$59',
      desc: 'Light yet durable, this softcover edition offers a flexible and travel-friendly option'
@@ -28,6 +29,7 @@ const PRICES = [
      header: 'Creator\'s Recommendation',
      headerImg: '/welcome/product-book/creator-recommendation.png',
      tl: 'Hardcover',
+     id: 'hardcover',
      discount: '$45',
      price: '$75',
      desc: 'Premium hardcover with a smooth matte finish, designed for lasting reading and enjoyment.'
@@ -37,6 +39,7 @@ const PRICES = [
      header: 'Most People\'s Choice',
      headerImg: '/welcome/product-book/most-people-choice.png',
      tl: 'Premium Lay-Flat Hardcover',
+     id: 'lay-flat',
      discount: '$58',
      price: '$97',
      desc: 'Luxurious layflat design with seamless panoramic spreads—perfect for a lifelong keepsake gift.'
@@ -44,7 +47,7 @@ const PRICES = [
 ];
 
 export default function Reserve() {
-  const [curBookCover, setCurBookCover] = useState(PRICES[1].tl);
+  const [curBookCover, setCurBookCover] = useState(PRICES[1].id);
   const [showPopup, setShowPopup] = useState(false);
   const searchParams = useSearchParams();
 
@@ -110,19 +113,19 @@ export default function Reserve() {
           <ContainerDesc cssClass="text-left my-4">Choose your preferred format and reserve the lowest price ever.</ContainerDesc>
           
           <div className="my-5 md:my-9 flex flex-col gap-3">
-          {PRICES.map(({price,discount,tl,desc,header,headerImg}) => (
-            <article onClick={()=>handleCoverClick(tl)} key={tl} className={`transition-all overflow-hidden rounded border ${curBookCover===tl?'border-[#022CCE]':'border-transparent'}`}>
+          {PRICES.map(({price,discount,tl,desc,header,headerImg,id}) => (
+            <article onClick={()=>handleCoverClick(id)} key={id} className={`transition-all overflow-hidden rounded border ${curBookCover===id?'border-[#022CCE]':'border-transparent'}`}>
               {headerImg && 
                 <div className="from-[#FFE5E5] to-[#FFF4F4] bg-linear-to-r">
                 {/* <h2 className={`font-semibold text-xl px-6 py-3 ${headerStyle}`}>{header}</h2> */}
                 <Image className="" src={headerImg} alt={header} width={340} height={72} />
                 </div>
               }
-              <div className={`${curBookCover === tl ? 'bg-[#FFFBF3]' : 'bg-white'} px-6 pt-3 pb-4 transition-all`}>
+              <div className={`${curBookCover === id ? 'bg-[#FFFBF3]' : 'bg-white'} px-6 pt-3 pb-4 transition-all`}>
                 <div className="flex justify-between items-center">
-                  <h2 className={`text-xl transition-all ${curBookCover==tl?'font-bold':'font-light'}`}>{tl}</h2>
+                  <h2 className={`text-xl transition-all ${curBookCover==id?'font-bold':'font-light'}`}>{tl}</h2>
                   <div className="flex items-center gap-4">
-                    <span className={`${curBookCover==tl?'text-black':'text-[#012CCE]'} font-bold transition-all`}>{discount}</span>
+                    <span className={`${curBookCover==id?'text-black':'text-[#012CCE]'} font-bold transition-all`}>{discount}</span>
                     <span className="line-through text-[#999999]">{price}</span>
                   </div>
                 </div>

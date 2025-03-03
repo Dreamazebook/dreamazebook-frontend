@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         body:{
           properties: {
             email,
-            selected_cover,
+            selected_cover: 'hardcover',
             hs_lead_status: 'NEW', // Add lead status to help with list filtering
             lifecyclestage: 'subscriber' // Add lifecycle stage
           },

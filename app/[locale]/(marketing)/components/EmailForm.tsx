@@ -66,7 +66,6 @@ export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
           body: JSON.stringify(
             {
               email: emailInput,
-              selected_cover: 'Hardcover'
             }
           )
         }
