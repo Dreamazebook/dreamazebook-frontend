@@ -71,9 +71,7 @@ async function updateHubSpotContact(stripeCustomerId: string) {
       customer.email,
       {
         properties: {
-          email: customer.email || '',
-          stripe_customer_id: customer.id,
-          hs_marketable_status: 'paid'
+          prepaid_status: 'paid'
         }
       }
     );
