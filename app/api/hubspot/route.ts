@@ -5,10 +5,21 @@ const ACCESS_TOKEN = process.env.HUBSPOT_ACCESS_TOKEN;
 interface sendRequestProps {
   url: string
   method: string
-  body?: any
+  body?: {
+    [key:string]:string|object
+  }
+}
+
+interface optionsProps {
+  method: string,
+  headers: {
+    'Content-Type': string,
+    Authorization: string,
+  },
+  body?: string
 }
 const sendRequest = async ({url, method, body}:sendRequestProps) => {
-  const options:{method:string,headers:any,body?:any} = {
+  const options:optionsProps = {
     method,
     headers: {
       'Content-Type': 'application/json',
@@ -116,6 +127,7 @@ export async function PATCH(request:NextRequest) {
         }
       }
     );
+    console.info(updateResponse);
     return Response.json({msg: "Contact updated successfully"},{status:200});
   } catch (error) {
     console.error("Error updating contact:", error);

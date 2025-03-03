@@ -79,6 +79,9 @@ export default function Reserve() {
       }),
     });
     const data = await response.json();
+    if (data.status != 200) {
+      //show error
+    }
   }
 
 
