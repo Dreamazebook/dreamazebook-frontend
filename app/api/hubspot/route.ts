@@ -34,7 +34,7 @@ const sendRequest = async ({url, method, body}:sendRequestProps) => {
 }
 
 export async function POST(request: NextRequest) {
-  const { email, selected_cover } = await request.json();
+  const { email } = await request.json();
 
   // Basic validation
   if (!email || !validateEmail(email)) {
