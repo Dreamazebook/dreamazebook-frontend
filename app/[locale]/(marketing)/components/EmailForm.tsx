@@ -63,7 +63,12 @@ export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({email: emailInput})
+          body: JSON.stringify(
+            {
+              email: emailInput,
+              selected_cover: 'Hardcover'
+            }
+          )
         }
       );
 

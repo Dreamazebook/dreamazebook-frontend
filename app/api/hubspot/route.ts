@@ -23,7 +23,7 @@ const sendRequest = async ({url, method, body}:sendRequestProps) => {
 }
 
 export async function POST(request: NextRequest) {
-  const { email } = await request.json();
+  const { email, selected_cover } = await request.json();
 
   // Basic validation
   if (!email || !validateEmail(email)) {
@@ -35,13 +35,38 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const response = await sendRequest(
+    let response = await sendRequest({
+      url: 'https://api.hubapi.com/crm/v3/objects/contacts/search',
+      method: "POST",
+      body: {
+        filterGroups: [
+          {
+            filters: [
+              {
+                propertyName: 'email',
+                operator: 'EQ',
+                value: email,
+              },
+            ],
+          },
+        ],
+      }
+    });
+
+    if (response.total > 0) {
+      const contactId = response.results[0]?.id;
+      return Response.json({'msg':"Email already subscribed", contactId},{status:200});
+    }
+
+
+    response = await sendRequest(
       {
         url:"https://api.hubapi.com/crm/v3/objects/contacts",
         method: "POST",
         body:{
           properties: {
             email,
+            selected_cover,
             hs_lead_status: 'NEW', // Add lead status to help with list filtering
             lifecyclestage: 'subscriber' // Add lifecycle stage
           },
@@ -58,20 +83,43 @@ export async function POST(request: NextRequest) {
     );
 
     if (response.status == 'error') {
-      let msg;
-      if (response.category == 'CONFLICT') {
-        return Response.json({msg: "Subscription Successful", contactId:response.correlationId},{status:200});
-      } else {
-        msg = `Error subscribing email ${response.statusText}`;
-      }
-      return Response.json({msg},{status:response.status});
+      console.error("Error subscribing email:", response);
+      return Response.json({msg: "Error subscribing email"},{status:response.status});
     }
 
-    console.log("Subscription successful:", response);
-    return Response.json({msg: "Subscription Successful"},{status:200});
+    return Response.json({msg: "Subscription Successful", contactId: response.id},{status:200});
   } catch (error) {
     console.error("Error subscribing email:", error);
     return Response.json({msg: "Error subscribing email"},{status:500});
+  }
+}
+
+export async function PATCH(request:NextRequest) {
+  const {selected_cover, contactId} = await request.json();
+  try {
+    const updateResponse = await sendRequest(
+      {
+        url: `https://api.hubapi.com/crm/v3/objects/contacts/${contactId}`,
+        method: 'PATCH',
+        body: {
+          properties: {
+            selected_cover,
+          },
+          associations: [
+            {
+              to: {
+                id: "17", // Replace with your actual HubSpot list ID
+                type: "LISTS",
+              }
+            }
+          ]
+        }
+      }
+    );
+    return Response.json({msg: "Contact updated successfully"},{status:200});
+  } catch (error) {
+    console.error("Error updating contact:", error);
+    return Response.json({msg: "Error updating contact"},{status:500});
   }
 }
 

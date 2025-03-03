@@ -11,6 +11,8 @@ import { ContainerTitle } from "../../components/ContainerTitle";
 import Image from 'next/image';
 import DreamzeImage from "@/app/components/DreamzeImage";
 import Link from "next/link";
+import { useSearchParams } from 'next/navigation'
+
 
 const NEXT_PUBLIC_STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
 
@@ -42,9 +44,9 @@ const PRICES = [
 ];
 
 export default function Reserve() {
-  const [curPrice, setCurPrice] = useState(PRICES[1].tl);
+  const [curBookCover, setCurBookCover] = useState(PRICES[1].tl);
   const [showPopup, setShowPopup] = useState(false);
-
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     // const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -64,6 +66,21 @@ export default function Reserve() {
     // };
   }, []);
 
+  const handleCoverClick = async (tl: string) => {
+    setCurBookCover(tl);
+    const response = await fetch('/api/hubspot', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        selected_cover: tl,
+        contactId: searchParams.get('contactId'),
+      }),
+    });
+    const data = await response.json();
+  }
+
 
   return (
     <main className="bg-[#F8F8F8]">
@@ -82,7 +99,7 @@ export default function Reserve() {
 
       <div className="container mx-auto lg:flex">
         <div className="lg:w-1/2">
-          <BookCovers curbook={curPrice} />
+          <BookCovers curbook={curBookCover} />
         </div>
 
         <div className="p-6 lg:p-20 w-full lg:w-1/2 text-[#222222] lg:sticky top-0 lg:h-screen overflow-y-auto">
@@ -91,18 +108,18 @@ export default function Reserve() {
           
           <div className="my-5 md:my-9 flex flex-col gap-3">
           {PRICES.map(({price,discount,tl,desc,header,headerImg}) => (
-            <article onClick={()=>setCurPrice(tl)} key={tl} className={`transition-all overflow-hidden rounded border ${curPrice===tl?'border-[#022CCE]':'border-transparent'}`}>
+            <article onClick={()=>handleCoverClick(tl)} key={tl} className={`transition-all overflow-hidden rounded border ${curBookCover===tl?'border-[#022CCE]':'border-transparent'}`}>
               {headerImg && 
                 <div className="from-[#FFE5E5] to-[#FFF4F4] bg-linear-to-r">
                 {/* <h2 className={`font-semibold text-xl px-6 py-3 ${headerStyle}`}>{header}</h2> */}
                 <Image className="" src={headerImg} alt={header} width={340} height={72} />
                 </div>
               }
-              <div className={`${curPrice === tl ? 'bg-[#FFFBF3]' : 'bg-white'} px-6 pt-3 pb-4 transition-all`}>
+              <div className={`${curBookCover === tl ? 'bg-[#FFFBF3]' : 'bg-white'} px-6 pt-3 pb-4 transition-all`}>
                 <div className="flex justify-between items-center">
-                  <h2 className={`text-xl transition-all ${curPrice==tl?'font-bold':'font-light'}`}>{tl}</h2>
+                  <h2 className={`text-xl transition-all ${curBookCover==tl?'font-bold':'font-light'}`}>{tl}</h2>
                   <div className="flex items-center gap-4">
-                    <span className={`${curPrice==tl?'text-black':'text-[#012CCE]'} font-bold transition-all`}>{discount}</span>
+                    <span className={`${curBookCover==tl?'text-black':'text-[#012CCE]'} font-bold transition-all`}>{discount}</span>
                     <span className="line-through text-[#999999]">{price}</span>
                   </div>
                 </div>
