@@ -19,8 +19,8 @@ export default function TheOnlyBook() {
           <Image src='/welcome/the-only-book/star.png' width={36} height={36} alt="Star" />
         </p>
 
-        {/* <video className="w-full" autoPlay loop muted src="/welcome/the-only-book/video.mp4" /> */}
-        <div className="w-full relative aspect-[2/1]">
+        <video className="w-full hidden md:block" autoPlay loop muted src="/welcome/the-only-book/video.mp4" />
+        <div className="md:hidden w-full relative aspect-[2/1]">
           <DreamzeImage src="/welcome/the-only-book/video.gif" alt="Face swap" unoptimized={true} />
         </div>
 
