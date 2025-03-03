@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { FaQuestionCircle, FaCheck } from 'react-icons/fa';
 import UploadArea from './UploadArea';
-import useImageUpload from '../hooks/useImageUpload';
+import useImageUpload from '../../hooks/useImageUpload';
 
 export interface BasicInfoData {
   fullName: string;

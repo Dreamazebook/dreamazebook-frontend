@@ -8,12 +8,13 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const segments = useSelectedLayoutSegments();
   const isPersonalizePage = segments.includes("personalize");
   const isPreviewPage = segments.includes("preview");
+  const isSelectBookContentPage = segments.includes("select-book-content");
 
   return (
     <>
-      {!isPersonalizePage && !isPreviewPage && <Header />}
+      {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage) && <Header />}
       {children}
-      {!isPersonalizePage && !isPreviewPage  && <Footer />}
+      {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage) && <Footer />}
     </>
   );
 } 
