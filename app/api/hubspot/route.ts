@@ -1,37 +1,5 @@
 import { type NextRequest } from 'next/server'
-
-const ACCESS_TOKEN = process.env.HUBSPOT_ACCESS_TOKEN;
-
-interface sendRequestProps {
-  url: string
-  method: string
-  body?: {
-    [key:string]:string|object
-  }
-}
-
-interface optionsProps {
-  method: string,
-  headers: {
-    'Content-Type': string,
-    Authorization: string,
-  },
-  body?: string
-}
-const sendRequest = async ({url, method, body}:sendRequestProps) => {
-  const options:optionsProps = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${ACCESS_TOKEN}`,
-    },
-  };
-  if (body) {
-    options.body = JSON.stringify(body);
-  }
-  const response = await fetch(url, options);
-  return response.json();
-}
+import { checkHubSpotContact, subscribeEmail, updateContact } from '../../../utils/hubspot';
 
 export async function POST(request: NextRequest) {
   const { email } = await request.json();
@@ -41,28 +9,8 @@ export async function POST(request: NextRequest) {
     return Response.json({msg: "Invalid Email"},{status:400});
   }
 
-  if (!ACCESS_TOKEN) {
-    return Response.json({msg:"Error subscribing email", code:'MISSING_TOKEN'}, {status: 500});
-  }
-
   try {
-    let response = await sendRequest({
-      url: 'https://api.hubapi.com/crm/v3/objects/contacts/search',
-      method: "POST",
-      body: {
-        filterGroups: [
-          {
-            filters: [
-              {
-                propertyName: 'email',
-                operator: 'EQ',
-                value: email,
-              },
-            ],
-          },
-        ],
-      }
-    });
+    let response = await checkHubSpotContact(email);
 
     if (response.total > 0) {
       const contactId = response.results[0]?.id;
@@ -70,28 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
 
-    response = await sendRequest(
-      {
-        url:"https://api.hubapi.com/crm/v3/objects/contacts",
-        method: "POST",
-        body:{
-          properties: {
-            email,
-            selected_cover: 'hardcover',
-            hs_lead_status: 'NEW', // Add lead status to help with list filtering
-            lifecyclestage: 'subscriber' // Add lifecycle stage
-          },
-          associations: [
-            {
-              to: {
-                id: "17", // Replace with your actual HubSpot list ID
-                type: "LISTS",
-              }
-            }
-          ]
-        }
-      }
-    );
+    response = await subscribeEmail(email);
 
     if (response.status == 'error') {
       console.error("Error subscribing email:", response);
@@ -108,26 +35,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request:NextRequest) {
   const {selected_cover, contactId} = await request.json();
   try {
-    const updateResponse = await sendRequest(
-      {
-        url: `https://api.hubapi.com/crm/v3/objects/contacts/${contactId}`,
-        method: 'PATCH',
-        body: {
-          properties: {
-            selected_cover,
-          },
-          associations: [
-            {
-              to: {
-                id: "17", // Replace with your actual HubSpot list ID
-                type: "LISTS",
-              }
-            }
-          ]
-        }
-      }
-    );
-    console.info(updateResponse);
+    await updateContact(contactId, {selected_cover});
     return Response.json({msg: "Contact updated successfully"},{status:200});
   } catch (error) {
     console.error("Error updating contact:", error);

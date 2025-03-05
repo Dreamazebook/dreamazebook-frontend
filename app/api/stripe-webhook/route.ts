@@ -1,14 +1,11 @@
 // app/api/stripe-webhook/route.ts
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { Client as HubspotClient } from "@hubspot/api-client";
+import { updateContactByEmail } from "@/utils/hubspot";
 
 // Initialize Stripe and HubSpot clients
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2025-02-24.acacia",
-});
-const hubspotClient = new HubspotClient({
-  apiKey: process.env.HUBSPOT_ACCESS_TOKEN,
 });
 
 export async function POST(request: Request) {
@@ -59,11 +56,7 @@ async function updateHubSpotContact(email: string) {
     return;
   }
   try {
-    await hubspotClient.crm.contacts.basicApi.update(email, {
-      properties: {
-        prepaid_status: "paid",
-      },
-    });
+    await updateContactByEmail(email, {prepaid_status: 'paid'});
     console.log("HubSpot contact updated:", email);
   } catch (err: unknown) {
     console.error(
