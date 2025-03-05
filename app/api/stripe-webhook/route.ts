@@ -16,7 +16,6 @@ export async function POST(request: Request) {
     const rawBody = await request.text();
     // Get the Stripe signature from the headers
     const signature = request.headers.get("stripe-signature") as string;
-    console.info("Signature:", signature);
 
     // Verify the webhook event
     const event = stripe.webhooks.constructEvent(
@@ -24,13 +23,13 @@ export async function POST(request: Request) {
       signature,
       process.env.STRIPE_WEBHOOK_SECRET as string,
     );
-    console.info("Event:", event);
 
     // Handle Stripe events
     switch (event.type) {
       case "customer.subscription.updated":
-      case "invoice.payment_succeeded": {
+      case "payment_intent.succeeded": {
         const customerId = (event.data.object as { customer: string }).customer;
+        console.log(event.data.object)
         await updateHubSpotContact(customerId);
         break;
       }
