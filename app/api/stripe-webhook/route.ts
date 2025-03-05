@@ -28,9 +28,13 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "customer.subscription.updated":
       case "payment_intent.succeeded": {
-        const customerId = (event.data.object as { customer: string }).customer;
-        console.log(event.data.object)
-        await updateHubSpotContact(customerId);
+        const eventObject = event.data.object;
+        console.log(eventObject)
+        if (eventObject.object === 'payment_intent') {
+          const paymentIntent = eventObject as Stripe.PaymentIntent;
+          const email = paymentIntent.receipt_email || '';
+          await updateHubSpotContact(email);
+        }
         break;
       }
       default:
@@ -49,23 +53,18 @@ export async function POST(request: Request) {
 }
 
 // Update HubSpot contact using Stripe customer data
-async function updateHubSpotContact(stripeCustomerId: string) {
+async function updateHubSpotContact(email: string) {
+  if (!email) {
+    console.error("No email provided");
+    return;
+  }
   try {
-    // Fetch Stripe customer details
-    const customer = await stripe.customers.retrieve(stripeCustomerId);
-    if (customer.deleted) throw new Error("Stripe customer deleted");
-
-    // Update HubSpot contact by email
-    if (!customer.email) {
-      throw new Error("Customer email is required");
-    }
-
-    await hubspotClient.crm.contacts.basicApi.update(customer.email, {
+    await hubspotClient.crm.contacts.basicApi.update(email, {
       properties: {
         prepaid_status: "paid",
       },
     });
-    console.log("HubSpot contact updated:", customer.email);
+    console.log("HubSpot contact updated:", email);
   } catch (err: unknown) {
     console.error(
       "HubSpot update failed:",
