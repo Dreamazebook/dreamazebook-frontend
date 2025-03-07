@@ -79,6 +79,16 @@ export const subscribeEmail = async (email:string) => {
   return response;
 }
 
+export const getContactDetail = async (contactId:string) => {
+  const response = await sendRequest(
+    {
+      url: `https://api.hubapi.com/crm/v3/objects/contacts/${contactId}`,
+      method: 'GET',
+    }
+  );
+  return response;
+}
+
 export const updateContact = async (contactId:string, properties:object) => {
   const response = await sendRequest(
     {

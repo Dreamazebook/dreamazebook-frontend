@@ -1,5 +1,11 @@
 import { type NextRequest } from 'next/server'
-import { checkHubSpotContact, subscribeEmail, updateContact } from '../../../utils/hubspot';
+import { checkHubSpotContact, subscribeEmail, updateContact, getContactDetail } from '../../../utils/hubspot';
+
+export async function GET(request: NextRequest) {
+  const contactId = request.nextUrl.searchParams.get('contactId') || '';
+  const response = await getContactDetail(contactId);
+  return Response.json({response},{status:200});
+}
 
 export async function POST(request: NextRequest) {
   const { email } = await request.json();
