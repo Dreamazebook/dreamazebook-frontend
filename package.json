@@ -10,13 +10,10 @@
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.5.9",
-    "@heroicons/react": "^2.2.0",
-    "@hubspot/api-client": "^12.0.1",
     "@stripe/react-stripe-js": "^3.1.1",
     "@stripe/stripe-js": "^5.4.0",
     "@tailwindcss/postcss": "^4.0.6",
     "axios": "^1.7.9",
-    "date-fns": "^4.1.0",
     "framer-motion": "^12.4.3",
     "negotiator": "^1.0.0",
     "next": "^15.1.7",

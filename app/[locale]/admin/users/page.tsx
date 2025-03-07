@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { User } from '../types/user';
-import { format } from 'date-fns';
 
 // Mock data
 const mockUsers: User[] = [
@@ -82,7 +81,7 @@ export default function UsersPage() {
                 </span>
               </div>
               <div className="text-gray-500">
-                {format(new Date(user.createdAt), 'MMM d, yyyy')}
+                {user.createdAt}
               </div>
             </div>
           ))}
