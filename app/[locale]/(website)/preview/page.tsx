@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Drawer } from "antd";
 import { create } from 'zustand';
 import TopNavBarWithTabs from '../components/TopNavBarWithTabs';
@@ -45,6 +46,8 @@ const useStore = create<{
 }));
 
 export default function PreviewPageWithTopNav() {
+  const router = useRouter();
+  
   const {
     activeTab,
     viewMode,
@@ -226,6 +229,7 @@ export default function PreviewPageWithTopNav() {
       }      
     } else {
       alert("All sections complete! Navigating to next page...");
+      router.push('/shopping-cart');
     }
   };
 
@@ -803,7 +807,10 @@ export default function PreviewPageWithTopNav() {
                 <div className="flex justify-end">
                   <button
                     className="bg-[#222222] text-[#F5E3E3] py-2 px-4 rounded-sm"
-                    onClick={() => setEditField(null)}
+                    onClick={() => {
+                      setDedication(giver);
+                      setEditField(null);
+                    }}
                   >
                     Submit
                   </button>
@@ -850,7 +857,10 @@ export default function PreviewPageWithTopNav() {
                 <div className="flex justify-end">
                   <button
                     className="bg-[#222222] text-[#F5E3E3] py-2 px-4 rounded-sm"
-                    onClick={() => setEditField(null)}
+                    onClick={() => {
+                      setDedication(message);
+                      setEditField(null);
+                    }}
                   >
                     Submit
                   </button>

@@ -40,10 +40,10 @@ export default function PersonalizePage() {
           // logic for deciding which form
           switch (response.book.formid) {
             case 1:
-              setSelectedFormType('SINGLE2');
+              setSelectedFormType('SINGLE1');
               break;
             case 2:
-              setSelectedFormType('SINGLE1');
+              setSelectedFormType('SINGLE2');
               break;
             case 3:
               setSelectedFormType('DOUBLE');
