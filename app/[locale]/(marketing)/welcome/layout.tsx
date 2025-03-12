@@ -1,5 +1,6 @@
 import '../../globals.css';
 import type { Metadata } from 'next'
+import Image from 'next/image';
 import Script from 'next/script'
 
 // You should replace GTM-XXXXXXX with your actual GTM ID
@@ -62,7 +63,7 @@ export default function MarketingLayout({
             })(window,document,'script','dataLayer','${GTM_ID}');
           `}
         </Script>
-        <Script>
+        <Script id="meta-pixel" strategy='afterInteractive'>
           {
           `!function(f,b,e,v,n,t,s)
           {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -76,7 +77,7 @@ export default function MarketingLayout({
           fbq('track', 'PageView');
           `}
           </Script>
-          <noscript><img height="1" width="1" style={{display:"none"}}
+          <noscript><Image alt='' height="1" width="1" style={{display:"none"}}
           src="https://www.facebook.com/tr?id=1762268274349138&ev=PageView&noscript=1"
           /></noscript>
       </head>
