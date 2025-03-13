@@ -16,7 +16,7 @@ interface optionsProps {
   },
   body?: string
 }
-const sendRequest = async ({url, method, body}:sendRequestProps) => {
+export const sendRequest = async ({url, method, body}:sendRequestProps) => {
   const options:optionsProps = {
     method,
     headers: {

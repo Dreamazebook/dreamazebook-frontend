@@ -12,6 +12,7 @@ import Image from 'next/image';
 import DreamzeImage from "@/app/components/DreamzeImage";
 import Link from "next/link";
 import { useSearchParams } from 'next/navigation'
+import { sendRequest } from "@/utils/hubspot";
 
 
 const NEXT_PUBLIC_STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
@@ -52,39 +53,31 @@ export default function Reserve() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-    //   e.preventDefault();
-    //   const confirmNavigation = window.confirm('Are you sure you want to leave? You will be redirected to a specific link.');
-
-    //   if (confirmNavigation) {
-    //     window.location.href = 'https://docs.google.com/forms/d/e/1FAIpQLSf_vXsRvJgZGvD-munfborQT39pkdB-Eh3NSi3XcA8MyyqZKA/viewform?embedded=true';
-    //   }
-    //   return '';
-    // };
-
-    // window.addEventListener('beforeunload', handleBeforeUnload);
-
-    // return () => {
-    //   window.removeEventListener('beforeunload', handleBeforeUnload);
-    // };
+    // Empty useEffect - previously contained beforeunload event handler
+    // that was commented out. Keeping the hook for potential future use.
   }, []);
 
   const handleCoverClick = async (tl: string) => {
     setCurBookCover(tl);
-    const response = await fetch('/api/hubspot', {
+    await sendRequest({
+      url: '/api/hubspot',
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+      body: {
         selected_cover: tl,
-        contactId: searchParams.get('contactId'),
-      }),
+        contactId: searchParams.get('contactId') || '',
+      },
     });
-    const data = await response.json();
-    if (data.status != 200) {
-      //show error
-    }
+  }
+
+  const handlePayClick = async () => {
+    await sendRequest({
+      url: '/api/hubspot',
+      method: 'PATCH',
+      body: {
+        prepaid_status: 'clicked',
+        contactId: searchParams.get('contactId') || '',
+      }
+    })
   }
 
 
@@ -135,7 +128,7 @@ export default function Reserve() {
           ))}
           </div>
 
-          <Button tl={'Reserve Discount for $1'} url={NEXT_PUBLIC_STRIPE_PAYMENT_LINK} />
+          <Button tl={'Reserve Discount for $1'} url={NEXT_PUBLIC_STRIPE_PAYMENT_LINK} handleClick={handlePayClick} />
           <button onClick={()=>setShowPopup(true)} className="cursor-pointer w-full p-3 text-center mt-3">No thanks</button>
         </div>
 

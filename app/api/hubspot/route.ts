@@ -39,9 +39,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request:NextRequest) {
-  const {selected_cover, contactId} = await request.json();
+  const {contactId, ...properties} = await request.json();
   try {
-    await updateContact(contactId, {selected_cover});
+    await updateContact(contactId, properties);
     return Response.json({msg: "Contact updated successfully"},{status:200});
   } catch (error) {
     console.error("Error updating contact:", error);
