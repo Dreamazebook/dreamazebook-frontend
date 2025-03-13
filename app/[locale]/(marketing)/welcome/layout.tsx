@@ -92,8 +92,6 @@ export default function MarketingLayout({
           />
         </noscript>
         {children}
-        <Script src="https://web.cmp.usercentrics.eu/modules/autoblocker.js" strategy="afterInteractive"></Script>
-        <Script id="usercentrics-cmp" src="https://web.cmp.usercentrics.eu/ui/loader.js" strategy="afterInteractive" data-settings-id="4Oa5G-KI-WqoLt" async></Script>
       </body>
     </html>
   )
