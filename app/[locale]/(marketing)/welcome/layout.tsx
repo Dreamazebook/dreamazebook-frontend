@@ -1,3 +1,4 @@
+import TermlyCMP from '@/app/components/TermlyCMP';
 import '../../globals.css';
 import type { Metadata } from 'next'
 import Image from 'next/image';
@@ -92,6 +93,7 @@ export default function MarketingLayout({
           />
         </noscript>
         {children}
+        <TermlyCMP websiteUUID={'6886d96b-3a64-44f3-9388-e4bbed70d8c3'} autoBlock={undefined} masterConsentsOrigin={undefined} />
       </body>
     </html>
   )
