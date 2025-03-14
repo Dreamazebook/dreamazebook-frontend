@@ -3,6 +3,7 @@ import '../../globals.css';
 import type { Metadata } from 'next'
 import Image from 'next/image';
 import Script from 'next/script'
+import Footer from '@/app/components/Footer';
 
 // You should replace GTM-XXXXXXX with your actual GTM ID
 const GTM_ID = 'GTM-57K5LXBQ'
@@ -93,6 +94,7 @@ export default function MarketingLayout({
           />
         </noscript>
         {children}
+        <Footer/>
         <TermlyCMP websiteUUID={'6886d96b-3a64-44f3-9388-e4bbed70d8c3'} autoBlock={undefined} masterConsentsOrigin={undefined} />
       </body>
     </html>
