@@ -14,7 +14,8 @@ export default function LoginModal() {
     register({
       name: 'User',
       email: email,
-      password
+      password,
+      password_confirmation: password
     })
     // closeLoginModal()
   }

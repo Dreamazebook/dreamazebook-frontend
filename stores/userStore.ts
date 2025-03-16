@@ -21,6 +21,7 @@ type UserType = {
   name?: string
   email: string
   password?: string
+  password_confirmation?: string
 }
 
 const useUserStore = create<UserState>((set) => ({
@@ -37,7 +38,7 @@ const useUserStore = create<UserState>((set) => ({
     
     await sendRequest({
       method: 'POST',
-      url: 'https://dreamazebook-backend.onrender.com/api/v1/auth/register',
+      url: 'https://dreamazebook-backend.onrender.com/api/auth/register',
       body: userData})
 
     set({ user: userData, isLoggedIn: true })
