@@ -1,3 +1,4 @@
+import { API_USER_LOGIN, API_USER_REGISTER } from '@/constants/api'
 import { sendRequest } from '@/utils/hubspot'
 import { create } from 'zustand'
 
@@ -36,14 +37,26 @@ const useUserStore = create<UserState>((set) => ({
   isLoggedIn: false,
   register: async (userData) => {
     
-    await sendRequest({
+    const {code, success, message} = await sendRequest({
       method: 'POST',
-      url: 'https://dreamazebook-backend.onrender.com/api/auth/register',
+      url: API_USER_REGISTER,
       body: userData})
-
-    set({ user: userData, isLoggedIn: true })
+    if (success) {
+      set({ isLoggedIn: true })
+    }
   },
-  login: (userData) => set({ user: userData, isLoggedIn: true }),
+  login: async (userData) => {
+    const {code, success, message} = await sendRequest({
+      url: API_USER_LOGIN,
+      method: 'POST',
+      body: userData
+    });
+
+    if (success) {
+      set({isLoggedIn: true})
+    }
+
+  },
   logout: () => set({ user: null, isLoggedIn: false }),
 }))
 
