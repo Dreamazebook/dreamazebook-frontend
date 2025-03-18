@@ -92,40 +92,40 @@ export default function Growth() {
 
       <div className="max-w-3xl mx-auto">
         {[
-          { icon: "done", tl: "Initial Idea Sparked", date: "May 2023" },
-          { icon: "done", tl: "Product Research", date: "June 2023" },
-          { icon: "done", tl: "AI Workflow Development", date: "July 2023" },
+          { icon: "done", tl: "Initial Idea Sparked", date: "May 2024" },
+          { icon: "done", tl: "Product Research", date: "June 2024" },
+          { icon: "done", tl: "AI Workflow Development", date: "July 2024-Ongoing" },
           {
             icon: "done",
             tl: "Illustration & Content Development",
-            date: "October 2023",
+            date: "August 2024-Ongoing",
           },
-          { icon: "done", tl: "Prototype Creation", date: "January 2024" },
-          { icon: "done", tl: "Factory Visits", date: "May 2024" },
-          { icon: "done", tl: "Early Tester Feedback", date: "September 2024" },
+          { icon: "done", tl: "Prototype Creation", date: "October 2024" },
+          { icon: "done", tl: "Factory Visits", date: "December 2024" },
+          { icon: "done", tl: "Early Tester Feedback", date: "February 2025" },
           {
             icon: "ongoing",
             isCur: true,
             tl: "Kickstarter Prelaunch",
-            date: "February-March 2025",
+            date: "March-April 2025",
           },
           {
             icon: "pending",
             isCur: true,
             tl: "Finalize Website",
-            date: "March 2024",
+            date: "May-June 2025",
           },
           {
             icon: "kickstarter",
             isCur: true,
             tl: "Kickstart Launching",
-            date: "April 2024",
+            date: "May 2025",
           },
           {
             icon: "pending",
             isCur: true,
             tl: "Ship to Customers",
-            date: "June 2024",
+            date: "July-August 2025",
           },
         ].map(({ tl, date, isCur, icon }, idx) => {
           const isEven = idx % 2 === 0;
