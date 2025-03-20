@@ -42,16 +42,11 @@ export default function LandingPage() {
       <HeroBanner />
 
       <AnimatedSection>
-        <ReserveSection cssClass={"bg-white"} title={"Reserve a Gift That Will Last a Lifetime"} desc={'Spots are limited! Be among the first to create a one-of-a-kind book that captures their world, their way. Reserve now and be ready to surprise them!'} btnText="Reserve Now & Get Launch Updates" />
-      </AnimatedSection>
-      
-
-      <AnimatedSection>
         <PromotionBanner />
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/early-access-app.png)] md:bg-[url(/welcome/reserve-banner/early-access.png)]"} title={"For Families Who Believe in Magic Moments"} btnText={'Join Early & Be Part of the Magic'} desc={'Join a community that cherishes creativity and connection. Leave your email to be the first to bring this magic to life when we launch on Kickstarter.'} />
+        <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/early-access-app.png)] md:bg-[url(/welcome/reserve-banner/early-access.png)]"} title={"For Families Who Believe in Magic Moments"} btnText={'Join Early & Be Part of the Magic'} desc={'Join a community that cherishes creativity and connection.<br/> Leave your email to be the first to bring this magic to life when we launch on Kickstarter.'} />
       </AnimatedSection>
 
       <AnimatedSection>
@@ -59,7 +54,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"bg-white"} title={"Let Them Be the Hero for the First Time"} desc={'See their eyes light up when they discover they’re the star. Be sure to submit your email to receive project updates and get notified the moment we go live.'} btnText="Reserve Now & Get Early Access" />
+        <ReserveSection cssClass={"bg-white"} title={"Let Them Be the Hero<br/> for the First Time"} desc={'See their eyes light up when they discover they’re the star.<br/>Be sure to submit your email to receive project updates and get notified the moment we go live.'} btnText="Reserve Now & Get Early Access" />
       </AnimatedSection>
 
       <AnimatedSection>
@@ -76,7 +71,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"bg-[#F5E3E3]"} title={"Support Original Art That Inspires Wonder"} desc="Behind every page is a talented artist bringing stories to life. By reserving now, you help support creativity, craftsmanship, and meaningful storytelling." btnText="Reserve Now & Support Artists" />
+        <ReserveSection cssClass={"bg-[#F5E3E3]"} title={"Support Original Art<br/> That Inspires Wonder"} desc="Behind every page is a talented artist bringing stories to life.<br/> By reserving now, you help support creativity, craftsmanship, and meaningful storytelling." btnText="Reserve Now & Support Artists" />
       </AnimatedSection>
 
       <AboutUs />
@@ -92,7 +87,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/40-vip-discount-app.png)] md:bg-[url(/welcome/reserve-banner/40-vip-discount.png)]"} title={"Your Smartest Save Yet!"} desc="Be among the first to reserve and lock in our exclusive 40% VIP discount — a once-only offer to reward early supporters who know a good thing when they see it." btnText="Reserve Early & Save Big" />
+        <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/40-vip-discount-app.png)] md:bg-[url(/welcome/reserve-banner/40-vip-discount.png)]"} title={"Your Smartest Save Yet!"} desc="Be among the first to reserve and lock in our exclusive 40% VIP discount <br/> a once-only offer to reward early supporters who know a good thing when they see it." btnText="Reserve Early & Save Big" />
       </AnimatedSection>
 
       <Footer />

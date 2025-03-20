@@ -20,9 +20,9 @@ export default function HeroBanner() {
 
           <div className="text-center md:text-left flex flex-col gap-3 mb-4">
             <div className="flex flex-col md:flex-row gap-1 items-center">
-              <h3 className="font-bold text-xl">Limited Spots Available</h3>
+              <h3 className="font-bold text-xl">Reserve a Gift That Will Last a Lifetime</h3>
               <span className="hidden md:block font-light">—</span>
-              <p className="">Once they&apos;re gone, they&apos;re gone! Don&apos;t miss out</p>
+              <p className="">Spots are limited! Be among the first to create a one-of-a-kind book that captures their world, their way. Reserve now and be ready to surprise them!</p>
             </div>
             <div className="flex items-center gap-4 justify-center md:justify-start">
               <div className="relative w-[114px] md:w-[156px] aspect-[19/4]">
@@ -33,7 +33,7 @@ export default function HeroBanner() {
           </div>
 
           <div className="max-w-lg">
-            <EmailForm />
+            <EmailForm btnText="Reserve Now & Get Launch Updates" />
           </div>
 
         </div>
