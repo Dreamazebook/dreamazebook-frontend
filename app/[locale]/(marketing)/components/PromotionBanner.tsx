@@ -10,13 +10,13 @@ export default function PromotionBanner() {
       img: '/welcome/why-sign-up-today/lock-in-40-off.png'
     },
     {
-      tl: 'First Access',
-      desc: 'Be the first to explore and even influence our personalized books.',
+      tl: 'Be First to Create Joy',
+      desc: 'Get early access to preview and personalize — before anyone else. Lead the magic!',
       img: '/welcome/why-sign-up-today/first-access.png'
     },
     {
-      tl: 'Limited Gift Package',
-      desc: 'Early sign-ups get an exclusive bonus with their first order!',
+      tl: 'Exclusive Early-Bird Gift',
+      desc: 'A special thank-you for early believers — limited spots, gone fast!',
       img: '/welcome/why-sign-up-today/limited-gift-package.png',
       cssClasses:'col-span-full md:col-span-1'
     }

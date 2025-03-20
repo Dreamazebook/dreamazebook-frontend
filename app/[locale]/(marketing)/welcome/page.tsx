@@ -40,6 +40,10 @@ export default function LandingPage() {
     <main className="bg-white relative">
       <Image className="absolute top-0 left-10" src={'/welcome/dreamaze-logo.png'} alt="Logo" width={168} height={56} />
       <HeroBanner />
+
+      <AnimatedSection>
+        <ReserveSection cssClass={"bg-white"} title={"Reserve a Gift That Will Last a Lifetime"} desc={'Spots are limited! Be among the first to create a one-of-a-kind book that captures their world, their way. Reserve now and be ready to surprise them!'} btnText="Reserve Now & Get Launch Updates" />
+      </AnimatedSection>
       
 
       <AnimatedSection>
@@ -47,7 +51,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/early-access-app.png)] md:bg-[url(/welcome/reserve-banner/early-access.png)]"} title={"Early Access"} btnText={'Claim Your Early Access'} desc={'Be the first to explore and even help shape our personalized books.'} />
+        <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/early-access-app.png)] md:bg-[url(/welcome/reserve-banner/early-access.png)]"} title={"For Families Who Believe in Magic Moments"} btnText={'Join Early & Be Part of the Magic'} desc={'Join a community that cherishes creativity and connection. Leave your email to be the first to bring this magic to life when we launch on Kickstarter.'} />
       </AnimatedSection>
 
       <AnimatedSection>
@@ -55,7 +59,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"bg-white"} title={"Make It Extra Special"} desc={'Create a magical story starring your little one.'} />
+        <ReserveSection cssClass={"bg-white"} title={"Let Them Be the Hero for the First Time"} desc={'See their eyes light up when they discover they’re the star. Be sure to submit your email to receive project updates and get notified the moment we go live.'} btnText="Reserve Now & Get Early Access" />
       </AnimatedSection>
 
       <AnimatedSection>
@@ -72,7 +76,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"bg-[#F5E3E3]"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it's gone!" />
+        <ReserveSection cssClass={"bg-[#F5E3E3]"} title={"Support Original Art That Inspires Wonder"} desc="Behind every page is a talented artist bringing stories to life. By reserving now, you help support creativity, craftsmanship, and meaningful storytelling." btnText="Reserve Now & Support Artists" />
       </AnimatedSection>
 
       <AboutUs />
@@ -88,7 +92,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/40-vip-discount-app.png)] md:bg-[url(/welcome/reserve-banner/40-vip-discount.png)]"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it's gone!" />
+        <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/40-vip-discount-app.png)] md:bg-[url(/welcome/reserve-banner/40-vip-discount.png)]"} title={"Your Smartest Save Yet!"} desc="Be among the first to reserve and lock in our exclusive 40% VIP discount — a once-only offer to reward early supporters who know a good thing when they see it." btnText="Reserve Early & Save Big" />
       </AnimatedSection>
 
       <Footer />
