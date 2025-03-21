@@ -22,7 +22,7 @@ export default function HeroBanner() {
             <div className="flex flex-col md:flex-row gap-1 items-center">
               <h3 className="font-bold text-xl">Reserve a Gift That Will Last a Lifetime</h3>
               <span className="hidden md:block font-light">—</span>
-              <p className="">Spots are limited! Be among the first to create a one-of-a-kind book that captures their world, their way. Reserve now and be ready to surprise them!</p>
+              <p className="">Spots are limited! Be among the first to create a one-of-a-kind book</p>
             </div>
             <div className="flex items-center gap-4 justify-center md:justify-start">
               <div className="relative w-[114px] md:w-[156px] aspect-[19/4]">
