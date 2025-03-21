@@ -41,6 +41,9 @@ export default function PromotionBanner() {
 
         </div>
       </div>
+      <div className='relative aspect-[616/30] max-w-[323px] md:max-w-[616px] mx-auto mt-24'> 
+        <DreamzeImage src={'/welcome/kickstarter.png'} alt="Kickstarter" />
+      </div>
     </Container>
   )
 };
