@@ -12,6 +12,7 @@ import { TextField } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+//import { ConfigProvider, DatePicker } from 'antd';
 
 export interface PersonalizeFormData2 extends BasicInfoData {
   birthSeason: '' | 'spring' | 'summer' | 'autumn' | 'winter';
@@ -48,9 +49,9 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle>((props, ref)
   // Define season options (each with a label and image source)
   const seasons: { label: string; value: "" | "spring" | "summer" | "autumn" | "winter"; src: string }[] = [
     { label: 'Spring', value: 'spring', src: '/season-spring.png' },
-    { label: 'Summer', value: 'summer', src: '/season-summer.png' },
-    { label: 'Autumn', value: 'autumn', src: '/season-autumn.png' },
-    { label: 'Winter', value: 'winter', src: '/season-winter.png' },
+    { label: 'Summer', value: 'summer', src: '/season-spring.png' },
+    { label: 'Autumn', value: 'autumn', src: '/season-spring.png' },
+    { label: 'Winter', value: 'winter', src: '/season-spring.png' },
   ];
 
   const {
@@ -161,16 +162,38 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle>((props, ref)
             <div>
               <label className="block mb-2 font-medium">Date of Birth</label>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DatePicker
-                  label="Date of birth"
-                  value={formData.dob}
-                  onChange={(newValue) => {
-                    setFormData(prev => ({ ...prev, dob: newValue }));
-                    setTouched(prev => ({ ...prev, dob: true }));
-                    setErrors(prev => ({ ...prev, dob: '' }));
-                  }}
-                  slots={{ textField: TextField }}
-                />
+              <DatePicker
+                value={formData.dob}
+                onChange={(newValue) => {
+                  setFormData(prev => ({ ...prev, dob: newValue }));
+                  setTouched(prev => ({ ...prev, dob: true }));
+                  setErrors(prev => ({ ...prev, dob: '' }));
+                }}
+                slots={{ textField: TextField }}
+                slotProps={{
+                  day: {
+                    sx: {
+                      borderRadius: 0,
+                        
+                      '&.Mui-selected': {
+                        backgroundColor: '#FCF2F2!important', 
+                        border: '1px solid #222222',
+                        color: '#222222',
+                        //borderRadius: 0,
+                      },
+                      '&:hover': {
+                        //borderRadius: 0,
+                        backgroundColor: '#F8F8F8'
+                      },
+                      // 今天的日期
+                      '&.MuiPickersDay-today': {
+                        //borderRadius: 0
+                      },
+                    },
+                  },
+                }}
+              />
+
                 {touched.dob && errors.dob && (
                   <p className="text-red-500 text-sm mt-1">{errors.dob}</p>
                 )}

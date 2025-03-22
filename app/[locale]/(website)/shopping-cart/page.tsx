@@ -94,14 +94,12 @@ export default function ShoppingCartPage() {
   };
 
   // 结算时，仅包含已选中的商品
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     const itemsToCheckout = cartItems.filter(item => selectedItems.includes(item.id));
     if (itemsToCheckout.length === 0) {
       alert('No items selected for checkout!');
       return;
     }
-    // 这里可将 itemsToCheckout 传给后端或下一步页面
-    alert(`Checking out ${itemsToCheckout.length} selected item(s).`);
   };
 
   // 示例计算价格：仅计算选中的书（含其子项目）
@@ -259,7 +257,7 @@ export default function ShoppingCartPage() {
             <p className="text-blue-600 text-sm">
               25% off with code: <strong>BLACKFRIDAY</strong>
             </p>
-            {/* 输入框：示例 */}
+            {/* 输入框 */}
             <div className="flex mt-2">
               <input
                 type="text"
