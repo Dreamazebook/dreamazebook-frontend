@@ -2,6 +2,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+
 
 interface CartSubItem {
   name: string;
@@ -65,6 +67,7 @@ export default function ShoppingCartPage() {
 
   // 记录被选中的书本 ID，只有被选中的书才会结账
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const router = useRouter();
 
   const handleToggleSelectItem = (id: number) => {
     setSelectedItems(prev => {
@@ -100,6 +103,7 @@ export default function ShoppingCartPage() {
       alert('No items selected for checkout!');
       return;
     }
+    router.push('/checkout');
   };
 
   // 示例计算价格：仅计算选中的书（含其子项目）
