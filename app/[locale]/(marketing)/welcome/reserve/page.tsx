@@ -11,6 +11,8 @@ import { ContainerTitle } from "../../components/ContainerTitle";
 import Image from 'next/image';
 import DreamzeImage from "@/app/components/DreamzeImage";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { sendRequest } from "@/utils/subscription";
 
 
 const NEXT_PUBLIC_STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
@@ -48,33 +50,39 @@ const PRICES = [
 export default function Reserve() {
   const [curBookCover, setCurBookCover] = useState(PRICES[1].id);
   const [showPopup, setShowPopup] = useState(false);
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     // Empty useEffect - previously contained beforeunload event handler
     // that was commented out. Keeping the hook for potential future use.
+    updateBookCover(PRICES[1].id);
   }, []);
 
-  const handleCoverClick = async (tl: string) => {
+  const updateBookCover = async (tl: string) => {
     setCurBookCover(tl);
-    // await sendRequest({
-    //   url: '/api/hubspot',
-    //   method: 'PATCH',
-    //   body: {
-    //     selected_cover: tl,
-    //     contactId: searchParams.get('contactId') || '',
-    //   },
-    // });
+    await sendRequest({
+      url: '/api/subscriptions',
+      method: 'PATCH',
+      body: {
+        selected_cover: tl,
+        email: searchParams.get('email') || '',
+      },
+    });
+  }
+
+  const handleCoverClick = async (tl: string) => {
+    await updateBookCover(tl);
   }
 
   const handlePayClick = async () => {
-    // await sendRequest({
-    //   url: '/api/hubspot',
-    //   method: 'PATCH',
-    //   body: {
-    //     prepaid_status: 'clicked',
-    //     contactId: searchParams.get('contactId') || '',
-    //   }
-    // })
+    await sendRequest({
+      url: '/api/subscriptions',
+      method: 'PATCH',
+      body: {
+        prepaid_status: 'clicked',
+        email: searchParams.get('email') || '',
+      }
+    })
   }
 
 
