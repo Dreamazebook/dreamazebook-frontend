@@ -11,8 +11,6 @@ import { ContainerTitle } from "../../components/ContainerTitle";
 import Image from 'next/image';
 import DreamzeImage from "@/app/components/DreamzeImage";
 import Link from "next/link";
-import { useSearchParams } from 'next/navigation'
-import { sendRequest } from "@/utils/hubspot";
 
 
 const NEXT_PUBLIC_STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
@@ -50,7 +48,6 @@ const PRICES = [
 export default function Reserve() {
   const [curBookCover, setCurBookCover] = useState(PRICES[1].id);
   const [showPopup, setShowPopup] = useState(false);
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     // Empty useEffect - previously contained beforeunload event handler
@@ -59,25 +56,25 @@ export default function Reserve() {
 
   const handleCoverClick = async (tl: string) => {
     setCurBookCover(tl);
-    await sendRequest({
-      url: '/api/hubspot',
-      method: 'PATCH',
-      body: {
-        selected_cover: tl,
-        contactId: searchParams.get('contactId') || '',
-      },
-    });
+    // await sendRequest({
+    //   url: '/api/hubspot',
+    //   method: 'PATCH',
+    //   body: {
+    //     selected_cover: tl,
+    //     contactId: searchParams.get('contactId') || '',
+    //   },
+    // });
   }
 
   const handlePayClick = async () => {
-    await sendRequest({
-      url: '/api/hubspot',
-      method: 'PATCH',
-      body: {
-        prepaid_status: 'clicked',
-        contactId: searchParams.get('contactId') || '',
-      }
-    })
+    // await sendRequest({
+    //   url: '/api/hubspot',
+    //   method: 'PATCH',
+    //   body: {
+    //     prepaid_status: 'clicked',
+    //     contactId: searchParams.get('contactId') || '',
+    //   }
+    // })
   }
 
 
