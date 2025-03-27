@@ -15,7 +15,7 @@ export default function Button({tl,isLoading,url,icon,leftIcon,handleClick}:Butt
   if (url) {
     return (
       <a className={buttonStyle} href={url} onClick={handleClick}>
-        {leftIcon && <Image src={leftIcon} className="mr-2" alt="" width={24} height={24} />}
+        {leftIcon && <Image src={leftIcon} className="mr-2" alt="" width={12} height={12} />}
         <span>{tl}</span>
         {icon && <Image src={icon} className="ml-2" alt="" width={28} height={28} />}
       </a>
