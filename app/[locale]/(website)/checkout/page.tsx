@@ -68,6 +68,12 @@ export default function CheckoutPage() {
   const [billingFirstName, setBillingFirstName] = useState('');
   const [billingLastName, setBillingLastName] = useState('');
   const [billingAddress, setBillingAddress] = useState('');
+  const [billingErrors, setBillingErrors] = useState<{
+    billingEmail?: string;
+    billingFirstName?: string;
+    billingLastName?: string;
+    billingAddress?: string;
+  }>({});
 
   // 是否需要单独填写账单地址
   const [needsBillingAddress, setNeedsBillingAddress] = useState(false);
@@ -98,6 +104,28 @@ export default function CheckoutPage() {
       return;
     }
     setErrors({});
+
+    // 如果需要单独填写账单地址，则校验 Billing 字段
+    if (needsBillingAddress) {
+      let newBillingErrors: {
+        billingEmail?: string;
+        billingFirstName?: string;
+        billingLastName?: string;
+        billingAddress?: string;
+      } = {};
+      if (!billingEmail) newBillingErrors.billingEmail = '必填项';
+      if (!billingFirstName) newBillingErrors.billingFirstName = '必填项';
+      if (!billingLastName) newBillingErrors.billingLastName = '必填项';
+      if (!billingAddress) newBillingErrors.billingAddress = '必填项';
+
+      if (Object.keys(newBillingErrors).length > 0) {
+        setBillingErrors(newBillingErrors);
+        return;
+      }
+      setBillingErrors({});
+    }
+
+    // 校验通过，隐藏 Shipping 部分，显示 Delivery 部分
     setIsShippingOpen(false);
     setIsDeliveryOpen(true);
   };
@@ -386,7 +414,7 @@ export default function CheckoutPage() {
                 
                 
                   {/* Billing 地址区域 */}
-                  <div className="bg-white p-6 gap-6 mt-4 bg-white">
+                  <div className="bg-white p-6 mt-4">
                     <p className="text-sm font-medium mb-2">
                       Bills need to be sent to a new address?
                     </p>
@@ -426,9 +454,18 @@ export default function CheckoutPage() {
                             type="email"
                             placeholder="请输入账单邮箱"
                             value={billingEmail}
-                            onChange={(e) => setBillingEmail(e.target.value)}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setBillingEmail(val);
+                              if (val) {
+                                setBillingErrors((prev) => ({ ...prev, billingEmail: undefined }));
+                              }
+                            }}
                             className="mt-1 block w-full border border-gray-300 rounded p-2 text-sm"
                           />
+                          {billingErrors.billingEmail && (
+                            <p className="text-red-500 text-sm mt-1">{billingErrors.billingEmail}</p>
+                          )}
                         </div>
                         {/* Billing First & Last Name */}
                         <div className="flex gap-4">
@@ -440,9 +477,18 @@ export default function CheckoutPage() {
                               type="text"
                               placeholder="请输入名"
                               value={billingFirstName}
-                              onChange={(e) => setBillingFirstName(e.target.value)}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setBillingFirstName(val);
+                                if (val) {
+                                  setBillingErrors((prev) => ({ ...prev, billingFirstName: undefined }));
+                                }
+                              }}
                               className="mt-1 block w-full border border-gray-300 rounded p-2 text-sm"
                             />
+                            {billingErrors.billingFirstName && (
+                              <p className="text-red-500 text-sm mt-1">{billingErrors.billingFirstName}</p>
+                            )}
                           </div>
                           <div className="flex-1">
                             <label className="block text-sm font-medium text-gray-700">
@@ -452,9 +498,18 @@ export default function CheckoutPage() {
                               type="text"
                               placeholder="请输入姓"
                               value={billingLastName}
-                              onChange={(e) => setBillingLastName(e.target.value)}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setBillingLastName(val);
+                                if (val) {
+                                  setBillingErrors((prev) => ({ ...prev, billingLastName: undefined }));
+                                }
+                              }}
                               className="mt-1 block w-full border border-gray-300 rounded p-2 text-sm"
                             />
+                            {billingErrors.billingLastName && (
+                              <p className="text-red-500 text-sm mt-1">{billingErrors.billingLastName}</p>
+                            )}
                           </div>
                         </div>
                         {/* Billing Address */}
@@ -466,13 +521,23 @@ export default function CheckoutPage() {
                             type="text"
                             placeholder="请输入账单地址"
                             value={billingAddress}
-                            onChange={(e) => setBillingAddress(e.target.value)}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setBillingAddress(val);
+                              if (val) {
+                                setBillingErrors((prev) => ({ ...prev, billingAddress: undefined }));
+                              }
+                            }}
                             className="mt-1 block w-full border border-gray-300 rounded p-2 text-sm"
                           />
+                          {billingErrors.billingAddress && (
+                            <p className="text-red-500 text-sm mt-1">{billingErrors.billingAddress}</p>
+                          )}
                         </div>
                       </div>
                     )}
                   </div>
+
                   {/* 继续按钮 */}
                   <div className="mt-4 text-center">
                     <p className="text-xs text-gray-500 mb-2">
