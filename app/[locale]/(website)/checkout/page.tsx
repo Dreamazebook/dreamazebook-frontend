@@ -139,6 +139,8 @@ export default function CheckoutPage() {
     alert('订单已提交！');
   };
 
+  const [selectedOption, setSelectedOption] = useState<"Standard" | "Express">("Standard");
+
   return (
     <div className="min-h-screen">
       <div className="mx-auto flex flex-row">
@@ -181,49 +183,49 @@ export default function CheckoutPage() {
                 </p>
               </div>
               <button className="p-2">
-                  {isReviewOpen ? (
-                    // 当打开时显示减号图标
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M2 8H14"
-                        stroke="#222222"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  ) : (
-                    // 当关闭时显示加号图标
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M8 2V14"
-                        stroke="#222222"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M2 8H14"
-                        stroke="#222222"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  )}
-                </button>
+                {isShippingOpen ? (
+                  // 当打开时显示减号图标
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M2 8H14"
+                      stroke="#222222"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ) : (
+                  // 当关闭时显示加号图标
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M8 2V14"
+                      stroke="#222222"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M2 8H14"
+                      stroke="#222222"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </button>
             </div>
             {isShippingOpen && (
               <div className="rounded-[4px]">
@@ -231,7 +233,7 @@ export default function CheckoutPage() {
                   <form className="bg-white p-6 space-y-4">
                     {/* Email */}
                     <div>
-                      <label className="block text-sm font-medium text-[#222222]">
+                      <label className="block text-medium font-medium text-[#222222]">
                         Email address
                       </label>
                       <input
@@ -270,7 +272,7 @@ export default function CheckoutPage() {
                     {/* First name & Last name */}
                     <div className="flex gap-4">
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-[#222222]">
+                        <label className="block text-medium font-medium text-[#222222]">
                           First name
                         </label>
                         <input
@@ -291,7 +293,7 @@ export default function CheckoutPage() {
                         )}
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-[#222222]">
+                        <label className="block text-medium font-medium text-[#222222]">
                           Last name
                         </label>
                         <input
@@ -314,7 +316,7 @@ export default function CheckoutPage() {
                     </div>
                     {/* Address */}
                     <div>
-                      <label className="block text-sm font-medium text-[#222222]">
+                      <label className="block text-medium font-medium text-[#222222]">
                         Address
                       </label>
                       <input
@@ -336,7 +338,7 @@ export default function CheckoutPage() {
                     </div>
                     {/* Apt */}
                     <div>
-                      <label className="block text-sm font-medium text-[#222222]">
+                      <label className="block text-medium font-medium text-[#222222]">
                         Apt, Building, ETC
                       </label>
                       <input
@@ -350,7 +352,7 @@ export default function CheckoutPage() {
                     {/* City & ZIP */}
                     <div className="flex gap-4">
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-[#222222]">
+                        <label className="block text-medium font-medium text-[#222222]">
                           Town/City
                         </label>
                         <input
@@ -371,7 +373,7 @@ export default function CheckoutPage() {
                         )}
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-[#222222]">
+                        <label className="block text-medium font-medium text-[#222222]">
                           ZIP/Postcode
                         </label>
                         <input
@@ -395,7 +397,7 @@ export default function CheckoutPage() {
                     {/* Country & State/Province */}
                     <div className="flex gap-4">
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-[#222222]">
+                        <label className="block text-medium font-medium text-[#222222]">
                           Country
                         </label>
                         <input
@@ -416,7 +418,7 @@ export default function CheckoutPage() {
                         )}
                       </div>
                       <div className="flex-1">
-                        <label className="block text-sm font-medium text-[#222222]">
+                        <label className="block text-medium font-medium text-[#222222]">
                           State/Province
                         </label>
                         <input
@@ -439,7 +441,7 @@ export default function CheckoutPage() {
                     </div>
                     {/* Phone */}
                     <div>
-                      <label className="block text-sm font-medium text-[#222222]">
+                      <label className="block text-medium font-medium text-[#222222]">
                         Phone number (optional)
                       </label>
                       <input
@@ -449,7 +451,7 @@ export default function CheckoutPage() {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                       />
-                      <p className="text-[#999999] text-sm mt-1">
+                      <p className="text-[#999999] text-l mt-1">
                         Get free updates on where your parcel is
                       </p>
                     </div>
@@ -458,33 +460,83 @@ export default function CheckoutPage() {
                 
                   {/* Billing 地址区域 */}
                   <div className="bg-white p-6 mt-4">
-                    <p className="text-sm font-medium mb-2">
+                    <p className="text-medium font-medium mb-2">
                       Bills need to be sent to a new address?
                     </p>
                     <div className="flex items-center gap-6">
-                      <label className="flex items-center gap-1 text-sm">
+                      {/* "no need" 选项 */}
+                      <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="radio"
                           name="billing"
                           value="no"
                           checked={!needsBillingAddress}
                           onChange={() => setNeedsBillingAddress(false)}
-                          className="h-5 w-5 accent-blue-600"
+                          className="sr-only peer"
                         />
-                        <span>no need</span>
+                        <div
+                          className={`w-5 h-5 border border-gray-400 rounded-full flex items-center justify-center ${
+                            !needsBillingAddress ? "bg-[#012CCE] border-transparent" : ""
+                          }`}
+                        >
+                          {!needsBillingAddress && (
+                            <svg
+                              width="10"
+                              height="8"
+                              viewBox="0 0 12 8"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M1.5 3.5L5 7L11 1"
+                                stroke="white"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                        <span className="text-l">no need</span>
                       </label>
-                      <label className="flex items-center gap-1 text-sm">
+
+                      {/* "yes" 选项 */}
+                      <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="radio"
                           name="billing"
                           value="yes"
                           checked={needsBillingAddress}
                           onChange={() => setNeedsBillingAddress(true)}
-                          className="h-5 w-5 accent-blue-600"
+                          className="sr-only peer"
                         />
-                        <span>yes</span>
+                        <div
+                          className={`w-5 h-5 border border-gray-400 rounded-full flex items-center justify-center ${
+                            needsBillingAddress ? "bg-[#012CCE] border-transparent" : ""
+                          }`}
+                        >
+                          {needsBillingAddress && (
+                            <svg
+                              width="10"
+                              height="8"
+                              viewBox="0 0 12 8"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M1.5 3.5L5 7L11 1"
+                                stroke="white"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                        <span className="text-l">yes</span>
                       </label>
                     </div>
+
 
                     {needsBillingAddress && (
                       <div className="mt-4 space-y-4">
@@ -611,7 +663,7 @@ export default function CheckoutPage() {
               >
                 <h2 className="text-2xl">02 Delivery</h2>
                 <button className="p-2">
-                  {isReviewOpen ? (
+                  {isDeliveryOpen ? (
                     // 当打开时显示减号图标
                     <svg
                       width="16"
@@ -656,47 +708,132 @@ export default function CheckoutPage() {
                 </button>
               </div>
               {isDeliveryOpen && (
-                <div className="mt-4">
-                  <p className="text-sm text-gray-600 mb-4">选择你的配送方式</p>
-                  <div className="flex flex-col gap-2">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="deliveryMethod"
-                        className="h-4 w-4 accent-blue-600"
-                        defaultChecked
-                      />
-                      <span className="text-sm">
-                        Standard (5-7 business days) - $0
-                      </span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="deliveryMethod"
-                        className="h-4 w-4 accent-blue-600"
-                      />
-                      <span className="text-sm">
-                        Express (2-3 business days) - $9.99
-                      </span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="deliveryMethod"
-                        className="h-4 w-4 accent-blue-600"
-                      />
-                      <span className="text-sm">
-                        Overnight (1 business day) - $19.99
-                      </span>
-                    </label>
-                  </div>
+                <div className="mt-4 space-y-4 text-center">
+                  {/* 第一个配送选项：Standard */}
+                  <label className="p-6 rounded-[4px] bg-white flex flex-col gap-1">
+                    {/* 第一行：左侧为按钮和标题，右侧为价格 */}
+                    <div className="flex justify-between items-center">
+                      {/* 左侧按钮和标题 */}
+                      <div className="flex flex-row gap-3 items-center">
+                        <input
+                          type="radio"
+                          name="deliveryMethod"
+                          className="sr-only" 
+                          checked={selectedOption === "Standard"}
+                          onChange={() => setSelectedOption("Standard")}
+                        />
+                        <div
+                          className={`w-5 h-5 border border-gray-400 rounded-full flex items-center justify-center ${
+                            selectedOption === "Standard" ? "bg-[#012CCE] border-transparent" : ""
+                          }`}
+                        >
+                          {selectedOption === "Standard" && (
+                            <svg
+                              width="12"
+                              height="8"
+                              viewBox="0 0 12 8"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M1.5 3.5L5 7L11 1"
+                                stroke="white"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                        <span className="text-[18px] font-medium">Standard</span>
+                      </div>
+                      {/* 右侧价格 */}
+                      <span className="text-[18px] font-medium">$19.99 USD</span>
+                    </div>
+
+                    {/* 第二部分：配送详情 */}
+                    <div className="px-8 flex-1 flex flex-col gap-1">
+                      <div className="flex flex-row gap-1">
+                        <p className="text-l font-normal text-[#222222]">
+                          Estimated delivery:
+                        </p>
+                        <p className="text-l font-medium text-[#012CCE]">
+                          December 10 2024
+                        </p>
+                      </div>
+                      <p className="text-l text-[#999999] flex">
+                        Delivered by your trusty postperson with the speed and reliability you&apos;re used to.
+                      </p>
+                    </div>
+                  </label>
+ 
+
+                  {/* 第二个配送选项：Express */}
+                  <label className="p-6 rounded-[4px] bg-white flex flex-col gap-1">
+                    {/* 第一行：左侧为按钮和标题，右侧为价格 */}
+                    <div className="flex justify-between items-center">
+                      {/* 左侧按钮和标题 */}
+                      <div className="flex flex-row gap-3 items-center">
+                        <input
+                          type="radio"
+                          name="deliveryMethod"
+                          className="sr-only" 
+                          checked={selectedOption === "Express"}
+                          onChange={() => setSelectedOption("Express")}
+                        />
+                        <div
+                          className={`w-5 h-5 border border-gray-400 rounded-full flex items-center justify-center ${
+                            selectedOption === "Express" ? "bg-[#012CCE] border-transparent" : ""
+                          }`}
+                        >
+                          {selectedOption === "Express" && (
+                            <svg
+                              width="12"
+                              height="8"
+                              viewBox="0 0 12 8"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M1.5 3.5L5 7L11 1"
+                                stroke="white"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                        <span className="text-[18px] font-medium">Express</span>
+                      </div>
+                      {/* 右侧价格 */}
+                      <span className="text-[18px] font-medium">$19.99 USD</span>
+                    </div>
+                    {/* 第二部分：配送详情 */}
+                    <div className="px-8 flex-1 flex flex-col gap-1">
+                      <div className="flex flex-row gap-1">
+                        <p className="text-l font-normal text-[#222222]">
+                          Estimated delivery:
+                        </p>
+                        <p className="text-l font-medium text-[#012CCE]">
+                          December 7 2024
+                        </p>
+                      </div>
+                      <p className="text-l text-[#999999] flex">
+                        So speedy, it'll get to you much faster than standard delivery.
+                      </p>
+                      <p className="text-l text-[#999999] flex">
+                        Plus, you can follow your parcel online. (Delivered by UPS Ground so no PO Boxes please)
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* 按钮 */}
                   <button
-                    type="button"
-                    onClick={handleNextFromDelivery}
-                    className="mt-4 w-full bg-black text-white py-2 rounded text-sm"
-                  >
-                    Next: Review & Pay
+                      onClick={handleNextFromDelivery}
+                      className="bg-black text-white px-4 py-2 rounded text-sm"
+                    >
+                    continue to payment
                   </button>
                 </div>
               )}
@@ -753,10 +890,39 @@ export default function CheckoutPage() {
                     </svg>
                   )}
                 </button>
-
               </div>
               {isReviewOpen && (
-                <div className="mt-4">
+                <div className="mt-4 space-y-4 text-center">
+                {/* 第一个配送选项：Standard */}
+                <div className="p-6 rounded-[4px] bg-white flex flex-col gap-1">
+                  <div className="flex-1 flex flex-col gap-1">
+                    <div className="flex flex-row gap-1">
+                      <p className="flex text-l w-[64px] text-[#999999]">
+                        Contact
+                      </p>
+                      <p className="text-l text-[#222222]">
+                        15574892055@163.com
+                      </p>
+                    </div>
+                    <div className="flex flex-row gap-1">
+                      <p className="flex text-l w-[64px] text-[#999999]">
+                        Ship to
+                      </p>
+                      <p className="text-l text-[#222222]">
+                        szzckduydskj, s, 400000, adxcuix7ds, United States
+                      </p>
+                    </div>
+                    <div className="flex flex-row gap-1">
+                      <p className="flex text-l w-[64px] text-[#999999]">
+                        Delivery
+                      </p>
+                      <p className="text-l text-[#222222]">
+                        Standard (Get it by Tuesday, December 10)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
                   <p className="text-sm text-gray-600 mb-4">
                     最后确认你的订单并选择支付方式
                   </p>
