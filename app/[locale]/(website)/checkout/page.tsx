@@ -555,7 +555,7 @@ export default function CheckoutPage() {
                       <div className="mt-4 space-y-4">
                         {/* Billing Email */}
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">
+                          <label className="block text-medium font-medium text-[#222222]">
                             Billing Email
                           </label>
                           <input
@@ -578,7 +578,7 @@ export default function CheckoutPage() {
                         {/* Billing First & Last Name */}
                         <div className="flex gap-4">
                           <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-700">
+                            <label className="block ttext-medium font-medium text-[#222222]">
                               First Name
                             </label>
                             <input
@@ -599,7 +599,7 @@ export default function CheckoutPage() {
                             )}
                           </div>
                           <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-700">
+                            <label className="block text-medium font-medium text-[#222222]">
                               Last Name
                             </label>
                             <input
@@ -622,7 +622,7 @@ export default function CheckoutPage() {
                         </div>
                         {/* Billing Address */}
                         <div>
-                          <label className="block text-sm font-medium text-gray-700">
+                          <label className="block text-medium font-medium text-[#222222]">
                             Billing Address
                           </label>
                           <input
