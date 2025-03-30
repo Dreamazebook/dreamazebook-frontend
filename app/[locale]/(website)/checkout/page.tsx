@@ -90,14 +90,14 @@ export default function CheckoutPage() {
   // Shipping 步骤：校验必填项并显示错误信息
   const handleNextFromShipping = () => {
     let newErrors: ShippingErrors = {};
-    if (!email) newErrors.email = '必填项';
-    if (!firstName) newErrors.firstName = '必填项';
-    if (!lastName) newErrors.lastName = '必填项';
-    if (!address) newErrors.address = '必填项';
-    if (!city) newErrors.city = '必填项';
-    if (!zip) newErrors.zip = '必填项';
-    if (!country) newErrors.country = '必填项';
-    if (!state) newErrors.state = '必填项';
+    if (!email) newErrors.email = 'Required';
+    if (!firstName) newErrors.firstName = 'Required';
+    if (!lastName) newErrors.lastName = 'Required';
+    if (!address) newErrors.address = 'Required';
+    if (!city) newErrors.city = 'Required';
+    if (!zip) newErrors.zip = 'Required';
+    if (!country) newErrors.country = 'Required';
+    if (!state) newErrors.state = 'Required';
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -113,10 +113,10 @@ export default function CheckoutPage() {
         billingLastName?: string;
         billingAddress?: string;
       } = {};
-      if (!billingEmail) newBillingErrors.billingEmail = '必填项';
-      if (!billingFirstName) newBillingErrors.billingFirstName = '必填项';
-      if (!billingLastName) newBillingErrors.billingLastName = '必填项';
-      if (!billingAddress) newBillingErrors.billingAddress = '必填项';
+      if (!billingEmail) newBillingErrors.billingEmail = 'Required';
+      if (!billingFirstName) newBillingErrors.billingFirstName = 'Required';
+      if (!billingLastName) newBillingErrors.billingLastName = 'Required';
+      if (!billingAddress) newBillingErrors.billingAddress = 'Required';
 
       if (Object.keys(newBillingErrors).length > 0) {
         setBillingErrors(newBillingErrors);
@@ -139,7 +139,8 @@ export default function CheckoutPage() {
     alert('订单已提交！');
   };
 
-  const [selectedOption, setSelectedOption] = useState<"Standard" | "Express">("Standard");
+  const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<"Standard" | "Express">("Standard");
+  const [selectedPaymentOption, setSelectedPaymentOption] = useState<"card" | "paypal" | null>(null);
 
   return (
     <div className="min-h-screen">
@@ -719,15 +720,15 @@ export default function CheckoutPage() {
                           type="radio"
                           name="deliveryMethod"
                           className="sr-only" 
-                          checked={selectedOption === "Standard"}
-                          onChange={() => setSelectedOption("Standard")}
+                          checked={selectedDeliveryOption === "Standard"}
+                          onChange={() => setSelectedDeliveryOption("Standard")}
                         />
                         <div
                           className={`w-5 h-5 border border-gray-400 rounded-full flex items-center justify-center ${
-                            selectedOption === "Standard" ? "bg-[#012CCE] border-transparent" : ""
+                            selectedDeliveryOption === "Standard" ? "bg-[#012CCE] border-transparent" : ""
                           }`}
                         >
-                          {selectedOption === "Standard" && (
+                          {selectedDeliveryOption === "Standard" && (
                             <svg
                               width="12"
                               height="8"
@@ -778,15 +779,15 @@ export default function CheckoutPage() {
                           type="radio"
                           name="deliveryMethod"
                           className="sr-only" 
-                          checked={selectedOption === "Express"}
-                          onChange={() => setSelectedOption("Express")}
+                          checked={selectedDeliveryOption === "Express"}
+                          onChange={() => setSelectedDeliveryOption("Express")}
                         />
                         <div
                           className={`w-5 h-5 border border-gray-400 rounded-full flex items-center justify-center ${
-                            selectedOption === "Express" ? "bg-[#012CCE] border-transparent" : ""
+                            selectedDeliveryOption === "Express" ? "bg-[#012CCE] border-transparent" : ""
                           }`}
                         >
-                          {selectedOption === "Express" && (
+                          {selectedDeliveryOption === "Express" && (
                             <svg
                               width="12"
                               height="8"
@@ -893,63 +894,113 @@ export default function CheckoutPage() {
               </div>
               {isReviewOpen && (
                 <div className="mt-4 space-y-4 text-center">
-                {/* 第一个配送选项：Standard */}
-                <div className="p-6 rounded-[4px] bg-white flex flex-col gap-1">
-                  <div className="flex-1 flex flex-col gap-1">
-                    <div className="flex flex-row gap-1">
-                      <p className="flex text-l w-[64px] text-[#999999]">
-                        Contact
-                      </p>
-                      <p className="text-l text-[#222222]">
-                        15574892055@163.com
-                      </p>
-                    </div>
-                    <div className="flex flex-row gap-1">
-                      <p className="flex text-l w-[64px] text-[#999999]">
-                        Ship to
-                      </p>
-                      <p className="text-l text-[#222222]">
-                        szzckduydskj, s, 400000, adxcuix7ds, United States
-                      </p>
-                    </div>
-                    <div className="flex flex-row gap-1">
-                      <p className="flex text-l w-[64px] text-[#999999]">
-                        Delivery
-                      </p>
-                      <p className="text-l text-[#222222]">
-                        Standard (Get it by Tuesday, December 10)
-                      </p>
+                  {/* detail*/}
+                  <div className="p-6 rounded-[4px] bg-white flex flex-col gap-1">
+                    <div className="flex-1 flex flex-col gap-1">
+                      <div className="flex flex-row gap-1">
+                        <p className="flex text-l w-[64px] text-[#999999]">
+                          Contact
+                        </p>
+                        <p className="text-l text-[#222222]">
+                          15574892055@163.com
+                        </p>
+                      </div>
+                      <div className="flex flex-row gap-1">
+                        <p className="flex text-l w-[64px] text-[#999999]">
+                          Ship to
+                        </p>
+                        <p className="text-l text-[#222222]">
+                          szzckduydskj, s, 400000, adxcuix7ds, United States
+                        </p>
+                      </div>
+                      <div className="flex flex-row gap-1">
+                        <p className="flex text-l w-[64px] text-[#999999]">
+                          Delivery
+                        </p>
+                        <p className="text-l text-[#222222]">
+                          Standard (Get it by Tuesday, December 10)
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
                 
-                  <p className="text-sm text-gray-600 mb-4">
-                    最后确认你的订单并选择支付方式
-                  </p>
-                  <div className="flex flex-col gap-2">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        className="h-4 w-4 accent-blue-600"
-                        defaultChecked
-                      />
-                      <span className="text-sm">Credit Card</span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        className="h-4 w-4 accent-blue-600"
-                      />
-                      <span className="text-sm">PayPal</span>
-                    </label>
+                  <div className="p-6 rounded-[4px] bg-white flex flex-col gap-1">
+                    <div className="flex-1 flex flex-col gap-1">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          className="sr-only" 
+                          checked={selectedPaymentOption === "card"}
+                          onChange={() => setSelectedPaymentOption("card")}
+                        />
+                        <div
+                          className={`w-5 h-5 border border-gray-400 rounded-full flex items-center justify-center ${
+                            selectedPaymentOption === "card" ? "bg-[#012CCE] border-transparent" : ""
+                          }`}
+                        >
+                          {selectedPaymentOption === "card" && (
+                            <svg
+                              width="12"
+                              height="8"
+                              viewBox="0 0 12 8"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M1.5 3.5L5 7L11 1"
+                                stroke="white"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                        <span className="text-l">Credit Card</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          className="sr-only" 
+                          checked={selectedPaymentOption === "paypal"}
+                          onChange={() => setSelectedPaymentOption("paypal")}
+                        />
+                        <div
+                          className={`w-5 h-5 border border-gray-400 rounded-full flex items-center justify-center ${
+                            selectedPaymentOption === "paypal" ? "bg-[#012CCE] border-transparent" : ""
+                          }`}
+                        >
+                          {selectedPaymentOption === "paypal" && (
+                            <svg
+                              width="12"
+                              height="8"
+                              viewBox="0 0 12 8"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M1.5 3.5L5 7L11 1"
+                                stroke="white"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                        <span className="text-l">PayPal</span>
+                      </label>
+                    </div>
                   </div>
+                  <p className="text-sm text-[#999999] mb-4">
+                    Complete your payment with one of our secure checkout methods.
+                  </p>
                   <button
-                    type="button"
-                    onClick={handlePlaceOrder}
-                    className="mt-4 w-full bg-black text-white py-2 rounded text-sm"
-                  >
+                      onClick={handlePlaceOrder}
+                      className="bg-black text-white px-4 py-2 rounded text-sm"
+                    >
                     Place Order
                   </button>
                 </div>
