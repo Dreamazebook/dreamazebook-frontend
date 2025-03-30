@@ -180,7 +180,50 @@ export default function CheckoutPage() {
                   快速结账
                 </p>
               </div>
-              <button className="text-xl">{isShippingOpen ? '-' : '+'}</button>
+              <button className="p-2">
+                  {isReviewOpen ? (
+                    // 当打开时显示减号图标
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M2 8H14"
+                        stroke="#222222"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  ) : (
+                    // 当关闭时显示加号图标
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M8 2V14"
+                        stroke="#222222"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M2 8H14"
+                        stroke="#222222"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                </button>
             </div>
             {isShippingOpen && (
               <div className="rounded-[4px]">
@@ -194,7 +237,7 @@ export default function CheckoutPage() {
                       <input
                         type="email"
                         className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                        placeholder="请输入邮箱"
+                        placeholder="Enter your email"
                         value={email}
                         onChange={(e) => {
                           const val = e.target.value;
@@ -233,7 +276,7 @@ export default function CheckoutPage() {
                         <input
                           type="text"
                           className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                          placeholder="请输入名"
+                          placeholder="Enter your first name"
                           value={firstName}
                           onChange={(e) => {
                             const val = e.target.value;
@@ -254,7 +297,7 @@ export default function CheckoutPage() {
                         <input
                           type="text"
                           className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                          placeholder="请输入姓"
+                          placeholder="Enter your last name"
                           value={lastName}
                           onChange={(e) => {
                             const val = e.target.value;
@@ -277,7 +320,7 @@ export default function CheckoutPage() {
                       <input
                         type="text"
                         className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                        placeholder="请输入地址"
+                        placeholder="Enter your address"
                         value={address}
                         onChange={(e) => {
                           const val = e.target.value;
@@ -299,7 +342,7 @@ export default function CheckoutPage() {
                       <input
                         type="text"
                         className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                        placeholder="请输入公寓号/楼层等"
+                        placeholder="Enter your apartment/building/etc."
                         value={apt}
                         onChange={(e) => setApt(e.target.value)}
                       />
@@ -313,7 +356,7 @@ export default function CheckoutPage() {
                         <input
                           type="text"
                           className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                          placeholder="请输入城市"
+                          placeholder="Enter your city"
                           value={city}
                           onChange={(e) => {
                             const val = e.target.value;
@@ -334,7 +377,7 @@ export default function CheckoutPage() {
                         <input
                           type="text"
                           className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                          placeholder="请输入邮编"
+                          placeholder="Enter your ZIP code"
                           value={zip}
                           onChange={(e) => {
                             const val = e.target.value;
@@ -358,7 +401,7 @@ export default function CheckoutPage() {
                         <input
                           type="text"
                           className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                          placeholder="请输入国家"
+                          placeholder="Enter your country"
                           value={country}
                           onChange={(e) => {
                             const val = e.target.value;
@@ -379,7 +422,7 @@ export default function CheckoutPage() {
                         <input
                           type="text"
                           className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                          placeholder="请输入省份/州"
+                          placeholder="Enter your state/province"
                           value={state}
                           onChange={(e) => {
                             const val = e.target.value;
@@ -402,7 +445,7 @@ export default function CheckoutPage() {
                       <input
                         type="text"
                         className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                        placeholder="请输入电话"
+                        placeholder="Enter your phone number"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                       />
@@ -452,7 +495,7 @@ export default function CheckoutPage() {
                           </label>
                           <input
                             type="email"
-                            placeholder="请输入账单邮箱"
+                            placeholder="Enter your billing email"
                             value={billingEmail}
                             onChange={(e) => {
                               const val = e.target.value;
@@ -475,7 +518,7 @@ export default function CheckoutPage() {
                             </label>
                             <input
                               type="text"
-                              placeholder="请输入名"
+                              placeholder="Enter your billing first name"
                               value={billingFirstName}
                               onChange={(e) => {
                                 const val = e.target.value;
@@ -496,7 +539,7 @@ export default function CheckoutPage() {
                             </label>
                             <input
                               type="text"
-                              placeholder="请输入姓"
+                              placeholder="Enter your billing last name"
                               value={billingLastName}
                               onChange={(e) => {
                                 const val = e.target.value;
@@ -519,7 +562,7 @@ export default function CheckoutPage() {
                           </label>
                           <input
                             type="text"
-                            placeholder="请输入账单地址"
+                            placeholder="Enter your billing address"
                             value={billingAddress}
                             onChange={(e) => {
                               const val = e.target.value;
@@ -562,13 +605,55 @@ export default function CheckoutPage() {
             )}
 
             {/* 02 Delivery */}
-            <div className="rounded-md shadow p-4">
-              <div
-                className="flex justify-between items-center cursor-pointer"
+            <div>
+              <div className="flex justify-between items-center cursor-pointer border-t pt-4 border-[#E5E5E5]"
                 onClick={() => setIsDeliveryOpen(!isDeliveryOpen)}
               >
-                <h2 className="text-lg font-semibold">02 Delivery</h2>
-                <button className="text-xl">{isDeliveryOpen ? '-' : '+'}</button>
+                <h2 className="text-2xl">02 Delivery</h2>
+                <button className="p-2">
+                  {isReviewOpen ? (
+                    // 当打开时显示减号图标
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M2 8H14"
+                        stroke="#222222"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  ) : (
+                    // 当关闭时显示加号图标
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M8 2V14"
+                        stroke="#222222"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M2 8H14"
+                        stroke="#222222"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                </button>
               </div>
               {isDeliveryOpen && (
                 <div className="mt-4">
@@ -618,13 +703,57 @@ export default function CheckoutPage() {
             </div>
 
             {/* 03 Review & Pay */}
-            <div className="rounded-md shadow p-4">
+            <div>
               <div
-                className="flex justify-between items-center cursor-pointer"
+                className="flex justify-between items-center cursor-pointer border-t pt-4 border-[#E5E5E5]"
                 onClick={() => setIsReviewOpen(!isReviewOpen)}
               >
-                <h2 className="text-lg font-semibold">03 Review &amp; Pay</h2>
-                <button className="text-xl">{isReviewOpen ? '-' : '+'}</button>
+                <h2 className="text-2xl">03 Review &amp; Pay</h2>
+                <button className="p-2">
+                  {isReviewOpen ? (
+                    // 当打开时显示减号图标
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M2 8H14"
+                        stroke="#222222"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  ) : (
+                    // 当关闭时显示加号图标
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M8 2V14"
+                        stroke="#222222"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M2 8H14"
+                        stroke="#222222"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                </button>
+
               </div>
               {isReviewOpen && (
                 <div className="mt-4">
