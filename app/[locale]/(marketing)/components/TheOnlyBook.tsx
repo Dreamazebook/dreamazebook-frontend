@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Container } from "./Container";
 import { ContainerTitle } from "./ContainerTitle";
 import { ContainerDesc } from "./ContainerDesc";
+import { THE_ONLY_BOOK } from "@/constants/cdn";
 
 export default function TheOnlyBook() {
   return (
@@ -19,7 +20,7 @@ export default function TheOnlyBook() {
           <Image src='/welcome/the-only-book/star.png' width={36} height={36} alt="Star" />
         </p>
 
-        <video className="w-full hidden md:block" autoPlay loop muted src="/welcome/the-only-book/video.mp4" />
+        <video className="w-full hidden md:block" autoPlay loop muted src={THE_ONLY_BOOK} />
         <div className="md:hidden w-full relative aspect-[2/1]">
           <DreamzeImage src="/welcome/the-only-book/video.gif" alt="Face swap" unoptimized={true} />
         </div>
