@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 interface CartItem {
   id: number;
   name: string;
-  edition?: string;
-  description?: string;
+  format?: string;
+  box?: string;
   image: string;
   price: number;
   quantity: number;
@@ -14,21 +14,21 @@ interface CartItem {
 const mockCartItems: CartItem[] = [
   {
     id: 1,
-    name: 'Premium Jumbo Hardcover',
-    edition: 'Festive Gift Box',
-    description: 'Special edition with gift wrap',
-    image: '/cover1.png',
+    name: 'Book name',
+    box: 'Premium Jumbo Hardcover',
+    format: 'Festive Gift Box',
+    image: '/book.png',
     price: 159.99,
     quantity: 1,
   },
   {
     id: 2,
-    name: 'Softcover Book',
-    edition: 'Standard Edition',
-    description: 'Lightweight and portable',
-    image: '/cover2.png',
+    name: 'Book name',
+    box: 'Softcover Book',
+    format: 'Standard Edition',
+    image: '/book.png',
     price: 39.99,
-    quantity: 2,
+    quantity: 1,
   },
 ];
 
@@ -126,24 +126,36 @@ export default function CheckoutPage() {
     }
 
     // 校验通过，隐藏 Shipping 部分，显示 Delivery 部分
+    setShippingCompleted(true);
     setIsShippingOpen(false);
     setIsDeliveryOpen(true);
   };
 
   const handleNextFromDelivery = () => {
+    setDeliveryCompleted(true);
     setIsDeliveryOpen(false);
     setIsReviewOpen(true);
   };
 
   const handlePlaceOrder = () => {
-    alert('订单已提交！');
+    if (!selectedPaymentOption) {
+      alert("Please select a payment method before placing your order.");
+      return;
+    }
+
+    alert('Order submitted!');
   };
 
   const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<"Standard" | "Express">("Standard");
   const [selectedPaymentOption, setSelectedPaymentOption] = useState<"card" | "paypal" | null>(null);
+  
+  const [shippingCompleted, setShippingCompleted] = useState(false);
+  const [deliveryCompleted, setDeliveryCompleted] = useState(false);
+  //const [paymentCompleted, setPaymentCompleted] = useState(false);
+
 
   return (
-    <div className="min-h-screen">
+    <div className="flex-grow">
       <div className="mx-auto flex flex-row">
         {/* 左侧：Back 区域和 Shipping / Delivery / Review & Pay */}
         <div className="flex-1 min-w-0 bg-gray-50 flex flex-col gap-6">
@@ -660,53 +672,61 @@ export default function CheckoutPage() {
             {/* 02 Delivery */}
             <div>
               <div className="flex justify-between items-center cursor-pointer border-t pt-4 border-[#E5E5E5]"
-                onClick={() => setIsDeliveryOpen(!isDeliveryOpen)}
+                onClick={() => {
+                  if (shippingCompleted) {
+                    setIsDeliveryOpen(!isDeliveryOpen);
+                  } else {
+                    alert("Please fill in Shipping information first");
+                  }
+                }}
               >
-                <h2 className="text-2xl">02 Delivery</h2>
-                <button className="p-2">
-                  {isDeliveryOpen ? (
-                    // 当打开时显示减号图标
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M2 8H14"
-                        stroke="#222222"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  ) : (
-                    // 当关闭时显示加号图标
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M8 2V14"
-                        stroke="#222222"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M2 8H14"
-                        stroke="#222222"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  )}
-                </button>
+                <h2 className={`text-2xl ${!shippingCompleted ? 'text-[#999999]' : ''}`}>02 Delivery</h2>
+                {shippingCompleted && (
+                  <button className="p-2">
+                    {isDeliveryOpen ? (
+                      // 当打开时显示减号图标
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M2 8H14"
+                          stroke="#222222"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    ) : (
+                      // 当关闭时显示加号图标
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M8 2V14"
+                          stroke="#222222"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M2 8H14"
+                          stroke="#222222"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                )}
               </div>
               {isDeliveryOpen && (
                 <div className="mt-4 space-y-4 text-center">
@@ -844,53 +864,61 @@ export default function CheckoutPage() {
             <div>
               <div
                 className="flex justify-between items-center cursor-pointer border-t pt-4 border-[#E5E5E5]"
-                onClick={() => setIsReviewOpen(!isReviewOpen)}
+                onClick={() => {
+                  if (deliveryCompleted) {
+                    setIsReviewOpen(!isReviewOpen);
+                  } else {
+                    alert("Please fill in delivery information first");
+                  }
+                }}
               >
-                <h2 className="text-2xl">03 Review &amp; Pay</h2>
-                <button className="p-2">
-                  {isReviewOpen ? (
-                    // 当打开时显示减号图标
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M2 8H14"
-                        stroke="#222222"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  ) : (
-                    // 当关闭时显示加号图标
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M8 2V14"
-                        stroke="#222222"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <path
-                        d="M2 8H14"
-                        stroke="#222222"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  )}
-                </button>
+                <h2 className={`text-2xl ${!deliveryCompleted ? 'text-[#999999]' : ''}`}>03 Review &amp; Pay</h2>
+                {deliveryCompleted && (
+                  <button className="p-2">
+                    {isReviewOpen ? (
+                      // 当打开时显示减号图标
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M2 8H14"
+                          stroke="#222222"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    ) : (
+                      // 当关闭时显示加号图标
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M8 2V14"
+                          stroke="#222222"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                        <path
+                          d="M2 8H14"
+                          stroke="#222222"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                )}
               </div>
               {isReviewOpen && (
                 <div className="mt-4 space-y-4 text-center">
@@ -1018,20 +1046,22 @@ export default function CheckoutPage() {
                 <img
                   src={item.image}
                   alt={item.name}
-                  className="w-16 h-16 object-cover rounded"
+                  className="w-16 h-20 object-cover rounded"
                 />
-                <div className="flex-1 text-sm">
-                  <p className="font-medium">{item.name}</p>
-                  {item.edition && <p className="text-gray-500">{item.edition}</p>}
-                  <p className="text-gray-500">Qty: {item.quantity}</p>
+                <div className="flex-1 flex flex-col text-sm gap-3">
+                  <div>
+                    <p className="font-medium">{item.name}</p>
+                    {item.box && <p className="text-gray-500">{item.format}</p>}
+                    <p className="text-gray-500">{item.box}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">${(item.price).toFixed(2)}</p>
+                  </div>
                 </div>
-                <p className="text-sm font-semibold">
-                  ${(item.price * item.quantity).toFixed(2)}
-                </p>
               </div>
             ))}
           </div>
-          <div className="border-t border-gray-300 mt-4 pt-4 text-sm space-y-2">
+          <div className="border-t border-[#E5E5E5] mt-4 pt-4 text-sm space-y-2">
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span>${subtotal.toFixed(2)}</span>
@@ -1044,7 +1074,7 @@ export default function CheckoutPage() {
               <span>Discount</span>
               <span>-${discount.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between font-bold text-base pt-2">
+            <div className="border-t border-[#E5E5E5] flex justify-between font-bold text-base pt-2">
               <span>Total</span>
               <span>${total.toFixed(2)}</span>
             </div>    
