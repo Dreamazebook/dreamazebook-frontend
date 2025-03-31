@@ -1,23 +1,24 @@
 import DreamzeImage from '@/app/components/DreamzeImage';
 import { Container } from './Container';
 import { ContainerTitle } from './ContainerTitle';
+import { FIRST_ACCESS, KICKSTARTER, LIMITED_GIFT_PACKAGE, LOCK_IN_OFF } from '@/constants/cdn';
 
 export default function PromotionBanner() {
   const PROMOTION_BANNERS = [
     {
       tl: 'Lock in 40% Off',
       desc: 'Reserve now before this exclusive VIP discount disappears!',
-      img: '/welcome/why-sign-up-today/lock-in-40-off.png'
+      img: LOCK_IN_OFF
     },
     {
       tl: 'Be First to Create Joy',
       desc: 'Get early access to preview and personalize — before anyone else. Lead the magic!',
-      img: '/welcome/why-sign-up-today/first-access.png'
+      img: FIRST_ACCESS
     },
     {
       tl: 'Exclusive Early-Bird Gift',
       desc: 'A special thank-you for early believers — limited spots, gone fast!',
-      img: '/welcome/why-sign-up-today/limited-gift-package.png',
+      img: LIMITED_GIFT_PACKAGE,
       cssClasses:'col-span-full md:col-span-1'
     }
   ];
@@ -42,7 +43,7 @@ export default function PromotionBanner() {
         </div>
       </div>
       <div className='relative aspect-[616/30] max-w-[323px] md:max-w-[616px] mx-auto mt-24'> 
-        <DreamzeImage src={'/welcome/kickstarter.png'} alt="Kickstarter" />
+        <DreamzeImage src={KICKSTARTER} alt="Kickstarter" />
       </div>
     </Container>
   )

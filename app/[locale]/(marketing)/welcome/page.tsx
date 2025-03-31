@@ -14,6 +14,7 @@ import Footer from "../components/Footer";
 import HeroBanner from "../components/HeroBanner";
 import { AboutUs } from "../components/AboutUs";
 import BelovedByEarlyTesters from "../components/BelovedByEarlyTesters";
+import { DREAMAZEBOOK_LOGO } from "@/constants/cdn";
 
 
 export default function LandingPage() {
@@ -38,7 +39,7 @@ export default function LandingPage() {
 
   return (
     <main className="bg-white relative">
-      <Image className="absolute top-0 left-10" src={'/welcome/dreamaze-logo.png'} alt="Logo" width={168} height={56} />
+      <Image className="absolute top-0 left-10" src={DREAMAZEBOOK_LOGO} alt="Logo" width={168} height={56} />
       <HeroBanner />
 
       <AnimatedSection>

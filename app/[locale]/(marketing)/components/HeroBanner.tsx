@@ -1,6 +1,7 @@
 import { AnimatedSection } from "@/app/components/AnimatedSection";
 import EmailForm from "./EmailForm";
 import DreamzeImage from "@/app/components/DreamzeImage";
+import { EMAIL_AVATARS } from "@/constants/cdn";
 
 export default function HeroBanner() {
   return (
@@ -26,7 +27,7 @@ export default function HeroBanner() {
             </div>
             <div className="flex items-center gap-4 justify-center md:justify-start">
               <div className="relative w-[114px] md:w-[156px] aspect-[19/4]">
-                <DreamzeImage src="/welcome/herobanner/email-avatars.png" alt="Email Subscribers" />
+                <DreamzeImage src={EMAIL_AVATARS} alt="Email Subscribers" />
               </div>
               <p className="text-[#222222]">800+ people have reserved</p>
             </div>
