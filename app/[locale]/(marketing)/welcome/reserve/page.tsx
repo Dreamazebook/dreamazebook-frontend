@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { sendRequest } from "@/utils/subscription";
 import VIPOnlyPerk from "../components/VIPOnlyPerk";
+import { CREATOR_RECOMMENDATION, MORE_MAGIC, MOST_PEOPLE_CHOICE } from "@/constants/cdn";
 
 
 const NEXT_PUBLIC_STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
@@ -29,7 +30,7 @@ const PRICES = [
   {
     headerStyle:'bg-linear-to-r from-[#FF638A] from-20% to-[#FF2566] to-[100%] text-transparent bg-clip-text',
      header: 'Creator\'s Recommendation',
-     headerImg: '/welcome/product-book/creator-recommendation.png',
+     headerImg: CREATOR_RECOMMENDATION,
      tl: 'Hardcover',
      id: 'hardcover',
      discount: '$45',
@@ -39,7 +40,7 @@ const PRICES = [
   {
     headerStyle:'bg-linear-to-r from-[#FF638A] from-20% via-[#FF8383] via-46% via-[#867BFF] via-75% to-[#FF2566] to-[100%] text-transparent bg-clip-text',
      header: 'Most People\'s Choice',
-     headerImg: '/welcome/product-book/most-people-choice.png',
+     headerImg: MOST_PEOPLE_CHOICE,
      tl: 'Premium Lay-Flat Hardcover',
      id: 'lay-flat',
      discount: '$58',
@@ -151,7 +152,7 @@ export default function Reserve() {
           <p className="text-[#222222] font-light text-sm md:text-[28px] text-center">“More magical stories are coming<br/>
           Join as a VIP and help spark ideas for our next books”</p>
           <div className="relative w-[160px] aspect-[133/100] mx-auto md:mx-0">
-            <DreamzeImage src="/welcome/more-magic.webp" alt="More Magic" />
+            <DreamzeImage src={MORE_MAGIC} alt="More Magic" />
           </div>
         </div>
       </section>

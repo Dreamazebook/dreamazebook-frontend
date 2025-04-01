@@ -61,3 +61,27 @@ export const VIP_PERK_UNLOCK_GIFT = `${CLOUDFLARE_CDN_URL}vip-perk-unlock-gift.p
 export const VIP_PERK_FIRST_PICK = `${CLOUDFLARE_CDN_URL}vip-perk-first-pick.png`;
 export const VIP_PERK_ITEM_BG_APP = `${CLOUDFLARE_CDN_URL}vip-perk-item-bg-app.png`;
 export const VIP_PERK_ITEM_BG = `${CLOUDFLARE_CDN_URL}vip-perk-item-bg.png`;
+
+export const SOFTCOVER = `${CLOUDFLARE_CDN_URL}softcover.png`;
+export const HARDCOVER = `${CLOUDFLARE_CDN_URL}hardcover.png`;
+export const LAY_FLAT = `${CLOUDFLARE_CDN_URL}lay-falt.png`;
+export const CREATOR_RECOMMENDATION = `${CLOUDFLARE_CDN_URL}creator-recommendation.png`;
+export const MOST_PEOPLE_CHOICE = `${CLOUDFLARE_CDN_URL}most-people-choice.png`;
+
+export const PREVIEW1 = `${CLOUDFLARE_CDN_URL}preview1.png`;
+export const PREVIEW2 = `${CLOUDFLARE_CDN_URL}preview2.png`;
+export const PREVIEW3 = `${CLOUDFLARE_CDN_URL}preview3.png`;
+export const PREVIEW4 = `${CLOUDFLARE_CDN_URL}preview4.png`;
+export const PREVIEW5 = `${CLOUDFLARE_CDN_URL}preview5.png`;
+export const PREVIEW_GOOD_NIGHT = `${CLOUDFLARE_CDN_URL}preview_good_night.png`;
+export const PREVIEW_GOOD_NIGHT_MOBILE = `${CLOUDFLARE_CDN_URL}preview_good_night_mobile.png`;
+export const PREVIEW_SANTAS_LETTER = `${CLOUDFLARE_CDN_URL}preview_santas_letter.png`;
+export const PREVIEW_SANTAS_LETTER_MOBILE = `${CLOUDFLARE_CDN_URL}preview_santas_letter_mobile.png`;
+export const PREVIEW_MELODY = `${CLOUDFLARE_CDN_URL}preview_melody.png`;
+export const PREVIEW_MELODY_MOBILE = `${CLOUDFLARE_CDN_URL}preview_melody_mobile.png`;
+export const PREVIEW_BIRTHDAY = `${CLOUDFLARE_CDN_URL}preview_birthday.png`;
+export const PREVIEW_BIRTHDAY_MOBILE = `${CLOUDFLARE_CDN_URL}preview_birthday_book_mobile.png`;
+export const PREVIEW_BRAVERY = `${CLOUDFLARE_CDN_URL}preview_bravery.png`;
+export const PREVIEW_BRAVERY_MOBILE = `${CLOUDFLARE_CDN_URL}preview_bravery_mobile.png`;
+
+export const MORE_MAGIC = `${CLOUDFLARE_CDN_URL}more-magic.webp`;
