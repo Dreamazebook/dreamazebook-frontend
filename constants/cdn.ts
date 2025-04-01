@@ -20,7 +20,7 @@ export const STAR = `${CLOUDFLARE_CDN_URL}star.png`;
 
 export const THE_ONLY_BOOK = `${CLOUDFLARE_CDN_URL}the-only-book.mp4`;
 
-export const THE_ONLY_BOOK_GIF = `${CLOUDFLARE_CDN_URL}video.gif`;
+export const THE_ONLY_BOOK_GIF = `${CLOUDFLARE_CDN_URL}the-only-book.gif`;
 
 export const THE_ONLY_BOOK_ISABELLA = `${CLOUDFLARE_CDN_URL}isabella.png`;
 
@@ -55,3 +55,8 @@ export const BELOVED_AMELIA = `${CLOUDFLARE_CDN_URL}beloved-amelia.png`;
 export const BELOVED_AMELIA_BG_APP = `${CLOUDFLARE_CDN_URL}beloved-amelia-bg-app.png`;
 export const BELOVED_AMELIA_BG = `${CLOUDFLARE_CDN_URL}beloved-amelia-bg.png`;
 export const BELOVED_START = `${CLOUDFLARE_CDN_URL}beloved-star.png`;
+
+export const VIP_PERK_SAVE_40 = `${CLOUDFLARE_CDN_URL}vip-perk-save-40.png`;
+export const VIP_PERK_UNLOCK_GIFT = `${CLOUDFLARE_CDN_URL}vip-perk-unlock-gift.png`;
+export const VIP_PERK_FIRST_PICK = `${CLOUDFLARE_CDN_URL}vip-perk-first-pick.png`;
+export const VIP_PERK_ITEM_BG_APP = `${CLOUDFLARE_CDN_URL}vip-perk-item-bg-app.png`;
