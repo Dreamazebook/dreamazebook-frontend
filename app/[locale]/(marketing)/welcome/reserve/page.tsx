@@ -1,6 +1,6 @@
 'use client';
 import FAQReserve from "../../components/FAQReserve";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Popup from "../../components/Popup";
 import Button from "@/app/components/Button";
 import Previews from "../components/Previews";
@@ -13,6 +13,7 @@ import DreamzeImage from "@/app/components/DreamzeImage";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { sendRequest } from "@/utils/subscription";
+import VIPOnlyPerk from "../components/VIPOnlyPerk";
 
 
 const NEXT_PUBLIC_STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
@@ -52,13 +53,7 @@ export default function Reserve() {
   const [showPopup, setShowPopup] = useState(false);
   const searchParams = useSearchParams()
 
-  useEffect(() => {
-    // Empty useEffect - previously contained beforeunload event handler
-    // that was commented out. Keeping the hook for potential future use.
-    updateBookCover(PRICES[1].id);
-  }, []);
-
-  const updateBookCover = async (tl: string) => {
+  const updateBookCover = useCallback(async (tl: string) => {
     setCurBookCover(tl);
     await sendRequest({
       url: '/api/subscriptions',
@@ -68,7 +63,13 @@ export default function Reserve() {
         email: searchParams.get('email') || '',
       },
     });
-  }
+  },[searchParams]);
+
+  useEffect(() => {
+    // Empty useEffect - previously contained beforeunload event handler
+    // that was commented out. Keeping the hook for potential future use.
+    updateBookCover(PRICES[1].id);
+  }, [updateBookCover]);
 
   const handleCoverClick = async (tl: string) => {
     await updateBookCover(tl);
@@ -107,7 +108,7 @@ export default function Reserve() {
         </div>
 
         <div className="p-6 lg:p-20 w-full lg:w-1/2 text-[#222222] lg:sticky top-0 lg:h-screen overflow-y-auto">
-          <ContainerTitle cssClass="text-left">Reserve Your Special Discount</ContainerTitle>
+          <ContainerTitle cssClass="text-left">Reserve Now to Unlock Exclusive Surprises</ContainerTitle>
           <ContainerDesc cssClass="text-left my-4">Choose your preferred format and reserve the lowest price ever.</ContainerDesc>
           
           <div className="my-5 md:my-9 flex flex-col gap-3">
@@ -134,10 +135,12 @@ export default function Reserve() {
           </div>
 
           <Button tl={'Reserve Discount for $1'} url={NEXT_PUBLIC_STRIPE_PAYMENT_LINK} handleClick={handlePayClick} />
-          <button onClick={()=>setShowPopup(true)} className="cursor-pointer w-full p-3 text-center mt-3">No thanks</button>
+          <button onClick={()=>setShowPopup(true)} className="cursor-pointer w-full p-3 text-center mt-3">Want to learn more? Join the Club!</button>
         </div>
 
       </div>
+
+      <VIPOnlyPerk />
 
       <FAQReserve />
 

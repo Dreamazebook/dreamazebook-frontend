@@ -60,3 +60,4 @@ export const VIP_PERK_SAVE_40 = `${CLOUDFLARE_CDN_URL}vip-perk-save-40.png`;
 export const VIP_PERK_UNLOCK_GIFT = `${CLOUDFLARE_CDN_URL}vip-perk-unlock-gift.png`;
 export const VIP_PERK_FIRST_PICK = `${CLOUDFLARE_CDN_URL}vip-perk-first-pick.png`;
 export const VIP_PERK_ITEM_BG_APP = `${CLOUDFLARE_CDN_URL}vip-perk-item-bg-app.png`;
+export const VIP_PERK_ITEM_BG = `${CLOUDFLARE_CDN_URL}vip-perk-item-bg.png`;
