@@ -11,7 +11,7 @@ export const AnimatedSection = ({ children, style, className = "" }: { children:
       initial={{ opacity: 0, y: 50 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
       transition={{ duration: 0.5 }}
-      style={style as any} // Type assertion to fix type error
+      style={style as React.CSSProperties} // Type assertion to fix type error
       className={className}
     >
       {children}
