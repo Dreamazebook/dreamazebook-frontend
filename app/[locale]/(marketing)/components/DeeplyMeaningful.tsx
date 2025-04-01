@@ -2,6 +2,7 @@ import DreamzeImage from "@/app/components/DreamzeImage";
 import { Container } from "./Container";
 import { ContainerTitle } from "./ContainerTitle";
 import { ContainerDesc } from "./ContainerDesc";
+import { DEEPLY_MEANINGFUL_DORE, DEEPLY_MEANINGFUL_DREAMAZE, DEEPLY_MEANINGFUL_JAMES, DEEPLY_MEANINGFUL_MAIN, DEEPLY_MEANINGFUL_MELODY } from "@/constants/cdn";
 
 export default function EffortlessGifting() {
   return (
@@ -18,21 +19,21 @@ export default function EffortlessGifting() {
         <div className="max-w-5xl mx-auto md:flex hidden flex-col gap-6 mb-32">
           <div className="flex gap-6">
             <div className="w-1/3 relative aspect-[4/3]">
-              <DreamzeImage src="/welcome/effortless-gifting/melody.png" alt="Lucas" />
+              <DreamzeImage src={DEEPLY_MEANINGFUL_MELODY} alt="Lucas" />
             </div>
             <div className="w-1/3 relative aspect-[4/3]">
-              <DreamzeImage src="/welcome/effortless-gifting/james.png" alt="Lucas" />
+              <DreamzeImage src={DEEPLY_MEANINGFUL_JAMES} alt="Lucas" />
             </div>
             <div className="w-1/3 relative aspect-[4/3]">
-              <DreamzeImage src="/welcome/effortless-gifting/dreamaze.png" alt="Lucas" />
+              <DreamzeImage src={DEEPLY_MEANINGFUL_DREAMAZE} alt="Lucas" />
             </div>
           </div>
           <div className="flex gap-6">
             <div className="w-2/3 relative aspect-[4/3]">
-              <DreamzeImage src="/welcome/effortless-gifting/main.png" alt="Lucas" />
+              <DreamzeImage src={DEEPLY_MEANINGFUL_MAIN} alt="Lucas" />
             </div>
             <div className="w-1/3 relative aspect-[1/2]">
-              <DreamzeImage src="/welcome/effortless-gifting/dore.png" alt="Lucas" />
+              <DreamzeImage src={DEEPLY_MEANINGFUL_DORE} alt="Lucas" />
             </div>
           </div>
 
@@ -40,19 +41,19 @@ export default function EffortlessGifting() {
 
         <div className="max-w-5xl mx-auto flex md:hidden flex-col gap-6 mb-32">
           <div className="w-full relative aspect-square">
-            <DreamzeImage src="/welcome/effortless-gifting/main.png" alt="Lucas" />
+            <DreamzeImage src={DEEPLY_MEANINGFUL_MAIN} alt="Lucas" />
           </div>
           <div className="flex gap-4">
             <div className="w-1/2 flex flex-col gap-4">
               <div className="relative aspect-[4/3] w-full">
-                <DreamzeImage src="/welcome/effortless-gifting/melody.png" alt="Lucas" />
+                <DreamzeImage src={DEEPLY_MEANINGFUL_MELODY} alt="Lucas" />
               </div>
               <div className="relative aspect-[4/3] w-full">
-                <DreamzeImage src="/welcome/effortless-gifting/dreamaze.png" alt="Lucas" />
+                <DreamzeImage src={DEEPLY_MEANINGFUL_DREAMAZE} alt="Lucas" />
               </div>
             </div>
             <div className="w-1/2 relative">
-              <DreamzeImage src="/welcome/effortless-gifting/dore.png" alt="Lucas" />
+              <DreamzeImage src={DEEPLY_MEANINGFUL_DORE} alt="Lucas" />
             </div>
           </div>
         </div>

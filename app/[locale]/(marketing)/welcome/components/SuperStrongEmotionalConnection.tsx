@@ -6,28 +6,29 @@ import { useEffect } from 'react';
 import { Container } from '../../components/Container';
 import { ContainerTitle } from '../../components/ContainerTitle';
 import { ContainerDesc } from '../../components/ContainerDesc';
+import { CLOUDFLARE_CDN_URL } from '@/constants/cdn';
 
 const VIDEOS = [
   {
-    video: '/welcome/super-strong-emotional-connection/dad-baby.mp4',
+    video: `${CLOUDFLARE_CDN_URL}dad-baby.mp4`,
   },
   {
-    video: '/welcome/super-strong-emotional-connection/luna.mp4', 
+    video: `${CLOUDFLARE_CDN_URL}luna.mp4` 
   },
   {
-    video: '/welcome/super-strong-emotional-connection/luna-read.mp4',
+    video: `${CLOUDFLARE_CDN_URL}luna-read.mp4`,
   },
   {
-    video: '/welcome/super-strong-emotional-connection/son-read.mp4',
+    video: `${CLOUDFLARE_CDN_URL}son-read.mp4`,
   },
   {
-    video: '/welcome/super-strong-emotional-connection/daughter-read.mp4',
+    video: `${CLOUDFLARE_CDN_URL}daughter-read.mp4`,
   },
   {
-    video: '/welcome/super-strong-emotional-connection/mother-son.mp4',
+    video: `${CLOUDFLARE_CDN_URL}mother-son.mp4`,
   },
   {
-    video: '/welcome/super-strong-emotional-connection/dad-son.mp4',
+    video: `${CLOUDFLARE_CDN_URL}dad-son.mp4`,
   },
 ];
 

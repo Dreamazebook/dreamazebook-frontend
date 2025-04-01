@@ -1,14 +1,14 @@
 import { AnimatedSection } from "@/app/components/AnimatedSection";
 import EmailForm from "./EmailForm";
 import DreamzeImage from "@/app/components/DreamzeImage";
-import { EMAIL_AVATARS } from "@/constants/cdn";
+import { APP_HERO_COVER, DESKTOP_HERO_COVER, EMAIL_AVATARS } from "@/constants/cdn";
 
 export default function HeroBanner() {
   return (
-    <div className="md:flex md:items-center md:bg-[url(/welcome/herobanner/desktop-cover.png)] bg-cover md:px-10 md:aspect-[2/1]">
+    <div style={{'--desktop-bg' : `url(${DESKTOP_HERO_COVER})`} as React.CSSProperties} className="md:flex md:items-center md:bg-(image:--desktop-bg) bg-cover md:px-10 md:aspect-[2/1]">
       <AnimatedSection>
       <div className="md:container bg-[#F5E3E3] md:bg-transparent">
-        <div className="gap-8 md:w-4/5 pt-20 md:pt-0 mb-5 bg-[url(/welcome/herobanner/app-cover.png)] bg-cover md:bg-none h-screen md:h-auto">
+        <div style={{'--app-bg' : `url(${APP_HERO_COVER})`} as React.CSSProperties} className="gap-8 md:w-4/5 pt-20 md:pt-0 mb-5 bg-(image:--app-bg) bg-cover md:bg-none h-screen md:h-auto">
           {/* Hero Content */}
           <h1 className="text-3xl md:text-6xl font-bold text-black p-4 md:p-0">
           The Ultimate Personalized Books to Truly See Your Child

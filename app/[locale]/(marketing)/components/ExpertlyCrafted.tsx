@@ -4,6 +4,7 @@ import { ContainerTitle } from "./ContainerTitle";
 import { ContainerDesc } from "./ContainerDesc";
 import { useEffect, useState } from "react";
 import ContainerVideo from "./ContainerVideo";
+import { EXPERTLY_CRAFTED_DONE, EXPERTLY_CRAFTED_DRAFT, EXPERTLY_CRAFTED_VIDEO } from "@/constants/cdn";
 
 export default function ExpertlyCrafted() {
 
@@ -58,11 +59,11 @@ export default function ExpertlyCrafted() {
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           className="max-w-4xl relative aspect-[4/1] mx-auto my-16">
-          <DreamzeImage src="/welcome/expertly-crafted/draft.png" alt="Dreamazebook" cssClass="transition-opacity duration-[2500ms] z-10" style={{ opacity: `${opacity}%` }} />
-          <DreamzeImage src="/welcome/expertly-crafted/done.png" alt="Dreamazebook" />
+          <DreamzeImage src={EXPERTLY_CRAFTED_DRAFT} alt="Dreamazebook" cssClass="transition-opacity duration-[2500ms] z-10" style={{ opacity: `${opacity}%` }} />
+          <DreamzeImage src={EXPERTLY_CRAFTED_DONE} alt="Dreamazebook" />
         </div>
 
-        <ContainerVideo src="/welcome/expertly-crafted/video.mp4" />
+        <ContainerVideo src={EXPERTLY_CRAFTED_VIDEO} />
 
       </div>
     </Container>
