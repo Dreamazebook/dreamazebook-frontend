@@ -90,3 +90,9 @@ export const PREVIEW_BRAVERY = `${CLOUDFLARE_CDN_URL}preview_bravery.png`;
 export const PREVIEW_BRAVERY_MOBILE = `${CLOUDFLARE_CDN_URL}preview_bravery_mobile.png`;
 
 export const MORE_MAGIC = `${CLOUDFLARE_CDN_URL}more-magic.webp`;
+
+export const SUCCESS_STAR = `${CLOUDFLARE_CDN_URL}success-star.png`;
+export const SUCCESS_FACEBOOK = `${CLOUDFLARE_CDN_URL}success-facebook.svg`;
+export const SUCCESS_UNDERLINE = `${CLOUDFLARE_CDN_URL}success-underline.png`;
+export const SUCCESS_LOGO = `${CLOUDFLARE_CDN_URL}success-logo.png`;
+export const SUCCESS_LOGO_APP = `${CLOUDFLARE_CDN_URL}success-logo-app.png`;

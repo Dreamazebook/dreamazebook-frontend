@@ -37,12 +37,12 @@ export default function VIPOnlyPerk() {
           <article 
             style={{'--item-bg-app':`url(${VIP_PERK_ITEM_BG_APP})`, '--item-bg':`url(${VIP_PERK_ITEM_BG})`} as React.CSSProperties} 
             key={idx} 
-            className="text-[#222222] flex items-center md:flex-col gap-3 md:gap-6 bg-(image:--item-bg-app) md:bg-(image:--item-bg) bg-no-repeat bg-cover">
-            <p className="text-[#ECA60D] text-[9px] md:text-[20px] rotate-[-90deg] -translate-x-2 md:rotate-0 md:translate-0 text-nowrap">{label}</p>
+            className="text-[#222222] relative md:w-1/3 p-4 pl-6 md:pt-6 flex items-center md:flex-col gap-3 md:gap-6 bg-(image:--item-bg-app) md:bg-(image:--item-bg) bg-no-repeat bg-cover">
+            <p className="text-[#ECA60D] text-[9px] md:text-[20px] absolute top-8 left-0 md:static rotate-[-90deg] -translate-x-6 translate-y-4 md:rotate-0 md:translate-0 text-nowrap">{label}</p>
             <Image src={icon} width={32} height={32} alt="Icon" className="md:w-[64px] md:h-[64px]" />
             <div className="md:text-center">
-              <h3 className="font-bold text-[21px] md:text-[42px] text-[#012DCE]">{tl}</h3>
-              <p className="font-light text-[#666666] text-[14px] md:text-[28px]">{desc}</p>
+              <h3 className="font-bold text-[21px] md:text-[36px] text-[#012DCE]">{tl}</h3>
+              <p className="font-light text-[#666666] text-[14px] md:text-[20px]">{desc}</p>
             </div>
           </article>
         )}
