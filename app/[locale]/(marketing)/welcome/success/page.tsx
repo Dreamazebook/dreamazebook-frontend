@@ -1,3 +1,4 @@
+import { DREAMAZEBOOK_LOGO } from '@/constants/cdn';
 import Image from 'next/image';
 import Link from "next/link";
 
@@ -6,7 +7,7 @@ export default function Thankyou() {
   return (
     <main className="bg-white">
       <Link href={'/'} className="block max-w-7xl mx-auto mb-5">
-        <Image className="" src={'/welcome/dreamaze-logo.png'} alt="Logo" width={168} height={56} />
+        <Image className="" src={DREAMAZEBOOK_LOGO} alt="Logo" width={168} height={56} />
       </Link>
       
       <div className='bg-[#F5E3E3] flex justify-center items-center h-screen relative bg-[url(/welcome/success/logo-app.png)] bg-no-repeat md:bg-none'>
