@@ -2,6 +2,7 @@ import { JSX } from "react";
 import Image from "next/image";
 import { Container } from "./Container";
 import { ContainerTitle } from "./ContainerTitle";
+import { MAGIC_WAND } from "@/constants/cdn";
 
 interface IconProps {
   cssClass: string;
@@ -83,7 +84,7 @@ export default function Growth() {
 
       <div className="flex justify-center my-16">
         <Image
-          src="/welcome/growth/magic-wand.png"
+          src={MAGIC_WAND}
           alt="Magic Wand"
           width={64}
           height={64}

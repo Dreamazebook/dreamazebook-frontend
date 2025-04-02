@@ -1,6 +1,7 @@
 export const CLOUDFLARE_CDN_URL = `https://pub-8cae259c4f3f4e73adf6a65ae6bbd7fa.r2.dev/`;
 
 export const DREAMAZEBOOK_LOGO = `${CLOUDFLARE_CDN_URL}dreamaze-logo.png`;
+export const KICKSTARTER_LOGO = `${CLOUDFLARE_CDN_URL}kickstart-logo.png`;
 
 export const DESKTOP_HERO_COVER = `${CLOUDFLARE_CDN_URL}desktop-cover.png`;
 
@@ -55,6 +56,10 @@ export const BELOVED_AMELIA = `${CLOUDFLARE_CDN_URL}beloved-amelia.png`;
 export const BELOVED_AMELIA_BG_APP = `${CLOUDFLARE_CDN_URL}beloved-amelia-bg-app.png`;
 export const BELOVED_AMELIA_BG = `${CLOUDFLARE_CDN_URL}beloved-amelia-bg.png`;
 export const BELOVED_START = `${CLOUDFLARE_CDN_URL}beloved-star.png`;
+
+export const MAGIC_WAND = `${CLOUDFLARE_CDN_URL}magic-wand.png`;
+
+export const FOOTER = `${CLOUDFLARE_CDN_URL}footer.png`;
 
 export const VIP_PERK_SAVE_40 = `${CLOUDFLARE_CDN_URL}vip-perk-save-40.png`;
 export const VIP_PERK_UNLOCK_GIFT = `${CLOUDFLARE_CDN_URL}vip-perk-unlock-gift.png`;

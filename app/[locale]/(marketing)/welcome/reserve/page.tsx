@@ -14,7 +14,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { sendRequest } from "@/utils/subscription";
 import VIPOnlyPerk from "../components/VIPOnlyPerk";
-import { CREATOR_RECOMMENDATION, MORE_MAGIC, MOST_PEOPLE_CHOICE } from "@/constants/cdn";
+import { CREATOR_RECOMMENDATION, DREAMAZEBOOK_LOGO, MORE_MAGIC, MOST_PEOPLE_CHOICE } from "@/constants/cdn";
 
 
 const NEXT_PUBLIC_STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
@@ -91,7 +91,7 @@ export default function Reserve() {
   return (
     <main className="bg-[#F8F8F8]">
       <Link href={'/'} className="block max-w-7xl mx-auto mb-5">
-        <Image className="" src={'/welcome/dreamaze-logo.png'} alt="Logo" width={168} height={56} />
+        <Image className="" src={DREAMAZEBOOK_LOGO} alt="Logo" width={168} height={56} />
       </Link>
       {showPopup &&
       <Popup

@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import {useRouter} from 'next/navigation'
 import Button from "@/app/components/Button";
+import { KICKSTARTER_LOGO } from "@/constants/cdn";
 
 interface EmailFormProps {
   btnText?: string;
@@ -103,7 +104,7 @@ export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
           className='w-full text-black bg-white p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
           aria-label="Email address"
         />
-        <Button tl={btnText||'Reserve and Save 40%'} isLoading={isLoading} leftIcon="/welcome/kickstart-logo.png" />
+        <Button tl={btnText||'Reserve and Save 40%'} isLoading={isLoading} leftIcon={KICKSTARTER_LOGO} />
       </form>
 
 
