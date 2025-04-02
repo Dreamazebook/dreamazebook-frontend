@@ -1,5 +1,5 @@
 "use client";
-import {useEffect} from "react";
+import React, {useEffect} from "react";
 import Image from 'next/image'
 import Growth from "../components/Growth";
 import PromotionBanner from "../components/PromotionBanner";
@@ -14,7 +14,7 @@ import Footer from "../components/Footer";
 import HeroBanner from "../components/HeroBanner";
 import { AboutUs } from "../components/AboutUs";
 import BelovedByEarlyTesters from "../components/BelovedByEarlyTesters";
-import { DREAMAZEBOOK_LOGO } from "@/constants/cdn";
+import { DREAMAZEBOOK_LOGO, EARLY_ACCESS, EARLY_ACCESS_APP, VIP_DISCOUNT, VIP_DISCOUNT_APP } from "@/constants/cdn";
 
 
 export default function LandingPage() {
@@ -47,7 +47,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/early-access-app.png)] md:bg-[url(/welcome/reserve-banner/early-access.png)]"} title={"For Families Who Believe in Magic Moments"} btnText={'Join Early & Be Part of the Magic'} desc={'Join a community that cherishes creativity and connection.<br/> Leave your email to be the first to bring this magic to life when we launch on Kickstarter.'} />
+        <ReserveSection style={{'--early-access-app':`url(${EARLY_ACCESS_APP})`,'--early-access':`url(${EARLY_ACCESS})`} as React.CSSProperties} cssClass={"text-white bg-(image:--early-access-app) md:bg-(image:--early-access)"} title={"For Families Who Believe in Magic Moments"} btnText={'Join Early & Be Part of the Magic'} desc={'Join a community that cherishes creativity and connection.<br/> Leave your email to be the first to bring this magic to life when we launch on Kickstarter.'} />
       </AnimatedSection>
 
       <AnimatedSection>
@@ -88,7 +88,12 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/40-vip-discount-app.png)] md:bg-[url(/welcome/reserve-banner/40-vip-discount.png)]"} title={"Your Smartest Save Yet!"} desc="Be among the first to reserve and lock in our exclusive 40% VIP discount <br/> a once-only offer to reward early supporters who know a good thing when they see it." btnText="Reserve Early & Save Big" />
+        <ReserveSection
+          style={{'--vip-discount-app':`url(${VIP_DISCOUNT_APP})`,'--vip-discount':`url(${VIP_DISCOUNT})`} as React.CSSProperties}
+          cssClass={"text-white bg-(image:--vip-discount-app) md:bg-(image:--vip-discount)"}
+          title={"Your Smartest Save Yet!"}
+          desc="Be among the first to reserve and lock in our exclusive 40% VIP discount <br/> a once-only offer to reward early supporters who know a good thing when they see it."
+          btnText="Reserve Early & Save Big" />
       </AnimatedSection>
 
       <Footer />
