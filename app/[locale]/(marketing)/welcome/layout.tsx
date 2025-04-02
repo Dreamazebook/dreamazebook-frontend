@@ -1,9 +1,9 @@
 import TermlyCMP from '@/app/components/TermlyCMP';
 import '../../globals.css';
 import type { Metadata } from 'next'
-import Image from 'next/image';
 import Script from 'next/script'
 import Footer from '@/app/components/Footer';
+import MetaPixel from '@/app/components/MetaPixel';
 
 // You should replace GTM-XXXXXXX with your actual GTM ID
 const GTM_ID = 'GTM-57K5LXBQ'
@@ -66,23 +66,7 @@ export default function MarketingLayout({
             })(window,document,'script','dataLayer','${GTM_ID}');
           `}
         </Script>
-        <Script id="meta-pixel" strategy='afterInteractive'>
-          {
-          `!function(f,b,e,v,n,t,s)
-          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-          n.queue=[];t=b.createElement(e);t.async=!0;
-          t.src=v;s=b.getElementsByTagName(e)[0];
-          s.parentNode.insertBefore(t,s)}(window, document,'script',
-          'https://connect.facebook.net/en_US/fbevents.js');
-          fbq('init', '1762268274349138');
-          fbq('track', 'PageView');
-          `}
-          </Script>
-          <noscript><Image alt='' height="1" width="1" style={{display:"none"}}
-          src="https://www.facebook.com/tr?id=1762268274349138&ev=PageView&noscript=1"
-          /></noscript>
+        <MetaPixel />
       </head>
       <body className="min-h-screen">
         {/* Google Tag Manager (noscript) */}

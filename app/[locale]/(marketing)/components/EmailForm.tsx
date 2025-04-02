@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import {useRouter} from 'next/navigation'
 import Button from "@/app/components/Button";
 import { KICKSTARTER_LOGO } from "@/constants/cdn";
+import { fbTrack } from "@/utils/track";
 
 interface EmailFormProps {
   btnText?: string;
@@ -52,6 +53,7 @@ export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
     setIsLoading(true);
     setIsError(false);
     setResponseMessage('');
+    fbTrack('Lead');
     const form = event.currentTarget;
     const emailInput = (form.elements.namedItem('email') as HTMLInputElement).value;
 
