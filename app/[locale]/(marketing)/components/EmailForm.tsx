@@ -35,10 +35,12 @@ export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
   }, [responseMessage, isError, countdown]);
 
   if (responseMessage && !isError) {
-    if (countdown === 0) {
-      router.push(`/en/welcome/success`);
-      return null;
-    }
+    router.push(`/en/welcome/success`);
+    return null;
+    // if (countdown === 0) {
+    //   router.push(`/en/welcome/success`);
+    //   return null;
+    // }
     return (
       <div className="text-center text-[20px] font-semibold p-4 bg-[#022CCE] text-white">
         <p className="text-[28px]">Thanks!</p>

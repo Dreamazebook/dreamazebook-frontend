@@ -55,7 +55,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"bg-white"} title={"Let Them Be the Hero<br/> for the First Time"} desc={'See their eyes light up when they discover they’re the star.<br/>Be sure to submit your email to receive project updates and get notified the moment we go live.'} btnText="Reserve Now & Get Early Access" />
+        <ReserveSection cssClass={"bg-white"} title={"Let Them Be the Hero<br/> for the First Time"} desc={'See their eyes light up when they discover they’re the star.<br/>Be sure to submit your email to receive project updates and get notified the moment we go live.'} btnText="Get Early Access" />
       </AnimatedSection>
 
       <AnimatedSection>
@@ -72,7 +72,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"bg-[#F5E3E3]"} title={"Support Original Art<br/> That Inspires Wonder"} desc="Behind every page is a talented artist bringing stories to life.<br/> By reserving now, you help support creativity, craftsmanship, and meaningful storytelling." btnText="Reserve Now & Support Artists" />
+        <ReserveSection cssClass={"bg-[#F5E3E3]"} title={"Support Original Art<br/> That Inspires Wonder"} desc="Behind every page is a talented artist bringing stories to life.<br/> By reserving now, you help support creativity, craftsmanship, and meaningful storytelling." btnText="Support Artists" />
       </AnimatedSection>
 
       <AboutUs />
