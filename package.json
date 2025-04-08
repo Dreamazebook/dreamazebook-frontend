@@ -14,6 +14,7 @@
     "@stripe/stripe-js": "^5.4.0",
     "@tailwindcss/postcss": "^4.0.6",
     "axios": "^1.7.9",
+    "crypto": "^1.0.1",
     "framer-motion": "^12.4.3",
     "negotiator": "^1.0.0",
     "next": "^15.1.7",
