@@ -3,11 +3,17 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
 const MAILERLITE_GROUP_ID = '150850576633038531';
+const META_APP_SECRET = '628d771851b81b2150900b589d67e283';
+
+export async function GET(request: Request) {
+  const challenge = new URL(request.url).searchParams.get('hub.challenge');
+  return new Response(challenge, { status: 200 });
+}
 
 export async function POST(request: Request) {
   try {
     // 1. Verify Meta Webhook Signature
-    const metaAppSecret = process.env.META_APP_SECRET!;
+    const metaAppSecret = META_APP_SECRET!;
     const rawBody = await request.text();
     const signature = request.headers.get('x-hub-signature') || '';
 
@@ -26,7 +32,7 @@ export async function POST(request: Request) {
     
     // Extract relevant fields (customize based on your form fields)
     const email = leadData.email;
-    const name = leadData.name;
+    const name = leadData.full_name;
 
     // 3. Sync with MailerLite
     const mailerliteResponse = await fetch(
