@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import Script from 'next/script'
 import Footer from '@/app/components/Footer';
 import MetaPixel from '@/app/components/MetaPixel';
+import HotJar from '@/app/components/HotJar';
 
 // You should replace GTM-XXXXXXX with your actual GTM ID
 const GTM_ID = 'GTM-57K5LXBQ'
@@ -66,6 +67,7 @@ export default function MarketingLayout({
             })(window,document,'script','dataLayer','${GTM_ID}');
           `}
         </Script>
+        <HotJar />
         <MetaPixel />
       </head>
       <body className="min-h-screen">
