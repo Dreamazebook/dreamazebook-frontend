@@ -31,6 +31,7 @@ export const sendRequest = async ({url, method, body}:sendRequestProps) => {
   return await response.json();
 }
 
+const LANDING_PAGE_GROUP_ID = '151413301218117367';
 
 export const checkHubSpotContact = async (email:string) => {
     const response = await sendRequest({
@@ -41,7 +42,7 @@ export const checkHubSpotContact = async (email:string) => {
 }
 
 export const subscribeEmail = async (email:string, properties?:object) => {
-  const body = {email,fields: {}};
+  const body = {email,fields: {},groups:[LANDING_PAGE_GROUP_ID]};
   if (properties) {
     body.fields = properties;
   }
@@ -50,16 +51,6 @@ export const subscribeEmail = async (email:string, properties?:object) => {
       url:"https://connect.mailerlite.com/api/subscribers",
       method: "POST",
       body
-    }
-  );
-  return response;
-}
-
-export const getContactDetail = async (contactId:string) => {
-  const response = await sendRequest(
-    {
-      url: `https://api.hubapi.com/crm/v3/objects/contacts/${contactId}`,
-      method: 'GET',
     }
   );
   return response;
