@@ -8,7 +8,32 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
   images: {
-    domains: ['127.0.0.1', 'localhost','pub-8cae259c4f3f4e73adf6a65ae6bbd7fa.r2.dev','www.facebook.com'], // 添加允许加载图片的域名
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pub-8cae259c4f3f4e73adf6a65ae6bbd7fa.r2.dev',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.facebook.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
 };
  
