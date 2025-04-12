@@ -47,7 +47,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection style={{'--early-access-app':`url(${EARLY_ACCESS_APP})`,'--early-access':`url(${EARLY_ACCESS})`} as React.CSSProperties} cssClass={"text-white bg-(image:--early-access-app) md:bg-(image:--early-access)"} title={"For Families Who Believe in Magic Moments"} btnText={'Join Early & Be Part of the Magic'} desc={'Join a community that cherishes creativity and connection.<br/> Leave your email to be the first to bring this magic to life when we launch on Kickstarter.'} />
+        <ReserveSection redirectUrl={'/en/welcome/success-2'} style={{'--early-access-app':`url(${EARLY_ACCESS_APP})`,'--early-access':`url(${EARLY_ACCESS})`} as React.CSSProperties} cssClass={"text-white bg-(image:--early-access-app) md:bg-(image:--early-access)"} title={"For Families Who Believe in Magic Moments"} btnText={'Join Early & Be Part of the Magic'} desc={'Join a community that cherishes creativity and connection.<br/> Leave your email to be the first to bring this magic to life when we launch on Kickstarter.'} />
       </AnimatedSection>
 
       <AnimatedSection>
@@ -55,7 +55,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"bg-white"} title={"Let Them Be the Hero<br/> for the First Time"} desc={'See their eyes light up when they discover they’re the star.<br/>Be sure to submit your email to receive project updates and get notified the moment we go live.'} btnText="Get Early Access" />
+        <ReserveSection redirectUrl={'/en/welcome/success-3'} cssClass={"bg-white"} title={"Let Them Be the Hero<br/> for the First Time"} desc={'See their eyes light up when they discover they’re the star.<br/>Be sure to submit your email to receive project updates and get notified the moment we go live.'} btnText="Get Early Access" />
       </AnimatedSection>
 
       <AnimatedSection>
@@ -72,7 +72,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"bg-[#F5E3E3]"} title={"Support Original Art<br/> That Inspires Wonder"} desc="Behind every page is a talented artist bringing stories to life.<br/> By reserving now, you help support creativity, craftsmanship, and meaningful storytelling." btnText="Support Artists" />
+        <ReserveSection redirectUrl={'/en/welcome/success-4'} cssClass={"bg-[#F5E3E3]"} title={"Support Original Art<br/> That Inspires Wonder"} desc="Behind every page is a talented artist bringing stories to life.<br/> By reserving now, you help support creativity, craftsmanship, and meaningful storytelling." btnText="Support Artists" />
       </AnimatedSection>
 
       <AboutUs />
@@ -89,6 +89,7 @@ export default function LandingPage() {
 
       <AnimatedSection>
         <ReserveSection
+          redirectUrl={'/en/welcome/success-5'}
           style={{'--vip-discount-app':`url(${VIP_DISCOUNT_APP})`,'--vip-discount':`url(${VIP_DISCOUNT})`} as React.CSSProperties}
           cssClass={"text-white bg-(image:--vip-discount-app) md:bg-(image:--vip-discount)"}
           title={"Your Smartest Save Yet!"}

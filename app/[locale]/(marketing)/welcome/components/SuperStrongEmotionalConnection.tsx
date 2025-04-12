@@ -74,7 +74,7 @@ export default function SuperStrongEmotionalConnection() {
       
       <div className="relative mt-16">
         <Swiper
-          slidesPerView={2}
+          slidesPerView={'auto'}
           breakpoints={{
             // when window width is >= 640px
             640: {
@@ -93,9 +93,10 @@ export default function SuperStrongEmotionalConnection() {
           centeredSlides={true}
           grabCursor={true}
           loop={true}
+          speed={6500}
           autoplay={
             {
-              delay: 500
+              delay: 0
             }
           }
           effect={'coverflow'}

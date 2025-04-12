@@ -34,7 +34,7 @@ export default function HeroBanner() {
           </div>
 
           <div className="max-w-lg">
-            <EmailForm btnText="Get Launch Updates" />
+            <EmailForm btnText="Get Launch Updates" redirectUrl={'/en/welcome/success-1'} />
           </div>
 
         </div>

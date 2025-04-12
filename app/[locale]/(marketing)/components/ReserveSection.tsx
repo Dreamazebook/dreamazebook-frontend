@@ -7,9 +7,10 @@ interface ReserveSectionProps {
   style?: React.CSSProperties
   cssClass?: string,
   btnText?: string,
+  redirectUrl?: string,
 }
 
-export default function ReserveSection({title,desc,style,cssClass,btnText}:ReserveSectionProps) {
+export default function ReserveSection({title,desc,style,cssClass,btnText,redirectUrl}:ReserveSectionProps) {
   const [show, setShow] = useState(true);
   const handleCallBack = () => {
     setShow(false);
@@ -24,7 +25,7 @@ export default function ReserveSection({title,desc,style,cssClass,btnText}:Reser
       </>
       }
       <div className="max-w-lg mx-auto mt-6">
-        <EmailForm btnText={btnText} handleCallBack={handleCallBack} />
+        <EmailForm btnText={btnText} handleCallBack={handleCallBack} redirectUrl={redirectUrl} />
       </div>
     </section>
   )

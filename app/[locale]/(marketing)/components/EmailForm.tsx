@@ -8,9 +8,10 @@ import { fbTrack } from "@/utils/track";
 interface EmailFormProps {
   btnText?: string;
   handleCallBack?: () => void;
+  redirectUrl?: string;
 }
 
-export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
+export default function EmailForm({btnText, handleCallBack, redirectUrl=''}: EmailFormProps) {
   const router = useRouter();
 
   const [responseMessage, setResponseMessage] = useState('');
@@ -35,7 +36,7 @@ export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
   }, [responseMessage, isError, countdown]);
 
   if (responseMessage && !isError) {
-    router.push(`/en/welcome/success`);
+    router.push(redirectUrl);
     return null;
     // if (countdown === 0) {
     //   router.push(`/en/welcome/success`);
