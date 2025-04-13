@@ -9,7 +9,7 @@ interface ButtonProps {
   handleClick?: () => void
 }
 
-const buttonStyle = 'cursor-pointer bg-[#022CCE] text-white px-4 py-4 rounded capitalize w-full disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center';
+const buttonStyle = 'cursor-pointer bg-[#FFC023] text-[#222222] px-4 py-2 rounded capitalize w-full disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center';
 
 export default function Button({tl,isLoading,url,icon,leftIcon,handleClick}:ButtonProps) {
   if (url) {
