@@ -132,7 +132,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         <input
           type="text"
           placeholder="please enter..."
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border border-[#E5E5E5] rounded"
           value={data.fullName}
           onChange={handleFullNameChange}
           onBlur={handleFullNameBlur}

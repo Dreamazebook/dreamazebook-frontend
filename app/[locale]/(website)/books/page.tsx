@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { FaStar, FaStarHalf } from 'react-icons/fa';
 import api from "@/utils/api";
-import { BaseBook } from '@/types/book';
+import { BaseBook, ApiResponse } from '@/types/book';
 import { useLocale } from 'next-intl';
 
 const StarRating = ({ rating, reviews }: { rating: number; reviews?: number }) => {
@@ -38,8 +38,8 @@ export default function BooksPage() {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const response = await api.get<BaseBook[]>(`/books`);
-        setBooks(response);
+        const response = await api.get<ApiResponse<BaseBook[]>>(`/picbooks`);
+        setBooks(response.data);
         setLoading(false);
       } catch (err) {
         console.error('Failed to fetch books:', err);
@@ -86,16 +86,16 @@ export default function BooksPage() {
             <Link href={`/${locale}/books/${book.id}`} key={book.id} className="flex flex-col group">
               <div className="relative aspect-[3/4] mb-2">
                 <Image
-                  src={book.showpic}
-                  alt={book.bookname}
+                  src={`/${book.default_cover.replace('public/', '')}`}
+                  alt={book.default_name}
                   fill
                   className="object-cover rounded-sm"
                 />
               </div>
-              <h3 className="text-xs font-medium mb-1 line-clamp-2">{book.bookname}</h3>
+              <h3 className="text-xs font-medium mb-1 line-clamp-2">{book.default_name}</h3>
               {/* <p className="text-xs text-gray-600 mb-1">{book.author}</p>
               <StarRating rating={book.rating} reviews={book.reviews} /> */}
-              <p className="text-xs font-medium mt-1">${book.price.toFixed(2)}</p>
+              <p className="text-xs font-medium mt-1">${book.price}</p>
               <span className="mt-2 bg-black text-white px-3 py-1 rounded text-xs">
                 Personalize
               </span>

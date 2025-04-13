@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface CartItem {
   id: number;
@@ -44,6 +45,7 @@ interface ShippingErrors {
 }
 
 export default function CheckoutPage() {
+  const router = useRouter();
   // 控制左侧步骤展开/收起状态
   const [isShippingOpen, setIsShippingOpen] = useState(true);
   const [isDeliveryOpen, setIsDeliveryOpen] = useState(false);
@@ -143,7 +145,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    alert('Order submitted!');
+    router.push('/order-summary');
   };
 
   const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<"Standard" | "Express">("Standard");
