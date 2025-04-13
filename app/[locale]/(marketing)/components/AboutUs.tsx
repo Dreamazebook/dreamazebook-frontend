@@ -14,7 +14,7 @@ export const AboutUs = () => {
         <b>everyone deserves to be the hero of their own story.</b><br/>
         As a mother I witnessed the pure joy on my daughter&apos;s face when she saw herself in a book—a unique experience she had never had before.<br/>
         We believe personalized books should go beyond pieced-together avatars to create immersive experiences where<br/>
-        <b>you or your loved ones are the true protagonists.</b>
+        <b>you and your loved ones are the true protagonists.</b>
       </ContainerDesc>
       <Image src={ABOUT_US_LOGO} className="mx-auto mt-6" alt="Logo" width={200} height={70} />
     </div>

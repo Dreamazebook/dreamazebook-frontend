@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import EmailForm from "./EmailForm"
 
 interface ReserveSectionProps {
-  title: string | TrustedHTML
+  title?: string | TrustedHTML
   desc: string | TrustedHTML
   style?: React.CSSProperties
   cssClass?: string,
@@ -20,7 +20,7 @@ export default function ReserveSection({title,desc,style,cssClass,btnText,redire
     <section style={style} className={`py-16 px-5 text-center bg-no-repeat bg-cover ${cssClass}`}>
       {show&&
       <>
-        <h2 className="text-2xl md:text-[40px] font-bold" dangerouslySetInnerHTML={{__html: title}}></h2>
+        {title && <h2 className="text-2xl md:text-[40px] font-bold" dangerouslySetInnerHTML={{__html: title}}></h2>}
         <p className="text-[20px] font-light" dangerouslySetInnerHTML={{__html:desc}}></p>
       </>
       }

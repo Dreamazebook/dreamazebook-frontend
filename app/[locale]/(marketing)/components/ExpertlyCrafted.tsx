@@ -50,9 +50,7 @@ export default function ExpertlyCrafted() {
           Expertly Crafted<br/>And <span className="text-[#022CCE]">Beautifully</span> Illustrated
         </ContainerTitle>
         <ContainerDesc>
-          Every book is thoughtfully written by professional educators and features<br/>
-          exclusive hand-drawn art<br/>
-          It’s a one-of-a-kind keepsake made with care and love.
+          Crafted by educators with hand-drawn art, a unique keepsake
         </ContainerDesc>
         
         <div

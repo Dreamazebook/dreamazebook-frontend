@@ -12,8 +12,7 @@ export default function EffortlessGifting() {
           Deeply Meaningful <br/> Yet <span className="text-[#022CCE]">Surprisingly</span> Simple
         </ContainerTitle>
         <ContainerDesc cssClass="mb-16">
-        Create the perfect personalized storybook with just a few clicks—choose a design, upload a photo, and you’re done<br/>
-        It’s a thoughtful gift without the hassle.
+        With just a few clicks—choose a book, upload a photo, and you’re done. It’s a thoughtful personalized gift without the hassle.
         </ContainerDesc>
         
         <div className="max-w-5xl mx-auto md:flex hidden flex-col gap-6 mb-32">

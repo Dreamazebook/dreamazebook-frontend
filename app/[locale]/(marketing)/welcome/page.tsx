@@ -39,7 +39,7 @@ export default function LandingPage() {
 
   return (
     <main className="bg-white relative">
-      <Image className="absolute top-0 left-10" src={DREAMAZEBOOK_LOGO} alt="Logo" width={168} height={56} />
+      <Image className="absolute top-0 left-10 z-10" src={DREAMAZEBOOK_LOGO} alt="Logo" width={168} height={56} />
       <HeroBanner />
 
       <AnimatedSection>
@@ -55,24 +55,23 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection redirectUrl={'/en/welcome/success-3'} cssClass={"bg-white"} title={"Let Them Be the Hero<br/> for the First Time"} desc={'See their eyes light up when they discover they’re the star.<br/>Be sure to submit your email to receive project updates and get notified the moment we go live.'} btnText="Get Early Access" />
+        <ReserveSection redirectUrl={'/en/welcome/success-3'} cssClass={"bg-white"} title={"Let Your Child Shine as the Hero"} desc={'Submit your email to receive updates and exclusive early bird perks'} btnText="Unlock Early Access & Perks!" />
       </AnimatedSection>
 
-      <AnimatedSection>
-        <SuperStrongEmotionalConnection />
-      </AnimatedSection>
-      
-
-      <AnimatedSection>
-        <ExpertlyCrafted />
-      </AnimatedSection>
-      
       <AnimatedSection>
         <EffortlessGifting />
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection redirectUrl={'/en/welcome/success-4'} cssClass={"bg-[#F5E3E3]"} title={"Support Original Art<br/> That Inspires Wonder"} desc="Behind every page is a talented artist bringing stories to life.<br/> By reserving now, you help support creativity, craftsmanship, and meaningful storytelling." btnText="Support Artists" />
+        <SuperStrongEmotionalConnection />
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <ExpertlyCrafted />
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <ReserveSection redirectUrl={'/en/welcome/success-4'} cssClass={""} desc="Leave your email now to unlock behind-the-scenes peeks into our creation process — from sketch to storybook." btnText="Sign Up& Shape the Story With Us" />
       </AnimatedSection>
 
       <AboutUs />
@@ -91,7 +90,7 @@ export default function LandingPage() {
         <ReserveSection
           redirectUrl={'/en/welcome/success-5'}
           style={{'--vip-discount-app':`url(${VIP_DISCOUNT_APP})`,'--vip-discount':`url(${VIP_DISCOUNT})`} as React.CSSProperties}
-          cssClass={"text-white bg-(image:--vip-discount-app) md:bg-(image:--vip-discount)"}
+          //cssClass={"text-white bg-(image:--vip-discount-app) md:bg-(image:--vip-discount)"}
           title={"Your Smartest Save Yet!"}
           desc="Be among the first to reserve and lock in our exclusive 40% VIP discount <br/> a once-only offer to reward early supporters who know a good thing when they see it."
           btnText="Reserve Early & Save Big" />

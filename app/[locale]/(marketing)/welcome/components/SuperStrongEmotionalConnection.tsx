@@ -69,7 +69,7 @@ export default function SuperStrongEmotionalConnection() {
         Super Strong<br/><span className="text-[#022CCE]">Emotional</span> Connection
       </ContainerTitle>
       <ContainerDesc cssClass='max-w-5xl mx-auto'>
-      Reading a story where you and your child are the heroes strengthens bonds and creates cherished memories. These shared moments become treasures that last a lifetime.
+      Reading a story where you and your child are the heroes creates lasting memories
       </ContainerDesc>
       
       <div className="relative mt-16">
