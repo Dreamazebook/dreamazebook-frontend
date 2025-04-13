@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import {useRouter} from 'next/navigation'
 import Button from "@/app/components/Button";
-import { KICKSTARTER_LOGO } from "@/constants/cdn";
 import { fbTrack } from "@/utils/track";
 
 interface EmailFormProps {
@@ -36,14 +35,12 @@ export default function EmailForm({btnText, handleCallBack, redirectUrl=''}: Ema
   }, [responseMessage, isError, countdown]);
 
   if (responseMessage && !isError) {
-    router.push(redirectUrl);
-    return null;
-    // if (countdown === 0) {
-    //   router.push(`/en/welcome/success`);
-    //   return null;
-    // }
+    if (countdown === 0) {
+      router.push(redirectUrl);
+      return null;
+    }
     return (
-      <div className="text-center text-[20px] font-semibold p-4 bg-[#022CCE] text-white">
+      <div className="text-center text-[20px] font-semibold p-4 bg-[#FFC023] text-white">
         <p className="text-[28px]">Thanks!</p>
         <p className="capitalize">Time to Lift Off,<br/>Grab Your Spot and Lock in Your Deal</p>
         <p className="text-[18px]">{countdown}s</p>
@@ -106,10 +103,10 @@ export default function EmailForm({btnText, handleCallBack, redirectUrl=''}: Ema
           type="email" 
           name="email" 
           placeholder='Enter your email' 
-          className='w-full text-black bg-white p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
+          className='w-full text-black caret-[#999999] bg-white p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
           aria-label="Email address"
         />
-        <Button tl={btnText||'Reserve and Save 40%'} isLoading={isLoading} leftIcon={KICKSTARTER_LOGO} />
+        <Button tl={btnText||'Reserve and Save 40%'} isLoading={isLoading} />
       </form>
 
 
