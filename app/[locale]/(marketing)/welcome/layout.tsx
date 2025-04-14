@@ -10,6 +10,7 @@ import HotJar from '@/app/components/HotJar';
 const GTM_ID = 'GTM-57K5LXBQ'
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://dreamazebook.com'),
   title: 'Dreamaze - Personalized Children\'s Books',
   description: 'Create unique, personalized children\'s books where your loved ones become the heroes of their own magical stories.',
   openGraph: {
