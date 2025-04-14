@@ -1,5 +1,5 @@
 import Button from '@/app/components/Button';
-import { DREAMAZEBOOK_LOGO, SUCCESS_FACEBOOK, SUCCESS_LOGO, SUCCESS_LOGO_APP, SUCCESS_STAR, SUCCESS_UNDERLINE } from '@/constants/cdn';
+import { DREAMAZEBOOK_LOGO, SUCCESS_LOGO, SUCCESS_LOGO_APP, SUCCESS_STAR, SUCCESS_UNDERLINE } from '@/constants/cdn';
 import Image from 'next/image';
 import Link from "next/link";
 import React from 'react';
