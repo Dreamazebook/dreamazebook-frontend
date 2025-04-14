@@ -2,7 +2,7 @@ import DreamzeImage from "@/app/components/DreamzeImage";
 import { Container } from "./Container";
 import { ContainerTitle } from "./ContainerTitle";
 import { ContainerDesc } from "./ContainerDesc";
-import { DEEPLY_MEANINGFUL_DORE, DEEPLY_MEANINGFUL_DREAMAZE, DEEPLY_MEANINGFUL_JAMES, DEEPLY_MEANINGFUL_MAIN, DEEPLY_MEANINGFUL_MELODY } from "@/constants/cdn";
+import { DEEPLY_MEANINGFUL_DORE, DEEPLY_MEANINGFUL_DREAMAZE, DEEPLY_MEANINGFUL_JAMES, DEEPLY_MEANINGFUL_MAIN, DEEPLY_MEANINGFUL_MELODY, DEEPLY_MEANINGFUL_STEP, DEEPLY_MEANINGFUL_STEP_VIDEO } from "@/constants/cdn";
 
 export default function EffortlessGifting() {
   return (
@@ -63,7 +63,9 @@ export default function EffortlessGifting() {
       {/* Easy Steps Section */}
       <div className="container mx-auto px-4">
         <h2 className="text-[28px] text-[#222222] font-bold text-center mb-16">Easy 3 Steps to Get Your Book</h2>
-        <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+        <video className="mx-auto" loop controls src={DEEPLY_MEANINGFUL_STEP_VIDEO} poster={DEEPLY_MEANINGFUL_STEP} />
+
+        {/* <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
           {[
             {tl:'01 Personalize It',desc:"Add the hero's name, upload a photo, and make a few fun choices—it's that easy!"},
             {tl:'02 Preview & Confirm',desc:"Take a peek at your book and give it a thumbs-up."},
@@ -74,7 +76,8 @@ export default function EffortlessGifting() {
             <p className="text-[#000000] text-xl font-light">{desc}</p>
           </div>
           )}
-        </div>
+        </div> */}
+
       </div>
 
     </Container>
