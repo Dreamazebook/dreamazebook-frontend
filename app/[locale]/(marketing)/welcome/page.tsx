@@ -14,7 +14,7 @@ import Footer from "../components/Footer";
 import HeroBanner from "../components/HeroBanner";
 import { AboutUs } from "../components/AboutUs";
 import BelovedByEarlyTesters from "../components/BelovedByEarlyTesters";
-import { DREAMAZEBOOK_LOGO, EARLY_ACCESS, EARLY_ACCESS_APP, VIP_DISCOUNT, VIP_DISCOUNT_APP } from "@/constants/cdn";
+import { DREAMAZEBOOK_LOGO, VIP_DISCOUNT, VIP_DISCOUNT_APP } from "@/constants/cdn";
 
 
 export default function LandingPage() {
