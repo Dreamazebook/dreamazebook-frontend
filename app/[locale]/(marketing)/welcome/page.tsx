@@ -1,5 +1,5 @@
 "use client";
-import React, {useEffect} from "react";
+import React from "react";
 import Image from 'next/image'
 import Growth from "../components/Growth";
 import PromotionBanner from "../components/PromotionBanner";
@@ -19,27 +19,9 @@ import { DREAMAZEBOOK_LOGO, EARLY_ACCESS, EARLY_ACCESS_APP, VIP_DISCOUNT, VIP_DI
 
 export default function LandingPage() {
 
-  // Add useEffect to handle tab close
-  useEffect(() => {
-    // const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-    //   e.preventDefault();
-    //   const confirmNavigation = window.confirm('Are you sure you want to leave? You will be redirected to a specific link.');
-
-    //   if (confirmNavigation) {
-    //     window.location.href = 'https://docs.google.com/forms/d/e/1FAIpQLSehhcKV1PW221dtmrw5hQVo2oD5i98gdSmV_IhKUmc5URjKFw/viewform?embedded=true';
-    //   }
-    // };
-
-    // window.addEventListener('beforeunload', handleBeforeUnload);
-
-    // return () => {
-    //   window.removeEventListener('beforeunload', handleBeforeUnload);
-    // };
-  }, []);
-
   return (
     <main className="bg-white relative">
-      <Image className="absolute top-0 left-10 z-10" src={DREAMAZEBOOK_LOGO} alt="Logo" width={168} height={56} />
+      <Image className="absolute top-0 left-4 md:left-10 z-10" src={DREAMAZEBOOK_LOGO} alt="Logo" width={168} height={56} />
       <HeroBanner />
 
       <AnimatedSection>

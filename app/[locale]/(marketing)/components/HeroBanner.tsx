@@ -16,7 +16,7 @@ export default function HeroBanner() {
           <h1 className="text-3xl md:text-6xl font-bold text-black p-4 md:p-0">
           Personalized Books with Your Child as the Star
           </h1>
-          <p className="p-4 md:p-0 mt-4">Say goodbye to generic, cartoon generic avatars. With Dreamaze, your child&apos;s name, face, and uniqueness make them the true hero of the story.</p>
+          <p className="p-4 md:p-0 md:mt-4 w-2/3 md:w-auto">Say goodbye to generic, cartoon generic avatars. With Dreamaze, your child&apos;s name, face, and uniqueness make them the true hero of the story.</p>
         </div>
 
         <div className='p-4 m-4 md:m-0 max-w-[528px] bg-white/75 text-center absolute bottom-2 left-1 right-1 md:static'>

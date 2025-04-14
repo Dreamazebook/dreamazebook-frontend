@@ -3,8 +3,8 @@ export const CLOUDFLARE_CDN_URL = `https://pub-8cae259c4f3f4e73adf6a65ae6bbd7fa.
 export const DREAMAZEBOOK_LOGO = `${CLOUDFLARE_CDN_URL}dreamaze-logo.png`;
 export const KICKSTARTER_LOGO = `${CLOUDFLARE_CDN_URL}kickstart-logo.png`;
 
-export const DESKTOP_HERO_COVER = `${CLOUDFLARE_CDN_URL}desktop-cover.png`;
-export const APP_HERO_COVER = `${CLOUDFLARE_CDN_URL}app-cover.png`;
+export const DESKTOP_HERO_COVER = `${CLOUDFLARE_CDN_URL}desktop-cover.jpg`;
+export const APP_HERO_COVER = `${CLOUDFLARE_CDN_URL}app-cover.jpg`;
 export const EMAIL_AVATARS = `${CLOUDFLARE_CDN_URL}email-avatars.png`;
 
 export const LOCK_IN_OFF = `${CLOUDFLARE_CDN_URL}lock-in-40-off.png`;
