@@ -28,16 +28,16 @@ export default function LandingPage() {
         <PromotionBanner />
       </AnimatedSection>
 
-      <AnimatedSection>
+      {/* <AnimatedSection>
         <ReserveSection redirectUrl={'/en/welcome/success-2'} style={{'--early-access-app':`url(${EARLY_ACCESS_APP})`,'--early-access':`url(${EARLY_ACCESS})`} as React.CSSProperties} cssClass={"text-white bg-(image:--early-access-app) md:bg-(image:--early-access)"} title={"For Families Who Believe in Magic Moments"} btnText={'Join Early & Be Part of the Magic'} desc={'Join a community that cherishes creativity and connection.<br/> Leave your email to be the first to bring this magic to life when we launch on Kickstarter.'} />
-      </AnimatedSection>
+      </AnimatedSection> */}
 
       <AnimatedSection>
         <TheOnlyBook />
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection redirectUrl={'/en/welcome/success-3'} cssClass={"bg-white"} title={"Let Your Child Shine as the Hero"} desc={'Submit your email to receive updates and exclusive early bird perks'} btnText="Unlock Early Access & Perks!" />
+        <ReserveSection redirectUrl={'/en/welcome/success-2'} cssClass={"bg-white"} title={"Let Your Child Shine as the Hero"} desc={'Submit your email to receive updates and exclusive early bird perks'} btnText="Unlock Early Access & Perks!" />
       </AnimatedSection>
 
       <AnimatedSection>
@@ -53,7 +53,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection redirectUrl={'/en/welcome/success-4'} cssClass={""} desc="Leave your email now to unlock behind-the-scenes peeks into our creation process — from sketch to storybook." btnText="Sign Up& Shape the Story With Us" />
+        <ReserveSection redirectUrl={'/en/welcome/success-3'} cssClass={""} desc="Leave your email now to unlock behind-the-scenes peeks into our creation process — from sketch to storybook." btnText="Sign Up& Shape the Story With Us" />
       </AnimatedSection>
 
       <AboutUs />
@@ -70,7 +70,7 @@ export default function LandingPage() {
 
       <AnimatedSection>
         <ReserveSection
-          redirectUrl={'/en/welcome/success-5'}
+          redirectUrl={'/en/welcome/success-4'}
           style={{'--vip-discount-app':`url(${VIP_DISCOUNT_APP})`,'--vip-discount':`url(${VIP_DISCOUNT})`} as React.CSSProperties}
           //cssClass={"text-white bg-(image:--vip-discount-app) md:bg-(image:--vip-discount)"}
           title={"Your Smartest Save Yet!"}
