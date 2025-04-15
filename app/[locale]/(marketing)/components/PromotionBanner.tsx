@@ -24,7 +24,7 @@ export default function PromotionBanner() {
   ];
   return (
     <Container cssClass="bg-[#F8F8F8]">
-      <div className="container mx-auto">
+      <div className="container mx-auto px-4">
         <ContainerTitle cssClass='mb-16 md:mb-21'>Why Sign Up Today?</ContainerTitle>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-15">
