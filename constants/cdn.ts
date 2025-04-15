@@ -40,6 +40,7 @@ export const DEEPLY_MEANINGFUL_MAIN = `${CLOUDFLARE_CDN_URL}deeply-meaningful-ma
 export const DEEPLY_MEANINGFUL_DORE = `${CLOUDFLARE_CDN_URL}deeply-meaningful-dore.png`;
 export const DEEPLY_MEANINGFUL_STEP_VIDEO = `${CLOUDFLARE_CDN_URL}steps.mp4`;
 export const DEEPLY_MEANINGFUL_STEP = `${CLOUDFLARE_CDN_URL}steps.jpg`;
+export const DEEPLY_MEANINGFULL_BG = `${CLOUDFLARE_CDN_URL}deeply-meaningfull-bg.png`;
 
 
 export const ABOUT_US_BG = `${CLOUDFLARE_CDN_URL}about-us-bg.png`;

@@ -2,7 +2,7 @@ import DreamzeImage from "@/app/components/DreamzeImage";
 import { Container } from "./Container";
 import { ContainerTitle } from "./ContainerTitle";
 import { ContainerDesc } from "./ContainerDesc";
-import { DEEPLY_MEANINGFUL_DORE, DEEPLY_MEANINGFUL_DREAMAZE, DEEPLY_MEANINGFUL_JAMES, DEEPLY_MEANINGFUL_MAIN, DEEPLY_MEANINGFUL_MELODY, DEEPLY_MEANINGFUL_STEP, DEEPLY_MEANINGFUL_STEP_VIDEO } from "@/constants/cdn";
+import { DEEPLY_MEANINGFUL_DORE, DEEPLY_MEANINGFUL_DREAMAZE, DEEPLY_MEANINGFUL_JAMES, DEEPLY_MEANINGFUL_MAIN, DEEPLY_MEANINGFUL_MELODY, DEEPLY_MEANINGFUL_STEP, DEEPLY_MEANINGFUL_STEP_VIDEO, DEEPLY_MEANINGFULL_BG } from "@/constants/cdn";
 
 export default function EffortlessGifting() {
   return (
@@ -12,10 +12,14 @@ export default function EffortlessGifting() {
           Deeply Meaningful <br/> Yet <span className="text-[#022CCE]">Surprisingly</span> Simple
         </ContainerTitle>
         <ContainerDesc cssClass="mb-16">
-        With just a few clicks—choose a book, upload a photo, and you’re done. It’s a thoughtful personalized gift without the hassle.
+        With just a few clicks, create a gift no one else has
         </ContainerDesc>
+
+        <div className="w-full bg-cover py-3" style={{backgroundImage:`url(${DEEPLY_MEANINGFULL_BG})`}}>
+          <video className="mx-auto w-[130px] md:w-[310px]" loop controls src={DEEPLY_MEANINGFUL_STEP_VIDEO} poster={DEEPLY_MEANINGFUL_STEP} />
+        </div>
         
-        <div className="max-w-5xl mx-auto md:flex hidden flex-col gap-6 mb-32">
+        {/* <div className="max-w-5xl mx-auto md:flex hidden flex-col gap-6 mb-32">
           <div className="flex gap-6">
             <div className="w-1/3 relative aspect-[4/3]">
               <DreamzeImage src={DEEPLY_MEANINGFUL_MELODY} alt="Lucas" />
@@ -55,17 +59,16 @@ export default function EffortlessGifting() {
               <DreamzeImage src={DEEPLY_MEANINGFUL_DORE} alt="Lucas" />
             </div>
           </div>
-        </div>
+        </div> */}
 
       </div>
       
 
       {/* Easy Steps Section */}
-      <div className="container mx-auto px-4">
+      {/* <div className="container mx-auto px-4">
         <h2 className="text-[28px] text-[#222222] font-bold text-center mb-16">Easy 3 Steps to Get Your Book</h2>
-        <video className="mx-auto" loop controls src={DEEPLY_MEANINGFUL_STEP_VIDEO} poster={DEEPLY_MEANINGFUL_STEP} />
 
-        {/* <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+        <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
           {[
             {tl:'01 Personalize It',desc:"Add the hero's name, upload a photo, and make a few fun choices—it's that easy!"},
             {tl:'02 Preview & Confirm',desc:"Take a peek at your book and give it a thumbs-up."},
@@ -76,9 +79,9 @@ export default function EffortlessGifting() {
             <p className="text-[#000000] text-xl font-light">{desc}</p>
           </div>
           )}
-        </div> */}
+        </div>
 
-      </div>
+      </div> */}
 
     </Container>
   )
