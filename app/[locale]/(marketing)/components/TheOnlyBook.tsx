@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { Container } from "./Container";
 import { ContainerTitle } from "./ContainerTitle";
 import { ContainerDesc } from "./ContainerDesc";
-import { STAR, THE_ONLY_BOOK, THE_ONLY_BOOK_FEATURE, THE_ONLY_BOOK_FEATURE_APP, THE_ONLY_BOOK_GIF, THE_ONLY_BOOK_ISABELLA, THE_ONLY_BOOK_MELODY, THE_ONLY_BOOK_MIA } from "@/constants/cdn";
+import { STAR, THE_ONLY_BOOK, THE_ONLY_BOOK_FEATURE, THE_ONLY_BOOK_FEATURE_APP, THE_ONLY_BOOK_GIF } from "@/constants/cdn";
 
 export default function TheOnlyBook() {
   return (

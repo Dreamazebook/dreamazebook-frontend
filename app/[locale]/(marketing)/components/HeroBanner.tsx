@@ -9,14 +9,14 @@ export default function HeroBanner() {
   return (
     <div
       style={{'--desktop-bg' : `url(${DESKTOP_HERO_COVER})`,'--app-bg' : `url(${APP_HERO_COVER})`} as React.CSSProperties} 
-      className="md:flex md:items-center bg-(image:--app-bg) md:bg-(image:--desktop-bg) bg-cover md:px-10 md:aspect-[2/1] h-screen md:h-auto relative">
+      className="md:flex md:items-center bg-(image:--app-bg) md:bg-(image:--desktop-bg) bg-cover md:bg-contain bg-no-repeat md:px-10 md:aspect-[2/1] h-screen md:h-auto relative">
       <AnimatedSection className="md:container">
         <div className="md:w-4/5 pt-20 md:pt-0 mb-5">
           {/* Hero Content */}
           <h1 className="text-3xl md:text-6xl font-bold text-black p-4 md:p-0">
           Personalized Books with Your Child as the Star
           </h1>
-          <p className="p-4 md:p-0 md:mt-4 w-2/3 md:w-auto">Say goodbye to generic, cartoon generic avatars. With Dreamaze, your child&apos;s name, face, and uniqueness make them the true hero of the story.</p>
+          <p className="p-4 md:p-0 md:mt-4 w-2/3 md:w-auto">Turn your child’s real face, name, and personality into a one-of-a-kind story no more generic avatars.</p>
         </div>
 
         <div className='p-4 m-4 md:m-0 max-w-[528px] bg-white/75 text-center absolute bottom-2 left-1 right-1 md:static'>
