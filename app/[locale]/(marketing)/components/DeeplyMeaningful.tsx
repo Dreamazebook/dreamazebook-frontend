@@ -1,8 +1,7 @@
-import DreamzeImage from "@/app/components/DreamzeImage";
 import { Container } from "./Container";
 import { ContainerTitle } from "./ContainerTitle";
 import { ContainerDesc } from "./ContainerDesc";
-import { DEEPLY_MEANINGFUL_DORE, DEEPLY_MEANINGFUL_DREAMAZE, DEEPLY_MEANINGFUL_JAMES, DEEPLY_MEANINGFUL_MAIN, DEEPLY_MEANINGFUL_MELODY, DEEPLY_MEANINGFUL_STEP, DEEPLY_MEANINGFUL_STEP_VIDEO, DEEPLY_MEANINGFULL_BG } from "@/constants/cdn";
+import { DEEPLY_MEANINGFUL_STEP, DEEPLY_MEANINGFUL_STEP_VIDEO, DEEPLY_MEANINGFULL_BG } from "@/constants/cdn";
 
 export default function EffortlessGifting() {
   return (
