@@ -26,6 +26,8 @@ export const THE_ONLY_BOOK_GIF = `${CLOUDFLARE_CDN_URL}the-only-book.gif`;
 export const THE_ONLY_BOOK_ISABELLA = `${CLOUDFLARE_CDN_URL}isabella.png`;
 export const THE_ONLY_BOOK_MELODY = `${CLOUDFLARE_CDN_URL}melody.png`;
 export const THE_ONLY_BOOK_MIA = `${CLOUDFLARE_CDN_URL}mia.png`;
+export const THE_ONLY_BOOK_FEATURE = `${CLOUDFLARE_CDN_URL}the-only-book.png`;
+export const THE_ONLY_BOOK_FEATURE_APP = `${CLOUDFLARE_CDN_URL}the-only-book-app.png`;
 
 export const EXPERTLY_CRAFTED_DRAFT = `${CLOUDFLARE_CDN_URL}expertly-crafted-draft.png`;
 export const EXPERTLY_CRAFTED_DONE = `${CLOUDFLARE_CDN_URL}expertly-crafted-done.png`;

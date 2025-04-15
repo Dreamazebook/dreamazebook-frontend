@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { Container } from "./Container";
 import { ContainerTitle } from "./ContainerTitle";
 import { ContainerDesc } from "./ContainerDesc";
-import { STAR, THE_ONLY_BOOK, THE_ONLY_BOOK_GIF, THE_ONLY_BOOK_ISABELLA, THE_ONLY_BOOK_MELODY, THE_ONLY_BOOK_MIA } from "@/constants/cdn";
+import { STAR, THE_ONLY_BOOK, THE_ONLY_BOOK_FEATURE, THE_ONLY_BOOK_FEATURE_APP, THE_ONLY_BOOK_GIF, THE_ONLY_BOOK_ISABELLA, THE_ONLY_BOOK_MELODY, THE_ONLY_BOOK_MIA } from "@/constants/cdn";
 
 export default function TheOnlyBook() {
   return (
@@ -25,7 +25,12 @@ export default function TheOnlyBook() {
           <DreamzeImage src={THE_ONLY_BOOK_GIF} alt="Face swap" unoptimized={true} />
         </div>
 
-        <div className="flex flex-col md:flex-row gap-3 md:gap-6 mt-3 md:mt-6">
+        <div className="w-full relative aspect-square mt-3 md:mt-6">
+          <DreamzeImage cssClass="md:hidden" src={THE_ONLY_BOOK_FEATURE_APP} alt="" />
+          <DreamzeImage cssClass="hidden md:block" src={THE_ONLY_BOOK_FEATURE} alt="" />
+        </div>
+
+        {/* <div className="flex flex-col md:flex-row gap-3 md:gap-6 mt-3 md:mt-6">
           <div className="w-full md:w-2/3 relative aspect-square">
             <DreamzeImage src={THE_ONLY_BOOK_ISABELLA} alt="Lucas" />
           </div>
@@ -37,7 +42,8 @@ export default function TheOnlyBook() {
               <DreamzeImage src={THE_ONLY_BOOK_MIA} alt="Mia" />
             </div>
           </div>
-        </div>
+        </div> */}
+
       </div>
     </Container>
   );
