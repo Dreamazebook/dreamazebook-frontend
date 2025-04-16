@@ -1,3 +1,4 @@
+import { Roboto } from 'next/font/google'
 import TermlyCMP from '@/app/components/TermlyCMP';
 import '../../globals.css';
 import type { Metadata } from 'next'
@@ -5,6 +6,12 @@ import Script from 'next/script'
 import Footer from '@/app/components/Footer';
 import MetaPixel from '@/app/components/MetaPixel';
 import HotJar from '@/app/components/HotJar';
+
+const roboto = Roboto({
+  weight: '400',
+  subsets: ['latin'],
+  display: 'swap',
+})
 
 // You should replace GTM-XXXXXXX with your actual GTM ID
 const GTM_ID = 'GTM-57K5LXBQ'
@@ -71,7 +78,7 @@ export default function MarketingLayout({
         <HotJar />
         <MetaPixel />
       </head>
-      <body className="min-h-screen">
+      <body className={`min-h-screen ${roboto.className}`}>
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe 

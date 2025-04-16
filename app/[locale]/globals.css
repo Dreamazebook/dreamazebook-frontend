@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
 /* :root {
   --background: #ffffff;
@@ -11,10 +10,6 @@
     --foreground: #ededed;
   }
 } */
-
-body {
-  font-family: Roboto;
-}
 
 .bg-landing-page { 
   background-color: #F5E3E3;
