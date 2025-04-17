@@ -12,12 +12,12 @@ export default function PromotionBanner() {
     },
     {
       tl: 'Be First to Create Joy',
-      desc: 'Get early access to preview and personalize — before anyone else. Lead the magic!',
+      desc: 'Be the first to explore and even influence our personalized books.',
       img: FIRST_ACCESS
     },
     {
       tl: 'Exclusive Early-Bird Gift',
-      desc: 'A special thank-you for early believers — limited spots, gone fast!',
+      desc: 'Early sign-ups get an exclusive bonus with their first order!',
       img: LIMITED_GIFT_PACKAGE,
       cssClasses:'col-span-full md:col-span-1'
     }

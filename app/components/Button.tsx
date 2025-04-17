@@ -11,7 +11,7 @@ interface ButtonProps {
 }
 
 export default function Button({tl,isLoading,url,icon,leftIcon,handleClick,className='w-full'}:ButtonProps) {
-  const buttonStyle = `${className} cursor-pointer bg-[#FFC023] text-[#222222] px-4 py-3 rounded capitalize disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center`;
+  const buttonStyle = `${className} cursor-pointer font-bold bg-[#FFC023] text-[#222222] px-4 py-3 rounded capitalize disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center`;
 
   if (url) {
     return (

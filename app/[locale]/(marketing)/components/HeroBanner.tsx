@@ -1,7 +1,6 @@
 import { AnimatedSection } from "@/app/components/AnimatedSection";
 import EmailForm from "./EmailForm";
-import DreamzeImage from "@/app/components/DreamzeImage";
-import { APP_HERO_COVER, DESKTOP_HERO_COVER, EMAIL_AVATARS } from "@/constants/cdn";
+import { APP_HERO_COVER, DESKTOP_HERO_COVER } from "@/constants/cdn";
 import { useState } from "react";
 
 export default function HeroBanner() {
@@ -13,27 +12,27 @@ export default function HeroBanner() {
       <AnimatedSection className="md:container">
         <div className="md:w-4/5 pt-20 md:pt-0 mb-5">
           {/* Hero Content */}
-          <h1 className="text-3xl md:text-6xl font-bold text-black p-4 md:p-0">
+          <h1 className="text-4xl md:text-6xl font-bold text-black p-4 md:p-0">
           Personalized Books with Your Child as the Star
           </h1>
-          <p className="p-4 md:p-0 md:mt-4 w-2/3 md:w-auto">Turn your child’s real face, name, and personality into a one-of-a-kind story no more generic avatars.</p>
+          <p className="p-4 md:p-0 md:mt-4 w-2/3 md:w-auto">Turn your child’s real face, name, and personality into a one-of-a-kind story—no more generic avatars.</p>
         </div>
 
         <div className='p-4 m-4 md:m-0 max-w-[528px] bg-white/75 text-center absolute bottom-2 left-1 right-1 md:static'>
-          {!hideForm && <h3 className="mb-4 font-bold text-[28px]">Reserve a Timeless Gift for Your Child</h3>}
+          {!hideForm && <h3 className="mb-4 font-bold text-[24px]">Reserve a <span className="text-[#012DCE]">Timeless Gift</span> for Your Child !</h3>}
 
           <div className="max-w-lg">
             <EmailForm btnText="Sign up and Save 40%" redirectUrl={'/en/welcome/success-1'} handleCallBack={()=>setHideForm(true)} />
           </div>
 
-          {!hideForm &&
+          {/* {!hideForm &&
           <div className="flex items-center gap-4 justify-center mt-2">
             <div className="relative w-[114px] md:w-[156px] aspect-[19/4]">
               <DreamzeImage src={EMAIL_AVATARS} alt="Email Subscribers" />
             </div>
             <p className="text-[#222222] text-nowrap">800+ people have reserved</p>
           </div>
-          }
+          } */}
           <p className="font-bold text-[14px] md:text-xl text-[#04CF78] mt-4">launching soon on Kickstarter</p>
         </div>
 

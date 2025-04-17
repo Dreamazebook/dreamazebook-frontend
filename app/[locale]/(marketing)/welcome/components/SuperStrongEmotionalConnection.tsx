@@ -74,7 +74,7 @@ export default function SuperStrongEmotionalConnection() {
       
       <div className="relative mt-16">
         <Swiper
-          slidesPerView={'auto'}
+          slidesPerView={2}
           breakpoints={{
             // when window width is >= 640px
             640: {
@@ -112,7 +112,7 @@ export default function SuperStrongEmotionalConnection() {
         >
           {VIDEOS.map(({video},idx) => (
             <SwiperSlide key={idx}>
-              <div className="relative aspect-[4/3] rounded overflow-hidden">
+              <div className="relative aspect-[480/540] rounded overflow-hidden">
                 <video 
                   src={video}
                   className="w-full h-full object-cover"

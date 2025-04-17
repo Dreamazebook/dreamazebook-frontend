@@ -35,6 +35,8 @@ export default function EmailForm({btnText, handleCallBack, redirectUrl=''}: Ema
   }, [responseMessage, isError, countdown]);
 
   if (responseMessage && !isError) {
+    router.push(redirectUrl);
+    return null;
     if (countdown === 0) {
       router.push(redirectUrl);
       return null;

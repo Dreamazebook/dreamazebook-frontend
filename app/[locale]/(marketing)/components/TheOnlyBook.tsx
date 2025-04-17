@@ -7,7 +7,7 @@ import { STAR, THE_ONLY_BOOK, THE_ONLY_BOOK_FEATURE, THE_ONLY_BOOK_FEATURE_APP, 
 
 export default function TheOnlyBook() {
   return (
-    <Container cssClass="bg-blue-50">
+    <Container cssClass="">
       <div className="max-w-5xl mx-auto px-4 text-center">
         <ContainerTitle cssClass="mb-6 leading-15">
           The Only Book<br/>That <span className="text-[#022CCE]">Features</span> Your Child
@@ -15,7 +15,7 @@ export default function TheOnlyBook() {
         <ContainerDesc cssClass="mb-6">
           Want to see the joy on your child&apos;s face when they realize they&apos;re the hero of their own story?
         </ContainerDesc>
-        <p className="font-bold text-[#222222] text-xl mb-8 md:mb-16 flex items-center gap-4 justify-center">
+        <p className="font-bold text-[#222222] text-[16px] md:text-xl mb-8 md:mb-16 flex items-center gap-4 justify-center">
           <span>Dreamazebook is the best choice!</span>
           <Image src={STAR} width={36} height={36} alt="Star" />
         </p>
@@ -25,7 +25,7 @@ export default function TheOnlyBook() {
           <DreamzeImage src={THE_ONLY_BOOK_GIF} alt="Face swap" unoptimized={true} />
         </div>
 
-        <div className="w-full relative aspect-square mt-3 md:mt-6">
+        <div className="w-full relative aspect-[764/611] mt-3 md:mt-6">
           <DreamzeImage cssClass="md:hidden" src={THE_ONLY_BOOK_FEATURE_APP} alt="" />
           <DreamzeImage cssClass="hidden md:block" src={THE_ONLY_BOOK_FEATURE} alt="" />
         </div>

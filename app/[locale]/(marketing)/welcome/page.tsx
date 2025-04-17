@@ -37,7 +37,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection redirectUrl={'/en/welcome/success-2'} cssClass={"bg-white"} title={"Let Your Child Shine as the Hero"} desc={'Submit your email to receive updates and exclusive early bird perks'} btnText="Unlock Early Access & Perks!" />
+        <ReserveSection redirectUrl={'/en/welcome/success-2'} cssClass={"bg-[#F5E3E3]"} title={"Let Your Child Shine as the Hero"} desc={'Submit your email to receive updates and exclusive early bird perks'} btnText="Unlock Early Access & Perks!" />
       </AnimatedSection>
 
       <AnimatedSection>
