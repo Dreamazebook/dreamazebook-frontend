@@ -94,7 +94,7 @@ export default function SuperStrongEmotionalConnection() {
           centeredSlides={true}
           grabCursor={true}
           loop={true}
-          speed={6500}
+          speed={12500}
           autoplay={
             {
               delay: 2000,
@@ -116,7 +116,7 @@ export default function SuperStrongEmotionalConnection() {
         >
           {VIDEOS.map(({video},idx) => (
             <SwiperSlide key={idx}>
-              <div className="relative aspect-[480/540] rounded overflow-hidden">
+              <div className="relative aspect-[240/270] rounded overflow-hidden">
                 <video 
                   src={video}
                   className="w-full h-full object-cover"
