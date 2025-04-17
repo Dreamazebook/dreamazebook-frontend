@@ -12,7 +12,7 @@ export default function HeroBanner() {
       <AnimatedSection className="md:container">
         <div className="md:w-4/5 pt-20 md:pt-0 mb-5">
           {/* Hero Content */}
-          <h1 className="text-4xl md:text-6xl font-bold text-black p-4 md:p-0">
+          <h1 className="text-4xl md:text-6xl font-bold text-black p-4 md:p-0 capitalize">
           Personalized Books with Your Child as the Star
           </h1>
           <p className="p-4 md:p-0 md:mt-4 w-2/3 md:w-auto">Turn your child’s real face, name, and personality into a one-of-a-kind story—no more generic avatars.</p>

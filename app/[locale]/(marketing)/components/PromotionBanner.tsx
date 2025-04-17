@@ -27,12 +27,10 @@ export default function PromotionBanner() {
       <div className="container mx-auto px-4">
         <ContainerTitle cssClass='mb-16 md:mb-21'>Why Sign Up Today?</ContainerTitle>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-15">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-15">
           {PROMOTION_BANNERS.map(({tl,desc, img, cssClasses})=>
             <div key={tl} className={`bg-white text-center ${cssClasses}`}>
-              <div className="flex items-center mb-4">
-              </div>
-              <h3 className="text-[16px] md:text-[28px] p-3 text-[#022CCE] font-bold text-nowrap">{tl}</h3>
+              <h3 className="text-[16px] md:text-[28px] p-3 text-[#022CCE] font-bold">{tl}</h3>
               <div className='relative w-full aspect-[4/3] overflow-hidden'>
                 <DreamzeImage src={img} alt={tl} cssClass="hover:scale-105 transition-transform" />
               </div>
