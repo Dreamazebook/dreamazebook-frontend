@@ -7,6 +7,7 @@ import { Container } from '../../components/Container';
 import { ContainerTitle } from '../../components/ContainerTitle';
 import { ContainerDesc } from '../../components/ContainerDesc';
 import { CLOUDFLARE_CDN_URL } from '@/constants/cdn';
+import { Autoplay } from 'swiper/modules';
 
 const VIDEOS = [
   {
@@ -96,7 +97,8 @@ export default function SuperStrongEmotionalConnection() {
           speed={6500}
           autoplay={
             {
-              delay: 0
+              delay: 2000,
+              disableOnInteraction: false,
             }
           }
           effect={'coverflow'}
@@ -108,6 +110,8 @@ export default function SuperStrongEmotionalConnection() {
             stretch: 0,
             slideShadows: true,
           }}
+          cssMode={true}
+          modules={[Autoplay]}
           className="mySwiper"
         >
           {VIDEOS.map(({video},idx) => (
