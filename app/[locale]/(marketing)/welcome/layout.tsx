@@ -8,7 +8,8 @@ import MetaPixel from '@/app/components/MetaPixel';
 import HotJar from '@/app/components/HotJar';
 
 const roboto = Roboto({
-  weight: '400',
+  weight: ['400', '700'],
+  style: ['normal', 'italic'],
   subsets: ['latin'],
   display: 'swap',
 })
