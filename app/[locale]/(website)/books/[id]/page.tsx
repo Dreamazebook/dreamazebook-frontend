@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import api from "@/utils/api";
-import { DetailedBook, RecommendedBook } from '@/types/book';
+import { DetailedBook, RecommendedBook, Variant } from '@/types/book';
 import ReviewsSection from '../../components/Reviews';
 
 interface PagePic {
@@ -29,12 +29,10 @@ interface Keyword {
 }
 
 interface ApiResponse {
-  book: DetailedBook;
-  recommendedBooks: RecommendedBook[];
-  pagepics: PagePic[];
-  tags: string[];
-  reviews: Review[]; // 添加 reviews 字段
-  keywords: Keyword[];
+  success: boolean;
+  code: number;
+  message: string;
+  data: DetailedBook;
 }
 
 interface Tag {
@@ -58,13 +56,18 @@ const BookDetailPage = () => {
   useEffect(() => {
     const fetchBookDetails = async () => {
       try {
-        const response = await api.get(`/books/${id}`) as ApiResponse;
-        setBook(response.book);
+        const response = await api.get<ApiResponse>(`/picbooks/${id}`);
+        console.log('API Response:', response);
+        setBook(response.data);
         //setRecommendedBooks(response.recommendedBooks);
-        setPagePics(response.pagepics);
-        setTags(response.tags.map(tag => ({ tname: tag })));
-        setReviews(response.reviews);
-        setKeywords(response.keywords);
+        setPagePics(response.data.pages.map(page => ({
+          id: page.id,
+          pagenum: page.page_number,
+          pagepic: `/${page.image_url.replace('public/', '')}`
+        })));
+        setTags(response.data.tags.map(tag => ({ tname: tag })));
+        setReviews(response.data.reviews);
+        setKeywords(response.data.keywords);
       } catch (error) {
         console.error('Failed to fetch book details:', error);
       } finally {
@@ -79,6 +82,8 @@ const BookDetailPage = () => {
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (!book) return <div className="min-h-screen flex items-center justify-center">No book found</div>;
+
+  const description = book.variant ? book.variant.description : "No description available.";
 
   return (
     <div className="min-h-screen bg-white">
@@ -107,7 +112,7 @@ const BookDetailPage = () => {
           <div className="max-w-xl mx-auto p-12">
             {/* 标题和评分 */}
             <h1 className="text-[36px] leading-tight font-normal mb-4">
-              {book.bookname}
+              {book.default_name}
             </h1>
             
             <div className="flex items-center gap-4 mb-6">
@@ -128,7 +133,7 @@ const BookDetailPage = () => {
 
             {/* 描述文本 */}
             <div className="text-sm text-gray-900 bg-gray-100 px-3 py-1 mb-6 rounded-lg">
-              <p>{book.description}</p>
+              <p>{description}</p>
             </div>
             
             {/* 规格信息 */}
@@ -164,7 +169,7 @@ const BookDetailPage = () => {
               {/* 价格部分 */}
               <div className="flex items-baseline gap-3">
                 <span className="text-[#012CCE] text-[36px] font-medium">${book.price}</span>
-                <span className="text-gray-400 line-through">${(book.price * 1.25).toFixed(2)}</span>
+                <span className="text-gray-400 line-through">${(Number(book.price) * 1.25).toFixed(2)}</span>
               </div>
               
               {/* 按钮部分 */}
@@ -177,7 +182,7 @@ const BookDetailPage = () => {
             </div>
 
             {/* FAQ 部分 */}
-            <div className="space-y-4 border-t border-gray-200 pt-8">
+            <div className="space-y-4 border-gray-200">
               {[1, 2, 3].map((num) => (
                 <div key={num} className="border-b border-gray-200 pb-4">
                   <button

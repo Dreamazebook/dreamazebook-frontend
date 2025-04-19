@@ -27,6 +27,41 @@ interface ReviewsSectionProps {
 const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews }) => {
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0); // 当前展示的评论索引
 
+  const reviewsCount = reviews?.length || 18; // 如果 reviews 数组存在，使用它的长度，否则设为 0
+  const defaultKeywords = keywords?.length
+    ? keywords
+    : [
+        { keyword: "Fantasy", count: 5 },
+        { keyword: "Adventure", count: 3 },
+        { keyword: "Children's Book", count: 2 },
+      ];
+
+  const defaultReviews = reviews?.length
+    ? reviews
+    : [
+        {
+          reviewer_name: "John Doe",
+          rating: 4,
+          comment: "Great book! Really enjoyed it.",
+          review_date: "2025-04-01",
+          pagepic: "https://via.placeholder.com/150",
+        },
+        {
+          reviewer_name: "Jane Smith",
+          rating: 5,
+          comment: "An amazing adventure. Highly recommend!",
+          review_date: "2025-04-02",
+          pagepic: "https://via.placeholder.com/150",
+        },
+        {
+          reviewer_name: "Michael Lee",
+          rating: 3,
+          comment: "Good book, but a bit slow in the middle.",
+          review_date: "2025-04-03",
+          pagepic: "https://via.placeholder.com/150",
+        },
+      ]; 
+
   // 翻页函数，用于切换评论
   const handleUserClick = (index: number) => {
     setCurrentReviewIndex(index);
@@ -34,11 +69,16 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
 
   return (
     <div className="py-12">
+      {/* 标题 */}
+      <div className="text-center mb-12 pt-12">
+        <span className="text-3xl font-normal">See what customers are saying</span>
+      </div>
+
       {/* 容器 */}
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-center">
         {/* 平均评分区域 */}
         <div className="flex flex-col items-center bg-[#FFFBF3] pt-4 pb-4 px-6">
-          <span className="text-[44px] font-medium text-[#222222]">{book.rating?.toFixed(1)}</span>
+          <span className="text-[44px] font-medium text-[#222222]">{book.rating}</span>
 
           {/* 星级评分 */}
           <div className="flex mt-0">
@@ -46,7 +86,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
               <svg
                 key={i}
                 className={`w-6 h-6 ${
-                  i < Math.round(book.rating) ? "text-yellow-500" : "text-gray-300"
+                  i < Math.round(parseFloat(book.rating)) ? "text-yellow-500" : "text-gray-300"
                 }`}
                 fill="currentColor"
                 viewBox="0 0 20 20"
@@ -60,13 +100,13 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
           <div className="flex items-center justify-center mt-4 text-2lg">
             <span className="text-[#666666]">Excellent</span>
             <span className="mx-7 text-[#E5E5E5]">|</span>
-            <span className="text-[#666666]">{book.reviews_count} reviews</span>
+            <span className="text-[#666666]">{reviewsCount} reviews</span>
           </div>
         </div>
 
         {/* 关键词区域 */}
         <div className="grid grid-cols-2 gap-4 p-6">
-          {keywords.map((keyword, i) => (
+          {defaultKeywords.map((keyword, i) => (
             <span
               key={i}
               className="text-sm bg-[#F8F8F8] px-4 py-2 rounded text-gray-800 text-center"
@@ -81,11 +121,12 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
       <div
         className="flex flex-col mx-auto bg-[#F7F2EC] overflow-hidden"
         style={{
-          width: "1440px", // 填充整个宽度
-          height: "551px", // 高度固定为 551px
-          padding: "64px 120px", // 内边距设置为上下 64px，左右 120px
-          gap: "48px", // 子元素间距为 48px
-          marginTop: "48px", // 设置评论区顶部与上方部件的距离
+          width: "100%", // 改为100%宽度
+          maxWidth: "1440px", // 添加最大宽度限制
+          height: "551px",
+          padding: "64px 120px",
+          gap: "48px",
+          marginTop: "48px",
         }}
       >
         {/* 评论卡片 */}
@@ -99,16 +140,17 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
                 transform: "rotate(-90deg)", // 将文字旋转
                 display: "flex", // 内部内容居中
                 justifyContent: "center",
+                whiteSpace: "nowrap",
               }}
             >
-              {reviews[currentReviewIndex].reviewer_name}
+              {defaultReviews[currentReviewIndex].reviewer_name}
             </div>
           </div>
 
           {/* 中间部分：评论内容 */}
           <div className="w-10/12 p-6 flex flex-col justify-center">
             <p className="text-xl font-semibold mb-4">
-              {`"${reviews[currentReviewIndex].comment}"`}
+              {`"${defaultReviews[currentReviewIndex].comment}"`}
             </p>
             <div className="flex items-center mb-2">
               <div className="flex">
@@ -116,7 +158,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
                   <svg
                     key={index}
                     className={`w-6 h-6 ${
-                      index < reviews[currentReviewIndex].rating
+                      index < defaultReviews[currentReviewIndex].rating
                         ? "text-yellow-500"
                         : "text-gray-300"
                     }`}
@@ -128,18 +170,18 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
                 ))}
               </div>
               <span className="ml-4 text-sm text-gray-500">
-                {reviews[currentReviewIndex].review_date}
+                {defaultReviews[currentReviewIndex].review_date}
               </span>
             </div>
             <p className="text-sm text-gray-500">
-              {reviews[currentReviewIndex].reviewer_name}
+              {defaultReviews[currentReviewIndex].reviewer_name}
             </p>
           </div>
 
           {/* 右侧：用户名索引 */}
-          <div className="w-48 bg-[#F5E3E3] flex justify-center items-center">
+          <div className="w-40 bg-[#F5E3E3] flex justify-center items-center">
             <div className="flex items-center h-full">
-              {reviews.map((review, index) => (
+              {defaultReviews.map((review, index) => (
                 <React.Fragment key={index}>
                   {/* 用户名按钮 */}
                   <button
@@ -156,7 +198,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
                     {review.reviewer_name}
                   </button>
                   {/* 分割线 */}
-                  {index < reviews.length - 1 && (
+                  {index < defaultReviews.length - 1 && (
                     <div
                       className="bg-black"
                       style={{
