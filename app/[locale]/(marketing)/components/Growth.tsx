@@ -133,7 +133,7 @@ export default function Growth() {
           return (
             <div
               key={idx}
-              className={`mb-3 ${isEven ? "" : "flex-row-reverse"} flex`}
+              className={`mb-3 h-[80px] ${isEven ? "" : "flex-row-reverse"} flex`}
             >
               <div
                 className={`flex w-1/2 gap-6 ${
@@ -142,10 +142,10 @@ export default function Growth() {
                     : isEven
                     ? isCur
                       ? "border-r-1 border-r-blue-500 flex-row-reverse"
-                      : "border-r-1  border-dotted border-r-[#22222] flex-row-reverse"
+                      : "border-r-1  border-dashed border-r-[#22222] flex-row-reverse"
                     : isCur
                     ? "border-l-1 border-l-blue-500 "
-                    : "border-l-1 border-dotted border-l-[#22222]"
+                    : "border-l-1 border-dashed border-l-[#22222]"
                 }`}
               >
                 {

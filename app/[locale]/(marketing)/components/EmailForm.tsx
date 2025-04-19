@@ -81,11 +81,14 @@ export default function EmailForm({btnText, handleCallBack, redirectUrl=''}: Ema
         setIsError(true);
         setResponseMessage(data.msg);
         return;
+      } else {
+        router.push(redirectUrl);
+        return;
       }
 
       setResponseMessage(data.msg);
       if (typeof handleCallBack === 'function') {
-        handleCallBack();
+        //handleCallBack();
       }
       
     } catch (error) {

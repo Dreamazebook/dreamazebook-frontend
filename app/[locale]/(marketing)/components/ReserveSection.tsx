@@ -21,7 +21,7 @@ export default function ReserveSection({title,desc,style,cssClass,btnText,redire
       {show&&
       <>
         {title && <h2 className="text-2xl md:text-[40px] font-bold" dangerouslySetInnerHTML={{__html: title}}></h2>}
-        <p className="text-[20px] font-light" dangerouslySetInnerHTML={{__html:desc}}></p>
+        <p className="text-[16px] md:text-xl font-light" dangerouslySetInnerHTML={{__html:desc}}></p>
       </>
       }
       <div className="max-w-lg mx-auto mt-6">

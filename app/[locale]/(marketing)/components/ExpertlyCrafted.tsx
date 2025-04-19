@@ -56,7 +56,7 @@ export default function ExpertlyCrafted() {
         <div
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          className="max-w-4xl relative aspect-[4/1] mx-auto my-16">
+          className="max-w-4xl relative aspect-[4/1] mx-auto my-8 md:my-16">
           <DreamzeImage src={EXPERTLY_CRAFTED_DRAFT} alt="Dreamazebook" cssClass="transition-opacity duration-[2500ms] z-10" style={{ opacity: `${opacity}%` }} />
           <DreamzeImage src={EXPERTLY_CRAFTED_DONE} alt="Dreamazebook" />
         </div>

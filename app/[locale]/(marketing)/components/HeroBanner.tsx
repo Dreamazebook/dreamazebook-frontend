@@ -9,7 +9,7 @@ export default function HeroBanner() {
     <div
       style={{'--desktop-bg' : `url(${DESKTOP_HERO_COVER})`,'--app-bg' : `url(${APP_HERO_COVER})`} as React.CSSProperties} 
       className="md:flex md:items-center bg-(image:--app-bg) md:bg-(image:--desktop-bg) bg-cover md:bg-contain bg-no-repeat md:px-10 md:aspect-[2/1] h-screen md:h-auto relative">
-      <AnimatedSection className="md:container">
+      <AnimatedSection className="md:max-w-[1024px]">
         <div className="md:w-4/5 pt-20 md:pt-0 mb-5">
           {/* Hero Content */}
           <h1 className="text-4xl md:text-6xl font-bold text-black p-4 md:p-0 capitalize">

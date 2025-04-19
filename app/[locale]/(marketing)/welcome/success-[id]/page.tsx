@@ -47,9 +47,9 @@ const KICKSTARTER = (
 export default function Thankyou() {
   return (
     <main className="bg-white">
-      <Link href={"/"} className="block max-w-7xl mx-auto mb-5">
+      <Link href={"/"} className="block max-w-7xl mx-auto mb-1.5 md:mb-3">
         <Image
-          className=""
+          className="ml-7"
           src={DREAMAZEBOOK_LOGO}
           alt="Logo"
           width={168}
@@ -61,12 +61,13 @@ export default function Thankyou() {
         style={
           {
             "--success-logo-app": `url(${SUCCESS_LOGO_APP})`,
+            '--center-height': "calc(100vh - 56px)"
           } as React.CSSProperties
         }
-        className="bg-[#F5E3E3] flex justify-center items-center h-screen relative bg-(image:--success-logo-app) bg-no-repeat md:bg-none"
+        className="bg-[#F5E3E3] flex justify-center items-center h-(--center-height) relative bg-(image:--success-logo-app) bg-no-repeat md:bg-none"
       >
         <div className="bg-white p-10 md:px-[88px] md:pt-12 md:pb-16 text-[#222222] max-w-sm md:max-w-4xl mx-auto relative z-10 md:text-center">
-          <h2 className="font-bold text-[25px] md:text-[40px] text-center">
+          <h2 className="font-bold text-[20px] md:text-[40px] text-center">
             Congrats!
           </h2>
           <div className="relative">
@@ -76,7 +77,7 @@ export default function Thankyou() {
                   "--success-underline": `url(${SUCCESS_UNDERLINE})`,
                 } as React.CSSProperties
               }
-              className="font-bold text-center text-nowrap text-[25px] md:text-[40px] bg-no-repeat [background-size:130px] bg-[150px_25px] md:bg-[330px_40px] md:[background-size:250px] bg-(image:--success-underline)"
+              className="font-bold text-center text-nowrap text-[20px] md:text-[40px] bg-no-repeat [background-size:130px] bg-[150px_25px] md:bg-[330px_40px] md:[background-size:250px] bg-(image:--success-underline)"
             >
               You’re Now Part of the Story
             </h2>
@@ -88,11 +89,11 @@ export default function Thankyou() {
               className="absolute -top-5 -right-5 md:right-25"
             />
           </div>
-          <p className="text-xl font-light mt-6 mb-3">
+          <p className="text-[18px] md:text-xl font-light mt-6 mb-3">
             We’re so excited to have you here — let’s start the journey
             together.
           </p>
-          <p className="text-xl font-light mb-3">
+          <p className="text-[18px] md:text-xl font-light mb-3">
             Join our Facebook group to get a <b className="font-bold">FREE</b>{" "}
             printable coloring book for your child.
           </p>
@@ -105,7 +106,7 @@ export default function Thankyou() {
             />
           </div>
 
-          <p className="text-xl font-light mt-12 mb-3">
+          <p className="text-[18px] md:text-xl font-light mt-6 md:mt-12 mb-3">
             Follow us on {KICKSTARTER} to get launch alerts
           </p>
           <p className="text-xl font-light mb-4">

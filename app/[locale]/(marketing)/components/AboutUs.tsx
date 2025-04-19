@@ -16,7 +16,7 @@ export const AboutUs = () => {
         We believe personalized books should go beyond pieced-together avatars to create immersive experiences where<br/>
         <b>you and your loved ones are the true protagonists.</b>
       </ContainerDesc>
-      <Image src={ABOUT_US_LOGO} className="mx-auto mt-6" alt="Logo" width={200} height={70} />
+      <Image src={ABOUT_US_LOGO} className="mx-auto mt-6" alt="Logo" width={100} height={40} />
     </div>
     </AnimatedSection>
   );

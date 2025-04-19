@@ -13,7 +13,7 @@ export default function BelovedByEarlyTesters() {
           <span><span className="text-[#022CCE]">Beloved</span> By Early Testers</span>
           <Image src={BELOVED_LIKE} alt="Like" width={64} height={64} />
         </ContainerTitle>
-      <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 px-2.5 md:px-0 gap-24 md:gap-12">
+      <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 px-2.5 md:px-0 gap-22 md:gap-12">
         {[{
           desc: "The moment I saw the melody book with my son’s face in it, I was truly moved. Seeing the instruments come together, carrying the unique blessing behind his name, felt so personal and magical. It’s such a beautiful and meaningful gift!",
           tl: "Elija’s Mom",
@@ -40,7 +40,7 @@ export default function BelovedByEarlyTesters() {
             <div className="p-9">
               <h3 className="font-bold text-[#222222] text-[28px] text-center mt-10 mb-4">{tl}</h3>
               <Image src={BELOVED_START} alt="Rating" width={168} height={24} className="mx-auto mb-4" />
-              <ContainerDesc cssClass="text-left">
+              <ContainerDesc cssClass="text-left pb-10">
                 {desc}
               </ContainerDesc>
             </div>

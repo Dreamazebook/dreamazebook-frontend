@@ -25,7 +25,7 @@ export default function PromotionBanner() {
   return (
     <Container cssClass="bg-[#F8F8F8]">
       <div className="container mx-auto px-4">
-        <ContainerTitle cssClass='mb-16 md:mb-21'>Why Sign Up Today?</ContainerTitle>
+        <ContainerTitle cssClass='mb-8 md:mb-21'>Why Sign Up Today?</ContainerTitle>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-15">
           {PROMOTION_BANNERS.map(({tl,desc, img, cssClasses})=>
@@ -40,7 +40,7 @@ export default function PromotionBanner() {
 
         </div>
       </div>
-      <div className='relative aspect-[616/30] max-w-[323px] md:max-w-[616px] mx-auto mt-24'> 
+      <div className='relative aspect-[616/30] max-w-[323px] md:max-w-[616px] mx-auto mt-11 md:mt-22'> 
         <DreamzeImage src={KICKSTARTER} alt="Kickstarter" />
       </div>
     </Container>

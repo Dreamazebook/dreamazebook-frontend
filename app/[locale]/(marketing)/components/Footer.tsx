@@ -9,7 +9,7 @@ export default function Footer() {
       <div className="relative container mx-auto aspect-[7/2]">
         <DreamzeImage src={FOOTER} alt="Footer"/>
       </div>
-      <Image className="mx-auto" src={DREAMAZEBOOK_LOGO} alt="Logo" width={200} height={70} />
+      <Image className="mx-auto md:w-[200px] md:h-[70px]" src={DREAMAZEBOOK_LOGO} alt="Logo" width={100} height={35} />
     </AnimatedSection>
   )
 }
