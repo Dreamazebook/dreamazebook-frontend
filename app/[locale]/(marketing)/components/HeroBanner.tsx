@@ -1,4 +1,3 @@
-import { AnimatedSection } from "@/app/components/AnimatedSection";
 import EmailForm from "./EmailForm";
 import { APP_HERO_COVER, DESKTOP_HERO_COVER } from "@/constants/cdn";
 import { useState } from "react";
