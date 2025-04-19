@@ -126,7 +126,7 @@ export default function Growth() {
             icon: "pending",
             isCur: true,
             tl: "Ship to Customers",
-            date: "August-Spetember 2025",
+            date: "August-September 2025",
           },
         ].map(({ tl, date, isCur, icon }, idx) => {
           const isEven = idx % 2 === 0;

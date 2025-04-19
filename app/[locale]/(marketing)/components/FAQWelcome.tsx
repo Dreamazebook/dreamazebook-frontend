@@ -1,9 +1,10 @@
+import { FACEBOOK_GROUP_URL, KICKSTARTER_URL } from "@/constants/links";
 import FAQ from "./FAQ";
 
 const FAQs = [
   {
     tl:'How can I support Dreamaze on Kickstarter?',
-    ans: (<>Back us on Kickstarter – backing on Day One unlocks the best price! We also highly recommend joining our VIP Facebook Group so you won’t miss our launch and can claim a <span className="font-bold">FREE giveaway gift</span>.</>),
+    ans: (<>Back us on <a className="underline" href={KICKSTARTER_URL} target="_blank">Kickstarter</a> – backing on Day One unlocks the best price! We also highly recommend joining our <a className="underline" href={FACEBOOK_GROUP_URL} target="_blank">VIP Facebook Group</a> so you won’t miss our launch and can claim a <span className="font-bold">FREE giveaway gift</span>.</>),
     show:true
   },
   {

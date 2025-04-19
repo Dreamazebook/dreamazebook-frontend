@@ -6,6 +6,7 @@ import {
   SUCCESS_STAR,
   SUCCESS_UNDERLINE,
 } from "@/constants/cdn";
+import { FACEBOOK_GROUP_URL, KICKSTARTER_URL } from "@/constants/links";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
@@ -102,7 +103,7 @@ export default function Thankyou() {
             <Button
               tl="Grab the Free Coloring Fun"
               className="w-[426px]"
-              url="https://www.facebook.com/groups/632313426083796/"
+              url={FACEBOOK_GROUP_URL}
             />
           </div>
 
@@ -117,7 +118,7 @@ export default function Thankyou() {
             <Button
               tl="Notify Me for the Big Deal"
               className="w-[426px]"
-              url="https://www.kickstarter.com/projects/dreamazebook/dreamaze-personalized-books-to-truly-see-your-loved-ones"
+              url={KICKSTARTER_URL}
             />
           </div>
 
