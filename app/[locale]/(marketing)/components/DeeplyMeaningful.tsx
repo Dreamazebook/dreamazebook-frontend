@@ -2,8 +2,10 @@ import { Container } from "./Container";
 import { ContainerTitle } from "./ContainerTitle";
 import { ContainerDesc } from "./ContainerDesc";
 import { DEEPLY_MEANINGFUL_STEP, DEEPLY_MEANINGFUL_STEP_VIDEO, DEEPLY_MEANINGFULL_BG } from "@/constants/cdn";
+import { useRef } from "react";
 
 export default function EffortlessGifting() {
+  const videoRef = useRef<HTMLVideoElement>(null);
   return (
     <Container cssClass="bg-[#F8F8F8]">
       <div className="container mx-auto px-4">
@@ -15,7 +17,21 @@ export default function EffortlessGifting() {
         </ContainerDesc>
 
         <div className="w-full bg-cover py-3" style={{backgroundImage:`url(${DEEPLY_MEANINGFULL_BG})`}}>
-          <video className="mx-auto w-[130px] md:w-[310px]" loop controls src={DEEPLY_MEANINGFUL_STEP_VIDEO} poster={DEEPLY_MEANINGFUL_STEP} />
+        <video 
+          ref={videoRef}
+          className="mx-auto w-[130px] md:w-[310px]" 
+          loop 
+          controls 
+          src={DEEPLY_MEANINGFUL_STEP_VIDEO} 
+          poster={DEEPLY_MEANINGFUL_STEP}
+          onPlay={() => {
+            if (videoRef.current) {
+              videoRef.current.requestFullscreen().catch(err => {
+                console.error('full screen error:', err);
+              });
+            }
+          }}
+        />
         </div>
         
         {/* <div className="max-w-5xl mx-auto md:flex hidden flex-col gap-6 mb-32">
