@@ -121,8 +121,8 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
       <div
         className="flex flex-col mx-auto bg-[#F7F2EC] overflow-hidden"
         style={{
-          width: "100%", // 改为100%宽度
-          maxWidth: "1440px", // 添加最大宽度限制
+          width: "100%",
+          maxWidth: "1440px",
           height: "551px",
           padding: "64px 120px",
           gap: "48px",
@@ -130,15 +130,14 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
         }}
       >
         {/* 评论卡片 */}
-        <div className="flex bg-white overflow-hidden h-full">
+        <div className="flex flex-col md:flex-row overflow-hidden h-full items-center justify-center md:items-stretch">
           {/* 左侧：当前用户名 */}
-          <div className="w-12 bg-[#F5E3E3] flex items-center justify-center">
+          <div className="w-full md:w-12 bg-[#F5E3E3] flex items-center justify-center py-3 md:py-0">
             <div
-              className="text-sm font-bold text-gray-700 text-center"
+              className="text-sm font-bold text-gray-700 text-center md:rotate-[-90deg]"
               style={{
-                width: "48px", // 固定宽度
-                transform: "rotate(-90deg)", // 将文字旋转
-                display: "flex", // 内部内容居中
+                width: "48px",
+                display: "flex",
                 justifyContent: "center",
                 whiteSpace: "nowrap",
               }}
@@ -148,7 +147,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
           </div>
 
           {/* 中间部分：评论内容 */}
-          <div className="w-10/12 p-6 flex flex-col justify-center">
+          <div className="w-full md:w-10/12 p-6 flex bg-white flex-col justify-center">
             <p className="text-xl font-semibold mb-4">
               {`"${defaultReviews[currentReviewIndex].comment}"`}
             </p>
@@ -179,33 +178,27 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
           </div>
 
           {/* 右侧：用户名索引 */}
-          <div className="w-40 bg-[#F5E3E3] flex justify-center items-center">
-            <div className="flex items-center h-full">
+          <div className="w-full md:w-40 bg-[#F5E3E3] flex justify-center items-center">
+            <div className="flex flex-col md:flex-row items-center w-full h-full">
               {defaultReviews.map((review, index) => (
                 <React.Fragment key={index}>
                   {/* 用户名按钮 */}
                   <button
-                    className={`text-sm text-gray-700 ${
+                    className={`text-sm text-gray-700 md:rotate-[-90deg] md:px-0 md:py-0 md:w-13 md:flex md:items-center md:justify-center ${
                       index === currentReviewIndex ? "font-bold text-black" : ""
                     }`}
                     onClick={() => handleUserClick(index)}
                     style={{
-                      writingMode: "vertical-rl", // 垂直文字排列
-                      padding: "8px 0", // 控制上下方向的空白
-                      width: "48px",
+                      writingMode: "horizontal-tb",
+                      padding: "8px 16px",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {review.reviewer_name}
                   </button>
                   {/* 分割线 */}
                   {index < defaultReviews.length - 1 && (
-                    <div
-                      className="bg-black"
-                      style={{
-                        width: "1px", // 分割线宽度
-                        height: "100%", // 分割线高度
-                      }}
-                    />
+                    <div className="w-full h-[1px] bg-black md:w-[1px] md:h-full" />
                   )}
                 </React.Fragment>
               ))}
