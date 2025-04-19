@@ -103,6 +103,7 @@ export default function Thankyou() {
             <Button
               tl="Grab the Free Coloring Fun"
               className="w-[426px]"
+              target="_blank"
               url={FACEBOOK_GROUP_URL}
             />
           </div>
@@ -118,6 +119,7 @@ export default function Thankyou() {
             <Button
               tl="Notify Me for the Big Deal"
               className="w-[426px]"
+              target="_blank"
               url={KICKSTARTER_URL}
             />
           </div>
