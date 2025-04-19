@@ -2,20 +2,21 @@
 import { useState, useEffect } from "react";
 import {useRouter} from 'next/navigation'
 import Button from "@/app/components/Button";
+import { fbTrack } from "@/utils/track";
 
 interface EmailFormProps {
   btnText?: string;
   handleCallBack?: () => void;
+  redirectUrl?: string;
 }
 
-export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
+export default function EmailForm({btnText, handleCallBack, redirectUrl=''}: EmailFormProps) {
   const router = useRouter();
 
   const [responseMessage, setResponseMessage] = useState('');
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountDown] = useState(3);
-  const [contactId, setContactId] = useState('');
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -34,12 +35,14 @@ export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
   }, [responseMessage, isError, countdown]);
 
   if (responseMessage && !isError) {
+    router.push(redirectUrl);
+    return null;
     if (countdown === 0) {
-      router.push(`/en/welcome/reserve?contactId=${contactId}`);
+      router.push(redirectUrl);
       return null;
     }
     return (
-      <div className="text-center text-[20px] font-semibold p-4 bg-[#022CCE] text-white">
+      <div className="text-center text-[20px] font-semibold p-4 bg-[#FFC023] text-white">
         <p className="text-[28px]">Thanks!</p>
         <p className="capitalize">Time to Lift Off,<br/>Grab Your Spot and Lock in Your Deal</p>
         <p className="text-[18px]">{countdown}s</p>
@@ -52,12 +55,13 @@ export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
     setIsLoading(true);
     setIsError(false);
     setResponseMessage('');
+    fbTrack('Lead');
     const form = event.currentTarget;
     const emailInput = (form.elements.namedItem('email') as HTMLInputElement).value;
 
     try {
       const response = await fetch(
-        "/api/hubspot",
+        "/api/subscriptions",
         {
           method: "POST",
           headers: {
@@ -77,12 +81,14 @@ export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
         setIsError(true);
         setResponseMessage(data.msg);
         return;
+      } else {
+        router.push(redirectUrl);
+        return;
       }
 
       setResponseMessage(data.msg);
-      setContactId(data.contactId);
       if (typeof handleCallBack === 'function') {
-        handleCallBack();
+        //handleCallBack();
       }
       
     } catch (error) {
@@ -102,7 +108,7 @@ export default function EmailForm({btnText, handleCallBack}: EmailFormProps) {
           type="email" 
           name="email" 
           placeholder='Enter your email' 
-          className='w-full text-black bg-white p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
+          className='w-full text-black caret-[#999999] bg-white p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
           aria-label="Email address"
         />
         <Button tl={btnText||'Reserve and Save 40%'} isLoading={isLoading} />

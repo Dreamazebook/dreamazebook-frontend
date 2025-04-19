@@ -3,22 +3,23 @@ import { Autoplay, Pagination, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import DreamzeImage from "@/app/components/DreamzeImage"
 import { useEffect, useRef } from 'react';
+import { HARDCOVER, LAY_FLAT, SOFTCOVER } from '@/constants/cdn';
 
 const COVERS = [
   {
     id: 'softcover',
     tl: 'Softcover',
-    img: '/welcome/product-book/softcover.png'
+    img: SOFTCOVER
   },
   {
     id: 'softcover',
     tl: 'hardcover',
-    img: '/welcome/product-book/hardcover.png'
+    img: HARDCOVER
   },
   {
     id: 'lay-flat',
     tl: 'Premium Lay-Flat Hardcover',
-    img: '/welcome/product-book/lay-falt.png'
+    img: LAY_FLAT
   },
 ];
 

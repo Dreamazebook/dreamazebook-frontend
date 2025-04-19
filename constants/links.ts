@@ -1,0 +1,2 @@
+export const KICKSTARTER_URL = 'https://www.kickstarter.com/projects/dreamazebook/dreamaze-personalized-books-to-truly-see-your-loved-ones';
+export const FACEBOOK_GROUP_URL = 'https://www.facebook.com/groups/632313426083796/';

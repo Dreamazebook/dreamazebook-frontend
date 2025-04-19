@@ -1,5 +1,5 @@
 "use client";
-import {useEffect} from "react";
+import React from "react";
 import Image from 'next/image'
 import Growth from "../components/Growth";
 import PromotionBanner from "../components/PromotionBanner";
@@ -14,65 +14,46 @@ import Footer from "../components/Footer";
 import HeroBanner from "../components/HeroBanner";
 import { AboutUs } from "../components/AboutUs";
 import BelovedByEarlyTesters from "../components/BelovedByEarlyTesters";
+import { DREAMAZEBOOK_LOGO, VIP_DISCOUNT, VIP_DISCOUNT_APP } from "@/constants/cdn";
 
 
 export default function LandingPage() {
 
-  // Add useEffect to handle tab close
-  useEffect(() => {
-    // const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-    //   e.preventDefault();
-    //   const confirmNavigation = window.confirm('Are you sure you want to leave? You will be redirected to a specific link.');
-
-    //   if (confirmNavigation) {
-    //     window.location.href = 'https://docs.google.com/forms/d/e/1FAIpQLSehhcKV1PW221dtmrw5hQVo2oD5i98gdSmV_IhKUmc5URjKFw/viewform?embedded=true';
-    //   }
-    // };
-
-    // window.addEventListener('beforeunload', handleBeforeUnload);
-
-    // return () => {
-    //   window.removeEventListener('beforeunload', handleBeforeUnload);
-    // };
-  }, []);
-
   return (
     <main className="bg-white relative">
-      <Image className="absolute top-0 left-10" src={'/welcome/dreamaze-logo.png'} alt="Logo" width={168} height={56} />
+      <Image className="absolute top-0 left-4 md:left-10 z-10" src={DREAMAZEBOOK_LOGO} alt="Logo" width={168} height={56} />
       <HeroBanner />
-      
 
       <AnimatedSection>
         <PromotionBanner />
       </AnimatedSection>
 
-      <AnimatedSection>
-        <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/early-access-app.png)] md:bg-[url(/welcome/reserve-banner/early-access.png)]"} title={"Early Access"} btnText={'Claim Your Early Access'} desc={'Be the first to explore and even help shape our personalized books.'} />
-      </AnimatedSection>
+      {/* <AnimatedSection>
+        <ReserveSection redirectUrl={'/en/welcome/success-2'} style={{'--early-access-app':`url(${EARLY_ACCESS_APP})`,'--early-access':`url(${EARLY_ACCESS})`} as React.CSSProperties} cssClass={"text-white bg-(image:--early-access-app) md:bg-(image:--early-access)"} title={"For Families Who Believe in Magic Moments"} btnText={'Join Early & Be Part of the Magic'} desc={'Join a community that cherishes creativity and connection.<br/> Leave your email to be the first to bring this magic to life when we launch on Kickstarter.'} />
+      </AnimatedSection> */}
 
       <AnimatedSection>
         <TheOnlyBook />
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"bg-white"} title={"Make It Extra Special"} desc={'Create a magical story starring your little one.'} />
+        <ReserveSection redirectUrl={'/en/welcome/success-2'} cssClass={"bg-[#F5E3E3]"} title={"Let Your Child Shine as the Hero"} desc={'Submit your email to receive updates and exclusive early bird perks'} btnText="Unlock Early Access & Perks!" />
       </AnimatedSection>
 
-      <AnimatedSection>
-        <SuperStrongEmotionalConnection />
-      </AnimatedSection>
-      
-
-      <AnimatedSection>
-        <ExpertlyCrafted />
-      </AnimatedSection>
-      
       <AnimatedSection>
         <EffortlessGifting />
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"bg-[#F5E3E3]"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it's gone!" />
+        <SuperStrongEmotionalConnection />
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <ExpertlyCrafted />
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <ReserveSection redirectUrl={'/en/welcome/success-3'} cssClass={""} desc="Leave your email now to unlock behind-the-scenes peeks into our creation process — from sketch to storybook." btnText="Sign Up& Shape the Story With Us" />
       </AnimatedSection>
 
       <AboutUs />
@@ -88,7 +69,13 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection cssClass={"text-white bg-[url(/welcome/reserve-banner/40-vip-discount-app.png)] md:bg-[url(/welcome/reserve-banner/40-vip-discount.png)]"} title={"40% VIP Discount"} desc="Reserve now and secure our biggest deal before it's gone!" />
+        <ReserveSection
+          redirectUrl={'/en/welcome/success-4'}
+          style={{'--vip-discount-app':`url(${VIP_DISCOUNT_APP})`,'--vip-discount':`url(${VIP_DISCOUNT})`} as React.CSSProperties}
+          //cssClass={"text-white bg-(image:--vip-discount-app) md:bg-(image:--vip-discount)"}
+          title={"Your Smartest Save Yet!"}
+          desc="Be among the first to reserve and lock in our exclusive 40% VIP discount <br/> a once-only offer to reward early supporters who know a good thing when they see it."
+          btnText="Reserve Early & Save Big" />
       </AnimatedSection>
 
       <Footer />

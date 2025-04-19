@@ -11,15 +11,30 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'http',
-        hostname: 'localhost',
+        hostname: '127.0.0.1',
+        port: '',
+        pathname: '/**',
       },
       {
         protocol: 'http',
-        hostname: '127.0.0.1',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pub-8cae259c4f3f4e73adf6a65ae6bbd7fa.r2.dev',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.facebook.com',
+        port: '',
+        pathname: '/**',
       },
     ],
   },
-  
 };
  
 export default withNextIntl(nextConfig);

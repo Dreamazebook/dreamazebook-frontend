@@ -2,6 +2,7 @@ import { JSX } from "react";
 import Image from "next/image";
 import { Container } from "./Container";
 import { ContainerTitle } from "./ContainerTitle";
+import { MAGIC_WAND } from "@/constants/cdn";
 
 interface IconProps {
   cssClass: string;
@@ -83,7 +84,7 @@ export default function Growth() {
 
       <div className="flex justify-center my-16">
         <Image
-          src="/welcome/growth/magic-wand.png"
+          src={MAGIC_WAND}
           alt="Magic Wand"
           width={64}
           height={64}
@@ -92,47 +93,47 @@ export default function Growth() {
 
       <div className="max-w-3xl mx-auto">
         {[
-          { icon: "done", tl: "Initial Idea Sparked", date: "May 2023" },
-          { icon: "done", tl: "Product Research", date: "June 2023" },
-          { icon: "done", tl: "AI Workflow Development", date: "July 2023" },
+          { icon: "done", tl: "Initial Idea Sparked", date: "May 2024" },
+          { icon: "done", tl: "Product Research", date: "June 2024" },
+          { icon: "done", tl: "AI Workflow Development", date: "July 2024-Ongoing" },
           {
             icon: "done",
             tl: "Illustration & Content Development",
-            date: "October 2023",
+            date: "August 2024-Ongoing",
           },
-          { icon: "done", tl: "Prototype Creation", date: "January 2024" },
-          { icon: "done", tl: "Factory Visits", date: "May 2024" },
-          { icon: "done", tl: "Early Tester Feedback", date: "September 2024" },
+          { icon: "done", tl: "Prototype Creation", date: "October 2024" },
+          { icon: "done", tl: "Factory Visits", date: "December 2024" },
+          { icon: "done", tl: "Early Tester Feedback", date: "February 2025" },
           {
             icon: "ongoing",
             isCur: true,
             tl: "Kickstarter Prelaunch",
-            date: "February-March 2025",
+            date: "April-June 2025",
           },
           {
             icon: "pending",
             isCur: true,
             tl: "Finalize Website",
-            date: "March 2024",
+            date: "May-June 2025",
           },
           {
             icon: "kickstarter",
             isCur: true,
             tl: "Kickstart Launching",
-            date: "April 2024",
+            date: "July 2025",
           },
           {
             icon: "pending",
             isCur: true,
             tl: "Ship to Customers",
-            date: "June 2024",
+            date: "August-September 2025",
           },
         ].map(({ tl, date, isCur, icon }, idx) => {
           const isEven = idx % 2 === 0;
           return (
             <div
               key={idx}
-              className={`mb-3 ${isEven ? "" : "flex-row-reverse"} flex`}
+              className={`mb-3 h-[80px] ${isEven ? "" : "flex-row-reverse"} flex`}
             >
               <div
                 className={`flex w-1/2 gap-6 ${
@@ -141,10 +142,10 @@ export default function Growth() {
                     : isEven
                     ? isCur
                       ? "border-r-1 border-r-blue-500 flex-row-reverse"
-                      : "border-r-1  border-dotted border-r-[#22222] flex-row-reverse"
+                      : "border-r-1  border-dashed border-r-[#22222] flex-row-reverse"
                     : isCur
                     ? "border-l-1 border-l-blue-500 "
-                    : "border-l-1 border-dotted border-l-[#22222]"
+                    : "border-l-1 border-dashed border-l-[#22222]"
                 }`}
               >
                 {

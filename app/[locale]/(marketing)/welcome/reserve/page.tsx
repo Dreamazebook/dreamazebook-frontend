@@ -1,6 +1,6 @@
 'use client';
 import FAQReserve from "../../components/FAQReserve";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Popup from "../../components/Popup";
 import Button from "@/app/components/Button";
 import Previews from "../components/Previews";
@@ -11,8 +11,10 @@ import { ContainerTitle } from "../../components/ContainerTitle";
 import Image from 'next/image';
 import DreamzeImage from "@/app/components/DreamzeImage";
 import Link from "next/link";
-import { useSearchParams } from 'next/navigation'
-import { sendRequest } from "@/utils/hubspot";
+import { useSearchParams } from "next/navigation";
+import { sendRequest } from "@/utils/subscription";
+import VIPOnlyPerk from "../components/VIPOnlyPerk";
+import { CREATOR_RECOMMENDATION, DREAMAZEBOOK_LOGO, MORE_MAGIC, MOST_PEOPLE_CHOICE } from "@/constants/cdn";
 
 
 const NEXT_PUBLIC_STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
@@ -28,7 +30,7 @@ const PRICES = [
   {
     headerStyle:'bg-linear-to-r from-[#FF638A] from-20% to-[#FF2566] to-[100%] text-transparent bg-clip-text',
      header: 'Creator\'s Recommendation',
-     headerImg: '/welcome/product-book/creator-recommendation.png',
+     headerImg: CREATOR_RECOMMENDATION,
      tl: 'Hardcover',
      id: 'hardcover',
      discount: '$45',
@@ -38,7 +40,7 @@ const PRICES = [
   {
     headerStyle:'bg-linear-to-r from-[#FF638A] from-20% via-[#FF8383] via-46% via-[#867BFF] via-75% to-[#FF2566] to-[100%] text-transparent bg-clip-text',
      header: 'Most People\'s Choice',
-     headerImg: '/welcome/product-book/most-people-choice.png',
+     headerImg: MOST_PEOPLE_CHOICE,
      tl: 'Premium Lay-Flat Hardcover',
      id: 'lay-flat',
      discount: '$58',
@@ -50,32 +52,37 @@ const PRICES = [
 export default function Reserve() {
   const [curBookCover, setCurBookCover] = useState(PRICES[1].id);
   const [showPopup, setShowPopup] = useState(false);
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()
+
+  const updateBookCover = useCallback(async (tl: string) => {
+    setCurBookCover(tl);
+    await sendRequest({
+      url: '/api/subscriptions',
+      method: 'PATCH',
+      body: {
+        selected_cover: tl,
+        email: searchParams.get('email') || '',
+      },
+    });
+  },[searchParams]);
 
   useEffect(() => {
     // Empty useEffect - previously contained beforeunload event handler
     // that was commented out. Keeping the hook for potential future use.
-  }, []);
+    updateBookCover(PRICES[1].id);
+  }, [updateBookCover]);
 
   const handleCoverClick = async (tl: string) => {
-    setCurBookCover(tl);
-    await sendRequest({
-      url: '/api/hubspot',
-      method: 'PATCH',
-      body: {
-        selected_cover: tl,
-        contactId: searchParams.get('contactId') || '',
-      },
-    });
+    await updateBookCover(tl);
   }
 
   const handlePayClick = async () => {
     await sendRequest({
-      url: '/api/hubspot',
+      url: '/api/subscriptions',
       method: 'PATCH',
       body: {
         prepaid_status: 'clicked',
-        contactId: searchParams.get('contactId') || '',
+        email: searchParams.get('email') || '',
       }
     })
   }
@@ -84,7 +91,7 @@ export default function Reserve() {
   return (
     <main className="bg-[#F8F8F8]">
       <Link href={'/'} className="block max-w-7xl mx-auto mb-5">
-        <Image className="" src={'/welcome/dreamaze-logo.png'} alt="Logo" width={168} height={56} />
+        <Image className="" src={DREAMAZEBOOK_LOGO} alt="Logo" width={168} height={56} />
       </Link>
       {showPopup &&
       <Popup
@@ -102,7 +109,7 @@ export default function Reserve() {
         </div>
 
         <div className="p-6 lg:p-20 w-full lg:w-1/2 text-[#222222] lg:sticky top-0 lg:h-screen overflow-y-auto">
-          <ContainerTitle cssClass="text-left">Reserve Your Special Discount</ContainerTitle>
+          <ContainerTitle cssClass="text-left">Reserve Now to Unlock Exclusive Surprises</ContainerTitle>
           <ContainerDesc cssClass="text-left my-4">Choose your preferred format and reserve the lowest price ever.</ContainerDesc>
           
           <div className="my-5 md:my-9 flex flex-col gap-3">
@@ -128,11 +135,13 @@ export default function Reserve() {
           ))}
           </div>
 
-          <Button tl={'Reserve Discount for $1'} url={NEXT_PUBLIC_STRIPE_PAYMENT_LINK} handleClick={handlePayClick} />
-          <button onClick={()=>setShowPopup(true)} className="cursor-pointer w-full p-3 text-center mt-3">No thanks</button>
+          <Button tl={'Reserve Your Gift Bundle for $1'} url={NEXT_PUBLIC_STRIPE_PAYMENT_LINK} handleClick={handlePayClick} />
+          <button onClick={()=>setShowPopup(true)} className="cursor-pointer w-full p-3 text-center mt-3">Want to learn more? Join the Club!</button>
         </div>
 
       </div>
+
+      <VIPOnlyPerk />
 
       <FAQReserve />
 
@@ -143,7 +152,7 @@ export default function Reserve() {
           <p className="text-[#222222] font-light text-sm md:text-[28px] text-center">“More magical stories are coming<br/>
           Join as a VIP and help spark ideas for our next books”</p>
           <div className="relative w-[160px] aspect-[133/100] mx-auto md:mx-0">
-            <DreamzeImage src="/welcome/more-magic.webp" alt="More Magic" />
+            <DreamzeImage src={MORE_MAGIC} alt="More Magic" />
           </div>
         </div>
       </section>

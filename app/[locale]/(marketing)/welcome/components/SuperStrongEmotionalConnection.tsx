@@ -6,28 +6,30 @@ import { useEffect } from 'react';
 import { Container } from '../../components/Container';
 import { ContainerTitle } from '../../components/ContainerTitle';
 import { ContainerDesc } from '../../components/ContainerDesc';
+import { CLOUDFLARE_CDN_URL } from '@/constants/cdn';
+import { Autoplay } from 'swiper/modules';
 
 const VIDEOS = [
   {
-    video: '/welcome/super-strong-emotional-connection/dad-baby.mp4',
+    video: `${CLOUDFLARE_CDN_URL}dad-baby.mp4`,
   },
   {
-    video: '/welcome/super-strong-emotional-connection/luna.mp4', 
+    video: `${CLOUDFLARE_CDN_URL}luna.mp4` 
   },
   {
-    video: '/welcome/super-strong-emotional-connection/luna-read.mp4',
+    video: `${CLOUDFLARE_CDN_URL}luna-read.mp4`,
   },
   {
-    video: '/welcome/super-strong-emotional-connection/son-read.mp4',
+    video: `${CLOUDFLARE_CDN_URL}son-read.mp4`,
   },
   {
-    video: '/welcome/super-strong-emotional-connection/daughter-read.mp4',
+    video: `${CLOUDFLARE_CDN_URL}daughter-read.mp4`,
   },
   {
-    video: '/welcome/super-strong-emotional-connection/mother-son.mp4',
+    video: `${CLOUDFLARE_CDN_URL}mother-son.mp4`,
   },
   {
-    video: '/welcome/super-strong-emotional-connection/dad-son.mp4',
+    video: `${CLOUDFLARE_CDN_URL}dad-son.mp4`,
   },
 ];
 
@@ -68,7 +70,7 @@ export default function SuperStrongEmotionalConnection() {
         Super Strong<br/><span className="text-[#022CCE]">Emotional</span> Connection
       </ContainerTitle>
       <ContainerDesc cssClass='max-w-5xl mx-auto'>
-      Reading a story where you and your child are the heroes strengthens bonds and creates cherished memories. These shared moments become treasures that last a lifetime.
+      Reading a story where you and your child are the heroes creates lasting memories
       </ContainerDesc>
       
       <div className="relative mt-16">
@@ -92,9 +94,11 @@ export default function SuperStrongEmotionalConnection() {
           centeredSlides={true}
           grabCursor={true}
           loop={true}
+          speed={12500}
           autoplay={
             {
-              delay: 500
+              delay: 2000,
+              disableOnInteraction: false,
             }
           }
           effect={'coverflow'}
@@ -106,11 +110,13 @@ export default function SuperStrongEmotionalConnection() {
             stretch: 0,
             slideShadows: true,
           }}
+          cssMode={true}
+          modules={[Autoplay]}
           className="mySwiper"
         >
           {VIDEOS.map(({video},idx) => (
             <SwiperSlide key={idx}>
-              <div className="relative aspect-[4/3] rounded overflow-hidden">
+              <div className="relative aspect-[240/270] rounded overflow-hidden">
                 <video 
                   src={video}
                   className="w-full h-full object-cover"

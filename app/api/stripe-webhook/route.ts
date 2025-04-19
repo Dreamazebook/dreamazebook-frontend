@@ -1,9 +1,9 @@
 // app/api/stripe-webhook/route.ts
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { updateContactByEmail } from "@/utils/hubspot";
+import { updateContactByEmail } from "@/utils/subscription";
 
-// Initialize Stripe and HubSpot clients
+// Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2025-02-24.acacia",
 });

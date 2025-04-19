@@ -2,51 +2,52 @@ import DreamzeImage from "@/app/components/DreamzeImage";
 import { ContainerDesc } from "../../components/ContainerDesc";
 import { Container } from "../../components/Container";
 import { ContainerTitle } from "../../components/ContainerTitle";
+import { PREVIEW1, PREVIEW2, PREVIEW3, PREVIEW4, PREVIEW5, PREVIEW_BIRTHDAY, PREVIEW_BIRTHDAY_MOBILE, PREVIEW_BRAVERY, PREVIEW_BRAVERY_MOBILE, PREVIEW_GOOD_NIGHT, PREVIEW_GOOD_NIGHT_MOBILE, PREVIEW_MELODY, PREVIEW_MELODY_MOBILE, PREVIEW_SANTAS_LETTER, PREVIEW_SANTAS_LETTER_MOBILE } from "@/constants/cdn";
 
 const PREVIEWS = [
   {
     tl:'Goodnight to you',
     desc: 'Ease your little one into peaceful dreams with Good Night to You. On a magical journey through sleep, gentle animals remind them of bedtime’s beauty and calm. This personalized story sparks imagination and creates the perfect, soothing end to the day.',
-    thumbnail:'/welcome/book-previews/preview1.png',
+    thumbnail:PREVIEW1,
     img:{
-      desktop:'/welcome/book-previews/preview_good_night.png',
-      mobile:'/welcome/book-previews/preview_good_night_mobile.png'
+      desktop:PREVIEW_GOOD_NIGHT,
+      mobile:PREVIEW_GOOD_NIGHT_MOBILE
     }
   },
   {
     tl:'Santa',
     desc:'Celebrate the magic of kindness and Christmas with a personalized letter from Santa! His warm words show how your joy and kindness create holiday magic. A cherished keepsake to treasure year after year!',
-    thumbnail:'/welcome/book-previews/preview2.png',
+    thumbnail:PREVIEW2,
     img:{
-      desktop:'/welcome/book-previews/preview_santas_letter.png',
-      mobile:'/welcome/book-previews/preview_santas_letter_mobile.png'
+      desktop:PREVIEW_SANTAS_LETTER,
+      mobile:PREVIEW_SANTAS_LETTER_MOBILE
     }
   },
   {
     tl:'Name\'s melody',
     desc:'Celebrate your baby’s name with Name’s Melody! Each letter comes to life through music, weaving a unique rhythm just for them. Open this enchanting story and discover their special melody!',
-    thumbnail:'/welcome/book-previews/preview3.png',
+    thumbnail:PREVIEW3,
     img:{
-      desktop:'/welcome/book-previews/preview_melody.png',
-      mobile:'/welcome/book-previews/preview_melody_mobile.png'
+      desktop:PREVIEW_MELODY,
+      mobile:PREVIEW_MELODY_MOBILE
     }
   },
   {
     tl:'Birthday Book',
     desc:'In a whimsical forest, the animals are preparing a magical birthday just for you! As they gather surprises, they discover what makes you truly special. Inspired by their findings, they send special guests to celebrate. What wonders await? Open the book and step into your birthday adventure!',
-    thumbnail:'/welcome/book-previews/preview4.png',
+    thumbnail:PREVIEW4,
     img:{
-      desktop:'/welcome/book-previews/preview_birthday.png',
-      mobile:'/welcome/book-previews/preview_birthday_book_mobile.png'
+      desktop:PREVIEW_BIRTHDAY,
+      mobile:PREVIEW_BIRTHDAY_MOBILE
     }
   },
   {
     tl:'Bravery',
     desc:'Help your little one explore bravery through everyday moments, this heartfelt story shows that courage isn’t about being fearless but facing challenges in your own way. With warmth and reassurance, it inspires confidence and resilience, making it a cherished part of growing up.',
-    thumbnail:'/welcome/book-previews/preview5.png',
+    thumbnail:PREVIEW5,
     img:{
-      desktop:'/welcome/book-previews/preview_bravery.png',
-      mobile:'/welcome/book-previews/preview_bravery_mobile.png'
+      desktop:PREVIEW_BRAVERY,
+      mobile:PREVIEW_BRAVERY_MOBILE
     }
   }
 ];
