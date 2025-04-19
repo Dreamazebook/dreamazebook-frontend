@@ -30,7 +30,7 @@ export default function FAQ({FAQs, bg}:FAQProps) {
   }
   return (
     <Container cssClass={bg}>
-      <ContainerTitle cssClassmb-16>FAQ</ContainerTitle>
+      <ContainerTitle >FAQ</ContainerTitle>
       <div className="max-w-7xl mx-auto px-5">
         {faqs.map(({tl,ans,show},idx)=>
           <div key={tl} className="py-[18px] border-b border-black/20 flex">
@@ -51,7 +51,7 @@ export default function FAQ({FAQs, bg}:FAQProps) {
                   }
                 </span>
               </div>
-              <p className={`font-light text-[#222222] text-[16px] md:text-[20px] ${show?'block':'hidden'}`}>{ans}</p>
+              <p className={`font-light text-[#222222] text-[16px] md:text-[20px] transition-all overflow-hidden ${show?'h-(calc-size(auto))':'h-0'}`}>{ans}</p>
             </div>
           </div>
         )}
