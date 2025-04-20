@@ -55,7 +55,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
         },
         {
           reviewer_name: "Michael Lee",
-          rating: 3,
+          rating: 3.5,
           comment: "Good book, but a bit slow in the middle.",
           review_date: "2025-04-03",
           pagepic: "https://via.placeholder.com/150",
