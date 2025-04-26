@@ -110,7 +110,7 @@ export default function SuperStrongEmotionalConnection() {
             stretch: 0,
             slideShadows: true,
           }}
-          cssMode={true}
+          // cssMode={true}
           modules={[Autoplay]}
           className="mySwiper"
         >
