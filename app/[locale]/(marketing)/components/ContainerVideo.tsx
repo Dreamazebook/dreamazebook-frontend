@@ -59,6 +59,13 @@ const ContainerVideo: React.FC<VideoPlayerProps> = ({ src }) => {
       playsInline // Add playsInline for better mobile support
       controls // 显示视频控件
       //muted // 静音（某些浏览器要求静音才能自动播放）
+      onPlay={() => {
+        if (videoRef.current) {
+          videoRef.current.requestFullscreen().catch(err => {
+            console.error('full screen error:', err);
+          });
+        }
+      }}
     />
   );
 };
