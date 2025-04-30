@@ -21,7 +21,7 @@ export default function FAQ({FAQs, bg}:FAQProps) {
     if (newFAQs[idx].show) {
       newFAQs[idx].show = false;
     } else {
-      newFAQs.forEach((faq, i)=>{
+      newFAQs.forEach((faq)=>{
         faq.show = false;
       })
       newFAQs[idx].show = true;
