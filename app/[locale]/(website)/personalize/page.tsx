@@ -146,12 +146,16 @@ export default function PersonalizePage() {
   
     // 1. 拿到表单原始数据
     if (selectedFormType === 'SINGLE1' && singleForm1Ref.current) {
+      const isValid = singleForm1Ref.current.validateForm();
+      if (!isValid) return;
       const form1 = singleForm1Ref.current.getFormData();
       fullName      = form1.fullName;
       genderRaw     = form1.gender;
       skinColorRaw  = form1.skinColor;
       photoFile     = form1.photo;
     } else if (selectedFormType === 'SINGLE2' && singleForm2Ref.current) {
+      const isValid = singleForm2Ref.current.validateForm();
+      if (!isValid) return;
       const form2 = singleForm2Ref.current.getFormData();
       fullName      = form2.fullName;
       genderRaw     = form2.gender;
