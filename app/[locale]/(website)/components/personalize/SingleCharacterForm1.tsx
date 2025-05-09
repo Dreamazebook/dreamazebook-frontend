@@ -16,6 +16,7 @@ export interface PersonalizeFormData extends BasicInfoData {
 export interface SingleCharacterForm1Handle {
   validateForm: () => boolean; // Method to validate form data
   formData: PersonalizeFormData;
+  getFormData: () => PersonalizeFormData;
 }
 
 interface FormErrors {
@@ -105,6 +106,9 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref)
       return Object.keys(newErrors).length === 0;
     },
     formData,
+    getFormData() {
+      return formData;
+    }
   }));
 
   return (

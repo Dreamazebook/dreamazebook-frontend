@@ -22,6 +22,7 @@ export interface PersonalizeFormData2 extends BasicInfoData {
 export interface SingleCharacterForm2Handle {
   validateForm: () => boolean;
   formData: PersonalizeFormData2;
+  getFormData: () => PersonalizeFormData2;
 }
 
 interface FormErrors {
@@ -126,6 +127,9 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle>((props, ref)
       return Object.keys(newErrors).length === 0;
     },
     formData,
+    getFormData() {
+      return formData;
+    }
   }));
 
   return (

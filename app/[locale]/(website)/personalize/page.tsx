@@ -1,12 +1,23 @@
-/** @jsxImportSource react */
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/utils/api';
 import Link from 'next/link';
-import { BaseBook } from '@/types/book';
+import { BaseBook, DetailedBook } from '@/types/book';
 import { IoIosArrowBack } from "react-icons/io";
+import { getWebSocketUrl } from '@/utils/wsConfig';
+import axios from 'axios';
+
+import BasicInfoForm, { BasicInfoData } from '../components/personalize/BasicInfoForm';
+export interface PersonalizeFormData extends BasicInfoData {
+  singleChoice: string; // Single choice feature
+  multipleChoice: string[]; // Multiple choice features
+}
+export interface PersonalizeFormData2 extends BasicInfoData {
+  birthSeason: '' | 'spring' | 'summer' | 'autumn' | 'winter';
+  dob: Date | null;
+}
 
 import SingleCharacterForm1, {
   SingleCharacterForm1Handle,
@@ -16,13 +27,26 @@ import SingleCharacterForm2, {
 } from '../components/personalize/SingleCharacterForm2';
 
 //import DoubleCharacterForm from '../components/personalize/DoubleCharacterForm';
+interface ApiResponse {
+  success: boolean;
+  code: number;
+  message: string;
+  data: DetailedBook;
+}
+
+interface UploadResponse {
+  data: {
+    path: string;
+  };
+}
 
 export default function PersonalizePage() {
   const searchParams = useSearchParams();
   const bookId = searchParams.get('bookid');
+  const langParam = searchParams.get('language') || 'en';
   const router = useRouter();
 
-  const [book, setBook] = useState<BaseBook | null>(null);
+  const [book, setBook] = useState<DetailedBook | null>(null);
   const [selectedFormType, setSelectedFormType] = useState<'SINGLE1' | 'SINGLE2' | 'DOUBLE' | null>(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -34,11 +58,9 @@ export default function PersonalizePage() {
     const fetchBook = async () => {
       if (bookId) {
         try {
-          const response = await api.get<{ book: BaseBook }>(`/books/${bookId}`);
-          setBook(response.book);
-
-          // logic for deciding which form
-          switch (response.book.formid) {
+          const response = await api.get<ApiResponse>(`/picbooks/${bookId}`);
+          setBook(response.data);
+          switch (response.data.character_count) {
             case 1:
               setSelectedFormType('SINGLE1');
               break;
@@ -49,7 +71,6 @@ export default function PersonalizePage() {
               setSelectedFormType('DOUBLE');
               break;
             case 4:
-              // User chooses single or double from a modal
               setShowModal(true);
               break;
             default:
@@ -67,6 +88,40 @@ export default function PersonalizePage() {
     fetchBook();
   }, [bookId]);
 
+  // WebSocket 接收广播
+  useEffect(() => {
+    if (!bookId) return;
+
+    // 1. 构造 URL
+    const url = getWebSocketUrl(`preview.${bookId}`);
+    // 2. 建立连接
+    const ws = new WebSocket(url);
+
+    ws.onopen = () => {
+      console.log('WebSocket connected to', url);
+      ws.send(JSON.stringify({
+        event: 'pusher:subscribe',
+        data: { channel: `preview.${bookId}` }
+      }));
+    };
+
+    ws.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+      // 事件名通常是去掉命名空间的类名：'PreviewReady'
+      if (msg.event === 'PreviewReady' || msg.event === 'App\\Events\\PreviewReady') {
+        alert('Your preview is ready!');
+        router.push(`/preview?bookId=${bookId}`);
+      }
+    };
+
+    ws.onerror = (err) => console.error('WebSocket error:', err);
+    ws.onclose = () => console.log('WebSocket closed');
+
+    return () => {
+      ws.close();
+    };
+  }, [bookId, router]);
+
   const renderForm = () => {
     if (!selectedFormType) return null;
 
@@ -76,33 +131,85 @@ export default function PersonalizePage() {
       case 'SINGLE2':
         return <SingleCharacterForm2 ref={singleForm2Ref} />;
       case 'DOUBLE':
-        //return <DoubleCharacterForm />;
+        // return <DoubleCharacterForm />;
       default:
         return null;
     }
   };
 
-  const handleContinue = () => {
-    // if SINGLE1, validate that form
+  // 在你的组件里替换原来的 handleContinue
+  const handleContinue = async () => {
+    let fullName: string;
+    let genderRaw: '' | 'boy' | 'girl';
+    let skinColorRaw: string;
+    let photoFile: File | null = null;
+  
+    // 1. 拿到表单原始数据
     if (selectedFormType === 'SINGLE1' && singleForm1Ref.current) {
-      const isValid = singleForm1Ref.current.validateForm();
-      if (!isValid) return;
-      router.push(`/preview?bookId=${bookId}`);
+      const form1 = singleForm1Ref.current.getFormData();
+      fullName      = form1.fullName;
+      genderRaw     = form1.gender;
+      skinColorRaw  = form1.skinColor;
+      photoFile     = form1.photo;
+    } else if (selectedFormType === 'SINGLE2' && singleForm2Ref.current) {
+      const form2 = singleForm2Ref.current.getFormData();
+      fullName      = form2.fullName;
+      genderRaw     = form2.gender;
+      skinColorRaw  = form2.skinColor;
+      photoFile     = form2.photo;
+    } else {
       return;
     }
-
-    // If SINGLE2
-    if (selectedFormType === 'SINGLE2' && singleForm2Ref.current) {
-      const isValid = singleForm2Ref.current.validateForm();
-      if (!isValid) return;
-      router.push(`/select-book-content?bookId=${bookId}`);
+  
+    // 校验 photo
+    if (!photoFile) {
+      console.error('Please upload photo');
       return;
     }
-
-    // If DOUBLE, do something else
-
-    //router.push(`/preview?bookId=${bookId}`);
+  
+    // 2. 字符串 → 数字 映射
+    const genderCode =
+      genderRaw === 'boy'  ? 1 :
+      genderRaw === 'girl' ? 2 :
+      0;  // 或者抛错、return
+  
+    // 通过在 BasicInfoForm 里定义的 skinColors 数组来找下标
+    const skinColors = [
+      '#FFE2CF', // Fair
+      '#DCB593', // Medium
+      '#665444', // Dark
+    ];
+    const idx = skinColors.findIndex(c => c === skinColorRaw);
+    const skinColorCode = idx >= 0 ? idx + 1 : 0; // 1,2,3
+  
+    // 如果映射失败，也可以 return 或给默认
+    if (!genderCode || !skinColorCode) {
+      console.error('Invalid skincolor');
+      return;
+    }
+  
+    try {
+      // 3. 调用 preview，只发数字
+      const payload = {
+        characters: [
+          {
+            full_name: fullName,
+            language:  langParam,
+            gender:    genderCode,
+            skincolor: skinColorCode,
+            photo:     photoFile,
+          },
+        ],
+      };
+  
+      await api.post(`/picbooks/${bookId}/preview`, payload);
+    } catch (err) {
+      console.error('Upload failed.', err);
+    }
   };
+  
+  
+  
 
   if (loading) {
     return <div>Loading...</div>;
@@ -125,7 +232,7 @@ export default function PersonalizePage() {
         </Link>
       </div>
 
-      {showModal && book?.formid === 3 && (
+      {showModal && book?.character_count === 3 && (
         <div>Modal to choose SINGLE or DOUBLE</div>
       )}
 

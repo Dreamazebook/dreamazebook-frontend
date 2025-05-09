@@ -92,13 +92,15 @@ const BookDetailPage = () => {
         <div className="relative">
           <div className="grid grid-cols-1 gap-0">
             {pagePics.map((page) => (
-              <div key={page.id} className="h-screen w-full">
-                <div className="relative h-full w-full">
+              <div key={page.id} className="w-full">
+                <div className="relative w-full">
                   <Image
                     src={page.pagepic}
                     alt={`Page ${page.pagenum}`}
-                    fill
-                    className="object-cover"
+                    width={0}
+                    height={0}
+                    sizes="100vw"
+                    className="w-full h-auto"
                     priority={page.pagenum === 1}
                   />
                 </div>

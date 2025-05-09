@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import api from '@/utils/api.js';
+import type { AxiosProgressEvent } from 'axios';
 
 const useImageUpload = () => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -29,32 +31,36 @@ const useImageUpload = () => {
 
     setIsUploading(true);
     setUploadProgress(0);
+    setError(null);
 
-    const formData = new FormData();
-    formData.append('file', file);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'aiface');
 
-    const xhr = new XMLHttpRequest();
+      const response = await api.post(
+        '/files/upload',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          onUploadProgress: (e: AxiosProgressEvent) => {
+            if (e.total) {
+              setUploadProgress(Math.round((e.loaded * 100) / e.total));
+            }
+          }
+        }
+      );
 
-    xhr.upload.addEventListener('progress', (event) => {
-      if (event.lengthComputable) {
-        const progress = Math.round((event.loaded / event.total) * 100);
-        setUploadProgress(progress);
-      }
-    });
-
-    xhr.addEventListener('load', () => {
-      setIsUploading(false);
-      const uploadedImageUrl = URL.createObjectURL(file);
-      setImageUrl(uploadedImageUrl);
-    });
-
-    xhr.addEventListener('error', () => {
-      setIsUploading(false);
+      // 上传成功后，预览本地图片
+      setImageUrl(URL.createObjectURL(file));
+    } catch (err) {
       setError('Failed to upload the image.');
-    });
-
-    xhr.open('POST', '/api/upload');
-    xhr.send(formData);
+      console.error('Upload error:', err);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleDrop = (e: React.DragEvent, onFileSelect: (file: File) => void) => {

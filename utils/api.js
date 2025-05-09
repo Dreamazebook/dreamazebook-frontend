@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const api = axios.create({
+const api= axios.create({
     baseURL: 'http://localhost:8000/api',
     withCredentials: true,
     timeout: 10000, // 请求超时时间设置为 10 秒
@@ -9,14 +9,17 @@ const api = axios.create({
     },
 });
 
+const HARDCODED_TOKEN = "16|bbITU6kTZWSWvzXKtmNFMwgMqYDyLEMPCfAqs0iyb82331d5"
+
 // 请求拦截器
 api.interceptors.request.use(
     (config) => {
         // 从 localStorage 获取 token
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token') || HARDCODED_TOKEN;
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+        console.log(config.headers); 
         return config;
     },
     (error) => {
