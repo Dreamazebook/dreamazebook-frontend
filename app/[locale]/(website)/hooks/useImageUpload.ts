@@ -38,7 +38,7 @@ const useImageUpload = () => {
       formData.append('file', file);
       formData.append('type', 'aiface');
 
-      const response = await api.post(
+      await api.post(
         '/files/upload',
         formData,
         {
