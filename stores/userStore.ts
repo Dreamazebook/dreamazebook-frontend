@@ -1,5 +1,6 @@
-import { API_USER_LOGIN, API_USER_REGISTER } from '@/constants/api'
-import { sendRequest } from '@/utils/hubspot'
+import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT } from '@/constants/api'
+import api from '@/utils/api'
+import { ApiResponse, UserResponse } from '@/types/api'
 import { create } from 'zustand'
 
 interface UserState {
@@ -12,17 +13,28 @@ interface UserState {
   // User state
   user: UserType | null
   isLoggedIn: boolean
-  login: (userData: UserType) => void
-  register: (userData: UserType) => void
+  login: (userData: LoginData) => void
+  register: (userData: RegisterData) => void
   logout: () => void
+  fetchCurrentUser: () => void
 }
 
 type UserType = {
-  id?: string
+  id: string
   name?: string
   email: string
-  password?: string
-  password_confirmation?: string
+}
+
+type LoginData = {
+  email: string
+  password: string
+}
+
+type RegisterData = {
+  name?: string
+  email: string
+  password: string
+  password_confirmation: string
 }
 
 const useUserStore = create<UserState>((set) => ({
@@ -36,28 +48,53 @@ const useUserStore = create<UserState>((set) => ({
   user: null,
   isLoggedIn: false,
   register: async (userData) => {
-    
-    const {code, success, message} = await sendRequest({
-      method: 'POST',
-      url: API_USER_REGISTER,
-      body: userData})
-    if (success) {
-      set({ isLoggedIn: true })
+    try {
+      const response = await api.post<ApiResponse<UserResponse>>(API_USER_REGISTER, userData);
+      if (response.success) {
+        set({ isLoggedIn: true, user: response.data?.user || null });
+      }
+      return response;
+    } catch (error) {
+      console.error('Registration error:', error);
     }
   },
   login: async (userData) => {
-    const {code, success, message} = await sendRequest({
-      url: API_USER_LOGIN,
-      method: 'POST',
-      body: userData
-    });
-
-    if (success) {
-      set({isLoggedIn: true})
+    try {
+      const response = await api.post<ApiResponse<UserResponse>>(API_USER_LOGIN, userData);
+      if (response.success && response.data?.token) {
+        localStorage.setItem('token', response.data.token);
+        set({ isLoggedIn: true, user: response.data.user });
+      }
+      return response;
+    } catch (error) {
+      console.error('Login error:', error);
     }
-
   },
-  logout: () => set({ user: null, isLoggedIn: false }),
+  logout: () => {
+    localStorage.removeItem('token');
+    set({ user: null, isLoggedIn: false });
+  },
+  fetchCurrentUser: async () => {
+    // 从localStorage获取token
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      return;
+    }
+    
+    try {
+      const response = await api.get<ApiResponse<UserResponse>>(API_USER_CURRENT);
+      if (response.success && response.data?.user) {
+        set({ user: response.data.user, isLoggedIn: true });
+      }
+      return response;
+    } catch (error) {
+      console.error('Fetch current user error:', error);
+      // 如果获取用户信息失败（例如token过期），清除登录状态
+      localStorage.removeItem('token');
+      set({ user: null, isLoggedIn: false });
+    }
+  },
 }))
 
 export default useUserStore
