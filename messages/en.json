@@ -2,5 +2,10 @@
   "HomePage": {
     "empower": "empower everyone to become the star of their own story",
     "viewMore": "View more"
+  },
+  "NotFound": {
+    "title": "404 - Page Not Found",
+    "description": "The page you're looking for doesn't exist or has been moved.",
+    "backToHome": "Back to Home"
   }
 }

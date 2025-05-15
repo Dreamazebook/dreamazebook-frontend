@@ -50,7 +50,8 @@ const useUserStore = create<UserState>((set) => ({
   register: async (userData) => {
     try {
       const response = await api.post<ApiResponse<UserResponse>>(API_USER_REGISTER, userData);
-      if (response.success) {
+      if (response.success && response.data?.token) {
+        localStorage.setItem('token', response.data.token);
         set({ isLoggedIn: true, user: response.data?.user || null });
       }
       return response;

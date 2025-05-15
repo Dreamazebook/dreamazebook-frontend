@@ -2,5 +2,10 @@
   "HomePage": {
     "empower": "permettre à chacun de devenir l'étoile de sa propre histoire",
     "viewMore": "Voir plus"
+  },
+  "NotFound": {
+    "title": "404 - Page Non Trouvée",
+    "description": "La page que vous recherchez n'existe pas ou a été déplacée.",
+    "backToHome": "Retour à l'accueil"
   }
 }
