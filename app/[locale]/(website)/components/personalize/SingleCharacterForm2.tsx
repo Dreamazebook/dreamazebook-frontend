@@ -67,6 +67,7 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle>((props, ref)
     handleDragOver,
     handleDrop,
     handleDeleteImage,
+    handleUpload,
   } = useImageUpload();
 
   useEffect(() => {
@@ -91,9 +92,15 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle>((props, ref)
   };
 
   // Handle photo upload
-  const handleUploadPhoto = (file: File) => {
-    handleBasicInfoChange('photo', file);
-    handleErrorChange('photo', '');
+  const handleUploadPhoto = async (file: File) => {
+    const uploadResult = await handleUpload(file);
+    if (uploadResult) {
+      handleBasicInfoChange('photo', {
+        file: uploadResult.file,
+        path: uploadResult.uploadedFilePath
+      });
+      handleErrorChange('photo', '');
+    }
   };
 
   // Handle season selection

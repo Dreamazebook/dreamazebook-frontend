@@ -11,7 +11,7 @@ export interface BasicInfoData {
   fullName: string;
   gender: '' | 'boy' | 'girl';
   skinColor: string;
-  photo: File | null;
+  photo: { file: File; path: string } | null;
 }
 
 interface BasicInfoFormProps {
@@ -106,7 +106,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
 
   // photo 的 onChange（文件上传通常不使用 onBlur，此处仅在 onChange 后清除错误）
   const handleUploadPhoto = (file: File) => {
-    onChange('photo', file);
+    onChange('photo', { file, path: '' });
     if (onErrorChange) onErrorChange('photo', '');
   };
 

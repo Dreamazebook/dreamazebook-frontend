@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import Image from 'next/image';
 import { FaRegTrashAlt } from 'react-icons/fa';
 
@@ -31,6 +31,15 @@ const UploadArea: React.FC<UploadAreaProps> = ({
   handleFileUpload,
   handleDeleteImage,
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDelete = () => {
+    handleDeleteImage();
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div
       className={`rounded p-4 text-center transition-colors min-h-[200px] flex flex-col items-center justify-center relative ${
@@ -63,23 +72,22 @@ const UploadArea: React.FC<UploadAreaProps> = ({
               className="rounded-lg"
             />
             <button
-              onClick={handleDeleteImage}
+              onClick={handleDelete}
               className="absolute top-0 right-0 bg-white shadow-md flex items-center justify-center"
               style={{
                 width: '24px',
                 height: '24px',
                 backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                borderRadius: '0 0 0 4px', // 左下角 4px 的圆角
+                borderRadius: '0 0 0 4px',
               }}
             >
               <FaRegTrashAlt
-            style={{
-              color: 'white',
-              width: '18px',
-              height: '18px',
-            }}
-          />
-
+                style={{
+                  color: 'white',
+                  width: '18px',
+                  height: '18px',
+                }}
+              />
             </button>
           </div>
         </>
@@ -105,7 +113,7 @@ const UploadArea: React.FC<UploadAreaProps> = ({
                   <p>or</p>
                   <button
                     type="button"
-                    onClick={() => document.getElementById('file-upload')?.click()}
+                    onClick={() => fileInputRef.current?.click()}
                     className="px-6 py-2 border border-[#222222] rounded"
                   >
                     Browse Files
@@ -118,6 +126,7 @@ const UploadArea: React.FC<UploadAreaProps> = ({
         </>
       )}
       <input
+        ref={fileInputRef}
         id="file-upload"
         type="file"
         className="hidden"

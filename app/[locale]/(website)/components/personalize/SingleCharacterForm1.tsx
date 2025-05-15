@@ -53,6 +53,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref)
     handleDragOver,
     handleDrop,
     handleDeleteImage,
+    handleUpload
   } = useImageUpload();
 
   useEffect(() => {
@@ -76,10 +77,16 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref)
     setErrors(prev => ({ ...prev, [field]: errorMsg }));
   };
 
-  // Handle photo upload and clear related errors
-  const handleUploadPhoto = (file: File) => {
-    handleBasicInfoChange('photo', file);
-    handleErrorChange('photo', '');
+  // Handle photo upload
+  const handleUploadPhoto = async (file: File) => {
+    const uploadResult = await handleUpload(file);
+    if (uploadResult) {
+      handleBasicInfoChange('photo', {
+        file: uploadResult.file,
+        path: uploadResult.uploadedFilePath
+      });
+      handleErrorChange('photo', '');
+    }
   };
 
   useImperativeHandle(ref, () => ({

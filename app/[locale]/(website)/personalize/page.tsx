@@ -142,7 +142,7 @@ export default function PersonalizePage() {
     let fullName: string;
     let genderRaw: '' | 'boy' | 'girl';
     let skinColorRaw: string;
-    let photoFile: File | null = null;
+    let photoData: { file: File; path: string } | null = null;
   
     // 1. 拿到表单原始数据
     if (selectedFormType === 'SINGLE1' && singleForm1Ref.current) {
@@ -152,7 +152,7 @@ export default function PersonalizePage() {
       fullName      = form1.fullName;
       genderRaw     = form1.gender;
       skinColorRaw  = form1.skinColor;
-      photoFile     = form1.photo;
+      photoData     = form1.photo;
     } else if (selectedFormType === 'SINGLE2' && singleForm2Ref.current) {
       const isValid = singleForm2Ref.current.validateForm();
       if (!isValid) return;
@@ -160,13 +160,13 @@ export default function PersonalizePage() {
       fullName      = form2.fullName;
       genderRaw     = form2.gender;
       skinColorRaw  = form2.skinColor;
-      photoFile     = form2.photo;
+      photoData     = form2.photo;
     } else {
       return;
     }
   
     // 校验 photo
-    if (!photoFile) {
+    if (!photoData || !photoData.path) {
       console.error('Please upload photo');
       return;
     }
@@ -193,7 +193,7 @@ export default function PersonalizePage() {
     }
   
     try {
-      // 3. 调用 preview，只发数字
+      // 3. 调用 preview，发送图片路径
       const payload = {
         characters: [
           {
@@ -201,7 +201,7 @@ export default function PersonalizePage() {
             language:  langParam,
             gender:    genderCode,
             skincolor: skinColorCode,
-            photo:     photoFile,
+            photo:     photoData.path,
           },
         ],
       };
