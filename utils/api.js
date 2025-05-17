@@ -13,7 +13,7 @@ const api= axios.create({
 
 // 创建一个专门用于文件上传的axios实例
 const uploadApi = axios.create({
-    baseURL: 'http://localhost:8000/api',
+    baseURL: BASE_URL,
     withCredentials: true,
     timeout: 10000, // 恢复默认超时时间
     // 移除默认的 Content-Type，让浏览器自动设置正确的 boundary
