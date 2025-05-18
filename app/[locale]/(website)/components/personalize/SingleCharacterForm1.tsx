@@ -67,7 +67,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref)
   }, [imageUrl]);
 
   // Update basic info fields
-  const handleBasicInfoChange = (field: keyof BasicInfoData, value: any) => {
+  const handleBasicInfoChange = (field: keyof BasicInfoData, value: string | { file: File; path: string } | null) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setTouched(prev => ({ ...prev, [field]: true }));
   };
@@ -299,5 +299,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref)
     </div>
   );
 });
+
+SingleCharacterForm1.displayName = 'SingleCharacterForm1';
 
 export default SingleCharacterForm1;

@@ -95,20 +95,25 @@ const useImageUpload = () => {
         previewUrl,
         uploadedFilePath
       };
-    } catch (err: any) {
+    } catch (err: unknown) {
       let errorMessage = 'Upload failed';
       
-      if (err.code === 'ECONNABORTED') {
-        errorMessage = 'Upload timed out, please try again';
-      } else if (err.response) {
-        // 服务器返回错误
-        console.error('Server error response:', err.response.data);
-        if (err.response.data?.errors?.file) {
-          errorMessage = err.response.data.errors.file[0];
+      if (err instanceof Error) {
+        if (err.message === 'ECONNABORTED') {
+          errorMessage = 'Upload timed out, please try again';
         } else {
-          errorMessage = err.response.data?.message || 'Server Error';
+          errorMessage = err.message;
         }
-      } else if (err.request) {
+      } else if (err && typeof err === 'object' && 'response' in err) {
+        // 服务器返回错误
+        const errorResponse = err as { response?: { data?: { errors?: { file?: string[] }, message?: string } } };
+        console.error('Server error response:', errorResponse.response?.data);
+        if (errorResponse.response?.data?.errors?.file) {
+          errorMessage = errorResponse.response.data.errors.file[0];
+        } else {
+          errorMessage = errorResponse.response?.data?.message || 'Server Error';
+        }
+      } else if (err && typeof err === 'object' && 'request' in err) {
         // 请求发送失败
         console.error('Request error:', err.request);
         errorMessage = 'Network error, please check the network connection';

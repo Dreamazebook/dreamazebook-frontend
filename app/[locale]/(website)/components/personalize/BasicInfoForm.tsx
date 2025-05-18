@@ -108,10 +108,10 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   };
 
   // photo 的 onChange（文件上传通常不使用 onBlur，此处仅在 onChange 后清除错误）
-  const handleUploadPhoto = (file: File) => {
-    onChange('photo', { file, path: '' });
-    if (onErrorChange) onErrorChange('photo', '');
-  };
+  // const handleUploadPhoto = (file: File) => {
+  //   onChange('photo', { file, path: '' });
+  //   if (onErrorChange) onErrorChange('photo', '');
+  // };
 
   return (
     <div className="space-y-6">
