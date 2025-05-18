@@ -6,15 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Drawer } from "antd";
 import { create } from 'zustand';
 import TopNavBarWithTabs from '../components/TopNavBarWithTabs';
-import {
-  FaCheck,
-  FaUser,
-  FaClipboard,
-  FaImage,
-  FaBookOpen,
-  FaGift,
-} from 'react-icons/fa';
-
+import Image from 'next/image';
 
 const useStore = create<{
   activeStep: number;
@@ -324,11 +316,13 @@ export default function PreviewPageWithTopNav() {
             <h1 className="text-[28px] mt-2 mb-4 text-center w-full">Your Book Preview</h1>
             <div className="flex flex-col items-center w-full max-w-3xl">
               <div className="w-full flex justify-center mb-8">
-                <img
-                  src="../book.png"
+                <Image
+                  src="/book.png"
                   alt="Book Cover"
+                  width={400}
+                  height={392}
                   className="max-w-sm rounded-lg shadow-md"
-                  style={{ height: '392px', objectFit: 'cover' }}
+                  style={{ objectFit: 'cover' }}
                 />
               </div>
             </div>
@@ -343,9 +337,11 @@ export default function PreviewPageWithTopNav() {
               <div ref={giverDedicationRef} className="flex-1 flex flex-col items-center">
                 {viewMode === 'double' ? (
                   <div className="w-full relative">
-                    <img
-                      src="../giver_page.png"
+                    <Image
+                      src="/giver_page.png"
                       alt="Giver Page"
+                      width={800}
+                      height={600}
                       className="w-full h-auto rounded-lg object-cover"
                     />
                     <button
@@ -359,9 +355,11 @@ export default function PreviewPageWithTopNav() {
                 ) : (
                   <>
                     <div className="w-full relative">
-                      <img
-                        src="../giver_page.png"
+                      <Image
+                        src="/giver_page.png"
                         alt="Giver Page"
+                        width={800}
+                        height={600}
                         className="w-full h-auto rounded-lg object-contain"
                       />
                     </div>
@@ -380,9 +378,11 @@ export default function PreviewPageWithTopNav() {
               <div className="flex-1 flex flex-col items-center">
                 {viewMode === 'double' ? (
                   <div className="w-full relative">
-                    <img
-                      src="../giver_page.png"
+                    <Image
+                      src="/giver_page.png"
                       alt="Dedication Page"
+                      width={800}
+                      height={600}
                       className="w-full h-auto rounded-lg object-cover"
                     />
                     <button
@@ -396,9 +396,11 @@ export default function PreviewPageWithTopNav() {
                 ) : (
                   <>
                     <div className="w-full relative">
-                      <img
-                        src="../giver_page.png"
+                      <Image
+                        src="/giver_page.png"
                         alt="Dedication Page"
+                        width={800}
+                        height={600}
                         className="w-full h-auto rounded-lg object-contain"
                       />
                     </div>
@@ -462,9 +464,11 @@ export default function PreviewPageWithTopNav() {
                         : 'border-2 border-transparent'
                     }`}
                   >
-                    <img
+                    <Image
                       src={option.image}
                       alt={`Cover ${option.id}`}
+                      width={200}
+                      height={200}
                       className="w-full h-auto mb-2"
                     />
                     <div className="flex items-center justify-center space-x-2 w-full py-2">
@@ -525,10 +529,12 @@ export default function PreviewPageWithTopNav() {
                         : 'border-2 border-transparent'
                     }`}
                   >
-                    <img
+                    <Image
                       src={option.image}
                       alt={option.title}
-                      className="w-full h-auto mb-4"
+                      width={300}
+                      height={200}
+                      className="w-full h-auto mb-2"
                     />
                     <h2 className="text-lg font-medium text-center">{option.title}</h2>
                     <p className="text-lg font-medium text-center mb-2">{option.price}</p>
@@ -589,10 +595,12 @@ export default function PreviewPageWithTopNav() {
                         : 'border-2 border-transparent'
                     }`}
                   >
-                    <img
+                    <Image
                       src={option.image}
                       alt={option.title}
-                      className="w-full h-auto mb-4"
+                      width={300}
+                      height={200}
+                      className="w-full h-auto mb-2"
                     />
                     <h2 className="text-lg font-medium text-center">{option.title}</h2>
                     <p className="text-lg font-medium text-center mb-2">{option.price}</p>
@@ -700,9 +708,11 @@ export default function PreviewPageWithTopNav() {
                     {/* 抽屉内容 */}
                     <div className="mt-8 flex flex-col gap-4">
                       <div>
-                        <img
+                        <Image
                           src={detailModal.images[currentIndex]}
                           alt={detailModal.title}
+                          width={800}
+                          height={600}
                           className="w-full h-auto"
                         />
                         <div className="flex items-center justify-center mt-2 gap-[10px]">
@@ -785,7 +795,7 @@ export default function PreviewPageWithTopNav() {
                 {/* 标题和关闭按钮 */}
                 <div className="w-[352px] h-[80px] flex flex-col gap-4">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">Giver's name</h2>
+                    <h2 className="text-lg font-semibold">Giver&apos;s name</h2>
                     <button
                       className="text-xl text-gray-500 hover:text-gray-700"
                       onClick={() => setEditField(null)}
@@ -832,7 +842,7 @@ export default function PreviewPageWithTopNav() {
                   </div>
                   <div className="flex text-gray-500 text-sm">
                     <span>
-                    There's  10 line limit (inciuding blank lines)
+                      There&apos;s 10 line limit (including blank lines)
                     </span>
                   </div>
                   <div className="w-full">
@@ -940,3 +950,4 @@ export default function PreviewPageWithTopNav() {
     </div>
   );
 }
+

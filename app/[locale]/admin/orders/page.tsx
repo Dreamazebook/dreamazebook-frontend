@@ -16,118 +16,118 @@ const OrdersPage: FC = () => {
     direction: 'asc' | 'desc';
   }>({ key: 'date', direction: 'desc' });
 
-  // Sample data - replace with API call
-  const orders: Order[] = [
-    {
-      id: 'ORD-001',
-      bookTitle: 'The Great Gatsby',
-      customerName: 'John Doe',
-      customerEmail: 'john@example.com',
-      date: '2024-03-15',
-      amount: 29.99,
-      status: 'completed',
-      shippingAddress: '123 Main St, City, Country',
-      orderItems: [
-        { bookId: '1', title: 'The Great Gatsby', quantity: 1, price: 29.99 }
-      ]
-    },
-    {
-      id: 'ORD-002',
-      bookTitle: '1984',
-      customerName: 'Jane Smith',
-      customerEmail: 'jane@example.com',
-      date: '2024-03-14',
-      amount: 24.99,
-      status: 'pending',
-      shippingAddress: '456 Oak St, City, Country',
-      orderItems: [
-        { bookId: '2', title: '1984', quantity: 1, price: 24.99 }
-      ]
-    },
-    {
-      id: 'ORD-003',
-      bookTitle: 'To Kill a Mockingbird',
-      customerName: 'Alice Johnson',
-      customerEmail: 'alice@example.com',
-      date: '2024-03-13',
-      amount: 19.99,
-      status: 'cancelled',
-      shippingAddress: '789 Pine St, City, Country',
-      orderItems: [
-        { bookId: '3', title: 'To Kill a Mockingbird', quantity: 1, price: 19.99 }
-      ]
-    },
-    {
-      id: 'ORD-004',
-      bookTitle: 'Pride and Prejudice',
-      customerName: 'Robert Wilson',
-      customerEmail: 'robert@example.com',
-      date: '2024-03-12',
-      amount: 49.98,
-      status: 'completed',
-      shippingAddress: '321 Elm St, City, Country',
-      orderItems: [
-        { bookId: '4', title: 'Pride and Prejudice', quantity: 2, price: 24.99 }
-      ]
-    },
-    {
-      id: 'ORD-005',
-      bookTitle: 'The Catcher in the Rye',
-      customerName: 'Emily Brown',
-      customerEmail: 'emily@example.com',
-      date: '2024-03-10',
-      amount: 27.99,
-      status: 'pending',
-      shippingAddress: '654 Maple St, City, Country',
-      orderItems: [
-        { bookId: '5', title: 'The Catcher in the Rye', quantity: 1, price: 27.99 }
-      ]
-    },
-    {
-      id: 'ORD-006',
-      bookTitle: 'Lord of the Rings Collection',
-      customerName: 'Michael Davis',
-      customerEmail: 'michael@example.com',
-      date: '2024-03-08',
-      amount: 89.97,
-      status: 'completed',
-      shippingAddress: '987 Cedar St, City, Country',
-      orderItems: [
-        { bookId: '6', title: 'The Fellowship of the Ring', quantity: 1, price: 29.99 },
-        { bookId: '7', title: 'The Two Towers', quantity: 1, price: 29.99 },
-        { bookId: '8', title: 'The Return of the King', quantity: 1, price: 29.99 }
-      ]
-    },
-    {
-      id: 'ORD-007',
-      bookTitle: 'The Hobbit',
-      customerName: 'Sarah Wilson',
-      customerEmail: 'sarah@example.com',
-      date: '2024-03-07',
-      amount: 34.99,
-      status: 'refund',
-      shippingAddress: '123 Birch St, City, Country',
-      orderItems: [
-        { bookId: '9', title: 'The Hobbit', quantity: 1, price: 34.99 }
-      ]
-    },
-    {
-      id: 'ORD-008',
-      bookTitle: 'Harry Potter Collection',
-      customerName: 'David Thompson',
-      customerEmail: 'david@example.com',
-      date: '2024-03-05',
-      amount: 159.95,
-      status: 'refund',
-      shippingAddress: '456 Willow St, City, Country',
-      orderItems: [
-        { bookId: '10', title: 'Harry Potter Complete Set', quantity: 1, price: 159.95 }
-      ]
-    }
-  ];
-
   // Filtered and sorted orders
   const filteredOrders = useMemo(() => {
+    // Sample data - replace with API call
+    const orders: Order[] = [
+      {
+        id: 'ORD-001',
+        bookTitle: 'The Great Gatsby',
+        customerName: 'John Doe',
+        customerEmail: 'john@example.com',
+        date: '2024-03-15',
+        amount: 29.99,
+        status: 'completed',
+        shippingAddress: '123 Main St, City, Country',
+        orderItems: [
+          { bookId: '1', title: 'The Great Gatsby', quantity: 1, price: 29.99 }
+        ]
+      },
+      {
+        id: 'ORD-002',
+        bookTitle: '1984',
+        customerName: 'Jane Smith',
+        customerEmail: 'jane@example.com',
+        date: '2024-03-14',
+        amount: 24.99,
+        status: 'pending',
+        shippingAddress: '456 Oak St, City, Country',
+        orderItems: [
+          { bookId: '2', title: '1984', quantity: 1, price: 24.99 }
+        ]
+      },
+      {
+        id: 'ORD-003',
+        bookTitle: 'To Kill a Mockingbird',
+        customerName: 'Alice Johnson',
+        customerEmail: 'alice@example.com',
+        date: '2024-03-13',
+        amount: 19.99,
+        status: 'cancelled',
+        shippingAddress: '789 Pine St, City, Country',
+        orderItems: [
+          { bookId: '3', title: 'To Kill a Mockingbird', quantity: 1, price: 19.99 }
+        ]
+      },
+      {
+        id: 'ORD-004',
+        bookTitle: 'Pride and Prejudice',
+        customerName: 'Robert Wilson',
+        customerEmail: 'robert@example.com',
+        date: '2024-03-12',
+        amount: 49.98,
+        status: 'completed',
+        shippingAddress: '321 Elm St, City, Country',
+        orderItems: [
+          { bookId: '4', title: 'Pride and Prejudice', quantity: 2, price: 24.99 }
+        ]
+      },
+      {
+        id: 'ORD-005',
+        bookTitle: 'The Catcher in the Rye',
+        customerName: 'Emily Brown',
+        customerEmail: 'emily@example.com',
+        date: '2024-03-10',
+        amount: 27.99,
+        status: 'pending',
+        shippingAddress: '654 Maple St, City, Country',
+        orderItems: [
+          { bookId: '5', title: 'The Catcher in the Rye', quantity: 1, price: 27.99 }
+        ]
+      },
+      {
+        id: 'ORD-006',
+        bookTitle: 'Lord of the Rings Collection',
+        customerName: 'Michael Davis',
+        customerEmail: 'michael@example.com',
+        date: '2024-03-08',
+        amount: 89.97,
+        status: 'completed',
+        shippingAddress: '987 Cedar St, City, Country',
+        orderItems: [
+          { bookId: '6', title: 'The Fellowship of the Ring', quantity: 1, price: 29.99 },
+          { bookId: '7', title: 'The Two Towers', quantity: 1, price: 29.99 },
+          { bookId: '8', title: 'The Return of the King', quantity: 1, price: 29.99 }
+        ]
+      },
+      {
+        id: 'ORD-007',
+        bookTitle: 'The Hobbit',
+        customerName: 'Sarah Wilson',
+        customerEmail: 'sarah@example.com',
+        date: '2024-03-07',
+        amount: 34.99,
+        status: 'refund',
+        shippingAddress: '123 Birch St, City, Country',
+        orderItems: [
+          { bookId: '9', title: 'The Hobbit', quantity: 1, price: 34.99 }
+        ]
+      },
+      {
+        id: 'ORD-008',
+        bookTitle: 'Harry Potter Collection',
+        customerName: 'David Thompson',
+        customerEmail: 'david@example.com',
+        date: '2024-03-05',
+        amount: 159.95,
+        status: 'refund',
+        shippingAddress: '456 Willow St, City, Country',
+        orderItems: [
+          { bookId: '10', title: 'Harry Potter Complete Set', quantity: 1, price: 159.95 }
+        ]
+      }
+    ];
+
     return orders
       .filter(order => {
         const matchesSearch = 
@@ -150,7 +150,7 @@ const OrdersPage: FC = () => {
         if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
       });
-  }, [orders, search, statusFilter, dateRange, sortConfig]);
+  }, [search, statusFilter, dateRange, sortConfig]);
 
   const handleSort = (key: keyof Order) => {
     setSortConfig(current => ({

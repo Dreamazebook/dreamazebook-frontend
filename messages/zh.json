@@ -1,0 +1,30 @@
+{
+  "orderSummary": {
+    "title": "🎉 您的书籍正在精心准备中！",
+    "subtitle": "我们将在48小时内联系您确认书籍设计！请留意您的邮箱 ✨",
+    "orderNumber": "订单号",
+    "estimatedDelivery": "预计送达时间",
+    "orderStatus": {
+      "placeOrder": "下单",
+      "confirmEffect": "确认效果",
+      "print": "印刷",
+      "transport": "运输",
+      "receiveBooks": "收货"
+    },
+    "orderSummary": {
+      "title": "订单摘要",
+      "subtotal": "小计",
+      "shipping": "运费",
+      "discount": "优惠",
+      "total": "总计"
+    },
+    "shippingInfo": {
+      "title": "收货地址",
+      "deliveryDate": "预计送达日期"
+    },
+    "actions": {
+      "downloadInvoice": "下载发票",
+      "buySame": "再次购买"
+    }
+  }
+} 

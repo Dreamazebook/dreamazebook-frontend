@@ -62,5 +62,33 @@
     "newsletterSubtitle": "Sign up for our newsletter to receive updates on new releases and exclusive offers.",
     "emailPlaceholder": "Your email address",
     "subscribe": "Subscribe"
+  },
+  "orderSummary": {
+    "title": "🎉 Your book is being carefully prepared!",
+    "subtitle": "We will reach out within 48 hours to finalize your book's design! Keep an eye on your email ✨",
+    "orderNumber": "Order Number",
+    "estimatedDelivery": "Estimated Delivery",
+    "orderStatus": {
+      "placeOrder": "place order",
+      "confirmEffect": "confirm the effect",
+      "print": "print",
+      "transport": "transport",
+      "receiveBooks": "receive books"
+    },
+    "orderSummary": {
+      "title": "Order Summary",
+      "subtotal": "Subtotal",
+      "shipping": "Shipping",
+      "discount": "Discount",
+      "total": "Total"
+    },
+    "shippingInfo": {
+      "title": "Shipping Address",
+      "deliveryDate": "Delivery Date"
+    },
+    "actions": {
+      "downloadInvoice": "Download Invoice",
+      "buySame": "Buy the Same"
+    }
   }
 }

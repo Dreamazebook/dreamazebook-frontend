@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 interface OrderItem {
   id: number;
@@ -16,32 +17,28 @@ const OrderSummary: React.FC = () => {
       title: 'Book name | illy child',
       subTitle: 'Premium gift box',
       price: 19.99,
-      imageUrl:
-        'https://via.placeholder.com/80x80?text=Book+Cover', // 示例占位图，你可以替换成真实图片地址
+      imageUrl: '/book.png',
     },
     {
       id: 2,
       title: 'Book name | illy child',
       subTitle: 'Premium gift box',
       price: 19.99,
-      imageUrl:
-        'https://via.placeholder.com/80x80?text=Book+Cover',
+      imageUrl: '/book.png',
     },
     {
       id: 3,
       title: 'Book name | illy child',
       subTitle: 'Premium gift box',
       price: 19.99,
-      imageUrl:
-        'https://via.placeholder.com/80x80?text=Book+Cover',
+      imageUrl: '/book.png',
     },
     {
       id: 4,
       title: 'Book name | illy child',
       subTitle: 'Premium gift box',
       price: 19.99,
-      imageUrl:
-        'https://via.placeholder.com/80x80?text=Book+Cover',
+      imageUrl: '/book.png',
     },
   ];
 
@@ -58,10 +55,10 @@ const OrderSummary: React.FC = () => {
         {/* 标题与提示 */}
         <div className="mb-4">
           <h1 className="text-2xl mb-2">
-            🎉 Your book is being carefully prepared !
+            🎉 Your book is being carefully prepared!
           </h1>
           <p className="text-gray-600">
-            We will reach out within 48 hours to finalize your book’s design! Keep an eye on your email ✨
+            We will reach out within 48 hours to finalize your book&apos;s design! Keep an eye on your email ✨
           </p>
         </div>
 
@@ -107,10 +104,12 @@ const OrderSummary: React.FC = () => {
               key={item.id}
               className="flex items-center bg-white rounded p-4"
             >
-              <img
+              <Image
                 src={item.imageUrl}
                 alt={item.title}
-                className="w-20 h-20 object-cover rounded mr-4"
+                width={80}          // 对应 className w-20 (20 * 4 = 80 px)
+                height={80}         // 对应 className h-20
+                className="object-cover rounded mr-4"
               />
               <div className="flex-1">
                 <p className="font-semibold">{item.title}</p>

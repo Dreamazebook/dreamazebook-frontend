@@ -1,7 +1,7 @@
 /** @jsxImportSource react */
 'use client';
 
-import React, { useState, useRef, useEffect, JSX } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { IoIosArrowUp, IoIosArrowDown } from 'react-icons/io';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
@@ -18,27 +18,22 @@ interface Quality {
 export default function SelectBookContent() {
   const searchParams = useSearchParams();
   const bookId = searchParams.get('bookid') || '';
-  const [book, setBook] = useState<BaseBook | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchBook = async () => {
       if (bookId) {
         try {
-          const response = await api.get<{ book: BaseBook }>(`/books/${bookId}`);
-          setBook(response.book);
+          await api.get<{ book: BaseBook }>(`/books/${bookId}`);
         } catch (error) {
           console.error('Failed to fetch book:', error);
-        } finally {
-          setLoading(false);
         }
       }
     };
     fetchBook();
   }, [bookId]);
 
-  // 示例数据：共8张图片
-  const qualities: Quality[] = [
+  // 使用useMemo优化qualities数组
+  const qualities = useMemo<Quality[]>(() => [
     {
       id: 'quality1',
       title: 'Flying High',
@@ -87,7 +82,7 @@ export default function SelectBookContent() {
       subtitle: 'Boundless creativity and wonder.',
       imageSrc: '/images/flying-high.png',
     },
-  ];
+  ], []);
 
   // 当前主区域滚动到的图片索引
   const [activeIndex, setActiveIndex] = useState(0);

@@ -3,28 +3,30 @@
 import Button from '@/app/components/Button';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
-import { FaArrowRight, FaStar, FaRegStar, FaQuoteLeft } from 'react-icons/fa';
+import { FaStar, FaRegStar, FaQuoteLeft } from 'react-icons/fa';
+import React from 'react';
+//import Link from 'next/link';
 
 export default function HomePage() {
   const t = useTranslations('HomePage');
   
-  const features = [
-    {
-      icon: '🎁',
-      title: t('feature1Title'),
-      description: t('feature1Desc')
-    },
-    {
-      icon: '✏️',
-      title: t('feature2Title'),
-      description: t('feature2Desc')
-    },
-    {
-      icon: '🚀',
-      title: t('feature3Title'),
-      description: t('feature3Desc')
-    }
-  ];
+  // const features = [
+  //   {
+  //     icon: '🎁',
+  //     title: t('feature1Title'),
+  //     description: t('feature1Desc')
+  //   },
+  //   {
+  //     icon: '✏️',
+  //     title: t('feature2Title'),
+  //     description: t('feature2Desc')
+  //   },
+  //   {
+  //     icon: '🚀',
+  //     title: t('feature3Title'),
+  //     description: t('feature3Desc')
+  //   }
+  // ];
 
   const books = [
     {
@@ -169,7 +171,7 @@ export default function HomePage() {
                   ))}
                 </div>
                 <FaQuoteLeft className="text-gray-300 dark:text-gray-500 mb-4" />
-                <p className="text-lg italic mb-6">"{testimonial.text}"</p>
+                <p className="text-lg italic mb-6">&ldquo;{testimonial.text}&rdquo;</p>
                 <p className="font-semibold">— {testimonial.name}</p>
               </div>
             ))}
@@ -181,7 +183,9 @@ export default function HomePage() {
       <section className="py-20 bg-black text-white">
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold mb-6">{t('newsletterTitle')}</h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto">{t('newsletterSubtitle')}</p>
+          <p className="text-xl mb-8 max-w-2xl mx-auto">
+            {t('newsletterSubtitle')}
+          </p>
           <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <input
               type="email"

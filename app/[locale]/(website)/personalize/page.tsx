@@ -4,12 +4,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/utils/api';
 import Link from 'next/link';
-import { BaseBook, DetailedBook } from '@/types/book';
+import { DetailedBook } from '@/types/book';
 import { IoIosArrowBack } from "react-icons/io";
 import { getWebSocketUrl } from '@/utils/wsConfig';
-import axios from 'axios';
+import Image from 'next/image';
 
-import BasicInfoForm, { BasicInfoData } from '../components/personalize/BasicInfoForm';
+import { BasicInfoData } from '../components/personalize/BasicInfoForm';
 export interface PersonalizeFormData extends BasicInfoData {
   singleChoice: string; // Single choice feature
   multipleChoice: string[]; // Multiple choice features
@@ -32,12 +32,6 @@ interface ApiResponse {
   code: number;
   message: string;
   data: DetailedBook;
-}
-
-interface UploadResponse {
-  data: {
-    path: string;
-  };
 }
 
 export default function PersonalizePage() {
@@ -228,7 +222,14 @@ export default function PersonalizePage() {
             <IoIosArrowBack size={24} />
           </Link>
           <Link href="/" className="flex items-center justify-center flex-grow p-2">
-            <img src="/logo.png" alt="Home" className="w-[114.29px] h-[40px]" />
+            <Image 
+              src="/logo.png" 
+              alt="Home" 
+              width={115}
+              height={40}
+              priority
+              className="w-[114.29px] h-[40px]"
+            />
           </Link>
         </div>
         <Link href={`/books/${bookId}`} className="hidden sm:flex items-center text-sm">

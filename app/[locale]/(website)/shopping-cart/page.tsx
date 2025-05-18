@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 
 interface CartSubItem {
@@ -163,10 +164,12 @@ export default function ShoppingCartPage() {
                     />
 
                     {/* 封面图 */}
-                    <img
+                    <Image
                       src={item.image}
                       alt={item.name}
-                      className="w-16 h-16 object-cover rounded"
+                      width={64}
+                      height={64}
+                      className="object-cover rounded"
                     />
 
                     {/* 文字部分：包含3行布局 */}
@@ -232,10 +235,12 @@ export default function ShoppingCartPage() {
                         className="flex items-center justify-between"
                       >
                         <div className="flex items-center gap-3">
-                          <img
+                          <Image
                             src={sub.image}
                             alt={sub.name}
-                            className="w-12 h-12 object-cover rounded"
+                            width={48}
+                            height={48}
+                            className="object-cover rounded"
                           />
                           <span className="text-sm text-gray-700">
                             {sub.name}
@@ -313,10 +318,12 @@ export default function ShoppingCartPage() {
               onClick={() => alert('Checkout with PayPal')}
               className="w-full bg-blue-600 text-white py-2 rounded text-sm sm:text-base flex items-center justify-center gap-2"
             >
-              <img
+              <Image
                 src="https://www.paypalobjects.com/webstatic/icon/pp72.png"
                 alt="PayPal"
-                className="h-4 object-contain"
+                width={16}
+                height={16}
+                className="object-contain"
               />
               Checkout with PayPal
             </button>
