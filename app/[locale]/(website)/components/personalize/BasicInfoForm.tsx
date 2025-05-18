@@ -1,11 +1,11 @@
 /** @jsxImportSource react */
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { FaCheck } from 'react-icons/fa';
 //import UploadArea from './UploadArea';
-import useImageUpload from '../../hooks/useImageUpload';
+//import useImageUpload from '../../hooks/useImageUpload';
 
 export interface BasicInfoData {
   fullName: string;
@@ -18,7 +18,7 @@ interface BasicInfoFormProps {
   data: BasicInfoData;
   errors: Partial<Record<keyof BasicInfoData, string>>;
   touched: Partial<Record<keyof BasicInfoData, boolean>>;
-  onChange: (field: keyof BasicInfoData, value: any) => void;
+  onChange: (field: keyof BasicInfoData, value: string | { file: File; path: string } | null) => void;
   // 用于更新指定字段的错误状态
   onErrorChange?: (field: keyof BasicInfoData, error: string) => void;
 }
