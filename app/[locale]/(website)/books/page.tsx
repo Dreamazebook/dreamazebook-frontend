@@ -52,7 +52,7 @@ export default function BooksPage() {
     };
 
     fetchBooks();
-  }, []);
+  }, [t]);
 
   const filteredBooks = books.filter(book =>
     book.default_name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -61,11 +61,9 @@ export default function BooksPage() {
   const sortedBooks = [...filteredBooks].sort((a, b) => {
     switch (sortOption) {
       case 'price-low':
-        return a.price - b.price;
+        return Number(a.price) - Number(b.price);
       case 'price-high':
-        return b.price - a.price;
-      case 'rating':
-        return (b.rating || 0) - (a.rating || 0);
+        return Number(b.price) - Number(a.price);
       default:
         return 0;
     }
@@ -118,7 +116,6 @@ export default function BooksPage() {
                 <option value="featured">{t('sortFeatured')}</option>
                 <option value="price-low">{t('sortPriceLow')}</option>
                 <option value="price-high">{t('sortPriceHigh')}</option>
-                <option value="rating">{t('sortRating')}</option>
               </select>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                 <FaFilter className="text-gray-400" />

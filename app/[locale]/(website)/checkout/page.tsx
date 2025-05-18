@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 interface CartItem {
   id: number;
@@ -91,7 +92,7 @@ export default function CheckoutPage() {
 
   // Shipping 步骤：校验必填项并显示错误信息
   const handleNextFromShipping = () => {
-    let newErrors: ShippingErrors = {};
+    const newErrors: ShippingErrors = {};
     if (!email) newErrors.email = 'Required';
     if (!firstName) newErrors.firstName = 'Required';
     if (!lastName) newErrors.lastName = 'Required';
@@ -109,7 +110,7 @@ export default function CheckoutPage() {
 
     // 如果需要单独填写账单地址，则校验 Billing 字段
     if (needsBillingAddress) {
-      let newBillingErrors: {
+      const newBillingErrors: {
         billingEmail?: string;
         billingFirstName?: string;
         billingLastName?: string;
@@ -843,7 +844,7 @@ export default function CheckoutPage() {
                         </p>
                       </div>
                       <p className="text-l text-[#999999] flex">
-                        So speedy, it'll get to you much faster than standard delivery.
+                        So speedy, it will get to you much faster than standard delivery.
                       </p>
                       <p className="text-l text-[#999999] flex">
                         Plus, you can follow your parcel online. (Delivered by UPS Ground so no PO Boxes please)
@@ -1045,9 +1046,11 @@ export default function CheckoutPage() {
             {/* 订单商品列表 */}
             {mockCartItems.map((item) => (
               <div key={item.id} className="flex gap-3 items-center">
-                <img
+                <Image
                   src={item.image}
                   alt={item.name}
+                  width={64}
+                  height={80}
                   className="w-16 h-20 object-cover rounded"
                 />
                 <div className="flex-1 flex flex-col text-sm gap-3">

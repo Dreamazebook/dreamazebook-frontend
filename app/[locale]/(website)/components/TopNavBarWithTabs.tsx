@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaBookOpen } from 'react-icons/fa';
+//import { FaBookOpen } from 'react-icons/fa';
 
 interface TopNavBarProps {
   activeTab: 'Book preview' | 'Others';

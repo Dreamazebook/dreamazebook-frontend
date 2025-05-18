@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import api from "@/utils/api";
-import { DetailedBook, RecommendedBook, Variant } from '@/types/book';
+import { DetailedBook} from '@/types/book';
 import ReviewsSection from '../../components/Reviews';
 
 interface PagePic {
