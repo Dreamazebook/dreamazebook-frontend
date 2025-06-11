@@ -1,9 +1,10 @@
 import { FC } from 'react';
-import { Order } from '../types/order';
+import { Order, OrderStatus, ShippingStatus } from '../types/order';
 
 interface OrderDetailsModalProps {
   order: Order | null;
   onClose: () => void;
+  onStatusUpdate: (orderId: string, field: 'status' | 'shippingStatus', value: OrderStatus | ShippingStatus) => void;
 }
 
 const OrderDetailsModal: FC<OrderDetailsModalProps> = ({ order, onClose }) => {
@@ -27,7 +28,7 @@ const OrderDetailsModal: FC<OrderDetailsModalProps> = ({ order, onClose }) => {
           </div>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <h3 className="text-sm font-medium text-gray-500">Order ID</h3>
                 <p className="mt-1 text-sm text-gray-900">{order.id}</p>
@@ -37,6 +38,32 @@ const OrderDetailsModal: FC<OrderDetailsModalProps> = ({ order, onClose }) => {
                 <p className="mt-1 text-sm text-gray-900">
                   {new Date(order.date).toLocaleDateString()}
                 </p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-gray-500">Order Status</h3>
+                <select
+                  value={order.status}
+                  onChange={(e) => onStatusUpdate(order.id, 'status', e.target.value as OrderStatus)}
+                  className="mt-1 text-sm border rounded p-1 w-full"
+                >
+                  <option value="cart">Cart</option>
+                  <option value="paid">Paid</option>
+                  <option value="unpaid">Unpaid</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+              <div className="col-span-3">
+                <h3 className="text-sm font-medium text-gray-500">Shipping Status</h3>
+                <select
+                  value={order.shippingStatus}
+                  onChange={(e) => onStatusUpdate(order.id, 'shippingStatus', e.target.value as ShippingStatus)}
+                  className="mt-1 text-sm border rounded p-1 w-full"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="processed">Processed</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="delivered">Delivered</option>
+                </select>
               </div>
             </div>
 

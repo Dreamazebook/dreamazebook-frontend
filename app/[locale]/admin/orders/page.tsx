@@ -28,6 +28,7 @@ const OrdersPage: FC = () => {
         date: '2024-03-15',
         amount: 29.99,
         status: 'completed',
+        shippingStatus: 'delivered',
         shippingAddress: '123 Main St, City, Country',
         orderItems: [
           { bookId: '1', title: 'The Great Gatsby', quantity: 1, price: 29.99 }
@@ -41,6 +42,10 @@ const OrdersPage: FC = () => {
         date: '2024-03-14',
         amount: 24.99,
         status: 'pending',
+        shippingStatus: 'pending',
+        pdfGenerated: false,
+        previewConfirmed: false,
+        sentToPrint: false,
         shippingAddress: '456 Oak St, City, Country',
         orderItems: [
           { bookId: '2', title: '1984', quantity: 1, price: 24.99 }
@@ -161,14 +166,48 @@ const OrdersPage: FC = () => {
 
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
-      case 'completed':
+      case 'paid':
         return 'bg-green-100 text-green-800';
-      case 'pending':
+      case 'unpaid':
         return 'bg-yellow-100 text-yellow-800';
       case 'cancelled':
         return 'bg-red-100 text-red-800';
-      case 'refund':
+      case 'cart':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Production status handlers
+  const handleGeneratePDF = (orderId: string) => {
+    console.log(`Generating PDF for order ${orderId}`);
+    // TODO: Implement API call to generate PDF
+    alert(`PDF generated for order ${orderId}`);
+  };
+
+  const handleConfirmPreview = (orderId: string) => {
+    console.log(`Confirming preview for order ${orderId}`);
+    // TODO: Implement API call to confirm preview
+    alert(`Preview confirmed for order ${orderId}`);
+  };
+
+  const handleSendToPrint = (orderId: string) => {
+    console.log(`Sending to print for order ${orderId}`);
+    // TODO: Implement API call to send to print
+    alert(`Order ${orderId} sent to print`);
+  };
+
+  const getShippingStatusColor = (status: ShippingStatus) => {
+    switch (status) {
+      case 'delivered':
+        return 'bg-green-100 text-green-800';
+      case 'shipped':
+        return 'bg-blue-100 text-blue-800';
+      case 'processed':
         return 'bg-purple-100 text-purple-800';
+      case 'pending':
+        return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -219,7 +258,13 @@ const OrdersPage: FC = () => {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                     onClick={() => handleSort('status')}>
-                  Status
+                  Order Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Shipping Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Production Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -249,16 +294,66 @@ const OrdersPage: FC = () => {
                       {order.status}
                     </span>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getShippingStatusColor(order.shippingStatus)}`}>
+                      {order.shippingStatus}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center space-x-2">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        order.pdfGenerated 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {order.pdfGenerated ? 'PDF已生成' : '待生成PDF'}
+                      </span>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        order.previewConfirmed 
+                          ? 'bg-blue-100 text-blue-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {order.previewConfirmed ? '已确认' : '待确认'}
+                      </span>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        order.sentToPrint 
+                          ? 'bg-purple-100 text-purple-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {order.sentToPrint ? '已印刷' : '待印刷'}
+                      </span>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button 
-                      onClick={() => setSelectedOrder(order)}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                    >
-                      View
-                    </button>
-                    <button className="text-red-600 hover:text-red-900">
-                      Cancel
-                    </button>
+                    <div className="flex space-x-2">
+                      <button 
+                        onClick={() => setSelectedOrder(order)}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        View
+                      </button>
+                      <button 
+                        onClick={() => handleGeneratePDF(order.id)}
+                        className="text-green-600 hover:text-green-900"
+                      >
+                        Generate PDF
+                      </button>
+                      <button 
+                        onClick={() => handleConfirmPreview(order.id)}
+                        className="text-purple-600 hover:text-purple-900"
+                      >
+                        Confirm
+                      </button>
+                      <button 
+                        onClick={() => handleSendToPrint(order.id)}
+                        className="text-indigo-600 hover:text-indigo-900"
+                      >
+                        Send to Print
+                      </button>
+                      <button className="text-red-600 hover:text-red-900">
+                        Cancel
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
