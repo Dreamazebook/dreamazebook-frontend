@@ -1,4 +1,4 @@
-import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT } from '@/constants/api'
+import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT, API_USER_SEND_PASSWORD_RESET_EMAIL } from '@/constants/api'
 import api from '@/utils/api'
 import { ApiResponse, UserResponse } from '@/types/api'
 import { create } from 'zustand'
@@ -17,6 +17,7 @@ interface UserState {
   register: (userData: RegisterData) => void
   logout: () => void
   fetchCurrentUser: () => void
+  sendResetPasswordLink: (email: string) => Promise<boolean>
 }
 
 type UserType = {
@@ -47,6 +48,15 @@ const useUserStore = create<UserState>((set) => ({
   // User state - initially not logged in
   user: null,
   isLoggedIn: false,
+  sendResetPasswordLink: async (email: string): Promise<boolean> => {
+    try {
+      const response = await api.post<ApiResponse<any>>(API_USER_SEND_PASSWORD_RESET_EMAIL, { email });
+      return response.success;
+    } catch (error) {
+      console.error('Send reset password link error:', error);
+      return false;
+    }
+  },
   register: async (userData) => {
     try {
       const response = await api.post<ApiResponse<UserResponse>>(API_USER_REGISTER, userData);
