@@ -1,6 +1,6 @@
 import { FC, ReactNode } from 'react';
 import '../globals.css';
-import Sidebar from './components/Sidebar';
+// import Sidebar from './components/Sidebar';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -13,7 +13,7 @@ const AdminLayout: FC<AdminLayoutProps> = ({ children }) => {
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-md">
-        <Sidebar />
+        {/* <Sidebar /> */}
       </aside>
 
       {/* Main Content */}
