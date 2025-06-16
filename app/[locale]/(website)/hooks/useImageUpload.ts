@@ -100,7 +100,7 @@ const useImageUpload = () => {
       
       if (err instanceof Error) {
         if (err.message === 'ECONNABORTED') {
-          errorMessage = 'Upload timed out, please try again';
+        errorMessage = 'Upload timed out, please try again';
         } else {
           errorMessage = err.message;
         }

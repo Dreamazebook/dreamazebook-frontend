@@ -19,13 +19,19 @@ const uploadApi = axios.create({
     // 移除默认的 Content-Type，让浏览器自动设置正确的 boundary
 });
 
-const HARDCODED_TOKEN = "16|bbITU6kTZWSWvzXKtmNFMwgMqYDyLEMPCfAqs0iyb82331d5"
+const HARDCODED_TOKEN = "17|QIKUiFCeplMwM80DdQtFO0m3O47euKn2v2MMKhuw61520823"
 
 // 请求拦截器
 const addAuthHeader = (config) => {
-    const token = localStorage.getItem('token') || HARDCODED_TOKEN;
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+    // 检查是否在客户端环境
+    if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('token') || HARDCODED_TOKEN;
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+    } else {
+        // 服务器端环境，使用硬编码token
+        config.headers.Authorization = `Bearer ${HARDCODED_TOKEN}`;
     }
     return config;
 };
@@ -40,22 +46,21 @@ const handleResponse = (response) => {
 
 const handleError = (error) => {
     if (error.response) {
-        switch (error.response.status) {
-            case 401:
-                // 未授权，处理登出逻辑
-                break;
-            case 404:
-                console.error('The requested resource does not exist');
-                break;
-            case 422:
-                console.error('Validation error:', error.response.data);
-                break;
-            case 500:
-                console.error('Server error occurred');
-                break;
-            default:
-                console.error('An error occurred:', error.response.data);
+        // 服务器返回错误状态码
+        console.error('API错误:', error.response.data);
+        if (error.response.status === 401) {
+            // 处理未授权错误
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            }
         }
+    } else if (error.request) {
+        // 请求已发送但没有收到响应
+        console.error('网络错误:', error.request);
+    } else {
+        // 请求配置出错
+        console.error('请求错误:', error.message);
     }
     return Promise.reject(error);
 };

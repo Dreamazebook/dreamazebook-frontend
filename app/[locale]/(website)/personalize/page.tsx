@@ -8,6 +8,7 @@ import { DetailedBook } from '@/types/book';
 import { IoIosArrowBack } from "react-icons/io";
 import { getWebSocketUrl } from '@/utils/wsConfig';
 import Image from 'next/image';
+import echo from '@/app/config/echo';
 
 import { BasicInfoData } from '../components/personalize/BasicInfoForm';
 export interface PersonalizeFormData extends BasicInfoData {
@@ -86,34 +87,33 @@ export default function PersonalizePage() {
   useEffect(() => {
     if (!bookId) return;
 
-    // 1. 构造 URL
-    const url = getWebSocketUrl(`preview.${bookId}`);
-    // 2. 建立连接
-    const ws = new WebSocket(url);
+    if (echo) {
+      const channel = echo.private(`book.${bookId}`);
+      
+      // 监听生成状态更新
+      channel.listen('BookGenerationStatus', (e: { status: string; progress: number }) => {
+        console.log('生成状态更新:', e);
+      });
 
-    ws.onopen = () => {
-      console.log('WebSocket connected to', url);
-      ws.send(JSON.stringify({
-        event: 'pusher:subscribe',
-        data: { channel: `preview.${bookId}` }
-      }));
-    };
+      // 监听生成完成事件
+      channel.listen('BookGenerationComplete', (e: { success: boolean; message: string }) => {
+        console.log('生成完成:', e);
+        if (e.success) {
+          router.push(`/preview?bookId=${bookId}`);
+        }
+      });
 
-    ws.onmessage = (e) => {
-      const msg = JSON.parse(e.data);
-      // 事件名通常是去掉命名空间的类名：'PreviewReady'
-      if (msg.event === 'PreviewReady' || msg.event === 'App\\Events\\PreviewReady') {
-        alert('Your preview is ready!');
-        router.push(`/preview?bookId=${bookId}`);
-      }
-    };
+      // 监听错误事件
+      channel.listen('BookGenerationError', (e: { message: string }) => {
+        console.error('生成错误:', e.message);
+      });
 
-    ws.onerror = (err) => console.error('WebSocket error:', err);
-    ws.onclose = () => console.log('WebSocket closed');
-
-    return () => {
-      ws.close();
-    };
+      return () => {
+        channel.stopListening('BookGenerationStatus');
+        channel.stopListening('BookGenerationComplete');
+        channel.stopListening('BookGenerationError');
+      };
+    }
   }, [bookId, router]);
 
   const renderForm = () => {
@@ -200,14 +200,48 @@ export default function PersonalizePage() {
         ],
       };
   
-      await api.post(`/picbooks/${bookId}/preview`, payload);
-    } catch (err) {
-      console.error('Upload failed.', err);
+      await api.post(`/picbooks/${bookId}/preview`, payload, {
+        timeout: 30000 // 30秒超时
+      });
+
+      // 4. 连接 WebSocket
+      if (echo) {
+        const channel = echo.private(`book.${bookId}`);
+        
+        // 监听生成状态更新
+        channel.listen('BookGenerationStatus', (e: { status: string; progress: number }) => {
+          console.log('生成状态更新:', e);
+          // 这里可以处理状态更新，比如显示进度等
+        });
+
+        // 监听生成完成事件
+        channel.listen('BookGenerationComplete', (e: { success: boolean; message: string }) => {
+          console.log('生成完成:', e);
+          if (e.success) {
+            // 只有在生成成功时才跳转到预览页面
+            router.push(`/preview?bookid=${bookId}`);
+          } else {
+            console.error('生成失败:', e.message);
+          }
+        });
+
+        // 监听错误事件
+        channel.listen('BookGenerationError', (e: { message: string }) => {
+          console.error('生成错误:', e.message);
+        });
+      } else {
+        console.error('WebSocket连接未初始化');
+      }
+
+      // 5. 跳转到预览页面
+      router.push(`/preview?bookid=${bookId}`);
+    } catch (err: any) {
+      console.error('Upload failed:', err);
+      if (err.code === 'ECONNABORTED') {
+        console.error('请求超时，请稍后重试');
+      }
     }
   };
-  
-  
-  
 
   if (loading) {
     return <div>Loading...</div>;

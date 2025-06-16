@@ -7,6 +7,7 @@ import { Drawer } from "antd";
 import { create } from 'zustand';
 import TopNavBarWithTabs from '../components/TopNavBarWithTabs';
 import Image from 'next/image';
+import axiosInstance from '@/app/config/axios';
 
 const useStore = create<{
   activeStep: number;
@@ -193,35 +194,14 @@ export default function PreviewPageWithTopNav() {
   };
 
   // 点击 Continue 按钮处理：未完成则跳到第一个未完成的部分，否则跳转下一页
-  const handleContinue = () => {
-    const allComplete = Object.values(completedSections).every(Boolean);
-    if (!allComplete) {
-      const order = ["giverDedication", "confirmation", "coverDesign", "bookFormat", "otherGifts"];
-      const firstIncomplete = order.find(id => !completedSections[id as keyof typeof completedSections]);
-      if (firstIncomplete) {
-        switch (firstIncomplete) {
-          case "giverDedication":
-          case "confirmation":
-            setActiveTab("Book preview");
-            setTimeout(() => {
-              scrollToSection(firstIncomplete);
-            }, 100);
-            break;
-          case "coverDesign":
-          case "bookFormat":
-          case "otherGifts":
-            setActiveTab("Others");
-            setTimeout(() => {
-              scrollToSection(firstIncomplete);
-            }, 100);
-            break;
-          default:
-            break;
-        }
-      }      
-    } else {
-      alert("All sections complete! Navigating to next page...");
-      router.push('/shopping-cart');
+  const handleContinue = async () => {
+    try {
+      const response = await axiosInstance.post('/api/preview/continue', {
+        // 数据
+      });
+      // 处理响应
+    } catch (error) {
+      console.error('请求失败:', error);
     }
   };
 
@@ -275,7 +255,7 @@ export default function PreviewPageWithTopNav() {
     if (!drawerOpen) return;
 
     const handleDocumentClick = (event: MouseEvent) => {
-      // 如果点击的是“more details”链接
+      // 如果点击的是"more details"链接
       if ((event.target as HTMLElement).closest('.more-details')) {
         // 不关闭抽屉，直接更新内容（more details 点击处理函数会在点击时调用 event.stopPropagation()）
         return;
