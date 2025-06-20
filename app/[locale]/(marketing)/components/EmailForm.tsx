@@ -35,8 +35,8 @@ export default function EmailForm({btnText, handleCallBack, redirectUrl=''}: Ema
   }, [responseMessage, isError, countdown]);
 
   if (responseMessage && !isError) {
-    router.push(redirectUrl);
-    return null;
+    // router.push(redirectUrl);
+    // return null;
     if (countdown === 0) {
       router.push(redirectUrl);
       return null;
@@ -81,10 +81,11 @@ export default function EmailForm({btnText, handleCallBack, redirectUrl=''}: Ema
         setIsError(true);
         setResponseMessage(data.msg);
         return;
-      } else {
-        router.push(redirectUrl);
-        return;
-      }
+      } 
+      // else {
+      //   router.push(redirectUrl);
+      //   return;
+      // }
 
       setResponseMessage(data.msg);
       if (typeof handleCallBack === 'function') {
