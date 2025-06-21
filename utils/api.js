@@ -19,7 +19,7 @@ const uploadApi = axios.create({
     // 移除默认的 Content-Type，让浏览器自动设置正确的 boundary
 });
 
-const HARDCODED_TOKEN = "17|QIKUiFCeplMwM80DdQtFO0m3O47euKn2v2MMKhuw61520823"
+const HARDCODED_TOKEN = "19|UqsoRkS237cOjSzy5b7XRdXDe2q28CTtHhLmw23F668dd412"
 
 // 请求拦截器
 const addAuthHeader = (config) => {

@@ -9,6 +9,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import { getWebSocketUrl } from '@/utils/wsConfig';
 import Image from 'next/image';
 import echo from '@/app/config/echo';
+import useUserStore from '@/stores/userStore';
 
 import { BasicInfoData } from '../components/personalize/BasicInfoForm';
 export interface PersonalizeFormData extends BasicInfoData {
@@ -40,6 +41,7 @@ export default function PersonalizePage() {
   const bookId = searchParams.get('bookid');
   const langParam = searchParams.get('language') || 'en';
   const router = useRouter();
+  const { user } = useUserStore();
 
   const [book, setBook] = useState<DetailedBook | null>(null);
   const [selectedFormType, setSelectedFormType] = useState<'SINGLE1' | 'SINGLE2' | 'DOUBLE' | null>(null);
@@ -82,39 +84,6 @@ export default function PersonalizePage() {
 
     fetchBook();
   }, [bookId]);
-
-  // WebSocket 接收广播
-  useEffect(() => {
-    if (!bookId) return;
-
-    if (echo) {
-      const channel = echo.private(`book.${bookId}`);
-      
-      // 监听生成状态更新
-      channel.listen('BookGenerationStatus', (e: { status: string; progress: number }) => {
-        console.log('生成状态更新:', e);
-      });
-
-      // 监听生成完成事件
-      channel.listen('BookGenerationComplete', (e: { success: boolean; message: string }) => {
-        console.log('生成完成:', e);
-        if (e.success) {
-          router.push(`/preview?bookId=${bookId}`);
-        }
-      });
-
-      // 监听错误事件
-      channel.listen('BookGenerationError', (e: { message: string }) => {
-        console.error('生成错误:', e.message);
-      });
-
-      return () => {
-        channel.stopListening('BookGenerationStatus');
-        channel.stopListening('BookGenerationComplete');
-        channel.stopListening('BookGenerationError');
-      };
-    }
-  }, [bookId, router]);
 
   const renderForm = () => {
     if (!selectedFormType) return null;
@@ -205,20 +174,18 @@ export default function PersonalizePage() {
       });
 
       // 4. 连接 WebSocket
-      if (echo) {
-        const channel = echo.private(`book.${bookId}`);
+      if (echo && user) {
+        const channel = echo.private(`face-swap.${user.id}`);
         
         // 监听生成状态更新
-        channel.listen('BookGenerationStatus', (e: { status: string; progress: number }) => {
+        channel.listen('face-swap.progress', (e: { status: string; progress: number }) => {
           console.log('生成状态更新:', e);
-          // 这里可以处理状态更新，比如显示进度等
         });
 
         // 监听生成完成事件
-        channel.listen('BookGenerationComplete', (e: { success: boolean; message: string }) => {
+        channel.listen('face-swap.complete', (e: { success: boolean; message: string }) => {
           console.log('生成完成:', e);
           if (e.success) {
-            // 只有在生成成功时才跳转到预览页面
             router.push(`/preview?bookid=${bookId}`);
           } else {
             console.error('生成失败:', e.message);
@@ -226,11 +193,11 @@ export default function PersonalizePage() {
         });
 
         // 监听错误事件
-        channel.listen('BookGenerationError', (e: { message: string }) => {
+        channel.listen('face-swap.error', (e: { message: string }) => {
           console.error('生成错误:', e.message);
         });
       } else {
-        console.error('WebSocket连接未初始化');
+        console.error('WebSocket连接未初始化或用户未登录');
       }
 
       // 5. 跳转到预览页面

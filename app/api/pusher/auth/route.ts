@@ -1,51 +1,97 @@
-import { NextResponse } from 'next/server';
-import api from '@/utils/api';
-import { AxiosResponse } from 'axios';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(request: Request) {
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': 'http://localhost:3000',
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': [
+        'Content-Type',
+        'Authorization',
+        'X-Socket-Id',
+        'Accept',
+        'X-Requested-With',
+        'X-XSRF-TOKEN'
+      ].join(','),
+    },
+  });
+}
+
+export async function POST(req: NextRequest) {
   try {
-    // 获取原始请求数据
-    const formData = await request.text();
-    const params = new URLSearchParams(formData);
-    
-    const socket_id = params.get('socket_id');
-    const channel_name = params.get('channel_name');
+    // 1. 原始 body（Pusher 会传 socket_id 和 channel_name）
+    const body = await req.text();
+    console.log('Received body:', body);
 
-    if (!socket_id || !channel_name) {
+    // 2. 获取所有必要的请求头
+    const authHeader = req.headers.get('authorization') || '';
+    const socketId = req.headers.get('x-socket-id') || '';
+    const accept = req.headers.get('accept') || 'application/json';
+    const cookie = req.headers.get('cookie') || '';
+    const csrfToken = req.headers.get('x-xsrf-token') || '';
+
+    console.log('Request headers:', {
+      authorization: authHeader,
+      'x-socket-id': socketId,
+      accept,
+      cookie,
+      'x-xsrf-token': csrfToken
+    });
+
+    // 3. 转发给你的 Laravel Pusher 授权端点
+    const laravelRes = await fetch('http://localhost:8000/broadcasting/auth', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': authHeader,
+        'X-Socket-Id': socketId,
+        'Accept': accept,
+        'Cookie': cookie,
+        'X-XSRF-TOKEN': csrfToken,
+      },
+      body,
+      credentials: 'include',
+    });
+
+    const data = await laravelRes.json();
+    console.log('Laravel response:', {
+      status: laravelRes.status,
+      data
+    });
+
+    if (!laravelRes.ok) {
+      console.error('Pusher auth failed:', data);
       return NextResponse.json(
-        { error: 'Missing required parameters' },
-        { status: 400 }
+        { error: 'Pusher auth failed', details: data }, 
+        { 
+          status: laravelRes.status,
+          headers: {
+            'Access-Control-Allow-Origin': 'http://localhost:3000',
+            'Access-Control-Allow-Credentials': 'true',
+          }
+        }
       );
     }
 
-    // 从请求头中获取认证token
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader) {
-      return NextResponse.json(
-        { error: 'Missing authorization header' },
-        { status: 401 }
-      );
-    }
-
-    const response: AxiosResponse = await api.post(
-      '/broadcasting/auth',
-      { socket_id, channel_name },
-      {
-        headers: {
-          Authorization: authHeader,
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+    return NextResponse.json(data, {
+      headers: {
+        'Access-Control-Allow-Origin': 'http://localhost:3000',
+        'Access-Control-Allow-Credentials': 'true',
       }
-    );
-
-    return NextResponse.json(response.data);
-  } catch (error: any) {
-    console.error('WebSocket认证错误:', error);
+    });
+  } catch (err) {
+    console.error('Pusher auth proxy error:', err);
     return NextResponse.json(
-      { error: error.message || '认证失败' },
-      { status: error.response?.status || 500 }
+      { error: 'Server error', details: String(err) }, 
+      { 
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': 'http://localhost:3000',
+          'Access-Control-Allow-Credentials': 'true',
+        }
+      }
     );
   }
 } 
