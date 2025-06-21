@@ -15,6 +15,7 @@ import { useSearchParams } from "next/navigation";
 import { sendRequest } from "@/utils/subscription";
 import VIPOnlyPerk from "../components/VIPOnlyPerk";
 import { CREATOR_RECOMMENDATION, DREAMAZEBOOK_LOGO, MORE_MAGIC, MOST_PEOPLE_CHOICE } from "@/constants/cdn";
+import { FACEBOOK_GROUP_URL } from "@/constants/links";
 
 
 const NEXT_PUBLIC_STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
@@ -136,7 +137,7 @@ export default function Reserve() {
           </div>
 
           <Button tl={'Reserve Your Gift Bundle for $1'} url={NEXT_PUBLIC_STRIPE_PAYMENT_LINK} handleClick={handlePayClick} />
-          <button onClick={()=>setShowPopup(true)} className="cursor-pointer w-full p-3 text-center mt-3">Want to learn more? Join the Club!</button>
+          <a href={FACEBOOK_GROUP_URL} className="block cursor-pointer w-full p-3 text-center mt-3">Want to learn more? Join the Club!</a>
         </div>
 
       </div>
