@@ -6,11 +6,12 @@ import { fbTrack } from "@/utils/track";
 
 interface EmailFormProps {
   btnText?: string;
+  btnId?: string;
   handleCallBack?: () => void;
   redirectUrl?: string;
 }
 
-export default function EmailForm({btnText, handleCallBack, redirectUrl=''}: EmailFormProps) {
+export default function EmailForm({btnText, handleCallBack, btnId='', redirectUrl=''}: EmailFormProps) {
   const router = useRouter();
 
   const [responseMessage, setResponseMessage] = useState('');
@@ -112,7 +113,7 @@ export default function EmailForm({btnText, handleCallBack, redirectUrl=''}: Ema
           className='w-full text-black caret-[#999999] bg-white p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
           aria-label="Email address"
         />
-        <Button tl={btnText||'Reserve and Save 40%'} isLoading={isLoading} />
+        <Button id={btnId} tl={btnText||'Reserve and Save 40%'} isLoading={isLoading} />
       </form>
 
 

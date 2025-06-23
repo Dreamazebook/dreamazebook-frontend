@@ -21,7 +21,7 @@ export default function HeroBanner() {
           {!hideForm && <h3 className="mb-4 font-bold text-[24px]">Reserve a <span className="text-[#012DCE]">Timeless Gift</span> for Your Child !</h3>}
 
           <div className="max-w-lg">
-            <EmailForm btnText="Sign up and Save 40%" redirectUrl={'/en/welcome/reserve'} handleCallBack={()=>setHideForm(true)} />
+            <EmailForm btnId="email_submit_header" btnText="Sign up and Save 40%" redirectUrl={'/en/welcome/reserve'} handleCallBack={()=>setHideForm(true)} />
           </div>
 
           {/* {!hideForm &&
