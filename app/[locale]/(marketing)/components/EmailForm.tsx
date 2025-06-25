@@ -36,8 +36,8 @@ export default function EmailForm({btnText, handleCallBack, btnId='', redirectUr
   }, [responseMessage, isError, countdown]);
 
   if (responseMessage && !isError) {
-    // router.push(redirectUrl);
-    // return null;
+    router.push(redirectUrl);
+    return null;
     if (countdown === 0) {
       router.push(redirectUrl);
       return null;
