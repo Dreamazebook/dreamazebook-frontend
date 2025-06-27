@@ -1,17 +1,21 @@
-import DreamzeImage from "@/app/components/DreamzeImage"
+import Image from "next/image";
+import { VIP_PERK_FIRST_PICK, VIP_PERK_SAVE_40, VIP_PERK_UNLOCK_GIFT } from "@/constants/cdn"
 
 const LAUNCH_PERKS = [
   {
     tl: 'Save 40%',
-    desc: 'Our biggest discount ever —VIPs only.'
+    desc: 'Our biggest discount ever —VIPs only.',
+    icon:VIP_PERK_SAVE_40
   },
   {
     tl: 'Limited Edition Gift',
-    desc: 'An artsy surprise — a bookmark, a gift box, or something special.'
+    desc: 'An artsy surprise — a bookmark, a gift box, or something special.',
+    icon:VIP_PERK_UNLOCK_GIFT
   },
   {
     tl: '1-Hour Early Access',
-    desc: 'Shop early & ship early — VIPs don’t wait.'
+    desc: 'Shop early & ship early — VIPs don’t wait.',
+    icon:VIP_PERK_FIRST_PICK
   },
 ]
 
@@ -23,8 +27,11 @@ export default function VIPLauchPerks() {
       
       <div className="space-y-4 w-[255] mx-auto">
       {LAUNCH_PERKS.map((perk)=>
-        <article>
-          <h3 className="text-[16px] font-bold text-[#012DCE]">{perk.tl}</h3>
+        <article key={perk.tl}>
+          <div className="flex items-center justify-center gap-3">
+            <Image src={perk.icon} width={21} height={21} alt="Icon" />
+            <h3 className="text-[16px] font-bold text-[#012DCE]">{perk.tl}</h3>
+          </div>
           <p className="text-[14px] font-light text-[#222222]">{perk.desc}</p>
         </article>
       )}

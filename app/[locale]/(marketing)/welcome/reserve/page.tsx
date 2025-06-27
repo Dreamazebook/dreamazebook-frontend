@@ -1,93 +1,87 @@
 'use client';
 import FAQReserve from "../../components/FAQReserve";
-import { useCallback, useEffect, useState } from "react";
-import Popup from "../../components/Popup";
-import Button from "@/app/components/Button";
+// import { useCallback, useEffect, useState } from "react";
 import Previews from "../components/Previews";
-import BookCovers from "../components/BookCovers";
-import Footer from "../../components/Footer";
-import { ContainerDesc } from "../../components/ContainerDesc";
-import { ContainerTitle } from "../../components/ContainerTitle";
 import Image from 'next/image';
 import DreamzeImage from "@/app/components/DreamzeImage";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { sendRequest } from "@/utils/subscription";
-import VIPOnlyPerk from "../components/VIPOnlyPerk";
-import { CREATOR_RECOMMENDATION, DREAMAZEBOOK_LOGO, MORE_MAGIC, MOST_PEOPLE_CHOICE } from "@/constants/cdn";
-import { FACEBOOK_GROUP_URL } from "@/constants/links";
+// import { useSearchParams } from "next/navigation";
+// import { sendRequest } from "@/utils/subscription";
+import { DREAMAZEBOOK_LOGO, MORE_MAGIC } from "@/constants/cdn";
 import VIPLauchPerks from "../components/VIPLaunchPerks";
+import ReserveVideo from "../components/ReserveVideo";
+import OurBooks from "../components/OurBooks";
 
 
 const NEXT_PUBLIC_STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
 
-const PRICES = [
-  {
-     tl: 'Softcover',
-     id: 'softcover',
-     discount: '$35',
-     price: '$59',
-     desc: 'Light yet durable, this softcover edition offers a flexible and travel-friendly option'
-  },
-  {
-    headerStyle:'bg-linear-to-r from-[#FF638A] from-20% to-[#FF2566] to-[100%] text-transparent bg-clip-text',
-     header: 'Creator\'s Recommendation',
-     headerImg: CREATOR_RECOMMENDATION,
-     tl: 'Hardcover',
-     id: 'hardcover',
-     discount: '$45',
-     price: '$75',
-     desc: 'Premium hardcover with a smooth matte finish, designed for lasting reading and enjoyment.'
-  },
-  {
-    headerStyle:'bg-linear-to-r from-[#FF638A] from-20% via-[#FF8383] via-46% via-[#867BFF] via-75% to-[#FF2566] to-[100%] text-transparent bg-clip-text',
-     header: 'Most People\'s Choice',
-     headerImg: MOST_PEOPLE_CHOICE,
-     tl: 'Premium Lay-Flat Hardcover',
-     id: 'lay-flat',
-     discount: '$58',
-     price: '$97',
-     desc: 'Luxurious layflat design with seamless panoramic spreads—perfect for a lifelong keepsake gift.'
-  },
-];
+// const PRICES = [
+//   {
+//      tl: 'Softcover',
+//      id: 'softcover',
+//      discount: '$35',
+//      price: '$59',
+//      desc: 'Light yet durable, this softcover edition offers a flexible and travel-friendly option'
+//   },
+//   {
+//     headerStyle:'bg-linear-to-r from-[#FF638A] from-20% to-[#FF2566] to-[100%] text-transparent bg-clip-text',
+//      header: 'Creator\'s Recommendation',
+//      headerImg: CREATOR_RECOMMENDATION,
+//      tl: 'Hardcover',
+//      id: 'hardcover',
+//      discount: '$45',
+//      price: '$75',
+//      desc: 'Premium hardcover with a smooth matte finish, designed for lasting reading and enjoyment.'
+//   },
+//   {
+//     headerStyle:'bg-linear-to-r from-[#FF638A] from-20% via-[#FF8383] via-46% via-[#867BFF] via-75% to-[#FF2566] to-[100%] text-transparent bg-clip-text',
+//      header: 'Most People\'s Choice',
+//      headerImg: MOST_PEOPLE_CHOICE,
+//      tl: 'Premium Lay-Flat Hardcover',
+//      id: 'lay-flat',
+//      discount: '$58',
+//      price: '$97',
+//      desc: 'Luxurious layflat design with seamless panoramic spreads—perfect for a lifelong keepsake gift.'
+//   },
+// ];
 
 export default function Reserve() {
-  const [curBookCover, setCurBookCover] = useState(PRICES[1].id);
-  const [showPopup, setShowPopup] = useState(false);
-  const searchParams = useSearchParams()
+  // const [curBookCover, setCurBookCover] = useState(PRICES[1].id);
+  // const [showPopup, setShowPopup] = useState(false);
+  // const searchParams = useSearchParams()
 
-  const updateBookCover = useCallback(async (tl: string) => {
-    setCurBookCover(tl);
-    await sendRequest({
-      url: '/api/subscriptions',
-      method: 'PATCH',
-      body: {
-        selected_cover: tl,
-        email: searchParams.get('email') || '',
-      },
-    });
-  },[searchParams]);
+  // const updateBookCover = useCallback(async (tl: string) => {
+  //   setCurBookCover(tl);
+  //   await sendRequest({
+  //     url: '/api/subscriptions',
+  //     method: 'PATCH',
+  //     body: {
+  //       selected_cover: tl,
+  //       email: searchParams.get('email') || '',
+  //     },
+  //   });
+  // },[searchParams]);
 
-  useEffect(() => {
-    // Empty useEffect - previously contained beforeunload event handler
-    // that was commented out. Keeping the hook for potential future use.
-    updateBookCover(PRICES[1].id);
-  }, [updateBookCover]);
+  // useEffect(() => {
+  //   // Empty useEffect - previously contained beforeunload event handler
+  //   // that was commented out. Keeping the hook for potential future use.
+  //   updateBookCover(PRICES[1].id);
+  // }, [updateBookCover]);
 
-  const handleCoverClick = async (tl: string) => {
-    await updateBookCover(tl);
-  }
+  // const handleCoverClick = async (tl: string) => {
+  //   await updateBookCover(tl);
+  // }
 
-  const handlePayClick = async () => {
-    await sendRequest({
-      url: '/api/subscriptions',
-      method: 'PATCH',
-      body: {
-        prepaid_status: 'clicked',
-        email: searchParams.get('email') || '',
-      }
-    })
-  }
+  // const handlePayClick = async () => {
+  //   await sendRequest({
+  //     url: '/api/subscriptions',
+  //     method: 'PATCH',
+  //     body: {
+  //       prepaid_status: 'clicked',
+  //       email: searchParams.get('email') || '',
+  //     }
+  //   })
+  // }
 
 
   return (
@@ -145,13 +139,16 @@ export default function Reserve() {
 
       <VIPLauchPerks />
 
-      <VIPOnlyPerk />
+      <ReserveVideo />
+
+      {/* <VIPOnlyPerk /> */}
+      <OurBooks />
 
       <FAQReserve />
 
       <Previews />
 
-      <section className="pt-6 pb-6 bg-white">
+      <section className="pb-6 bg-white">
         <div className="container flex flex-col md:flex-row justify-center mx-auto gap-5 items-center">
           <p className="text-[#222222] font-light text-sm md:text-[28px] text-center">“More magical stories are coming<br/>
           Join as a VIP and help spark ideas for our next books”</p>
@@ -161,7 +158,11 @@ export default function Reserve() {
         </div>
       </section>
 
-      <Footer />
+      {/* <Footer /> */}
+      <section className="bg-white py-3 px-6 text-center">
+        <a href={NEXT_PUBLIC_STRIPE_PAYMENT_LINK} className="block bg-[#022CCE] text-[16px] font-medium text-white mb-3 p-3">Reserve My VIP Spot for $1</a>
+        <p className="text-[#999999] font-light text-[13px]">Only available for a limited time before launch</p>
+      </section>
 
     </main>
   )
