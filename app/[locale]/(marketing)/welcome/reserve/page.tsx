@@ -16,6 +16,7 @@ import { sendRequest } from "@/utils/subscription";
 import VIPOnlyPerk from "../components/VIPOnlyPerk";
 import { CREATOR_RECOMMENDATION, DREAMAZEBOOK_LOGO, MORE_MAGIC, MOST_PEOPLE_CHOICE } from "@/constants/cdn";
 import { FACEBOOK_GROUP_URL } from "@/constants/links";
+import VIPLauchPerks from "../components/VIPLaunchPerks";
 
 
 const NEXT_PUBLIC_STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
@@ -94,7 +95,8 @@ export default function Reserve() {
       <Link href={'/'} className="block max-w-7xl mx-auto mb-5">
         <Image className="" src={DREAMAZEBOOK_LOGO} alt="Logo" width={168} height={56} />
       </Link>
-      {showPopup &&
+      
+      {/* {showPopup &&
       <Popup
         handleCancel={setShowPopup}
         tl="Unlock a Premium Gift for You!"
@@ -102,9 +104,9 @@ export default function Reserve() {
         surveyTxt="Yes, serve a survey!"
         surveyLink="https://docs.google.com/forms/d/1w_H7VXx98p5dFTz9nkFOL0GNyozIZAoA6rPm63ZWMgY/viewform?edit_requested=true"
         cancelTxt="It’s OK, you’ll nail it!"
-      />}
+      />} */}
 
-      <div className="container mx-auto lg:flex">
+      {/* <div className="container mx-auto lg:flex">
         <div className="lg:w-1/2">
           <BookCovers curbook={curBookCover} />
         </div>
@@ -118,7 +120,6 @@ export default function Reserve() {
             <article onClick={()=>handleCoverClick(id)} key={id} className={`transition-all overflow-hidden rounded border ${curBookCover===id?'border-[#022CCE]':'border-transparent'}`}>
               {headerImg && 
                 <div className="from-[#FFE5E5] to-[#FFF4F4] bg-linear-to-r">
-                {/* <h2 className={`font-semibold text-xl px-6 py-3 ${headerStyle}`}>{header}</h2> */}
                 <Image className="" src={headerImg} alt={header} width={340} height={72} />
                 </div>
               }
@@ -140,7 +141,9 @@ export default function Reserve() {
           <a href={FACEBOOK_GROUP_URL} className="block cursor-pointer w-full p-3 text-center mt-3">Want to learn more? Join the Club!</a>
         </div>
 
-      </div>
+      </div> */}
+
+      <VIPLauchPerks />
 
       <VIPOnlyPerk />
 
