@@ -1,24 +1,30 @@
+import DreamzeImage from "@/app/components/DreamzeImage"
+import { RESERVE_BOOK_URL } from "@/constants/cdn"
+
 const BOOKS = [
   {
     tl: 'luxurious panoramic spreads',
     price: '$58',
     oprice: '97',
     desc: 'Premium Lay Flat Hardcover',
-    save: '39'
+    save: '39',
+    img: `${RESERVE_BOOK_URL}1.png`,
   },
   {
     tl: 'prmiium smooth matte finish',
     price: '$45',
     oprice: '76',
     desc: 'Hardcover Book',
-    save: '30'
+    save: '30',
+    img: `${RESERVE_BOOK_URL}2.png`,
   },
   {
     tl: 'prmiium smooth matte finish',
     price: '$35',
     oprice: '59',
     desc: 'Softcover Book',
-    save: '30'
+    save: '30',
+    img: `${RESERVE_BOOK_URL}3.png`,
   },
 ]
 
@@ -30,8 +36,9 @@ export default function OurBooks() {
 
       <div className="flex flex-col gap-5">
         {BOOKS.map((book)=>
-          <article key={book.tl} className="bg-[#FBF7F4]">
-            <h3 className="font-light text-[14px] text-black">{book.tl}</h3>
+          <article key={book.tl} className="bg-[#FBF7F4] relative w-full aspect-[750/587]">
+            <DreamzeImage src={book.img} alt={book.tl} />
+            {/* <h3 className="font-light text-[14px] text-black">{book.tl}</h3>
             <div className="flex items-center bg-[#FCF2F2]">
               <div className="text-4xl text-[#012DCE] font-bold w-3/5">{book.price}</div>
               
@@ -39,7 +46,7 @@ export default function OurBooks() {
                 <p className="bg-[#FEFBE8] text-black text-[12px] font-medium py-0.5 leading-4">{book.desc}</p>
                 <p className="bg-[#012DCE] text-white text-[16px] font-medium py-0.5">SAVE ${book.save}</p>
               </div>
-            </div>
+            </div> */}
           </article>
         )}
       </div>
