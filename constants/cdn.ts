@@ -98,3 +98,7 @@ export const SUCCESS_FACEBOOK = `${CLOUDFLARE_CDN_URL}success-facebook.svg`;
 export const SUCCESS_UNDERLINE = `${CLOUDFLARE_CDN_URL}success-underline.png`;
 export const SUCCESS_LOGO = `${CLOUDFLARE_CDN_URL}success-logo.png`;
 export const SUCCESS_LOGO_APP = `${CLOUDFLARE_CDN_URL}success-logo-app.png`;
+
+
+export const RESERVE_AVATARS = `${CLOUDFLARE_CDN_URL}reserve/avatars.png`;
+export const RESERVE_VIDEO = `${CLOUDFLARE_CDN_URL}reserve/video.mp4`;
