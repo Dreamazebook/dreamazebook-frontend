@@ -27,9 +27,9 @@ export default function VIPLauchPerks() {
       {/* <h1 className="text-[26px] font-bold">VIP Launch Perks</h1>
       <h2 className="text-[32px] font-bold mb-5">Just $1 to Unlock</h2> */}
       
-      <div className="space-y-4 w-full mx-auto bg-(image:--app-bg) bg-contain bg-no-repeat bg-center h-[450px] pt-50">
+      <div className="space-y-4 w-full mx-auto bg-(image:--app-bg) bg-contain bg-no-repeat h-[370px] pt-35">
       {LAUNCH_PERKS.map((perk)=>
-        <article key={perk.tl}>
+        <article key={perk.tl} className="w-[250px] mx-auto">
           <div className="flex items-center justify-center gap-3">
             <Image src={perk.icon} width={21} height={21} alt="Icon" />
             <h3 className="text-[16px] font-bold text-[#012DCE]">{perk.tl}</h3>
