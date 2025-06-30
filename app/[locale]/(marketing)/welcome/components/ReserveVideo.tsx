@@ -15,7 +15,7 @@ export default function ReserveVideo() {
       <h2 className="font-bold text-[21px] mb-3">The Book That Holds Their Childhood</h2>
       <p className="text-[14px] font-light">Crafted with premium materials and made to last, From tiny moments to big milestones, It’s more than a story. It’s their story.</p>
 
-      <video className="w-full mt-6" muted src={RESERVE_VIDEO} />
+      <video className="w-full mt-6" muted src={RESERVE_VIDEO} controls />
 
     </section>
   )
