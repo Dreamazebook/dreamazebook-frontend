@@ -23,11 +23,11 @@ export default function VIPLauchPerks() {
   return (
     <div
       style={{'--desktop-bg' : `url(${RESERVE_HEADER_BG})`,'--app-bg' : `url(${RESERVE_HEADER_BG})`} as React.CSSProperties} 
-      className="text-center bg-[#F5E3E3]">
+      className="text-center bg-[#F5E3E3] aspect-[430/427]">
       {/* <h1 className="text-[26px] font-bold">VIP Launch Perks</h1>
       <h2 className="text-[32px] font-bold mb-5">Just $1 to Unlock</h2> */}
       
-      <div className="space-y-4 w-full mx-auto bg-(image:--app-bg) bg-contain bg-no-repeat h-[370px] pt-35">
+      <div className="space-y-4 w-full mx-auto bg-(image:--app-bg) bg-cover bg-no-repeat bg-center pt-35 py-10 aspect-[430/427]">
       {LAUNCH_PERKS.map((perk)=>
         <article key={perk.tl} className="w-[250px] mx-auto">
           <div className="flex items-center justify-center gap-3">

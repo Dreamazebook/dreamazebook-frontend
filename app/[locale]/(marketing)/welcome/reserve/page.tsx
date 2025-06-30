@@ -2,12 +2,10 @@
 import FAQReserve from "../../components/FAQReserve";
 // import { useCallback, useEffect, useState } from "react";
 import Previews from "../components/Previews";
-import Image from 'next/image';
 import DreamzeImage from "@/app/components/DreamzeImage";
-import Link from "next/link";
 // import { useSearchParams } from "next/navigation";
 // import { sendRequest } from "@/utils/subscription";
-import { DREAMAZEBOOK_LOGO, MORE_MAGIC } from "@/constants/cdn";
+import { MORE_MAGIC } from "@/constants/cdn";
 import VIPLauchPerks from "../components/VIPLaunchPerks";
 import ReserveVideo from "../components/ReserveVideo";
 import OurBooks from "../components/OurBooks";
