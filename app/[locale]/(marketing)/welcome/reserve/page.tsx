@@ -148,7 +148,7 @@ export default function Reserve() {
 
       <Previews />
 
-      <section className="pb-6 bg-white">
+      <section className="pb-6 bg-white mb-10">
         <div className="container flex flex-col md:flex-row justify-center mx-auto gap-5 items-center">
           <p className="text-[#222222] font-light text-sm md:text-[28px] text-center">“More magical stories are coming<br/>
           Join as a VIP and help spark ideas for our next books”</p>
@@ -159,7 +159,7 @@ export default function Reserve() {
       </section>
 
       {/* <Footer /> */}
-      <section className="bg-white py-3 px-6 text-center">
+      <section className="bg-white py-3 px-6 text-center fixed bottom-0 left-0 w-full">
         <a href={NEXT_PUBLIC_STRIPE_PAYMENT_LINK} className="block bg-[#022CCE] text-[16px] font-medium text-white mb-3 p-3">Reserve My VIP Spot for $1</a>
         <p className="text-[#999999] font-light text-[13px]">Only available for a limited time before launch</p>
       </section>
