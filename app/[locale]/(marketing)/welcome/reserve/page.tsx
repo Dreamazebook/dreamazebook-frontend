@@ -9,7 +9,6 @@ import { DREAMAZEBOOK_LOGO, MORE_MAGIC } from "@/constants/cdn";
 import VIPLauchPerks from "../components/VIPLaunchPerks";
 import ReserveVideo from "../components/ReserveVideo";
 import OurBooks from "../components/OurBooks";
-import Link from "next/link";
 import Image from "next/image";
 
 
