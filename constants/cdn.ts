@@ -102,6 +102,7 @@ export const SUCCESS_LOGO_APP = `${CLOUDFLARE_CDN_URL}success-logo-app.png`;
 
 export const RESERVE_HEADER_BG = `${CLOUDFLARE_CDN_URL}reserve/header_bg.png`;
 export const RESERVE_AVATARS = `${CLOUDFLARE_CDN_URL}reserve/avatars.png`;
-export const RESERVE_BOOK_URL = `${CLOUDFLARE_CDN_URL}reserve/book`;
+export const RESERVE_BOOKS_URL = `${CLOUDFLARE_CDN_URL}reserve/books.png`;
+export const RESERVE_LAUNCHING = `${CLOUDFLARE_CDN_URL}reserve/launching.png`;
 export const RESERVE_VIDEO = `${CLOUDFLARE_CDN_URL}reserve/video.mp4`;
 export const RESERVE_VIDEO_BG = `${CLOUDFLARE_CDN_URL}reserve/video_bg.png`;

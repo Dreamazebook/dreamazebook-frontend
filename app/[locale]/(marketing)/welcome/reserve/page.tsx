@@ -5,10 +5,12 @@ import Previews from "../components/Previews";
 import DreamzeImage from "@/app/components/DreamzeImage";
 // import { useSearchParams } from "next/navigation";
 // import { sendRequest } from "@/utils/subscription";
-import { MORE_MAGIC } from "@/constants/cdn";
+import { DREAMAZEBOOK_LOGO, MORE_MAGIC } from "@/constants/cdn";
 import VIPLauchPerks from "../components/VIPLaunchPerks";
 import ReserveVideo from "../components/ReserveVideo";
 import OurBooks from "../components/OurBooks";
+import Link from "next/link";
+import Image from "next/image";
 
 
 const NEXT_PUBLIC_STRIPE_PAYMENT_LINK = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK
@@ -83,10 +85,8 @@ export default function Reserve() {
 
 
   return (
-    <main className="bg-[#F8F8F8]">
-      {/* <Link href={'/'} className="block max-w-7xl mx-auto mb-5">
-        <Image className="" src={DREAMAZEBOOK_LOGO} alt="Logo" width={168} height={56} />
-      </Link> */}
+    <main className="bg-[#F8F8F8] relative">
+      <Image className="absolute top-0 left-5" src={DREAMAZEBOOK_LOGO} alt="Logo" width={168} height={56} />
       
       {/* {showPopup &&
       <Popup

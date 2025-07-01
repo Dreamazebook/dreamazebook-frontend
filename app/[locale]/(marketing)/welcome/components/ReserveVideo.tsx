@@ -11,7 +11,7 @@ export default function ReserveVideo() {
   return (
     <section className="bg-[#F5F1ED] text-center text-[#222222] p-6">
       <div className="flex items-center justify-center gap-2 mb-5">
-        <div className="relative w-[127px] h-[43px]">
+        <div className="relative w-[63px] h-[21px]">
           <DreamzeImage src={RESERVE_AVATARS} alt="Avatars" />
         </div>
         <p className="text-[16px] font-light">300+ reserved—going fast！</p>
