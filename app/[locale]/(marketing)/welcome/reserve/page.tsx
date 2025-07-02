@@ -157,7 +157,7 @@ export default function Reserve() {
 
       {/* <Footer /> */}
       <section className="bg-white py-3 px-6 text-center fixed bottom-0 left-0 w-full">
-        <a href={NEXT_PUBLIC_STRIPE_PAYMENT_LINK} className="block bg-[#022CCE] text-[16px] font-medium text-white mb-3 p-3">Reserve My VIP Spot for $1</a>
+        <a href={NEXT_PUBLIC_STRIPE_PAYMENT_LINK} className="block rounded-sm bg-[#022CCE] text-[16px] font-medium text-white mb-3 p-3">Reserve My VIP Spot for $1</a>
         <p className="text-[#999999] font-light text-[13px]">Only available for a limited time before launch</p>
       </section>
 

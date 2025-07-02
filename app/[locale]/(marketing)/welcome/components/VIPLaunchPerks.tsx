@@ -31,7 +31,7 @@ export default function VIPLauchPerks() {
       {LAUNCH_PERKS.map((perk)=>
         <article key={perk.tl} className="w-[260px] mx-auto">
           <div className="flex items-center justify-center gap-3">
-            <Image src={perk.icon} width={21} height={21} alt="Icon" />
+            <Image src={perk.icon} width={23} height={23} alt="Icon" />
             <h3 className="text-[16px] font-bold text-[#012DCE]">{perk.tl}</h3>
           </div>
           <p className="text-[14px] font-light text-[#222222]" dangerouslySetInnerHTML={{__html:perk.desc}}></p>
