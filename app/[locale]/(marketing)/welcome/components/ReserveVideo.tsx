@@ -26,7 +26,7 @@ export default function ReserveVideo() {
       </p>
 
       <video
-        className="w-full mt-6"
+        className="w-full mt-6 aspect-[430/290]"
         ref={videoRef}
         muted
         src={RESERVE_VIDEO}
