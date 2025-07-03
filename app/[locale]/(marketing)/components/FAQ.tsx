@@ -36,7 +36,7 @@ export default function FAQ({FAQs, bg}:FAQProps) {
           <div key={tl} className="py-[18px] border-b border-black/20 flex">
             <div className="text-[18px] md:text-[28px] font-bold mr-3">0{idx+1}</div>
             <div className="flex-1">
-              <div className="flex justify-between cursor-pointer mb-4" onClick={()=>handleFaqClick(idx)}>
+              <div className={`flex justify-between cursor-pointer ${show ? 'mb-4': ''}`} onClick={()=>handleFaqClick(idx)}>
                 <h3 className="text-[18px] md:text-[28px] font-bold">{tl}</h3>
                 <span className="cursor-pointer hover:scale-105 transition-transform">
                   {show?

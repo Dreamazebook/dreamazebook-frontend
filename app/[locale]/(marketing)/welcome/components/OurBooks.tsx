@@ -41,7 +41,7 @@ export default function OurBooks() {
         </article>
       </div>
 
-      <div className="relative w-full aspect-[572/97] mt-5">
+      <div className="relative mx-5 aspect-[572/97] mt-5">
         <DreamzeImage src={RESERVE_LAUNCHING} alt="One Story, Three Beautiful Ways" />
       </div>
 
