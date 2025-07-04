@@ -7,6 +7,7 @@ import Link from 'next/link';
 import api from "@/utils/api";
 import { DetailedBook} from '@/types/book';
 import ReviewsSection from '../../components/Reviews';
+import useUserStore from '@/stores/userStore';
 
 interface PagePic {
   id: number;
@@ -42,6 +43,7 @@ interface Tag {
 const BookDetailPage = () => {
   const params = useParams();
   const id = params.id;
+  const { isLoggedIn, openLoginModal } = useUserStore();
 
   const [book, setBook] = useState<DetailedBook | null>(null);
   //const [recommendedBooks, setRecommendedBooks] = useState<RecommendedBook[]>([]);
@@ -84,6 +86,15 @@ const BookDetailPage = () => {
   if (!book) return <div className="min-h-screen flex items-center justify-center">No book found</div>;
 
   const description = book.variant ? book.variant.description : "No description available.";
+
+  const handlePersonalizeClick = (e: React.MouseEvent) => {
+    if (!isLoggedIn) {
+      e.preventDefault();
+      openLoginModal();
+      return;
+    }
+    // 如果已登录，正常跳转
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -177,6 +188,7 @@ const BookDetailPage = () => {
               {/* 按钮部分 */}
               <Link 
                 href={`/personalize?bookid=${book.id}&language=${selectedLanguage}`}
+                onClick={handlePersonalizeClick}
                 className="bg-black text-white py-4 px-6 rounded-lg hover:bg-gray-800 transition-colors text-base font-medium"
               >
                 Personalize my book

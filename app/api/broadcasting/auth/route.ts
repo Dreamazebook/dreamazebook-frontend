@@ -5,6 +5,7 @@ export async function POST(req: NextRequest) {
   try {
     // 1) 获取原始表单 body (socket_id=...&channel_name=...)
     const body = await req.text()
+    console.log('Broadcasting auth request body:', body)
 
     // 2) 提取前端带来的请求头中的 Cookie 和 CSRF Token
     const cookie = req.headers.get('cookie') || ''
@@ -15,26 +16,41 @@ export async function POST(req: NextRequest) {
     // 获取 Authorization header
     const authHeader = req.headers.get('authorization') || ''
 
+    console.log('Broadcasting auth headers:', {
+      authHeader: authHeader ? 'Present' : 'Missing',
+      cookie: cookie ? 'Present' : 'Missing',
+      csrfToken: csrfToken ? 'Present' : 'Missing'
+    })
+
     // 3) 构造 Laravel 后端广播授权 URL
     const laravelUrl = 'http://localhost:8000'
 
     // 4) 转发请求给 Laravel，包括 Cookie 和 CSRF token
-    const laravelRes = await fetch(`${laravelUrl}/broadcasting/auth`, {
-      method: 'POST',
-      headers: {
+    const headers: Record<string, string> = {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Cookie': cookie,
-        'X-XSRF-TOKEN': decodeURIComponent(csrfToken),
         'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
         'Authorization': authHeader,
-      },
+    }
+    
+    // 只有当 CSRF token 存在时才添加
+    if (csrfToken) {
+      headers['X-XSRF-TOKEN'] = decodeURIComponent(csrfToken)
+    }
+    
+    const laravelRes = await fetch(`${laravelUrl}/broadcasting/auth`, {
+      method: 'POST',
+      headers,
       body,
       credentials: 'include',
     })
 
     // 5) 读取并解析响应
     const text = await laravelRes.text()
+    console.log('Laravel response status:', laravelRes.status)
+    console.log('Laravel response text:', text)
+    
     let data: any
     try {
       data = JSON.parse(text)
@@ -44,7 +60,11 @@ export async function POST(req: NextRequest) {
     }
 
     if (!laravelRes.ok) {
-      console.error('Laravel broadcast auth failed:', data)
+      console.error('Laravel broadcast auth failed:', {
+        status: laravelRes.status,
+        data: data,
+        headers: Object.fromEntries(laravelRes.headers.entries())
+      })
       return NextResponse.json({ error: 'Auth failed', details: data }, { status: laravelRes.status })
     }
 
