@@ -1,9 +1,12 @@
 /** @jsxImportSource react */
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import api from '@/utils/api';
+import { ApiResponse } from '@/types/api';
+import { API_CART_LIST } from '@/constants/api';
 
 
 interface CartSubItem {
@@ -20,6 +23,11 @@ interface CartItem {
   description?: string;  // 额外描述，比如 "a festive gift box"
   price: number;
   subItems?: CartSubItem[]; // 附加项目
+}
+
+interface CartItems {
+  cart_items:CartItem[];
+  cart_summary:any;
 }
 
 const initialCartItems: CartItem[] = [
@@ -62,13 +70,31 @@ const initialCartItems: CartItem[] = [
 ];
 
 export default function ShoppingCartPage() {
-  const [cartItems, setCartItems] = useState<CartItem[]>(initialCartItems);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
   // 定义一个状态来存储优惠码
   const [couponCode, setCouponCode] = useState('');
 
   // 记录被选中的书本 ID，只有被选中的书才会结账
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const router = useRouter();
+
+  useEffect(()=> {
+    const fetchCartList = async () => {
+      try {
+        const {data, message, success, code} = await api.get<ApiResponse<CartItems>>(API_CART_LIST);
+        if (data?.cart_items) {
+          setCartItems(data.cart_items);
+        }
+        setLoading(false);
+      } catch (err) {
+        console.error('Failed to fetch carts:', err);
+        setLoading(false);
+      }
+    };
+
+    fetchCartList();
+  },[]);
 
   const handleToggleSelectItem = (id: number) => {
     setSelectedItems(prev => {
@@ -318,13 +344,13 @@ export default function ShoppingCartPage() {
               onClick={() => alert('Checkout with PayPal')}
               className="w-full bg-blue-600 text-white py-2 rounded text-sm sm:text-base flex items-center justify-center gap-2"
             >
-              <Image
+              {/* <Image
                 src="https://www.paypalobjects.com/webstatic/icon/pp72.png"
                 alt="PayPal"
                 width={16}
                 height={16}
                 className="object-contain"
-              />
+              /> */}
               Checkout with PayPal
             </button>
           </div>
