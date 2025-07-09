@@ -17,8 +17,8 @@ interface CartSubItem {
 
 interface CartItem {
   id: number;
-  image: string;
-  name: string;
+  picbook_cover: string;
+  picbook_name: string;
   edition?: string;      // 如 "Premium Jumbo Hardcover"
   description?: string;  // 额外描述，比如 "a festive gift box"
   price: number;
@@ -29,45 +29,6 @@ interface CartItems {
   cart_items:CartItem[];
   cart_summary:any;
 }
-
-const initialCartItems: CartItem[] = [
-  {
-    id: 1,
-    image: '/cover1.png',
-    name: 'Book name | lily child',
-    edition: 'Premium Jumbo Hardcover',
-    description: 'a festive gift box',
-    price: 19.99,
-    subItems: [
-      {
-        name: 'a festive gift box',
-        image: '/giftbox1.png',
-        price: 4.99,
-      },
-    ],
-  },
-  {
-    id: 2,
-    image: '/cover2.png',
-    name: 'Book name | lily child',
-    edition: 'Premium Jumbo Hardcover',
-    price: 49.99,
-  },
-  {
-    id: 3,
-    image: '/cover3.png',
-    name: 'Book name | lily child',
-    edition: 'Premium Jumbo Hardcover',
-    price: 39.99,
-  },
-  {
-    id: 4,
-    image: '/cover4.png',
-    name: 'Book name | lily child',
-    edition: 'Premium Jumbo Hardcover',
-    price: 59.99,
-  },
-];
 
 export default function ShoppingCartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -191,8 +152,8 @@ export default function ShoppingCartPage() {
 
                     {/* 封面图 */}
                     <Image
-                      src={item.image}
-                      alt={item.name}
+                      src={item.picbook_cover}
+                      alt={item.picbook_name}
                       width={64}
                       height={64}
                       className="object-cover rounded"
@@ -204,7 +165,7 @@ export default function ShoppingCartPage() {
                       <div className="flex items-center justify-between w-full">
                         {/* 左侧：书名 */}
                         <span className="font-semibold text-base">
-                          {item.name}
+                          {item.picbook_name}
                         </span>
 
                         {/* 右侧：价格 + 删除按钮 */}
