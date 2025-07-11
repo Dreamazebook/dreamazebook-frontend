@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from "react";
-import {useRouter} from 'next/navigation'
+import {useRouter, useSearchParams} from 'next/navigation'
 import Button from "@/app/components/Button";
 import { fbTrack } from "@/utils/track";
 
@@ -13,6 +13,7 @@ interface EmailFormProps {
 
 export default function EmailForm({btnText, handleCallBack, btnId='', redirectUrl=''}: EmailFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [responseMessage, setResponseMessage] = useState('');
   const [isError, setIsError] = useState(false);
@@ -59,6 +60,10 @@ export default function EmailForm({btnText, handleCallBack, btnId='', redirectUr
     fbTrack('Lead');
     const form = event.currentTarget;
     const emailInput = (form.elements.namedItem('email') as HTMLInputElement).value;
+    let utmCampaign = searchParams.get('utm_campaign') || '';
+    if (utmCampaign.includes('_')) {
+      utmCampaign = utmCampaign.split('_')[0];
+    }
 
     try {
       const response = await fetch(
@@ -71,6 +76,9 @@ export default function EmailForm({btnText, handleCallBack, btnId='', redirectUr
           body: JSON.stringify(
             {
               email: emailInput,
+              properties: {
+                region: utmCampaign,
+              }
             }
           )
         }

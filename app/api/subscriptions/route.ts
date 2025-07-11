@@ -2,7 +2,7 @@ import { type NextRequest } from 'next/server'
 import { checkHubSpotContact, subscribeEmail, updateContact } from '../../../utils/subscription';
 
 export async function POST(request: NextRequest) {
-  const { email } = await request.json();
+  const { email, properties } = await request.json();
 
   // Basic validation
   if (!email || !validateEmail(email)) {
@@ -13,11 +13,13 @@ export async function POST(request: NextRequest) {
     let response = await checkHubSpotContact(email);
 
     if (response.data) {
+      const contactId = response.data.id;
+      await updateContact(contactId, properties);
       return Response.json({'msg':"Email already subscribed"},{status:200});
     }
 
 
-    response = await subscribeEmail(email);
+    response = await subscribeEmail(email,properties);
 
     if (response.status == 'error') {
       console.error("Error subscribing email:", response);
