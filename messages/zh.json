@@ -1,4 +1,26 @@
 {
+  "ShoppingCart": {
+    "shoppingCart": "购物车",
+    "noItemsSelected": "请至少选择一件商品进行结账",
+    "couponApplied": "优惠券应用成功！",
+    "invalidCoupon": "无效的优惠券代码",
+    "loading": "正在加载您的购物车...",
+    "emptyCart": "您的购物车是空的",
+    "editBook": "编辑书籍",
+    "orderSummary": "订单摘要",
+    "haveCouponCode": "有优惠券代码？",
+    "subtotal": "小计",
+    "items": "件商品",
+    "shipping": "运费",
+    "discount": "优惠",
+    "total": "总计",
+    "checkout": "前往结账",
+    "checkoutWithPayPal": "使用PayPal结账",
+    "couponCode": "优惠券代码",
+    "enterCouponCode": "输入优惠券代码",
+    "apply": "应用",
+    "continueShopping": "继续购物"
+  },
   "orderSummary": {
     "title": "🎉 您的书籍正在精心准备中！",
     "subtitle": "我们将在48小时内联系您确认书籍设计！请留意您的邮箱 ✨",
