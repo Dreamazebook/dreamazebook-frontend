@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { BillingErrors } from './types';
-import Input from './Input';
+import Input from '@/app/components/common/Input';
 
 interface BillingAddressFormProps {
   billingEmail: string;
