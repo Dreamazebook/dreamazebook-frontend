@@ -318,13 +318,13 @@ export default function ShoppingCartPage() {
               onClick={() => alert('Checkout with PayPal')}
               className="w-full bg-blue-600 text-white py-2 rounded text-sm sm:text-base flex items-center justify-center gap-2"
             >
-              <Image
+              {/* <Image
                 src="https://www.paypalobjects.com/webstatic/icon/pp72.png"
                 alt="PayPal"
                 width={16}
                 height={16}
                 className="object-contain"
-              />
+              /> */}
               Checkout with PayPal
             </button>
           </div>

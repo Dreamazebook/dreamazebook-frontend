@@ -155,59 +155,24 @@ export default function PersonalizePage() {
       return;
     }
   
-    try {
-      // 3. 调用 preview，发送图片路径
-      const payload = {
-        characters: [
-          {
-            full_name: fullName,
-            language:  langParam,
-            gender:    genderCode,
-            skincolor: skinColorCode,
-            photo:     photoData.path,
-          },
-        ],
-      };
-  
-      await api.post(`/picbooks/${bookId}/preview`, payload, {
-        timeout: 30000 // 30秒超时
-      });
-
-      // 4. 连接 WebSocket
-      if (echo && user) {
-        const channel = echo.private(`face-swap.${user.id}`);
-        
-        // 监听生成状态更新
-        channel.listen('face-swap.progress', (e: { status: string; progress: number }) => {
-          console.log('生成状态更新:', e);
-        });
-
-        // 监听生成完成事件
-        channel.listen('face-swap.complete', (e: { success: boolean; message: string }) => {
-          console.log('生成完成:', e);
-          if (e.success) {
-            router.push(`/preview?bookid=${bookId}`);
-          } else {
-            console.error('生成失败:', e.message);
-          }
-        });
-
-        // 监听错误事件
-        channel.listen('face-swap.error', (e: { message: string }) => {
-          console.error('生成错误:', e.message);
-        });
-      } else {
-        console.error('WebSocket连接未初始化或用户未登录');
-      }
-
-      // 5. 跳转到预览页面
-      router.push(`/preview?bookid=${bookId}`);
-    } catch (err: any) {
-      console.error('Upload failed:', err);
-      if (err.code === 'ECONNABORTED') {
-        console.error('请求超时，请稍后重试');
-      }
-    }
+    // 3. 将用户数据保存到 localStorage，以便在 preview 页面使用
+    const userData = {
+      characters: [
+        {
+          full_name: fullName,
+          language:  langParam || 'en',
+          gender:    genderCode,
+          skincolor: skinColorCode,
+          photo:     photoData.path,
+        },
+      ],
+    };
+    
+    localStorage.setItem('previewUserData', JSON.stringify(userData));
+    localStorage.setItem('previewBookId', bookId || '');
+    
+    // 4. 立即跳转到预览页面
+    router.push(`/preview?bookid=${bookId || ''}`);
   };
 
   if (loading) {

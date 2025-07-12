@@ -2,12 +2,15 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Drawer } from "antd";
 import { create } from 'zustand';
 import TopNavBarWithTabs from '../components/TopNavBarWithTabs';
 import Image from 'next/image';
-import axiosInstance from '@/app/config/axios';
+import api from '@/utils/api';
+import echo from '@/app/config/echo';
+import useUserStore from '@/stores/userStore';
+import toast from 'react-hot-toast';
 
 const useStore = create<{
   activeStep: number;
@@ -40,6 +43,8 @@ const useStore = create<{
 
 export default function PreviewPageWithTopNav() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { user } = useUserStore();
   
   const {
     activeTab,
@@ -53,6 +58,9 @@ export default function PreviewPageWithTopNav() {
     setGiver,
     setEditField,
   } = useStore();
+
+  // 处理AI生成状态
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // 为 Others 标签页添加局部状态，用于记录选中的选项
   const [selectedBookCover, setSelectedBookCover] = React.useState<number | null>(null);
@@ -167,6 +175,91 @@ export default function PreviewPageWithTopNav() {
   const bookFormatRef = useRef<HTMLDivElement>(null);
   const otherGiftsRef = useRef<HTMLDivElement>(null);
 
+  // 处理用户数据和WebSocket连接
+  useEffect(() => {
+    const handleUserDataProcessing = async () => {
+      try {
+        // 从localStorage获取用户数据
+        const userData = localStorage.getItem('previewUserData');
+        const bookId = localStorage.getItem('previewBookId') || searchParams.get('bookid');
+        
+        if (!userData || !bookId) {
+          console.warn('缺少用户数据或书籍ID');
+          return;
+        }
+
+        const parsedUserData = JSON.parse(userData);
+        console.log('开始处理用户数据:', parsedUserData);
+
+        setIsProcessing(true);
+        console.log('开始处理用户数据...');
+
+        // 调用API处理用户数据
+        try {
+          const response = await api.post(`/picbooks/${bookId}/preview`, parsedUserData, {
+            timeout: 60000 // 60秒超时
+          });
+          
+          console.log('API调用成功:', response);
+          setIsProcessing(false);
+          toast.success('处理已开始，请等待WebSocket通知');
+          
+          // 清理localStorage（成功后立即清理）
+          localStorage.removeItem('previewUserData');
+          localStorage.removeItem('previewBookId');
+          
+        } catch (error: any) {
+          console.error('API调用失败:', error);
+          setIsProcessing(false);
+          
+          if (error.code === 'ECONNABORTED') {
+            toast.error('请求超时，请检查网络连接');
+          } else {
+            toast.error('处理失败: ' + (error.response?.data?.message || error.message));
+          }
+        }
+
+        // 设置WebSocket监听
+        if (echo && user) {
+          const channel = echo.private(`face-swap.${user.id}`);
+          
+          // 监听生成完成事件
+          channel.listen('face-swap.complete', (e: { success: boolean; message: string }) => {
+            console.log('生成完成:', e);
+            setIsProcessing(false);
+            if (e.success) {
+              toast.success('图片生成完成！');
+            } else {
+              toast.error('生成失败: ' + e.message);
+            }
+          });
+
+          // 监听错误事件
+          channel.listen('face-swap.error', (e: { message: string }) => {
+            console.error('生成错误:', e.message);
+            setIsProcessing(false);
+            toast.error('生成失败: ' + e.message);
+          });
+
+          // 清理函数
+          return () => {
+            channel.stopListening('face-swap.complete');
+            channel.stopListening('face-swap.error');
+          };
+        } else {
+          console.warn('WebSocket连接未初始化或用户未登录');
+        }
+
+      } catch (error) {
+        console.error('处理用户数据时出错:', error);
+        setIsProcessing(false);
+        toast.error('处理失败，请重试');
+      }
+    };
+
+    handleUserDataProcessing();
+  }, [searchParams, user]);
+
   // 点击侧边栏项，滚动到对应部分
   const scrollToSection = (sectionId: string) => {
     let ref: React.RefObject<HTMLDivElement | null> | null = null;
@@ -196,7 +289,7 @@ export default function PreviewPageWithTopNav() {
   // 点击 Continue 按钮处理：未完成则跳到第一个未完成的部分，否则跳转下一页
   const handleContinue = async () => {
     try {
-      const response = await axiosInstance.post('/api/preview/continue', {
+      const response = await api.post('/preview/continue', {
         // 数据
       });
       // 处理响应
