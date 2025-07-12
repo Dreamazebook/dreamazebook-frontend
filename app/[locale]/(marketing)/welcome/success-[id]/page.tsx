@@ -90,19 +90,26 @@ export default function Thankyou() {
               className="absolute -top-5 -right-5 md:right-25"
             />
           </div>
-          <p className="text-[18px] md:text-xl font-light mt-6 mb-3">
-            We’re so excited to have you here — let’s start the journey
-            together.
-          </p>
-          <p className="text-[18px] md:text-xl font-light mb-3">
-            Join our Facebook group to get a <b className="font-bold">FREE</b>{" "}
-            printable coloring book for your child.
-          </p>
+          <div className="text-[18px] md:text-xl font-light text-left mb-6">
+            <p className=" font-semibold mt-6 mb-3">
+              📩 Keep an Eye on Your Inbox.
+            </p>
+            <p className=" font-light mb-5">
+              Your gift, previews & launch perks are on the way — look for emails from <b className="font-bold">DreamazeBook</b> (they may land in Promotions).
+            </p>
+
+            <p className="mb-1 font-semibold">🎁  Don’t Miss the Good Stuff — Join the VIP Group!</p>
+            <p className="mb-1 ">Be part of where the real fun happens:</p>
+            <p className="mb-1 "> ✅  Get the most beloved coloring book — <b className="font-bold">FREE!</b></p>
+            <p className="mb-1 ">✅Get first looks at personalized pages</p>
+            <p className="mb-1 ">✅ Unlock <b className="font-bold">VIP-only</b> launch rewards</p>
+          </div>  
 
           <div className="flex justify-center">
             <Button
-              tl="Grab the Free Coloring Fun"
+              tl="👉 Join Now — Limited-Time Perks Inside!"
               className="w-[426px]"
+              target="_blank"
               url={FACEBOOK_GROUP_URL}
             />
           </div>
@@ -118,6 +125,7 @@ export default function Thankyou() {
             <Button
               tl="Notify Me for the Big Deal"
               className="w-[426px]"
+              target="_blank"
               url={KICKSTARTER_URL}
             />
           </div>

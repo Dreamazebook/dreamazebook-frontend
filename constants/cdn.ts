@@ -63,9 +63,6 @@ export const MAGIC_WAND = `${CLOUDFLARE_CDN_URL}magic-wand.png`;
 
 export const FOOTER = `${CLOUDFLARE_CDN_URL}footer.png`;
 
-export const VIP_PERK_SAVE_40 = `${CLOUDFLARE_CDN_URL}vip-perk-save-40.png`;
-export const VIP_PERK_UNLOCK_GIFT = `${CLOUDFLARE_CDN_URL}vip-perk-unlock-gift.png`;
-export const VIP_PERK_FIRST_PICK = `${CLOUDFLARE_CDN_URL}vip-perk-first-pick.png`;
 export const VIP_PERK_ITEM_BG_APP = `${CLOUDFLARE_CDN_URL}vip-perk-item-bg-app.png`;
 export const VIP_PERK_ITEM_BG = `${CLOUDFLARE_CDN_URL}vip-perk-item-bg.png`;
 
@@ -98,3 +95,16 @@ export const SUCCESS_FACEBOOK = `${CLOUDFLARE_CDN_URL}success-facebook.svg`;
 export const SUCCESS_UNDERLINE = `${CLOUDFLARE_CDN_URL}success-underline.png`;
 export const SUCCESS_LOGO = `${CLOUDFLARE_CDN_URL}success-logo.png`;
 export const SUCCESS_LOGO_APP = `${CLOUDFLARE_CDN_URL}success-logo-app.png`;
+
+
+export const RESERVE_HEADER_BG = `${CLOUDFLARE_CDN_URL}reserve/header_bg.png`;
+export const RESERVE_HEADER_BG_FULL = `${CLOUDFLARE_CDN_URL}reserve/header_bg_full.png`;
+export const RESERVE_CURVE_BG = `${CLOUDFLARE_CDN_URL}reserve/curve_bg.png`;
+export const RESERVE_AVATARS = `${CLOUDFLARE_CDN_URL}reserve/avatars.png`;
+export const RESERVE_BOOKS_URL = `${CLOUDFLARE_CDN_URL}reserve/books.png`;
+export const RESERVE_LAUNCHING = `${CLOUDFLARE_CDN_URL}reserve/launching.png`;
+export const RESERVE_VIDEO = `${CLOUDFLARE_CDN_URL}reserve/video.mp4`;
+export const RESERVE_VIDEO_BG = `${CLOUDFLARE_CDN_URL}reserve/video_bg.png`;
+export const VIP_PERK_SAVE_40 = `${CLOUDFLARE_CDN_URL}reserve/vip-perk-save-40.png`;
+export const VIP_PERK_UNLOCK_GIFT = `${CLOUDFLARE_CDN_URL}reserve/vip-perk-unlock-gift.png`;
+export const VIP_PERK_FIRST_PICK = `${CLOUDFLARE_CDN_URL}vip-perk-first-pick.png`;
