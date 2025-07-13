@@ -1,4 +1,3 @@
-/** @jsxImportSource react */
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -11,6 +10,21 @@ import api from '@/utils/api';
 import echo from '@/app/config/echo';
 import useUserStore from '@/stores/userStore';
 import toast from 'react-hot-toast';
+import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse } from '@/types/api';
+import { mirage } from 'ldrs';
+
+// 注册 mirage loader
+mirage.register();
+
+// 使用 React.createElement 创建 l-mirage 组件
+const MirageLoader = ({ size = "60", speed = "2.5", color = "blue", style = {} }: {
+  size?: string;
+  speed?: string;
+  color?: string;
+  style?: React.CSSProperties;
+}) => {
+  return React.createElement('l-mirage', { size, speed, color, style });
+};
 
 const useStore = create<{
   activeStep: number;
@@ -61,6 +75,11 @@ export default function PreviewPageWithTopNav() {
 
   // 处理AI生成状态
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // 预览数据状态
+  const [previewData, setPreviewData] = useState<PreviewResponse | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   // 为 Others 标签页添加局部状态，用于记录选中的选项
   const [selectedBookCover, setSelectedBookCover] = React.useState<number | null>(null);
@@ -174,6 +193,74 @@ export default function PreviewPageWithTopNav() {
   const coverDesignRef = useRef<HTMLDivElement>(null);
   const bookFormatRef = useRef<HTMLDivElement>(null);
   const otherGiftsRef = useRef<HTMLDivElement>(null);
+  
+  // 构建图片URL的辅助函数
+  const buildImageUrl = (imagePath: string) => {
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+    
+    // 简化逻辑：直接使用固定的域名
+    const cleanPath = imagePath.startsWith('/') ? imagePath.slice(1) : imagePath;
+    const finalUrl = `https://dreamazebook.com/${cleanPath}`;
+    
+    return finalUrl;
+  };
+
+  // 获取预览数据
+  const fetchPreviewData = async () => {
+    try {
+      const bookId = searchParams.get('bookid');
+      if (!bookId) {
+        console.warn('缺少书籍ID');
+        return;
+      }
+
+      setIsLoadingPreview(true);
+      setPreviewError(null);
+      
+      // 尝试从localStorage获取用户数据，用于后端验证或缓存查找
+      let requestData = {};
+      try {
+        const userData = localStorage.getItem('previewUserData');
+        if (userData) {
+          requestData = JSON.parse(userData);
+        }
+      } catch (e) {
+        console.warn('无法解析用户数据:', e);
+      }
+      
+      // 如果没有用户数据，尝试从现有的预览数据构造请求
+      if (Object.keys(requestData).length === 0 && previewData?.characters) {
+        requestData = {
+          characters: previewData.characters
+        };
+      }
+      
+      // 修改为POST请求，传递必要的数据
+      const response = await api.post(`/picbooks/${bookId}/preview`, requestData) as ApiResponse<PreviewResponse>;
+      
+      if (response.success) {
+        setPreviewData(response.data!);
+        
+        // 设置giver和dedication从角色数据
+        if (response.data?.characters && response.data.characters.length > 0) {
+          const character = response.data.characters[0];
+          setGiver(character.full_name || '');
+        }
+        
+        console.log('预览数据获取成功:', response.data);
+      } else {
+        setPreviewError(response.message || '获取预览数据失败');
+      }
+      
+    } catch (error: any) {
+      console.error('获取预览数据失败:', error);
+      setPreviewError(error.response?.data?.message || '获取预览数据失败');
+    } finally {
+      setIsLoadingPreview(false);
+    }
+  };
 
   // 处理用户数据和WebSocket连接
   useEffect(() => {
@@ -185,6 +272,8 @@ export default function PreviewPageWithTopNav() {
         
         if (!userData || !bookId) {
           console.warn('缺少用户数据或书籍ID');
+          // 仍然尝试获取预览数据
+          await fetchPreviewData();
           return;
         }
 
@@ -198,11 +287,24 @@ export default function PreviewPageWithTopNav() {
         try {
           const response = await api.post(`/picbooks/${bookId}/preview`, parsedUserData, {
             timeout: 60000 // 60秒超时
-          });
+          }) as ApiResponse<PreviewResponse>;
           
           console.log('API调用成功:', response);
+          
+          // 保存预览数据
+          if (response.success) {
+            setPreviewData(response.data!);
+            
+            // 设置giver和dedication从角色数据
+            if (response.data?.characters && response.data.characters.length > 0) {
+              const character = response.data.characters[0];
+              setGiver(character.full_name || '');
+            }
+            
+            toast.success('处理已开始，请等待WebSocket通知');
+          }
+          
           setIsProcessing(false);
-          toast.success('处理已开始，请等待WebSocket通知');
           
           // 清理localStorage（成功后立即清理）
           localStorage.removeItem('previewUserData');
@@ -229,6 +331,8 @@ export default function PreviewPageWithTopNav() {
             setIsProcessing(false);
             if (e.success) {
               toast.success('图片生成完成！');
+              // 重新获取预览数据
+              fetchPreviewData();
             } else {
               toast.error('生成失败: ' + e.message);
             }
@@ -387,18 +491,59 @@ export default function PreviewPageWithTopNav() {
         {activeTab === 'Book preview' ? (
           <main className="flex-1 flex flex-col items-center justify-start w-full pt-14">
             <h1 className="text-[28px] mt-2 mb-4 text-center w-full">Your Book Preview</h1>
+            
+            {/* 加载状态 */}
+            {isLoadingPreview && (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                  <p>正在加载预览数据...</p>
+                </div>
+              </div>
+            )}
+            
+            {/* 错误状态 */}
+            {previewError && (
+              <div className="w-full max-w-3xl mx-auto mb-8 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-800">错误: {previewError}</p>
+                <button 
+                  onClick={fetchPreviewData}
+                  className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                >
+                  重试
+                </button>
+              </div>
+            )}
+            
+
+            
+            {/* 书籍封面 */}
             <div className="flex flex-col items-center w-full max-w-3xl">
               <div className="w-full flex justify-center mb-8">
-                <Image
-                  src="/book.png"
-                  alt="Book Cover"
-                  width={400}
-                  height={392}
-                  className="max-w-sm rounded-lg shadow-md"
-                  style={{ objectFit: 'cover' }}
-                />
+                {previewData?.pages && previewData.pages.length > 0 ? (
+                  <Image
+                    src={buildImageUrl(previewData.pages[0].image_url)}
+                    alt="Book Cover"
+                    width={400}
+                    height={392}
+                    className="max-w-sm rounded-lg shadow-md"
+                    style={{ objectFit: 'cover' }}
+                  />
+                ) : (
+                  <Image
+                    src="/book.png"
+                    alt="Book Cover"
+                    width={400}
+                    height={392}
+                    className="max-w-sm rounded-lg shadow-md"
+                    style={{ objectFit: 'cover' }}
+                  />
+                )}
               </div>
             </div>
+
+
+            {/* Giver & Dedication 编辑区域 */}
             <div
               className={`w-full max-w-5xl ${
                 viewMode === 'double'
@@ -488,9 +633,90 @@ export default function PreviewPageWithTopNav() {
                 )}
               </div>
             </div>
-            <div className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
-              The book preview is currently queued for generation, and you are number 7 out of 249 in line.
-            </div>
+            {/* 队列状态信息 */}
+            {previewData?.face_swap_batch && (
+              <div className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
+                {previewData.face_swap_batch.status === 'pending' && (
+                  <p>
+                    {previewData.face_swap_batch.total_queue_length ? (
+                      `The book preview is currently queued for generation, and you are number ${previewData.face_swap_batch.queue_position} out of ${previewData.face_swap_batch.total_queue_length} in line.`
+                    ) : (
+                      `The book preview is currently queued for generation, and you are number ${previewData.face_swap_batch.queue_position} in line.`
+                    )}
+                  </p>
+                )}
+                {previewData.face_swap_batch.status === 'processing' && (
+                  <p>Your book preview is currently being generated, please wait...</p>
+                )}
+                {previewData.face_swap_batch.status === 'completed' && (
+                  <p>Book preview has been generated successfully!</p>
+                )}
+                {previewData.face_swap_batch.status === 'failed' && (
+                  <p>Generation failed, please try again.</p>
+                )}
+              </div>
+            )}
+            
+            {/* 页面预览 */}
+            {previewData?.pages && previewData.pages.length > 0 && (
+              <div className="w-full max-w-5xl mb-8">
+                <div className="w-full flex flex-col items-center gap-8">
+                  {previewData.pages.map((page, index) => {
+                    // 判断是否为换脸中的页面（除了第一页外的其他页面）
+                    const isSwapping = index > 0 && previewData.face_swap_batch?.status === 'pending';
+                    
+                    return (
+                      <div key={page.page_id} className="w-full flex justify-center">
+                        <div className="w-full max-w-5xl">
+                          <div className="w-full relative">
+                            {isSwapping ? (
+                              // 蒙版状态
+                              <div className="w-full h-[600px] bg-gray-200 rounded-lg flex items-center justify-center">
+                                <div className="text-center">
+                                                                      <div className="flex justify-center mb-4">
+                                      <div className="flex space-x-2">
+                                        <MirageLoader size="60" speed="2.5" color="blue" />
+                                        <MirageLoader size="60" speed="2.5" color="blue" style={{animationDelay: '0.1s'}} />
+                                        <MirageLoader size="60" speed="2.5" color="blue" style={{animationDelay: '0.2s'}} />
+                                      </div>
+                                    </div>
+                                </div>
+                              </div>
+                            ) : (
+                              // 正常显示图片
+                              <Image
+                                src={buildImageUrl(page.image_url)}
+                                alt={`Page ${page.page_number}`}
+                                width={1600}
+                                height={600}
+                                className="w-full h-auto rounded-lg object-cover"
+                              />
+                            )}
+                          </div>
+                          {page.content && (
+                            <div className="mt-2 p-2 bg-gray-100 rounded w-full">
+                              <p className="text-sm">{page.content}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            
+            
+            {/* 处理状态 */}
+            {isProcessing && (
+              <div className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#E8F4FD] border-[#012CCE] rounded-[4px] text-center text-[#012CCE]">
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <span>正在处理您的数据...</span>
+                </div>
+              </div>
+            )}
 
             <div ref={confirmationRef} className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222] flex flex-col gap-4">
               <div>
@@ -515,6 +741,8 @@ export default function PreviewPageWithTopNav() {
                 <span className="ml-2 text-gray-800 leading-10">I understand and accept</span>
               </label>
             </div>
+
+            
 
           </main>
         ) : (

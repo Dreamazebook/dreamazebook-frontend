@@ -1,4 +1,4 @@
-export const API_DOMAIN = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+export const API_DOMAIN = process.env.NEXT_PUBLIC_API_URL || 'https://api.dreamazebook.com/api';
 
 export const API_USER_REGISTER = API_DOMAIN + '/auth/register';
 

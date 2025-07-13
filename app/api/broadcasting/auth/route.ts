@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     })
 
     // 3) 构造 Laravel 后端广播授权 URL
-    const laravelUrl = 'http://localhost:8000'
+    const laravelUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://api.dreamazebook.com'
 
     // 4) 转发请求给 Laravel，包括 Cookie 和 CSRF token
     const headers: Record<string, string> = {

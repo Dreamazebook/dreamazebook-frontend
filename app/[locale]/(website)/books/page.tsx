@@ -138,7 +138,7 @@ export default function BooksPage() {
               >
                 <div className="relative aspect-[3/4] mb-3 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
                   <Image
-                    src={`/${book.default_cover.replace('public/', '')}`}
+                    src={book.default_cover}
                     alt={book.default_name}
                     fill
                     className="object-cover group-hover:opacity-90 transition-opacity"

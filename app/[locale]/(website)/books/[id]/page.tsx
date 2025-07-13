@@ -65,7 +65,7 @@ const BookDetailPage = () => {
         setPagePics(response.data.pages.map(page => ({
           id: page.id,
           pagenum: page.page_number,
-          pagepic: `/${page.image_url.replace('public/', '')}`
+          pagepic: page.image_url
         })));
         setTags(response.data.tags.map(tag => ({ tname: tag })));
         setReviews(response.data.reviews);
