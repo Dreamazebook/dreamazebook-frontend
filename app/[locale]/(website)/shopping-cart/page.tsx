@@ -3,49 +3,36 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
 import { API_CART_LIST } from '@/constants/api';
+import { CartItem, CartItems } from './components/types';
 
-
-interface CartSubItem {
-  name: string;
-  image: string;
-  price: number;
-}
-
-interface CartItem {
-  id: number;
-  picbook_cover: string;
-  picbook_name: string;
-  edition?: string;      // 如 "Premium Jumbo Hardcover"
-  description?: string;  // 额外描述，比如 "a festive gift box"
-  price: number;
-  subItems?: CartSubItem[]; // 附加项目
-}
-
-interface CartItems {
-  cart_items:CartItem[];
-  cart_summary:any;
-}
+// 导入组件
+import CartHeader from './components/CartHeader';
+import CartItemList from './components/CartItemList';
+import CartSummary from './components/CartSummary';
+import CouponInput from './components/CouponInput';
 
 export default function ShoppingCartPage() {
+  const t = useTranslations('ShoppingCart');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
-  // 定义一个状态来存储优惠码
-  const [couponCode, setCouponCode] = useState('');
+  const [discount, setDiscount] = useState(0);
+  const router = useRouter();
 
   // 记录被选中的书本 ID，只有被选中的书才会结账
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
-  const router = useRouter();
 
-  useEffect(()=> {
+  useEffect(() => {
     const fetchCartList = async () => {
       try {
-        const {data, message, success, code} = await api.get<ApiResponse<CartItems>>(API_CART_LIST);
+        const { data, message, success, code } = await api.get<ApiResponse<CartItems>>(API_CART_LIST);
         if (data?.cart_items) {
           setCartItems(data.cart_items);
+          // 默认全选所有商品
+          setSelectedItems(data.cart_items.map(item => item.id));
         }
         setLoading(false);
       } catch (err) {
@@ -55,7 +42,7 @@ export default function ShoppingCartPage() {
     };
 
     fetchCartList();
-  },[]);
+  }, []);
 
   const handleToggleSelectItem = (id: number) => {
     setSelectedItems(prev => {
@@ -80,15 +67,11 @@ export default function ShoppingCartPage() {
     alert(`Edit book with id = ${id}`);
   };
 
-  const handleContinueShopping = () => {
-    alert('Continue shopping...');
-  };
-
   // 结算时，仅包含已选中的商品
   const handleCheckout = async () => {
     const itemsToCheckout = cartItems.filter(item => selectedItems.includes(item.id));
     if (itemsToCheckout.length === 0) {
-      alert('No items selected for checkout!');
+      alert(t('noItemsSelected'));
       return;
     }
     router.push('/checkout');
@@ -105,215 +88,180 @@ export default function ShoppingCartPage() {
   }, 0);
 
   const shipping = 0;
-  const discount = subtotal * 0.25; // 假设 25% off
-  const total = subtotal - discount + shipping;
+  const total = subtotal + shipping - discount;
+
+  const handleApplyCoupon = (code: string) => {
+    // 这里应该是调用API验证优惠码并获取折扣金额
+    // 为了演示，我们假设"BLACKFRIDAY"优惠码会给25%的折扣
+    if (code.toUpperCase() === 'BLACKFRIDAY') {
+      const newDiscount = Math.round(subtotal * 0.25 * 100) / 100;
+      setDiscount(newDiscount);
+      alert(t('couponApplied'));
+    } else {
+      alert(t('invalidCoupon'));
+    }
+  };
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">{t('loading')}</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-6">
-      <div className="mx-auto max-w-[1400px] px-4 flex gap-6">
-        {/* 左侧：购物车列表 */}
-        <div className="flex-1">
-          {/* 标题行：Shopping Cart + Continue Shopping */}
-          <div
-            style={{
-              width: '896px',
-              height: '108px',
-              padding: '48px 64px 24px 120px',
-              boxSizing: 'border-box',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <h1 className="text-2xl font-normal">Shopping Cart</h1>
-            <button
-              onClick={handleContinueShopping}
-              className="text-sm text-blue-600 hover:underline"
-            >
-              Continue Shopping
-            </button>
-          </div>
-
-          {/* 购物车商品列表容器 */}
-          <div className="w-[896px] h-[660px] flex flex-col gap-[12px] pr-[64px] pb-[64px] pl-[120px]">
-            {cartItems.map(item => (
-              <div key={item.id} className="bg-white rounded-lg shadow p-4">
-                {/* 行1：Checkbox + 封面 + (书名 + 价格) + 移除按钮 */}
-                <div className="flex items-start justify-between w-full">
-                  {/* 左侧：Checkbox + 封面 + 文字内容 */}
-                  <div className="flex items-start gap-3">
-                    {/* Checkbox */}
-                    <input
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 accent-blue-600"
-                      checked={selectedItems.includes(item.id)}
-                      onChange={() => handleToggleSelectItem(item.id)}
-                    />
-
-                    {/* 封面图 */}
-                    <Image
-                      src={item.picbook_cover}
-                      alt={item.picbook_name}
-                      width={64}
-                      height={64}
-                      className="object-cover rounded"
-                    />
-
-                    {/* 文字部分：包含3行布局 */}
-                    <div className="flex flex-col flex-1 w-[576px]">
-                      {/* 第1行：书名在左 + (价格 + 删除按钮)在右 */}
-                      <div className="flex items-center justify-between w-full">
-                        {/* 左侧：书名 */}
-                        <span className="font-semibold text-base">
-                          {item.picbook_name}
-                        </span>
-
-                        {/* 右侧：价格 + 删除按钮 */}
-                        <div className="flex items-center gap-4">
-                          <span className="text-sm sm:text-base font-semibold">
-                            ${item.price.toFixed(2)} USD
-                          </span>
-                          <button
-                            onClick={() => handleRemoveItem(item.id)}
-                            className="text-gray-400 hover:text-red-500"
-                          >
-                            <svg
-                              width="20"
-                              height="20"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                              xmlns="http://www.w3.org/2000/svg"
+      <div className="container mx-auto px-4">
+        <CartHeader />
+        
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="lg:w-2/3">
+            {cartItems.length === 0 ? (
+              <div className="bg-white rounded-xl p-6 shadow-sm text-center">
+                <p>{t('emptyCart')}</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {cartItems.map(item => (
+                  <div key={item.id} className="bg-white rounded-xl p-4 shadow-sm">
+                    <div className="flex items-start">
+                      <input
+                        type="checkbox"
+                        className="mt-1 h-4 w-4 accent-blue-600"
+                        checked={selectedItems.includes(item.id)}
+                        onChange={() => handleToggleSelectItem(item.id)}
+                      />
+                      
+                      <div className="ml-3 flex-1">
+                        <div className="flex items-start">
+                          <div className="w-20 h-20 rounded-md overflow-hidden mr-4">
+                            <img 
+                              src={item.picbook_cover} 
+                              alt={item.picbook_name} 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          
+                          <div className="flex-1">
+                            <div className="flex justify-between">
+                              <h3 className="font-bold">{item.picbook_name}</h3>
+                              <div className="flex items-center gap-4">
+                                <p className="font-medium">${item.price.toFixed(2)}</p>
+                                <button
+                                  onClick={() => handleRemoveItem(item.id)}
+                                  className="text-gray-400 hover:text-red-500"
+                                >
+                                  <svg
+                                    width="20"
+                                    height="20"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path d="M6 2a2 2 0 00-2 2v1H2.5a.5.5 0 000 1h.548l.764 10.697A2 2 0 005.8 19h8.4a2 2 0 001.988-1.303L16.952 6H17.5a.5.5 0 000-1H15V4a2 2 0 00-2-2H6zm3 13a.5.5 0 01-1 0V8a.5.5 0 011 0v7zm3 0a.5.5 0 01-1 0V8a.5.5 0 011 0v7z" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                            
+                            {(item.edition || item.description) && (
+                              <p className="text-sm text-gray-600">
+                                {item.edition}
+                                {item.edition && item.description && ' | '}
+                                {item.description}
+                              </p>
+                            )}
+                            
+                            <button
+                              onClick={() => handleEditBook(item.id)}
+                              className="text-sm text-blue-600 hover:underline mt-1"
                             >
-                              <path d="M6 2a2 2 0 00-2 2v1H2.5a.5.5 0 000 1h.548l.764 10.697A2 2 0 005.8 19h8.4a2 2 0 001.988-1.303L16.952 6H17.5a.5.5 0 000-1H15V4a2 2 0 00-2-2H6zm3 13a.5.5 0 01-1 0V8a.5.5 0 011 0v7zm3 0a.5.5 0 01-1 0V8a.5.5 0 011 0v7z" />
-                            </svg>
-                          </button>
+                              {t('editBook')}
+                            </button>
+                          </div>
                         </div>
-                      </div>
-
-
-                      {/* 第2行：版本 + 描述（如 a festive gift box） */}
-                      {(item.edition || item.description) && (
-                        <span className="text-sm text-gray-600">
-                          {item.edition}
-                          {item.edition && item.description && ' | '}
-                          {item.description}
-                        </span>
-                      )}
-
-                      {/* 第3行：Edit book 按钮 */}
-                      <div className="mt-1">
-                        <button
-                          onClick={() => handleEditBook(item.id)}
-                          className="text-sm text-blue-600 hover:underline"
-                        >
-                          Edit book
-                        </button>
+                        
+                        {item.subItems && item.subItems.length > 0 && (
+                          <div className="mt-3 ml-6">
+                            {item.subItems.map((sub, idx) => (
+                              <div
+                                key={`${item.id}-sub-${idx}`}
+                                className="flex items-center justify-between py-2"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <img
+                                    src={sub.image}
+                                    alt={sub.name}
+                                    width={48}
+                                    height={48}
+                                    className="object-cover rounded"
+                                  />
+                                  <span className="text-sm text-gray-700">
+                                    {sub.name}
+                                  </span>
+                                </div>
+                                <span className="text-sm font-semibold">
+                                  ${sub.price.toFixed(2)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <div className="lg:w-1/3">
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <h2 className="text-xl font-bold mb-6">{t('orderSummary')}</h2>
+              
+              <div className="mb-6">
+                <p className="text-sm mb-1">{t('haveCouponCode')}</p>
+                <p className="text-blue-600 text-sm">
+                  25% off with code: <strong>BLACKFRIDAY</strong>
+                </p>
+                <CouponInput onApply={handleApplyCoupon} />
+              </div>
+              
+              <div className="space-y-3 mb-6 border-t border-gray-200 pt-4">
+                <div className="flex justify-between">
+                  <p className="text-gray-600">{t('subtotal')} ({selectedItems.length} {t('items')})</p>
+                  <p>${subtotal.toFixed(2)}</p>
                 </div>
-
-                {/* 若有附加子项目（如 a festive gift box），与母书本左对齐 */}
-                {item.subItems && item.subItems.length > 0 && (
-                  <div className="mt-3 ml-[2.5rem]">
-                    {item.subItems.map((sub, idx) => (
-                      <div
-                        key={`${item.id}-sub-${idx}`}
-                        className="flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Image
-                            src={sub.image}
-                            alt={sub.name}
-                            width={48}
-                            height={48}
-                            className="object-cover rounded"
-                          />
-                          <span className="text-sm text-gray-700">
-                            {sub.name}
-                          </span>
-                        </div>
-                        <span className="text-sm font-semibold">
-                          ${sub.price.toFixed(2)} USD
-                        </span>
-                      </div>
-                    ))}
+                <div className="flex justify-between">
+                  <p className="text-gray-600">{t('shipping')}</p>
+                  <p>${shipping.toFixed(2)}</p>
+                </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <p>{t('discount')}</p>
+                    <p>-${discount.toFixed(2)}</p>
                   </div>
                 )}
+                <div className="border-t border-gray-200 pt-3 flex justify-between font-bold">
+                  <p>{t('total')}</p>
+                  <p>${total.toFixed(2)}</p>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* 右侧：Summary 区域，宽度固定 544px */}
-        <div className="w-[544px] bg-white rounded shadow p-6 flex flex-col h-fit">
-          <h2 className="text-lg font-semibold mb-4">Summary</h2>
-          <div className="mb-4">
-            <p className="text-sm mb-1">Do you have a coupon code?</p>
-            <p className="text-blue-600 text-sm">
-              25% off with code: <strong>BLACKFRIDAY</strong>
-            </p>
-            {/* 输入框 */}
-            <div className="flex mt-2">
-              <input
-                type="text"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)} // 更新状态
-                placeholder="Enter coupon code"
-                className="flex-1 border border-gray-300 p-2 text-sm rounded-l focus:outline-none"
-              />
-              <button
-                onClick={() => {
-                  // 使用 couponCode 做相应逻辑
-                  alert(`Applying coupon: ${couponCode}`);
-                }}
-                className="bg-gray-200 text-sm px-4 rounded-r hover:bg-gray-300"
-              >
-                Apply
-              </button>
+              
+              <div className="space-y-2">
+                <button
+                  onClick={handleCheckout}
+                  disabled={selectedItems.length === 0}
+                  className="w-full py-3 bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-400"
+                >
+                  {t('checkout')}
+                </button>
+                <button
+                  onClick={() => alert('Checkout with PayPal')}
+                  disabled={selectedItems.length === 0}
+                  className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-400 flex items-center justify-center gap-2"
+                >
+                  {t('checkoutWithPayPal')}
+                </button>
+              </div>
             </div>
-          </div>
-
-          {/* 价格小结：仅统计被选中的书本 */}
-          <div className="border-t border-gray-300 pt-4 text-sm space-y-2">
-            <div className="flex justify-between">
-              <span>Subtotal (Selected Items)</span>
-              <span>${subtotal.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Shipping</span>
-              <span>${shipping.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Discounts</span>
-              <span>- ${discount.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between font-bold text-base pt-2">
-              <span>Total</span>
-              <span>${total.toFixed(2)}</span>
-            </div>
-          </div>
-          {/* 结算按钮 */}
-          <div className="mt-6 space-y-2">
-            <button
-              onClick={handleCheckout}
-              className="w-full bg-black text-white py-2 rounded text-sm sm:text-base"
-            >
-              Checkout
-            </button>
-            <button
-              onClick={() => alert('Checkout with PayPal')}
-              className="w-full bg-blue-600 text-white py-2 rounded text-sm sm:text-base flex items-center justify-center gap-2"
-            >
-              {/* <Image
-                src="https://www.paypalobjects.com/webstatic/icon/pp72.png"
-                alt="PayPal"
-                width={16}
-                height={16}
-                className="object-contain"
-              /> */}
-              Checkout with PayPal
-            </button>
           </div>
         </div>
       </div>

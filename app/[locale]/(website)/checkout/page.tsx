@@ -1,1088 +1,256 @@
 'use client';
+
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-
-interface CartItem {
-  id: number;
-  name: string;
-  format?: string;
-  box?: string;
-  image: string;
-  price: number;
-  quantity: number;
-}
-
-const mockCartItems: CartItem[] = [
-  {
-    id: 1,
-    name: 'Book name',
-    box: 'Premium Jumbo Hardcover',
-    format: 'Festive Gift Box',
-    image: '/book.png',
-    price: 159.99,
-    quantity: 1,
-  },
-  {
-    id: 2,
-    name: 'Book name',
-    box: 'Softcover Book',
-    format: 'Standard Edition',
-    image: '/book.png',
-    price: 39.99,
-    quantity: 1,
-  },
-];
-
-interface ShippingErrors {
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-  address?: string;
-  city?: string;
-  zip?: string;
-  country?: string;
-  state?: string;
-}
+import CheckoutStep from './components/CheckoutStep';
+import ShippingForm from './components/ShippingForm';
+import BillingAddressForm from './components/BillingAddressForm';
+import DeliveryOptions from './components/DeliveryOptions';
+import ReviewAndPay from './components/ReviewAndPay';
+import OrderSummary from './components/OrderSummary';
+import { CartItem, ShippingErrors, BillingErrors, DeliveryOption, PaymentOption } from './components/types';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  // 控制左侧步骤展开/收起状态
-  const [isShippingOpen, setIsShippingOpen] = useState(true);
-  const [isDeliveryOpen, setIsDeliveryOpen] = useState(false);
-  const [isReviewOpen, setIsReviewOpen] = useState(false);
 
-  // Shipping 表单字段
-  const [email, setEmail] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [address, setAddress] = useState('');
-  const [apt, setApt] = useState('');
-  const [city, setCity] = useState('');
-  const [zip, setZip] = useState('');
-  const [country, setCountry] = useState('');
-  const [state, setState] = useState('');
-  const [phone, setPhone] = useState('');
+  // Mock cart items
+  const [cartItems, setCartItems] = useState<CartItem[]>([
+    {
+      id: 1,
+      name: "The Dream Maze",
+      format: "Hardcover",
+      box: "Special Edition Box",
+      image: "/images/book-cover.jpg",
+      price: 29.99,
+      quantity: 1
+    },
+    {
+      id: 2,
+      name: "The Dream Maze",
+      format: "E-book",
+      image: "/images/ebook-cover.jpg",
+      price: 14.99,
+      quantity: 1
+    }
+  ]);
+
+  // Step visibility state
+  const [openStep, setOpenStep] = useState<number>(1);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+
+  // Shipping information state
+  const [email, setEmail] = useState<string>('');
+  const [firstName, setFirstName] = useState<string>('');
+  const [lastName, setLastName] = useState<string>('');
+  const [address, setAddress] = useState<string>('');
+  const [city, setCity] = useState<string>('');
+  const [zip, setZip] = useState<string>('');
+  const [country, setCountry] = useState<string>('');
+  const [state, setState] = useState<string>('');
   const [errors, setErrors] = useState<ShippingErrors>({});
-  const [subscribe, setSubscribe] = useState(false);
 
-  // Billing 表单字段
-  const [billingEmail, setBillingEmail] = useState('');
-  const [billingFirstName, setBillingFirstName] = useState('');
-  const [billingLastName, setBillingLastName] = useState('');
-  const [billingAddress, setBillingAddress] = useState('');
-  const [billingErrors, setBillingErrors] = useState<{
-    billingEmail?: string;
-    billingFirstName?: string;
-    billingLastName?: string;
-    billingAddress?: string;
-  }>({});
+  // Billing address state
+  const [needsBillingAddress, setNeedsBillingAddress] = useState<boolean>(false);
+  const [billingEmail, setBillingEmail] = useState<string>('');
+  const [billingFirstName, setBillingFirstName] = useState<string>('');
+  const [billingLastName, setBillingLastName] = useState<string>('');
+  const [billingAddress, setBillingAddress] = useState<string>('');
+  const [billingCity, setBillingCity] = useState<string>('');
+  const [billingZip, setBillingZip] = useState<string>('');
+  const [billingCountry, setBillingCountry] = useState<string>('');
+  const [billingState, setBillingState] = useState<string>('');
+  const [billingErrors, setBillingErrors] = useState<BillingErrors>({});
 
-  // 是否需要单独填写账单地址
-  const [needsBillingAddress, setNeedsBillingAddress] = useState(false);
+  // Delivery options state
+  const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<DeliveryOption>('Standard');
 
-  // 价格计算
-  const subtotal = mockCartItems.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0
-  );
-  const shippingCost = 9.99;
-  const discount = 10;
-  const total = subtotal + shippingCost - discount;
+  // Payment state
+  const [selectedPaymentOption, setSelectedPaymentOption] = useState<PaymentOption>(null);
+  const [cardNumber, setCardNumber] = useState<string>('');
+  const [cardName, setCardName] = useState<string>('');
+  const [cardExpiry, setCardExpiry] = useState<string>('');
+  const [cardCvc, setCardCvc] = useState<string>('');
 
-  // Shipping 步骤：校验必填项并显示错误信息
-  const handleNextFromShipping = () => {
+  // Toggle step visibility
+  const toggleStep = (stepNumber: number) => {
+    if (openStep === stepNumber) {
+      return; // Don't close the current open step
+    }
+    
+    // Only allow opening completed steps or the next step
+    if (completedSteps.includes(stepNumber) || stepNumber === openStep + 1) {
+      setOpenStep(stepNumber);
+    }
+  };
+
+  // Validate shipping information
+  const validateShippingInfo = () => {
     const newErrors: ShippingErrors = {};
-    if (!email) newErrors.email = 'Required';
-    if (!firstName) newErrors.firstName = 'Required';
-    if (!lastName) newErrors.lastName = 'Required';
-    if (!address) newErrors.address = 'Required';
-    if (!city) newErrors.city = 'Required';
-    if (!zip) newErrors.zip = 'Required';
-    if (!country) newErrors.country = 'Required';
-    if (!state) newErrors.state = 'Required';
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-    setErrors({});
-
-    // 如果需要单独填写账单地址，则校验 Billing 字段
-    if (needsBillingAddress) {
-      const newBillingErrors: {
-        billingEmail?: string;
-        billingFirstName?: string;
-        billingLastName?: string;
-        billingAddress?: string;
-      } = {};
-      if (!billingEmail) newBillingErrors.billingEmail = 'Required';
-      if (!billingFirstName) newBillingErrors.billingFirstName = 'Required';
-      if (!billingLastName) newBillingErrors.billingLastName = 'Required';
-      if (!billingAddress) newBillingErrors.billingAddress = 'Required';
-
-      if (Object.keys(newBillingErrors).length > 0) {
-        setBillingErrors(newBillingErrors);
-        return;
-      }
-      setBillingErrors({});
-    }
-
-    // 校验通过，隐藏 Shipping 部分，显示 Delivery 部分
-    setShippingCompleted(true);
-    setIsShippingOpen(false);
-    setIsDeliveryOpen(true);
+    
+    if (!email) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Invalid email address";
+    
+    if (!firstName) newErrors.firstName = "First name is required";
+    if (!lastName) newErrors.lastName = "Last name is required";
+    if (!address) newErrors.address = "Address is required";
+    if (!city) newErrors.city = "City is required";
+    if (!zip) newErrors.zip = "ZIP code is required";
+    if (!country) newErrors.country = "Country is required";
+    if (!state) newErrors.state = "State is required";
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
+  // Validate billing information
+  const validateBillingInfo = () => {
+    if (!needsBillingAddress) return true;
+    
+    const newErrors: BillingErrors = {};
+    
+    if (!billingEmail) newErrors.billingEmail = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(billingEmail)) newErrors.billingEmail = "Invalid email address";
+    
+    if (!billingFirstName) newErrors.billingFirstName = "First name is required";
+    if (!billingLastName) newErrors.billingLastName = "Last name is required";
+    if (!billingAddress) newErrors.billingAddress = "Address is required";
+    
+    setBillingErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle next from shipping step
+  const handleNextFromShipping = () => {
+    if (validateShippingInfo() && validateBillingInfo()) {
+      setCompletedSteps([...completedSteps, 1]);
+      setOpenStep(2);
+    }
+  };
+
+  // Handle next from delivery step
   const handleNextFromDelivery = () => {
-    setDeliveryCompleted(true);
-    setIsDeliveryOpen(false);
-    setIsReviewOpen(true);
+    setCompletedSteps([...completedSteps, 2]);
+    setOpenStep(3);
   };
 
+  // Handle place order
   const handlePlaceOrder = () => {
-    if (!selectedPaymentOption) {
-      alert("Please select a payment method before placing your order.");
-      return;
-    }
-
-    router.push('/order-summary');
+    // In a real application, you would submit the order to your backend here
+    console.log("Order placed!");
+    router.push('/order-confirmation');
   };
-
-  const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<"Standard" | "Express">("Standard");
-  const [selectedPaymentOption, setSelectedPaymentOption] = useState<"card" | "paypal" | null>(null);
-  
-  const [shippingCompleted, setShippingCompleted] = useState(false);
-  const [deliveryCompleted, setDeliveryCompleted] = useState(false);
-  //const [paymentCompleted, setPaymentCompleted] = useState(false);
-
 
   return (
-    <div className="flex-grow">
-      <div className="mx-auto flex flex-row">
-        {/* 左侧：Back 区域和 Shipping / Delivery / Review & Pay */}
-        <div className="flex-1 min-w-0 bg-gray-50 flex flex-col gap-6">
-          {/* Back 区域 */}
-          <div className="py-12 pb-6 pl-[120px] border-b border-black">
-            <button
-              onClick={() => window.history.back()}
-              className="text-sm text-[#222222] flex items-center gap-2"
+    <div className="bg-gray-100 min-h-screen py-8">
+      <div className="container mx-auto px-4">
+        <h1 className="text-2xl font-bold mb-8 text-center">Checkout</h1>
+        
+        <div className="flex flex-col lg:flex-row gap-8">
+          <div className="lg:w-2/3">
+            {/* Step 1: Shipping Information */}
+            <CheckoutStep
+              stepNumber={1}
+              title="Shipping Information"
+              isOpen={openStep === 1}
+              isCompleted={completedSteps.includes(1)}
+              onToggle={() => toggleStep(1)}
+              canOpen={true}
             >
-              <svg
-                width="17"
-                height="10"
-                viewBox="0 0 17 10"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M17 5H1M1 5L5.5 1M1 5L5.5 9" stroke="#222222"/>
-              </svg>
-              Back
-            </button>
-          </div>
-
-          {/* Shipping / Delivery / Review & Pay */}
-          <div className="flex flex-col pl-[120px] pr-[64px] py-4 bg-gray-50 gap-4">
-            {/* 01 Shipping */}
-            <div
-              className="flex justify-between items-center cursor-pointer"
-              onClick={() => setIsShippingOpen(!isShippingOpen)}
-            >
-              <div className="flex items-center gap-4">
-                <h2 className="text-2xl">01 Shipping</h2>
-                <p className="text-sm text-gray-600">
-                  已有账号？{' '}
-                  <a href="#" className="text-blue-600 underline">
-                    登录
-                  </a>{' '}
-                  快速结账
-                </p>
-              </div>
-              <button className="p-2">
-                {isShippingOpen ? (
-                  // 当打开时显示减号图标
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M2 8H14"
-                      stroke="#222222"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                ) : (
-                  // 当关闭时显示加号图标
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M8 2V14"
-                      stroke="#222222"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M2 8H14"
-                      stroke="#222222"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
-              </button>
-            </div>
-            {isShippingOpen && (
-              <div className="rounded-[4px]">
-                <div>
-                  <form className="bg-white p-6 space-y-4">
-                    {/* Email */}
-                    <div>
-                      <label className="block text-medium font-medium text-[#222222]">
-                        Email address
-                      </label>
-                      <input
-                        type="email"
-                        className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setEmail(val);
-                          if (val) {
-                            setErrors((prev) => ({ ...prev, email: undefined }));
-                          }
-                        }}
-                      />
-                      {errors.email && (
-                        <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                      )}
-                      {/* 提示文本 */}
-                      <p className="text-[#999999] text-sm mt-1">
-                        We will confirm the final effect of the book with you and update you on
-                        the status of your order
-                      </p>
-
-                      {/* 单选按钮 + 文本（可改成复选按钮或普通按钮） */}
-                      <label className="flex items-center gap-2 text-sm text-[#999999]">
-                        <input
-                          type="radio"
-                          checked={subscribe}
-                          onChange={() => setSubscribe(true)}
-                          className="h-5 w-5 accent-blue-600"
-                        />
-                        email me with news and offers
-                      </label>
-                    </div>
-                    {/* First name & Last name */}
-                    <div className="flex gap-4">
-                      <div className="flex-1">
-                        <label className="block text-medium font-medium text-[#222222]">
-                          First name
-                        </label>
-                        <input
-                          type="text"
-                          className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                          placeholder="Enter your first name"
-                          value={firstName}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setFirstName(val);
-                            if (val) {
-                              setErrors((prev) => ({ ...prev, firstName: undefined }));
-                            }
-                          }}
-                        />
-                        {errors.firstName && (
-                          <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <label className="block text-medium font-medium text-[#222222]">
-                          Last name
-                        </label>
-                        <input
-                          type="text"
-                          className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                          placeholder="Enter your last name"
-                          value={lastName}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setLastName(val);
-                            if (val) {
-                              setErrors((prev) => ({ ...prev, lastName: undefined }));
-                            }
-                          }}
-                        />
-                        {errors.lastName && (
-                          <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
-                        )}
-                      </div>
-                    </div>
-                    {/* Address */}
-                    <div>
-                      <label className="block text-medium font-medium text-[#222222]">
-                        Address
-                      </label>
-                      <input
-                        type="text"
-                        className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                        placeholder="Enter your address"
-                        value={address}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setAddress(val);
-                          if (val) {
-                            setErrors((prev) => ({ ...prev, address: undefined }));
-                          }
-                        }}
-                      />
-                      {errors.address && (
-                        <p className="text-red-500 text-sm mt-1">{errors.address}</p>
-                      )}
-                    </div>
-                    {/* Apt */}
-                    <div>
-                      <label className="block text-medium font-medium text-[#222222]">
-                        Apt, Building, ETC
-                      </label>
-                      <input
-                        type="text"
-                        className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                        placeholder="Enter your apartment/building/etc."
-                        value={apt}
-                        onChange={(e) => setApt(e.target.value)}
-                      />
-                    </div>
-                    {/* City & ZIP */}
-                    <div className="flex gap-4">
-                      <div className="flex-1">
-                        <label className="block text-medium font-medium text-[#222222]">
-                          Town/City
-                        </label>
-                        <input
-                          type="text"
-                          className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                          placeholder="Enter your city"
-                          value={city}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setCity(val);
-                            if (val) {
-                              setErrors((prev) => ({ ...prev, city: undefined }));
-                            }
-                          }}
-                        />
-                        {errors.city && (
-                          <p className="text-red-500 text-sm mt-1">{errors.city}</p>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <label className="block text-medium font-medium text-[#222222]">
-                          ZIP/Postcode
-                        </label>
-                        <input
-                          type="text"
-                          className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                          placeholder="Enter your ZIP code"
-                          value={zip}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setZip(val);
-                            if (val) {
-                              setErrors((prev) => ({ ...prev, zip: undefined }));
-                            }
-                          }}
-                        />
-                        {errors.zip && (
-                          <p className="text-red-500 text-sm mt-1">{errors.zip}</p>
-                        )}
-                      </div>
-                    </div>
-                    {/* Country & State/Province */}
-                    <div className="flex gap-4">
-                      <div className="flex-1">
-                        <label className="block text-medium font-medium text-[#222222]">
-                          Country
-                        </label>
-                        <input
-                          type="text"
-                          className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                          placeholder="Enter your country"
-                          value={country}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setCountry(val);
-                            if (val) {
-                              setErrors((prev) => ({ ...prev, country: undefined }));
-                            }
-                          }}
-                        />
-                        {errors.country && (
-                          <p className="text-red-500 text-sm mt-1">{errors.country}</p>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <label className="block text-medium font-medium text-[#222222]">
-                          State/Province
-                        </label>
-                        <input
-                          type="text"
-                          className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                          placeholder="Enter your state/province"
-                          value={state}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setState(val);
-                            if (val) {
-                              setErrors((prev) => ({ ...prev, state: undefined }));
-                            }
-                          }}
-                        />
-                        {errors.state && (
-                          <p className="text-red-500 text-sm mt-1">{errors.state}</p>
-                        )}
-                      </div>
-                    </div>
-                    {/* Phone */}
-                    <div>
-                      <label className="block text-medium font-medium text-[#222222]">
-                        Phone number (optional)
-                      </label>
-                      <input
-                        type="text"
-                        className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-sm"
-                        placeholder="Enter your phone number"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                      />
-                      <p className="text-[#999999] text-l mt-1">
-                        Get free updates on where your parcel is
-                      </p>
-                    </div>
-                  </form>
-                
-                
-                  {/* Billing 地址区域 */}
-                  <div className="bg-white p-6 mt-4">
-                    <p className="text-medium font-medium mb-2">
-                      Bills need to be sent to a new address?
-                    </p>
-                    <div className="flex items-center gap-6">
-                      {/* "no need" 选项 */}
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="billing"
-                          value="no"
-                          checked={!needsBillingAddress}
-                          onChange={() => setNeedsBillingAddress(false)}
-                          className="sr-only peer"
-                        />
-                        <div
-                          className={`w-5 h-5 border border-gray-400 rounded-full flex items-center justify-center ${
-                            !needsBillingAddress ? "bg-[#012CCE] border-transparent" : ""
-                          }`}
-                        >
-                          {!needsBillingAddress && (
-                            <svg
-                              width="10"
-                              height="8"
-                              viewBox="0 0 12 8"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M1.5 3.5L5 7L11 1"
-                                stroke="white"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                        <span className="text-l">no need</span>
-                      </label>
-
-                      {/* "yes" 选项 */}
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="billing"
-                          value="yes"
-                          checked={needsBillingAddress}
-                          onChange={() => setNeedsBillingAddress(true)}
-                          className="sr-only peer"
-                        />
-                        <div
-                          className={`w-5 h-5 border border-gray-400 rounded-full flex items-center justify-center ${
-                            needsBillingAddress ? "bg-[#012CCE] border-transparent" : ""
-                          }`}
-                        >
-                          {needsBillingAddress && (
-                            <svg
-                              width="10"
-                              height="8"
-                              viewBox="0 0 12 8"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M1.5 3.5L5 7L11 1"
-                                stroke="white"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                        <span className="text-l">yes</span>
-                      </label>
-                    </div>
-
-
-                    {needsBillingAddress && (
-                      <div className="mt-4 space-y-4">
-                        {/* Billing Email */}
-                        <div>
-                          <label className="block text-medium font-medium text-[#222222]">
-                            Billing Email
-                          </label>
-                          <input
-                            type="email"
-                            placeholder="Enter your billing email"
-                            value={billingEmail}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setBillingEmail(val);
-                              if (val) {
-                                setBillingErrors((prev) => ({ ...prev, billingEmail: undefined }));
-                              }
-                            }}
-                            className="mt-1 block w-full border border-gray-300 rounded p-2 text-sm"
-                          />
-                          {billingErrors.billingEmail && (
-                            <p className="text-red-500 text-sm mt-1">{billingErrors.billingEmail}</p>
-                          )}
-                        </div>
-                        {/* Billing First & Last Name */}
-                        <div className="flex gap-4">
-                          <div className="flex-1">
-                            <label className="block ttext-medium font-medium text-[#222222]">
-                              First Name
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Enter your billing first name"
-                              value={billingFirstName}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setBillingFirstName(val);
-                                if (val) {
-                                  setBillingErrors((prev) => ({ ...prev, billingFirstName: undefined }));
-                                }
-                              }}
-                              className="mt-1 block w-full border border-gray-300 rounded p-2 text-sm"
-                            />
-                            {billingErrors.billingFirstName && (
-                              <p className="text-red-500 text-sm mt-1">{billingErrors.billingFirstName}</p>
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <label className="block text-medium font-medium text-[#222222]">
-                              Last Name
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Enter your billing last name"
-                              value={billingLastName}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setBillingLastName(val);
-                                if (val) {
-                                  setBillingErrors((prev) => ({ ...prev, billingLastName: undefined }));
-                                }
-                              }}
-                              className="mt-1 block w-full border border-gray-300 rounded p-2 text-sm"
-                            />
-                            {billingErrors.billingLastName && (
-                              <p className="text-red-500 text-sm mt-1">{billingErrors.billingLastName}</p>
-                            )}
-                          </div>
-                        </div>
-                        {/* Billing Address */}
-                        <div>
-                          <label className="block text-medium font-medium text-[#222222]">
-                            Billing Address
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="Enter your billing address"
-                            value={billingAddress}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setBillingAddress(val);
-                              if (val) {
-                                setBillingErrors((prev) => ({ ...prev, billingAddress: undefined }));
-                              }
-                            }}
-                            className="mt-1 block w-full border border-gray-300 rounded p-2 text-sm"
-                          />
-                          {billingErrors.billingAddress && (
-                            <p className="text-red-500 text-sm mt-1">{billingErrors.billingAddress}</p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 继续按钮 */}
-                  <div className="mt-4 text-center">
-                    <p className="text-xs text-gray-500 mb-2">
-                      By clicking Continue, you agree to our{" "}
-                      <a href="#" className="text-blue-600 underline mx-1">
-                        terms & conditions
-                      </a>{" "}
-                      and{" "}
-                      <a href="#" className="text-blue-600 underline ml-1">
-                        privacy policy
-                      </a>
-                    </p>
-                    <button
-                      onClick={handleNextFromShipping}
-                      className="bg-black text-white px-4 py-2 rounded text-sm"
-                    >
-                      continue to delivery
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 02 Delivery */}
-            <div>
-              <div className="flex justify-between items-center cursor-pointer border-t pt-4 border-[#E5E5E5]"
-                onClick={() => {
-                  if (shippingCompleted) {
-                    setIsDeliveryOpen(!isDeliveryOpen);
-                  } else {
-                    alert("Please fill in Shipping information first");
-                  }
-                }}
-              >
-                <h2 className={`text-2xl ${!shippingCompleted ? 'text-[#999999]' : ''}`}>02 Delivery</h2>
-                {shippingCompleted && (
-                  <button className="p-2">
-                    {isDeliveryOpen ? (
-                      // 当打开时显示减号图标
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M2 8H14"
-                          stroke="#222222"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    ) : (
-                      // 当关闭时显示加号图标
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M8 2V14"
-                          stroke="#222222"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M2 8H14"
-                          stroke="#222222"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    )}
-                  </button>
-                )}
-              </div>
-              {isDeliveryOpen && (
-                <div className="mt-4 space-y-4 text-center">
-                  {/* 第一个配送选项：Standard */}
-                  <label className="p-6 rounded-[4px] bg-white flex flex-col gap-1">
-                    {/* 第一行：左侧为按钮和标题，右侧为价格 */}
-                    <div className="flex justify-between items-center">
-                      {/* 左侧按钮和标题 */}
-                      <div className="flex flex-row gap-3 items-center">
-                        <input
-                          type="radio"
-                          name="deliveryMethod"
-                          className="sr-only" 
-                          checked={selectedDeliveryOption === "Standard"}
-                          onChange={() => setSelectedDeliveryOption("Standard")}
-                        />
-                        <div
-                          className={`w-5 h-5 border border-gray-400 rounded-full flex items-center justify-center ${
-                            selectedDeliveryOption === "Standard" ? "bg-[#012CCE] border-transparent" : ""
-                          }`}
-                        >
-                          {selectedDeliveryOption === "Standard" && (
-                            <svg
-                              width="12"
-                              height="8"
-                              viewBox="0 0 12 8"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M1.5 3.5L5 7L11 1"
-                                stroke="white"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                        <span className="text-[18px] font-medium">Standard</span>
-                      </div>
-                      {/* 右侧价格 */}
-                      <span className="text-[18px] font-medium">$19.99 USD</span>
-                    </div>
-
-                    {/* 第二部分：配送详情 */}
-                    <div className="px-8 flex-1 flex flex-col gap-1">
-                      <div className="flex flex-row gap-1">
-                        <p className="text-l font-normal text-[#222222]">
-                          Estimated delivery:
-                        </p>
-                        <p className="text-l font-medium text-[#012CCE]">
-                          December 10 2024
-                        </p>
-                      </div>
-                      <p className="text-l text-[#999999] flex">
-                        Delivered by your trusty postperson with the speed and reliability you&apos;re used to.
-                      </p>
-                    </div>
-                  </label>
- 
-
-                  {/* 第二个配送选项：Express */}
-                  <label className="p-6 rounded-[4px] bg-white flex flex-col gap-1">
-                    {/* 第一行：左侧为按钮和标题，右侧为价格 */}
-                    <div className="flex justify-between items-center">
-                      {/* 左侧按钮和标题 */}
-                      <div className="flex flex-row gap-3 items-center">
-                        <input
-                          type="radio"
-                          name="deliveryMethod"
-                          className="sr-only" 
-                          checked={selectedDeliveryOption === "Express"}
-                          onChange={() => setSelectedDeliveryOption("Express")}
-                        />
-                        <div
-                          className={`w-5 h-5 border border-gray-400 rounded-full flex items-center justify-center ${
-                            selectedDeliveryOption === "Express" ? "bg-[#012CCE] border-transparent" : ""
-                          }`}
-                        >
-                          {selectedDeliveryOption === "Express" && (
-                            <svg
-                              width="12"
-                              height="8"
-                              viewBox="0 0 12 8"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M1.5 3.5L5 7L11 1"
-                                stroke="white"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                        <span className="text-[18px] font-medium">Express</span>
-                      </div>
-                      {/* 右侧价格 */}
-                      <span className="text-[18px] font-medium">$19.99 USD</span>
-                    </div>
-                    {/* 第二部分：配送详情 */}
-                    <div className="px-8 flex-1 flex flex-col gap-1">
-                      <div className="flex flex-row gap-1">
-                        <p className="text-l font-normal text-[#222222]">
-                          Estimated delivery:
-                        </p>
-                        <p className="text-l font-medium text-[#012CCE]">
-                          December 7 2024
-                        </p>
-                      </div>
-                      <p className="text-l text-[#999999] flex">
-                        So speedy, it will get to you much faster than standard delivery.
-                      </p>
-                      <p className="text-l text-[#999999] flex">
-                        Plus, you can follow your parcel online. (Delivered by UPS Ground so no PO Boxes please)
-                      </p>
-                    </div>
-                  </label>
-
-                  {/* 按钮 */}
-                  <button
-                      onClick={handleNextFromDelivery}
-                      className="bg-black text-white px-4 py-2 rounded text-sm"
-                    >
-                    continue to payment
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* 03 Review & Pay */}
-            <div>
-              <div
-                className="flex justify-between items-center cursor-pointer border-t pt-4 border-[#E5E5E5]"
-                onClick={() => {
-                  if (deliveryCompleted) {
-                    setIsReviewOpen(!isReviewOpen);
-                  } else {
-                    alert("Please fill in delivery information first");
-                  }
-                }}
-              >
-                <h2 className={`text-2xl ${!deliveryCompleted ? 'text-[#999999]' : ''}`}>03 Review &amp; Pay</h2>
-                {deliveryCompleted && (
-                  <button className="p-2">
-                    {isReviewOpen ? (
-                      // 当打开时显示减号图标
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M2 8H14"
-                          stroke="#222222"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    ) : (
-                      // 当关闭时显示加号图标
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M8 2V14"
-                          stroke="#222222"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M2 8H14"
-                          stroke="#222222"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    )}
-                  </button>
-                )}
-              </div>
-              {isReviewOpen && (
-                <div className="mt-4 space-y-4 text-center">
-                  {/* detail*/}
-                  <div className="p-6 rounded-[4px] bg-white flex flex-col gap-1">
-                    <div className="flex-1 flex flex-col gap-1">
-                      <div className="flex flex-row gap-1">
-                        <p className="flex text-l w-[64px] text-[#999999]">
-                          Contact
-                        </p>
-                        <p className="text-l text-[#222222]">
-                          15574892055@163.com
-                        </p>
-                      </div>
-                      <div className="flex flex-row gap-1">
-                        <p className="flex text-l w-[64px] text-[#999999]">
-                          Ship to
-                        </p>
-                        <p className="text-l text-[#222222]">
-                          szzckduydskj, s, 400000, adxcuix7ds, United States
-                        </p>
-                      </div>
-                      <div className="flex flex-row gap-1">
-                        <p className="flex text-l w-[64px] text-[#999999]">
-                          Delivery
-                        </p>
-                        <p className="text-l text-[#222222]">
-                          Standard (Get it by Tuesday, December 10)
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                
-                  <div className="p-6 rounded-[4px] bg-white flex flex-col gap-1">
-                    <div className="flex-1 flex flex-col gap-1">
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          className="sr-only" 
-                          checked={selectedPaymentOption === "card"}
-                          onChange={() => setSelectedPaymentOption("card")}
-                        />
-                        <div
-                          className={`w-5 h-5 border border-gray-400 rounded-full flex items-center justify-center ${
-                            selectedPaymentOption === "card" ? "bg-[#012CCE] border-transparent" : ""
-                          }`}
-                        >
-                          {selectedPaymentOption === "card" && (
-                            <svg
-                              width="12"
-                              height="8"
-                              viewBox="0 0 12 8"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M1.5 3.5L5 7L11 1"
-                                stroke="white"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                        <span className="text-l">Credit Card</span>
-                      </label>
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          className="sr-only" 
-                          checked={selectedPaymentOption === "paypal"}
-                          onChange={() => setSelectedPaymentOption("paypal")}
-                        />
-                        <div
-                          className={`w-5 h-5 border border-gray-400 rounded-full flex items-center justify-center ${
-                            selectedPaymentOption === "paypal" ? "bg-[#012CCE] border-transparent" : ""
-                          }`}
-                        >
-                          {selectedPaymentOption === "paypal" && (
-                            <svg
-                              width="12"
-                              height="8"
-                              viewBox="0 0 12 8"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M1.5 3.5L5 7L11 1"
-                                stroke="white"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                        <span className="text-l">PayPal</span>
-                      </label>
-                    </div>
-                  </div>
-                  <p className="text-sm text-[#999999] mb-4">
-                    Complete your payment with one of our secure checkout methods.
-                  </p>
-                  <button
-                      onClick={handlePlaceOrder}
-                      className="bg-black text-white px-4 py-2 rounded text-sm"
-                    >
-                    Place Order
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* 右侧：订单详情（价格明细） */}
-        <div className="w-[544px] bg-white border-l border-black p-12 !pr-[120px] gap-[10px] flex flex-col">
-          <div className="space-y-4">
-            {/* 订单商品列表 */}
-            {mockCartItems.map((item) => (
-              <div key={item.id} className="flex gap-3 items-center">
-                <Image
-                  src={item.image}
-                  alt={item.name}
-                  width={64}
-                  height={80}
-                  className="w-16 h-20 object-cover rounded"
+              <ShippingForm
+                email={email}
+                setEmail={setEmail}
+                firstName={firstName}
+                setFirstName={setFirstName}
+                lastName={lastName}
+                setLastName={setLastName}
+                address={address}
+                setAddress={setAddress}
+                city={city}
+                setCity={setCity}
+                zip={zip}
+                setZip={setZip}
+                country={country}
+                setCountry={setCountry}
+                state={state}
+                setState={setState}
+                errors={errors}
+                setErrors={setErrors}
+                needsBillingAddress={needsBillingAddress}
+                setNeedsBillingAddress={setNeedsBillingAddress}
+                handleNextFromShipping={handleNextFromShipping}
+              />
+              
+              {needsBillingAddress && (
+                <BillingAddressForm
+                  billingEmail={billingEmail}
+                  setBillingEmail={setBillingEmail}
+                  billingFirstName={billingFirstName}
+                  setBillingFirstName={setBillingFirstName}
+                  billingLastName={billingLastName}
+                  setBillingLastName={setBillingLastName}
+                  billingAddress={billingAddress}
+                  setBillingAddress={setBillingAddress}
+                  billingCity={billingCity}
+                  setBillingCity={setBillingCity}
+                  billingZip={billingZip}
+                  setBillingZip={setBillingZip}
+                  billingCountry={billingCountry}
+                  setBillingCountry={setBillingCountry}
+                  billingState={billingState}
+                  setBillingState={setBillingState}
+                  billingErrors={billingErrors}
+                  setBillingErrors={setBillingErrors}
                 />
-                <div className="flex-1 flex flex-col text-sm gap-3">
-                  <div>
-                    <p className="font-medium">{item.name}</p>
-                    {item.box && <p className="text-gray-500">{item.format}</p>}
-                    <p className="text-gray-500">{item.box}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold">${(item.price).toFixed(2)}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+              )}
+            </CheckoutStep>
+            
+            {/* Step 2: Delivery Options */}
+            <CheckoutStep
+              stepNumber={2}
+              title="Delivery Options"
+              isOpen={openStep === 2}
+              isCompleted={completedSteps.includes(2)}
+              onToggle={() => toggleStep(2)}
+              canOpen={completedSteps.includes(1)}
+            >
+              <DeliveryOptions
+                selectedDeliveryOption={selectedDeliveryOption}
+                setSelectedDeliveryOption={setSelectedDeliveryOption}
+                handleNextFromDelivery={handleNextFromDelivery}
+              />
+            </CheckoutStep>
+            
+            {/* Step 3: Review and Pay */}
+            <CheckoutStep
+              stepNumber={3}
+              title="Review and Pay"
+              isOpen={openStep === 3}
+              isCompleted={completedSteps.includes(3)}
+              onToggle={() => toggleStep(3)}
+              canOpen={completedSteps.includes(2)}
+            >
+              <ReviewAndPay
+                selectedPaymentOption={selectedPaymentOption}
+                setSelectedPaymentOption={setSelectedPaymentOption}
+                cardNumber={cardNumber}
+                setCardNumber={setCardNumber}
+                cardName={cardName}
+                setCardName={setCardName}
+                cardExpiry={cardExpiry}
+                setCardExpiry={setCardExpiry}
+                cardCvc={cardCvc}
+                setCardCvc={setCardCvc}
+                handlePlaceOrder={handlePlaceOrder}
+              />
+            </CheckoutStep>
           </div>
-          <div className="border-t border-[#E5E5E5] mt-4 pt-4 text-sm space-y-2">
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>${subtotal.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Shipping</span>
-              <span>${shippingCost.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Discount</span>
-              <span>-${discount.toFixed(2)}</span>
-            </div>
-            <div className="border-t border-[#E5E5E5] flex justify-between font-bold text-base pt-2">
-              <span>Total</span>
-              <span>${total.toFixed(2)}</span>
-            </div>    
+          
+          {/* Right column - Order summary */}
+          <div className="lg:w-1/3">
+            <OrderSummary
+              cartItems={cartItems}
+              selectedDeliveryOption={selectedDeliveryOption}
+            />
           </div>
         </div>
       </div>

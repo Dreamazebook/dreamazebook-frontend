@@ -55,9 +55,10 @@ const PREVIEWS = [
 export default function Previews() {
   return (
     <Container cssClass="bg-white">
-      <ContainerTitle cssClass="mb-16 md:mb-0">
-        Get A Sneak Peek:<br/>
-        Preview Of Some Dreamaze Books!
+      <ContainerTitle cssClass="mb-10 md:mb-0">
+        Get A Sneak Peek<br/>
+        Preview Of<br/>
+        Some Dreamaze Books!
       </ContainerTitle>
 
       <div className="py-16 gap-6 justify-center hidden md:flex">
@@ -72,7 +73,7 @@ export default function Previews() {
       <div className="max-w-7xl mx-auto px-3">
         {PREVIEWS.map(({tl,desc,img:{desktop,mobile}},idx)=>
           <article key={idx} className="text-[#222222]">
-            <h3 className="font-bold text-[28px] text-center">{tl}</h3>
+            <h3 className="font-bold text-[16px] md:text-[28px] text-center">{tl}</h3>
             <ContainerDesc>
               {desc}
             </ContainerDesc>

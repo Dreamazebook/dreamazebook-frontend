@@ -18,14 +18,14 @@ export default function FAQ({FAQs, bg}:FAQProps) {
   const [faqs, setFaqs] = useState(FAQs);
   const handleFaqClick = (idx:number) => {
     const newFAQs = [...FAQs];
-    newFAQs.forEach((faq, i)=>{
-      if (i === idx) {
-        faq.show = !faq.show;
-      } else {
+    if (newFAQs[idx].show) {
+      newFAQs[idx].show = false;
+    } else {
+      newFAQs.forEach((faq)=>{
         faq.show = false;
-      }
-    })
-    newFAQs[idx].show = true;
+      })
+      newFAQs[idx].show = true;
+    }
     setFaqs(newFAQs);
   }
   return (
@@ -36,7 +36,7 @@ export default function FAQ({FAQs, bg}:FAQProps) {
           <div key={tl} className="py-[18px] border-b border-black/20 flex">
             <div className="text-[18px] md:text-[28px] font-bold mr-3">0{idx+1}</div>
             <div className="flex-1">
-              <div className="flex justify-between cursor-pointer mb-4" onClick={()=>handleFaqClick(idx)}>
+              <div className={`flex justify-between cursor-pointer ${show ? 'mb-4': ''}`} onClick={()=>handleFaqClick(idx)}>
                 <h3 className="text-[18px] md:text-[28px] font-bold">{tl}</h3>
                 <span className="cursor-pointer hover:scale-105 transition-transform">
                   {show?
@@ -51,7 +51,7 @@ export default function FAQ({FAQs, bg}:FAQProps) {
                   }
                 </span>
               </div>
-              <p className={`font-light text-[#222222] text-[16px] md:text-[20px] transition-all overflow-hidden ${show?'h-(calc-size(auto))':'h-0'}`}>{ans}</p>
+              <p className={`font-light text-[#222222] text-[16px] md:text-[20px] transition-[max-height] duration-500 overflow-hidden ${show ? 'max-h-[1000px]' : 'max-h-0'}`}>{ans}</p>
             </div>
           </div>
         )}

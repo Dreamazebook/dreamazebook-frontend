@@ -1,4 +1,26 @@
 {
+  "ShoppingCart": {
+    "shoppingCart": "Shopping Cart",
+    "noItemsSelected": "Please select at least one item to checkout",
+    "couponApplied": "Coupon applied successfully!",
+    "invalidCoupon": "Invalid coupon code",
+    "loading": "Loading your cart...",
+    "emptyCart": "Your cart is empty",
+    "editBook": "Edit book",
+    "orderSummary": "Order Summary",
+    "haveCouponCode": "Have a coupon code?",
+    "subtotal": "Subtotal",
+    "items": "items",
+    "shipping": "Shipping",
+    "discount": "Discount",
+    "total": "Total",
+    "checkout": "Proceed to Checkout",
+    "checkoutWithPayPal": "Checkout with PayPal",
+    "couponCode": "Coupon Code",
+    "enterCouponCode": "Enter coupon code",
+    "apply": "Apply",
+    "continueShopping": "Continue Shopping"
+  },
   "HomePage": {
     "empower": "empower everyone to become the star of their own story",
     "viewMore": "View more",

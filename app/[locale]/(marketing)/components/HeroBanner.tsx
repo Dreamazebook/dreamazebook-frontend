@@ -7,7 +7,7 @@ export default function HeroBanner() {
   return (
     <div
       style={{'--desktop-bg' : `url(${DESKTOP_HERO_COVER})`,'--app-bg' : `url(${APP_HERO_COVER})`} as React.CSSProperties} 
-      className="md:flex md:items-center bg-(image:--app-bg) md:bg-(image:--desktop-bg) bg-cover md:bg-contain bg-no-repeat md:px-10 md:aspect-[2/1] h-screen md:h-auto relative">
+      className="md:flex md:items-center bg-(image:--app-bg) md:bg-(image:--desktop-bg) bg-cover md:bg-contain bg-no-repeat md:px-10 md:aspect-[1601/721] h-screen md:h-auto relative">
       <div className="md:max-w-[1024px]">
         <div className="md:w-4/5 pt-20 md:pt-0 mb-5">
           {/* Hero Content */}
@@ -21,7 +21,7 @@ export default function HeroBanner() {
           {!hideForm && <h3 className="mb-4 font-bold text-[24px]">Reserve a <span className="text-[#012DCE]">Timeless Gift</span> for Your Child !</h3>}
 
           <div className="max-w-lg">
-            <EmailForm btnText="Sign up and Save 40%" redirectUrl={'/en/welcome/success-1'} handleCallBack={()=>setHideForm(true)} />
+            <EmailForm btnId="email_submit_header" btnText="Sign up and Save 40%" redirectUrl={'/en/welcome/success'} handleCallBack={()=>setHideForm(true)} />
           </div>
 
           {/* {!hideForm &&
