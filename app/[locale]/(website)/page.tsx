@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { FaStar, FaRegStar, FaQuoteLeft } from 'react-icons/fa';
 import React from 'react';
+import InitialSpark from './components/home/InitialSpark';
 //import Link from 'next/link';
 
 export default function HomePage() {
@@ -100,21 +101,7 @@ export default function HomePage() {
         />
       </section>
 
-      {/* Features Section */}
-      {/* <section className="py-20 bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-12">{t('featuresTitle')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
-      <section className="pt-4">
-              <div key={index} className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                <span className="text-4xl mb-4 block">{feature.icon}</span>
-                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                <p className="text-gray-600 dark:text-gray-300">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section> */}
+      <InitialSpark />
 
       {/* Featured Books */}
       <section className="py-20">
