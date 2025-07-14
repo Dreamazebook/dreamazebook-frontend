@@ -676,8 +676,6 @@ export default function PreviewPageWithTopNav() {
                                                                       <div className="flex justify-center mb-4">
                                       <div className="flex space-x-2">
                                         <MirageLoader size="60" speed="2.5" color="blue" />
-                                        <MirageLoader size="60" speed="2.5" color="blue" style={{animationDelay: '0.1s'}} />
-                                        <MirageLoader size="60" speed="2.5" color="blue" style={{animationDelay: '0.2s'}} />
                                       </div>
                                     </div>
                                 </div>
