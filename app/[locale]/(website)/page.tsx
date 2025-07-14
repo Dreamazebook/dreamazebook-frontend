@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { FaStar, FaRegStar, FaQuoteLeft } from 'react-icons/fa';
 import React from 'react';
 import InitialSpark from './components/home/InitialSpark';
+import OurBook from './components/home/OurBook';
 //import Link from 'next/link';
 
 export default function HomePage() {
@@ -103,45 +104,7 @@ export default function HomePage() {
 
       <InitialSpark />
 
-      {/* Featured Books */}
-      <section className="py-20">
-        <div className="container mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-12">{t('booksTitle')}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {books.map((book) => (
-              <div key={book.id} className="group bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all">
-                <div className="relative aspect-[3/4]">
-                  <Image
-                    src={book.image}
-                    alt={book.title}
-                    fill
-                    className="object-cover group-hover:opacity-90 transition-opacity"
-                  />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold mb-2">{book.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4">{book.description}</p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold">${book.price}</span>
-                    <Button 
-                      url={`/books/${book.id}`}
-                      className="px-4 py-2"
-                      tl={t('personalize')}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-10">
-            <Button 
-              url="/books"
-              className="px-8 py-3 text-lg"
-              tl={t('viewAllBooks')}
-            />
-          </div>
-        </div>
-      </section>
+      <OurBook />
 
       {/* Testimonials */}
       <section className="py-20 bg-gray-50 dark:bg-gray-900">
