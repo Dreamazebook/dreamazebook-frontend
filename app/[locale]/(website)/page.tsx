@@ -7,6 +7,7 @@ import { FaStar, FaRegStar, FaQuoteLeft } from 'react-icons/fa';
 import React from 'react';
 import InitialSpark from './components/home/InitialSpark';
 import OurBook from './components/home/OurBook';
+import SideLineProducts from './components/home/SideLineProducts';
 //import Link from 'next/link';
 
 export default function HomePage() {
@@ -106,28 +107,7 @@ export default function HomePage() {
 
       <OurBook />
 
-      {/* Testimonials */}
-      <section className="py-20 bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-12">{t('testimonialsTitle')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-white dark:bg-gray-800 p-8 rounded-xl">
-                <div className="flex mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    i < testimonial.rating ? 
-                      <FaStar key={i} className="text-yellow-400" /> : 
-                      <FaRegStar key={i} className="text-yellow-400" />
-                  ))}
-                </div>
-                <FaQuoteLeft className="text-gray-300 dark:text-gray-500 mb-4" />
-                <p className="text-lg italic mb-6">&ldquo;{testimonial.text}&rdquo;</p>
-                <p className="font-semibold">— {testimonial.name}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <SideLineProducts />
 
       {/* Newsletter */}
       <section className="py-20 bg-black text-white">
