@@ -115,7 +115,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
                 Account Details
               </a>
               <a
-                href="#"
+                href="profile/order-history"
                 className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded"
               >
                 Order History
