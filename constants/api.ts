@@ -9,5 +9,8 @@ export const API_USER_SEND_PASSWORD_RESET_EMAIL = API_DOMAIN + '/auth/forgot-pas
 export const API_USER_CURRENT = API_DOMAIN + '/auth/me';
 
 export const API_CART_LIST = API_DOMAIN + '/cart/list';
+export const API_CART_CREATE = API_DOMAIN + '/cart/create';
+export const API_CART_REMOVE = API_DOMAIN + '/cart/remove';
+export const API_CART_UPDATE = API_DOMAIN + '/cart/update';
 
 export const API_ORDER_LIST = API_DOMAIN + '/order/list';
