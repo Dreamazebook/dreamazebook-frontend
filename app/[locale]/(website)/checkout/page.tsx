@@ -1,38 +1,28 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import api from '@/utils/api';
+import { API_ORDER_DETAIL } from '@/constants/api';
 import CheckoutStep from './components/CheckoutStep';
 import ShippingForm from './components/ShippingForm';
 import BillingAddressForm from './components/BillingAddressForm';
 import DeliveryOptions from './components/DeliveryOptions';
 import ReviewAndPay from './components/ReviewAndPay';
 import OrderSummary from './components/OrderSummary';
-import { CartItem, ShippingErrors, BillingErrors, DeliveryOption, PaymentOption } from './components/types';
+import { CartItem, ShippingErrors, BillingErrors, DeliveryOption, PaymentOption, OrderDetail } from './components/types';
+import { ApiResponse } from '@/types/api';
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get('orderId');
 
-  // Mock cart items
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 1,
-      name: "The Dream Maze",
-      format: "Hardcover",
-      box: "Special Edition Box",
-      image: "/images/book-cover.jpg",
-      price: 29.99,
-      quantity: 1
-    },
-    {
-      id: 2,
-      name: "The Dream Maze",
-      format: "E-book",
-      image: "/images/ebook-cover.jpg",
-      price: 14.99,
-      quantity: 1
-    }
-  ]);
+  const [orderDetail, setOrderDetail] = useState<OrderDetail>();
+
+  // Loading and error states
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Step visibility state
   const [openStep, setOpenStep] = useState<number>(1);
@@ -70,6 +60,31 @@ export default function CheckoutPage() {
   const [cardName, setCardName] = useState<string>('');
   const [cardExpiry, setCardExpiry] = useState<string>('');
   const [cardCvc, setCardCvc] = useState<string>('');
+
+  // Fetch order details if orderId is present
+  useEffect(() => {
+    if (orderId) {
+      const fetchOrderDetails = async () => {
+        setIsLoading(true);
+        setError(null);
+        
+        try {
+          const {data,code,message,success} = await api.get<ApiResponse<OrderDetail>>(`${API_ORDER_DETAIL}/${orderId}`);
+          // Transform order items to cart items format
+          if (!data?.items) return;
+          setOrderDetail(data);
+          
+        } catch (err) {
+          setError('Failed to load order details');
+          console.error('Error fetching order details:', err);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchOrderDetails();
+    }
+  }, [orderId]);
 
   // Toggle step visibility
   const toggleStep = (stepNumber: number) => {
@@ -144,6 +159,9 @@ export default function CheckoutPage() {
     <div className="bg-gray-100 min-h-screen py-8">
       <div className="container mx-auto px-4">
         <h1 className="text-2xl font-bold mb-8 text-center">Checkout</h1>
+        
+        {isLoading && <div className="text-center py-4">Loading order details...</div>}
+        {error && <div className="text-center text-red-500 py-4">{error}</div>}
         
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="lg:w-2/3">
@@ -248,7 +266,7 @@ export default function CheckoutPage() {
           {/* Right column - Order summary */}
           <div className="lg:w-1/3">
             <OrderSummary
-              cartItems={cartItems}
+              orderDetail={orderDetail}
               selectedDeliveryOption={selectedDeliveryOption}
             />
           </div>
