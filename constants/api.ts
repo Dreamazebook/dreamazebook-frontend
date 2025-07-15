@@ -14,3 +14,6 @@ export const API_CART_REMOVE = API_DOMAIN + '/cart/remove';
 export const API_CART_UPDATE = API_DOMAIN + '/cart/update';
 
 export const API_ORDER_LIST = API_DOMAIN + '/order/list';
+export const API_ORDER_CREATE = API_DOMAIN + '/order/create';
+export const API_ORDER_DETAIL = API_DOMAIN + '/order/detail';
+export const API_ORDER_REMOVE = API_DOMAIN + '/order/remove';
