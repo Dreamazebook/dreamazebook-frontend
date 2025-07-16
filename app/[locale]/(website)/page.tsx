@@ -8,6 +8,7 @@ import React from 'react';
 import InitialSpark from './components/home/InitialSpark';
 import OurBook from './components/home/OurBook';
 import SideLineProducts from './components/home/SideLineProducts';
+import HappinessHarvest from './components/home/HappinessHarvest';
 //import Link from 'next/link';
 
 export default function HomePage() {
@@ -108,6 +109,8 @@ export default function HomePage() {
       <OurBook />
 
       <SideLineProducts />
+
+      <HappinessHarvest />
 
       {/* Newsletter */}
       <section className="py-20 bg-black text-white">
