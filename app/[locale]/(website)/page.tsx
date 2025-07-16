@@ -9,6 +9,7 @@ import InitialSpark from './components/home/InitialSpark';
 import OurBook from './components/home/OurBook';
 import SideLineProducts from './components/home/SideLineProducts';
 import HappinessHarvest from './components/home/HappinessHarvest';
+import LastingMemorial from './components/home/LastingMemorial';
 //import Link from 'next/link';
 
 export default function HomePage() {
@@ -111,6 +112,8 @@ export default function HomePage() {
       <SideLineProducts />
 
       <HappinessHarvest />
+
+      <LastingMemorial />
 
       {/* Newsletter */}
       <section className="py-20 bg-black text-white">
