@@ -1,45 +1,46 @@
-import React from 'react';
+'use client';
+import React, { useEffect, useState } from 'react';
+import { OrderDetail } from '../../checkout/components/types';
+import { API_ORDER_LIST } from '@/constants/api';
+import { ApiResponse } from '@/types/api';
+import api from '@/utils/api';
+import Link from 'next/link';
 
 const OrderHistory = () => {
-  const orders = [
-    {
-      id: "#249334545652",
-      status: "已付款",
-      statusColor: "text-green-600",
-      shipTo: "Wuhou District, Chengdu City, Sichuan Province, China",
-      orderDate: "09/11/2024",
-      deliveryDate: "04/12/2024",
-      qty: 1,
-      price: "$59.99 USD",
-      image: "https://via.placeholder.com/80x80/f3f4f6/9ca3af?text=Product"
-    },
-    {
-      id: "#249334545652", 
-      status: "制作中",
-      statusColor: "text-orange-500",
-      shipTo: "Wuhou District, Chengdu City, Sichuan Province, China",
-      orderDate: "09/11/2024",
-      deliveryDate: null,
-      qty: 6,
-      price: "$59.99 USD",
-      images: [
-        "https://via.placeholder.com/80x80/f3f4f6/9ca3af?text=1",
-        "https://via.placeholder.com/80x80/f3f4f6/9ca3af?text=2"
-      ],
-      extraCount: "+6"
-    },
-    {
-      id: "#249348729398",
-      status: "已关闭", 
-      statusColor: "text-red-500",
-      shipTo: "Wuhou District, Chengdu City, Sichuan Province, China",
-      orderDate: "09/11/2024",
-      deliveryDate: null,
-      qty: 1,
-      price: "$59.99 USD",
-      image: "https://via.placeholder.com/80x80/f3f4f6/9ca3af?text=Product"
+  const [orders, setOrders] = useState<OrderDetail[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const {data,success,code,message} = await api.get<ApiResponse<OrderDetail[]>>(API_ORDER_LIST);
+        // Transform API response to match expected format
+        if (!data) return;
+        setOrders(data);
+      } catch (err) {
+        setError('Failed to load orders. Please try again later.');
+        console.error('Error fetching orders:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  const getStatusColor = (status: string) => {
+    switch(status) {
+      case 'paid': return 'text-green-600';
+      case 'processing': return 'text-orange-500';
+      case 'cancelled': return 'text-red-500';
+      default: return 'text-gray-500';
     }
-  ];
+  };
+
+  if (loading) return <div className="text-center py-8">Loading orders...</div>;
+  if (error) return <div className="text-center py-8 text-red-500">{error}</div>;
+  if (orders.length === 0) return <div className="text-center py-8">No orders found</div>;
 
   return (
     <div className="bg-white min-h-screen">
@@ -81,7 +82,7 @@ const OrderHistory = () => {
             <div key={index} className="flex gap-4 py-4">
               {/* Product Images */}
               <div className="flex-shrink-0">
-                {order.images ? (
+                {/* {order.images ? (
                   <div className="relative">
                     <img
                       src={order.images[0]}
@@ -103,7 +104,7 @@ const OrderHistory = () => {
                     alt="Product"
                     className="w-20 h-20 object-cover"
                   />
-                )}
+                )} */}
               </div>
 
               {/* Order Details */}
@@ -115,24 +116,24 @@ const OrderHistory = () => {
                       <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
                       <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
                     </svg>
-                    <span className={`${order.statusColor} font-medium`}>{order.status}</span>
+                    <span className={`${getStatusColor(order.status)} font-medium`}>{order.status}</span>
                   </div>
-                  <span className="text-lg font-semibold text-gray-900">{order.price}</span>
+                  <span className="text-lg font-semibold text-gray-900">{order.total_amount}</span>
                 </div>
 
                 <div className="text-sm text-gray-600 mb-1">
-                  <span className="text-gray-900">Ship to:</span> {order.shipTo}
+                  <span className="text-gray-900">Ship to:</span> Wuhou District, Chengdu City, Sichuan Province, China
                 </div>
 
                 <div className="flex gap-8 text-sm text-gray-600 mb-1">
-                  <span><span className="text-gray-900">Order date:</span> {order.orderDate}</span>
-                  {order.deliveryDate && (
-                    <span><span className="text-gray-900">Delivery date:</span> {order.deliveryDate}</span>
+                  <span><span className="text-gray-900">Order date:</span> {order.created_at}</span>
+                  {order.updated_at && (
+                    <span><span className="text-gray-900">Delivery date:</span> {order.updated_at}</span>
                   )}
                 </div>
 
                 <div className="text-sm text-gray-600 mb-4">
-                  <span className="text-gray-900">Qty:</span> {order.qty}
+                  <span className="text-gray-900">Qty:</span> 2
                 </div>
 
                 <div className="flex gap-6">
@@ -142,12 +143,12 @@ const OrderHistory = () => {
                   <button className="text-blue-600 hover:underline text-sm">
                     Buy the Same
                   </button>
-                  <button className="text-blue-600 hover:underline text-sm flex items-center gap-1">
+                  <Link href={`/checkout?orderId=${order.id}`} className="text-blue-600 hover:underline text-sm flex items-center gap-1">
                     More Details
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
