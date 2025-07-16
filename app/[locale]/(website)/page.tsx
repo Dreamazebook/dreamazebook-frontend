@@ -10,6 +10,7 @@ import OurBook from './components/home/OurBook';
 import SideLineProducts from './components/home/SideLineProducts';
 import HappinessHarvest from './components/home/HappinessHarvest';
 import LastingMemorial from './components/home/LastingMemorial';
+import Slideshow from './components/home/SlideShow';
 //import Link from 'next/link';
 
 export default function HomePage() {
@@ -83,27 +84,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative h-[80vh] min-h-[500px] w-full">
-        <div className="absolute inset-0 bg-black/50 z-10 flex items-center">
-          <div className="container mx-auto px-6 text-white">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">{t('heroTitle')}</h1>
-            <p className="text-xl md:text-2xl mb-8 max-w-2xl">{t('heroSubtitle')}</p>
-            <Button 
-              url="/books" 
-              className="px-8 py-3 text-lg"
-              tl={t('heroCta')}
-            />
-          </div>
-        </div>
-        <Image
-          src="/home-page/hero-bg.jpg"
-          alt={t('heroAlt')}
-          fill
-          className="object-cover"
-          priority
-        />
-      </section>
+      <Slideshow />
 
       <InitialSpark />
 
