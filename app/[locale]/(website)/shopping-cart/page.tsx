@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
-import { API_CART_LIST } from '@/constants/api';
+import { API_CART_LIST, API_CART_REMOVE } from '@/constants/api';
 import { CartItem, CartItems } from './components/types';
 
 // 导入组件
@@ -57,10 +57,16 @@ export default function ShoppingCartPage() {
   };
 
   // 移除主商品及其附加项
-  const handleRemoveItem = (id: number) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
-    // 同时若已在选中列表中，也要移除
-    setSelectedItems(prev => prev.filter(itemId => itemId !== id));
+  const handleRemoveItem = async (id: number) => {
+    const {code,success,message,data} = await api.delete<ApiResponse>(`${API_CART_REMOVE}/${id}`);
+    if (success) {
+      // 移除主商品
+      setCartItems(prev => prev.filter(item => item.id !== id));
+      // 同时若已在选中列表中，也要移除
+      // setSelectedItems(prev => prev.filter(itemId => itemId !== id));
+    } else {
+      alert(message);
+    }
   };
 
   const handleEditBook = (id: number) => {
