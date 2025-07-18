@@ -74,7 +74,7 @@ const Header = () => {
       </nav>
       <div className="flex items-center space-x-4">
         <button className="text-2xl">🔍 {/* Search Icon */}</button>
-        <button className="text-2xl">🛒 {/* Cart Icon */}</button>
+        <Link href={"/shopping-cart"} className="text-2xl">🛒 {/* Cart Icon */}</Link>
         <Image src={'/header/profile.svg'} alt="Profile" width={28} height={28} className="cursor-pointer" onClick={toggleLoginModal} />
       </div>
     </header>
