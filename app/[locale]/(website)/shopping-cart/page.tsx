@@ -55,6 +55,33 @@ export default function ShoppingCartPage() {
   };
 
   // 移除主商品及其附加项
+  const handleQuantityChange = async (id: number, delta: number) => {
+    try {
+      // 先更新本地状态
+      setCartItems(prev => prev.map(item => 
+        item.id === id 
+          ? {...item, quantity: Math.max(1, (item.quantity || 1) + delta)} 
+          : item
+      ));
+      
+      // 调用API更新服务器
+      const {success} = await api.put<ApiResponse>(`${API_CART_REMOVE}/${id}`, {
+        quantity: Math.max(1, (cartItems.find(item => item.id === id)?.quantity || 1) + delta)
+      });
+      
+      if (!success) {
+        // 如果API失败，回滚本地状态
+        setCartItems(prev => prev.map(item => 
+          item.id === id 
+            ? {...item, quantity: Math.max(1, (item.quantity || 1) - delta)} 
+            : item
+        ));
+      }
+    } catch (err) {
+      console.error('Failed to update quantity:', err);
+    }
+  };
+
   const handleRemoveItem = async (id: number) => {
     const {code,success,message,data} = await api.delete<ApiResponse>(`${API_CART_REMOVE}/${id}`);
     if (success) {
@@ -84,7 +111,7 @@ export default function ShoppingCartPage() {
   // 示例计算价格：仅计算选中的书（含其子项目）
   const subtotal = cartItems.reduce((acc, item) => {
     if (!selectedItems.includes(item.id)) return acc; // 未选中则跳过
-    let sum = item.price;
+    let sum = item.price * (item.quantity || 1);
     if (item.subItems) {
       sum += item.subItems.reduce((subAcc, sub) => subAcc + sub.price, 0);
     }
