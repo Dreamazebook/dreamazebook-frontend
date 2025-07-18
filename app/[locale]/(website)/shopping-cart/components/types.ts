@@ -12,6 +12,7 @@ export interface CartItem {
   description?: string;  // 额外描述，比如 "a festive gift box"
   price: number;
   quantity: number;
+  total_price: number;
   subItems?: CartSubItem[]; // 附加项目
 }
 
