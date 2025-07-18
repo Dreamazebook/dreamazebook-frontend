@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
-import { API_CART_LIST, API_CART_REMOVE, API_CART_UPDATE } from '@/constants/api';
+import { API_CART_LIST, API_CART_REMOVE, API_CART_UPDATE, API_ORDER_CREATE } from '@/constants/api';
 import { CartItem, CartItems } from './components/types';
 
 // 导入组件
@@ -101,12 +101,20 @@ export default function ShoppingCartPage() {
 
   // 结算时，仅包含已选中的商品
   const handleCheckout = async () => {
-    const itemsToCheckout = cartItems.filter(item => selectedItems.includes(item.id));
-    if (itemsToCheckout.length === 0) {
+    // const itemsToCheckout = cartItems.filter(item => selectedItems.includes(item.id));
+    if (selectedItems.length === 0) {
       alert(t('noItemsSelected'));
       return;
     }
-    router.push('/checkout');
+    const {success,message,code,data} = await api.post<ApiResponse>(API_ORDER_CREATE, {
+      cart_item_ids: selectedItems,
+      payment_method:'stripe'
+    });
+    if (success) {
+      router.push(`/checkout?orderId=${data.order.id}`);
+    } else {
+      alert(message);
+    }
   };
 
   // 示例计算价格：仅计算选中的书（含其子项目）
@@ -198,7 +206,7 @@ export default function ShoppingCartPage() {
                 <button
                   onClick={handleCheckout}
                   disabled={selectedItems.length === 0}
-                  className="w-full py-3 bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-400"
+                  className="w-full py-3 cursor-pointer bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-400"
                 >
                   {t('checkout')}
                 </button>
