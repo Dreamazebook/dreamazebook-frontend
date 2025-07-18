@@ -11,8 +11,6 @@ import { CartItem, CartItems } from './components/types';
 
 // 导入组件
 import CartHeader from './components/CartHeader';
-import CartItemList from './components/CartItemList';
-import CartSummary from './components/CartSummary';
 import CouponInput from './components/CouponInput';
 
 export default function ShoppingCartPage() {
