@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/utils/api';
 import { API_ADDRESS_LIST, API_ORDER_DETAIL } from '@/constants/api';
+import { Address } from '@/types/address';
 import CheckoutStep from './components/CheckoutStep';
 import ShippingForm from './components/ShippingForm';
 import BillingAddressForm from './components/BillingAddressForm';
@@ -23,6 +24,10 @@ export default function CheckoutPage() {
   // Loading and error states
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Address list state
+  const [addressList, setAddressList] = useState<Address[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
 
   // Step visibility state
   const [openStep, setOpenStep] = useState<number>(1);
@@ -86,6 +91,29 @@ export default function CheckoutPage() {
       fetchOrderDetails();
     }
   }, [orderId]);
+
+  // Fetch user addresses when component mounts
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        setIsLoading(true);
+        const {data, success, message} = await api.get<ApiResponse>(API_ADDRESS_LIST);
+        if (success && data) {
+          setAddressList(data);
+          // If there are addresses, select the first one by default
+          if (data.length > 0) {
+            setSelectedAddressId(data[0].id);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching addresses:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAddresses();
+  }, []);
 
   // Toggle step visibility
   const toggleStep = (stepNumber: number) => {
@@ -214,6 +242,9 @@ export default function CheckoutPage() {
                 needsBillingAddress={needsBillingAddress}
                 setNeedsBillingAddress={setNeedsBillingAddress}
                 handleNextFromShipping={handleNextFromShipping}
+                addressList={addressList}
+                selectedAddressId={selectedAddressId}
+                setSelectedAddressId={setSelectedAddressId}
               />
               
               {needsBillingAddress && (
