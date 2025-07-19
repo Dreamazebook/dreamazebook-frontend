@@ -1,85 +1,88 @@
-# DreamazeBook Frontend
+# DreamazeBook - 多语言电子书平台
 
 ## 项目概述
-DreamazeBook是一个基于Next.js的现代化前端应用，提供多语言支持、支付系统和实时通信功能。
+DreamazeBook 是一个基于 Next.js 的多语言电子书平台，提供书籍浏览、购买、个性化阅读体验等功能。支持国际化、实时通信和支付集成。
 
 ## 技术栈
-- **框架**: Next.js 15.3.0 (with Turbopack)
+- **框架**: Next.js 15.3 + React 19
 - **UI组件库**: 
-  - Material-UI (MUI) 6.4.6
-  - Ant Design 5.24.0
-- **状态管理**: Zustand 5.0.3
-- **国际化**: next-intl 3.26.3
-- **支付系统**: Stripe
-- **实时通信**: Pusher/Socket.io
-- **动画**: Framer Motion 12.4.3
-- **样式**: TailwindCSS + PostCSS
-- **类型检查**: TypeScript
+  - Material-UI (MUI)
+  - Ant Design
+  - Heroicons
+- **状态管理**: Zustand
+- **国际化**: next-intl
+- **支付**: Stripe
+- **实时通信**: 
+  - Pusher
+  - Socket.io
+- **动画**: Framer Motion
+- **日期处理**: 
+  - date-fns
+  - MUI Date Pickers
+- **样式**: 
+  - TailwindCSS
+  - Emotion
+- **工具库**: 
+  - Axios
+  - React Hot Toast
+
+## 项目结构
+```
+dreamazebook-frontend/
+├── app/                  # Next.js 应用路由
+│   ├── [locale]/         # 国际化路由
+│   │   ├── (marketing)/  # 营销页面
+│   │   ├── (website)/    # 主站功能
+│   │   │   ├── books/    # 书籍相关
+│   │   │   ├── checkout/ # 结账流程
+│   │   │   ├── shopping-cart/ # 购物车
+│   │   │   └── ...       # 其他功能模块
+│   ├── api/              # API路由
+│   └── config/          # 应用配置
+├── components/           # 公共组件(当前为空)
+├── stores/               # 状态管理
+│   └── userStore.ts      # 用户状态管理
+├── utils/                # 工具函数
+│   ├── api.js            # API请求
+│   ├── auth.js           # 认证工具
+│   └── ...               # 其他工具
+├── public/               # 静态资源
+└── ...                   # 其他配置文件
+```
 
 ## 核心功能
-- 多语言国际化支持
-- Stripe支付集成
-- 实时通信功能
-- 管理后台系统
-- 响应式UI设计
+1. **多语言支持** - 通过[locale]路由和next-intl实现
+2. **用户认证** - 登录/注册/密码重置功能
+3. **电商功能**:
+   - 书籍浏览与选择
+   - 购物车管理
+   - 结账流程
+   - 订单摘要
+4. **个性化阅读**:
+   - 书籍内容选择
+   - 阅读偏好设置
+5. **实时通信** - 通过Pusher和Socket.io实现
+6. **分析与追踪** - 用户行为追踪
 
-## 目录结构
-```
-├── app/                  # Next.js App Router
-│   ├── [locale]/         # 国际化路由
-│   ├── api/              # API路由
-│   ├── components/       # 公共组件
-│   └── config/           # 应用配置
-├── constants/            # 常量定义
-├── i18n/                 # 国际化配置
-├── messages/             # 翻译文件
-├── public/               # 静态资源
-└── ...
-
-## 开发指南
-
-### 环境准备
-1. Node.js 18+
-2. Yarn或npm
-
-### 安装依赖
+## 如何运行
+1. 安装依赖:
 ```bash
 npm install
-# 或
-yarn
 ```
 
-### 运行开发服务器
+2. 配置环境变量:
+复制`.env.example`为`.env`并填写必要配置
+
+3. 开发模式:
 ```bash
 npm run dev
-# 或
-yarn dev
 ```
 
-### 构建生产版本
+4. 生产构建:
 ```bash
 npm run build
-# 或
-yarn build
+npm start
 ```
-
-### 代码检查
-```bash
-npm run lint
-# 或
-yarn lint
-```
-
-## 部署指南
-项目支持Vercel等Next.js兼容平台部署。确保配置以下环境变量：
-- `NEXT_PUBLIC_STRIPE_PUBLIC_KEY`: Stripe公钥
-- `STRIPE_SECRET_KEY`: Stripe私钥
-- `PUSHER_APP_KEY`: Pusher应用密钥
-- `NEXT_PUBLIC_LOCALES`: 支持的语言列表
 
 ## 贡献指南
-1. Fork项目
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 打开Pull Request
+欢迎提交Pull Request。请确保代码风格一致并通过所有测试。
