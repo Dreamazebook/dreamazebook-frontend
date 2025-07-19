@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ShippingErrors } from './types';
+import { Address } from '@/types/address';
 
 interface ShippingFormProps {
   email: string;
@@ -14,8 +15,10 @@ interface ShippingFormProps {
   setAddress: (value: string) => void;
   city: string;
   setCity: (value: string) => void;
-  zip: string;
-  setZip: (value: string) => void;
+  postalcode: string;
+  setPostalcode: (value: string) => void;
+  phone:string;
+  setPhone: (value: string) => void;
   country: string;
   setCountry: (value: string) => void;
   state: string;
@@ -25,6 +28,9 @@ interface ShippingFormProps {
   needsBillingAddress: boolean;
   setNeedsBillingAddress: (value: boolean) => void;
   handleNextFromShipping: () => void;
+  addressList: Address[];
+  selectedAddressId: string | null;
+  setSelectedAddressId: (id: string | null) => void;
 }
 
 const ShippingForm: React.FC<ShippingFormProps> = ({
@@ -38,18 +44,43 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   setAddress,
   city,
   setCity,
-  zip,
-  setZip,
+  postalcode,
+  setPostalcode,
   country,
   setCountry,
   state,
   setState,
+  phone,
+  setPhone,
   errors,
   setErrors,
   needsBillingAddress,
   setNeedsBillingAddress,
-  handleNextFromShipping
+  handleNextFromShipping,
+  addressList,
+  selectedAddressId,
+  setSelectedAddressId
 }) => {
+  
+  // 当选择已保存的地址时，自动填充表单字段
+  useEffect(() => {
+    console.log(addressList);
+    if (selectedAddressId) {
+      const selectedAddress = addressList.find(addr => addr.id === selectedAddressId);
+      if (selectedAddress) {
+        // 填充表单字段
+        if (selectedAddress.email) setEmail(selectedAddress.email);
+        if (selectedAddress.first_name) setFirstName(selectedAddress.first_name);
+        if (selectedAddress.last_name) setLastName(selectedAddress.last_name);
+        if (selectedAddress.street) setAddress(selectedAddress.street);
+        if (selectedAddress.city) setCity(selectedAddress.city);
+        if (selectedAddress.postal_code) setPostalcode(selectedAddress.postal_code);
+        if (selectedAddress.country) setCountry(selectedAddress.country);
+        if (selectedAddress.state) setState(selectedAddress.state);
+        if (selectedAddress.phone) setPhone(selectedAddress.phone);
+      }
+    }
+  }, [selectedAddressId, addressList]);
   const clearError = (field: keyof ShippingErrors) => {
     if (errors[field]) {
       setErrors({ ...errors, [field]: undefined });
@@ -58,6 +89,66 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
 
   return (
     <div>
+      {/* 地址选择部分 */}
+      {addressList.length > 0 && (
+        <div className="mb-6 p-4 border border-gray-200 rounded-md bg-gray-50">
+          <h3 className="text-lg font-medium mb-3">选择送货地址</h3>
+          <div className="flex flex-col gap-3">
+            {/* 已保存地址列表 */}
+            {addressList.map((addr) => (
+              <div 
+                key={addr.id}
+                className={`p-3 border rounded-md cursor-pointer ${
+                  selectedAddressId === addr.id 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-300 hover:border-gray-400'
+                }`}
+                onClick={() => setSelectedAddressId(addr.id)}
+              >
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    checked={selectedAddressId === addr.id}
+                    onChange={() => setSelectedAddressId(addr.id)}
+                    className="mr-2"
+                  />
+                  <div>
+                    <p className="font-medium">
+                      {addr.first_name} {addr.last_name}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {addr.street}, {addr.city}, {addr.state} {addr.postal_code}
+                    </p>
+                    <p className="text-sm text-gray-600">{addr.country}</p>
+                    <p className="text-sm text-gray-600">{addr.phone}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {/* 使用新地址选项 */}
+            <div 
+              className={`p-3 border rounded-md cursor-pointer ${
+                selectedAddressId === null 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-300 hover:border-gray-400'
+              }`}
+              onClick={() => setSelectedAddressId(null)}
+            >
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  checked={selectedAddressId === null}
+                  onChange={() => setSelectedAddressId(null)}
+                  className="mr-2"
+                />
+                <p className="font-medium">使用新地址</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mb-4">
         <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
         <input
@@ -135,18 +226,18 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
           {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
         </div>
         <div>
-          <label htmlFor="zip" className="block text-sm font-medium text-gray-700 mb-1">ZIP / Postal Code</label>
+          <label htmlFor="postalcode" className="block text-sm font-medium text-gray-700 mb-1">postalcode / Postal Code</label>
           <input
             type="text"
-            id="zip"
-            className={`w-full p-2 border rounded-md ${errors.zip ? 'border-red-500' : 'border-gray-300'}`}
-            value={zip}
+            id="postalcode"
+            className={`w-full p-2 border rounded-md ${errors.postalcode ? 'border-red-500' : 'border-gray-300'}`}
+            value={postalcode}
             onChange={(e) => {
-              setZip(e.target.value);
-              clearError('zip');
+              setPostalcode(e.target.value);
+              clearError('postalcode');
             }}
           />
-          {errors.zip && <p className="text-red-500 text-sm mt-1">{errors.zip}</p>}
+          {errors.postalcode && <p className="text-red-500 text-sm mt-1">{errors.postalcode}</p>}
         </div>
       </div>
 
@@ -184,6 +275,21 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
           />
           {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number(optional)</label>
+        <input
+          type="text"
+          id="phone"
+          className={`w-full p-2 border rounded-md ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
+          value={phone}
+          onChange={(e) => {
+            setPhone(e.target.value);
+            clearError('phone');
+          }}
+        />
+        {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
       </div>
 
       <div className="mb-4">

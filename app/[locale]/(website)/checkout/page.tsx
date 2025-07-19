@@ -1,38 +1,33 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import api from '@/utils/api';
+import { API_ADDRESS_LIST, API_ORDER_DETAIL } from '@/constants/api';
+import { Address } from '@/types/address';
 import CheckoutStep from './components/CheckoutStep';
 import ShippingForm from './components/ShippingForm';
 import BillingAddressForm from './components/BillingAddressForm';
 import DeliveryOptions from './components/DeliveryOptions';
 import ReviewAndPay from './components/ReviewAndPay';
 import OrderSummary from './components/OrderSummary';
-import { CartItem, ShippingErrors, BillingErrors, DeliveryOption, PaymentOption } from './components/types';
+import { CartItem, ShippingErrors, BillingErrors, DeliveryOption, PaymentOption, OrderDetail } from './components/types';
+import { ApiResponse } from '@/types/api';
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get('orderId');
 
-  // Mock cart items
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 1,
-      name: "The Dream Maze",
-      format: "Hardcover",
-      box: "Special Edition Box",
-      image: "/images/book-cover.jpg",
-      price: 29.99,
-      quantity: 1
-    },
-    {
-      id: 2,
-      name: "The Dream Maze",
-      format: "E-book",
-      image: "/images/ebook-cover.jpg",
-      price: 14.99,
-      quantity: 1
-    }
-  ]);
+  const [orderDetail, setOrderDetail] = useState<OrderDetail>();
+
+  // Loading and error states
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Address list state
+  const [addressList, setAddressList] = useState<Address[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
 
   // Step visibility state
   const [openStep, setOpenStep] = useState<number>(1);
@@ -44,9 +39,10 @@ export default function CheckoutPage() {
   const [lastName, setLastName] = useState<string>('');
   const [address, setAddress] = useState<string>('');
   const [city, setCity] = useState<string>('');
-  const [zip, setZip] = useState<string>('');
+  const [postalcode, setPostalcode] = useState<string>('');
   const [country, setCountry] = useState<string>('');
   const [state, setState] = useState<string>('');
+  const [phone, setPhone] = useState<string>('');
   const [errors, setErrors] = useState<ShippingErrors>({});
 
   // Billing address state
@@ -71,6 +67,54 @@ export default function CheckoutPage() {
   const [cardExpiry, setCardExpiry] = useState<string>('');
   const [cardCvc, setCardCvc] = useState<string>('');
 
+  // Fetch order details if orderId is present
+  useEffect(() => {
+    if (orderId) {
+      const fetchOrderDetails = async () => {
+        setIsLoading(true);
+        setError(null);
+        
+        try {
+          const {data,code,message,success} = await api.get<ApiResponse<OrderDetail>>(`${API_ORDER_DETAIL}/${orderId}`);
+          // Transform order items to cart items format
+          if (!data?.items) return;
+          setOrderDetail(data);
+          
+        } catch (err) {
+          setError('Failed to load order details');
+          console.error('Error fetching order details:', err);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchOrderDetails();
+    }
+  }, [orderId]);
+
+  // Fetch user addresses when component mounts
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        setIsLoading(true);
+        const {data, success, message} = await api.get<ApiResponse>(API_ADDRESS_LIST);
+        if (success && data) {
+          setAddressList(data);
+          // If there are addresses, select the first one by default
+          if (data.length > 0) {
+            setSelectedAddressId(data[0].id);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching addresses:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAddresses();
+  }, []);
+
   // Toggle step visibility
   const toggleStep = (stepNumber: number) => {
     if (openStep === stepNumber) {
@@ -94,7 +138,7 @@ export default function CheckoutPage() {
     if (!lastName) newErrors.lastName = "Last name is required";
     if (!address) newErrors.address = "Address is required";
     if (!city) newErrors.city = "City is required";
-    if (!zip) newErrors.zip = "ZIP code is required";
+    if (!postalcode) newErrors.postalcode = "Postal code is required";
     if (!country) newErrors.country = "Country is required";
     if (!state) newErrors.state = "State is required";
     
@@ -120,10 +164,25 @@ export default function CheckoutPage() {
   };
 
   // Handle next from shipping step
-  const handleNextFromShipping = () => {
+  const handleNextFromShipping = async() => {
     if (validateShippingInfo() && validateBillingInfo()) {
-      setCompletedSteps([...completedSteps, 1]);
-      setOpenStep(2);
+      const {success,code,message,data} = await api.post<ApiResponse>(API_ADDRESS_LIST, {
+        email,
+        first_name:firstName,
+        last_name:lastName,
+        street:address,
+        city,
+        postal_code:postalcode,
+        country,
+        state,
+        phone
+      });
+      if (success) {
+        setCompletedSteps([...completedSteps, 1]);
+        setOpenStep(2);
+      } else {
+        alert(message);
+      }
     }
   };
 
@@ -144,6 +203,9 @@ export default function CheckoutPage() {
     <div className="bg-gray-100 min-h-screen py-8">
       <div className="container mx-auto px-4">
         <h1 className="text-2xl font-bold mb-8 text-center">Checkout</h1>
+        
+        {isLoading && <div className="text-center py-4">Loading order details...</div>}
+        {error && <div className="text-center text-red-500 py-4">{error}</div>}
         
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="lg:w-2/3">
@@ -167,10 +229,12 @@ export default function CheckoutPage() {
                 setAddress={setAddress}
                 city={city}
                 setCity={setCity}
-                zip={zip}
-                setZip={setZip}
+                postalcode={postalcode}
+                setPostalcode={setPostalcode}
                 country={country}
                 setCountry={setCountry}
+                phone={phone}
+                setPhone={setPhone}
                 state={state}
                 setState={setState}
                 errors={errors}
@@ -178,6 +242,9 @@ export default function CheckoutPage() {
                 needsBillingAddress={needsBillingAddress}
                 setNeedsBillingAddress={setNeedsBillingAddress}
                 handleNextFromShipping={handleNextFromShipping}
+                addressList={addressList}
+                selectedAddressId={selectedAddressId}
+                setSelectedAddressId={setSelectedAddressId}
               />
               
               {needsBillingAddress && (
@@ -248,7 +315,7 @@ export default function CheckoutPage() {
           {/* Right column - Order summary */}
           <div className="lg:w-1/3">
             <OrderSummary
-              cartItems={cartItems}
+              orderDetail={orderDetail}
               selectedDeliveryOption={selectedDeliveryOption}
             />
           </div>

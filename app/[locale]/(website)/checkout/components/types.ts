@@ -1,3 +1,30 @@
+export interface OrderDetail {
+  id: number;
+  user_id: number;
+  order_number: string;
+  total_amount: number;
+  currency_code: string;
+  status: string;
+  payment_status: string;
+  payment_method: string | null;
+  payment_id: string | null;
+  shipping_address: string | null;
+  billing_address: string | null;
+  shipping_method: string;
+  shipping_cost: number;
+  tax_amount: number;
+  discount_amount: number;
+  coupon_code: string;
+  notes: string;
+  paid_at: string | null;
+  completed_at: string | null;
+  cancelled_at: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  items:CartItem[]
+}
+
 export interface CartItem {
   id: number;
   name: string;
@@ -14,9 +41,10 @@ export interface ShippingErrors {
   lastName?: string;
   address?: string;
   city?: string;
-  zip?: string;
+  postalcode?: string;
   country?: string;
   state?: string;
+  phone?: string;
 }
 
 export interface BillingErrors {
