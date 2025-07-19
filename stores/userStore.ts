@@ -13,8 +13,8 @@ interface UserState {
   // User state
   user: UserType | null
   isLoggedIn: boolean
-  login: (userData: LoginData) => void
-  register: (userData: RegisterData) => void
+  login: (userData: LoginData) => Promise<ApiResponse<UserResponse> | null>
+  register: (userData: RegisterData) => Promise<ApiResponse<UserResponse> | null>
   logout: () => void
   fetchCurrentUser: () => void
   sendResetPasswordLink: (email: string) => Promise<boolean>
@@ -57,7 +57,7 @@ const useUserStore = create<UserState>((set) => ({
       return false;
     }
   },
-  register: async (userData) => {
+  register: async (userData): Promise<ApiResponse<UserResponse> | null> => {
     try {
       const response = await api.post<ApiResponse<UserResponse>>(API_USER_REGISTER, userData);
       if (response.success && response.data?.token) {
@@ -67,9 +67,10 @@ const useUserStore = create<UserState>((set) => ({
       return response;
     } catch (error) {
       console.error('Registration error:', error);
+      return null;
     }
   },
-  login: async (userData) => {
+  login: async (userData): Promise<ApiResponse<UserResponse> | null> => {
     try {
       const response = await api.post<ApiResponse<UserResponse>>(API_USER_LOGIN, userData);
       if (response.success && response.data?.token) {
@@ -79,6 +80,7 @@ const useUserStore = create<UserState>((set) => ({
       return response;
     } catch (error) {
       console.error('Login error:', error);
+      return null;
     }
   },
   logout: () => {

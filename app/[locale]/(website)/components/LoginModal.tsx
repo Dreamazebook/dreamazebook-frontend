@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import useUserStore from '@/stores/userStore'
 import Button from '@/app/components/Button'
 
@@ -11,6 +12,8 @@ export default function LoginModal() {
   const [mode, setMode] = useState('login');
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,17 +35,32 @@ export default function LoginModal() {
       email, password
     }
     if (mode === 'login') {
-      login(userData);
+      const response = await login(userData);
+      if (response?.success) {
+        closeLoginModal();
+        // 检查是否有重定向URL参数
+        const redirectUrl = searchParams.get('redirect');
+        if (redirectUrl) {
+          router.push(redirectUrl);
+        }
+      }
     } else {
-      register({
+      const response = await register({
         name: 'User',
         email,
         password,
         password_confirmation: password
-      })
+      });
+      if (response?.success) {
+        closeLoginModal();
+        // 检查是否有重定向URL参数
+        const redirectUrl = searchParams.get('redirect');
+        if (redirectUrl) {
+          router.push(redirectUrl);
+        }
+      }
     }
     setLoading(false);
-    closeLoginModal()
   }
   
   if (!isLoginModalOpen) return null
