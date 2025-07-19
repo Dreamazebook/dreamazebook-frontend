@@ -96,9 +96,9 @@ const useUserStore = create<UserState>((set) => ({
     }
     
     try {
-      const response = await api.get<ApiResponse<UserResponse>>(API_USER_CURRENT);
-      if (response.success && response.data?.user) {
-        set({ user: response.data.user, isLoggedIn: true });
+      const response = await api.get<ApiResponse>(API_USER_CURRENT);
+      if (response.success && response.data) {
+        set({ user: response.data, isLoggedIn: true });
       }
       return response;
     } catch (error) {
