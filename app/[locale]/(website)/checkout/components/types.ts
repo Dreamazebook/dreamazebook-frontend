@@ -41,9 +41,10 @@ export interface ShippingErrors {
   lastName?: string;
   address?: string;
   city?: string;
-  zip?: string;
+  postalcode?: string;
   country?: string;
   state?: string;
+  phone?: string;
 }
 
 export interface BillingErrors {

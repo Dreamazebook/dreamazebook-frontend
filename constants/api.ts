@@ -17,3 +17,5 @@ export const API_ORDER_LIST = API_DOMAIN + '/order/list';
 export const API_ORDER_CREATE = API_DOMAIN + '/order/create';
 export const API_ORDER_DETAIL = API_DOMAIN + '/order/detail';
 export const API_ORDER_REMOVE = API_DOMAIN + '/order/remove';
+
+export const API_ADDRESS_LIST = API_DOMAIN + '/addresses';

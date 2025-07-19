@@ -14,8 +14,10 @@ interface ShippingFormProps {
   setAddress: (value: string) => void;
   city: string;
   setCity: (value: string) => void;
-  zip: string;
-  setZip: (value: string) => void;
+  postalcode: string;
+  setPostalcode: (value: string) => void;
+  phone:string;
+  setPhone: (value: string) => void;
   country: string;
   setCountry: (value: string) => void;
   state: string;
@@ -38,12 +40,14 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   setAddress,
   city,
   setCity,
-  zip,
-  setZip,
+  postalcode,
+  setPostalcode,
   country,
   setCountry,
   state,
   setState,
+  phone,
+  setPhone,
   errors,
   setErrors,
   needsBillingAddress,
@@ -135,18 +139,18 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
           {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
         </div>
         <div>
-          <label htmlFor="zip" className="block text-sm font-medium text-gray-700 mb-1">ZIP / Postal Code</label>
+          <label htmlFor="postalcode" className="block text-sm font-medium text-gray-700 mb-1">postalcode / Postal Code</label>
           <input
             type="text"
-            id="zip"
-            className={`w-full p-2 border rounded-md ${errors.zip ? 'border-red-500' : 'border-gray-300'}`}
-            value={zip}
+            id="postalcode"
+            className={`w-full p-2 border rounded-md ${errors.postalcode ? 'border-red-500' : 'border-gray-300'}`}
+            value={postalcode}
             onChange={(e) => {
-              setZip(e.target.value);
-              clearError('zip');
+              setPostalcode(e.target.value);
+              clearError('postalcode');
             }}
           />
-          {errors.zip && <p className="text-red-500 text-sm mt-1">{errors.zip}</p>}
+          {errors.postalcode && <p className="text-red-500 text-sm mt-1">{errors.postalcode}</p>}
         </div>
       </div>
 
@@ -184,6 +188,21 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
           />
           {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number(optional)</label>
+        <input
+          type="text"
+          id="phone"
+          className={`w-full p-2 border rounded-md ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
+          value={phone}
+          onChange={(e) => {
+            setPhone(e.target.value);
+            clearError('phone');
+          }}
+        />
+        {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
       </div>
 
       <div className="mb-4">

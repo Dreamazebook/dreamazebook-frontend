@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/utils/api';
-import { API_ORDER_DETAIL } from '@/constants/api';
+import { API_ADDRESS_LIST, API_ORDER_DETAIL } from '@/constants/api';
 import CheckoutStep from './components/CheckoutStep';
 import ShippingForm from './components/ShippingForm';
 import BillingAddressForm from './components/BillingAddressForm';
@@ -34,9 +34,10 @@ export default function CheckoutPage() {
   const [lastName, setLastName] = useState<string>('');
   const [address, setAddress] = useState<string>('');
   const [city, setCity] = useState<string>('');
-  const [zip, setZip] = useState<string>('');
+  const [postalcode, setPostalcode] = useState<string>('');
   const [country, setCountry] = useState<string>('');
   const [state, setState] = useState<string>('');
+  const [phone, setPhone] = useState<string>('');
   const [errors, setErrors] = useState<ShippingErrors>({});
 
   // Billing address state
@@ -109,7 +110,7 @@ export default function CheckoutPage() {
     if (!lastName) newErrors.lastName = "Last name is required";
     if (!address) newErrors.address = "Address is required";
     if (!city) newErrors.city = "City is required";
-    if (!zip) newErrors.zip = "ZIP code is required";
+    if (!postalcode) newErrors.postalcode = "Postal code is required";
     if (!country) newErrors.country = "Country is required";
     if (!state) newErrors.state = "State is required";
     
@@ -135,10 +136,25 @@ export default function CheckoutPage() {
   };
 
   // Handle next from shipping step
-  const handleNextFromShipping = () => {
+  const handleNextFromShipping = async() => {
     if (validateShippingInfo() && validateBillingInfo()) {
-      setCompletedSteps([...completedSteps, 1]);
-      setOpenStep(2);
+      const {success,code,message,data} = await api.post<ApiResponse>(API_ADDRESS_LIST, {
+        email,
+        first_name:firstName,
+        last_name:lastName,
+        street:address,
+        city,
+        postal_code:postalcode,
+        country,
+        state,
+        phone
+      });
+      if (success) {
+        setCompletedSteps([...completedSteps, 1]);
+        setOpenStep(2);
+      } else {
+        alert(message);
+      }
     }
   };
 
@@ -185,10 +201,12 @@ export default function CheckoutPage() {
                 setAddress={setAddress}
                 city={city}
                 setCity={setCity}
-                zip={zip}
-                setZip={setZip}
+                postalcode={postalcode}
+                setPostalcode={setPostalcode}
                 country={country}
                 setCountry={setCountry}
+                phone={phone}
+                setPhone={setPhone}
                 state={state}
                 setState={setState}
                 errors={errors}
