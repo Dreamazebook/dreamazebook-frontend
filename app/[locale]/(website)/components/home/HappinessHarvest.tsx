@@ -31,9 +31,9 @@ export default function HappinessHarvest() {
           {/* Review Section */}
           <div className="max-w-sm">
             <div className="text-base leading-relaxed text-gray-700 mb-6">
-              "My mom said it was the best gift she had ever received! She never 
-              thought she could appear in a book, it's amazing. She said she would 
-              always treasure it, which made me also very happy."
+              My mom said it was the best gift she had ever received! She never 
+              thought she could appear in a book, it&quot;s amazing. She said she would 
+              always treasure it, which made me also very happy.
             </div>
 
             {/* Star Rating */}

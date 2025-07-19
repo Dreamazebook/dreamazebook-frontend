@@ -6,14 +6,14 @@ export default function InitialSpark() {
       {/* Hero Section */}
       <div className="text-center py-12 px-4">
         <h1 className="text-3xl font-bold text-black mb-12">
-          Dreamaze's Initial Spark
+          Dreamaze&quot;s Initial Spark
         </h1>
         
         <div className="max-w-md mx-auto space-y-1 text-sm text-gray-800">
           <p>Children discover kindness, courage, and wonder in stories...</p>
           <p>But what if they were the ones living it?</p>
           <p>
-            That's where <span className="bg-blue-600 text-white px-1 rounded">Dreamaze</span> begins
+            That&quot;s where <span className="bg-blue-600 text-white px-1 rounded">Dreamaze</span> begins
           </p>
           <p>
             We make your child the <span className="bg-yellow-300 text-black px-1 rounded">shining star</span> of their own story.
@@ -62,7 +62,7 @@ export default function InitialSpark() {
         </h2>
         
         <div className="max-w-sm mx-auto space-y-1 text-sm text-gray-700 mb-12">
-          <p>A whole collection to celebrate your child's milestones.</p>
+          <p>A whole collection to celebrate your child&quot;s milestones.</p>
           <p>Heartfelt editions for grown-ups.</p>
           <p>More language options</p>
         </div>

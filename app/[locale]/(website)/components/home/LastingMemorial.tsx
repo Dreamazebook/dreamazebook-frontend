@@ -19,7 +19,7 @@ export default function LastingMemorial() {
             Personalize It
           </h2>
           <p className="text-gray-400 text-sm sm:text-base leading-relaxed px-2 sm:px-4 lg:px-0">
-            Add your child's name, upload a photo, and choose a few fun details—it's quick and joyful!
+            Add your child&quot;s name, upload a photo, and choose a few fun details—it&quot;s quick and joyful!
           </p>
         </div>
         

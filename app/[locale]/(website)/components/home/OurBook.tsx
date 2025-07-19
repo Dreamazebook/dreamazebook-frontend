@@ -17,8 +17,8 @@ export default function OurBook() {
                 className="w-full h-48 sm:h-56 lg:h-64 object-cover rounded-lg"
               />
             </div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-2">You're Brave in Many Ways</h3>
-            <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">Celebrate your child's courage — big or small</p>
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-2">You&quot;re Brave in Many Ways</h3>
+            <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">Celebrate your child&quot;s courage — big or small</p>
             <p className="text-lg font-bold text-gray-800">$250</p>
           </div>
 
@@ -76,7 +76,7 @@ export default function OurBook() {
                 className="w-full h-48 sm:h-56 lg:h-64 object-cover rounded-lg"
               />
             </div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-2">Santa's Letter For You</h3>
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-2">Santa&quot;s Letter For You</h3>
             <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">A magical letter from Santa, just for your little one</p>
             <p className="text-lg font-bold text-gray-800">$250</p>
           </div>

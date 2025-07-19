@@ -27,7 +27,7 @@ export default function SideLineProducts() {
                   stories.
                 </p>
                 <p className="text-gray-300 leading-relaxed mt-4">
-                  Our books unlock children's imaginations, allowing young minds to explore, 
+                  Our books unlock children&quot;s imaginations, allowing young minds to explore, 
                   dream, and create personalized memories.
                 </p>
                 <p className="text-gray-300 leading-relaxed mt-4">
