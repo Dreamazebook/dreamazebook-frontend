@@ -14,6 +14,17 @@ export interface UserResponse {
   token?: string;
 }
 
+// 购物车相关的类型定义
+export interface CartAddRequest {
+  preview_id: number;
+  quantity: number;
+}
+
+export interface CartAddResponse {
+  cart_item_id: number;
+  message: string;
+}
+
 // 预览页面相关的类型定义
 export interface PreviewPage {
   page_id: number;

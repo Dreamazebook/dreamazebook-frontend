@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Drawer } from "antd";
 import { create } from 'zustand';
@@ -10,7 +10,8 @@ import api from '@/utils/api';
 import echo from '@/app/config/echo';
 import useUserStore from '@/stores/userStore';
 import toast from 'react-hot-toast';
-import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse } from '@/types/api';
+import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
+import { API_CART_ADD } from '@/constants/api';
 import { mirage } from 'ldrs';
 
 // 注册 mirage loader
@@ -55,6 +56,40 @@ const useStore = create<{
   setEditField: (field: 'giver' | 'dedication' | null) => set({ editField: field }),
 }));
 
+interface BookOptions {
+  cover_options: Array<{
+    id: number;
+    option_type: string;
+    option_key: string;
+    name: string;
+    description: string | null;
+    price: number;
+    currency_code: string;
+    image_url: string;
+    is_default: boolean;
+    gender: number;
+    skincolor: number;
+    has_face: boolean;
+    has_text: boolean;
+    text_config: {
+      color: string;
+      title: string;
+      position: string;
+      font_size: number;
+    };
+    face_config: {
+      positions: Array<{
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      }>;
+    };
+  }>;
+  binding_options: any[];
+  gift_box_options: any[];
+}
+
 export default function PreviewPageWithTopNav() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -91,39 +126,79 @@ export default function PreviewPageWithTopNav() {
   const [confirmationDone, setConfirmationDone] = React.useState(false);
   const [activeSection, setActiveSection] = React.useState<string>("");
 
-  // 定义 Book Cover 的 4 个选项
-  const bookCoverOptions = [
-    { id: 1, image: '../book.png', price: 'Free' },
-    { id: 2, image: '../book.png', price: '$3.99 USD' },
-    { id: 3, image: '../book.png', price: '$3.99 USD' },
-    { id: 4, image: '../book.png', price: '$3.99 USD' },
-  ];
+  // 添加 options 状态
+  const [bookOptions, setBookOptions] = useState<BookOptions | null>(null);
+  const [isLoadingOptions, setIsLoadingOptions] = useState(false);
+  const [optionsError, setOptionsError] = useState<string | null>(null);
+
+  // 添加到购物车的状态
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+
+  // 获取 book options 的函数
+  const fetchBookOptions = useCallback(async () => {
+    try {
+      const bookId = searchParams.get('bookid');
+      if (!bookId) {
+        console.warn('缺少书籍ID');
+        return;
+      }
+
+      setIsLoadingOptions(true);
+      setOptionsError(null);
+
+      const response = await api.get(`/preview/options/1`) as ApiResponse<BookOptions>;
+
+      if (response.success) {
+        setBookOptions(response.data!);
+        console.log('Book options 获取成功:', response.data);
+        console.log('Cover options:', response.data?.cover_options);
+      } else {
+        console.error('获取 book options 失败:', response);
+        setOptionsError(response.message || '获取选项失败');
+      }
+    } catch (error: any) {
+      console.error('获取 book options 失败:', error);
+      setOptionsError(error.response?.data?.message || '获取选项失败');
+    } finally {
+      setIsLoadingOptions(false);
+    }
+  }, []);
+
+  // 在组件加载时获取 options
+  useEffect(() => {
+    const bookId = searchParams.get('bookid');
+    if (bookId) {
+      fetchBookOptions();
+    }
+  }, [searchParams.get('bookid')]);
+
+
 
   const bookFormatOptions = [
     {
       id: 1,
-      image: '../format.png',
+      image: '/format.png',
       title: 'Premium Hardcover',
       price: '$14.99',
       description: 'High-quality hardcover with premium finish.',
     },
     {
       id: 2,
-      image: '../format.png',
+      image: '/format.png',
       title: 'Standard Paperback',
       price: '$9.99',
       description: 'Cost-effective and lightweight paperback.',
     },
     {
       id: 3,
-      image: '../format.png',
+      image: '/format.png',
       title: 'Deluxe Leather Bound',
       price: '$19.99',
       description: 'Luxurious leather-bound edition.',
     },
     {
       id: 4,
-      image: '../format.png',
+      image: '/format.png',
       title: 'Digital Edition',
       price: 'Free',
       description: 'Instant access to your book on digital devices.',
@@ -133,7 +208,7 @@ export default function PreviewPageWithTopNav() {
   const bookWrapOptions = [
     {
       id: 1,
-      image: '../wrap.png',
+      image: '/wrap.png',
       images: ['/wrap-1.png', '/wrap-2.png'],
       title: 'Classic Wrap',
       price: '$4.99',
@@ -142,7 +217,7 @@ export default function PreviewPageWithTopNav() {
     },
     {
       id: 2,
-      image: '../wrap.png',
+      image: '/wrap.png',
       images: ['/wrap-1.png', '/wrap2-2.png'],
       title: 'Modern Wrap',
       price: '$5.99',
@@ -208,7 +283,7 @@ export default function PreviewPageWithTopNav() {
   };
 
   // 获取预览数据
-  const fetchPreviewData = async () => {
+  const fetchPreviewData = useCallback(async () => {
     try {
       const bookId = searchParams.get('bookid');
       if (!bookId) {
@@ -231,10 +306,10 @@ export default function PreviewPageWithTopNav() {
       }
       
       // 如果没有用户数据，尝试从现有的预览数据构造请求
-      if (Object.keys(requestData).length === 0 && previewData?.characters) {
-        requestData = {
-          characters: previewData.characters
-        };
+      // 注意：这里移除了对 previewData 的依赖，避免无限循环
+      if (Object.keys(requestData).length === 0) {
+        // 可以在这里添加其他默认数据
+        requestData = {};
       }
       
       // 修改为POST请求，传递必要的数据
@@ -246,7 +321,11 @@ export default function PreviewPageWithTopNav() {
         // 设置giver和dedication从角色数据
         if (response.data?.characters && response.data.characters.length > 0) {
           const character = response.data.characters[0];
-          setGiver(character.full_name || '');
+          const newGiver = character.full_name || '';
+          // 只有当 giver 值不同时才更新，避免无限循环
+          if (giver !== newGiver) {
+            setGiver(newGiver);
+          }
         }
         
         console.log('预览数据获取成功:', response.data);
@@ -260,7 +339,7 @@ export default function PreviewPageWithTopNav() {
     } finally {
       setIsLoadingPreview(false);
     }
-  };
+  }, []);
 
   // 处理用户数据和WebSocket连接
   useEffect(() => {
@@ -298,7 +377,11 @@ export default function PreviewPageWithTopNav() {
             // 设置giver和dedication从角色数据
             if (response.data?.characters && response.data.characters.length > 0) {
               const character = response.data.characters[0];
-              setGiver(character.full_name || '');
+              const newGiver = character.full_name || '';
+              // 只有当 giver 值不同时才更新，避免无限循环
+              if (giver !== newGiver) {
+                setGiver(newGiver);
+              }
             }
             
             toast.success('处理已开始，请等待WebSocket通知');
@@ -331,8 +414,11 @@ export default function PreviewPageWithTopNav() {
             setIsProcessing(false);
             if (e.success) {
               toast.success('图片生成完成！');
-              // 重新获取预览数据
-              fetchPreviewData();
+                        // 重新获取预览数据
+          // 使用 setTimeout 避免在事件处理中直接调用
+          setTimeout(() => {
+            fetchPreviewData();
+          }, 100);
             } else {
               toast.error('生成失败: ' + e.message);
             }
@@ -362,7 +448,7 @@ export default function PreviewPageWithTopNav() {
     };
 
     handleUserDataProcessing();
-  }, [searchParams, user]);
+  }, []);
 
   // 点击侧边栏项，滚动到对应部分
   const scrollToSection = (sectionId: string) => {
@@ -390,15 +476,65 @@ export default function PreviewPageWithTopNav() {
     otherGifts: selectedBookWrap !== null,
   };
 
-  // 点击 Continue 按钮处理：未完成则跳到第一个未完成的部分，否则跳转下一页
+  // 点击 Continue 按钮处理：添加到购物车
   const handleContinue = async () => {
     try {
-      const response = await api.post('/preview/continue', {
-        // 数据
+      // 检查是否所有必要的部分都已完成
+      const incompleteSections = Object.entries(completedSections)
+        .filter(([_, completed]) => !completed)
+        .map(([section, _]) => section);
+
+      if (incompleteSections.length > 0) {
+        // 如果有未完成的部分，跳转到第一个未完成的部分
+        const firstIncomplete = incompleteSections[0];
+        if (firstIncomplete === "giverDedication" || firstIncomplete === "confirmation") {
+          setActiveTab("Book preview");
+        } else {
+          setActiveTab("Others");
+        }
+        setTimeout(() => {
+          scrollToSection(firstIncomplete);
+        }, 100);
+        return;
+      }
+
+      // 检查是否有预览数据
+      if (!previewData?.preview_id) {
+        toast.error('缺少预览数据');
+        return;
+      }
+
+      setIsAddingToCart(true);
+
+      // 构建添加到购物车的数据
+      const cartData: CartAddRequest = {
+        preview_id: previewData.preview_id,
+        quantity: 1
+      };
+
+      // 调用添加到购物车的API
+      const fullUrl = 'https://api.dreamazebook.com/api/cart/add';
+      console.log('调用购物车API:', {
+        url: fullUrl,
+        method: 'POST',
+        data: cartData
       });
-      // 处理响应
-    } catch (error) {
-      console.error('请求失败:', error);
+      
+      // 确保使用正确的HTTP方法
+      const response = await api.post('/cart/add', cartData) as ApiResponse<CartAddResponse>;
+
+      if (response.success) {
+        toast.success('商品已成功添加到购物车！');
+        // 跳转到购物车页面
+        router.push('/shopping-cart');
+      } else {
+        toast.error(response.message || '添加到购物车失败');
+      }
+    } catch (error: any) {
+      console.error('添加到购物车失败:', error);
+      toast.error(error.response?.data?.message || '添加到购物车失败，请重试');
+    } finally {
+      setIsAddingToCart(false);
     }
   };
 
@@ -752,63 +888,182 @@ export default function PreviewPageWithTopNav() {
               <p className="text-center text-gray-600 mb-4">
                 Please select your preferred cover design.
               </p>
-              <div className="grid grid-cols-2 gap-4 w-[80%] mx-auto">
-                {bookCoverOptions.map((option) => (
-                  <div
-                    key={option.id}
-                    onClick={() => setSelectedBookCover(selectedBookCover === option.id ? null : option.id)}
-                    className={`bg-white p-4 rounded flex flex-col items-center cursor-pointer ${
-                      selectedBookCover === option.id
-                        ? 'border-2 border-[#012CCE]'
-                        : 'border-2 border-transparent'
-                    }`}
-                  >
-                    <Image
-                      src={option.image}
-                      alt={`Cover ${option.id}`}
-                      width={200}
-                      height={200}
-                      className="w-full h-auto mb-2"
-                    />
-                    <div className="flex items-center justify-center space-x-2 w-full py-2">
-                      {/* 左侧圆形选中框 */}
-                      <span
-                        className={`inline-flex items-center justify-center w-5 h-5 border rounded-full ${
-                          selectedBookCover === option.id
-                            ? 'bg-[#012CCE] border-[#012CCE]'
-                            : 'border-gray-400'
-                        }`}
-                      >
-                        <div className="flex items-center justify-center">
-                          {selectedBookCover === option.id && (
-                            <svg
-                              className="mx-auto"
-                              width="12"
-                              height="8"
-                              viewBox="0 0 12 8"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M1.5 3.5L5 7L11 1"
-                                stroke="white"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          )}
-                        </div>
 
-
-                      </span>
-                      {/* 右侧价格 */}
-                      <span className="text-center">
-                        {option.price}</span>
-                    </div>
+              {/* 加载状态 */}
+              {isLoadingOptions && (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                    <p>正在加载封面选项...</p>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
+
+              {/* 错误状态 */}
+              {optionsError && (
+                <div className="w-full max-w-3xl mx-auto mb-8 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-800">错误: {optionsError}</p>
+                  <button 
+                    onClick={fetchBookOptions}
+                    className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    重试
+                  </button>
+                </div>
+              )}
+
+              {/* 封面选项 */}
+              {!isLoadingOptions && !optionsError && bookOptions && bookOptions.cover_options && bookOptions.cover_options.length > 0 && (
+                <div className="grid grid-cols-2 gap-4 w-[80%] mx-auto">
+                  {bookOptions.cover_options.map((option) => (
+                    <div
+                      key={option.id}
+                      onClick={() => setSelectedBookCover(selectedBookCover === option.id ? null : option.id)}
+                      className={`bg-white p-4 rounded flex flex-col items-center cursor-pointer ${
+                        selectedBookCover === option.id
+                          ? 'border-2 border-[#012CCE]'
+                          : 'border-2 border-transparent'
+                      }`}
+                    >
+                      <Image
+                        src={(() => {
+                          // 检查图片URL是否有效
+                          if (!option.image_url) {
+                            console.log(`Cover ${option.id}: No image_url, using fallback`);
+                            return '/imgs/picbook/goodnight/封面1.jpg';
+                          }
+                          if (option.image_url.includes('example.com')) {
+                            console.log(`Cover ${option.id}: Invalid example.com URL, using fallback`);
+                            return '/imgs/picbook/goodnight/封面1.jpg';
+                          }
+                          if (option.image_url.includes('http') && !option.image_url.includes('dreamazebook.com')) {
+                            console.log(`Cover ${option.id}: External URL not from dreamazebook.com, using fallback`);
+                            return '/imgs/picbook/goodnight/封面1.jpg';
+                          }
+                          console.log(`Cover ${option.id}: Using valid URL:`, option.image_url);
+                          return option.image_url;
+                        })()}
+                        alt={`Cover ${option.id} - ${option.name}`}
+                        width={200}
+                        height={200}
+                        className="w-full h-auto mb-2"
+                        onError={(e) => {
+                          console.error(`Failed to load image for cover ${option.id}:`, option.image_url);
+                          // 图片加载失败时使用回退图片
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/imgs/picbook/goodnight/封面1.jpg';
+                        }}
+                        onLoad={() => {
+                          console.log(`Successfully loaded image for cover ${option.id}:`, option.image_url);
+                        }}
+                      />
+                      <div className="flex items-center justify-center space-x-2 w-full py-2">
+                        <span
+                          className={`inline-flex items-center justify-center w-5 h-5 border rounded-full ${
+                            selectedBookCover === option.id
+                              ? 'bg-[#012CCE] border-[#012CCE]'
+                              : 'border-gray-400'
+                          }`}
+                        >
+                          <div className="flex items-center justify-center">
+                            {selectedBookCover === option.id && (
+                              <svg
+                                className="mx-auto"
+                                width="12"
+                                height="8"
+                                viewBox="0 0 12 8"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M1.5 3.5L5 7L11 1"
+                                  stroke="white"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            )}
+                          </div>
+                        </span>
+                        <span className="text-center">
+                          ${option.price} {option.currency_code}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* 当没有封面选项时的提示 */}
+              {!isLoadingOptions && !optionsError && bookOptions && (!bookOptions.cover_options || bookOptions.cover_options.length === 0) && (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">暂无封面选项可用</p>
+                </div>
+              )}
+              
+              {/* 临时封面选项 - 当API数据有问题时使用 */}
+              {!isLoadingOptions && (optionsError || !bookOptions || !bookOptions.cover_options || bookOptions.cover_options.length === 0) && (
+                <div className="grid grid-cols-2 gap-4 w-[80%] mx-auto">
+                  {[
+                    { id: 1, name: 'Classic Cover', price: 14.99, currency_code: 'USD', image_url: '/imgs/picbook/goodnight/封面1.jpg' },
+                    { id: 2, name: 'Modern Cover', price: 14.99, currency_code: 'USD', image_url: '/imgs/picbook/goodnight/封面2.jpg' },
+                    { id: 3, name: 'Premium Cover', price: 19.99, currency_code: 'USD', image_url: '/imgs/picbook/goodnight/封面3.jpg' },
+                    { id: 4, name: 'Deluxe Cover', price: 24.99, currency_code: 'USD', image_url: '/imgs/picbook/goodnight/封面4.jpg' }
+                  ].map((option) => (
+                    <div
+                      key={option.id}
+                      onClick={() => setSelectedBookCover(selectedBookCover === option.id ? null : option.id)}
+                      className={`bg-white p-4 rounded flex flex-col items-center cursor-pointer ${
+                        selectedBookCover === option.id
+                          ? 'border-2 border-[#012CCE]'
+                          : 'border-2 border-transparent'
+                      }`}
+                    >
+                      <Image
+                        src={option.image_url}
+                        alt={`Cover ${option.id} - ${option.name}`}
+                        width={200}
+                        height={200}
+                        className="w-full h-auto mb-2"
+                      />
+                      <div className="flex items-center justify-center space-x-2 w-full py-2">
+                        <span
+                          className={`inline-flex items-center justify-center w-5 h-5 border rounded-full ${
+                            selectedBookCover === option.id
+                              ? 'bg-[#012CCE] border-[#012CCE]'
+                              : 'border-gray-400'
+                          }`}
+                        >
+                          <div className="flex items-center justify-center">
+                            {selectedBookCover === option.id && (
+                              <svg
+                                className="mx-auto"
+                                width="12"
+                                height="8"
+                                viewBox="0 0 12 8"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M1.5 3.5L5 7L11 1"
+                                  stroke="white"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            )}
+                          </div>
+                        </span>
+                        <span className="text-center">
+                          ${option.price} {option.currency_code}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
             
             {/* Book Format Section */}
@@ -1076,8 +1331,21 @@ export default function PreviewPageWithTopNav() {
                       <span className="text-[#012CCE] text-3xl font-semibold">$320</span>
                       <span className="text-gray-400 line-through">$540</span>
                     </div>
-                    <button className="bg-black text-[#F5E3E3] py-2 px-8 rounded">
-                      Add to order
+                    <button 
+                      onClick={handleContinue}
+                      disabled={isAddingToCart}
+                      className={`bg-black text-[#F5E3E3] py-2 px-8 rounded flex items-center justify-center ${
+                        isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800'
+                      }`}
+                    >
+                      {isAddingToCart ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          正在添加...
+                        </>
+                      ) : (
+                        'Add to order'
+                      )}
                     </button>
                   </div>
                 </div>         
@@ -1239,9 +1507,21 @@ export default function PreviewPageWithTopNav() {
           <div className="mx-auto">
             <button
               onClick={handleContinue}
-              className="w-full px-6 py-2 bg-[#222222] text-[#F5E3E3] rounded"
+              disabled={isAddingToCart}
+              className={`w-full px-6 py-2 rounded flex items-center justify-center ${
+                isAddingToCart 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-[#222222] hover:bg-[#333333]'
+              } text-[#F5E3E3]`}
             >
-              Add to cart
+              {isAddingToCart ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  正在添加到购物车...
+                </>
+              ) : (
+                'Add to cart'
+              )}
             </button>
           </div>
         </div>
