@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 
 export default function ProfileSidebar({ children }:{children:React.ReactNode}) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -102,34 +103,34 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
             </div>
 
             <nav className="space-y-1">
-              <a
-                href="#"
+              <Link
+                href="/profile"
                 className="block px-3 py-2 text-blue-600 bg-blue-50 rounded font-medium"
               >
                 Home
-              </a>
-              <a
-                href="profile/detail"
+              </Link>
+              <Link
+                href="/profile/detail"
                 className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded"
               >
                 Account Details
-              </a>
-              <a
-                href="profile/order-history"
+              </Link>
+              <Link
+                href="/profile/order-history"
                 className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded"
               >
                 Order History
-              </a>
-              <a
+              </Link>
+              <Link
                 href="#"
                 className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded"
               >
                 Loyalty
-              </a>
+              </Link>
             </nav>
 
             <div className="mt-12">
-              <button className="text-gray-600 hover:text-gray-800 text-sm">
+              <button className="text-gray-600 hover:text-gray-800 text-sm" onClick={()=>{}}>
                 Log out
               </button>
             </div>
