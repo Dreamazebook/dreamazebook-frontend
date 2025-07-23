@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ShippingErrors } from './types';
 import { Address } from '@/types/address';
 
@@ -61,6 +61,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   selectedAddressId,
   setSelectedAddressId
 }) => {
+  const [showForm, setShowForm] = useState(false);
   
   // 当选择已保存的地址时，自动填充表单字段
   useEffect(() => {
@@ -148,6 +149,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
         </div>
       )}
 
+      {showForm &&  <>
       <div className="mb-4">
         <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
         <input
@@ -290,6 +292,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
         />
         {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
       </div>
+      </>}
 
       <div className="mb-4">
         <div className="flex items-center">
