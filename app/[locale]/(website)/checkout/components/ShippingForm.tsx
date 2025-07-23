@@ -141,28 +141,13 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
               role="button"
               aria-checked={selectedAddressId === null}
               tabIndex={0}
-              className={`p-3 border rounded-md cursor-pointer ${
-                selectedAddressId === null 
-                  ? 'border-blue-500 bg-blue-50' 
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-              onClick={() => setSelectedAddressId(null)}
-              onKeyDown={(e) => e.key === 'Enter' && setSelectedAddressId(null)}
+              className={`p-3 border rounded-md cursor-pointer`}
+              onClick={() => {
+                setSelectedAddressId(null);
+                setShowForm(true);
+              }}
             >
-              <div className="flex items-center">
-                <div className="mr-2">
-                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                    selectedAddressId === null 
-                      ? 'border-blue-500 bg-blue-500' 
-                      : 'border-gray-400'
-                  }`}>
-                    {selectedAddressId === null && (
-                      <div className="w-2 h-2 rounded-full bg-white"></div>
-                    )}
-                  </div>
-                </div>
-                <p className="font-medium">使用新地址</p>
-              </div>
+              <div className="flex items-center">使用新地址</div>
             </div>
           </div>
         </div>

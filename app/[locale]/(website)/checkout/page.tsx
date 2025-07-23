@@ -92,26 +92,26 @@ export default function CheckoutPage() {
     }
   }, [orderId]);
 
+  const fetchAddresses = async () => {
+    try {
+      setIsLoading(true);
+      const {data, success, message} = await api.get<ApiResponse>(API_ADDRESS_LIST);
+      if (success && data) {
+        setAddressList(data);
+        // If there are addresses, select the first one by default
+        if (data.length > 0) {
+          setSelectedAddressId(data[0].id);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching addresses:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Fetch user addresses when component mounts
   useEffect(() => {
-    const fetchAddresses = async () => {
-      try {
-        setIsLoading(true);
-        const {data, success, message} = await api.get<ApiResponse>(API_ADDRESS_LIST);
-        if (success && data) {
-          setAddressList(data);
-          // If there are addresses, select the first one by default
-          if (data.length > 0) {
-            setSelectedAddressId(data[0].id);
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching addresses:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchAddresses();
   }, []);
 
@@ -178,6 +178,7 @@ export default function CheckoutPage() {
         phone
       });
       if (success) {
+        fetchAddresses();
         setCompletedSteps([...completedSteps, 1]);
         setOpenStep(2);
       } else {
