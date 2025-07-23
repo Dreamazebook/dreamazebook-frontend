@@ -98,20 +98,18 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
             {addressList.map((addr) => (
               <div 
                 key={addr.id}
+                role="button"
+                aria-checked={selectedAddressId === addr.id}
+                tabIndex={0}
                 className={`p-3 border rounded-md cursor-pointer ${
                   selectedAddressId === addr.id 
                     ? 'border-blue-500 bg-blue-50' 
                     : 'border-gray-300 hover:border-gray-400'
                 }`}
                 onClick={() => setSelectedAddressId(addr.id)}
+                onKeyDown={(e) => e.key === 'Enter' && setSelectedAddressId(addr.id)}
               >
-                <div className="flex items-center">
-                  <input
-                    type="radio"
-                    checked={selectedAddressId === addr.id}
-                    onChange={() => setSelectedAddressId(addr.id)}
-                    className="mr-2"
-                  />
+                <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">
                       {addr.first_name} {addr.last_name}
@@ -122,26 +120,47 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
                     <p className="text-sm text-gray-600">{addr.country}</p>
                     <p className="text-sm text-gray-600">{addr.phone}</p>
                   </div>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowForm(true);
+                    }}
+                    className="ml-4 p-1 text-gray-500 hover:text-blue-500 hover:bg-gray-100 rounded-full"
+                    aria-label="Edit address"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             ))}
             
             {/* 使用新地址选项 */}
             <div 
+              role="button"
+              aria-checked={selectedAddressId === null}
+              tabIndex={0}
               className={`p-3 border rounded-md cursor-pointer ${
                 selectedAddressId === null 
                   ? 'border-blue-500 bg-blue-50' 
                   : 'border-gray-300 hover:border-gray-400'
               }`}
               onClick={() => setSelectedAddressId(null)}
+              onKeyDown={(e) => e.key === 'Enter' && setSelectedAddressId(null)}
             >
               <div className="flex items-center">
-                <input
-                  type="radio"
-                  checked={selectedAddressId === null}
-                  onChange={() => setSelectedAddressId(null)}
-                  className="mr-2"
-                />
+                <div className="mr-2">
+                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                    selectedAddressId === null 
+                      ? 'border-blue-500 bg-blue-500' 
+                      : 'border-gray-400'
+                  }`}>
+                    {selectedAddressId === null && (
+                      <div className="w-2 h-2 rounded-full bg-white"></div>
+                    )}
+                  </div>
+                </div>
                 <p className="font-medium">使用新地址</p>
               </div>
             </div>
