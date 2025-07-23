@@ -5,24 +5,30 @@ import { ShippingErrors } from './types';
 import { Address } from '@/types/address';
 
 interface ShippingFormProps {
-  email: string;
-  setEmail: (value: string) => void;
-  firstName: string;
-  setFirstName: (value: string) => void;
-  lastName: string;
-  setLastName: (value: string) => void;
-  address: string;
-  setAddress: (value: string) => void;
-  city: string;
-  setCity: (value: string) => void;
-  postalcode: string;
-  setPostalcode: (value: string) => void;
-  phone:string;
-  setPhone: (value: string) => void;
-  country: string;
-  setCountry: (value: string) => void;
-  state: string;
-  setState: (value: string) => void;
+  address: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    street: string;
+    city: string;
+    postalcode: string;
+    country: string;
+    state: string;
+    phone: string;
+    isDefault: boolean;
+  };
+  setAddress: (value: React.SetStateAction<{
+    email: string;
+    firstName: string;
+    lastName: string;
+    street: string;
+    city: string;
+    postalcode: string;
+    country: string;
+    state: string;
+    phone: string;
+    isDefault: boolean;
+  }>) => void;
   errors: ShippingErrors;
   setErrors: (errors: ShippingErrors) => void;
   needsBillingAddress: boolean;
@@ -34,24 +40,8 @@ interface ShippingFormProps {
 }
 
 const ShippingForm: React.FC<ShippingFormProps> = ({
-  email,
-  setEmail,
-  firstName,
-  setFirstName,
-  lastName,
-  setLastName,
   address,
   setAddress,
-  city,
-  setCity,
-  postalcode,
-  setPostalcode,
-  country,
-  setCountry,
-  state,
-  setState,
-  phone,
-  setPhone,
   errors,
   setErrors,
   needsBillingAddress,
@@ -106,8 +96,10 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
                     ? 'border-blue-500 bg-blue-50' 
                     : 'border-gray-300 hover:border-gray-400'
                 }`}
-                onClick={() => setSelectedAddressId(addr.id)}
-                onKeyDown={(e) => e.key === 'Enter' && setSelectedAddressId(addr.id)}
+                onClick={() => {
+                  setSelectedAddressId(addr.id);
+                  setShowForm(false);
+                }}
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -141,13 +133,13 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
               role="button"
               aria-checked={selectedAddressId === null}
               tabIndex={0}
-              className={`p-3 border rounded-md cursor-pointer`}
+              className={`p-3 cursor-pointer`}
               onClick={() => {
                 setSelectedAddressId(null);
                 setShowForm(true);
               }}
             >
-              <div className="flex items-center">使用新地址</div>
+              <div className="flex items-center text-[#012CCE]">Add New Address</div>
             </div>
           </div>
         </div>
@@ -160,9 +152,9 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
           type="email"
           id="email"
           className={`w-full p-2 border rounded-md ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
-          value={email}
+          value={address.email}
           onChange={(e) => {
-            setEmail(e.target.value);
+            setAddress(prev => ({...prev, email: e.target.value}));
             clearError('email');
           }}
         />
@@ -176,9 +168,9 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
             type="text"
             id="firstName"
             className={`w-full p-2 border rounded-md ${errors.firstName ? 'border-red-500' : 'border-gray-300'}`}
-            value={firstName}
+            value={address.firstName}
             onChange={(e) => {
-              setFirstName(e.target.value);
+              setAddress(prev => ({...prev, firstName: e.target.value}));
               clearError('firstName');
             }}
           />
@@ -190,9 +182,9 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
             type="text"
             id="lastName"
             className={`w-full p-2 border rounded-md ${errors.lastName ? 'border-red-500' : 'border-gray-300'}`}
-            value={lastName}
+            value={address.lastName}
             onChange={(e) => {
-              setLastName(e.target.value);
+              setAddress(prev => ({...prev, lastName: e.target.value}));
               clearError('lastName');
             }}
           />
@@ -206,9 +198,9 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
           type="text"
           id="address"
           className={`w-full p-2 border rounded-md ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
-          value={address}
+          value={address.street}
           onChange={(e) => {
-            setAddress(e.target.value);
+            setAddress(prev => ({...prev, street: e.target.value}));
             clearError('address');
           }}
         />
@@ -222,9 +214,9 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
             type="text"
             id="city"
             className={`w-full p-2 border rounded-md ${errors.city ? 'border-red-500' : 'border-gray-300'}`}
-            value={city}
+            value={address.city}
             onChange={(e) => {
-              setCity(e.target.value);
+              setAddress(prev => ({...prev, city: e.target.value}));
               clearError('city');
             }}
           />
@@ -236,9 +228,9 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
             type="text"
             id="postalcode"
             className={`w-full p-2 border rounded-md ${errors.postalcode ? 'border-red-500' : 'border-gray-300'}`}
-            value={postalcode}
+            value={address.postalcode}
             onChange={(e) => {
-              setPostalcode(e.target.value);
+              setAddress(prev => ({...prev, postalcode: e.target.value}));
               clearError('postalcode');
             }}
           />
@@ -252,9 +244,9 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
           <select
             id="country"
             className={`w-full p-2 border rounded-md ${errors.country ? 'border-red-500' : 'border-gray-300'}`}
-            value={country}
+            value={address.country}
             onChange={(e) => {
-              setCountry(e.target.value);
+              setAddress(prev => ({...prev, country: e.target.value}));
               clearError('country');
             }}
           >
@@ -272,9 +264,9 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
             type="text"
             id="state"
             className={`w-full p-2 border rounded-md ${errors.state ? 'border-red-500' : 'border-gray-300'}`}
-            value={state}
+            value={address.state}
             onChange={(e) => {
-              setState(e.target.value);
+              setAddress(prev => ({...prev, state: e.target.value}));
               clearError('state');
             }}
           />
@@ -288,13 +280,28 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
           type="text"
           id="phone"
           className={`w-full p-2 border rounded-md ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
-          value={phone}
+          value={address.phone}
           onChange={(e) => {
-            setPhone(e.target.value);
+            setAddress(prev => ({...prev, phone: e.target.value}));
             clearError('phone');
           }}
         />
         {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+      </div>
+
+      <div className="mt-4 mb-6">
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="setDefaultAddress"
+            className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+            checked={address.isDefault}
+            onChange={(e) => setAddress(prev => ({...prev, isDefault: e.target.checked}))}
+          />
+          <label htmlFor="setDefaultAddress" className="ml-2 block text-sm text-gray-700">
+            Set as default shipping address
+          </label>
+        </div>
       </div>
       </>}
 

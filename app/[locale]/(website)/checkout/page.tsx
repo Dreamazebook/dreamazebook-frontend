@@ -34,15 +34,18 @@ export default function CheckoutPage() {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
 
   // Shipping information state
-  const [email, setEmail] = useState<string>('');
-  const [firstName, setFirstName] = useState<string>('');
-  const [lastName, setLastName] = useState<string>('');
-  const [address, setAddress] = useState<string>('');
-  const [city, setCity] = useState<string>('');
-  const [postalcode, setPostalcode] = useState<string>('');
-  const [country, setCountry] = useState<string>('');
-  const [state, setState] = useState<string>('');
-  const [phone, setPhone] = useState<string>('');
+  const [address, setAddress] = useState({
+    email: '',
+    firstName: '',
+    lastName: '',
+    street: '',
+    city: '',
+    postalcode: '',
+    country: '',
+    state: '',
+    phone: '',
+    isDefault: false
+  });
   const [errors, setErrors] = useState<ShippingErrors>({});
 
   // Billing address state
@@ -131,16 +134,16 @@ export default function CheckoutPage() {
   const validateShippingInfo = () => {
     const newErrors: ShippingErrors = {};
     
-    if (!email) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Invalid email address";
+    if (!address.email) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(address.email)) newErrors.email = "Invalid email address";
     
-    if (!firstName) newErrors.firstName = "First name is required";
-    if (!lastName) newErrors.lastName = "Last name is required";
-    if (!address) newErrors.address = "Address is required";
-    if (!city) newErrors.city = "City is required";
-    if (!postalcode) newErrors.postalcode = "Postal code is required";
-    if (!country) newErrors.country = "Country is required";
-    if (!state) newErrors.state = "State is required";
+    if (!address.firstName) newErrors.firstName = "First name is required";
+    if (!address.lastName) newErrors.lastName = "Last name is required";
+    if (!address.street) newErrors.address = "Address is required";
+    if (!address.city) newErrors.city = "City is required";
+    if (!address.postalcode) newErrors.postalcode = "Postal code is required";
+    if (!address.country) newErrors.country = "Country is required";
+    if (!address.state) newErrors.state = "State is required";
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -165,17 +168,19 @@ export default function CheckoutPage() {
 
   // Handle next from shipping step
   const handleNextFromShipping = async() => {
+    console.log(address);
     if (validateShippingInfo() && validateBillingInfo()) {
       const {success,code,message,data} = await api.post<ApiResponse>(API_ADDRESS_LIST, {
-        email,
-        first_name:firstName,
-        last_name:lastName,
-        street:address,
-        city,
-        postal_code:postalcode,
-        country,
-        state,
-        phone
+        email:address.email,
+        first_name:address.firstName,
+        last_name:address.lastName,
+        street:address.street,
+        city: address.city,
+        postal_code:address.postalcode,
+        country: address.country,
+        state: address.state,
+        phone: address.phone,
+        is_default: address.isDefault
       });
       if (success) {
         fetchAddresses();
@@ -220,24 +225,8 @@ export default function CheckoutPage() {
               canOpen={true}
             >
               <ShippingForm
-                email={email}
-                setEmail={setEmail}
-                firstName={firstName}
-                setFirstName={setFirstName}
-                lastName={lastName}
-                setLastName={setLastName}
                 address={address}
                 setAddress={setAddress}
-                city={city}
-                setCity={setCity}
-                postalcode={postalcode}
-                setPostalcode={setPostalcode}
-                country={country}
-                setCountry={setCountry}
-                phone={phone}
-                setPhone={setPhone}
-                state={state}
-                setState={setState}
                 errors={errors}
                 setErrors={setErrors}
                 needsBillingAddress={needsBillingAddress}
