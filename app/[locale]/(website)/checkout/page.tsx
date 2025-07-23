@@ -168,7 +168,6 @@ export default function CheckoutPage() {
 
   // Handle next from shipping step
   const handleNextFromShipping = async() => {
-    console.log(address);
     if (validateShippingInfo() && validateBillingInfo()) {
       const {success,code,message,data} = await api.post<ApiResponse>(API_ADDRESS_LIST, {
         email:address.email,

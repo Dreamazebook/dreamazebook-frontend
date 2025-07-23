@@ -103,6 +103,11 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
               >
                 <div className="flex items-center justify-between">
                   <div>
+                    {addr.is_default && (
+                      <span className="inline-block mb-1 px-2 py-1 text-xs font-medium bg-green-500 text-white rounded">
+                        Default
+                      </span>
+                    )}
                     <p className="font-medium">
                       {addr.first_name} {addr.last_name}
                     </p>
