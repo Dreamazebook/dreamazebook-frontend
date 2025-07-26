@@ -55,6 +55,9 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   
   // 当选择已保存的地址时，自动填充表单字段
   useEffect(() => {
+    if (addressList.length == 0) {
+      setShowForm(true);
+    }
     // if (selectedAddressId) {
     //   const selectedAddress = addressList.find(addr => addr.id === selectedAddressId);
     //   if (selectedAddress) {
