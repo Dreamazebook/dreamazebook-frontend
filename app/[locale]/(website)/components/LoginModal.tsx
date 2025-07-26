@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import useUserStore from '@/stores/userStore'
 import Button from '@/app/components/Button'
+import Input from '@/app/components/common/Input'
 
 export default function LoginModal() {
   const { isLoginModalOpen, closeLoginModal, register, login, sendResetPasswordLink } = useUserStore()
@@ -81,30 +82,26 @@ export default function LoginModal() {
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-4 text-[#222222]">
-          <div>
-            <label className="block text-sm font-medium">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-black rounded-md"
-              placeholder='Enter your email address'
-              required
-            />
-          </div>
+          <Input
+            id="email"
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email address"
+            required
+          />
           
           {mode !== 'forgotPassword' && (
-            <div>
-              <label className="block text-sm font-medium">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-black rounded-md"
-                placeholder='Enter your password'
-                required
-              />
-            </div>
+            <Input
+              id="password"
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              required
+            />
           )}
           
           {mode === 'forgotPassword' && resetSent ? (
