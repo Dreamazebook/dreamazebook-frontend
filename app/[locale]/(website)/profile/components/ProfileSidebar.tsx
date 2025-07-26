@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import useUserStore from "@/stores/userStore";
 
 export default function ProfileSidebar({ children }:{children:React.ReactNode}) {
+  const {user} = useUserStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <div className="min-h-screen bg-gray-50">
@@ -62,7 +64,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
             </div>
           </div>
           <div className="text-sm md:text-lg font-medium text-gray-700 hidden sm:block">
-            Good Morning, Augustine !
+            Good Morning, {user?.name} !
           </div>
         </div>
       </div>
@@ -99,7 +101,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
                   className="w-full h-full object-cover"
                 />
               </div>
-              <h2 className="text-lg font-medium text-gray-900">Augustine</h2>
+              <h2 className="text-lg font-medium text-gray-900">{user?.name}</h2>
             </div>
 
             <nav className="space-y-1">
