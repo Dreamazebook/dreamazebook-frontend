@@ -1,6 +1,8 @@
 "use client";
+import useUserStore from '@/stores/userStore';
 import React, { useState } from 'react';
 export default function AccountDetails() {
+  const {user} = useUserStore();
   const [addresses, setAddresses] = useState([
     {
       id: 1,
@@ -55,15 +57,15 @@ export default function AccountDetails() {
           <div className="grid grid-cols-2 gap-x-16 gap-y-6 mb-8">
             <div>
               <div className="text-sm text-gray-500 mb-2">First Name</div>
-              <div className="text-gray-900">Augustine</div>
+              <div className="text-gray-900">{user?.name}</div>
             </div>
             <div>
               <div className="text-sm text-gray-500 mb-2">Last Name</div>
-              <div className="text-gray-900">Augustine</div>
+              <div className="text-gray-900"></div>
             </div>
             <div className="col-span-2">
               <div className="text-sm text-gray-500 mb-2">Email Address</div>
-              <div className="text-gray-900">19839474838930@xx.com</div>
+              <div className="text-gray-900">{user?.email}</div>
             </div>
           </div>
           
