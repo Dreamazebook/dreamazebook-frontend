@@ -1,45 +1,18 @@
 "use client";
 import useUserStore from '@/stores/userStore';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 export default function AccountDetails() {
-  const {user} = useUserStore();
-  const [addresses, setAddresses] = useState([
-    {
-      id: 1,
-      name: 'Augustine',
-      email: '15574892055@163.com',
-      address: 'Wuhou District, Chengdu City, Sichuan Province, China',
-      type: 'Home'
-    },
-    {
-      id: 2,
-      name: 'Augustine',
-      email: '15574892055@163.com',
-      address: 'Wuhou District, Chengdu City, Sichuan Province, China',
-      type: 'default'
-    },
-    {
-      id: 3,
-      name: 'Augustine',
-      email: '15574892055@163.com',
-      address: 'Wuhou District, Chengdu City, Sichuan Province, China',
-      type: ''
-    }
-  ]);
+  const {user, fetchAddresses, addresses} = useUserStore();
 
-  const handleDeleteAddress = (id:number) => {
-    setAddresses(addresses.filter(addr => addr.id !== id));
+  useEffect(()=> {
+    fetchAddresses();
+  },[])
+
+  const handleDeleteAddress = (id:string) => {
   };
 
   const addNewAddress = () => {
-    const newAddress = {
-      id: Math.max(...addresses.map(a => a.id)) + 1,
-      name: 'Augustine',
-      email: '15574892055@163.com',
-      address: 'Wuhou District, Chengdu City, Sichuan Province, China',
-      type: ''
-    };
-    setAddresses([...addresses, newAddress]);
+    
   };
 
   return (
@@ -90,7 +63,7 @@ export default function AccountDetails() {
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <div className="flex items-center gap-4 mb-3">
-                    <span className="text-gray-900 font-medium">{address.name}</span>
+                    <span className="text-gray-900 font-medium">{address.first_name}</span>
                     <span className="text-gray-900">{address.email}</span>
                     <div className="flex gap-2 ml-auto">
                       <button
@@ -105,10 +78,10 @@ export default function AccountDetails() {
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-gray-700">{address.address}</span>
-                    {address.type && (
-                      <span className="text-gray-500 text-sm">{address.type}</span>
-                    )}
+                    <span className="text-gray-700">{address.street}</span>
+                    {/* {address?.type && (
+                      <span className="text-gray-500 text-sm">{address?.type}</span>
+                    )} */}
                   </div>
                 </div>
               </div>
