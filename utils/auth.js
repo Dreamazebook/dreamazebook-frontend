@@ -1,3 +1,4 @@
+import { API_USER_LOGOUT } from '@/constants/api';
 import api from './api';
 
 export async function login(email, password) {
@@ -38,7 +39,7 @@ export async function login(email, password) {
 
 export async function logout() {
   try {
-    await api.post('/logout');
+    await api.post(API_USER_LOGOUT);
     localStorage.removeItem('token');
   } catch (error) {
     console.error('登出错误:', error);

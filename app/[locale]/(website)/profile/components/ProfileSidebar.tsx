@@ -3,9 +3,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import useUserStore from "@/stores/userStore";
+import { logout } from "@/utils/auth";
+import { useRouter } from "next/navigation";
 
 export default function ProfileSidebar({ children }:{children:React.ReactNode}) {
   const {user} = useUserStore();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   return (
@@ -146,7 +149,10 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
             </nav>
 
             <div className="mt-12">
-              <button className="text-gray-600 hover:text-gray-800 text-sm" onClick={()=>{}}>
+              <button className="text-gray-600 cursor-pointer hover:text-gray-800 text-sm" onClick={()=>{
+                logout();
+                router.push('/');
+              }}>
                 Log out
               </button>
             </div>
