@@ -13,8 +13,10 @@ import ReviewAndPay from './components/ReviewAndPay';
 import OrderSummary from './components/OrderSummary';
 import { CartItem, ShippingErrors, BillingErrors, DeliveryOption, PaymentOption, OrderDetail } from './components/types';
 import { ApiResponse } from '@/types/api';
+import useUserStore from '@/stores/userStore';
 
 export default function CheckoutPage() {
+  const {addresses, fetchAddresses} = useUserStore();
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
@@ -26,7 +28,6 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   
   // Address list state
-  const [addressList, setAddressList] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
 
   // Step visibility state
@@ -94,24 +95,6 @@ export default function CheckoutPage() {
       fetchOrderDetails();
     }
   }, [orderId]);
-
-  const fetchAddresses = async () => {
-    try {
-      setIsLoading(true);
-      const {data, success, message} = await api.get<ApiResponse>(API_ADDRESS_LIST);
-      if (success && data) {
-        setAddressList(data);
-        // If there are addresses, select the first one by default
-        if (data.length > 0) {
-          setSelectedAddressId(data[0].id);
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching addresses:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Fetch user addresses when component mounts
   useEffect(() => {
@@ -231,7 +214,7 @@ export default function CheckoutPage() {
                 needsBillingAddress={needsBillingAddress}
                 setNeedsBillingAddress={setNeedsBillingAddress}
                 handleNextFromShipping={handleNextFromShipping}
-                addressList={addressList}
+                addressList={addresses}
                 selectedAddressId={selectedAddressId}
                 setSelectedAddressId={setSelectedAddressId}
               />
