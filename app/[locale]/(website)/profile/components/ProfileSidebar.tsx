@@ -1,11 +1,13 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import useUserStore from "@/stores/userStore";
 
 export default function ProfileSidebar({ children }:{children:React.ReactNode}) {
   const {user} = useUserStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header with colorful letters */}
@@ -106,20 +108,32 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
 
             <nav className="space-y-1">
               <Link
-                href="/profile"
-                className="block px-3 py-2 text-blue-600 bg-blue-50 rounded font-medium"
+                href="/en/profile"
+                className={`block px-3 py-2 rounded font-medium ${
+                  pathname === '/en/profile' 
+                    ? 'text-blue-600 bg-blue-50' 
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
               >
                 Home
               </Link>
               <Link
-                href="/profile/detail"
-                className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded"
+                href="/en/profile/detail"
+                className={`block px-3 py-2 rounded ${
+                  pathname === '/en/profile/detail' 
+                    ? 'text-blue-600 bg-blue-50 font-medium' 
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
               >
                 Account Details
               </Link>
               <Link
-                href="/profile/order-history"
-                className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded"
+                href="/en/profile/order-history"
+                className={`block px-3 py-2 rounded ${
+                  pathname === '/en/profile/order-history' 
+                    ? 'text-blue-600 bg-blue-50 font-medium' 
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
               >
                 Order History
               </Link>
