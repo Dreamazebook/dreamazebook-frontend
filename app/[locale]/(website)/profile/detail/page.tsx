@@ -1,5 +1,8 @@
 "use client";
+import { API_ADDRESS_LIST } from '@/constants/api';
 import useUserStore from '@/stores/userStore';
+import { ApiResponse } from '@/types/api';
+import api from '@/utils/api';
 import React, { useEffect, useState } from 'react';
 export default function AccountDetails() {
   const {user, fetchAddresses, addresses} = useUserStore();
@@ -8,7 +11,13 @@ export default function AccountDetails() {
     fetchAddresses();
   },[])
 
-  const handleDeleteAddress = (id:string) => {
+  const handleDeleteAddress = async (id:string) => {
+    const {success,message} = await api.delete<ApiResponse>(`${API_ADDRESS_LIST}/${id}`);
+    if (success) {
+      fetchAddresses({refresh:true});
+    } else {
+      alert(message);
+    }
   };
 
   const addNewAddress = () => {
@@ -72,9 +81,9 @@ export default function AccountDetails() {
                       >
                         Delete
                       </button>
-                      <button className="p-1 text-gray-400 hover:text-blue-500 transition-colors">
+                      {/* <button className="p-1 text-gray-400 hover:text-blue-500 transition-colors">
                         Edit
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
