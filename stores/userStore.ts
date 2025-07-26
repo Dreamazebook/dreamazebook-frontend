@@ -1,7 +1,9 @@
-import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT, API_USER_SEND_PASSWORD_RESET_EMAIL } from '@/constants/api'
+import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT, API_USER_SEND_PASSWORD_RESET_EMAIL, API_ADDRESS_LIST } from '@/constants/api'
 import api from '@/utils/api'
 import { ApiResponse, UserResponse } from '@/types/api'
 import { create } from 'zustand'
+import { Address } from '@/types/address'
+import { get } from 'http'
 
 interface UserState {
   // Modal state
@@ -12,6 +14,8 @@ interface UserState {
   
   // User state
   user: UserType | null
+  addresses: Address[]
+  fetchAddresses: () => void
   isLoggedIn: boolean
   login: (userData: LoginData) => Promise<ApiResponse<UserResponse> | null>
   register: (userData: RegisterData) => Promise<ApiResponse<UserResponse> | null>
@@ -38,7 +42,7 @@ type RegisterData = {
   password_confirmation: string
 }
 
-const useUserStore = create<UserState>((set) => ({
+const useUserStore = create<UserState>((set,get) => ({
   // Modal state - initially closed
   isLoginModalOpen: false,
   openLoginModal: () => set({ isLoginModalOpen: true }),
@@ -47,6 +51,18 @@ const useUserStore = create<UserState>((set) => ({
   
   // User state - initially not logged in
   user: null,
+  addresses: [],
+  fetchAddresses: async () => {
+    if (get().addresses.length > 0) return;
+    try {
+      const response = await api.get<ApiResponse<Address[]>>(API_ADDRESS_LIST);
+      if (response.success && response.data) {
+        set({ addresses: response.data });
+      }
+    } catch (error) {
+      console.error('Fetch addresses error:', error);
+    }
+  },
   isLoggedIn: false,
   sendResetPasswordLink: async (email: string): Promise<boolean> => {
     try {
