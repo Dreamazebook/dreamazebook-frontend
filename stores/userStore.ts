@@ -15,7 +15,7 @@ interface UserState {
   // User state
   user: UserType | null
   addresses: Address[]
-  fetchAddresses: () => void
+  fetchAddresses: (options?: any) => void
   isLoggedIn: boolean
   login: (userData: LoginData) => Promise<ApiResponse<UserResponse> | null>
   register: (userData: RegisterData) => Promise<ApiResponse<UserResponse> | null>
@@ -52,8 +52,9 @@ const useUserStore = create<UserState>((set,get) => ({
   // User state - initially not logged in
   user: null,
   addresses: [],
-  fetchAddresses: async () => {
-    if (get().addresses.length > 0) return;
+  fetchAddresses: async (options?: any) => {
+    const refresh = options?.refresh;
+    if (!refresh && get().addresses.length > 0) return;
     try {
       const response = await api.get<ApiResponse<Address[]>>(API_ADDRESS_LIST);
       if (response.success && response.data) {

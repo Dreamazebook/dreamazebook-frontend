@@ -165,7 +165,7 @@ export default function CheckoutPage() {
         is_default: address.isDefault
       });
       if (success) {
-        fetchAddresses();
+        fetchAddresses({refresh:true});
         setCompletedSteps([...completedSteps, 1]);
         setOpenStep(2);
       } else {
