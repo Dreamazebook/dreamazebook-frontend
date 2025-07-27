@@ -2,6 +2,11 @@
 
 import React from 'react';
 import { PaymentOption } from './types';
+  import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement } from '@stripe/react-stripe-js';
+import stripe from 'stripe';
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY||'');
 
 interface ReviewAndPayProps {
   selectedPaymentOption: PaymentOption;
@@ -29,10 +34,38 @@ const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
   cardCvc,
   setCardCvc,
   handlePlaceOrder
+  
 }) => {
   return (
     <div>
-      <div className="mb-6">
+      <Elements stripe={stripePromise}>
+  <form onSubmit={handlePlaceOrder} className="space-y-4">
+    <CardElement
+      options={{
+        style: {
+          base: {
+            fontSize: '16px',
+            color: '#424770',
+            '::placeholder': {
+              color: '#aab7c4',
+            },
+          },
+          invalid: {
+            color: '#9e2146',
+          },
+        },
+      }}
+    />
+    <button
+      type="submit"
+      className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition"
+      disabled={!stripe}
+    >
+      Pay Now
+    </button>
+  </form>
+</Elements>
+      {/* <div className="mb-6">
         <h4 className="text-lg font-medium mb-4">Payment Method</h4>
         
         <div className="space-y-4">
@@ -131,7 +164,7 @@ const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
         >
           Place Order
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };
