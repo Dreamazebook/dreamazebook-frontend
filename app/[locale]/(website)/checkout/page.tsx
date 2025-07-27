@@ -153,6 +153,7 @@ export default function CheckoutPage() {
   const handleNextFromShipping = async() => {
     if (validateShippingInfo() && validateBillingInfo()) {
       const {success,code,message,data} = await api.post<ApiResponse>(API_ADDRESS_LIST, {
+        type: 1,
         email:address.email,
         first_name:address.firstName,
         last_name:address.lastName,
@@ -165,6 +166,7 @@ export default function CheckoutPage() {
         is_default: address.isDefault
       });
       if (success) {
+        setAddress({email: "", firstName: "", lastName: "", street: "", city: "", postalcode: "", country: "", state: "", phone: "", isDefault: false});
         fetchAddresses({refresh:true});
         setCompletedSteps([...completedSteps, 1]);
         setOpenStep(2);
