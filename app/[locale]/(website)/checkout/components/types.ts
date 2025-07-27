@@ -8,7 +8,6 @@ export interface OrderDetail {
   payment_status: string;
   payment_method: string | null;
   payment_id: string | null;
-  shipping_address: string | null;
   billing_address: string | null;
   shipping_method: string;
   shipping_cost: number;
@@ -16,6 +15,9 @@ export interface OrderDetail {
   discount_amount: number;
   coupon_code: string;
   notes: string;
+  stripe_payment_intent_id: string;
+  stripe_client_secret: string;
+  shipping_address: any;
   paid_at: string | null;
   completed_at: string | null;
   cancelled_at: string | null;
