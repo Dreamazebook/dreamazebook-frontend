@@ -18,16 +18,11 @@ const useImageUpload = () => {
       'image/jpeg',
       'image/png',
       'image/jpg',
-      'image/gif',
-      'audio/mpeg',
-      'video/mp4',
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      'image/webp'
     ];
     
     if (!allowedTypes.includes(file.type)) {
-      setError('Please upload JPG、PNG、GIF、MP3、MP4、PDF、DOC or DOCX file only');
+      setError('Please upload JPEG, JPG, PNG or WebP file only');
       return false;
     }
 
