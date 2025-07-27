@@ -168,12 +168,13 @@ export default function CheckoutPage() {
       if (success) {
         setAddress({email: "", firstName: "", lastName: "", street: "", city: "", postalcode: "", country: "", state: "", phone: "", isDefault: false});
         fetchAddresses({refresh:true});
-        setCompletedSteps([...completedSteps, 1]);
-        setOpenStep(2);
       } else {
         alert(message);
+        return;
       }
     }
+    setCompletedSteps([...completedSteps, 1]);
+    setOpenStep(2);
   };
 
   // Handle next from delivery step
