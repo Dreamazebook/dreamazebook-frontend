@@ -21,3 +21,6 @@ export const API_ORDER_UPDATE_ADDRESS = API_DOMAIN + '/order/update-address'
 export const API_ORDER_REMOVE = API_DOMAIN + '/order/remove';
 
 export const API_ADDRESS_LIST = API_DOMAIN + '/addresses';
+
+
+export const API_CREATE_STRIPE_PAYMENT = API_DOMAIN + '/stripe/create-payment-intent'
