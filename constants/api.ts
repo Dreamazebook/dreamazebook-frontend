@@ -24,3 +24,6 @@ export const API_ADDRESS_LIST = API_DOMAIN + '/addresses';
 
 
 export const API_CREATE_STRIPE_PAYMENT = API_DOMAIN + '/stripe/create-payment-intent'
+
+
+export const API_ADMIN_USERS = API_DOMAIN + '/admin/users'
