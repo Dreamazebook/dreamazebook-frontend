@@ -406,7 +406,7 @@ export default function PreviewPageWithTopNav() {
 
         // 设置WebSocket监听
         if (echo && user) {
-          const channel = echo.private(`face-swap.${user.id}`);
+          const channel = echo.channel(`face-swap.${user.id}`);
           
           // 监听生成完成事件
           channel.listen('face-swap.complete', (e: { success: boolean; message: string }) => {

@@ -26,8 +26,8 @@ if (typeof window !== 'undefined') {
           broadcaster: 'reverb',
           key: process.env.NEXT_PUBLIC_REVERB_APP_KEY!,
           wsHost: process.env.NEXT_PUBLIC_WS_HOST || '127.0.0.1',
-          wsPort: Number(process.env.NEXT_PUBLIC_WS_PORT) || 8080,
-          wssPort: Number(process.env.NEXT_PUBLIC_WS_PORT) || 8080,
+          wsPort: process.env.NEXT_PUBLIC_WS_PORT ? Number(process.env.NEXT_PUBLIC_WS_PORT) : undefined,
+          wssPort: process.env.NEXT_PUBLIC_WS_PORT ? Number(process.env.NEXT_PUBLIC_WS_PORT) : undefined,
           forceTLS: process.env.NEXT_PUBLIC_WS_SECURE === 'true',
           enabledTransports: ['ws', 'wss'],
           authEndpoint: '/api/broadcasting/auth',
@@ -42,7 +42,7 @@ if (typeof window !== 'undefined') {
 
         console.log('WebSocket 配置:', {
           wsHost: process.env.NEXT_PUBLIC_WS_HOST || '127.0.0.1',
-          wsPort: process.env.NEXT_PUBLIC_WS_PORT || 8080,
+          wsPort: process.env.NEXT_PUBLIC_WS_PORT || '未设置',
           wsSecure: process.env.NEXT_PUBLIC_WS_SECURE,
           authEndpoint: '/api/broadcasting/auth'
         });
