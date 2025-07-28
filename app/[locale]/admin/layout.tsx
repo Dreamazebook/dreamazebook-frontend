@@ -1,20 +1,22 @@
-import { FC, ReactNode } from 'react';
+'use client';
+import { FC, ReactNode, useEffect } from 'react';
 import '../globals.css';
-// import Sidebar from './components/Sidebar';
+import useUserStore from '@/stores/userStore';
 
 interface AdminLayoutProps {
   children: ReactNode;
 }
 
 const AdminLayout: FC<AdminLayoutProps> = ({ children }) => {
+  const {fetchCurrentUser,user} = useUserStore();
+  useEffect(()=> {
+    fetchCurrentUser();
+  },[])
   return (
     <html>
     <body>
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-md">
-        {/* <Sidebar /> */}
-      </aside>
 
       {/* Main Content */}
       <main className="flex-1 p-8">
