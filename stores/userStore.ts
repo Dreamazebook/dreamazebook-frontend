@@ -1,9 +1,8 @@
-import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT, API_USER_SEND_PASSWORD_RESET_EMAIL, API_ADDRESS_LIST } from '@/constants/api'
+import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT, API_USER_SEND_PASSWORD_RESET_EMAIL, API_ADDRESS_LIST, API_ADMIN_LOGIN } from '@/constants/api'
 import api from '@/utils/api'
 import { ApiResponse, UserResponse } from '@/types/api'
 import { create } from 'zustand'
 import { Address } from '@/types/address'
-import { get } from 'http'
 
 interface UserState {
   // Modal state
@@ -18,6 +17,7 @@ interface UserState {
   fetchAddresses: (options?: any) => void
   isLoggedIn: boolean
   login: (userData: LoginData) => Promise<ApiResponse<UserResponse> | null>
+  loginAdmin: (userData: LoginData) => Promise<ApiResponse<UserResponse> | null>
   register: (userData: RegisterData) => Promise<ApiResponse<UserResponse> | null>
   logout: () => void
   fetchCurrentUser: () => void
@@ -90,6 +90,19 @@ const useUserStore = create<UserState>((set,get) => ({
   login: async (userData): Promise<ApiResponse<UserResponse> | null> => {
     try {
       const response = await api.post<ApiResponse<UserResponse>>(API_USER_LOGIN, userData);
+      if (response.success && response.data?.token) {
+        localStorage.setItem('token', response.data.token);
+        set({ isLoggedIn: true, user: response.data.user });
+      }
+      return response;
+    } catch (error) {
+      console.error('Login error:', error);
+      return null;
+    }
+  },
+  loginAdmin: async (userData): Promise<ApiResponse<UserResponse> | null> => {
+    try {
+      const response = await api.post<ApiResponse<UserResponse>>(API_ADMIN_LOGIN, userData);
       if (response.success && response.data?.token) {
         localStorage.setItem('token', response.data.token);
         set({ isLoggedIn: true, user: response.data.user });
