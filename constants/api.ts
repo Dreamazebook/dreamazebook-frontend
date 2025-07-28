@@ -17,8 +17,14 @@ export const API_CART_UPDATE = API_DOMAIN + '/cart/update';
 export const API_ORDER_LIST = API_DOMAIN + '/order/list';
 export const API_ORDER_CREATE = API_DOMAIN + '/order/create';
 export const API_ORDER_DETAIL = API_DOMAIN + '/order/detail';
+export const API_ORDER_UPDATE_ADDRESS = API_DOMAIN + '/order/update-address'
 export const API_ORDER_REMOVE = API_DOMAIN + '/order/remove';
 
 export const API_ADDRESS_LIST = API_DOMAIN + '/addresses';
 
-export const API_CART_ADD = API_DOMAIN + '/cart/add';
+
+export const API_CREATE_STRIPE_PAYMENT = API_DOMAIN + '/stripe/create-payment-intent'
+
+
+export const API_ADMIN_LOGIN = API_DOMAIN + '/admin/login'
+export const API_ADMIN_USERS = API_DOMAIN + '/admin/users'

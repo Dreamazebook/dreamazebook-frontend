@@ -55,9 +55,8 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   
   // 当选择已保存的地址时，自动填充表单字段
   useEffect(() => {
-    if (addressList.length == 0) {
-      setShowForm(true);
-    }
+    setShowForm(addressList.length === 0);
+    setSelectedAddressId(addressList.find(addr => addr.is_default)?.id ?? null);
     // if (selectedAddressId) {
     //   const selectedAddress = addressList.find(addr => addr.id === selectedAddressId);
     //   if (selectedAddress) {
@@ -73,7 +72,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
     //     if (selectedAddress.phone) setPhone(selectedAddress.phone);
     //   }
     // }
-  }, [selectedAddressId, addressList]);
+  }, [addressList]);
   const clearError = (field: keyof ShippingErrors) => {
     if (errors[field]) {
       setErrors({ ...errors, [field]: undefined });
@@ -331,7 +330,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
       <div className="mt-6">
         <button
           onClick={handleNextFromShipping}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+          className="w-full bg-blue-600 cursor-pointer text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
         >
           Continue to Delivery
         </button>

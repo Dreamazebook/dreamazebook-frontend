@@ -57,7 +57,7 @@ const handleError = (error) => {
             // 处理未授权错误
             if (typeof window !== 'undefined') {
                 localStorage.removeItem('token');
-                window.location.href = '/login';
+                
             }
         }
     } else if (error.request) {

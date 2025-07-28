@@ -11,7 +11,7 @@ import echo from '@/app/config/echo';
 import useUserStore from '@/stores/userStore';
 import toast from 'react-hot-toast';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
-import { API_CART_ADD } from '@/constants/api';
+import { API_CART_CREATE } from '@/constants/api';
 import { mirage } from 'ldrs';
 
 // 注册 mirage loader

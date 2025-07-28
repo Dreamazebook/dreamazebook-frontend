@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/utils/api';
-import { API_ADDRESS_LIST, API_ORDER_DETAIL } from '@/constants/api';
+import { API_ADDRESS_LIST, API_CREATE_STRIPE_PAYMENT, API_ORDER_DETAIL } from '@/constants/api';
 import { Address } from '@/types/address';
 import CheckoutStep from './components/CheckoutStep';
 import ShippingForm from './components/ShippingForm';
@@ -82,9 +82,18 @@ export default function CheckoutPage() {
           const {data,code,message,success} = await api.get<ApiResponse<OrderDetail>>(`${API_ORDER_DETAIL}/${orderId}`);
           // Transform order items to cart items format
           if (!data?.items) return;
-          setOrderDetail(data);
+          //Todo: remove stripe_client_secret
+          setOrderDetail({...data, stripe_client_secret:'pi_3Rke85FL3kDc1mfg0oGGyj3F_secret_OhZrBhG3vw5ULN6vvEzsOKSZG'});
+          if (!data.stripe_client_secret) {
+            const {success, message, code,data:stripeData} = await api.post<ApiResponse<any>>(`${API_CREATE_STRIPE_PAYMENT}`, {
+              order_id: data.id
+            });
+            if (success) {
+              setOrderDetail({...data, stripe_client_secret:stripeData.stripe_client_secret});
+            }
+          }
           
-        } catch (err) {
+        } catch (err) { 
           setError('Failed to load order details');
           console.error('Error fetching order details:', err);
         } finally {
@@ -168,12 +177,13 @@ export default function CheckoutPage() {
       if (success) {
         setAddress({email: "", firstName: "", lastName: "", street: "", city: "", postalcode: "", country: "", state: "", phone: "", isDefault: false});
         fetchAddresses({refresh:true});
-        setCompletedSteps([...completedSteps, 1]);
-        setOpenStep(2);
       } else {
         alert(message);
+        return;
       }
     }
+    setCompletedSteps([...completedSteps, 1]);
+    setOpenStep(2);
   };
 
   // Handle next from delivery step
@@ -270,19 +280,22 @@ export default function CheckoutPage() {
               onToggle={() => toggleStep(3)}
               canOpen={completedSteps.includes(2)}
             >
+              {orderDetail && 
               <ReviewAndPay
-                selectedPaymentOption={selectedPaymentOption}
-                setSelectedPaymentOption={setSelectedPaymentOption}
-                cardNumber={cardNumber}
-                setCardNumber={setCardNumber}
-                cardName={cardName}
-                setCardName={setCardName}
-                cardExpiry={cardExpiry}
-                setCardExpiry={setCardExpiry}
-                cardCvc={cardCvc}
-                setCardCvc={setCardCvc}
+                order={orderDetail}
+                // selectedPaymentOption={selectedPaymentOption}
+                // setSelectedPaymentOption={setSelectedPaymentOption}
+                // cardNumber={cardNumber}
+                // setCardNumber={setCardNumber}
+                // cardName={cardName}
+                // setCardName={setCardName}
+                // cardExpiry={cardExpiry}
+                // setCardExpiry={setCardExpiry}
+                // cardCvc={cardCvc}
+                // setCardCvc={setCardCvc}
                 handlePlaceOrder={handlePlaceOrder}
               />
+              }
             </CheckoutStep>
           </div>
           

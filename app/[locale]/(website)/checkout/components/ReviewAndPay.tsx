@@ -1,138 +1,194 @@
 'use client';
 
-import React from 'react';
-import { PaymentOption } from './types';
+import React, { useState, useEffect } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
+import {
+  Elements,
+  CardElement,
+  useStripe,
+  useElements
+} from '@stripe/react-stripe-js';
+import { OrderDetail } from './types';
+
+// Make sure to call `loadStripe` outside of a component's render to avoid
+// recreating the `Stripe` object on every render.
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 interface ReviewAndPayProps {
-  selectedPaymentOption: PaymentOption;
-  setSelectedPaymentOption: (option: PaymentOption) => void;
-  cardNumber: string;
-  setCardNumber: (value: string) => void;
-  cardName: string;
-  setCardName: (value: string) => void;
-  cardExpiry: string;
-  setCardExpiry: (value: string) => void;
-  cardCvc: string;
-  setCardCvc: (value: string) => void;
-  handlePlaceOrder: () => void;
+  order: OrderDetail;
+  handlePlaceOrder?: () => void;
+  onError?: (error: string) => void;
 }
 
-const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
-  selectedPaymentOption,
-  setSelectedPaymentOption,
-  cardNumber,
-  setCardNumber,
-  cardName,
-  setCardName,
-  cardExpiry,
-  setCardExpiry,
-  cardCvc,
-  setCardCvc,
-  handlePlaceOrder
-}) => {
+const CheckoutForm: React.FC<{
+  order: OrderDetail;
+  handlePlaceOrder?: () => void;
+  onError?: (error: string) => void;
+}> = ({ order, handlePlaceOrder, onError }) => {
+  const {stripe_client_secret:clientSecret,shipping_address:{email},total_amount} = order;
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState<string>('');
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements) {
+      // Stripe.js hasn't yet loaded.
+      return;
+    }
+
+    setIsLoading(true);
+    setMessage('');
+
+    const cardElement = elements.getElement(CardElement);
+
+    if (!cardElement) {
+      setMessage('Card element not found');
+      setIsLoading(false);
+      return;
+    }
+
+    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: {
+        card: cardElement,
+        billing_details: {
+          email,
+        },
+      },
+    });
+
+    if (error) {
+      setMessage(error.message || 'An unexpected error occurred.');
+      onError?.(error.message || 'Payment failed');
+    } else if (paymentIntent.status === 'succeeded') {
+      setMessage('Payment succeeded!');
+      handlePlaceOrder?.();
+    }
+
+    setIsLoading(false);
+  };
+
+  const cardElementOptions = {
+    style: {
+      base: {
+        fontSize: '16px',
+        color: '#424770',
+        '::placeholder': {
+          color: '#aab7c4',
+        },
+      },
+      invalid: {
+        color: '#9e2146',
+      },
+    },
+  };
+
   return (
-    <div>
+    <div className="bg-white p-6 rounded-lg shadow-lg">
       <div className="mb-6">
-        <h4 className="text-lg font-medium mb-4">Payment Method</h4>
-        
-        <div className="space-y-4">
-          <div 
-            className={`border rounded-lg p-4 cursor-pointer ${selectedPaymentOption === 'card' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}
-            onClick={() => setSelectedPaymentOption('card')}
-          >
-            <div className="flex items-center">
-              <div className={`w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${selectedPaymentOption === 'card' ? 'border-blue-500' : 'border-gray-300'}`}>
-                {selectedPaymentOption === 'card' && (
-                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                )}
-              </div>
-              <div>
-                <h4 className="font-medium">Credit / Debit Card</h4>
-              </div>
-            </div>
-            
-            {selectedPaymentOption === 'card' && (
-              <div className="mt-4 space-y-4">
-                <div>
-                  <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                  <input
-                    type="text"
-                    id="cardNumber"
-                    placeholder="1234 5678 9012 3456"
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value)}
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="cardName" className="block text-sm font-medium text-gray-700 mb-1">Name on Card</label>
-                  <input
-                    type="text"
-                    id="cardName"
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                    value={cardName}
-                    onChange={(e) => setCardName(e.target.value)}
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="cardExpiry" className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                    <input
-                      type="text"
-                      id="cardExpiry"
-                      placeholder="MM/YY"
-                      className="w-full p-2 border border-gray-300 rounded-md"
-                      value={cardExpiry}
-                      onChange={(e) => setCardExpiry(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="cardCvc" className="block text-sm font-medium text-gray-700 mb-1">CVC</label>
-                    <input
-                      type="text"
-                      id="cardCvc"
-                      placeholder="123"
-                      className="w-full p-2 border border-gray-300 rounded-md"
-                      value={cardCvc}
-                      onChange={(e) => setCardCvc(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          <div 
-            className={`border rounded-lg p-4 cursor-pointer ${selectedPaymentOption === 'paypal' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}
-            onClick={() => setSelectedPaymentOption('paypal')}
-          >
-            <div className="flex items-center">
-              <div className={`w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${selectedPaymentOption === 'paypal' ? 'border-blue-500' : 'border-gray-300'}`}>
-                {selectedPaymentOption === 'paypal' && (
-                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                )}
-              </div>
-              <div>
-                <h4 className="font-medium">PayPal</h4>
-                <p className="text-sm text-gray-600">You will be redirected to PayPal to complete your purchase.</p>
-              </div>
-            </div>
-          </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Review & Pay</h2>
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h3 className="font-semibold text-gray-800"></h3>
+          <p className="text-gray-600">Customer: {email}</p>
+          <p className="text-xl font-bold text-gray-900 mt-2">
+            Total: ${total_amount}
+          </p>
         </div>
       </div>
-      
-      <div className="mt-6">
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Card Information
+          </label>
+          <div className="border border-gray-300 rounded-md p-3 bg-white">
+            <CardElement options={cardElementOptions} />
+          </div>
+        </div>
+
         <button
-          onClick={handlePlaceOrder}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-          disabled={!selectedPaymentOption}
+          type="submit"
+          disabled={!stripe || isLoading}
+          className={`w-full py-3 px-4 rounded-md font-medium transition-colors ${
+            isLoading
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700'
+          } text-white`}
         >
-          Place Order
+          {isLoading ? (
+            <div className="flex items-center justify-center">
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              Processing...
+            </div>
+          ) : (
+            `Pay $${total_amount}`
+          )}
         </button>
-      </div>
+
+        {message && (
+          <div
+            className={`p-3 rounded-md text-sm ${
+              message.includes('succeeded')
+                ? 'bg-green-100 text-green-700'
+                : 'bg-red-100 text-red-700'
+            }`}
+          >
+            {message}
+          </div>
+        )}
+      </form>
     </div>
+  );
+};
+
+const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
+  order,
+  handlePlaceOrder,
+  onError,
+}) => {
+  const { stripe_client_secret:clientSecret } = order;
+  const [stripeError, setStripeError] = useState<string>('');
+
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+      setStripeError('Stripe publishable key is not configured');
+    }
+  }, []);
+
+  if (stripeError) {
+    return (
+      <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <div className="bg-red-100 text-red-700 p-3 rounded-md">
+          Error: {stripeError}
+        </div>
+      </div>
+    );
+  }
+
+  if (!clientSecret) {
+    return (
+      <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <div className="bg-yellow-100 text-yellow-700 p-3 rounded-md">
+          Loading payment form...
+        </div>
+      </div>
+    );
+  }
+
+  const options = {
+    clientSecret,
+  };
+
+  return (
+    <Elements stripe={stripePromise} options={options}>
+      <CheckoutForm
+        order={order}
+        handlePlaceOrder={handlePlaceOrder}
+        onError={onError}
+      />
+    </Elements>
   );
 };
 
