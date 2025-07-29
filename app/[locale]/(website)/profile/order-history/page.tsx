@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { OrderDetail } from '../../checkout/components/types';
+import { formatDate, OrderDetail } from '../../checkout/components/types';
 import { API_ORDER_LIST } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
 import api from '@/utils/api';
@@ -116,9 +116,9 @@ const OrderHistory = () => {
                       <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
                       <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
                     </svg>
-                    <span className={`${getStatusColor(order.status)} font-medium`}>{order.status}</span>
+                    <span className={`${getStatusColor(order.status)} capitalize font-medium`}>{order.status}</span>
                   </div>
-                  <span className="text-lg font-semibold text-gray-900">{order.total_amount}</span>
+                  <span className="text-lg font-semibold text-gray-900">${order.total_amount}</span>
                 </div>
 
                 <div className="text-sm text-gray-600 mb-1">
@@ -126,14 +126,14 @@ const OrderHistory = () => {
                 </div>
 
                 <div className="flex gap-8 text-sm text-gray-600 mb-1">
-                  <span><span className="text-gray-900">Order date:</span> {order.created_at}</span>
+                  <span><span className="text-gray-900">Order date:</span> {formatDate(order.created_at)}</span>
                   {order.updated_at && (
-                    <span><span className="text-gray-900">Delivery date:</span> {order.updated_at}</span>
+                    <span><span className="text-gray-900">Delivery date:</span> {formatDate(order.updated_at)}</span>
                   )}
                 </div>
 
                 <div className="text-sm text-gray-600 mb-4">
-                  <span className="text-gray-900">Qty:</span> 2
+                  <span className="text-gray-900">Qty:</span> {order.items.length}
                 </div>
 
                 <div className="flex gap-6">
