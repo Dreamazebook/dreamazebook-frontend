@@ -122,7 +122,7 @@ const OrderHistory = () => {
                 </div>
 
                 <div className="text-sm text-gray-600 mb-1">
-                  <span className="text-gray-900">Ship to:</span> Wuhou District, Chengdu City, Sichuan Province, China
+                  <span className="text-gray-900">Ship to:</span> {order.shipping_address?.full_address}
                 </div>
 
                 <div className="flex gap-8 text-sm text-gray-600 mb-1">
