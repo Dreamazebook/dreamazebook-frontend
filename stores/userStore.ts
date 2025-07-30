@@ -1,8 +1,9 @@
-import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT, API_USER_SEND_PASSWORD_RESET_EMAIL, API_ADDRESS_LIST, API_ADMIN_LOGIN } from '@/constants/api'
+import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT, API_USER_SEND_PASSWORD_RESET_EMAIL, API_ADDRESS_LIST, API_ADMIN_LOGIN, API_ORDER_LIST } from '@/constants/api'
 import api from '@/utils/api'
 import { ApiResponse, UserResponse } from '@/types/api'
 import { create } from 'zustand'
 import { Address } from '@/types/address'
+import { OrderDetail } from '@/app/[locale]/(website)/checkout/components/types'
 
 interface UserState {
   // Modal state
@@ -15,6 +16,10 @@ interface UserState {
   user: UserType | null
   addresses: Address[]
   fetchAddresses: (options?: any) => void
+
+  orderList: OrderDetail[]
+  fetchOrderList: (options?:any) => void
+
   isLoggedIn: boolean
   login: (userData: LoginData) => Promise<ApiResponse<UserResponse> | null>
   loginAdmin: (userData: LoginData) => Promise<ApiResponse<UserResponse> | null>
@@ -51,6 +56,21 @@ const useUserStore = create<UserState>((set,get) => ({
   
   // User state - initially not logged in
   user: null,
+
+  orderList: [],
+  fetchOrderList: async (options?: any) => {
+    const refresh = options?.refresh;
+    if (!refresh && get().orderList.length > 0) return;
+    try {
+      const response = await api.get<ApiResponse<OrderDetail[]>>(API_ORDER_LIST);
+      if (response.success && response.data) {
+        set({ orderList: response.data });
+      }
+    } catch (error) {
+      console.error('Fetch orders error:', error);
+    }
+  },
+
   addresses: [],
   fetchAddresses: async (options?: any) => {
     const refresh = options?.refresh;
