@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/utils/api';
-import { API_ADDRESS_LIST, API_CREATE_STRIPE_PAYMENT, API_ORDER_DETAIL } from '@/constants/api';
+import { API_ADDRESS_LIST, API_CREATE_STRIPE_PAYMENT, API_ORDER_DETAIL, API_ORDER_UPDATE_ADDRESS } from '@/constants/api';
 import { Address } from '@/types/address';
 import CheckoutStep from './components/CheckoutStep';
 import ShippingForm from './components/ShippingForm';
@@ -11,7 +11,7 @@ import BillingAddressForm from './components/BillingAddressForm';
 import DeliveryOptions from './components/DeliveryOptions';
 import ReviewAndPay from './components/ReviewAndPay';
 import OrderSummary from './components/OrderSummary';
-import { CartItem, ShippingErrors, BillingErrors, DeliveryOption, PaymentOption, OrderDetail } from './components/types';
+import { CartItem, ShippingErrors, BillingErrors, DeliveryOption, PaymentOption, OrderDetail, OrderDetailResponse } from './components/types';
 import { ApiResponse } from '@/types/api';
 import useUserStore from '@/stores/userStore';
 
@@ -79,20 +79,12 @@ export default function CheckoutPage() {
         setError(null);
         
         try {
-          const {data,code,message,success} = await api.get<ApiResponse<OrderDetail>>(`${API_ORDER_DETAIL}/${orderId}`);
+          const {data,code,message,success} = await api.get<ApiResponse<OrderDetailResponse>>(`${API_ORDER_DETAIL}/${orderId}`);
           // Transform order items to cart items format
-          if (!data?.items) return;
           //Todo: remove stripe_client_secret
-          setOrderDetail({...data, stripe_client_secret:'pi_3Rke85FL3kDc1mfg0oGGyj3F_secret_OhZrBhG3vw5ULN6vvEzsOKSZG'});
-          if (!data.stripe_client_secret) {
-            const {success, message, code,data:stripeData} = await api.post<ApiResponse<any>>(`${API_CREATE_STRIPE_PAYMENT}`, {
-              order_id: data.id
-            });
-            if (success) {
-              setOrderDetail({...data, stripe_client_secret:stripeData.stripe_client_secret});
-            }
-          }
-          
+          if (!data?.order) return;
+          setOrderDetail(data?.order);
+          setSelectedAddressId(data?.order.shipping_address?.id ?? null)
         } catch (err) { 
           setError('Failed to load order details');
           console.error('Error fetching order details:', err);
@@ -158,6 +150,10 @@ export default function CheckoutPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const updateOrderAddress = async (address: Address) => {
+    const {data,code,message,success} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_ADDRESS}/${orderDetail?.id}`, address)
+  }
+
   // Handle next from shipping step
   const handleNextFromShipping = async() => {
     if (validateShippingInfo() && validateBillingInfo()) {
@@ -177,6 +173,9 @@ export default function CheckoutPage() {
       if (success) {
         setAddress({email: "", firstName: "", lastName: "", street: "", city: "", postalcode: "", country: "", state: "", phone: "", isDefault: false});
         fetchAddresses({refresh:true});
+
+        updateOrderAddress(data);
+        
       } else {
         alert(message);
         return;

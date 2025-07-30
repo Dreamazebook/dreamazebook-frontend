@@ -59,7 +59,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         )}
         <div className="flex justify-between text-base font-medium pt-2 border-t border-gray-200">
           <p>Total</p>
-          <p>${total}</p>
+          <p>${total.toFixed(2)}</p>
         </div>
       </div>
     </div>

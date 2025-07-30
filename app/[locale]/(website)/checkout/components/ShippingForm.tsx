@@ -56,22 +56,10 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   // 当选择已保存的地址时，自动填充表单字段
   useEffect(() => {
     setShowForm(addressList.length === 0);
-    setSelectedAddressId(addressList.find(addr => addr.is_default)?.id ?? null);
-    // if (selectedAddressId) {
-    //   const selectedAddress = addressList.find(addr => addr.id === selectedAddressId);
-    //   if (selectedAddress) {
-    //     // 填充表单字段
-    //     if (selectedAddress.email) setEmail(selectedAddress.email);
-    //     if (selectedAddress.first_name) setFirstName(selectedAddress.first_name);
-    //     if (selectedAddress.last_name) setLastName(selectedAddress.last_name);
-    //     if (selectedAddress.street) setAddress(selectedAddress.street);
-    //     if (selectedAddress.city) setCity(selectedAddress.city);
-    //     if (selectedAddress.postal_code) setPostalcode(selectedAddress.postal_code);
-    //     if (selectedAddress.country) setCountry(selectedAddress.country);
-    //     if (selectedAddress.state) setState(selectedAddress.state);
-    //     if (selectedAddress.phone) setPhone(selectedAddress.phone);
-    //   }
-    // }
+
+    if (!selectedAddressId) {
+      setSelectedAddressId(addressList.find(addr => addr.is_default)?.id ?? null);
+    }
   }, [addressList]);
   const clearError = (field: keyof ShippingErrors) => {
     if (errors[field]) {

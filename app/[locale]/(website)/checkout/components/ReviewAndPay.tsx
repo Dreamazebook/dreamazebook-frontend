@@ -148,7 +148,7 @@ const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
   handlePlaceOrder,
   onError,
 }) => {
-  const { stripe_client_secret:clientSecret } = order;
+  const { stripe_client_secret:clientSecret = 'pi_3Rke85FL3kDc1mfg0oGGyj3F_secret_OhZrBhG3vw5ULN6vvEzsOKSZG' } = order;
   const [stripeError, setStripeError] = useState<string>('');
 
   useEffect(() => {

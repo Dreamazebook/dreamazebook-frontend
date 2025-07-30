@@ -2,6 +2,10 @@ export function formatDate(date: string) {
   return date.split('T')[0];
 }
 
+export interface OrderDetailResponse {
+  order: OrderDetail;
+}
+
 export interface OrderDetail {
   id: number;
   user_id: number;
