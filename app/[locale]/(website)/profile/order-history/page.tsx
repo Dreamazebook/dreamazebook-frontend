@@ -1,23 +1,18 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { formatDate, OrderDetail } from '../../checkout/components/types';
-import { API_ORDER_LIST } from '@/constants/api';
-import { ApiResponse } from '@/types/api';
-import api from '@/utils/api';
+import { formatDate } from '../../checkout/components/types';
 import Link from 'next/link';
+import useUserStore from '@/stores/userStore';
 
 const OrderHistory = () => {
-  const [orders, setOrders] = useState<OrderDetail[]>([]);
+  const {orderList, fetchOrderList} = useUserStore();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const {data,success,code,message} = await api.get<ApiResponse<OrderDetail[]>>(API_ORDER_LIST);
-        // Transform API response to match expected format
-        if (!data) return;
-        setOrders(data);
+        fetchOrderList();
       } catch (err) {
         setError('Failed to load orders. Please try again later.');
         console.error('Error fetching orders:', err);
@@ -40,7 +35,7 @@ const OrderHistory = () => {
 
   if (loading) return <div className="text-center py-8">Loading orders...</div>;
   if (error) return <div className="text-center py-8 text-red-500">{error}</div>;
-  if (orders.length === 0) return <div className="text-center py-8">No orders found</div>;
+  if (orderList.length === 0) return <div className="text-center py-8">No orders found</div>;
 
   return (
     <div className="bg-white min-h-screen">
@@ -78,7 +73,7 @@ const OrderHistory = () => {
 
         {/* Order List */}
         <div className="space-y-6">
-          {orders.map((order, index) => (
+          {orderList.map((order, index) => (
             <div key={index} className="flex gap-4 py-4">
               {/* Product Images */}
               <div className="flex-shrink-0">
