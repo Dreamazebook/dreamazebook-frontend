@@ -4,6 +4,9 @@ export function formatDate(date: string) {
 
 export interface OrderDetailResponse {
   order: OrderDetail;
+  payment_data: {
+    client_secret: string,
+  }
 }
 
 export interface OrderDetail {

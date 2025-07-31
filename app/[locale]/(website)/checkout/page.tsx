@@ -21,7 +21,7 @@ export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
 
-  const [orderDetail, setOrderDetail] = useState<OrderDetail>();
+  const [orderDetail, setOrderDetail] = useState<OrderDetailResponse>();
 
   // Loading and error states
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -83,7 +83,7 @@ export default function CheckoutPage() {
           // Transform order items to cart items format
           //Todo: remove stripe_client_secret
           if (!data?.order) return;
-          setOrderDetail(data?.order);
+          setOrderDetail(data);
           setSelectedAddressId(data?.order.shipping_address?.id ?? null)
         } catch (err) { 
           setError('Failed to load order details');
@@ -151,7 +151,7 @@ export default function CheckoutPage() {
   };
 
   const updateOrderAddress = async (address: Address) => {
-    const {data,code,message,success} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_ADDRESS}/${orderDetail?.id}`, address)
+    const {data,code,message,success} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_ADDRESS}/${orderDetail?.order?.id}`, address)
   }
 
   // Handle next from shipping step
@@ -281,7 +281,7 @@ export default function CheckoutPage() {
             >
               {orderDetail && 
               <ReviewAndPay
-                order={orderDetail}
+                orderDetail={orderDetail}
                 // selectedPaymentOption={selectedPaymentOption}
                 // setSelectedPaymentOption={setSelectedPaymentOption}
                 // cardNumber={cardNumber}

@@ -73,8 +73,8 @@ const OrderHistory = () => {
 
         {/* Order List */}
         <div className="space-y-6">
-          {orderList.map((order, index) => (
-            <div key={index} className="flex gap-4 py-4">
+          {orderList.map((order) => (
+            <div key={order.id} className="flex gap-4 py-4">
               {/* Product Images */}
               <div className="flex-shrink-0">
                 {/* {order.images ? (

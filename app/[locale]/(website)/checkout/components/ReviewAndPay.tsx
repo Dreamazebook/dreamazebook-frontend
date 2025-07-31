@@ -8,24 +8,26 @@ import {
   useStripe,
   useElements
 } from '@stripe/react-stripe-js';
-import { OrderDetail } from './types';
+import { OrderDetail, OrderDetailResponse } from './types';
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 interface ReviewAndPayProps {
-  order: OrderDetail;
+  orderDetail: OrderDetailResponse;
   handlePlaceOrder?: () => void;
   onError?: (error: string) => void;
 }
 
 const CheckoutForm: React.FC<{
-  order: OrderDetail;
+  orderDetail: OrderDetailResponse;
   handlePlaceOrder?: () => void;
   onError?: (error: string) => void;
-}> = ({ order, handlePlaceOrder, onError }) => {
-  const {stripe_client_secret:clientSecret,shipping_address:{email},total_amount} = order;
+}> = ({ orderDetail, handlePlaceOrder, onError }) => {
+  const order = orderDetail.order;
+  const {shipping_address:{email},total_amount} = order;
+  const clientSecret = orderDetail.payment_data.client_secret;
   const stripe = useStripe();
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
@@ -144,11 +146,11 @@ const CheckoutForm: React.FC<{
 };
 
 const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
-  order,
+  orderDetail,
   handlePlaceOrder,
   onError,
 }) => {
-  const { stripe_client_secret:clientSecret = 'pi_3Rke85FL3kDc1mfg0oGGyj3F_secret_OhZrBhG3vw5ULN6vvEzsOKSZG' } = order;
+  const clientSecret = orderDetail.payment_data.client_secret;
   const [stripeError, setStripeError] = useState<string>('');
 
   useEffect(() => {
@@ -184,7 +186,7 @@ const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
   return (
     <Elements stripe={stripePromise} options={options}>
       <CheckoutForm
-        order={order}
+        orderDetail={orderDetail}
         handlePlaceOrder={handlePlaceOrder}
         onError={onError}
       />
