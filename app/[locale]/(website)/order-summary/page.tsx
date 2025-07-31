@@ -1,5 +1,13 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
+import api from '@/utils/api';
+import { OrderDetailResponse } from '../checkout/components/types';
+import { ApiResponse } from '@/types/api';
+import { API_ORDER_DETAIL } from '@/constants/api';
+import useUserStore from '@/stores/userStore';
 
 interface OrderItem {
   id: number;
@@ -10,6 +18,23 @@ interface OrderItem {
 }
 
 const OrderSummary: React.FC = () => {
+  const {fetchOrderDetail} = useUserStore();
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get('orderId');
+
+  const [orderDetail, setOrderDetail] = useState<OrderDetailResponse >();
+
+  useEffect(()=>{
+    const fetchSummaryOrder = async(orderId:string) => {
+      const {data,code,message,success} = await fetchOrderDetail(orderId);
+      if (success) {
+        setOrderDetail(data);
+      }
+    }
+    if (orderId) {
+      fetchSummaryOrder(orderId);
+    }
+  },[])
   // 模拟订单条目数据
   const orderItems: OrderItem[] = [
     {

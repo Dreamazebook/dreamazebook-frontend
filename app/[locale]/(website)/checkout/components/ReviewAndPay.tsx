@@ -105,7 +105,7 @@ const CheckoutForm: React.FC<{
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Card Information
           </label>
-          <div className="border border-gray-300 rounded-md p-3 bg-white">
+          <div className="border border-gray-300 rounded-md p-4 bg-white w-full">
             <CardElement options={cardElementOptions} />
           </div>
         </div>

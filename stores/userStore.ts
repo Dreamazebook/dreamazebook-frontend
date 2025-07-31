@@ -1,9 +1,9 @@
-import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT, API_USER_SEND_PASSWORD_RESET_EMAIL, API_ADDRESS_LIST, API_ADMIN_LOGIN, API_ORDER_LIST } from '@/constants/api'
+import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT, API_USER_SEND_PASSWORD_RESET_EMAIL, API_ADDRESS_LIST, API_ADMIN_LOGIN, API_ORDER_LIST, API_ORDER_DETAIL } from '@/constants/api'
 import api from '@/utils/api'
 import { ApiResponse, UserResponse } from '@/types/api'
 import { create } from 'zustand'
 import { Address } from '@/types/address'
-import { OrderDetail } from '@/app/[locale]/(website)/checkout/components/types'
+import { OrderDetail, OrderDetailResponse } from '@/app/[locale]/(website)/checkout/components/types'
 
 interface UserState {
   // Modal state
@@ -19,6 +19,7 @@ interface UserState {
 
   orderList: OrderDetail[]
   fetchOrderList: (options?:any) => void
+  fetchOrderDetail: (orderId:string) => Promise<ApiResponse<OrderDetailResponse>>
 
   isLoggedIn: boolean
   login: (userData: LoginData) => Promise<ApiResponse<UserResponse> | null>
@@ -70,6 +71,10 @@ const useUserStore = create<UserState>((set,get) => ({
     } catch (error) {
       console.error('Fetch orders error:', error);
     }
+  },
+  fetchOrderDetail : async (orderId:string) => {
+    return await api.get<ApiResponse<OrderDetailResponse>>(`${API_ORDER_DETAIL}/${orderId}`);
+    
   },
 
   addresses: [],
