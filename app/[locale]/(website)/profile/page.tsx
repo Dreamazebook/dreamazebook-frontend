@@ -22,8 +22,8 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {orderList?.splice(0,1)?.map(({order_number,status,shipping_address,total_amount,items}, index) => (
-        <div className="border rounded-lg p-3 md:p-4">
+        {orderList?.splice(0,1)?.map(({order_number,status,shipping_address,total_amount,items}) => (
+        <div key={order_number} className="border rounded-lg p-3 md:p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
             <span className="text-base md:text-lg font-medium text-gray-900">{order_number}</span>
             <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium w-fit capitalize">
