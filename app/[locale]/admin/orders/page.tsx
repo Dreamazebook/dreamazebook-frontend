@@ -6,8 +6,8 @@ import OrderDetailsModal from './components/OrderDetailsModal';
 import Pagination from './components/Pagination';
 import StatusFilter from './components/StatusFilter';
 import SearchBar from './components/SearchBar';
-import { Order } from './types';
 import { mockOrders } from './mockData';
+import { OrderDetail } from '../../(website)/checkout/components/types';
 
 export const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -38,14 +38,14 @@ export const paymentStatusLabels = {
 };
 
 const AdminOrdersPage: FC = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 10;
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderDetail | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   useEffect(() => {
@@ -68,9 +68,9 @@ const AdminOrdersPage: FC = () => {
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 
-      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer_email.toLowerCase().includes(searchTerm.toLowerCase());
+      order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.shipping_address.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.shipping_address.lastName.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     
@@ -84,7 +84,7 @@ const AdminOrdersPage: FC = () => {
   const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
 
   const getStatusCounts = () => {
-    const counts = {
+    const counts:{[key:string]:number} = {
       all: orders.length,
       pending: 0,
       processing: 0,
@@ -102,7 +102,7 @@ const AdminOrdersPage: FC = () => {
 
   const statusCounts = getStatusCounts();
 
-  const handleViewDetails = (order: Order) => {
+  const handleViewDetails = (order: OrderDetail) => {
     setSelectedOrder(order);
     setShowDetailsModal(true);
   };
