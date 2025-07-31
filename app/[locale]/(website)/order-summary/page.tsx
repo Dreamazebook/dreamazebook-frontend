@@ -3,19 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
-import api from '@/utils/api';
 import { OrderDetailResponse } from '../checkout/components/types';
-import { ApiResponse } from '@/types/api';
-import { API_ORDER_DETAIL } from '@/constants/api';
 import useUserStore from '@/stores/userStore';
-
-interface OrderItem {
-  id: number;
-  title: string;
-  subTitle: string;
-  price: number;
-  imageUrl: string;
-}
 
 const OrderSummary: React.FC = () => {
   const {fetchOrderDetail} = useUserStore();
@@ -34,44 +23,10 @@ const OrderSummary: React.FC = () => {
     if (orderId) {
       fetchSummaryOrder(orderId);
     }
-  },[])
-  // 模拟订单条目数据
-  const orderItems: OrderItem[] = [
-    {
-      id: 1,
-      title: 'Book name | illy child',
-      subTitle: 'Premium gift box',
-      price: 19.99,
-      imageUrl: '/book.png',
-    },
-    {
-      id: 2,
-      title: 'Book name | illy child',
-      subTitle: 'Premium gift box',
-      price: 19.99,
-      imageUrl: '/book.png',
-    },
-    {
-      id: 3,
-      title: 'Book name | illy child',
-      subTitle: 'Premium gift box',
-      price: 19.99,
-      imageUrl: '/book.png',
-    },
-    {
-      id: 4,
-      title: 'Book name | illy child',
-      subTitle: 'Premium gift box',
-      price: 19.99,
-      imageUrl: '/book.png',
-    },
-  ];
+  },[])  
 
   // 计算费用小结
-  const subtotal = orderItems.reduce((sum, item) => sum + item.price, 0);
-  const shippingFee = 5; // 假设运费固定 5 USD
   const discount = 0;   // 如果有优惠就填入相应数值
-  const total = subtotal + shippingFee - discount;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -89,7 +44,7 @@ const OrderSummary: React.FC = () => {
 
         {/* 订单号和预计送达 */}
         <div className="flex items-center space-x-8 mb-4">
-          <span className="text-gray-500">#249334545652</span>
+          <span className="text-gray-500">{orderDetail?.order?.order_number}</span>
           <span className="text-gray-500">预计到达时间: 04/12/2024</span>
         </div>
 
@@ -124,23 +79,23 @@ const OrderSummary: React.FC = () => {
 
         {/* 订单列表 */}
         <div className="space-y-4 mb-6">
-          {orderItems.map((item) => (
+          {orderDetail?.order?.items.map((item) => (
             <div
               key={item.id}
               className="flex items-center bg-white rounded p-4"
             >
               <Image
-                src={item.imageUrl}
-                alt={item.title}
+                src={item.picbook_cover}
+                alt={item.picbook_name}
                 width={80}          // 对应 className w-20 (20 * 4 = 80 px)
                 height={80}         // 对应 className h-20
                 className="object-cover rounded mr-4"
               />
               <div className="flex-1">
-                <p className="font-semibold">{item.title}</p>
-                <p className="text-gray-500 text-sm">{item.subTitle}</p>
+                <p className="font-semibold">{item.picbook_name}</p>
+                <p className="text-gray-500 text-sm">{item.message}</p>
               </div>
-              <div className="text-gray-800">${item.price.toFixed(2)} USD</div>
+              <div className="text-gray-800">${item.total_price} USD</div>
             </div>
           ))}
         </div>
@@ -152,11 +107,11 @@ const OrderSummary: React.FC = () => {
             <h2 className="font-bold text-lg mb-2">Order Summary</h2>
             <div className="flex justify-between py-1">
               <span>Subtotal</span>
-              <span>${subtotal.toFixed(2)}</span>
+              <span>${orderDetail?.order.items.reduce((sum, item) => sum + item.total_price, 0)}</span>
             </div>
             <div className="flex justify-between py-1">
               <span>Shipping</span>
-              <span>${shippingFee.toFixed(2)}</span>
+              <span>${orderDetail?.order.shipping_cost}</span>
             </div>
             {discount > 0 && (
               <div className="flex justify-between py-1">
@@ -167,7 +122,7 @@ const OrderSummary: React.FC = () => {
             <hr className="my-2" />
             <div className="flex justify-between font-bold">
               <span>Total</span>
-              <span>${total.toFixed(2)}</span>
+              <span>${orderDetail?.order.total_amount}</span>
             </div>
           </div>
 
@@ -175,7 +130,7 @@ const OrderSummary: React.FC = () => {
           <div className="md:w-1/2 flex flex-col justify-between">
             <div className="border p-4 rounded mb-4">
               <h3 className="font-semibold text-gray-700 mb-2">Shipping Address</h3>
-              <p className="text-gray-600">Wuhou District, Chengdu City, Sichuan Province, China</p>
+              <p className="text-gray-600">{orderDetail?.order.shipping_address.full_address}</p>
             </div>
             <div className="border p-4 rounded">
               <h3 className="font-semibold text-gray-700 mb-2">Delivery Date</h3>

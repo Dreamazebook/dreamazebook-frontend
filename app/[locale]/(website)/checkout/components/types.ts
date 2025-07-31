@@ -47,6 +47,9 @@ export interface CartItem {
   price: number;
   quantity: number;
   total_price: number;
+  picbook_name: string;
+  picbook_cover: string;
+  message: string;
 }
 
 export interface ShippingErrors {
