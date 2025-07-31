@@ -130,7 +130,7 @@ const OrderSummary: React.FC = () => {
           <div className="md:w-1/2 flex flex-col justify-between">
             <div className="border p-4 rounded mb-4">
               <h3 className="font-semibold text-gray-700 mb-2">Shipping Address</h3>
-              <p className="text-gray-600">{orderDetail?.order.shipping_address.full_address}</p>
+              <p className="text-gray-600">{orderDetail?.order?.shipping_address?.full_address || 'N/A'}</p>
             </div>
             <div className="border p-4 rounded">
               <h3 className="font-semibold text-gray-700 mb-2">Delivery Date</h3>
