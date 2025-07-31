@@ -1,12 +1,12 @@
 'use client';
 
 import { FC } from 'react';
-import { Order } from '../types';
 import { formatCurrency, formatDate } from '../utils';
+import { OrderDetail } from '@/app/[locale]/(website)/checkout/components/types';
 
 interface OrderListProps {
-  orders: Order[];
-  onViewDetails: (order: Order) => void;
+  orders: OrderDetail[];
+  onViewDetails: (order: OrderDetail) => void;
   statusColors: Record<string, string>;
   paymentStatusColors: Record<string, string>;
   statusLabels: Record<string, string>;
@@ -57,12 +57,12 @@ const OrderList: FC<OrderListProps> = ({
                   {order.id}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{order.customer_name}</div>
-                  <div className="text-sm text-gray-500">{order.customer_email}</div>
+                  <div className="text-sm font-medium text-gray-900">{order.shipping_address.firstName}</div>
+                  <div className="text-sm text-gray-500">{order.shipping_address.lastName}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900 font-medium">{formatCurrency(order.total_amount)}</div>
-                  <div className="text-xs text-gray-500">{order.items_count} 件商品</div>
+                  <div className="text-xs text-gray-500">{order.items.length} 件商品</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[order.status]}`}>
