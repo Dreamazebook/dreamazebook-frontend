@@ -191,13 +191,6 @@ export default function CheckoutPage() {
     setOpenStep(3);
   };
 
-  // Handle place order
-  const handlePlaceOrder = () => {
-    // In a real application, you would submit the order to your backend here
-    console.log("Order placed!");
-    router.push('/order-confirmation');
-  };
-
   return (
     <div className="bg-gray-100 min-h-screen py-8">
       <div className="container mx-auto px-4">
@@ -292,7 +285,6 @@ export default function CheckoutPage() {
                 // setCardExpiry={setCardExpiry}
                 // cardCvc={cardCvc}
                 // setCardCvc={setCardCvc}
-                handlePlaceOrder={handlePlaceOrder}
               />
               }
             </CheckoutStep>

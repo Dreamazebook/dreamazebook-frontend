@@ -9,6 +9,10 @@ import {
   useElements
 } from '@stripe/react-stripe-js';
 import { OrderDetail, OrderDetailResponse } from './types';
+import api from '@/utils/api';
+import { API_ORDER_STRIPE_PAID } from '@/constants/api';
+import { ApiResponse } from '@/types/api';
+import { useRouter } from 'next/navigation';
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
@@ -22,9 +26,8 @@ interface ReviewAndPayProps {
 
 const CheckoutForm: React.FC<{
   orderDetail: OrderDetailResponse;
-  handlePlaceOrder?: () => void;
   onError?: (error: string) => void;
-}> = ({ orderDetail, handlePlaceOrder, onError }) => {
+}> = ({ orderDetail, onError }) => {
   const order = orderDetail.order;
   const {shipping_address:{email},total_amount} = order;
   const clientSecret = orderDetail.payment_data.client_secret;
@@ -32,6 +35,8 @@ const CheckoutForm: React.FC<{
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string>('');
+
+  const router = useRouter();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -66,7 +71,14 @@ const CheckoutForm: React.FC<{
       onError?.(error.message || 'Payment failed');
     } else if (paymentIntent.status === 'succeeded') {
       setMessage('Payment succeeded!');
-      handlePlaceOrder?.();
+      // Call API_ORDER_STRIPE_PAID on successful payment
+      const {code,success,message,data} = await api.post<ApiResponse>(API_ORDER_STRIPE_PAID,{
+        orderId: orderDetail.order.id,
+        payment_intent_id: orderDetail.order.stripe_payment_intent_id
+      });
+      if (success) {
+        router.push(`/order-summary?orderId=${orderDetail.order.id}`);
+      }
     }
 
     setIsLoading(false);
@@ -147,7 +159,6 @@ const CheckoutForm: React.FC<{
 
 const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
   orderDetail,
-  handlePlaceOrder,
   onError,
 }) => {
   const clientSecret = orderDetail.payment_data.client_secret;
@@ -187,7 +198,6 @@ const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
     <Elements stripe={stripePromise} options={options}>
       <CheckoutForm
         orderDetail={orderDetail}
-        handlePlaceOrder={handlePlaceOrder}
         onError={onError}
       />
     </Elements>
