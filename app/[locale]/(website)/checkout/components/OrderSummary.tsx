@@ -27,13 +27,13 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
           <div key={item.id} className="flex items-start">
             <div className="h-16 w-12 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 mr-4">
               <img
-                src={item.image}
+                src={item.picbook_cover}
                 alt={item.name}
                 className="h-full w-full object-cover object-center"
               />
             </div>
             <div className="flex-grow">
-              <h4 className="text-sm font-medium">{item.name}</h4>
+              <h4 className="text-sm font-medium">{item.picbook_name}</h4>
               {item.format && <p className="text-sm text-gray-500">{item.format}</p>}
               {item.box && <p className="text-sm text-gray-500">{item.box}</p>}
               <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
@@ -60,7 +60,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         )}
         <div className="flex justify-between text-base font-medium pt-2 border-t border-gray-200">
           <p>Total</p>
-          <p>${total.toFixed(2)}</p>
+          <p>${total}</p>
         </div>
       </div>
     </div>

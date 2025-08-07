@@ -84,7 +84,9 @@ export default function CheckoutPage() {
           //Todo: remove stripe_client_secret
           if (!data?.order) return;
           setOrderDetail(data);
-          setSelectedAddressId(data?.order.shipping_address?.id ?? null)
+          if (data.order.shipping_address) {
+            setSelectedAddressId(data.order.shipping_address.id);
+          }
         } catch (err) { 
           setError('Failed to load order details');
           console.error('Error fetching order details:', err);
@@ -101,6 +103,15 @@ export default function CheckoutPage() {
   useEffect(() => {
     fetchAddresses();
   }, []);
+
+  useEffect(()=>{
+    if (selectedAddressId) {
+      const address = addresses.find((address) => address.id === selectedAddressId);
+      if (address && address.id !== orderDetail?.order?.shipping_address?.id) {
+        updateOrderAddress(address);
+      }
+    }
+  },[selectedAddressId])
 
   // Toggle step visibility
   const toggleStep = (stepNumber: number) => {
@@ -151,7 +162,7 @@ export default function CheckoutPage() {
   };
 
   const updateOrderAddress = async (address: Address) => {
-    const {data,code,message,success} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_ADDRESS}/${orderDetail?.order?.id}`, address)
+    const {data,code,message,success} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_ADDRESS}/${orderId}`, address)
   }
 
   // Handle next from shipping step

@@ -3,6 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { ShippingErrors } from './types';
 import { Address } from '@/types/address';
+import api from '@/utils/api';
+import { ApiResponse } from '@/types/api';
+import { API_ORDER_UPDATE_ADDRESS } from '@/constants/api';
 
 interface ShippingFormProps {
   address: {
@@ -58,9 +61,13 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
     setShowForm(addressList.length === 0);
 
     if (!selectedAddressId) {
-      setSelectedAddressId(addressList.find(addr => addr.is_default)?.id ?? null);
+      const defaultAddress = addressList.find(addr => addr.is_default);
+      if (defaultAddress) {
+        setSelectedAddressId(defaultAddress.id);
+      }
     }
   }, [addressList]);
+  
   const clearError = (field: keyof ShippingErrors) => {
     if (errors[field]) {
       setErrors({ ...errors, [field]: undefined });
