@@ -22,7 +22,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {orderList?.splice(0,1)?.map(({order_number,status,shipping_address,total_amount,items}) => (
+        {orderList.length && [orderList[0]]?.map(({order_number,status,shipping_address,total_amount,items,updated_at}) => (
         <div key={order_number} className="border rounded-lg p-3 md:p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
             <span className="text-base md:text-lg font-medium text-gray-900">{order_number}</span>
@@ -34,18 +34,18 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
             <div className="space-y-1">
               <div><span className="font-medium">Ship to</span> {shipping_address?.full_address}</div>
-              <div><span className="font-medium">Order date</span> 04/11/2024</div>
-              <div><span className="font-medium">Qty</span> 1</div>
+              <div><span className="font-medium">Order date</span> {updated_at}</div>
+              {/* <div><span className="font-medium">Qty</span> 1</div> */}
             </div>
             <div>
-              <div><span className="font-medium">Delivery date</span> 04/12/2024</div>
+              <div><span className="font-medium">Delivery date</span> </div>
             </div>
           </div>
 
           <div className="space-y-3">
             
-            {items.map(({total_price})=>(
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            {items.map(({total_price,id})=>(
+            <div key={id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center space-x-3">
                 <div className="w-12 h-12 bg-gray-200 rounded flex-shrink-0"></div>
                 <div className="min-w-0 flex-1">

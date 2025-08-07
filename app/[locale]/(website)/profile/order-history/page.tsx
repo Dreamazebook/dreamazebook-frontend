@@ -37,6 +37,8 @@ const OrderHistory = () => {
   if (error) return <div className="text-center py-8 text-red-500">{error}</div>;
   if (orderList.length === 0) return <div className="text-center py-8">No orders found</div>;
 
+  console.log(orderList);
+
   return (
     <div className="bg-white min-h-screen">
       <div className="max-w-6xl mx-auto px-6 py-8">
