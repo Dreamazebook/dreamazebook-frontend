@@ -8,6 +8,9 @@ import StatusFilter from './components/StatusFilter';
 import SearchBar from './components/SearchBar';
 import { mockOrders } from './mockData';
 import { OrderDetail } from '../../(website)/checkout/components/types';
+import api from '@/utils/api';
+import { API_ADMIN_ORDERS } from '@/constants/api';
+import { ApiResponse } from '@/types/api';
 
 export const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -51,11 +54,17 @@ const AdminOrdersPage: FC = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
+        const {data,code,success} = await api.get<ApiResponse>(API_ADMIN_ORDERS);
+        if (success) {
+
+        }
+
         // 使用模拟数据
         setTimeout(() => {
           setOrders(mockOrders);
           setLoading(false);
         }, 800);
+        
       } catch (err) {
         console.error('Error fetching orders:', err);
         setError('Failed to load orders');
