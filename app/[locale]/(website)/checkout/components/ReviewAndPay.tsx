@@ -30,7 +30,7 @@ const CheckoutForm: React.FC<{
   onError?: (error: string) => void;
 }> = ({ orderDetail, onError }) => {
   const order = orderDetail.order;
-  const {shipping_address:{email},total_amount} = order;
+  const {shipping_address,total_amount} = order;
   const clientSecret = orderDetail.payment_data.client_secret;
   const stripe = useStripe();
   const elements = useElements();
@@ -62,7 +62,7 @@ const CheckoutForm: React.FC<{
       payment_method: {
         card: cardElement,
         billing_details: {
-          email,
+          email: shipping_address?.email || '',
         },
       },
     });
@@ -106,7 +106,7 @@ const CheckoutForm: React.FC<{
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Review & Pay</h2>
         <div className="bg-gray-50 p-4 rounded-lg">
           <h3 className="font-semibold text-gray-800"></h3>
-          <p className="text-gray-600">Customer: {email}</p>
+          {/* <p className="text-gray-600">Customer: {email}</p> */}
           <p className="text-xl font-bold text-gray-900 mt-2">
             Total: <DisplayPrice value={total_amount} />
           </p>
