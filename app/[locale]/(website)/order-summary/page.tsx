@@ -108,16 +108,16 @@ const OrderSummary: React.FC = () => {
             <h2 className="font-bold text-lg mb-2">Order Summary</h2>
             <div className="flex justify-between py-1">
               <span>Subtotal</span>
-              <span>${orderDetail?.order.items.reduce((sum, item) => sum + item.total_price, 0)}</span>
+              <DisplayPrice value={orderDetail?.order.items.reduce((sum, item) => sum + item.total_price, 0)} />
             </div>
             <div className="flex justify-between py-1">
               <span>Shipping</span>
-              <span>${orderDetail?.order.shipping_cost}</span>
+              <DisplayPrice value={orderDetail?.order.shipping_cost} />
             </div>
             {discount > 0 && (
               <div className="flex justify-between py-1">
                 <span>Discount</span>
-                <span>-${discount.toFixed(2)}</span>
+                <DisplayPrice value={-discount} />
               </div>
             )}
             <hr className="my-2" />
