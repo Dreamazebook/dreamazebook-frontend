@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { CartItem as CartItemType } from './types';
 import CartSubItem from './CartSubItem';
+import DisplayPrice from '../../components/component/DisplayPrice';
 
 interface CartItemProps {
   item: CartItemType;
@@ -31,7 +32,7 @@ export default function CartItem({ item }: CartItemProps) {
             {item.description && <p className="text-sm text-gray-500 dark:text-gray-400">{item.description}</p>}
           </div>
         </div>
-        <p className="font-medium">${item.price.toFixed(2)}</p>
+        <DisplayPrice value={item.price} />
       </div>
       
       {item.subItems && item.subItems.map((subItem, index) => (

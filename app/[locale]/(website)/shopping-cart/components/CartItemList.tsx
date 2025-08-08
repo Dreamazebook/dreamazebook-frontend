@@ -1,5 +1,6 @@
 import React from 'react';
 import { CartItem } from './types';
+import DisplayPrice from '../../components/component/DisplayPrice';
 
 interface SubItem {
   id: number;
@@ -84,7 +85,7 @@ const CartItemList: React.FC<CartItemListProps> = ({
                           +
                         </button>
                       </div>
-                      <p className="font-medium">${(item.total_price || item.price * item.quantity).toFixed(2)}</p>
+                      <DisplayPrice value={item.total_price || item.price * item.quantity} />
                       <button
                         onClick={() => onRemoveItem(item.id)}
                         className="text-gray-400 hover:text-red-500"

@@ -3,6 +3,7 @@
 import useUserStore from "@/stores/userStore";
 import Link from "next/link";
 import { useEffect } from "react";
+import DisplayPrice from "../components/component/DisplayPrice";
 
 // Profile Page Component
 export default function ProfilePage() {
@@ -54,7 +55,7 @@ export default function ProfilePage() {
                   <div className="text-sm text-gray-500">特殊分类已过期，正在寻找新的选择</div>
                 </div>
               </div>
-              <div className="font-medium text-gray-900 text-right sm:text-left">${total_price} USD</div>
+              <DisplayPrice style='font-medium text-gray-900 text-right sm:text-left' value={total_price} />
             </div>
             ))}
             
