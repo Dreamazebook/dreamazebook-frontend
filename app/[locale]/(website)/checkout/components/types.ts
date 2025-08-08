@@ -71,5 +71,5 @@ export interface BillingErrors {
   billingAddress?: string;
 }
 
-export type DeliveryOption = "Standard" | "Express";
+export type DeliveryOption = "STANDARD" | "EXPRESS";
 export type PaymentOption = "card" | "paypal" | null;

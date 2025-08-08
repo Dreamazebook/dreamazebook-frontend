@@ -62,7 +62,7 @@ export default function CheckoutPage() {
   const [billingErrors, setBillingErrors] = useState<BillingErrors>({});
 
   // Delivery options state
-  const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<DeliveryOption>('Standard');
+  const [selectedDeliveryOption, setSelectedDeliveryOption] = useState<DeliveryOption>('STANDARD');
 
   // Payment state
   const [selectedPaymentOption, setSelectedPaymentOption] = useState<PaymentOption>(null);

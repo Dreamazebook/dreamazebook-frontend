@@ -20,6 +20,8 @@ export const API_ORDER_CREATE = API_DOMAIN + '/order/create';
 export const API_ORDER_DETAIL = API_DOMAIN + '/order/detail';
 export const API_ORDER_UPDATE_ADDRESS = API_DOMAIN + '/order/update-address'
 export const API_ORDER_REMOVE = API_DOMAIN + '/order/remove';
+export const API_ORDER_PROGRESS = API_DOMAIN + '/order/processing-progress';
+export const API_ORDER_SHIPPING_METHODS = API_DOMAIN + '/order/shipping-methods';
 export const API_ORDER_STRIPE_PAID = API_DOMAIN + '/stripe/confirm-payment';
 
 export const API_ADDRESS_LIST = API_DOMAIN + '/addresses';

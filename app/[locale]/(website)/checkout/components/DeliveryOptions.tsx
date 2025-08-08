@@ -1,7 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { DeliveryOption } from './types';
+import api from '@/utils/api';
+import { ApiResponse } from '@/types/api';
+import { API_ORDER_SHIPPING_METHODS } from '@/constants/api';
+import DisplayPrice from '../../components/component/DisplayPrice';
 
 interface DeliveryOptionsProps {
   selectedDeliveryOption: DeliveryOption;
@@ -14,48 +18,45 @@ const DeliveryOptions: React.FC<DeliveryOptionsProps> = ({
   setSelectedDeliveryOption,
   handleNextFromDelivery
 }) => {
+
+  const [shippingMethods, setShippingMethods] = useState([]);
+
+  const getShippingMethods = async() => {
+    const {data, success} = await api.get<ApiResponse>(API_ORDER_SHIPPING_METHODS);
+    if (success) {
+      setShippingMethods(data)
+    }
+  }
+
+  useEffect(()=>{
+    getShippingMethods();
+  },[])
+
   return (
     <div>
       <div className="space-y-4 mb-6">
+        {shippingMethods.map(({code, cost, name, description, estimated_days})=>
         <div 
-          className={`border rounded-lg p-4 cursor-pointer ${selectedDeliveryOption === 'Standard' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}
-          onClick={() => setSelectedDeliveryOption('Standard')}
+          key={code}
+          className={`border rounded-lg p-4 cursor-pointer ${selectedDeliveryOption === code ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}
+          onClick={() => setSelectedDeliveryOption(code)}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <div className={`w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${selectedDeliveryOption === 'Standard' ? 'border-blue-500' : 'border-gray-300'}`}>
-                {selectedDeliveryOption === 'Standard' && (
+              <div className={`w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${selectedDeliveryOption === code ? 'border-blue-500' : 'border-gray-300'}`}>
+                {selectedDeliveryOption === code && (
                   <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                 )}
               </div>
               <div>
-                <h4 className="font-medium">Standard Delivery</h4>
-                <p className="text-sm text-gray-600">Estimated delivery: 3-5 business days</p>
+                <h4 className="font-medium">{name}</h4>
+                <p className="text-sm text-gray-600">Estimated delivery: {estimated_days} business days</p>
               </div>
             </div>
-            <span className="font-medium">$4.99</span>
+            <DisplayPrice value={cost} />
           </div>
         </div>
-
-        <div 
-          className={`border rounded-lg p-4 cursor-pointer ${selectedDeliveryOption === 'Express' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}
-          onClick={() => setSelectedDeliveryOption('Express')}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className={`w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${selectedDeliveryOption === 'Express' ? 'border-blue-500' : 'border-gray-300'}`}>
-                {selectedDeliveryOption === 'Express' && (
-                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                )}
-              </div>
-              <div>
-                <h4 className="font-medium">Express Delivery</h4>
-                <p className="text-sm text-gray-600">Estimated delivery: 1-2 business days</p>
-              </div>
-            </div>
-            <span className="font-medium">$9.99</span>
-          </div>
-        </div>
+        )}
       </div>
 
       <div className="mt-6">

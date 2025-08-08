@@ -6,6 +6,9 @@ import { useSearchParams } from 'next/navigation';
 import { OrderDetailResponse } from '../checkout/components/types';
 import useUserStore from '@/stores/userStore';
 import DisplayPrice from '../components/component/DisplayPrice';
+import api from '@/utils/api';
+import { ApiResponse } from '@/types/api';
+import { API_ORDER_PROGRESS } from '@/constants/api';
 
 const OrderSummary: React.FC = () => {
   const {fetchOrderDetail} = useUserStore();
@@ -13,6 +16,12 @@ const OrderSummary: React.FC = () => {
   const orderId = searchParams.get('orderId');
 
   const [orderDetail, setOrderDetail] = useState<OrderDetailResponse >();
+
+  const getOrderProgress = async(orderId:string) => {
+    if (orderId) {
+      const {} = await api.get<ApiResponse>(API_ORDER_PROGRESS + '/' + orderId);
+    }
+  }
 
   useEffect(()=>{
     const fetchSummaryOrder = async(orderId:string) => {
@@ -23,6 +32,7 @@ const OrderSummary: React.FC = () => {
     }
     if (orderId) {
       fetchSummaryOrder(orderId);
+      getOrderProgress(orderId);
     }
   },[])  
 
