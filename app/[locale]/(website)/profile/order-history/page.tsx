@@ -8,6 +8,19 @@ const OrderHistory = () => {
   const {orderList, fetchOrderList} = useUserStore();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('all');
+
+  const filteredOrders = activeTab === 'all' 
+    ? orderList 
+    : orderList.filter(order => order.status === activeTab);
+
+  const tabs = [
+    { id: 'all', label: 'All Order', count: orderList.length },
+    { id: 'pending', label: 'Pending', count: orderList.filter(order => order.status === 'pending').length },
+    { id: 'preparing', label: 'Preparing', count: orderList.filter(order => order.status === 'preparing').length },
+    { id: 'completed', label: 'Completed', count: orderList.filter(order => order.status === 'completed').length },
+    { id: 'cancelled', label: 'Cancelled', count: orderList.filter(order => order.status === 'cancelled').length },
+  ];
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -37,8 +50,6 @@ const OrderHistory = () => {
   if (error) return <div className="text-center py-8 text-red-500">{error}</div>;
   if (orderList.length === 0) return <div className="text-center py-8">No orders found</div>;
 
-  console.log(orderList);
-
   return (
     <div className="bg-white min-h-screen">
       <div className="max-w-6xl mx-auto px-6 py-8">
@@ -58,24 +69,21 @@ const OrderHistory = () => {
         {/* Tab Navigation */}
         <div className="mb-6">
           <div className="flex gap-0 border-b border-gray-200">
-            <button className="px-0 py-3 mr-8 text-blue-600 border-b-2 border-blue-600 font-medium text-sm">
-              All Order(50)
-            </button>
-            <button className="px-0 py-3 mr-8 text-gray-600 hover:text-gray-800 text-sm">
-              Pending(10)
-            </button>
-            <button className="px-0 py-3 mr-8 text-gray-600 hover:text-gray-800 text-sm">
-              Completed(25)
-            </button>
-            <button className="px-0 py-3 mr-8 text-gray-600 hover:text-gray-800 text-sm">
-              Cancelled(15)
-            </button>
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`cursor-pointer px-0 py-3 mr-8 text-sm ${activeTab === tab.id ? 'text-blue-600 border-b-2 border-blue-600 font-medium' : 'text-gray-600 hover:text-gray-800'}`}
+              >
+                {tab.label}({tab.count})
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Order List */}
         <div className="space-y-6">
-          {orderList.map((order) => (
+          {filteredOrders.map((order) => (
             <div key={order.id} className="flex gap-4 py-4">
               {/* Product Images */}
               <div className="flex-shrink-0">
