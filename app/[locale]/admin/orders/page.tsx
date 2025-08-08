@@ -12,7 +12,7 @@ import api from '@/utils/api';
 import { API_ADMIN_ORDERS } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
 
-export const statusColors = {
+const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
   processing: 'bg-blue-100 text-blue-800',
   completed: 'bg-green-100 text-green-800',
@@ -20,13 +20,13 @@ export const statusColors = {
   refunded: 'bg-purple-100 text-purple-800',
 };
 
-export const paymentStatusColors = {
+const paymentStatusColors = {
   paid: 'bg-green-100 text-green-800',
   unpaid: 'bg-red-100 text-red-800',
   refunded: 'bg-purple-100 text-purple-800',
 };
 
-export const statusLabels = {
+const statusLabels = {
   pending: '待处理',
   processing: '处理中',
   completed: '已完成',
@@ -34,7 +34,7 @@ export const statusLabels = {
   refunded: '已退款',
 };
 
-export const paymentStatusLabels = {
+const paymentStatusLabels = {
   paid: '已支付',
   unpaid: '未支付',
   refunded: '已退款',

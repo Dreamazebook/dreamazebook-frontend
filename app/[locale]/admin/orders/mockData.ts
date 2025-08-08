@@ -45,7 +45,10 @@ export const mockOrders: OrderDetail[] = [
         image: "https://example.com/product-a.jpg",
         price: 500.00,
         quantity: 2,
-        total_price: 1000.00
+        total_price: 1000.00,
+        picbook_name: "Classic Literature",
+        picbook_cover: "https://example.com/classic-cover.jpg",
+        message: "Enjoy this timeless classic!"
       },
       {
         id: 2,
@@ -55,7 +58,10 @@ export const mockOrders: OrderDetail[] = [
         image: "https://example.com/product-b.jpg",
         price: 250.00,
         quantity: 2,
-        total_price: 500.00
+        total_price: 500.00,
+        picbook_name: "Modern Fiction",
+        picbook_cover: "https://example.com/modern-cover.jpg",
+        message: "Dive into contemporary stories!"
       }
     ]
   },
@@ -103,7 +109,10 @@ export const mockOrders: OrderDetail[] = [
         image: "https://example.com/product-c.jpg",
         price: 300.00,
         quantity: 1,
-        total_price: 300.00
+        total_price: 300.00,
+        picbook_name: "Adventure Stories",
+        picbook_cover: "https://example.com/adventure-cover.jpg",
+        message: "Enjoy your adventure!"
       },
       {
         id: 4,
@@ -113,7 +122,10 @@ export const mockOrders: OrderDetail[] = [
         image: "https://example.com/product-d.jpg",
         price: 340.50,
         quantity: 2,
-        total_price: 681.00
+        total_price: 681.00,
+        picbook_name: "Fantasy Tales",
+        picbook_cover: "https://example.com/fantasy-cover.jpg",
+        message: "Dive into a magical world!"
       }
     ]
   },
@@ -161,7 +173,10 @@ export const mockOrders: OrderDetail[] = [
         image: "https://example.com/product-e.jpg",
         price: 750.25,
         quantity: 2,
-        total_price: 1500.50
+        total_price: 1500.50,
+        picbook_name: "Classic Novels",
+        picbook_cover: "https://example.com/classic-cover.jpg",
+        message: "A timeless collection!"
       },
       {
         id: 6,
@@ -171,7 +186,10 @@ export const mockOrders: OrderDetail[] = [
         image: "https://example.com/product-f.jpg",
         price: 350.25,
         quantity: 1,
-        total_price: 350.25
+        total_price: 350.25,
+        picbook_name: "Digital Adventures",
+        picbook_cover: "https://example.com/digital-cover.jpg",
+        message: "Explore the digital realm!"
       },
       {
         id: 7,
@@ -181,7 +199,10 @@ export const mockOrders: OrderDetail[] = [
         image: "https://example.com/product-g.jpg",
         price: 150.00,
         quantity: 2,
-        total_price: 300.00
+        total_price: 300.00,
+        picbook_name: "Mystery Novels",
+        picbook_cover: "https://example.com/mystery-cover.jpg",
+        message: "Solve the mystery!"
       }
     ]
   },
@@ -229,7 +250,10 @@ export const mockOrders: OrderDetail[] = [
         image: "https://example.com/product-h.jpg",
         price: 420.25,
         quantity: 1,
-        total_price: 420.25
+        total_price: 420.25,
+        picbook_name: "Science Fiction",
+        picbook_cover: "https://example.com/scifi-cover.jpg",
+        message: "Journey to the stars!"
       },
       {
         id: 9,
@@ -239,7 +263,10 @@ export const mockOrders: OrderDetail[] = [
         image: "https://example.com/product-i.jpg",
         price: 180.00,
         quantity: 2,
-        total_price: 360.00
+        total_price: 360.00,
+        picbook_name: "Romance Stories",
+        picbook_cover: "https://example.com/romance-cover.jpg",
+        message: "Fall in love with the story!"
       }
     ]
   },
@@ -287,7 +314,10 @@ export const mockOrders: OrderDetail[] = [
         image: "https://example.com/product-j.jpg",
         price: 625.00,
         quantity: 2,
-        total_price: 1250.00
+        total_price: 1250.00,
+        picbook_name: "Historical Fiction",
+        picbook_cover: "https://example.com/historical-cover.jpg",
+        message: "Travel back in time!"
       }
     ]
   },
@@ -335,7 +365,10 @@ export const mockOrders: OrderDetail[] = [
         image: "https://example.com/product-k.jpg",
         price: 875.50,
         quantity: 1,
-        total_price: 875.50
+        total_price: 875.50,
+        picbook_name: "Fantasy Adventures",
+        picbook_cover: "https://example.com/fantasy-adventure-cover.jpg",
+        message: "Embark on a magical quest!"
       },
       {
         id: 12,
@@ -345,7 +378,10 @@ export const mockOrders: OrderDetail[] = [
         image: "https://example.com/product-l.jpg",
         price: 500.00,
         quantity: 2,
-        total_price: 1000.00
+        total_price: 1000.00,
+        picbook_name: "Science Explorations",
+        picbook_cover: "https://example.com/science-cover.jpg",
+        message: "Discover the wonders of science!"
       }
     ]
   },
@@ -393,171 +429,10 @@ export const mockOrders: OrderDetail[] = [
         image: "https://example.com/product-m.jpg",
         price: 225.75,
         quantity: 2,
-        total_price: 451.50
-      }
-    ]
-  },
-  {
-    id: 8,
-    user_id: 108,
-    order_number: "ORD-2025-1008",
-    total_amount: 3250.00,
-    currency_code: "USD",
-    status: "completed",
-    payment_status: "paid",
-    payment_method: "card",
-    payment_id: "pi_901234567",
-    billing_address: "123 Aspen Ct, Denver, CO 80202",
-    shipping_method: "Premium",
-    shipping_cost: 25.00,
-    tax_amount: 260.00,
-    discount_amount: 100.00,
-    coupon_code: "PREMIUM100",
-    notes: "Corporate order",
-    stripe_payment_intent_id: "pi_901234567",
-    stripe_client_secret: "sk_test_901234567",
-    shipping_address: {
-      firstName: "Thomas",
-      lastName: "Anderson",
-      address: "789 Mountain View Rd, Denver, CO 80202",
-      city: "Denver",
-      postalcode: "80202",
-      country: "US",
-      state: "CO",
-      phone: "+1 555-789-0123"
-    },
-    paid_at: "2025-07-09T10:15:00Z",
-    completed_at: "2025-07-10T14:30:00Z",
-    cancelled_at: null,
-    created_at: "2025-07-09T09:30:00Z",
-    updated_at: "2025-07-10T14:30:00Z",
-    deleted_at: null,
-    items: [
-      {
-        id: 14,
-        name: "Product N",
-        format: "Collector's Edition",
-        box: "Premium Box",
-        image: "https://example.com/product-n.jpg",
-        price: 1200.00,
-        quantity: 2,
-        total_price: 2400.00
-      },
-      {
-        id: 15,
-        name: "Product O",
-        format: "Hardcover",
-        box: "Gift Box",
-        image: "https://example.com/product-o.jpg",
-        price: 425.00,
-        quantity: 2,
-        total_price: 850.00
-      }
-    ]
-  },
-  {
-    id: 9,
-    user_id: 109,
-    order_number: "ORD-2025-1009",
-    total_amount: 560.25,
-    currency_code: "USD",
-    status: "returned",
-    payment_status: "refunded",
-    payment_method: "paypal",
-    payment_id: "PAY-987654321",
-    billing_address: "456 Magnolia Blvd, Austin, TX 78701",
-    shipping_method: "Standard",
-    shipping_cost: 10.00,
-    tax_amount: 44.82,
-    discount_amount: 0.00,
-    coupon_code: "",
-    notes: "Customer not satisfied with product quality",
-    stripe_payment_intent_id: "pi_012345678",
-    stripe_client_secret: "sk_test_012345678",
-    shipping_address: {
-      firstName: "Laura",
-      lastName: "Garcia",
-      address: "321 Pecan St, Austin, TX 78701",
-      city: "Austin",
-      postalcode: "78701",
-      country: "US",
-      state: "TX",
-      phone: "+1 555-890-1234"
-    },
-    paid_at: "2025-07-11T09:45:00Z",
-    completed_at: "2025-07-12T11:30:00Z",
-    cancelled_at: null,
-    created_at: "2025-07-11T08:20:00Z",
-    updated_at: "2025-07-15T14:20:00Z",
-    deleted_at: null,
-    items: [
-      {
-        id: 16,
-        name: "Product P",
-        format: "Hardcover",
-        box: "Standard",
-        image: "https://example.com/product-p.jpg",
-        price: 280.25,
-        quantity: 2,
-        total_price: 560.50
-      }
-    ]
-  },
-  {
-    id: 10,
-    user_id: 110,
-    order_number: "ORD-2025-1010",
-    total_amount: 1750.50,
-    currency_code: "USD",
-    status: "processing",
-    payment_status: "paid",
-    payment_method: "card",
-    payment_id: "pi_123098765",
-    billing_address: "789 Cherry Lane, Portland, OR 97201",
-    shipping_method: "Express",
-    shipping_cost: 20.00,
-    tax_amount: 140.04,
-    discount_amount: 75.00,
-    coupon_code: "SUMMER75",
-    notes: "Birthday gift",
-    stripe_payment_intent_id: "pi_123098765",
-    stripe_client_secret: "sk_test_123098765",
-    shipping_address: {
-      firstName: "William",
-      lastName: "Taylor",
-      address: "456 Rose St, Portland, OR 97201",
-      city: "Portland",
-      postalcode: "97201",
-      country: "US",
-      state: "OR",
-      phone: "+1 555-901-2345"
-    },
-    paid_at: "2025-07-15T16:30:00Z",
-    completed_at: null,
-    cancelled_at: null,
-    created_at: "2025-07-15T15:45:00Z",
-    updated_at: "2025-07-15T16:30:00Z",
-    deleted_at: null,
-    items: [
-      {
-        id: 17,
-        name: "Product Q",
-        format: "Deluxe Edition",
-        box: "Premium Box",
-        image: "https://example.com/product-q.jpg",
-        price: 950.50,
-        quantity: 1,
-        total_price: 950.50
-      },
-      {
-        id: 18,
-        name: "Product R",
-        format: "Hardcover",
-        box: "Gift Box",
-        image: "https://example.com/product-r.jpg",
-        price: 400.00,
-        quantity: 2,
-        total_price: 800.00
+        total_price: 451.50,
+        picbook_name: "Thriller Series",
+        picbook_cover: "https://example.com/thriller-cover.jpg",
+        message: "Get ready for suspense!"
       }
     ]
   }

@@ -1,11 +1,11 @@
 'use client';
 
 import { FC } from 'react';
-import { Order } from '../types';
 import { formatDate, formatCurrency } from '../utils';
+import { OrderDetail } from '@/app/[locale]/(website)/checkout/components/types';
 
 interface OrderDetailsModalProps {
-  order: Order;
+  order: OrderDetail;
   onClose: () => void;
   statusColors: Record<string, string>;
   paymentStatusColors: Record<string, string>;
@@ -49,11 +49,11 @@ const OrderDetailsModal: FC<OrderDetailsModalProps> = ({
                     </div>
                     <div className="sm:col-span-1">
                       <dt className="text-sm font-medium text-gray-500">客户名称</dt>
-                      <dd className="mt-1 text-sm text-gray-900">{order.customer_name}</dd>
+                      <dd className="mt-1 text-sm text-gray-900">{order.shipping_address.firstName} {order.shipping_address.lastName}</dd>
                     </div>
                     <div className="sm:col-span-1">
                       <dt className="text-sm font-medium text-gray-500">客户邮箱</dt>
-                      <dd className="mt-1 text-sm text-gray-900">{order.customer_email}</dd>
+                      <dd className="mt-1 text-sm text-gray-900">{order.shipping_address.email}</dd>
                     </div>
                     <div className="sm:col-span-1">
                       <dt className="text-sm font-medium text-gray-500">订单状态</dt>
