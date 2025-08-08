@@ -103,7 +103,6 @@ const CheckoutForm: React.FC<{
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Review & Pay</h2>
         <div className="bg-gray-50 p-4 rounded-lg">
           <h3 className="font-semibold text-gray-800"></h3>
           {/* <p className="text-gray-600">Customer: {email}</p> */}
@@ -191,8 +190,22 @@ const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
     );
   }
 
+  const appearance = {
+    theme: "stripe" as const,
+    variables: {
+      colorPrimary: "#0d7377",
+      colorBackground: "#ffffff",
+      colorText: "#1f2937",
+      colorDanger: "#ef4444",
+      fontFamily: "system-ui, sans-serif",
+      spacingUnit: "4px",
+      borderRadius: "8px",
+    },
+  };
+
   const options = {
     clientSecret,
+    appearance
   };
 
   return (
