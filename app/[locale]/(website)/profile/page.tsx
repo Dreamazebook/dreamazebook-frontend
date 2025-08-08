@@ -22,7 +22,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {orderList.length && [orderList[0]]?.map(({order_number,status,shipping_address,total_amount,items,updated_at}) => (
+        {orderList.length > 0 && [orderList[0]]?.map(({order_number,status,shipping_address,total_amount,items,updated_at}) => (
         <div key={order_number} className="border rounded-lg p-3 md:p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
             <span className="text-base md:text-lg font-medium text-gray-900">{order_number}</span>

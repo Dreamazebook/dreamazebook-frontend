@@ -1,7 +1,7 @@
 'use client';
 import { FC, ReactNode, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import '../globals.css';
 import useUserStore from '@/stores/userStore';
 
@@ -12,6 +12,7 @@ interface AdminLayoutProps {
 const AdminLayout: FC<AdminLayoutProps> = ({ children }) => {
   const {fetchCurrentUser,user,logout} = useUserStore();
   const pathname = usePathname();
+  const router = useRouter();
   
   useEffect(()=> {
     fetchCurrentUser();
@@ -127,6 +128,7 @@ const AdminLayout: FC<AdminLayoutProps> = ({ children }) => {
             onClick={() => {
               // Add logout functionality here
               logout();
+              router.push('/');
             }}
             className="flex items-center w-full px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-md transition-colors duration-200"
           >

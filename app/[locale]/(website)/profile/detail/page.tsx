@@ -1,11 +1,31 @@
 "use client";
-import { API_ADDRESS_LIST } from '@/constants/api';
+import { API_ADDRESS_LIST, API_USER_PROFILE } from '@/constants/api';
 import useUserStore from '@/stores/userStore';
 import { ApiResponse } from '@/types/api';
 import api from '@/utils/api';
 import React, { useEffect, useState } from 'react';
 export default function AccountDetails() {
   const {user, fetchAddresses, addresses} = useUserStore();
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: user?.name || '',
+    lastName: '',
+    email: user?.email || ''
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const { success, message } = await api.put<ApiResponse>(API_USER_PROFILE, formData);
+      if (success) {
+        setIsEditing(false);
+      } else {
+        alert(message);
+      }
+    } catch (error) {
+      alert('Failed to update profile');
+    }
+  };
 
   useEffect(()=> {
     fetchAddresses();
@@ -52,10 +72,56 @@ export default function AccountDetails() {
           </div>
           
           <div className="flex justify-center">
-            <button className="px-6 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition-colors">
-              Edit
+            <button 
+              onClick={() => setIsEditing(!isEditing)}
+              className="px-6 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              {isEditing ? 'Cancel' : 'Edit'}
             </button>
           </div>
+          
+          {isEditing && (
+            <form onSubmit={handleSubmit} className="mt-6">
+              <div className="grid grid-cols-2 gap-x-16 gap-y-6 mb-8">
+                <div>
+                  <label className="text-sm text-gray-500 mb-2 block">First Name</label>
+                  <input
+                    type="text"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500 mb-2 block">Last Name</label>
+                  <input
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-sm text-gray-500 mb-2 block">Email Address</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-center">
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
 
