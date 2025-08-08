@@ -52,28 +52,28 @@ const OrderSummary: React.FC = () => {
         {/* 进度状态指示 */}
         <div className="flex items-center space-x-2 mb-8">
           <div className="flex flex-col items-center">
-            <div className="w-4 h-4 rounded-full bg-blue-500"></div>
-            <span className="text-xs mt-1 text-blue-500">place order</span>
+            <div className="w-6 h-6 text-sm flex items-center justify-center rounded-xl bg-gray-300">1</div>
+            <span className="text-sm capitalize mt-1 text-gray-500">place order</span>
           </div>
           <div className="w-8 h-0.5 bg-blue-500"></div>
           <div className="flex flex-col items-center">
-            <div className="w-4 h-4 rounded-full bg-blue-500"></div>
-            <span className="text-xs mt-1 text-blue-500">confirm the effect</span>
+            <div className="w-6 h-6 text-sm flex items-center justify-center rounded-xl bg-gray-300">2</div>
+            <span className="text-sm capitalize mt-1 text-gray-500">confirm the effect</span>
           </div>
           <div className="w-8 h-0.5 bg-blue-500"></div>
           <div className="flex flex-col items-center">
-            <div className="w-4 h-4 rounded-full bg-blue-500"></div>
-            <span className="text-xs mt-1 text-blue-500">print</span>
+            <div className="w-6 h-6 text-sm flex items-center justify-center rounded-xl bg-gray-300">3</div>
+            <span className="text-sm capitalize mt-1 text-gray-500">print</span>
           </div>
           <div className="w-8 h-0.5 bg-blue-500"></div>
           <div className="flex flex-col items-center">
-            <div className="w-4 h-4 rounded-full bg-blue-500"></div>
-            <span className="text-xs mt-1 text-blue-500">transport</span>
+            <div className="w-6 h-6 text-sm flex items-center justify-center rounded-xl bg-gray-300">4</div>
+            <span className="text-sm capitalize mt-1 text-gray-500">transport</span>
           </div>
           <div className="w-8 h-0.5 bg-blue-500"></div>
           <div className="flex flex-col items-center">
-            <div className="w-4 h-4 rounded-full bg-blue-500"></div>
-            <span className="text-xs mt-1 text-blue-500">receive books</span>
+            <div className="w-6 h-6 text-sm flex items-center justify-center rounded-xl bg-gray-300">5</div>
+            <span className="text-sm capitalize mt-1 text-gray-500">receive books</span>
           </div>
         </div>
 
