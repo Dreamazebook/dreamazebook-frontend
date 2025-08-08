@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
-  CardElement,
+  PaymentElement,
   useStripe,
   useElements
 } from '@stripe/react-stripe-js';
@@ -31,11 +31,19 @@ const CheckoutForm: React.FC<{
 }> = ({ orderDetail, onError }) => {
   const order = orderDetail.order;
   const {shipping_address,total_amount} = order;
-  const clientSecret = orderDetail.payment_data.client_secret;
+  const clientSecret = orderDetail.payment_data?.client_secret;
   const stripe = useStripe();
   const elements = useElements();
+  
+  const isStripeReady = useMemo(() => stripe && elements, [stripe, elements]);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string>('');
+
+  if (!clientSecret) {
+    setMessage('Payment data is incomplete');
+    onError?.('Payment data is incomplete');
+    return;
+  }
 
   const router = useRouter();
 
@@ -50,36 +58,54 @@ const CheckoutForm: React.FC<{
     setIsLoading(true);
     setMessage('');
 
-    const cardElement = elements.getElement(CardElement);
+    const paymentElement = elements.getElement(PaymentElement);
 
-    if (!cardElement) {
+    if (!paymentElement) {
       setMessage('Card element not found');
       setIsLoading(false);
       return;
     }
 
-    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: cardElement,
-        billing_details: {
-          email: shipping_address?.email || '',
-        },
+    const { error, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: window.location.origin + `/order-summary?orderId=${orderDetail.order.id}`,
+        receipt_email: shipping_address?.email || undefined,
       },
     });
 
     if (error) {
       setMessage(error.message || 'An unexpected error occurred.');
       onError?.(error.message || 'Payment failed');
-    } else if (paymentIntent.status === 'succeeded') {
-      setMessage('Payment succeeded!');
-      // Call API_ORDER_STRIPE_PAID on successful payment
-      const {code,success,message,data} = await api.post<ApiResponse>(API_ORDER_STRIPE_PAID,{
-        orderId: orderDetail.order.id,
-        payment_intent_id: orderDetail.order.stripe_payment_intent_id
-      });
-      if (success) {
-        router.push(`/order-summary?orderId=${orderDetail.order.id}`);
-      }
+      return;
+    }
+
+    switch (paymentIntent?.status) {
+      case 'succeeded':
+        setMessage('Payment succeeded!');
+        try {
+          const { success } = await api.post<ApiResponse>(API_ORDER_STRIPE_PAID, {
+            orderId: orderDetail.order.id,
+            payment_intent_id: orderDetail.order.stripe_payment_intent_id
+          });
+          if (success) {
+            router.push(`/order-summary?orderId=${orderDetail.order.id}`);
+          } else {
+            setMessage('Failed to update order status');
+          }
+        } catch (error) {
+          setMessage('Failed to process payment');
+          onError?.('Failed to process payment');
+        }
+        break;
+      case 'processing':
+        setMessage('Payment processing. We will update you when payment is received.');
+        break;
+      case 'requires_payment_method':
+        setMessage('Payment failed. Please try another payment method.');
+        break;
+      default:
+        setMessage('Payment status unknown. Please contact support.');
     }
 
     setIsLoading(false);
@@ -118,7 +144,7 @@ const CheckoutForm: React.FC<{
             Card Information
           </label>
           <div className="border border-gray-300 rounded-md p-4 bg-white w-full">
-            <CardElement options={cardElementOptions} />
+            <PaymentElement />
           </div>
         </div>
 
@@ -161,7 +187,11 @@ const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
   orderDetail,
   onError,
 }) => {
-  const clientSecret = orderDetail.payment_data.client_secret;
+  const clientSecret = orderDetail.payment_data?.client_secret;
+  if (!clientSecret) {
+    onError?.('Payment data is incomplete');
+    return;
+  }
   const [stripeError, setStripeError] = useState<string>('');
 
   useEffect(() => {
