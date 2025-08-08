@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { OrderDetailResponse } from '../checkout/components/types';
 import useUserStore from '@/stores/userStore';
+import DisplayPrice from '../components/component/DisplayPrice';
 
 const OrderSummary: React.FC = () => {
   const {fetchOrderDetail} = useUserStore();
@@ -122,7 +123,7 @@ const OrderSummary: React.FC = () => {
             <hr className="my-2" />
             <div className="flex justify-between font-bold">
               <span>Total</span>
-              <span>${orderDetail?.order.total_amount}</span>
+              <DisplayPrice value={orderDetail?.order.total_amount} />
             </div>
           </div>
 

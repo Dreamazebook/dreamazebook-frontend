@@ -63,7 +63,7 @@ export default function ProfilePage() {
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 pt-4 border-t gap-4">
             <div>
-              <span className="text-base md:text-lg font-medium text-gray-900">Total ${total_amount}</span>
+              Total <DisplayPrice value={total_amount} style="text-base md:text-lg font-medium text-gray-900"/>
             </div>
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
               <button className="px-4 py-2 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50">

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { formatDate } from '../../checkout/components/types';
 import Link from 'next/link';
 import useUserStore from '@/stores/userStore';
+import DisplayPrice from '../../components/component/DisplayPrice';
 
 const OrderHistory = () => {
   const {orderList, fetchOrderList} = useUserStore();
@@ -123,7 +124,7 @@ const OrderHistory = () => {
                     </svg>
                     <span className={`${getStatusColor(order.status)} capitalize font-medium`}>{order.status}</span>
                   </div>
-                  <span className="text-lg font-semibold text-gray-900">${order.total_amount}</span>
+                  <DisplayPrice value={order.total_amount} style='text-lg font-semibold text-gray-900' />
                 </div>
 
                 <div className="text-sm text-gray-600 mb-1">

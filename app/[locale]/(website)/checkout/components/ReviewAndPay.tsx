@@ -13,6 +13,7 @@ import api from '@/utils/api';
 import { API_ORDER_STRIPE_PAID } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
 import { useRouter } from 'next/navigation';
+import DisplayPrice from '../../components/component/DisplayPrice';
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
@@ -107,7 +108,7 @@ const CheckoutForm: React.FC<{
           <h3 className="font-semibold text-gray-800"></h3>
           <p className="text-gray-600">Customer: {email}</p>
           <p className="text-xl font-bold text-gray-900 mt-2">
-            Total: ${total_amount}
+            Total: <DisplayPrice value={total_amount} />
           </p>
         </div>
       </div>
