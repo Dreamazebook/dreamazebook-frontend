@@ -106,7 +106,7 @@ const OrderSummary: React.FC = () => {
                 <p className="font-semibold">{item.picbook_name}</p>
                 <p className="text-gray-500 text-sm">{item.message}</p>
               </div>
-              <div className="text-gray-800">${item.total_price} USD</div>
+              <DisplayPrice value={item.total_price} style='text-gray-800' />
             </div>
           ))}
         </div>
