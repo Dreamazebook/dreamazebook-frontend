@@ -3,11 +3,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import useUserStore from "@/stores/userStore";
-import { logout } from "@/utils/auth";
 import { useRouter } from "next/navigation";
 
 export default function ProfileSidebar({ children }:{children:React.ReactNode}) {
-  const {user} = useUserStore();
+  const {user, logout} = useUserStore();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();

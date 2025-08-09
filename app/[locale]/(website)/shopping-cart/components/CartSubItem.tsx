@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { CartSubItem as CartSubItemType } from './types';
+import DisplayPrice from '../../components/component/DisplayPrice';
 
 interface CartSubItemProps {
   item: CartSubItemType;
@@ -27,7 +28,7 @@ export default function CartSubItem({ item }: CartSubItemProps) {
           <p className="text-sm font-medium">{item.name}</p>
         </div>
       </div>
-      <p className="font-medium">${item.price.toFixed(2)}</p>
+      <DisplayPrice value={item.price} />
     </div>
   );
 }

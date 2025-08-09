@@ -1,35 +1,51 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
-  CardElement,
+  PaymentElement,
   useStripe,
   useElements
 } from '@stripe/react-stripe-js';
-import { OrderDetail } from './types';
+import { OrderDetail, OrderDetailResponse } from './types';
+import api from '@/utils/api';
+import { API_ORDER_STRIPE_PAID } from '@/constants/api';
+import { ApiResponse } from '@/types/api';
+import { useRouter } from 'next/navigation';
+import DisplayPrice from '../../components/component/DisplayPrice';
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 interface ReviewAndPayProps {
-  order: OrderDetail;
+  orderDetail: OrderDetailResponse;
   handlePlaceOrder?: () => void;
   onError?: (error: string) => void;
 }
 
 const CheckoutForm: React.FC<{
-  order: OrderDetail;
-  handlePlaceOrder?: () => void;
+  orderDetail: OrderDetailResponse;
   onError?: (error: string) => void;
-}> = ({ order, handlePlaceOrder, onError }) => {
-  const {stripe_client_secret:clientSecret,shipping_address:{email},total_amount} = order;
+}> = ({ orderDetail, onError }) => {
+  const order = orderDetail.order;
+  const {shipping_address,total_amount} = order;
+  const clientSecret = orderDetail.payment_data?.client_secret;
   const stripe = useStripe();
   const elements = useElements();
+  
+  const isStripeReady = useMemo(() => stripe && elements, [stripe, elements]);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string>('');
+
+  if (!clientSecret) {
+    setMessage('Payment data is incomplete');
+    onError?.('Payment data is incomplete');
+    return;
+  }
+
+  const router = useRouter();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -42,29 +58,55 @@ const CheckoutForm: React.FC<{
     setIsLoading(true);
     setMessage('');
 
-    const cardElement = elements.getElement(CardElement);
+    const paymentElement = elements.getElement(PaymentElement);
 
-    if (!cardElement) {
+    if (!paymentElement) {
       setMessage('Card element not found');
       setIsLoading(false);
       return;
     }
 
-    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: cardElement,
-        billing_details: {
-          email,
-        },
+    const { error, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      redirect: 'if_required',
+      confirmParams: {
+        // return_url: window.location.origin + `/order-summary?orderId=${orderDetail.order.id}`,
+        receipt_email: shipping_address?.email || undefined,
       },
     });
 
     if (error) {
       setMessage(error.message || 'An unexpected error occurred.');
       onError?.(error.message || 'Payment failed');
-    } else if (paymentIntent.status === 'succeeded') {
-      setMessage('Payment succeeded!');
-      handlePlaceOrder?.();
+      return;
+    }
+
+    switch (paymentIntent?.status) {
+      case 'succeeded':
+        setMessage('Payment succeeded!');
+        try {
+          const { success } = await api.post<ApiResponse>(API_ORDER_STRIPE_PAID, {
+            orderId: orderDetail.order.id,
+            payment_intent_id: orderDetail.order.stripe_payment_intent_id
+          });
+          if (success) {
+            router.push(`/order-summary?orderId=${orderDetail.order.id}`);
+          } else {
+            setMessage('Failed to update order status');
+          }
+        } catch (error) {
+          setMessage('Failed to process payment');
+          onError?.('Failed to process payment');
+        }
+        break;
+      case 'processing':
+        setMessage('Payment processing. We will update you when payment is received.');
+        break;
+      case 'requires_payment_method':
+        setMessage('Payment failed. Please try another payment method.');
+        break;
+      default:
+        setMessage('Payment status unknown. Please contact support.');
     }
 
     setIsLoading(false);
@@ -88,12 +130,11 @@ const CheckoutForm: React.FC<{
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Review & Pay</h2>
         <div className="bg-gray-50 p-4 rounded-lg">
           <h3 className="font-semibold text-gray-800"></h3>
-          <p className="text-gray-600">Customer: {email}</p>
+          {/* <p className="text-gray-600">Customer: {email}</p> */}
           <p className="text-xl font-bold text-gray-900 mt-2">
-            Total: ${total_amount}
+            Total: <DisplayPrice value={total_amount} />
           </p>
         </div>
       </div>
@@ -103,8 +144,8 @@ const CheckoutForm: React.FC<{
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Card Information
           </label>
-          <div className="border border-gray-300 rounded-md p-3 bg-white">
-            <CardElement options={cardElementOptions} />
+          <div className="border border-gray-300 rounded-md p-4 bg-white w-full">
+            <PaymentElement />
           </div>
         </div>
 
@@ -144,11 +185,14 @@ const CheckoutForm: React.FC<{
 };
 
 const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
-  order,
-  handlePlaceOrder,
+  orderDetail,
   onError,
 }) => {
-  const { stripe_client_secret:clientSecret } = order;
+  const clientSecret = orderDetail.payment_data?.client_secret;
+  if (!clientSecret) {
+    onError?.('Payment data is incomplete');
+    return;
+  }
   const [stripeError, setStripeError] = useState<string>('');
 
   useEffect(() => {
@@ -177,15 +221,28 @@ const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
     );
   }
 
+  const appearance = {
+    theme: "stripe" as const,
+    variables: {
+      colorPrimary: "#0d7377",
+      colorBackground: "#ffffff",
+      colorText: "#1f2937",
+      colorDanger: "#ef4444",
+      fontFamily: "system-ui, sans-serif",
+      spacingUnit: "4px",
+      borderRadius: "8px",
+    },
+  };
+
   const options = {
     clientSecret,
+    appearance
   };
 
   return (
     <Elements stripe={stripePromise} options={options}>
       <CheckoutForm
-        order={order}
-        handlePlaceOrder={handlePlaceOrder}
+        orderDetail={orderDetail}
         onError={onError}
       />
     </Elements>

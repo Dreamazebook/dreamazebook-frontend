@@ -1,23 +1,32 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { OrderDetail } from '../../checkout/components/types';
-import { API_ORDER_LIST } from '@/constants/api';
-import { ApiResponse } from '@/types/api';
-import api from '@/utils/api';
+import { formatDate } from '../../checkout/components/types';
 import Link from 'next/link';
+import useUserStore from '@/stores/userStore';
+import DisplayPrice from '../../components/component/DisplayPrice';
 
 const OrderHistory = () => {
-  const [orders, setOrders] = useState<OrderDetail[]>([]);
+  const {orderList, fetchOrderList} = useUserStore();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('all');
+
+  const filteredOrders = activeTab === 'all' 
+    ? orderList 
+    : orderList.filter(order => order.status === activeTab);
+
+  const tabs = [
+    { id: 'all', label: 'All Order', count: orderList.length },
+    { id: 'pending', label: 'Pending', count: orderList.filter(order => order.status === 'pending').length },
+    { id: 'preparing', label: 'Preparing', count: orderList.filter(order => order.status === 'preparing').length },
+    { id: 'completed', label: 'Completed', count: orderList.filter(order => order.status === 'completed').length },
+    { id: 'cancelled', label: 'Cancelled', count: orderList.filter(order => order.status === 'cancelled').length },
+  ];
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const {data,success,code,message} = await api.get<ApiResponse<OrderDetail[]>>(API_ORDER_LIST);
-        // Transform API response to match expected format
-        if (!data) return;
-        setOrders(data);
+        fetchOrderList();
       } catch (err) {
         setError('Failed to load orders. Please try again later.');
         console.error('Error fetching orders:', err);
@@ -40,7 +49,7 @@ const OrderHistory = () => {
 
   if (loading) return <div className="text-center py-8">Loading orders...</div>;
   if (error) return <div className="text-center py-8 text-red-500">{error}</div>;
-  if (orders.length === 0) return <div className="text-center py-8">No orders found</div>;
+  if (orderList.length === 0) return <div className="text-center py-8">No orders found</div>;
 
   return (
     <div className="bg-white min-h-screen">
@@ -61,25 +70,22 @@ const OrderHistory = () => {
         {/* Tab Navigation */}
         <div className="mb-6">
           <div className="flex gap-0 border-b border-gray-200">
-            <button className="px-0 py-3 mr-8 text-blue-600 border-b-2 border-blue-600 font-medium text-sm">
-              All Order(50)
-            </button>
-            <button className="px-0 py-3 mr-8 text-gray-600 hover:text-gray-800 text-sm">
-              Pending(10)
-            </button>
-            <button className="px-0 py-3 mr-8 text-gray-600 hover:text-gray-800 text-sm">
-              Completed(25)
-            </button>
-            <button className="px-0 py-3 mr-8 text-gray-600 hover:text-gray-800 text-sm">
-              Cancelled(15)
-            </button>
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`cursor-pointer px-0 py-3 mr-8 text-sm ${activeTab === tab.id ? 'text-blue-600 border-b-2 border-blue-600 font-medium' : 'text-gray-600 hover:text-gray-800'}`}
+              >
+                {tab.label}({tab.count})
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Order List */}
         <div className="space-y-6">
-          {orders.map((order, index) => (
-            <div key={index} className="flex gap-4 py-4">
+          {filteredOrders.map((order) => (
+            <div key={order.id} className="flex gap-4 py-4">
               {/* Product Images */}
               <div className="flex-shrink-0">
                 {/* {order.images ? (
@@ -116,24 +122,24 @@ const OrderHistory = () => {
                       <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
                       <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
                     </svg>
-                    <span className={`${getStatusColor(order.status)} font-medium`}>{order.status}</span>
+                    <span className={`${getStatusColor(order.status)} capitalize font-medium`}>{order.status}</span>
                   </div>
-                  <span className="text-lg font-semibold text-gray-900">{order.total_amount}</span>
+                  <DisplayPrice value={order.total_amount} style='text-lg font-semibold text-gray-900' />
                 </div>
 
                 <div className="text-sm text-gray-600 mb-1">
-                  <span className="text-gray-900">Ship to:</span> Wuhou District, Chengdu City, Sichuan Province, China
+                  <span className="text-gray-900">Ship to:</span> {order.shipping_address?.full_address}
                 </div>
 
                 <div className="flex gap-8 text-sm text-gray-600 mb-1">
-                  <span><span className="text-gray-900">Order date:</span> {order.created_at}</span>
+                  <span><span className="text-gray-900">Order date:</span> {formatDate(order.created_at)}</span>
                   {order.updated_at && (
-                    <span><span className="text-gray-900">Delivery date:</span> {order.updated_at}</span>
+                    <span><span className="text-gray-900">Delivery date:</span> {formatDate(order.updated_at)}</span>
                   )}
                 </div>
 
                 <div className="text-sm text-gray-600 mb-4">
-                  <span className="text-gray-900">Qty:</span> 2
+                  <span className="text-gray-900">Qty:</span> {order.items.length}
                 </div>
 
                 <div className="flex gap-6">
@@ -143,7 +149,7 @@ const OrderHistory = () => {
                   <button className="text-blue-600 hover:underline text-sm">
                     Buy the Same
                   </button>
-                  <Link href={`/checkout?orderId=${order.id}`} className="text-blue-600 hover:underline text-sm flex items-center gap-1">
+                  <Link href={`/${order.payment_status === 'paid' ? 'order-summary' : 'checkout'}?orderId=${order.id}`} className="text-blue-600 hover:underline text-sm flex items-center gap-1">
                     More Details
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

@@ -7,7 +7,7 @@ import Button from '@/app/components/Button'
 import Input from '@/app/components/common/Input'
 
 export default function LoginModal() {
-  const { isLoginModalOpen, closeLoginModal, register, login, sendResetPasswordLink } = useUserStore()
+  const { isLoginModalOpen, closeLoginModal, register, login, loginAdmin, sendResetPasswordLink } = useUserStore()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [mode, setMode] = useState('login');
@@ -36,6 +36,16 @@ export default function LoginModal() {
       email, password
     }
     if (mode === 'login') {
+      //Todo: admin login
+      if (email.includes('admin')) {
+        const response = await loginAdmin(userData);
+        if (response?.success) {
+          closeLoginModal();
+          // 检查是否有重定向URL参数
+          router.push('/admin');
+        }
+        return;
+      }
       const response = await login(userData);
       if (response?.success) {
         closeLoginModal();

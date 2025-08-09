@@ -210,13 +210,13 @@ export default function ShoppingCartPage() {
                 >
                   {t('checkout')}
                 </button>
-                <button
+                {/* <button
                   onClick={() => alert('Checkout with PayPal')}
                   disabled={selectedItems.length === 0}
                   className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-400 flex items-center justify-center gap-2"
                 >
                   {t('checkoutWithPayPal')}
-                </button>
+                </button> */}
               </div>
             </div>
           </div>

@@ -1,3 +1,14 @@
+export function formatDate(date: string) {
+  return date.split('T')[0];
+}
+
+export interface OrderDetailResponse {
+  order: OrderDetail;
+  payment_data: {
+    client_secret: string,
+  }
+}
+
 export interface OrderDetail {
   id: number;
   user_id: number;
@@ -35,6 +46,10 @@ export interface CartItem {
   image: string;
   price: number;
   quantity: number;
+  total_price: number;
+  picbook_name: string;
+  picbook_cover: string;
+  message: string;
 }
 
 export interface ShippingErrors {
@@ -56,5 +71,5 @@ export interface BillingErrors {
   billingAddress?: string;
 }
 
-export type DeliveryOption = "Standard" | "Express";
+export type DeliveryOption = "STANDARD" | "EXPRESS";
 export type PaymentOption = "card" | "paypal" | null;

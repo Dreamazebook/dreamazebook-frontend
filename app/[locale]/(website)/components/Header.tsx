@@ -76,7 +76,7 @@ const Header = () => {
         <button className="text-2xl">🔍 {/* Search Icon */}</button>
         <Link href={"/shopping-cart"} className="text-2xl">🛒 {/* Cart Icon */}</Link>
         {user ? (
-          <Link href="/profile">
+          <Link href={user.role === 'admin' ? "/admin" : "/profile"}>
             <Image src={'/header/profile.svg'} alt="Profile" width={28} height={28} className="cursor-pointer" />
           </Link>
         ) : (

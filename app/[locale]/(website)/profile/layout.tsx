@@ -35,14 +35,8 @@ export default async function ProfileLayout({
   const messages = await getMessages();
   
   return (
-    <html lang={locale}>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <NextIntlClientProvider messages={messages}>
-          <ProfileSidebar>{children}</ProfileSidebar>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider messages={messages}>
+      <ProfileSidebar>{children}</ProfileSidebar>
+    </NextIntlClientProvider>
   );
 }
