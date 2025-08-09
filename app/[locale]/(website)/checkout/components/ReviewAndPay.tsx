@@ -86,7 +86,7 @@ const CheckoutForm: React.FC<{
         setMessage('Payment succeeded!');
         try {
           const { success } = await api.post<ApiResponse>(API_ORDER_STRIPE_PAID, {
-            orderId: orderDetail.order.id,
+            order_id: orderDetail.order.id,
             payment_intent_id: orderDetail.order.stripe_payment_intent_id
           });
           if (success) {
