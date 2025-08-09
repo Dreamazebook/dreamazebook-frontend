@@ -842,94 +842,179 @@ export default function PreviewPageWithTopNav() {
 
 
             {/* Giver & Dedication 编辑区域 */}
-            <div
-              className={`w-full max-w-5xl ${
-                viewMode === 'double'
-                  ? 'flex flex-row justify-center items-stretch mb-8'
-                  : 'flex flex-col items-center gap-8 mb-8'
-              }`}
-            >
-              {/* Giver Page */}
-              <div ref={giverDedicationRef} className="flex-1 flex flex-col items-center">
-                {viewMode === 'double' ? (
-                  <div className="w-full relative">
-                    <Image
-                      src="/giver_page.png"
-                      alt="Giver Page"
-                      width={800}
-                      height={600}
-                      className="w-full h-auto rounded-lg object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setEditField('giver')}
-                      className="absolute bottom-[20%] left-1/2 transform -translate-x-1/2 text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base"
-                    >
-                      Edit Giver
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="w-full relative">
-                      <Image
-                        src="/giver_page.png"
-                        alt="Giver Page"
-                        width={800}
-                        height={600}
-                        className="w-full h-auto rounded-lg object-contain"
-                      />
+            <div className="w-full max-w-5xl mb-8">
+              {viewMode === 'single' ? (
+                /* Single-page模式：像绘本页面一样分为两个独立页面 */
+                <div className="flex flex-col items-center gap-8">
+                  {/* Giver Page - 左半部分 */}
+                  <div ref={giverDedicationRef} className="w-full flex flex-col items-center">
+                    <div className="w-full flex justify-center">
+                      <div className="relative max-w-[500px] w-full" style={{ aspectRatio: '512/519' }}>
+                        <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg">
+                          <img
+                            src={`/picbooks/${searchParams.get('bookid') || '1'}/giver.webp`}
+                            alt="Giver Page"
+                            className="object-cover rounded-lg"
+                            style={{ 
+                              objectPosition: 'left center',
+                              width: '100%',
+                              height: '100%'
+                            }}
+                            onError={(e) => {
+                              console.error(`Giver图片加载失败: /picbooks/${searchParams.get('bookid') || '1'}/giver.webp`);
+                            }}
+                            onLoad={() => {
+                              console.log(`Giver图片加载成功: /picbooks/${searchParams.get('bookid') || '1'}/giver.webp`);
+                            }}
+                          />
+                        </div>
+                        {/* Giver文本显示 */}
+                        {giver && giver.trim() && (
+                          <div className="absolute inset-0 flex items-center justify-center z-10">
+                            <div className="backdrop-blur-sm rounded-lg p-2 sm:p-3 md:p-4 max-w-[80%] text-center">
+                              <p className="text-gray-800 font-medium text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed break-words">{giver}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => setEditField('giver')}
-                      className="mt-4 text-black py-2 px-4 rounded border border-black"
+                      className="mt-4 text-black py-2 px-4 rounded border border-black bg-white/80 backdrop-blur-sm"
                     >
                       Edit Giver
                     </button>
-                  </>
-                )}
-              </div>
+                  </div>
 
-              {/* Dedication Page */}
-              <div className="flex-1 flex flex-col items-center">
-                {viewMode === 'double' ? (
-                  <div className="w-full relative">
-                    <Image
-                      src="/giver_page.png"
-                      alt="Dedication Page"
-                      width={800}
-                      height={600}
-                      className="w-full h-auto rounded-lg object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setEditField('dedication')}
-                      className="absolute bottom-[20%] left-1/2 transform -translate-x-1/2 text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base"
-                    >
-                      Edit Dedication
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="w-full relative">
-                      <Image
-                        src="/giver_page.png"
-                        alt="Dedication Page"
-                        width={800}
-                        height={600}
-                        className="w-full h-auto rounded-lg object-contain"
-                      />
+                  {/* Dedication Page - 右半部分 */}
+                  <div className="w-full flex flex-col items-center">
+                    <div className="w-full flex justify-center">
+                      <div className="relative max-w-[500px] w-full" style={{ aspectRatio: '512/519' }}>
+                        <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg">
+                          <img
+                            src={`/picbooks/${searchParams.get('bookid') || '1'}/giver.webp`}
+                            alt="Dedication Page"
+                            className="object-cover rounded-lg"
+                            style={{ 
+                              objectPosition: 'right center',
+                              width: '100%',
+                              height: '100%'
+                            }}
+                            onError={(e) => {
+                              console.error(`Dedication图片加载失败: /picbooks/${searchParams.get('bookid') || '1'}/giver.webp`);
+                            }}
+                            onLoad={() => {
+                              console.log(`Dedication图片加载成功: /picbooks/${searchParams.get('bookid') || '1'}/giver.webp`);
+                            }}
+                          />
+                        </div>
+                        {/* Dedication文本显示 */}
+                        {dedication && dedication.trim() && (
+                          <div className="absolute inset-0 flex items-center justify-center p-2 sm:p-3 md:p-4 z-10">
+                            <div 
+                              className="backdrop-blur-sm rounded-lg p-2 sm:p-3 md:p-4 text-gray-800 font-medium text-center text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed"
+                              style={{ 
+                                width: '85%',
+                                height: '75%',
+                                wordBreak: 'break-word', 
+                                overflowWrap: 'break-word',
+                                whiteSpace: 'pre-wrap',
+                                overflow: 'hidden',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxSizing: 'border-box'
+                              }}
+                            >
+                              {dedication}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => setEditField('dedication')}
-                      className="mt-4 text-black py-2 px-4 rounded border border-black"
+                      className="mt-4 text-black py-2 px-4 rounded border border-black bg-white/80 backdrop-blur-sm"
                     >
                       Edit Dedication
                     </button>
-                  </>
-                )}
-              </div>
+                  </div>
+                </div>
+              ) : (
+                /* Double-page模式：共用一张完整图片，文本分别渲染在左右两边 */
+                <div ref={giverDedicationRef} className="w-full flex justify-center">
+                  <div className="relative w-full max-w-4xl h-[600px] rounded-lg overflow-hidden">
+                    {/* 完整的背景图片 */}
+                    <img
+                      src={`/picbooks/${searchParams.get('bookid') || '1'}/giver.webp`}
+                      alt="Giver and Dedication"
+                      className="w-full h-full object-contain rounded-lg"
+                      onError={(e) => {
+                        console.error(`Double-page图片加载失败: /picbooks/${searchParams.get('bookid') || '1'}/giver.webp`);
+                      }}
+                      onLoad={() => {
+                        console.log(`Double-page图片加载成功: /picbooks/${searchParams.get('bookid') || '1'}/giver.webp`);
+                      }}
+                    />
+                    
+                    {/* Giver文本显示 - 左边 */}
+                    {giver && giver.trim() && (
+                      <div className="absolute top-0 left-0 w-1/2 h-full flex items-center justify-center p-2 sm:p-3 md:p-4">
+                        <div className="backdrop-blur-sm rounded-lg p-2 sm:p-3 md:p-4 max-w-[80%] text-center">
+                          <p className="text-gray-800 font-medium text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed break-words">{giver}</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Dedication文本显示 - 右边 */}
+                    {dedication && dedication.trim() && (
+                      <div className="absolute top-0 right-0 w-1/2 h-full flex items-center justify-center p-2 sm:p-3 md:p-4">
+                        <div 
+                          className="backdrop-blur-sm rounded-lg p-2 sm:p-3 md:p-4 text-gray-800 font-medium text-center text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed"
+                          style={{ 
+                            width: '85%',
+                            height: '75%',
+                            wordBreak: 'break-word', 
+                            overflowWrap: 'break-word',
+                            whiteSpace: 'pre-wrap',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxSizing: 'border-box'
+                          }}
+                        >
+                          {dedication}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Giver编辑按钮 - 图片左半部分居中 */}
+                    <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => setEditField('giver')}
+                        className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                      >
+                        Edit Giver
+                      </button>
+                    </div>
+                    
+                    {/* Dedication编辑按钮 - 图片右半部分居中 */}
+                    <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => setEditField('dedication')}
+                        className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                      >
+                        Edit Dedication
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             {/* 换脸状态信息 */}
             {previewData?.face_swap_info && (
@@ -1645,7 +1730,6 @@ export default function PreviewPageWithTopNav() {
                   <button
                     className="bg-[#222222] text-[#F5E3E3] py-2 px-4 rounded-sm"
                     onClick={() => {
-                      setDedication(giver);
                       setEditField(null);
                     }}
                   >
