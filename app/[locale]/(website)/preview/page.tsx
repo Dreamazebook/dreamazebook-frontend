@@ -809,31 +809,6 @@ export default function PreviewPageWithTopNav() {
           <main className="flex-1 flex flex-col items-center justify-start w-full pt-14">
             <h1 className="text-[28px] mt-2 mb-4 text-center w-full">Your Book Preview</h1>
             
-            {/* 加载状态 */}
-            {isLoadingPreview && (
-              <div className="flex items-center justify-center py-8">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                  <p>正在加载预览数据...</p>
-                </div>
-              </div>
-            )}
-            
-            {/* 错误状态 */}
-            {previewError && (
-              <div className="w-full max-w-3xl mx-auto mb-8 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-800">错误: {previewError}</p>
-                <button 
-                  onClick={fetchPreviewData}
-                  className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                >
-                  重试
-                </button>
-              </div>
-            )}
-            
-
-            
             {/* 书籍封面 */}
             <div className="flex flex-col items-center w-full max-w-3xl">
               <div className="w-full flex justify-center mb-8">
@@ -982,47 +957,139 @@ export default function PreviewPageWithTopNav() {
                     return (
                       <div key={page.page_id} className="w-full flex justify-center">
                         <div className="w-full max-w-5xl">
-                          <div className="w-full relative">
-                            {isSwapping ? (
-                              // 换脸处理中状态
-                              <div className="w-full h-[600px] bg-gray-200 rounded-lg flex items-center justify-center">
-                                <div className="text-center">
-                                  <div className="flex justify-center mb-4">
-                                    <div className="flex space-x-2">
-                                      <MirageLoader size="60" speed="2.5" color="blue" />
+                          {viewMode === 'single' ? (
+                            // Single page mode: 左右分割显示
+                            <div className="w-full flex flex-col items-center gap-4">
+                              {/* 左半部分 */}
+                              <div className="w-full flex justify-center">
+                                <div className="relative max-w-[500px] w-full" style={{ aspectRatio: '512/519' }}>
+                                  {isSwapping ? (
+                                    <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                                      <div className="text-center">
+                                        <div className="flex justify-center mb-4">
+                                          <div className="flex space-x-2">
+                                            <MirageLoader size="60" speed="2.5" color="blue" />
+                                          </div>
+                                        </div>
+                                        <p className="text-gray-600">正在生成换脸图片...</p>
+                                      </div>
                                     </div>
-                                  </div>
-                                  <p className="text-gray-600">正在生成换脸图片...</p>
+                                  ) : (
+                                    <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg">
+                                      <img
+                                        src={buildImageUrl(page.image_url)}
+                                        alt={`Page ${page.page_number} - Left Half`}
+                                        className="object-cover rounded-lg"
+                                        style={{ 
+                                          objectPosition: 'left center',
+                                          width: '100%',
+                                          height: '100%'
+                                        }}
+                                        onError={(e) => {
+                                          console.error(`图片加载失败: ${page.image_url}`);
+                                        }}
+                                        onLoad={() => {
+                                          console.log(`图片加载成功: ${page.image_url}`);
+                                        }}
+                                      />
+                                    </div>
+                                  )}
+                                  {/* 如果是换脸页面，显示标识 */}
+                                  {page.has_face_swap && !isSwapping && (
+                                    <div className="absolute top-2 right-2 bg-green-100 text-green-800 px-2 py-1 rounded text-xs z-10">
+                                      换脸完成
+                                    </div>
+                                  )}
                                 </div>
                               </div>
-                            ) : (
-                              // 正常显示图片
-                              <div className="w-full relative">
-                                <OptimizedImage
-                                  src={buildImageUrl(page.image_url)}
-                                  alt={`Page ${page.page_number}`}
-                                  width={1600}
-                                  height={600}
-                                  className="w-full h-auto rounded-lg object-cover"
-                                  onError={(e) => {
-                                    console.error(`图片加载失败: ${page.image_url}`);
-                                  }}
-                                  onLoad={() => {
-                                    console.log(`图片加载成功: ${page.image_url}`);
-                                  }}
-                                />
-                                {/* 如果是换脸页面，显示标识 */}
-                                {page.has_face_swap && (
-                                  <div className="absolute top-2 right-2 bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
-                                    换脸完成
-                                  </div>
-                                )}
+                              
+                              {/* 右半部分 */}
+                              <div className="w-full flex justify-center">
+                                <div className="relative max-w-[500px] w-full" style={{ aspectRatio: '512/519' }}>
+                                  {isSwapping ? (
+                                    <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                                      <div className="text-center">
+                                        <div className="flex justify-center mb-4">
+                                          <div className="flex space-x-2">
+                                            <MirageLoader size="60" speed="2.5" color="blue" />
+                                          </div>
+                                        </div>
+                                        <p className="text-gray-600">正在生成换脸图片...</p>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg">
+                                      <img
+                                        src={buildImageUrl(page.image_url)}
+                                        alt={`Page ${page.page_number} - Right Half`}
+                                        className="object-cover rounded-lg"
+                                        style={{ 
+                                          objectPosition: 'right center',
+                                          width: '100%',
+                                          height: '100%'
+                                        }}
+                                        onError={(e) => {
+                                          console.error(`图片加载失败: ${page.image_url}`);
+                                        }}
+                                        onLoad={() => {
+                                          console.log(`图片加载成功: ${page.image_url}`);
+                                        }}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                            )}
-                          </div>
-                          {page.content && (
-                            <div className="mt-2 p-2 bg-gray-100 rounded w-full">
-                              <p className="text-sm">{page.content}</p>
+                              
+                              {page.content && (
+                                <div className="mt-2 p-2 bg-gray-100 rounded w-full max-w-2xl">
+                                  <p className="text-sm">{page.content}</p>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            // Double page mode: 保持原有显示方式
+                            <div className="w-full relative">
+                              {isSwapping ? (
+                                // 换脸处理中状态
+                                <div className="w-full h-[600px] bg-gray-200 rounded-lg flex items-center justify-center">
+                                  <div className="text-center">
+                                    <div className="flex justify-center mb-4">
+                                      <div className="flex space-x-2">
+                                        <MirageLoader size="60" speed="2.5" color="blue" />
+                                      </div>
+                                    </div>
+                                    <p className="text-gray-600">正在生成换脸图片...</p>
+                                  </div>
+                                </div>
+                              ) : (
+                                // 正常显示图片
+                                <div className="w-full relative">
+                                  <OptimizedImage
+                                    src={buildImageUrl(page.image_url)}
+                                    alt={`Page ${page.page_number}`}
+                                    width={1600}
+                                    height={600}
+                                    className="w-full h-auto rounded-lg object-cover"
+                                    onError={(e) => {
+                                      console.error(`图片加载失败: ${page.image_url}`);
+                                    }}
+                                    onLoad={() => {
+                                      console.log(`图片加载成功: ${page.image_url}`);
+                                    }}
+                                  />
+                                  {/* 如果是换脸页面，显示标识 */}
+                                  {page.has_face_swap && (
+                                    <div className="absolute top-2 right-2 bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                                      换脸完成
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              {page.content && (
+                                <div className="mt-2 p-2 bg-gray-100 rounded w-full">
+                                  <p className="text-sm">{page.content}</p>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
