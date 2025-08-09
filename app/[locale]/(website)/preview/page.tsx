@@ -11,8 +11,76 @@ import echo from '@/app/config/echo';
 import useUserStore from '@/stores/userStore';
 import toast from 'react-hot-toast';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
+import { BaseBook } from '@/types/book';
 import { API_CART_CREATE } from '@/constants/api';
 import { mirage } from 'ldrs';
+
+// 自定义图片组件，支持Next.js Image和原生img的回退
+const OptimizedImage = ({ src, alt, width, height, className, style, onError, onLoad, ...props }: {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  className?: string;
+  style?: React.CSSProperties;
+  onError?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
+  onLoad?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
+  [key: string]: any;
+}) => {
+  const [useNativeImg, setUseNativeImg] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  const handleNextImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.warn('Next.js Image failed, falling back to native img:', src);
+    setUseNativeImg(true);
+    if (onError) onError(e);
+  };
+
+  const handleNativeImgError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.error('Native img also failed:', src);
+    setImgError(true);
+    if (onError) onError(e);
+  };
+
+  if (imgError) {
+    return (
+      <div className={`${className} bg-gray-200 flex items-center justify-center`} style={style}>
+        <p className="text-gray-500 text-sm">图片加载失败</p>
+      </div>
+    );
+  }
+
+  if (useNativeImg) {
+    return (
+      <img
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        className={className}
+        style={style}
+        onError={handleNativeImgError}
+        onLoad={onLoad}
+        {...props}
+      />
+    );
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      width={width}
+      height={height}
+      className={className}
+      style={style}
+      unoptimized={src.includes('s3-pro-dre001')}
+      onError={handleNextImageError}
+      onLoad={onLoad}
+      {...props}
+    />
+  );
+};
 
 // 注册 mirage loader
 mirage.register();
@@ -134,6 +202,10 @@ export default function PreviewPageWithTopNav() {
   // 添加到购物车的状态
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
+  // 在其他状态定义之后添加
+  const [bookInfo, setBookInfo] = useState<BaseBook | null>(null);
+  const [isLoadingBookInfo, setIsLoadingBookInfo] = useState(false);
+
   // 获取 book options 的函数
   const fetchBookOptions = useCallback(async () => {
     try {
@@ -164,13 +236,40 @@ export default function PreviewPageWithTopNav() {
     }
   }, []);
 
+  // 获取书籍基本信息的函数
+  const fetchBookInfo = useCallback(async () => {
+    try {
+      const bookId = searchParams.get('bookid');
+      if (!bookId) {
+        console.warn('缺少书籍ID');
+        return;
+      }
+
+      setIsLoadingBookInfo(true);
+      
+      const response = await api.get<ApiResponse<BaseBook>>(`/picbooks/${bookId}`);
+      
+      if (response.success) {
+        setBookInfo(response.data!);
+        console.log('书籍信息获取成功:', response.data);
+      } else {
+        console.error('获取书籍信息失败:', response);
+      }
+    } catch (error: any) {
+      console.error('获取书籍信息失败:', error);
+    } finally {
+      setIsLoadingBookInfo(false);
+    }
+  }, [searchParams]);
+
   // 在组件加载时获取 options
   useEffect(() => {
     const bookId = searchParams.get('bookid');
     if (bookId) {
+      fetchBookInfo();
       fetchBookOptions();
     }
-  }, [searchParams.get('bookid')]);
+  }, [searchParams.get('bookid'), fetchBookInfo]);
 
 
 
@@ -305,27 +404,45 @@ export default function PreviewPageWithTopNav() {
         console.warn('无法解析用户数据:', e);
       }
       
-      // 如果没有用户数据，尝试从现有的预览数据构造请求
-      // 注意：这里移除了对 previewData 的依赖，避免无限循环
-      if (Object.keys(requestData).length === 0) {
-        // 可以在这里添加其他默认数据
-        requestData = {};
-      }
+      // 构造API要求的请求数据格式
+      const character = (requestData as any).characters?.[0];
+      const apiRequestData = {
+        picbook_id: bookId,
+        face_image: character?.photo || character?.face_image,
+        full_name: character?.full_name,
+        language: character?.language || 'en', // 默认英语
+        gender: character?.gender || 1, // 默认值
+        skincolor: character?.skincolor || 1 // 默认值
+      };
+      
+      // 添加详细的调试日志
+      console.log('调用换脸接口（无用户数据）:', {
+        url: '/simple-face-swap/create-by-picbook',
+        originalData: requestData,
+        apiRequestData: apiRequestData,
+        bookId: bookId
+      });
       
       // 修改为POST请求，传递必要的数据
-      const response = await api.post(`/picbooks/${bookId}/preview`, requestData) as ApiResponse<PreviewResponse>;
+      const response = await api.post(`/simple-face-swap/create-by-picbook`, apiRequestData) as ApiResponse<PreviewResponse>;
       
       if (response.success) {
         setPreviewData(response.data!);
         
-        // 设置giver和dedication从角色数据
-        if (response.data?.characters && response.data.characters.length > 0) {
-          const character = response.data.characters[0];
-          const newGiver = character.full_name || '';
-          // 只有当 giver 值不同时才更新，避免无限循环
-          if (giver !== newGiver) {
-            setGiver(newGiver);
+        // 由于新的API结构中characters是数字数组，我们从localStorage获取角色名称
+        try {
+          const userData = localStorage.getItem('previewUserData');
+          if (userData) {
+            const parsedUserData = JSON.parse(userData);
+            const character = parsedUserData.characters?.[0];
+            const newGiver = character?.full_name || '';
+            // 只有当 giver 值不同时才更新，避免无限循环
+            if (giver !== newGiver) {
+              setGiver(newGiver);
+            }
           }
+        } catch (e) {
+          console.warn('无法获取角色名称:', e);
         }
         
         console.log('预览数据获取成功:', response.data);
@@ -334,8 +451,29 @@ export default function PreviewPageWithTopNav() {
       }
       
     } catch (error: any) {
-      console.error('获取预览数据失败:', error);
-      setPreviewError(error.response?.data?.message || '获取预览数据失败');
+      console.error('获取预览数据失败:', {
+        error: error,
+        response: error.response,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+        url: error.config?.url
+      });
+      
+      // 更详细的错误信息
+      let errorMessage = '获取预览数据失败';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.statusText) {
+        errorMessage = `服务器错误: ${error.response.status} ${error.response.statusText}`;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setPreviewError(errorMessage);
     } finally {
       setIsLoadingPreview(false);
     }
@@ -364,24 +502,49 @@ export default function PreviewPageWithTopNav() {
 
         // 调用API处理用户数据
         try {
-          const response = await api.post(`/picbooks/${bookId}/preview`, parsedUserData, {
+          // 构造API要求的请求数据格式
+          const character = parsedUserData.characters?.[0];
+          const apiRequestData = {
+            picbook_id: bookId,
+            face_image: character?.photo,
+            full_name: character?.full_name,
+            language: character?.language,
+            gender: character?.gender,
+            skincolor: character?.skincolor
+          };
+          
+          // 添加详细的调试日志
+          console.log('调用换脸接口（有用户数据）:', {
+            url: '/simple-face-swap/create-by-picbook',
+            originalData: parsedUserData,
+            apiRequestData: apiRequestData,
+            bookId: bookId
+          });
+          
+          const response = await api.post(`/simple-face-swap/create-by-picbook`, apiRequestData, {
             timeout: 60000 // 60秒超时
           }) as ApiResponse<PreviewResponse>;
           
-          console.log('API调用成功:', response);
+          console.log('换脸接口调用成功:', response);
           
           // 保存预览数据
           if (response.success) {
             setPreviewData(response.data!);
             
-            // 设置giver和dedication从角色数据
-            if (response.data?.characters && response.data.characters.length > 0) {
-              const character = response.data.characters[0];
-              const newGiver = character.full_name || '';
-              // 只有当 giver 值不同时才更新，避免无限循环
-              if (giver !== newGiver) {
-                setGiver(newGiver);
+            // 由于新的API结构中characters是数字数组，我们从localStorage获取角色名称
+            try {
+              const userData = localStorage.getItem('previewUserData');
+              if (userData) {
+                const parsedUserData = JSON.parse(userData);
+                const character = parsedUserData.characters?.[0];
+                const newGiver = character?.full_name || '';
+                // 只有当 giver 值不同时才更新，避免无限循环
+                if (giver !== newGiver) {
+                  setGiver(newGiver);
+                }
               }
+            } catch (e) {
+              console.warn('无法获取角色名称:', e);
             }
             
             toast.success('处理已开始，请等待WebSocket通知');
@@ -394,14 +557,32 @@ export default function PreviewPageWithTopNav() {
           localStorage.removeItem('previewBookId');
           
         } catch (error: any) {
-          console.error('API调用失败:', error);
+          console.error('换脸接口调用失败:', {
+            error: error,
+            response: error.response,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            message: error.message,
+            url: error.config?.url
+          });
           setIsProcessing(false);
           
-          if (error.code === 'ECONNABORTED') {
-            toast.error('请求超时，请检查网络连接');
-          } else {
-            toast.error('处理失败: ' + (error.response?.data?.message || error.message));
+          // 更详细的错误信息
+          let errorMessage = '换脸处理失败';
+          if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+          } else if (error.response?.data?.error) {
+            errorMessage = error.response.data.error;
+          } else if (error.response?.statusText) {
+            errorMessage = `服务器错误: ${error.response.status} ${error.response.statusText}`;
+          } else if (error.code === 'ECONNABORTED') {
+            errorMessage = '请求超时，请检查网络连接';
+          } else if (error.message) {
+            errorMessage = error.message;
           }
+          
+          toast.error(errorMessage);
         }
 
         // 设置WebSocket监听
@@ -656,14 +837,20 @@ export default function PreviewPageWithTopNav() {
             {/* 书籍封面 */}
             <div className="flex flex-col items-center w-full max-w-3xl">
               <div className="w-full flex justify-center mb-8">
-                {previewData?.pages && previewData.pages.length > 0 ? (
-                  <Image
-                    src={buildImageUrl(previewData.pages[0].image_url)}
+                {bookInfo?.default_cover ? (
+                  <OptimizedImage
+                    src={buildImageUrl(bookInfo.default_cover)}
                     alt="Book Cover"
                     width={400}
                     height={392}
                     className="max-w-sm rounded-lg shadow-md"
                     style={{ objectFit: 'cover' }}
+                    onError={(e) => {
+                      console.error(`封面图片加载失败: ${bookInfo.default_cover}`);
+                    }}
+                    onLoad={() => {
+                      console.log(`封面图片加载成功: ${bookInfo.default_cover}`);
+                    }}
                   />
                 ) : (
                   <Image
@@ -769,62 +956,68 @@ export default function PreviewPageWithTopNav() {
                 )}
               </div>
             </div>
-            {/* 队列状态信息 */}
-            {previewData?.face_swap_batch && (
+            {/* 换脸状态信息 */}
+            {previewData?.face_swap_info && (
               <div className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
-                {previewData.face_swap_batch.status === 'pending' && (
-                  <p>
-                    {previewData.face_swap_batch.total_queue_length ? (
-                      `The book preview is currently queued for generation, and you are number ${previewData.face_swap_batch.queue_position} out of ${previewData.face_swap_batch.total_queue_length} in line.`
-                    ) : (
-                      `The book preview is currently queued for generation, and you are number ${previewData.face_swap_batch.queue_position} in line.`
-                    )}
-                  </p>
+                {previewData.face_swap_info.status === 'processing' && (
+                  <p>Your book preview is currently being generated, please wait... ({previewData.face_swap_info.total_tasks} pages need face swapping)</p>
                 )}
-                {previewData.face_swap_batch.status === 'processing' && (
-                  <p>Your book preview is currently being generated, please wait...</p>
-                )}
-                {previewData.face_swap_batch.status === 'completed' && (
+                {previewData.face_swap_info.status === 'completed' && (
                   <p>Book preview has been generated successfully!</p>
                 )}
-                {previewData.face_swap_batch.status === 'failed' && (
+                {previewData.face_swap_info.status === 'failed' && (
                   <p>Generation failed, please try again.</p>
                 )}
               </div>
             )}
             
             {/* 页面预览 */}
-            {previewData?.pages && previewData.pages.length > 0 && (
+            {previewData?.preview_data && previewData.preview_data.length > 0 && (
               <div className="w-full max-w-5xl mb-8">
                 <div className="w-full flex flex-col items-center gap-8">
-                  {previewData.pages.map((page, index) => {
-                    // 判断是否为换脸中的页面（除了第一页外的其他页面）
-                    const isSwapping = index > 0 && previewData.face_swap_batch?.status === 'pending';
+                  {previewData.preview_data.map((page, index) => {
+                    // 判断是否为换脸中的页面，根据face_swap_info的状态
+                    const isSwapping = page.has_face_swap && previewData.face_swap_info?.status === 'processing';
                     
                     return (
                       <div key={page.page_id} className="w-full flex justify-center">
                         <div className="w-full max-w-5xl">
                           <div className="w-full relative">
                             {isSwapping ? (
-                              // 蒙版状态
+                              // 换脸处理中状态
                               <div className="w-full h-[600px] bg-gray-200 rounded-lg flex items-center justify-center">
                                 <div className="text-center">
-                                                                      <div className="flex justify-center mb-4">
-                                      <div className="flex space-x-2">
-                                        <MirageLoader size="60" speed="2.5" color="blue" />
-                                      </div>
+                                  <div className="flex justify-center mb-4">
+                                    <div className="flex space-x-2">
+                                      <MirageLoader size="60" speed="2.5" color="blue" />
                                     </div>
+                                  </div>
+                                  <p className="text-gray-600">正在生成换脸图片...</p>
                                 </div>
                               </div>
                             ) : (
                               // 正常显示图片
-                              <Image
-                                src={buildImageUrl(page.image_url)}
-                                alt={`Page ${page.page_number}`}
-                                width={1600}
-                                height={600}
-                                className="w-full h-auto rounded-lg object-cover"
-                              />
+                              <div className="w-full relative">
+                                <OptimizedImage
+                                  src={buildImageUrl(page.image_url)}
+                                  alt={`Page ${page.page_number}`}
+                                  width={1600}
+                                  height={600}
+                                  className="w-full h-auto rounded-lg object-cover"
+                                  onError={(e) => {
+                                    console.error(`图片加载失败: ${page.image_url}`);
+                                  }}
+                                  onLoad={() => {
+                                    console.log(`图片加载成功: ${page.image_url}`);
+                                  }}
+                                />
+                                {/* 如果是换脸页面，显示标识 */}
+                                {page.has_face_swap && (
+                                  <div className="absolute top-2 right-2 bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                                    换脸完成
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </div>
                           {page.content && (

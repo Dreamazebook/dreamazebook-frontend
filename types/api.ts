@@ -36,6 +36,8 @@ export interface PreviewPage {
   content: string | null;
   question: string | null;
   choice_options: string | null;
+  has_face_swap: boolean;
+  character_sequence: number[];
 }
 
 export interface PreviewCharacter {
@@ -57,10 +59,21 @@ export interface FaceSwapBatch {
 }
 
 export interface PreviewResponse {
-  pages: PreviewPage[];
-  characters: PreviewCharacter[];
-  face_swap_batch: FaceSwapBatch;
+  preview_data: PreviewPage[];
+  characters: number[];
+  face_swap_info: {
+    batch_id: string;
+    total_tasks: number;
+    face_swap_pages: {
+      page_id: number;
+      variant_id: number;
+      character_sequence: number[];
+    }[];
+    status: 'processing' | 'completed' | 'failed';
+  };
   preview_id: number;
+  total_pages: number;
+  face_swap_pages_count: number;
 }
 
 export interface PreviewRequest {
