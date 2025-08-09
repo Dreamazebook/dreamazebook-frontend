@@ -6,6 +6,7 @@ export interface CartSubItem {
 
 export interface CartItem {
   id: number;
+  preview_id: number;
   picbook_cover: string;
   picbook_name: string;
   edition?: string;      // 如 "Premium Jumbo Hardcover"

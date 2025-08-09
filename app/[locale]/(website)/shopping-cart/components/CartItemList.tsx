@@ -1,6 +1,7 @@
 import React from 'react';
 import { CartItem } from './types';
 import DisplayPrice from '../../components/component/DisplayPrice';
+import Link from 'next/link';
 
 interface SubItem {
   id: number;
@@ -16,7 +17,6 @@ interface CartItemListProps {
   onQuantityChange: (id: number, delta: number) => void;
   onRemoveItem: (id: number) => void;
   onToggleSelect: (id: number) => void;
-  onEditItem: (id: number) => void;
 }
 
 const CartItemList: React.FC<CartItemListProps> = ({
@@ -25,16 +25,15 @@ const CartItemList: React.FC<CartItemListProps> = ({
   onQuantityChange,
   onRemoveItem,
   onToggleSelect,
-  onEditItem
 }) => {
   return (
     <div className="space-y-4">
       {items.map(item => (
         <div key={item.id} className="bg-white rounded-xl p-4 shadow-sm">
-          <div className="flex items-start gap-3">
+          <div className="flex items-center gap-3">
             <input
               type="checkbox"
-              className="mt-1 h-4 w-4 accent-blue-600"
+              className="mt-1 h-6 w-6 accent-blue-600 rounded-2xl"
               checked={selectedItems.includes(item.id)}
               onChange={() => onToggleSelect(item.id)}
             />
@@ -103,12 +102,12 @@ const CartItemList: React.FC<CartItemListProps> = ({
                     </div>
                   </div>
                   
-                  <button
-                    onClick={() => onEditItem(item.id)}
+                  <Link
+                    href={`/preview?preview_id=${item.preview_id}`}
                     className="text-sm text-blue-600 hover:underline mt-2"
                   >
                     Edit Book
-                  </button>
+                  </Link>
                 </div>
               </div>
               

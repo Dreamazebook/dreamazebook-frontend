@@ -95,10 +95,6 @@ export default function ShoppingCartPage() {
     }
   };
 
-  const handleEditBook = (id: number) => {
-    alert(`Edit book with id = ${id}`);
-  };
-
   // 结算时，仅包含已选中的商品
   const handleCheckout = async () => {
     // const itemsToCheckout = cartItems.filter(item => selectedItems.includes(item.id));
@@ -164,7 +160,6 @@ export default function ShoppingCartPage() {
                 onQuantityChange={handleQuantityChange}
                 onRemoveItem={handleRemoveItem}
                 onToggleSelect={handleToggleSelectItem}
-                onEditItem={handleEditBook}
               />
             )}
           </div>
