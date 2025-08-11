@@ -11,14 +11,14 @@ export interface BasicInfoData {
   fullName: string;
   gender: '' | 'boy' | 'girl';
   skinColor: string;
-  photo: { file: File; path: string } | null;
+  photo: { file?: File; path: string } | null;
 }
 
 interface BasicInfoFormProps {
   data: BasicInfoData;
   errors: Partial<Record<keyof BasicInfoData, string>>;
   touched: Partial<Record<keyof BasicInfoData, boolean>>;
-  onChange: (field: keyof BasicInfoData, value: string | { file: File; path: string } | null) => void;
+  onChange: (field: keyof BasicInfoData, value: string | { file?: File; path: string } | null) => void;
   // 用于更新指定字段的错误状态
   onErrorChange?: (field: keyof BasicInfoData, error: string) => void;
 }

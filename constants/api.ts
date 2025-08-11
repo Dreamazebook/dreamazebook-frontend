@@ -33,3 +33,6 @@ export const API_CREATE_STRIPE_PAYMENT = API_DOMAIN + '/stripe/create-payment-in
 export const API_ADMIN_LOGIN = API_DOMAIN + '/admin/login'
 export const API_ADMIN_USERS = API_DOMAIN + '/admin/users'
 export const API_ADMIN_ORDERS = API_DOMAIN + '/admin/orders'
+
+export const API_PICBOOKS = API_DOMAIN + '/picbooks'
+export const API_PICBOOK_DETAIL = (id: string | number) => `${API_PICBOOKS}/${id}`

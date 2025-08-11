@@ -34,12 +34,21 @@ interface FormErrors {
   dob?: string;
 }
 
-const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle>((props, ref) => {
+interface SingleCharacterForm2Props {
+  initialData?: {
+    fullName?: string;
+    gender?: '' | 'boy' | 'girl';
+    skinColor?: string;
+    photo?: { path: string } | null;
+  };
+}
+
+const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharacterForm2Props>(({ initialData }, ref) => {
   const [formData, setFormData] = useState<PersonalizeFormData2>({
-    fullName: '',
-    gender: '',
-    skinColor: '',
-    photo: null,
+    fullName: initialData?.fullName ?? '',
+    gender: initialData?.gender ?? '',
+    skinColor: initialData?.skinColor ?? '',
+    photo: initialData?.photo ? { path: initialData.photo.path } as any : null,
     birthSeason: '',
     dob: null,
   });
@@ -81,7 +90,7 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle>((props, ref)
   }, [imageUrl]);
 
   // Update basic info fields and mark as touched
-  const handleBasicInfoChange = (field: keyof BasicInfoData, value: string | { file: File; path: string } | null) => {
+  const handleBasicInfoChange = (field: keyof BasicInfoData, value: string | { file?: File; path: string } | null) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setTouched(prev => ({ ...prev, [field]: true }));
   };

@@ -28,12 +28,21 @@ interface FormErrors {
   multipleChoice?: string;
 }
 
-const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref) => {
+interface SingleCharacterForm1Props {
+  initialData?: {
+    fullName?: string;
+    gender?: '' | 'boy' | 'girl';
+    skinColor?: string;
+    photo?: { path: string } | null;
+  };
+}
+
+const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharacterForm1Props>(({ initialData }, ref) => {
   const [formData, setFormData] = useState<PersonalizeFormData>({
-    fullName: '',
-    gender: '',
-    skinColor: '',
-    photo: null,
+    fullName: initialData?.fullName ?? '',
+    gender: initialData?.gender ?? '',
+    skinColor: initialData?.skinColor ?? '',
+    photo: initialData?.photo ? { path: initialData.photo.path } as any : null,
     singleChoice: '',
     multipleChoice: [],
   });
@@ -67,7 +76,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle>((props, ref)
   }, [imageUrl]);
 
   // Update basic info fields
-  const handleBasicInfoChange = (field: keyof BasicInfoData, value: string | { file: File; path: string } | null) => {
+  const handleBasicInfoChange = (field: keyof BasicInfoData, value: string | { file?: File; path: string } | null) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setTouched(prev => ({ ...prev, [field]: true }));
   };

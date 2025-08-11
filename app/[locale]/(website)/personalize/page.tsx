@@ -105,7 +105,7 @@ export default function PersonalizePage() {
     let fullName: string;
     let genderRaw: '' | 'boy' | 'girl';
     let skinColorRaw: string;
-    let photoData: { file: File; path: string } | null = null;
+    let photoData: BasicInfoData['photo'] = null;
   
     // 1. 拿到表单原始数据
     if (selectedFormType === 'SINGLE1' && singleForm1Ref.current) {

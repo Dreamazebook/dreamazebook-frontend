@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
@@ -20,6 +20,8 @@ export default function ShoppingCartPage() {
   const [loading, setLoading] = useState(true);
   const [discount, setDiscount] = useState(0);
   const router = useRouter();
+  const pathname = usePathname();
+  const locale = pathname.split('/')[1];
 
   // 记录被选中的书本 ID，只有被选中的书才会结账
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
@@ -96,7 +98,23 @@ export default function ShoppingCartPage() {
   };
 
   const handleEditBook = (id: number) => {
-    alert(`Edit book with id = ${id}`);
+    const item = cartItems.find(ci => ci.id === id);
+    if (!item || !item.preview || !item.preview_id) {
+      // 回退：跳原有创建页
+      router.push(`/${locale}/personalize?bookid=${id}`);
+      return;
+    }
+
+    const bookId = item.preview.picbook_id;
+    const previewId = item.preview_id;
+    const query = new URLSearchParams({
+      recipient_name: item.preview.recipient_name ?? '',
+      gender: item.preview.gender,
+      skin_color: (item.preview.skin_color?.[0] ?? '').toString(),
+      photo_url: item.preview.face_image || ''
+    });
+
+    router.push(`/${locale}/personalized-products/${bookId}/${previewId}/edit?${query.toString()}`);
   };
 
   // 结算时，仅包含已选中的商品

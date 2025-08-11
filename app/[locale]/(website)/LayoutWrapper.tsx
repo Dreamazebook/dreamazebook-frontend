@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const segments = useSelectedLayoutSegments();
   const isPersonalizePage = segments.includes("personalize");
+  const isPersonalizedProductsPage = segments.includes("personalized-products");
   const isPreviewPage = segments.includes("preview");
   const isSelectBookContentPage = segments.includes("select-book-content");
 
@@ -22,9 +23,9 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
   return (
     <>
-      {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage) && <Header />}
+      {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage) && <Header />}
       {children}
-      {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage) && <Footer />}
+      {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage) && <Footer />}
     </>
   );
 } 

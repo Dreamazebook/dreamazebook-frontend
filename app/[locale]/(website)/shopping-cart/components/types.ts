@@ -4,6 +4,19 @@ export interface CartSubItem {
   price: number;
 }
 
+export interface Preview {
+  id: number;
+  picbook_id: number;
+  gender: string;
+  language: string;
+  skin_color: number[];
+  face_image: string;
+  characters: number[];
+  recipient_name: string | null;
+  message: string | null;
+  status: string;
+}
+
 export interface CartItem {
   id: number;
   picbook_cover: string;
@@ -14,6 +27,8 @@ export interface CartItem {
   quantity: number;
   total_price: number;
   subItems?: CartSubItem[]; // 附加项目
+  preview?: Preview;
+  preview_id?: number;
 }
 
 export interface CartItems {
