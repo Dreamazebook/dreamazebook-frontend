@@ -4,12 +4,17 @@ import { Link } from "@/i18n/routing";
 import { usePathname } from "next/navigation";
 import useUserStore from "@/stores/userStore";
 import { useRouter } from "next/navigation";
+import { useTranslations } from 'next-intl';
 
 export default function ProfileSidebar({ children }:{children:React.ReactNode}) {
+  
   const {user, logout} = useUserStore();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const t = useTranslations('profileSidebar');
+
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header with colorful letters */}
@@ -21,7 +26,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
               className="md:hidden mr-4 p-2 rounded-md hover:bg-gray-100"
               onClick={() => setSidebarOpen(!sidebarOpen)}
             >
-              {sidebarOpen ? "X" : "Menu"}
+              {sidebarOpen ? "X" : t("menu")}
             </button>
 
             <div className="flex items-center mr-4 md:mr-8">
@@ -68,7 +73,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
             </div>
           </div>
           <div className="text-sm md:text-lg font-medium text-gray-700 hidden sm:block">
-            Good Morning, {user?.name} !
+            {t("goodMorning", { name: user?.name })}
           </div>
         </div>
       </div>
@@ -117,7 +122,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                Home
+                {t("home")}
               </Link>
               <Link
                 href="/profile/detail"
@@ -127,7 +132,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                Account Details
+                {t("accountDetails")}
               </Link>
               <Link
                 href="/profile/order-history"
@@ -137,13 +142,13 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                Order History
+                {t("orderHistory")}
               </Link>
               <Link
                 href="#"
                 className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded"
               >
-                Loyalty
+                {t("loyalty")}
               </Link>
             </nav>
 
@@ -152,7 +157,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
                 logout();
                 router.push('/');
               }}>
-                Log out
+                {t("logout")}
               </button>
             </div>
           </div>

@@ -21,6 +21,15 @@
     "apply": "应用",
     "continueShopping": "继续购物"
   },
+  "profileSidebar": {
+    "home": "首页",
+    "accountDetails": "账户详情",
+    "orderHistory": "订单历史",
+    "loyalty": "会员积分",
+    "logout": "退出登录",
+    "goodMorning": "早上好, {{name}} !",
+    "menu": "菜单"
+  },
   "HomePage": {
     "empower": "让每个人成为自己故事的主角",
     "viewMore": "查看更多",

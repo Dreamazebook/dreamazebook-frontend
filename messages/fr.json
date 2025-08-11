@@ -21,6 +21,15 @@
     "apply": "Appliquer",
     "continueShopping": "Continuer vos achats"
   },
+  "profileSidebar": {
+    "home": "Accueil",
+    "accountDetails": "Détails du compte",
+    "orderHistory": "Historique des commandes",
+    "loyalty": "Fidélité",
+    "logout": "Se déconnecter",
+    "goodMorning": "Bonjour, {{name}} !",
+    "menu": "Menu"
+  },
   "HomePage": {
     "empower": "Permettre à chacun de devenir la star de sa propre histoire",
     "viewMore": "Voir plus",
