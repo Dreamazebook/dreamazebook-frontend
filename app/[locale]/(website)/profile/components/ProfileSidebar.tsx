@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { usePathname } from "next/navigation";
 import useUserStore from "@/stores/userStore";
 import { useRouter } from "next/navigation";
@@ -110,7 +110,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
 
             <nav className="space-y-1">
               <Link
-                href="/en/profile"
+                href="/profile"
                 className={`block px-3 py-2 rounded font-medium ${
                   pathname === '/en/profile' 
                     ? 'text-blue-600 bg-blue-50' 
@@ -120,7 +120,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
                 Home
               </Link>
               <Link
-                href="/en/profile/detail"
+                href="/profile/detail"
                 className={`block px-3 py-2 rounded ${
                   pathname === '/en/profile/detail' 
                     ? 'text-blue-600 bg-blue-50 font-medium' 
@@ -130,7 +130,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
                 Account Details
               </Link>
               <Link
-                href="/en/profile/order-history"
+                href="/profile/order-history"
                 className={`block px-3 py-2 rounded ${
                   pathname === '/en/profile/order-history' 
                     ? 'text-blue-600 bg-blue-50 font-medium' 

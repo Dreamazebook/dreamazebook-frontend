@@ -1,7 +1,7 @@
 "use client";
 
 import useUserStore from "@/stores/userStore";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useEffect } from "react";
 import DisplayPrice from "../components/component/DisplayPrice";
 

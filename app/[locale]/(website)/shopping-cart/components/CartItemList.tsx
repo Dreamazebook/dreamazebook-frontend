@@ -1,7 +1,7 @@
 import React from 'react';
 import { CartItem } from './types';
 import DisplayPrice from '../../components/component/DisplayPrice';
-import Link from 'next/link';
+import { Link } from "@/i18n/routing";
 
 interface SubItem {
   id: number;

@@ -2,10 +2,10 @@
 
 import React from "react";
 import Logo from "./Logo";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import useUserStore from "@/stores/userStore";
+import { Link } from "@/i18n/routing";
 
 const UnderlineIcon = () => (
   <svg 

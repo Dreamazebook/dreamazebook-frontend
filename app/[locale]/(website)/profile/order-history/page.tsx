@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { formatDate } from '../../checkout/components/types';
-import Link from 'next/link';
+import { Link } from "@/i18n/routing";
 import useUserStore from '@/stores/userStore';
 import DisplayPrice from '../../components/component/DisplayPrice';
 

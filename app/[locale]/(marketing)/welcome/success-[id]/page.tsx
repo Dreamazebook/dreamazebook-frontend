@@ -8,7 +8,7 @@ import {
 } from "@/constants/cdn";
 import { FACEBOOK_GROUP_URL, KICKSTARTER_URL } from "@/constants/links";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import React from "react";
 
 const KICKSTARTER = (
