@@ -182,7 +182,6 @@ export default function ShoppingCartPage() {
                 onQuantityChange={handleQuantityChange}
                 onRemoveItem={handleRemoveItem}
                 onToggleSelect={handleToggleSelectItem}
-                onEditItem={handleEditBook}
               />
             )}
           </div>

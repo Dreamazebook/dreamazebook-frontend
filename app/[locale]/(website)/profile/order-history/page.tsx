@@ -139,7 +139,7 @@ const OrderHistory = () => {
                 </div>
 
                 <div className="text-sm text-gray-600 mb-4">
-                  <span className="text-gray-900">Qty:</span> {order.items.length}
+                  <span className="text-gray-900">Qty:</span> {order?.items?.reduce((sum, item) => sum + item.quantity, 0)}
                 </div>
 
                 <div className="flex gap-6">
