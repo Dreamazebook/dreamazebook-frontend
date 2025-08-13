@@ -4,7 +4,7 @@ import {notFound} from 'next/navigation';
 import {Locale, routing} from '@/i18n/routing';
 
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Roboto, Philosopher } from "next/font/google";
 import "../globals.css";
 import LayoutWrapper from './LayoutWrapper';
 import LoginModal from './components/LoginModal';
@@ -17,6 +17,21 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// App-wide fonts for text rendering and Canvas usage
+const roboto = Roboto({
+  variable: "--font-roboto",
+  subsets: ["latin"],
+  weight: ["400"],
+  display: 'swap',
+});
+
+const philosopher = Philosopher({
+  variable: "--font-philosopher",
+  subsets: ["latin"],
+  weight: ["400"],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -43,7 +58,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale}>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${roboto.variable} ${philosopher.variable} antialiased`}
       >
         <NextIntlClientProvider messages={messages}>
           <LoginModal />
