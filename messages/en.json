@@ -21,6 +21,15 @@
     "apply": "Apply",
     "continueShopping": "Continue Shopping"
   },
+  "profileSidebar": {
+    "home": "Home",
+    "accountDetails": "Account Details",
+    "orderHistory": "Order History",
+    "loyalty": "Loyalty",
+    "logout": "Log out",
+    "goodMorning": "Good Morning, {{name}} !",
+    "menu": "Menu"
+  },
   "HomePage": {
     "empower": "empower everyone to become the star of their own story",
     "viewMore": "View more",

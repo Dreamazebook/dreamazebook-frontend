@@ -1,6 +1,6 @@
 'use client';
 import { FC, ReactNode, useEffect } from 'react';
-import Link from 'next/link';
+import { Link } from "@/i18n/routing";
 import { usePathname, useRouter } from 'next/navigation';
 import '../globals.css';
 import useUserStore from '@/stores/userStore';

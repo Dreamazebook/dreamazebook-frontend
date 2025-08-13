@@ -2,10 +2,10 @@
 
 import React from "react";
 import Logo from "./Logo";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import useUserStore from "@/stores/userStore";
+import { Link } from "@/i18n/routing";
 
 const UnderlineIcon = () => (
   <svg 
@@ -73,8 +73,27 @@ const Header = () => {
         </Link>
       </nav>
       <div className="flex items-center space-x-4">
-        <button className="text-2xl">🔍 {/* Search Icon */}</button>
-        <Link href={"/shopping-cart"} className="text-2xl">🛒 {/* Cart Icon */}</Link>
+        <div className="relative group">
+          <Image src={'/header/language.svg'} alt="language" width={48} height={24} className="cursor-pointer" />
+          <div className="absolute hidden group-hover:block bg-white shadow-md rounded-md p-2 z-50">
+            <button 
+              className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${pathname?.startsWith('/en') ? 'bg-gray-100 font-semibold' : ''}`} 
+              onClick={() => window.location.href = window.location.pathname.replace(/\/(en|fr)/, '/en')}
+            >
+              English
+            </button>
+            <button 
+              className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${pathname?.startsWith('/fr') ? 'bg-gray-100 font-semibold' : ''}`} 
+              onClick={() => window.location.href = window.location.pathname.replace(/\/(en|fr)/, '/fr')}
+            >
+              French
+            </button>
+          </div>
+        </div>
+
+        <Link href={"/shopping-cart"} className="text-2xl">
+          <Image src={'/header/cart.svg'} alt="Shopping Cart" width={28} height={28} className="cursor-pointer" />
+        </Link>
         {user ? (
           <Link href={user.role === 'admin' ? "/admin" : "/profile"}>
             <Image src={'/header/profile.svg'} alt="Profile" width={28} height={28} className="cursor-pointer" />

@@ -1,5 +1,5 @@
 import PrivacyPolicy from "@/app/components/PrivacyPolicy";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import Image from 'next/image';
 
 export default function PrivacyPolicyPage() {

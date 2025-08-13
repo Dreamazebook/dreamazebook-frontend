@@ -11,7 +11,7 @@ import SideLineProducts from './components/home/SideLineProducts';
 import HappinessHarvest from './components/home/HappinessHarvest';
 import LastingMemorial from './components/home/LastingMemorial';
 import Slideshow from './components/home/SlideShow';
-//import Link from 'next/link';
+//import { Link } from "@/i18n/routing";
 
 export default function HomePage() {
   const t = useTranslations('HomePage');

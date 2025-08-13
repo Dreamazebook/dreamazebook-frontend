@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from "@/i18n/routing";
 import api from "@/utils/api";
 import { DetailedBook} from '@/types/book';
 import ReviewsSection from '../../components/Reviews';

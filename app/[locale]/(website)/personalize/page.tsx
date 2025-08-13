@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/utils/api';
-import Link from 'next/link';
+import { Link } from "@/i18n/routing";
 import { DetailedBook } from '@/types/book';
 import { IoIosArrowBack } from "react-icons/io";
 import { getWebSocketUrl } from '@/utils/wsConfig';
