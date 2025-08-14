@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { CartItem as CartItemType, Preview } from './types';
 import CartSubItem from './CartSubItem';
 import DisplayPrice from '../../components/component/DisplayPrice';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from '@/i18n/routing';
 import Button from '@/app/components/Button';
 import { useState, useEffect } from 'react';
 import axios from '@/app/config/axios';
@@ -24,8 +24,7 @@ interface BookParams {
 export default function CartItem({ item }: CartItemProps) {
   const t = useTranslations('ShoppingCart');
   const router = useRouter();
-  const pathname = usePathname();
-  const locale = pathname.split('/')[1];
+
   const [bookParams, setBookParams] = useState<BookParams | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -63,14 +62,14 @@ export default function CartItem({ item }: CartItemProps) {
               isLoading={isLoading}
               handleClick={() => {
                 const url = bookParams ? 
-                  `/${locale}/personalize?${new URLSearchParams({
+                  `/personalize?${new URLSearchParams({
                     book_id: item.id.toString(),
                     ...(bookParams.name && { name: bookParams.name }),
                     ...(bookParams.gender && { gender: bookParams.gender }),
                     ...(bookParams.skin_color && { skin_color: bookParams.skin_color }),
                     ...(bookParams.photo_url && { photo_url: bookParams.photo_url })
                   }).toString()}` : 
-                  `/${locale}/personalize?book_id=${item.id}`;
+                  `/personalize?book_id=${item.id}`;
                 console.log('Navigating to:', url); // 添加调试日志
                 router.push(url);
               }}

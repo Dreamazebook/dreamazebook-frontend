@@ -1,12 +1,9 @@
 import { Link } from "@/i18n/routing";
 import Image from 'next/image';
-import { useLocale } from 'next-intl';
 
 const Logo = () => {
-  const locale = useLocale();
-  
   return (
-    <Link href={`/${locale}`}>
+    <Link href={`/`}>
       <Image
         src="/logo.png"
         alt="DreamAze Book"

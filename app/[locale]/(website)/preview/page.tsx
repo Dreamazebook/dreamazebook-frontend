@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from '@/i18n/routing';
+import { useSearchParams } from 'next/navigation';
 import { Drawer } from "antd";
 import { create } from 'zustand';
 import TopNavBarWithTabs from '../components/TopNavBarWithTabs';
 import Image from 'next/image';
+import GiverDedicationCanvas from './components/GiverDedicationCanvas';
 import api from '@/utils/api';
 import echo from '@/app/config/echo';
 import useUserStore from '@/stores/userStore';
@@ -13,10 +15,9 @@ import toast from 'react-hot-toast';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
 import { BaseBook } from '@/types/book';
 import { API_CART_CREATE } from '@/constants/api';
-import { mirage } from 'ldrs';
 
 // 自定义图片组件，支持Next.js Image和原生img的回退
-const OptimizedImage = ({ src, alt, width, height, className, style, onError, onLoad, ...props }: {
+const OptimizedImage = ({ src, alt, width, height, className, style, onError, onLoad, onLoadingComplete, ...props }: {
   src: string;
   alt: string;
   width: number;
@@ -25,6 +26,7 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
   style?: React.CSSProperties;
   onError?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
   onLoad?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
+  onLoadingComplete?: (img: HTMLImageElement) => void;
   [key: string]: any;
 }) => {
   const [useNativeImg, setUseNativeImg] = useState(false);
@@ -77,22 +79,47 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
       unoptimized={src.includes('s3-pro-dre001')}
       onError={handleNextImageError}
       onLoad={onLoad}
+      onLoadingComplete={onLoadingComplete}
       {...props}
     />
   );
 };
 
-// 注册 mirage loader
-mirage.register();
+// 通过全局注册组件 LdrsRegistry 统一注册，无需在此处重复注册
 
-// 使用 React.createElement 创建 l-mirage 组件
+// 使用 React.createElement 创建 l-mirage 组件（带降级方案，避免部分浏览器出现蓝色问号占位）
 const MirageLoader = ({ size = "60", speed = "2.5", color = "blue", style = {} }: {
   size?: string;
   speed?: string;
   color?: string;
   style?: React.CSSProperties;
 }) => {
-  return React.createElement('l-mirage', { size, speed, color, style });
+  const [isMirageReady, setIsMirageReady] = React.useState(false);
+  React.useEffect(() => {
+    try {
+      if (typeof window !== 'undefined' && 'customElements' in window) {
+        setIsMirageReady(!!customElements.get('l-mirage'));
+      }
+    } catch {}
+  }, []);
+
+  if (isMirageReady) {
+    return React.createElement('l-mirage', { size, speed, color, style });
+  }
+  // 降级到简易 CSS spinner，保证在不支持 web component 的环境下也有正常的加载态
+  const numericSize = parseInt(size, 10) || 60;
+  return (
+    <div
+      className="animate-spin rounded-full border-b-2"
+      style={{
+        width: numericSize,
+        height: numericSize,
+        borderColor: color,
+        ...style,
+      }}
+      aria-label="loading"
+    />
+  );
 };
 
 const useStore = create<{
@@ -205,6 +232,14 @@ export default function PreviewPageWithTopNav() {
   // 在其他状态定义之后添加
   const [bookInfo, setBookInfo] = useState<BaseBook | null>(null);
   const [isLoadingBookInfo, setIsLoadingBookInfo] = useState(false);
+  // 封面图片加载中状态（用于显示 mirage 动效）
+  const [isCoverLoading, setIsCoverLoading] = useState(false);
+  useEffect(() => {
+    // 仅当从无到有或 URL 变化时触发 loading，避免重复置为 true 导致闪烁
+    setIsCoverLoading((prev) => {
+      return Boolean(bookInfo?.default_cover);
+    });
+  }, [bookInfo?.default_cover]);
 
   // 获取 book options 的函数
   const fetchBookOptions = useCallback(async () => {
@@ -813,186 +848,63 @@ export default function PreviewPageWithTopNav() {
             <div className="flex flex-col items-center w-full max-w-3xl">
               <div className="w-full flex justify-center mb-8">
                 {bookInfo?.default_cover ? (
-                  <OptimizedImage
-                    src={buildImageUrl(bookInfo.default_cover)}
-                    alt="Book Cover"
-                    width={400}
-                    height={392}
-                    className="max-w-sm rounded-lg shadow-md"
-                    style={{ objectFit: 'cover' }}
-                    onError={(e) => {
-                      console.error(`封面图片加载失败: ${bookInfo.default_cover}`);
-                    }}
-                    onLoad={() => {
-                      console.log(`封面图片加载成功: ${bookInfo.default_cover}`);
-                    }}
-                  />
+                  <div className="relative w-[400px] h-[392px]">
+                    {isCoverLoading && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-lg z-10">
+                        <MirageLoader size="60" speed="2.5" color="blue" />
+                        <p className="text-gray-600 mt-2">loading...</p>
+                      </div>
+                    )}
+                    <OptimizedImage
+                      src={buildImageUrl(bookInfo.default_cover)}
+                      alt="Book Cover"
+                      width={400}
+                      height={392}
+                      priority
+                      className={`max-w-sm rounded-lg shadow-md w-[400px] h-[392px] ${isCoverLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
+                      style={{ objectFit: 'cover' }}
+                      onError={(e) => {
+                        console.error(`封面图片加载失败: ${bookInfo.default_cover}`);
+                        setIsCoverLoading(false);
+                      }}
+                      onLoadingComplete={() => {
+                        setIsCoverLoading(false);
+                      }}
+                    />
+                  </div>
                 ) : (
-                  <Image
-                    src="/book.png"
-                    alt="Book Cover"
-                    width={400}
-                    height={392}
-                    className="max-w-sm rounded-lg shadow-md"
-                    style={{ objectFit: 'cover' }}
-                  />
+                  <div className="relative w-[400px] h-[392px]">
+                    {isLoadingBookInfo && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-lg z-10">
+                        <MirageLoader size="60" speed="2.5" color="blue" />
+                        <p className="text-gray-600 mt-2">loading...</p>
+                      </div>
+                    )}
+                    <Image
+                      src="/book.png"
+                      alt="Book Cover"
+                      width={400}
+                      height={392}
+                      className="max-w-sm rounded-lg shadow-md w-[400px] h-[392px]"
+                      style={{ objectFit: 'cover' }}
+                    />
+                  </div>
                 )}
               </div>
             </div>
 
 
-            {/* Giver & Dedication 编辑区域 */}
-            <div className="w-full max-w-5xl mb-8">
+            {/* Giver & Dedication 编辑区域 - Canvas 300dpi 渲染 */}
+            <div ref={giverDedicationRef} className="w-full max-w-5xl mb-8">
               {viewMode === 'single' ? (
-                /* Single-page模式：像绘本页面一样分为两个独立页面 */
-                <div className="flex flex-col items-center gap-8">
-                  {/* Giver Page - 左半部分 */}
-                  <div ref={giverDedicationRef} className="w-full flex flex-col items-center">
-                    <div className="w-full flex justify-center">
-                      <div className="relative max-w-[500px] w-full" style={{ aspectRatio: '512/519' }}>
-                        <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg">
-                          <img
-                            src={`/picbooks/${searchParams.get('bookid') || '1'}/giver.webp`}
-                            alt="Giver Page"
-                            className="object-cover rounded-lg"
-                            style={{ 
-                              objectPosition: 'left center',
-                              width: '100%',
-                              height: '100%'
-                            }}
-                            onError={(e) => {
-                              console.error(`Giver图片加载失败: /picbooks/${searchParams.get('bookid') || '1'}/giver.webp`);
-                            }}
-                            onLoad={() => {
-                              console.log(`Giver图片加载成功: /picbooks/${searchParams.get('bookid') || '1'}/giver.webp`);
-                            }}
-                          />
-                        </div>
-                        {/* Giver文本显示 */}
-                        {giver && giver.trim() && (
-                          <div className="absolute inset-0 flex items-center justify-center z-10">
-                            <div className="backdrop-blur-sm rounded-lg p-2 sm:p-3 md:p-4 max-w-[80%] text-center">
-                              <p className="text-gray-800 font-medium text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed break-words">{giver}</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setEditField('giver')}
-                      className="mt-4 text-black py-2 px-4 rounded border border-black bg-white/80 backdrop-blur-sm"
-                    >
-                      Edit Giver
-                    </button>
-                  </div>
-
-                  {/* Dedication Page - 右半部分 */}
-                  <div className="w-full flex flex-col items-center">
-                    <div className="w-full flex justify-center">
-                      <div className="relative max-w-[500px] w-full" style={{ aspectRatio: '512/519' }}>
-                        <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg">
-                          <img
-                            src={`/picbooks/${searchParams.get('bookid') || '1'}/giver.webp`}
-                            alt="Dedication Page"
-                            className="object-cover rounded-lg"
-                            style={{ 
-                              objectPosition: 'right center',
-                              width: '100%',
-                              height: '100%'
-                            }}
-                            onError={(e) => {
-                              console.error(`Dedication图片加载失败: /picbooks/${searchParams.get('bookid') || '1'}/giver.webp`);
-                            }}
-                            onLoad={() => {
-                              console.log(`Dedication图片加载成功: /picbooks/${searchParams.get('bookid') || '1'}/giver.webp`);
-                            }}
-                          />
-                        </div>
-                        {/* Dedication文本显示 */}
-                        {dedication && dedication.trim() && (
-                          <div className="absolute inset-0 flex items-center justify-center p-2 sm:p-3 md:p-4 z-10">
-                            <div 
-                              className="backdrop-blur-sm rounded-lg p-2 sm:p-3 md:p-4 text-gray-800 font-medium text-center text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed"
-                              style={{ 
-                                width: '85%',
-                                height: '75%',
-                                wordBreak: 'break-word', 
-                                overflowWrap: 'break-word',
-                                whiteSpace: 'pre-wrap',
-                                overflow: 'hidden',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                boxSizing: 'border-box'
-                              }}
-                            >
-                              {dedication}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setEditField('dedication')}
-                      className="mt-4 text-black py-2 px-4 rounded border border-black bg-white/80 backdrop-blur-sm"
-                    >
-                      Edit Dedication
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                /* Double-page模式：共用一张完整图片，文本分别渲染在左右两边 */
-                <div ref={giverDedicationRef} className="w-full flex justify-center">
-                  <div className="relative w-full max-w-4xl h-[600px] rounded-lg overflow-hidden">
-                    {/* 完整的背景图片 */}
-                    <img
-                      src={`/picbooks/${searchParams.get('bookid') || '1'}/giver.webp`}
-                      alt="Giver and Dedication"
-                      className="w-full h-full object-contain rounded-lg"
-                      onError={(e) => {
-                        console.error(`Double-page图片加载失败: /picbooks/${searchParams.get('bookid') || '1'}/giver.webp`);
-                      }}
-                      onLoad={() => {
-                        console.log(`Double-page图片加载成功: /picbooks/${searchParams.get('bookid') || '1'}/giver.webp`);
-                      }}
-                    />
-                    
-                    {/* Giver文本显示 - 左边 */}
-                    {giver && giver.trim() && (
-                      <div className="absolute top-0 left-0 w-1/2 h-full flex items-center justify-center p-2 sm:p-3 md:p-4">
-                        <div className="backdrop-blur-sm rounded-lg p-2 sm:p-3 md:p-4 max-w-[80%] text-center">
-                          <p className="text-gray-800 font-medium text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed break-words">{giver}</p>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Dedication文本显示 - 右边 */}
-                    {dedication && dedication.trim() && (
-                      <div className="absolute top-0 right-0 w-1/2 h-full flex items-center justify-center p-2 sm:p-3 md:p-4">
-                        <div 
-                          className="backdrop-blur-sm rounded-lg p-2 sm:p-3 md:p-4 text-gray-800 font-medium text-center text-xs sm:text-sm md:text-base lg:text-lg leading-relaxed"
-                          style={{ 
-                            width: '85%',
-                            height: '75%',
-                            wordBreak: 'break-word', 
-                            overflowWrap: 'break-word',
-                            whiteSpace: 'pre-wrap',
-                            overflow: 'hidden',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxSizing: 'border-box'
-                          }}
-                        >
-                          {dedication}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Giver编辑按钮 - 图片左半部分居中 */}
-                    <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
+                <div className="flex flex-col items-center gap-6">
+                  <GiverDedicationCanvas
+                    className="w-full max-w-[500px]"
+                    imageUrl={`/picbooks/${searchParams.get('bookid') || '1'}/giver.webp`}
+                    mode="single"
+                    giverText={giver}
+                    dedicationText={dedication}
+                    leftBelow={
                       <button
                         type="button"
                         onClick={() => setEditField('giver')}
@@ -1000,10 +912,8 @@ export default function PreviewPageWithTopNav() {
                       >
                         Edit Giver
                       </button>
-                    </div>
-                    
-                    {/* Dedication编辑按钮 - 图片右半部分居中 */}
-                    <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
+                    }
+                    rightBelow={
                       <button
                         type="button"
                         onClick={() => setEditField('dedication')}
@@ -1011,6 +921,39 @@ export default function PreviewPageWithTopNav() {
                       >
                         Edit Dedication
                       </button>
+                    }
+                  />
+                </div>
+              ) : (
+                <div className="w-full flex justify-center">
+                  <div className="relative w-full">
+                    <GiverDedicationCanvas
+                      className="w-full"
+                      imageUrl={`/picbooks/${searchParams.get('bookid') || '1'}/giver.webp`}
+                      mode="double"
+                      giverText={giver}
+                      dedicationText={dedication}
+                    />
+                    {/* 双页模式：按钮覆盖在左右半区 */}
+                    <div className="pointer-events-none">
+                      <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={() => setEditField('giver')}
+                          className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                        >
+                          Edit Giver
+                        </button>
+                      </div>
+                      <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={() => setEditField('dedication')}
+                          className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                        >
+                          Edit Dedication
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1049,16 +992,30 @@ export default function PreviewPageWithTopNav() {
                               <div className="w-full flex justify-center">
                                 <div className="relative max-w-[500px] w-full" style={{ aspectRatio: '512/519' }}>
                                   {isSwapping ? (
-                                    <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
-                                      <div className="text-center">
-                                        <div className="flex justify-center mb-4">
-                                          <div className="flex space-x-2">
-                                            <MirageLoader size="60" speed="2.5" color="blue" />
-                                          </div>
-                                        </div>
-                                        <p className="text-gray-600">正在生成换脸图片...</p>
+                                    <>
+                                      <div className="absolute inset-0 overflow-hidden rounded-lg">
+                                        <img
+                                          src={buildImageUrl(page.image_url)}
+                                          alt={`Page ${page.page_number} - Left Half`}
+                                          className="object-cover rounded-lg"
+                                          style={{ 
+                                            objectPosition: 'left center',
+                                            width: '100%',
+                                            height: '100%'
+                                          }}
+                                        />
                                       </div>
-                                    </div>
+                                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                                        <div className="text-center">
+                                          <div className="flex justify-center mb-4">
+                                            <div className="flex space-x-2">
+                                              <MirageLoader size="60" speed="2.5" color="blue" />
+                                            </div>
+                                          </div>
+                                          <p className="text-gray-600">loading...</p>
+                                        </div>
+                                      </div>
+                                    </>
                                   ) : (
                                     <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg">
                                       <img
@@ -1092,16 +1049,30 @@ export default function PreviewPageWithTopNav() {
                               <div className="w-full flex justify-center">
                                 <div className="relative max-w-[500px] w-full" style={{ aspectRatio: '512/519' }}>
                                   {isSwapping ? (
-                                    <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
-                                      <div className="text-center">
-                                        <div className="flex justify-center mb-4">
-                                          <div className="flex space-x-2">
-                                            <MirageLoader size="60" speed="2.5" color="blue" />
-                                          </div>
-                                        </div>
-                                        <p className="text-gray-600">正在生成换脸图片...</p>
+                                    <>
+                                      <div className="absolute inset-0 overflow-hidden rounded-lg">
+                                        <img
+                                          src={buildImageUrl(page.image_url)}
+                                          alt={`Page ${page.page_number} - Right Half`}
+                                          className="object-cover rounded-lg"
+                                          style={{ 
+                                            objectPosition: 'right center',
+                                            width: '100%',
+                                            height: '100%'
+                                          }}
+                                        />
                                       </div>
-                                    </div>
+                                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                                        <div className="text-center">
+                                          <div className="flex justify-center mb-4">
+                                            <div className="flex space-x-2">
+                                              <MirageLoader size="60" speed="2.5" color="blue" />
+                                            </div>
+                                          </div>
+                                          <p className="text-gray-600">loading...</p>
+                                        </div>
+                                      </div>
+                                    </>
                                   ) : (
                                     <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg">
                                       <img
@@ -1135,15 +1106,24 @@ export default function PreviewPageWithTopNav() {
                             // Double page mode: 保持原有显示方式
                             <div className="w-full relative">
                               {isSwapping ? (
-                                // 换脸处理中状态
-                                <div className="w-full h-[600px] bg-gray-200 rounded-lg flex items-center justify-center">
-                                  <div className="text-center">
-                                    <div className="flex justify-center mb-4">
-                                      <div className="flex space-x-2">
-                                        <MirageLoader size="60" speed="2.5" color="blue" />
+                                // 换脸处理中状态：显示底图 + 叠加加载动画
+                                <div className="w-full relative">
+                                  <OptimizedImage
+                                    src={buildImageUrl(page.image_url)}
+                                    alt={`Page ${page.page_number}`}
+                                    width={1600}
+                                    height={600}
+                                    className="w-full h-auto rounded-lg object-cover"
+                                  />
+                                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                                    <div className="text-center">
+                                      <div className="flex justify-center mb-4">
+                                        <div className="flex space-x-2">
+                                          <MirageLoader size="60" speed="2.5" color="blue" />
+                                        </div>
                                       </div>
+                                      <p className="text-gray-600">loading...</p>
                                     </div>
-                                    <p className="text-gray-600">正在生成换脸图片...</p>
                                   </div>
                                 </div>
                               ) : (
@@ -1192,7 +1172,7 @@ export default function PreviewPageWithTopNav() {
               <div className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#E8F4FD] border-[#012CCE] rounded-[4px] text-center text-[#012CCE]">
                 <div className="flex items-center justify-center space-x-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  <span>正在处理您的数据...</span>
+                  <span>Processing...</span>
                 </div>
               </div>
             )}
@@ -1239,7 +1219,7 @@ export default function PreviewPageWithTopNav() {
                 <div className="flex items-center justify-center py-8">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                    <p>正在加载封面选项...</p>
+                    <p>loading...</p>
                   </div>
                 </div>
               )}
@@ -1686,7 +1666,7 @@ export default function PreviewPageWithTopNav() {
                       {isAddingToCart ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          正在添加...
+                          Adding...
                         </>
                       ) : (
                         'Add to order'
@@ -1861,7 +1841,7 @@ export default function PreviewPageWithTopNav() {
               {isAddingToCart ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  正在添加到购物车...
+                  Adding to cart...
                 </>
               ) : (
                 'Add to cart'

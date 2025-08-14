@@ -94,6 +94,24 @@
     "emailPlaceholder": "Your email address",
     "subscribe": "Subscribe"
   },
+  "BookDetail": {
+    "loading": "Loading...",
+    "noBookFound": "No book found",
+    "specifications": {
+      "size": "20cm x 20cm landscape",
+      "pages": "Between 54-110 pages (depending on date)",
+      "delivery": "Printed and dispatched in 2-4 working days"
+    },
+    "language": {
+      "en": "English",
+      "zh": "中文"
+    },
+    "personalizeButton": "Personalize my book",
+    "faq": {
+      "title": "Where Are You? Save the Multiverse!",
+      "description": "We pour hours of care into making every book - to help you show the people who matter just how much they mean to you."
+    }
+  },
   "orderSummary": {
     "title": "🎉 Your book is being carefully prepared!",
     "subtitle": "We will reach out within 48 hours to finalize your book's design! Keep an eye on your email ✨",

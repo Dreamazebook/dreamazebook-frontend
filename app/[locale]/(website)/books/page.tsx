@@ -132,7 +132,7 @@ export default function BooksPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {sortedBooks.map((book) => (
               <Link 
-                href={`/${locale}/books/${book.id}`} 
+                href={`/books/${book.id}`} 
                 key={book.id} 
                 className="group flex flex-col"
               >
@@ -183,7 +183,7 @@ export default function BooksPage() {
                 {t('featuredDescription')}
               </p>
               <Link 
-                href={`/${locale}/books/featured`}
+                href={`/books/featured`}
                 className="inline-block bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors mt-4"
               >
                 {t('learnMore')}

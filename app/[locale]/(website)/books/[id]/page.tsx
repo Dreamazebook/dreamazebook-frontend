@@ -8,6 +8,7 @@ import api from "@/utils/api";
 import { DetailedBook} from '@/types/book';
 import ReviewsSection from '../../components/Reviews';
 import useUserStore from '@/stores/userStore';
+import { useTranslations } from 'next-intl';
 
 interface PagePic {
   id: number;
@@ -41,6 +42,7 @@ interface Tag {
 }
 
 const BookDetailPage = () => {
+  const t = useTranslations('BookDetail');
   const params = useParams();
   const id = params.id;
   const { isLoggedIn, openLoginModal } = useUserStore();
@@ -82,8 +84,8 @@ const BookDetailPage = () => {
     }
   }, [id]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  if (!book) return <div className="min-h-screen flex items-center justify-center">No book found</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center">{t('loading')}</div>;
+  if (!book) return <div className="min-h-screen flex items-center justify-center">{t('noBookFound')}</div>;
 
   const description = book.variant ? book.variant.description : "No description available.";
 
@@ -153,15 +155,15 @@ const BookDetailPage = () => {
             <div className="text-sm space-y-4 mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-4 h-4 bg-gray-300 rounded"></div>
-                <span className="text-gray-600">20cm x 20cm landscape</span>
+                <span className="text-gray-600">{t('specifications.size')}</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-4 h-4 bg-gray-300 rounded"></div>
-                <span className="text-gray-600">Between 54-110 pages (depending on date)</span>
+                <span className="text-gray-600">{t('specifications.pages')}</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-4 h-4 bg-gray-300 rounded"></div>
-                <span className="text-gray-600">Printed and dispatched in 2-4 working days</span>
+                <span className="text-gray-600">{t('specifications.delivery')}</span>
               </div>
             </div>
 
@@ -172,8 +174,8 @@ const BookDetailPage = () => {
                 onChange={(e) => setSelectedLanguage(e.target.value)}
                 className="w-full p-4 border border-gray-200 rounded-lg text-gray-600 appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQgNkw4IDEwTDEyIDYiIHN0cm9rZT0iIzY2NjY2NiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==')] bg-no-repeat bg-[center_right_1rem]"
               >
-                <option value="en">English</option>
-                <option value="zh">中文</option>
+                <option value="en">{t('language.en')}</option>
+                <option value="zh">{t('language.zh')}</option>
               </select>
             </div>
 
@@ -191,7 +193,7 @@ const BookDetailPage = () => {
                 onClick={handlePersonalizeClick}
                 className="bg-black text-white py-4 px-6 rounded-lg hover:bg-gray-800 transition-colors text-base font-medium"
               >
-                Personalize my book
+                {t('personalizeButton')}
               </Link>
             </div>
 
@@ -204,13 +206,13 @@ const BookDetailPage = () => {
                     onClick={() => setOpenFaq(openFaq === num ? 0 : num)}
                   >
                     <h3 className="text-base font-medium">
-                      {String(num).padStart(2, '0')} Where Are You? Save the Multiverse!
+                      {String(num).padStart(2, '0')} {t('faq.title')}
                     </h3>
                     <span className="text-2xl">{openFaq === num ? '-' : '+'}</span>
                   </button>
                   {openFaq === num && (
                     <p className="text-gray-600 mt-4 text-sm">
-                      We pour hours of care into making every book - to help you show the people who matter just how much they mean to you.
+                      {t('faq.description')}
                     </p>
                   )}
                 </div>

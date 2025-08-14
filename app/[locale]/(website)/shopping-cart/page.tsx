@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
@@ -101,7 +101,7 @@ export default function ShoppingCartPage() {
     const item = cartItems.find(ci => ci.id === id);
     if (!item || !item.preview || !item.preview_id) {
       // 回退：跳原有创建页
-      router.push(`/${locale}/personalize?bookid=${id}`);
+      router.push(`/personalize?bookid=${id}`);
       return;
     }
 
@@ -114,7 +114,7 @@ export default function ShoppingCartPage() {
       photo_url: item.preview.face_image || ''
     });
 
-    router.push(`/${locale}/personalized-products/${bookId}/${previewId}/edit?${query.toString()}`);
+    router.push(`/personalized-products/${bookId}/${previewId}/edit?${query.toString()}`);
   };
 
   // 结算时，仅包含已选中的商品
