@@ -1,5 +1,19 @@
+export const EMPTY_ADDRESS = {
+  id: '',
+  email: '',
+  first_name: '',
+  last_name: '',
+  street: '',
+  city: '',
+  postal_code: '',
+  country: '',
+  state: '',
+  phone: '',
+  is_default: false
+}
+
 export interface Address {
-  id: string;
+  id?: string;
   email?: string;
   first_name?: string;
   last_name?: string;

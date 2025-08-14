@@ -3,35 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { ShippingErrors } from './types';
 import { Address } from '@/types/address';
-import api from '@/utils/api';
-import { ApiResponse } from '@/types/api';
-import { API_ORDER_UPDATE_ADDRESS } from '@/constants/api';
 
 interface ShippingFormProps {
-  address: {
-    email: string;
-    firstName: string;
-    lastName: string;
-    street: string;
-    city: string;
-    postalcode: string;
-    country: string;
-    state: string;
-    phone: string;
-    isDefault: boolean;
-  };
-  setAddress: (value: React.SetStateAction<{
-    email: string;
-    firstName: string;
-    lastName: string;
-    street: string;
-    city: string;
-    postalcode: string;
-    country: string;
-    state: string;
-    phone: string;
-    isDefault: boolean;
-  }>) => void;
+  address: Address;
+  setAddress: (value: React.SetStateAction<Address>) => void;
   errors: ShippingErrors;
   setErrors: (errors: ShippingErrors) => void;
   needsBillingAddress: boolean;
@@ -63,7 +38,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
     if (!selectedAddressId) {
       const defaultAddress = addressList.find(addr => addr.is_default);
       if (defaultAddress) {
-        setSelectedAddressId(defaultAddress.id);
+        setSelectedAddressId(defaultAddress?.id || '');
       }
     }
   }, [addressList]);
@@ -94,7 +69,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
                     : 'border-gray-300 hover:border-gray-400'
                 }`}
                 onClick={() => {
-                  setSelectedAddressId(addr.id);
+                  setSelectedAddressId(addr?.id || '');
                   setShowForm(false);
                 }}
               >
@@ -117,6 +92,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
+                      setAddress(addr);
                       setShowForm(true);
                     }}
                     className="ml-4 p-1 text-gray-500 hover:text-blue-500 hover:bg-gray-100 rounded-full"
@@ -165,32 +141,32 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
 
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+          <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
           <input
             type="text"
-            id="firstName"
-            className={`w-full p-2 border rounded-md ${errors.firstName ? 'border-red-500' : 'border-gray-300'}`}
-            value={address.firstName}
+            id="first_name"
+            className={`w-full p-2 border rounded-md ${errors.first_name ? 'border-red-500' : 'border-gray-300'}`}
+            value={address.first_name}
             onChange={(e) => {
-              setAddress(prev => ({...prev, firstName: e.target.value}));
-              clearError('firstName');
+              setAddress(prev => ({...prev, first_name: e.target.value}));
+              clearError('first_name');
             }}
           />
-          {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
+          {errors.first_name && <p className="text-red-500 text-sm mt-1">{errors.first_name}</p>}
         </div>
         <div>
-          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+          <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
           <input
             type="text"
-            id="lastName"
-            className={`w-full p-2 border rounded-md ${errors.lastName ? 'border-red-500' : 'border-gray-300'}`}
-            value={address.lastName}
+            id="last_name"
+            className={`w-full p-2 border rounded-md ${errors.last_name ? 'border-red-500' : 'border-gray-300'}`}
+            value={address.last_name}
             onChange={(e) => {
-              setAddress(prev => ({...prev, lastName: e.target.value}));
-              clearError('lastName');
+              setAddress(prev => ({...prev, last_name: e.target.value}));
+              clearError('last_name');
             }}
           />
-          {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
+          {errors.last_name && <p className="text-red-500 text-sm mt-1">{errors.last_name}</p>}
         </div>
       </div>
 
@@ -225,18 +201,18 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
           {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
         </div>
         <div>
-          <label htmlFor="postalcode" className="block text-sm font-medium text-gray-700 mb-1">postalcode / Postal Code</label>
+          <label htmlFor="postal_code" className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
           <input
             type="text"
-            id="postalcode"
-            className={`w-full p-2 border rounded-md ${errors.postalcode ? 'border-red-500' : 'border-gray-300'}`}
-            value={address.postalcode}
+            id="postal_code"
+            className={`w-full p-2 border rounded-md ${errors.postal_code ? 'border-red-500' : 'border-gray-300'}`}
+            value={address.postal_code}
             onChange={(e) => {
-              setAddress(prev => ({...prev, postalcode: e.target.value}));
-              clearError('postalcode');
+              setAddress(prev => ({...prev, postal_code: e.target.value}));
+              clearError('postal_code');
             }}
           />
-          {errors.postalcode && <p className="text-red-500 text-sm mt-1">{errors.postalcode}</p>}
+          {errors.postal_code && <p className="text-red-500 text-sm mt-1">{errors.postal_code}</p>}
         </div>
       </div>
 
@@ -255,8 +231,10 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
             <option value="">Select Country</option>
             <option value="US">United States</option>
             <option value="CA">Canada</option>
+            <option value="CN">China</option>
             <option value="UK">United Kingdom</option>
             <option value="AU">Australia</option>
+            <option value="FR">France</option>
           </select>
           {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
         </div>
@@ -297,8 +275,8 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
             type="checkbox"
             id="setDefaultAddress"
             className="h-4 w-4 text-blue-600 border-gray-300 rounded"
-            checked={address.isDefault}
-            onChange={(e) => setAddress(prev => ({...prev, isDefault: e.target.checked}))}
+            checked={address.is_default}
+            onChange={(e) => setAddress(prev => ({...prev, is_default: e.target.checked}))}
           />
           <label htmlFor="setDefaultAddress" className="ml-2 block text-sm text-gray-700">
             Set as default shipping address

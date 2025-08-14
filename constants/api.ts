@@ -22,6 +22,7 @@ export const API_ORDER_UPDATE_ADDRESS = API_DOMAIN + '/order/update-address'
 export const API_ORDER_REMOVE = API_DOMAIN + '/order/remove';
 export const API_ORDER_PROGRESS = API_DOMAIN + '/order/processing-progress';
 export const API_ORDER_SHIPPING_METHODS = API_DOMAIN + '/order/shipping-methods';
+export const API_ORDER_UPDATE_SHIPPING = API_DOMAIN + '/order/select-shipping';
 export const API_ORDER_STRIPE_PAID = API_DOMAIN + '/stripe/confirm-payment';
 
 export const API_ADDRESS_LIST = API_DOMAIN + '/addresses';

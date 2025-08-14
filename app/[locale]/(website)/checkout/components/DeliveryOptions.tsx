@@ -1,50 +1,37 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { DeliveryOption } from './types';
+import {OrderDetail, ShippingOption } from './types';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
 import { API_ORDER_SHIPPING_METHODS } from '@/constants/api';
 import DisplayPrice from '../../components/component/DisplayPrice';
 
 interface DeliveryOptionsProps {
-  selectedDeliveryOption: DeliveryOption;
-  setSelectedDeliveryOption: (option: DeliveryOption) => void;
+  orderDetail: OrderDetail;
+  updateOrderShippingMethod: (option:ShippingOption) => void;
   handleNextFromDelivery: () => void;
 }
 
 const DeliveryOptions: React.FC<DeliveryOptionsProps> = ({
-  selectedDeliveryOption,
-  setSelectedDeliveryOption,
+  orderDetail,
+  updateOrderShippingMethod,
   handleNextFromDelivery
 }) => {
-
-  const [shippingMethods, setShippingMethods] = useState([]);
-
-  const getShippingMethods = async() => {
-    const {data, success} = await api.get<ApiResponse>(API_ORDER_SHIPPING_METHODS);
-    if (success) {
-      setShippingMethods(data)
-    }
-  }
-
-  useEffect(()=>{
-    getShippingMethods();
-  },[])
-
+  console.log(orderDetail);
   return (
     <div>
       <div className="space-y-4 mb-6">
-        {shippingMethods.map(({code, cost, name, description, estimated_days})=>
+        {orderDetail?.shipping_options.map(({code, cost, name, description, type, estimated_days})=>
         <div 
-          key={code}
-          className={`border rounded-lg p-4 cursor-pointer ${selectedDeliveryOption === code ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}
-          onClick={() => setSelectedDeliveryOption(code)}
+          key={type}
+          className={`border rounded-lg p-4 cursor-pointer ${orderDetail.shipping_method === code ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}
+          onClick={() => updateOrderShippingMethod({code,cost})}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <div className={`w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${selectedDeliveryOption === code ? 'border-blue-500' : 'border-gray-300'}`}>
-                {selectedDeliveryOption === code && (
+              <div className={`w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${orderDetail.shipping_method === code ? 'border-blue-500' : 'border-gray-300'}`}>
+                {orderDetail.shipping_method === code && (
                   <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                 )}
               </div>
