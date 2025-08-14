@@ -852,24 +852,25 @@ export default function PreviewPageWithTopNav() {
                     mode="single"
                     giverText={giver}
                     dedicationText={dedication}
+                    leftBelow={
+                      <button
+                        type="button"
+                        onClick={() => setEditField('giver')}
+                        className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                      >
+                        Edit Giver
+                      </button>
+                    }
+                    rightBelow={
+                      <button
+                        type="button"
+                        onClick={() => setEditField('dedication')}
+                        className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                      >
+                        Edit Dedication
+                      </button>
+                    }
                   />
-                  {/* 单页模式：按钮置于画布下方 */}
-                  <div className="w-full flex flex-col items-center gap-4">
-                    <button
-                      type="button"
-                      onClick={() => setEditField('giver')}
-                      className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                    >
-                      Edit Giver
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditField('dedication')}
-                      className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                    >
-                      Edit Dedication
-                    </button>
-                  </div>
                 </div>
               ) : (
                 <div ref={giverDedicationRef} className="w-full flex justify-center">

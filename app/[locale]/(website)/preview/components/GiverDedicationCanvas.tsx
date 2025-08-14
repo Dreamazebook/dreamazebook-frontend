@@ -10,6 +10,8 @@ interface Props {
   giverText: string;
   dedicationText: string;
   className?: string;
+  leftBelow?: React.ReactNode;
+  rightBelow?: React.ReactNode;
 }
 
 /**
@@ -68,6 +70,8 @@ export default function GiverDedicationCanvas({
   giverText,
   dedicationText,
   className,
+  leftBelow,
+  rightBelow,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const leftCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -259,8 +263,14 @@ export default function GiverDedicationCanvas({
   return (
     <div className={className}>
       <div className="flex flex-col items-center gap-8">
-        <canvas ref={leftCanvasRef} style={{ width: '100%', height: 'auto', display: 'block' }} />
-        <canvas ref={rightCanvasRef} style={{ width: '100%', height: 'auto', display: 'block' }} />
+        <div className="w-full flex flex-col items-center gap-4">
+          <canvas ref={leftCanvasRef} style={{ width: '100%', height: 'auto', display: 'block' }} />
+          {leftBelow}
+        </div>
+        <div className="w-full flex flex-col items-center gap-4">
+          <canvas ref={rightCanvasRef} style={{ width: '100%', height: 'auto', display: 'block' }} />
+          {rightBelow}
+        </div>
       </div>
     </div>
   );
