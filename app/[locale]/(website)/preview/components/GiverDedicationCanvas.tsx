@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocale } from 'next-intl';
+import { roboto, philosopher, notoSansSC } from '@/app/fonts';
 
 type ViewMode = 'single' | 'double';
 
@@ -77,10 +79,25 @@ export default function GiverDedicationCanvas({
   const leftCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const rightCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [ready, setReady] = useState(false);
+  const locale = useLocale();
+  const isChinese = useMemo(() => locale?.toLowerCase().startsWith('zh'), [locale]);
 
   // 目标字体（按需求：Philosopher 14pt，Roboto 14pt，300dpi）
   const dedicationPx = useMemo(() => Math.round(ptToPxAt300Dpi(14)), []); // ~58px
   const giverPx = useMemo(() => Math.round(ptToPxAt300Dpi(14)), []);
+
+  const giverFontFamily = useMemo(
+    () => (isChinese
+      ? `${notoSansSC.style.fontFamily}, system-ui, sans-serif`
+      : `${roboto.style.fontFamily}, Arial, system-ui, sans-serif`),
+    [isChinese, notoSansSC.style.fontFamily, roboto.style.fontFamily]
+  );
+  const dedicationFontFamily = useMemo(
+    () => (isChinese
+      ? `${notoSansSC.style.fontFamily}, system-ui, sans-serif`
+      : `${philosopher.style.fontFamily}, Georgia, serif`),
+    [isChinese, notoSansSC.style.fontFamily, philosopher.style.fontFamily]
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -93,9 +110,9 @@ export default function GiverDedicationCanvas({
           // @ts-ignore
           await Promise.all([
             // @ts-ignore
-            document.fonts.load(`${giverPx}px Roboto`),
+            document.fonts.load(`${giverPx}px ${isChinese ? notoSansSC.style.fontFamily : roboto.style.fontFamily}`),
             // @ts-ignore
-            document.fonts.load(`${dedicationPx}px Philosopher`),
+            document.fonts.load(`${dedicationPx}px ${isChinese ? notoSansSC.style.fontFamily : philosopher.style.fontFamily}`),
             // @ts-ignore
             document.fonts.ready,
           ]);
@@ -109,7 +126,7 @@ export default function GiverDedicationCanvas({
     return () => {
       isMounted = false;
     };
-  }, [giverPx, dedicationPx]);
+  }, [giverPx, dedicationPx, isChinese]);
 
   useEffect(() => {
     if (!ready) return;
@@ -140,12 +157,12 @@ export default function GiverDedicationCanvas({
       const halfW = canvas.width / 2;
       const padding = Math.round(canvas.width * 0.03); // 基于宽度的内边距
 
-      // Giver（左半区，Roboto + 中文黑体栈）
+      // Giver（根据语言动态选择：中文→思源黑体；非中文→Roboto）
       ctx.save();
       ctx.fillStyle = '#222222';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.font = `${giverPx}px Roboto, 'Heiti SC', 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Source Han Sans SC', Arial, system-ui, sans-serif`;
+      ctx.font = `${giverPx}px ${giverFontFamily}`;
       const giverMaxWidth = halfW - padding * 2;
       const giverLines = wrapText(ctx, (giverText || '').trim(), giverMaxWidth);
       const giverLineHeight = Math.round(giverPx * 1.25);
@@ -157,12 +174,12 @@ export default function GiverDedicationCanvas({
       }
       ctx.restore();
 
-      // Dedication（右半区，Philosopher + 中文黑体栈）
+      // Dedication（根据语言动态选择：中文→思源黑体；非中文→Philosopher）
       ctx.save();
       ctx.fillStyle = '#222222';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.font = `${dedicationPx}px Philosopher, 'Heiti SC', 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Source Han Sans SC', Georgia, serif`;
+      ctx.font = `${dedicationPx}px ${dedicationFontFamily}`;
       const rightCenterX = halfW + halfW / 2;
       const dedicationMaxWidth = halfW - padding * 2;
       const dedicationLines = wrapText(
@@ -210,7 +227,7 @@ export default function GiverDedicationCanvas({
       lctx.fillStyle = '#222222';
       lctx.textAlign = 'center';
       lctx.textBaseline = 'middle';
-      lctx.font = `${giverPx}px Roboto, 'Heiti SC', 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Source Han Sans SC', Arial, system-ui, sans-serif`;
+      lctx.font = `${giverPx}px ${giverFontFamily}`;
       const padding = Math.round(halfW * 0.06);
       const lMaxW = halfW - padding * 2;
       const lLines = wrapText(lctx, (giverText || '').trim(), lMaxW);
@@ -233,7 +250,7 @@ export default function GiverDedicationCanvas({
       rctx.fillStyle = '#222222';
       rctx.textAlign = 'center';
       rctx.textBaseline = 'middle';
-      rctx.font = `${dedicationPx}px Philosopher, 'Heiti SC', 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Source Han Sans SC', Georgia, serif`;
+      rctx.font = `${dedicationPx}px ${dedicationFontFamily}`;
       const rMaxW = halfW - padding * 2;
       const rLines = wrapText(rctx, (dedicationText || '').trim(), rMaxW);
       const rLH = Math.round(dedicationPx * 1.25);
