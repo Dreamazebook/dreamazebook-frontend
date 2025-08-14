@@ -9,6 +9,7 @@ import { Geist, Geist_Mono, Roboto, Philosopher } from "next/font/google";
 import "../globals.css";
 import LayoutWrapper from './LayoutWrapper';
 import LoginModal from './components/LoginModal';
+import LdrsRegistry from './components/LdrsRegistry';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -63,6 +64,7 @@ export default async function LocaleLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${roboto.variable} ${philosopher.variable} antialiased`}
       >
         <NextIntlClientProvider locale={locale as Locale} messages={messages}>
+          <LdrsRegistry />
           <LoginModal />
           <LayoutWrapper>
             {children}

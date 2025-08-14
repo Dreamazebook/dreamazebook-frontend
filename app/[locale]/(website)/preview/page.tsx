@@ -14,7 +14,6 @@ import toast from 'react-hot-toast';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
 import { BaseBook } from '@/types/book';
 import { API_CART_CREATE } from '@/constants/api';
-import { mirage } from 'ldrs';
 
 // 自定义图片组件，支持Next.js Image和原生img的回退
 const OptimizedImage = ({ src, alt, width, height, className, style, onError, onLoad, ...props }: {
@@ -83,17 +82,41 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
   );
 };
 
-// 注册 mirage loader
-mirage.register();
+// 通过全局注册组件 LdrsRegistry 统一注册，无需在此处重复注册
 
-// 使用 React.createElement 创建 l-mirage 组件
+// 使用 React.createElement 创建 l-mirage 组件（带降级方案，避免部分浏览器出现蓝色问号占位）
 const MirageLoader = ({ size = "60", speed = "2.5", color = "blue", style = {} }: {
   size?: string;
   speed?: string;
   color?: string;
   style?: React.CSSProperties;
 }) => {
-  return React.createElement('l-mirage', { size, speed, color, style });
+  const [isMirageReady, setIsMirageReady] = React.useState(false);
+  React.useEffect(() => {
+    try {
+      if (typeof window !== 'undefined' && 'customElements' in window) {
+        setIsMirageReady(!!customElements.get('l-mirage'));
+      }
+    } catch {}
+  }, []);
+
+  if (isMirageReady) {
+    return React.createElement('l-mirage', { size, speed, color, style });
+  }
+  // 降级到简易 CSS spinner，保证在不支持 web component 的环境下也有正常的加载态
+  const numericSize = parseInt(size, 10) || 60;
+  return (
+    <div
+      className="animate-spin rounded-full border-b-2"
+      style={{
+        width: numericSize,
+        height: numericSize,
+        borderColor: color,
+        ...style,
+      }}
+      aria-label="loading"
+    />
+  );
 };
 
 const useStore = create<{
@@ -206,6 +229,13 @@ export default function PreviewPageWithTopNav() {
   // 在其他状态定义之后添加
   const [bookInfo, setBookInfo] = useState<BaseBook | null>(null);
   const [isLoadingBookInfo, setIsLoadingBookInfo] = useState(false);
+  // 封面图片加载中状态（用于显示 mirage 动效）
+  const [isCoverLoading, setIsCoverLoading] = useState(false);
+  useEffect(() => {
+    if (bookInfo?.default_cover) {
+      setIsCoverLoading(true);
+    }
+  }, [bookInfo?.default_cover]);
 
   // 获取 book options 的函数
   const fetchBookOptions = useCallback(async () => {
@@ -814,36 +844,56 @@ export default function PreviewPageWithTopNav() {
             <div className="flex flex-col items-center w-full max-w-3xl">
               <div className="w-full flex justify-center mb-8">
                 {bookInfo?.default_cover ? (
-                  <OptimizedImage
-                    src={buildImageUrl(bookInfo.default_cover)}
-                    alt="Book Cover"
-                    width={400}
-                    height={392}
-                    className="max-w-sm rounded-lg shadow-md"
-                    style={{ objectFit: 'cover' }}
-                    onError={(e) => {
-                      console.error(`封面图片加载失败: ${bookInfo.default_cover}`);
-                    }}
-                    onLoad={() => {
-                      console.log(`封面图片加载成功: ${bookInfo.default_cover}`);
-                    }}
-                  />
+                  <div className="relative w-[400px] h-[392px]">
+                    {/* 加载中覆盖层 */}
+                    {isCoverLoading && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-lg z-10">
+                        <MirageLoader size="60" speed="2.5" color="blue" />
+                        <p className="text-gray-600 mt-2">loading...</p>
+                      </div>
+                    )}
+                    <OptimizedImage
+                      src={buildImageUrl(bookInfo.default_cover)}
+                      alt="Book Cover"
+                      width={400}
+                      height={392}
+                      priority
+                      className={`max-w-sm rounded-lg shadow-md w-[400px] h-[392px] ${isCoverLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
+                      style={{ objectFit: 'cover' }}
+                      onError={(e) => {
+                        console.error(`封面图片加载失败: ${bookInfo.default_cover}`);
+                        setIsCoverLoading(false);
+                      }}
+                      onLoad={() => {
+                        console.log(`封面图片加载成功: ${bookInfo.default_cover}`);
+                        setIsCoverLoading(false);
+                      }}
+                    />
+                  </div>
                 ) : (
-                  <Image
-                    src="/book.png"
-                    alt="Book Cover"
-                    width={400}
-                    height={392}
-                    className="max-w-sm rounded-lg shadow-md"
-                    style={{ objectFit: 'cover' }}
-                  />
+                  <div className="relative w-[400px] h-[392px]">
+                    {isLoadingBookInfo && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-lg z-10">
+                        <MirageLoader size="60" speed="2.5" color="blue" />
+                        <p className="text-gray-600 mt-2">loading...</p>
+                      </div>
+                    )}
+                    <Image
+                      src="/book.png"
+                      alt="Book Cover"
+                      width={400}
+                      height={392}
+                      className="max-w-sm rounded-lg shadow-md w-[400px] h-[392px]"
+                      style={{ objectFit: 'cover' }}
+                    />
+                  </div>
                 )}
               </div>
             </div>
 
 
             {/* Giver & Dedication 编辑区域 - Canvas 300dpi 渲染 */}
-            <div className="w-full max-w-5xl mb-8">
+            <div ref={giverDedicationRef} className="w-full max-w-5xl mb-8">
               {viewMode === 'single' ? (
                 <div className="flex flex-col items-center gap-6">
                   <GiverDedicationCanvas
@@ -873,7 +923,7 @@ export default function PreviewPageWithTopNav() {
                   />
                 </div>
               ) : (
-                <div ref={giverDedicationRef} className="w-full flex justify-center">
+                <div className="w-full flex justify-center">
                   <div className="relative w-full">
                     <GiverDedicationCanvas
                       className="w-full"
@@ -947,7 +997,7 @@ export default function PreviewPageWithTopNav() {
                                             <MirageLoader size="60" speed="2.5" color="blue" />
                                           </div>
                                         </div>
-                                        <p className="text-gray-600">正在生成换脸图片...</p>
+                                        <p className="text-gray-600">loading...</p>
                                       </div>
                                     </div>
                                   ) : (
@@ -990,7 +1040,7 @@ export default function PreviewPageWithTopNav() {
                                             <MirageLoader size="60" speed="2.5" color="blue" />
                                           </div>
                                         </div>
-                                        <p className="text-gray-600">正在生成换脸图片...</p>
+                                        <p className="text-gray-600">loading...</p>
                                       </div>
                                     </div>
                                   ) : (
@@ -1034,7 +1084,7 @@ export default function PreviewPageWithTopNav() {
                                         <MirageLoader size="60" speed="2.5" color="blue" />
                                       </div>
                                     </div>
-                                    <p className="text-gray-600">正在生成换脸图片...</p>
+                                    <p className="text-gray-600">loading...</p>
                                   </div>
                                 </div>
                               ) : (
@@ -1083,7 +1133,7 @@ export default function PreviewPageWithTopNav() {
               <div className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#E8F4FD] border-[#012CCE] rounded-[4px] text-center text-[#012CCE]">
                 <div className="flex items-center justify-center space-x-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  <span>正在处理您的数据...</span>
+                  <span>Processing...</span>
                 </div>
               </div>
             )}
@@ -1130,7 +1180,7 @@ export default function PreviewPageWithTopNav() {
                 <div className="flex items-center justify-center py-8">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                    <p>正在加载封面选项...</p>
+                    <p>loading...</p>
                   </div>
                 </div>
               )}
@@ -1577,7 +1627,7 @@ export default function PreviewPageWithTopNav() {
                       {isAddingToCart ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          正在添加...
+                          Adding...
                         </>
                       ) : (
                         'Add to order'
@@ -1752,7 +1802,7 @@ export default function PreviewPageWithTopNav() {
               {isAddingToCart ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  正在添加到购物车...
+                  Adding to cart...
                 </>
               ) : (
                 'Add to cart'
