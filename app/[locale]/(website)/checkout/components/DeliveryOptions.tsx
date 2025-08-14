@@ -18,7 +18,6 @@ const DeliveryOptions: React.FC<DeliveryOptionsProps> = ({
   updateOrderShippingMethod,
   handleNextFromDelivery
 }) => {
-  console.log(orderDetail);
   return (
     <div>
       <div className="space-y-4 mb-6">

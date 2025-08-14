@@ -34,13 +34,12 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   // 当选择已保存的地址时，自动填充表单字段
   useEffect(() => {
     setShowForm(addressList.length === 0);
-
-    if (!selectedAddressId) {
-      const defaultAddress = addressList.find(addr => addr.is_default);
-      if (defaultAddress) {
-        setSelectedAddressId(defaultAddress?.id || '');
-      }
-    }
+    // if (!selectedAddressId) {
+    //   const defaultAddress = addressList.find(addr => addr.is_default);
+    //   if (defaultAddress) {
+    //     setSelectedAddressId(defaultAddress?.id || '');
+    //   }
+    // }
   }, [addressList]);
   
   const clearError = (field: keyof ShippingErrors) => {
