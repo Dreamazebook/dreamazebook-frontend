@@ -16,7 +16,7 @@ import { BaseBook } from '@/types/book';
 import { API_CART_CREATE } from '@/constants/api';
 
 // 自定义图片组件，支持Next.js Image和原生img的回退
-const OptimizedImage = ({ src, alt, width, height, className, style, onError, onLoad, ...props }: {
+const OptimizedImage = ({ src, alt, width, height, className, style, onError, onLoad, onLoadingComplete, ...props }: {
   src: string;
   alt: string;
   width: number;
@@ -25,6 +25,7 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
   style?: React.CSSProperties;
   onError?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
   onLoad?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
+  onLoadingComplete?: (img: HTMLImageElement) => void;
   [key: string]: any;
 }) => {
   const [useNativeImg, setUseNativeImg] = useState(false);
@@ -77,6 +78,7 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
       unoptimized={src.includes('s3-pro-dre001')}
       onError={handleNextImageError}
       onLoad={onLoad}
+      onLoadingComplete={onLoadingComplete}
       {...props}
     />
   );
@@ -232,9 +234,10 @@ export default function PreviewPageWithTopNav() {
   // 封面图片加载中状态（用于显示 mirage 动效）
   const [isCoverLoading, setIsCoverLoading] = useState(false);
   useEffect(() => {
-    if (bookInfo?.default_cover) {
-      setIsCoverLoading(true);
-    }
+    // 仅当从无到有或 URL 变化时触发 loading，避免重复置为 true 导致闪烁
+    setIsCoverLoading((prev) => {
+      return Boolean(bookInfo?.default_cover);
+    });
   }, [bookInfo?.default_cover]);
 
   // 获取 book options 的函数
@@ -845,7 +848,6 @@ export default function PreviewPageWithTopNav() {
               <div className="w-full flex justify-center mb-8">
                 {bookInfo?.default_cover ? (
                   <div className="relative w-[400px] h-[392px]">
-                    {/* 加载中覆盖层 */}
                     {isCoverLoading && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-lg z-10">
                         <MirageLoader size="60" speed="2.5" color="blue" />
@@ -864,8 +866,7 @@ export default function PreviewPageWithTopNav() {
                         console.error(`封面图片加载失败: ${bookInfo.default_cover}`);
                         setIsCoverLoading(false);
                       }}
-                      onLoad={() => {
-                        console.log(`封面图片加载成功: ${bookInfo.default_cover}`);
+                      onLoadingComplete={() => {
                         setIsCoverLoading(false);
                       }}
                     />
@@ -990,16 +991,30 @@ export default function PreviewPageWithTopNav() {
                               <div className="w-full flex justify-center">
                                 <div className="relative max-w-[500px] w-full" style={{ aspectRatio: '512/519' }}>
                                   {isSwapping ? (
-                                    <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
-                                      <div className="text-center">
-                                        <div className="flex justify-center mb-4">
-                                          <div className="flex space-x-2">
-                                            <MirageLoader size="60" speed="2.5" color="blue" />
-                                          </div>
-                                        </div>
-                                        <p className="text-gray-600">loading...</p>
+                                    <>
+                                      <div className="absolute inset-0 overflow-hidden rounded-lg">
+                                        <img
+                                          src={buildImageUrl(page.image_url)}
+                                          alt={`Page ${page.page_number} - Left Half`}
+                                          className="object-cover rounded-lg"
+                                          style={{ 
+                                            objectPosition: 'left center',
+                                            width: '100%',
+                                            height: '100%'
+                                          }}
+                                        />
                                       </div>
-                                    </div>
+                                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                                        <div className="text-center">
+                                          <div className="flex justify-center mb-4">
+                                            <div className="flex space-x-2">
+                                              <MirageLoader size="60" speed="2.5" color="blue" />
+                                            </div>
+                                          </div>
+                                          <p className="text-gray-600">loading...</p>
+                                        </div>
+                                      </div>
+                                    </>
                                   ) : (
                                     <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg">
                                       <img
@@ -1033,16 +1048,30 @@ export default function PreviewPageWithTopNav() {
                               <div className="w-full flex justify-center">
                                 <div className="relative max-w-[500px] w-full" style={{ aspectRatio: '512/519' }}>
                                   {isSwapping ? (
-                                    <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
-                                      <div className="text-center">
-                                        <div className="flex justify-center mb-4">
-                                          <div className="flex space-x-2">
-                                            <MirageLoader size="60" speed="2.5" color="blue" />
-                                          </div>
-                                        </div>
-                                        <p className="text-gray-600">loading...</p>
+                                    <>
+                                      <div className="absolute inset-0 overflow-hidden rounded-lg">
+                                        <img
+                                          src={buildImageUrl(page.image_url)}
+                                          alt={`Page ${page.page_number} - Right Half`}
+                                          className="object-cover rounded-lg"
+                                          style={{ 
+                                            objectPosition: 'right center',
+                                            width: '100%',
+                                            height: '100%'
+                                          }}
+                                        />
                                       </div>
-                                    </div>
+                                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                                        <div className="text-center">
+                                          <div className="flex justify-center mb-4">
+                                            <div className="flex space-x-2">
+                                              <MirageLoader size="60" speed="2.5" color="blue" />
+                                            </div>
+                                          </div>
+                                          <p className="text-gray-600">loading...</p>
+                                        </div>
+                                      </div>
+                                    </>
                                   ) : (
                                     <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg">
                                       <img
@@ -1076,15 +1105,24 @@ export default function PreviewPageWithTopNav() {
                             // Double page mode: 保持原有显示方式
                             <div className="w-full relative">
                               {isSwapping ? (
-                                // 换脸处理中状态
-                                <div className="w-full h-[600px] bg-gray-200 rounded-lg flex items-center justify-center">
-                                  <div className="text-center">
-                                    <div className="flex justify-center mb-4">
-                                      <div className="flex space-x-2">
-                                        <MirageLoader size="60" speed="2.5" color="blue" />
+                                // 换脸处理中状态：显示底图 + 叠加加载动画
+                                <div className="w-full relative">
+                                  <OptimizedImage
+                                    src={buildImageUrl(page.image_url)}
+                                    alt={`Page ${page.page_number}`}
+                                    width={1600}
+                                    height={600}
+                                    className="w-full h-auto rounded-lg object-cover"
+                                  />
+                                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                                    <div className="text-center">
+                                      <div className="flex justify-center mb-4">
+                                        <div className="flex space-x-2">
+                                          <MirageLoader size="60" speed="2.5" color="blue" />
+                                        </div>
                                       </div>
+                                      <p className="text-gray-600">loading...</p>
                                     </div>
-                                    <p className="text-gray-600">loading...</p>
                                   </div>
                                 </div>
                               ) : (
