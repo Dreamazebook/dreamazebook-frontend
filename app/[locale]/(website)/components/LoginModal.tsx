@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from '@/i18n/routing';
+import { useSearchParams } from 'next/navigation';
 import useUserStore from '@/stores/userStore'
 import Button from '@/app/components/Button'
 import Input from '@/app/components/common/Input'

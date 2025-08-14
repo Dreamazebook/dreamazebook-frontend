@@ -94,6 +94,24 @@
     "emailPlaceholder": "Votre adresse email",
     "subscribe": "S'abonner"
   },
+  "BookDetail": {
+    "loading": "Chargement...",
+    "noBookFound": "Aucun livre trouvé",
+    "specifications": {
+      "size": "20cm x 20cm paysage",
+      "pages": "Entre 54 et 110 pages (selon la date)",
+      "delivery": "Imprimé et expédié sous 2-4 jours ouvrables"
+    },
+    "language": {
+      "en": "English",
+      "zh": "中文"
+    },
+    "personalizeButton": "Personnaliser mon livre",
+    "faq": {
+      "title": "Où êtes-vous ? Sauvez le multivers !",
+      "description": "Nous consacrons des heures de soin à la création de chaque livre - pour vous aider à montrer aux personnes qui comptent à quel point elles sont importantes pour vous."
+    }
+  },
   "orderSummary": {
     "title": "🎉 Votre livre est en cours de préparation !",
     "subtitle": "Nous vous contacterons dans les 48 heures pour finaliser la conception de votre livre ! Surveillez vos emails ✨",

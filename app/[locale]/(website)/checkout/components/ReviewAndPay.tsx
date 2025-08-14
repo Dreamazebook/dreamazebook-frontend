@@ -12,7 +12,7 @@ import { OrderDetail, OrderDetailResponse } from './types';
 import api from '@/utils/api';
 import { API_ORDER_STRIPE_PAID } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/routing';
 import DisplayPrice from '../../components/component/DisplayPrice';
 
 // Make sure to call `loadStripe` outside of a component's render to avoid

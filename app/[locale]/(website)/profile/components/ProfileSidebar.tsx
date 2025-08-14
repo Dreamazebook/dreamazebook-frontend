@@ -1,9 +1,8 @@
 "use client";
 import { useState } from "react";
 import { Link } from "@/i18n/routing";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/routing";
 import useUserStore from "@/stores/userStore";
-import { useRouter } from "next/navigation";
 import { useTranslations } from 'next-intl';
 
 export default function ProfileSidebar({ children }:{children:React.ReactNode}) {
@@ -117,7 +116,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
               <Link
                 href="/profile"
                 className={`block px-3 py-2 rounded font-medium ${
-                  pathname === '/en/profile' 
+                  pathname.endsWith('/profile')
                     ? 'text-blue-600 bg-blue-50' 
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
@@ -127,7 +126,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
               <Link
                 href="/profile/detail"
                 className={`block px-3 py-2 rounded ${
-                  pathname === '/en/profile/detail' 
+                  pathname.endsWith('/profile/detail')
                     ? 'text-blue-600 bg-blue-50 font-medium' 
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
@@ -137,7 +136,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
               <Link
                 href="/profile/order-history"
                 className={`block px-3 py-2 rounded ${
-                  pathname === '/en/profile/order-history' 
+                  pathname.endsWith('/profile/order-history')
                     ? 'text-blue-600 bg-blue-50 font-medium' 
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}

@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { useParams, useSearchParams, usePathname, useRouter } from 'next/navigation';
+import { useRouter, usePathname } from '@/i18n/routing';
+import { useParams, useSearchParams } from 'next/navigation';
 import { IoIosArrowBack } from "react-icons/io";
 import { Link } from "@/i18n/routing";
 import Image from 'next/image';
@@ -141,7 +142,7 @@ export default function EditPersonalizedProductPage() {
     };
     localStorage.setItem('previewUserData', JSON.stringify(userData));
     localStorage.setItem('previewBookId', String(bookId));
-    router.push(`/${locale}/personalized-products/${bookId}/${previewId}/preview`);
+    router.push(`/personalized-products/${bookId}/${previewId}/preview`);
   };
 
   return (
