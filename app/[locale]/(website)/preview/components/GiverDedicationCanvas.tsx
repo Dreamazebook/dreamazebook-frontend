@@ -136,12 +136,12 @@ export default function GiverDedicationCanvas({
       const halfW = canvas.width / 2;
       const padding = Math.round(canvas.width * 0.03); // 基于宽度的内边距
 
-      // Giver（左半区，Roboto）
+      // Giver（左半区，Roboto + 中文黑体栈）
       ctx.save();
       ctx.fillStyle = '#222222';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.font = `${giverPx}px Roboto, system-ui, Arial`;
+      ctx.font = `${giverPx}px Roboto, 'Heiti SC', 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Source Han Sans SC', Arial, system-ui, sans-serif`;
       const giverMaxWidth = halfW - padding * 2;
       const giverLines = wrapText(ctx, (giverText || '').trim(), giverMaxWidth);
       const giverLineHeight = Math.round(giverPx * 1.25);
@@ -153,12 +153,12 @@ export default function GiverDedicationCanvas({
       }
       ctx.restore();
 
-      // Dedication（右半区，Philosopher）
+      // Dedication（右半区，Philosopher + 中文黑体栈）
       ctx.save();
       ctx.fillStyle = '#222222';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.font = `${dedicationPx}px Philosopher, Georgia, serif`;
+      ctx.font = `${dedicationPx}px Philosopher, 'Heiti SC', 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Source Han Sans SC', Georgia, serif`;
       const rightCenterX = halfW + halfW / 2;
       const dedicationMaxWidth = halfW - padding * 2;
       const dedicationLines = wrapText(
@@ -206,7 +206,7 @@ export default function GiverDedicationCanvas({
       lctx.fillStyle = '#222222';
       lctx.textAlign = 'center';
       lctx.textBaseline = 'middle';
-      lctx.font = `${giverPx}px Roboto, system-ui, Arial`;
+      lctx.font = `${giverPx}px Roboto, 'Heiti SC', 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Source Han Sans SC', Arial, system-ui, sans-serif`;
       const padding = Math.round(halfW * 0.06);
       const lMaxW = halfW - padding * 2;
       const lLines = wrapText(lctx, (giverText || '').trim(), lMaxW);
@@ -229,7 +229,7 @@ export default function GiverDedicationCanvas({
       rctx.fillStyle = '#222222';
       rctx.textAlign = 'center';
       rctx.textBaseline = 'middle';
-      rctx.font = `${dedicationPx}px Philosopher, Georgia, serif`;
+      rctx.font = `${dedicationPx}px Philosopher, 'Heiti SC', 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Source Han Sans SC', Georgia, serif`;
       const rMaxW = halfW - padding * 2;
       const rLines = wrapText(rctx, (dedicationText || '').trim(), rMaxW);
       const rLH = Math.round(dedicationPx * 1.25);
