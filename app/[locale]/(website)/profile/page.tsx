@@ -4,6 +4,7 @@ import useUserStore from "@/stores/userStore";
 import { Link } from "@/i18n/routing";
 import { useEffect } from "react";
 import DisplayPrice from "../components/component/DisplayPrice";
+import { formatAddress } from "@/types/address";
 
 // Profile Page Component
 export default function ProfilePage() {
@@ -34,7 +35,7 @@ export default function ProfilePage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
             <div className="space-y-1">
-              <div><span className="font-medium">Ship to</span> {shipping_address?.full_address}</div>
+              <div><span className="font-medium">Ship to</span> {formatAddress(shipping_address)}</div>
               <div><span className="font-medium">Order date</span> {updated_at}</div>
               {/* <div><span className="font-medium">Qty</span> 1</div> */}
             </div>

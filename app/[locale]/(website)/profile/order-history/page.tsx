@@ -4,6 +4,7 @@ import { formatDate } from '../../checkout/components/types';
 import { Link } from "@/i18n/routing";
 import useUserStore from '@/stores/userStore';
 import DisplayPrice from '../../components/component/DisplayPrice';
+import { formatAddress } from '@/types/address';
 
 const OrderHistory = () => {
   const {orderList, fetchOrderList} = useUserStore();
@@ -128,7 +129,7 @@ const OrderHistory = () => {
                 </div>
 
                 <div className="text-sm text-gray-600 mb-1">
-                  <span className="text-gray-900">Ship to:</span> {order.shipping_address?.full_address}
+                  <span className="text-gray-900">Ship to:</span> {formatAddress(order.shipping_address)}
                 </div>
 
                 <div className="flex gap-8 text-sm text-gray-600 mb-1">

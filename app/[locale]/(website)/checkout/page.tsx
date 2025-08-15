@@ -17,7 +17,7 @@ import { ApiResponse } from '@/types/api';
 import useUserStore from '@/stores/userStore';
 
 export default function CheckoutPage() {
-  const {addresses, fetchAddresses} = useUserStore();
+  const {addresses, fetchAddresses, fetchOrderList} = useUserStore();
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
@@ -161,6 +161,7 @@ export default function CheckoutPage() {
     const {data,code,message,success} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_ADDRESS}/${orderId}`, {shipping_address: address})
     if (success) {
       setOrderDetail(data);
+      fetchOrderList();
     }
 
   }

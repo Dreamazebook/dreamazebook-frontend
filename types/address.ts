@@ -25,3 +25,8 @@ export interface Address {
   phone?: string;
   is_default:boolean;
 }
+
+export function formatAddress(address:Address) {
+  if (!address) return '';
+  return `${address.street} \n ${address.city}  ${address.postal_code} \n ${address.country}`
+}
