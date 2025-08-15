@@ -53,10 +53,12 @@ export default function CheckoutPage() {
 
   // Delivery options state
   const updateOrderShippingMethod = async (shippingOption: ShippingOption) => {
+    setIsLoading(true);
     const {data,success,code,message} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_SHIPPING}/${orderId}`, {shipping_method: shippingOption.code,shipping_cost:shippingOption.cost});
     if (success) {
       setOrderDetail(data);
     }
+    setIsLoading(false);
   }
 
   // Payment state
@@ -158,11 +160,13 @@ export default function CheckoutPage() {
   };
 
   const updateOrderAddress = async (address: Address) => {
+    setIsLoading(true);
     const {data,code,message,success} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_ADDRESS}/${orderId}`, {shipping_address: address})
     if (success) {
       setOrderDetail(data);
       fetchOrderList();
     }
+    setIsLoading(false);
 
   }
 
@@ -200,10 +204,9 @@ export default function CheckoutPage() {
 
   return (
     <div className="bg-gray-100 min-h-screen py-8">
+      {isLoading && <div className="fixed inset-0 bg-gray-500/50 bg-opacity-50 flex items-center justify-center">Loading</div>}
       <div className="container mx-auto px-4">
         <h1 className="text-2xl font-bold mb-8 text-center">Checkout</h1>
-        
-        {isLoading && <div className="text-center py-4">Loading order details...</div>}
         {error && <div className="text-center text-red-500 py-4">{error}</div>}
         
         <div className="flex flex-col lg:flex-row gap-8">
@@ -217,7 +220,9 @@ export default function CheckoutPage() {
               onToggle={() => toggleStep(1)}
               canOpen={true}
             >
+              {orderDetail &&
               <ShippingForm
+                orderDetail={orderDetail}
                 address={address}
                 setAddress={setAddress}
                 errors={errors}
@@ -229,6 +234,7 @@ export default function CheckoutPage() {
                 selectedAddressId={selectedAddressId}
                 setSelectedAddressId={setSelectedAddressId}
               />
+              }
               
               {needsBillingAddress && (
                 <BillingAddressForm

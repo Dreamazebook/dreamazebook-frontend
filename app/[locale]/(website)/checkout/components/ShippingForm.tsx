@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { ShippingErrors } from './types';
+import { OrderDetailResponse, ShippingErrors } from './types';
 import { Address } from '@/types/address';
+import AddressForm from './AddressForm';
+import AddressCard from '../../components/address/AddressCard';
+import AddressCardList from '../../components/address/AddressCardList';
 
 interface ShippingFormProps {
   address: Address;
@@ -15,6 +18,7 @@ interface ShippingFormProps {
   addressList: Address[];
   selectedAddressId: string | null;
   setSelectedAddressId: (id: string | null) => void;
+  orderDetail: OrderDetailResponse;
 }
 
 const ShippingForm: React.FC<ShippingFormProps> = ({
@@ -27,9 +31,12 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   handleNextFromShipping,
   addressList,
   selectedAddressId,
-  setSelectedAddressId
+  setSelectedAddressId,
+  orderDetail,
 }) => {
   const [showForm, setShowForm] = useState(false);
+
+  const [showAddressList, setShowAddressList] = useState(false);
   
   // 当选择已保存的地址时，自动填充表单字段
   useEffect(() => {
@@ -50,239 +57,55 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
 
   return (
     <div>
-      {/* 地址选择部分 */}
-      {addressList.length > 0 && (
-        <div className="mb-6 p-4 border border-gray-200 rounded-md bg-gray-50">
-          <h3 className="text-lg font-medium mb-3">选择送货地址</h3>
-          <div className="flex flex-col gap-3">
-            {/* 已保存地址列表 */}
-            {addressList.map((addr) => (
-              <div 
-                key={addr.id}
-                role="button"
-                aria-checked={selectedAddressId === addr.id}
-                tabIndex={0}
-                className={`p-3 border rounded-md cursor-pointer ${
-                  selectedAddressId === addr.id 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-300 hover:border-gray-400'
-                }`}
-                onClick={() => {
-                  setSelectedAddressId(addr?.id || '');
-                  setShowForm(false);
-                }}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    {addr.is_default && (
-                      <span className="inline-block mb-1 px-2 py-1 text-xs font-medium bg-green-500 text-white rounded">
-                        Default
-                      </span>
-                    )}
-                    <p className="font-medium">
-                      {addr.first_name} {addr.last_name}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {addr.street}, {addr.city}, {addr.state} {addr.post_code}
-                    </p>
-                    <p className="text-sm text-gray-600">{addr.country}</p>
-                    <p className="text-sm text-gray-600">{addr.phone}</p>
-                  </div>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setAddress(addr);
-                      setShowForm(true);
-                    }}
-                    className="ml-4 p-1 text-gray-500 hover:text-blue-500 hover:bg-gray-100 rounded-full"
-                    aria-label="Edit address"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            ))}
-            
-            {/* 使用新地址选项 */}
-            <div 
-              role="button"
-              aria-checked={selectedAddressId === null}
-              tabIndex={0}
-              className={`p-3 cursor-pointer`}
-              onClick={() => {
-                setSelectedAddressId(null);
-                setShowForm(true);
-              }}
-            >
-              <div className="flex items-center text-[#012CCE]">Add New Address</div>
-            </div>
-          </div>
+      
+      {showAddressList && 
+        <div className='fixed right-0 top-0 w-[40%] h-full bg-white'>
+          <h3 className='border-b text-xl font-semibold px-5 py-4'>Addresses</h3>
+          <AddressCardList addressList={addressList} handleClickAddress={(address) => {
+            if (!address?.id) return;
+            setSelectedAddressId(address?.id);
+            setShowAddressList(false);
+            }
+          } />
         </div>
-      )}
+      }
 
-      {showForm &&  <>
-      <div className="mb-4">
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-        <input
-          type="email"
-          id="email"
-          className={`w-full p-2 border rounded-md ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
-          value={address.email}
-          onChange={(e) => {
-            setAddress(prev => ({...prev, email: e.target.value}));
-            clearError('email');
+      {orderDetail?.order?.shipping_address && <AddressCard address={orderDetail.order.shipping_address} />}
+      {/* 使用新地址选项 */}
+      <div className='flex items-center gap-5 mb-5'>
+        <div 
+          role="button"
+          aria-checked={selectedAddressId === null}
+          tabIndex={0}
+          className={`cursor-pointer`}
+          onClick={() => {
+            setSelectedAddressId(null);
+            setShowAddressList(true);
           }}
-        />
-        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-          <input
-            type="text"
-            id="first_name"
-            className={`w-full p-2 border rounded-md ${errors.first_name ? 'border-red-500' : 'border-gray-300'}`}
-            value={address.first_name}
-            onChange={(e) => {
-              setAddress(prev => ({...prev, first_name: e.target.value}));
-              clearError('first_name');
-            }}
-          />
-          {errors.first_name && <p className="text-red-500 text-sm mt-1">{errors.first_name}</p>}
+        >
+          <div className="flex items-center text-[#012CCE]">Change Address</div>
         </div>
-        <div>
-          <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-          <input
-            type="text"
-            id="last_name"
-            className={`w-full p-2 border rounded-md ${errors.last_name ? 'border-red-500' : 'border-gray-300'}`}
-            value={address.last_name}
-            onChange={(e) => {
-              setAddress(prev => ({...prev, last_name: e.target.value}));
-              clearError('last_name');
-            }}
-          />
-          {errors.last_name && <p className="text-red-500 text-sm mt-1">{errors.last_name}</p>}
-        </div>
-      </div>
-
-      <div className="mb-4">
-        <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-        <input
-          type="text"
-          id="address"
-          className={`w-full p-2 border rounded-md ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
-          value={address.street}
-          onChange={(e) => {
-            setAddress(prev => ({...prev, street: e.target.value}));
-            clearError('address');
+        <div 
+          role="button"
+          aria-checked={selectedAddressId === null}
+          tabIndex={1}
+          className={`cursor-pointer`}
+          onClick={() => {
+            setSelectedAddressId(null);
+            setShowForm(true);
           }}
-        />
-        {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
+        >
+          <div className="flex items-center text-[#012CCE]">Add New Address</div>
+        </div>
       </div>
+      
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">City</label>
-          <input
-            type="text"
-            id="city"
-            className={`w-full p-2 border rounded-md ${errors.city ? 'border-red-500' : 'border-gray-300'}`}
-            value={address.city}
-            onChange={(e) => {
-              setAddress(prev => ({...prev, city: e.target.value}));
-              clearError('city');
-            }}
-          />
-          {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
-        </div>
-        <div>
-          <label htmlFor="post_code" className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
-          <input
-            type="text"
-            id="post_code"
-            className={`w-full p-2 border rounded-md ${errors.post_code ? 'border-red-500' : 'border-gray-300'}`}
-            value={address.post_code}
-            onChange={(e) => {
-              setAddress(prev => ({...prev, post_code: e.target.value}));
-              clearError('post_code');
-            }}
-          />
-          {errors.post_code && <p className="text-red-500 text-sm mt-1">{errors.post_code}</p>}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">Country</label>
-          <select
-            id="country"
-            className={`w-full p-2 border rounded-md ${errors.country ? 'border-red-500' : 'border-gray-300'}`}
-            value={address.country}
-            onChange={(e) => {
-              setAddress(prev => ({...prev, country: e.target.value}));
-              clearError('country');
-            }}
-          >
-            <option value="">Select Country</option>
-            <option value="US">United States</option>
-            <option value="CA">Canada</option>
-            <option value="CN">China</option>
-            <option value="UK">United Kingdom</option>
-            <option value="AU">Australia</option>
-            <option value="FR">France</option>
-          </select>
-          {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
-        </div>
-        <div>
-          <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">State / Province</label>
-          <input
-            type="text"
-            id="state"
-            className={`w-full p-2 border rounded-md ${errors.state ? 'border-red-500' : 'border-gray-300'}`}
-            value={address.state}
-            onChange={(e) => {
-              setAddress(prev => ({...prev, state: e.target.value}));
-              clearError('state');
-            }}
-          />
-          {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number(optional)</label>
-        <input
-          type="text"
-          id="phone"
-          className={`w-full p-2 border rounded-md ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
-          value={address.phone}
-          onChange={(e) => {
-            setAddress(prev => ({...prev, phone: e.target.value}));
-            clearError('phone');
-          }}
-        />
-        {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-      </div>
-
-      <div className="mt-4 mb-6">
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="setDefaultAddress"
-            className="h-4 w-4 text-blue-600 border-gray-300 rounded"
-            checked={address.is_default}
-            onChange={(e) => setAddress(prev => ({...prev, is_default: e.target.checked}))}
-          />
-          <label htmlFor="setDefaultAddress" className="ml-2 block text-sm text-gray-700">
-            Set as default shipping address
-          </label>
-        </div>
-      </div>
-      </>}
+      {showForm && <AddressForm
+  address={address}
+  setAddress={setAddress}
+  errors={errors}
+  clearError={clearError}
+/>}
 
       <div className="mb-4">
         <div className="flex items-center">
