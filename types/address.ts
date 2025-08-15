@@ -5,7 +5,7 @@ export const EMPTY_ADDRESS = {
   last_name: '',
   street: '',
   city: '',
-  postal_code: '',
+  post_code: '',
   country: '',
   state: '',
   phone: '',
@@ -19,7 +19,7 @@ export interface Address {
   last_name?: string;
   street?: string;
   city?: string;
-  postal_code?: string;
+  post_code?: string;
   country?: string;
   state?: string;
   phone?: string;
@@ -28,5 +28,5 @@ export interface Address {
 
 export function formatAddress(address:Address) {
   if (!address) return '';
-  return `${address.street} \n ${address.city}  ${address.postal_code} \n ${address.country}`
+  return `${address.street} \n ${address.city}  ${address.post_code} \n ${address.country}`
 }

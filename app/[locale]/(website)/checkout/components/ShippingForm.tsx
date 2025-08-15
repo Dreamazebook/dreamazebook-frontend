@@ -83,7 +83,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
                       {addr.first_name} {addr.last_name}
                     </p>
                     <p className="text-sm text-gray-600">
-                      {addr.street}, {addr.city}, {addr.state} {addr.postal_code}
+                      {addr.street}, {addr.city}, {addr.state} {addr.post_code}
                     </p>
                     <p className="text-sm text-gray-600">{addr.country}</p>
                     <p className="text-sm text-gray-600">{addr.phone}</p>
@@ -200,18 +200,18 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
           {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
         </div>
         <div>
-          <label htmlFor="postal_code" className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+          <label htmlFor="post_code" className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
           <input
             type="text"
-            id="postal_code"
-            className={`w-full p-2 border rounded-md ${errors.postal_code ? 'border-red-500' : 'border-gray-300'}`}
-            value={address.postal_code}
+            id="post_code"
+            className={`w-full p-2 border rounded-md ${errors.post_code ? 'border-red-500' : 'border-gray-300'}`}
+            value={address.post_code}
             onChange={(e) => {
-              setAddress(prev => ({...prev, postal_code: e.target.value}));
-              clearError('postal_code');
+              setAddress(prev => ({...prev, post_code: e.target.value}));
+              clearError('post_code');
             }}
           />
-          {errors.postal_code && <p className="text-red-500 text-sm mt-1">{errors.postal_code}</p>}
+          {errors.post_code && <p className="text-red-500 text-sm mt-1">{errors.post_code}</p>}
         </div>
       </div>
 

@@ -59,7 +59,7 @@ export interface ShippingErrors {
   last_name?: string;
   address?: string;
   city?: string;
-  postal_code?: string;
+  post_code?: string;
   country?: string;
   state?: string;
   phone?: string;

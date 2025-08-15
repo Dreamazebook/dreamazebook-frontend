@@ -132,7 +132,7 @@ export default function CheckoutPage() {
     if (!address.last_name) newErrors.last_name = "Last name is required";
     if (!address.street) newErrors.address = "Address is required";
     if (!address.city) newErrors.city = "City is required";
-    if (!address.postal_code) newErrors.postal_code = "Postal code is required";
+    if (!address.post_code) newErrors.post_code = "Postal code is required";
     if (!address.country) newErrors.country = "Country is required";
     if (!address.state) newErrors.state = "State is required";
     
