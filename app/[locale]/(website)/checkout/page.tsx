@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from '@/i18n/routing';
 import { useSearchParams } from 'next/navigation';
+import Loading from '../components/Loading';
 import api from '@/utils/api';
 import { API_ADDRESS_LIST, API_CREATE_STRIPE_PAYMENT, API_ORDER_DETAIL, API_ORDER_UPDATE_ADDRESS, API_ORDER_UPDATE_SHIPPING } from '@/constants/api';
 import { Address, EMPTY_ADDRESS } from '@/types/address';
@@ -204,7 +205,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="bg-gray-100 min-h-screen py-8">
-      {isLoading && <div className="fixed inset-0 bg-gray-500/50 bg-opacity-50 flex items-center justify-center">Loading</div>}
+      <Loading isLoading={isLoading} />
       <div className="container mx-auto px-4">
         <h1 className="text-2xl font-bold mb-8 text-center">Checkout</h1>
         {error && <div className="text-center text-red-500 py-4">{error}</div>}
