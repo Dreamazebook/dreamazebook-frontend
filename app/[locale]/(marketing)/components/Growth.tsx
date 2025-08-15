@@ -108,25 +108,25 @@ export default function Growth() {
             icon: "ongoing",
             isCur: true,
             tl: "Kickstarter Prelaunch",
-            date: "April-June 2025",
+            date: "April-August 2025",
           },
           {
             icon: "pending",
             isCur: true,
             tl: "Finalize Website",
-            date: "May-June 2025",
+            date: "May-August 2025",
           },
           {
             icon: "kickstarter",
             isCur: true,
             tl: "Kickstart Launching",
-            date: "July 2025",
+            date: "September 2025",
           },
           {
             icon: "pending",
             isCur: true,
             tl: "Ship to Customers",
-            date: "August-September 2025",
+            date: "October-December 2025",
           },
         ].map(({ tl, date, isCur, icon }, idx) => {
           const isEven = idx % 2 === 0;
