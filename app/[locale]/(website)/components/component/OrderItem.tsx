@@ -1,6 +1,6 @@
 import Image from "next/image";
-import { CartItem } from "../../shopping-cart/components/types";
 import DisplayPrice from "./DisplayPrice";
+import { CartItem } from "../../checkout/components/types";
 
 interface OrderItemProps {
   orderItem: CartItem
@@ -21,6 +21,7 @@ const OrderItem = ({orderItem}:OrderItemProps) => {
       <div className="flex-1">
         <p className="font-semibold">{orderItem.picbook_name}</p>
         <p className="text-gray-500 text-sm">{orderItem.message}</p>
+        <p>{orderItem.status}</p>
       </div>
       <DisplayPrice value={orderItem.total_price} style='text-gray-800' />
     </div>
