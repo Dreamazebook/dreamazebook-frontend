@@ -4,6 +4,8 @@ import useUserStore from '@/stores/userStore';
 import { ApiResponse } from '@/types/api';
 import api from '@/utils/api';
 import React, { useEffect, useState } from 'react';
+import AddressCard from '../../components/address/AddressCard';
+import AddressCardList from '../../components/address/AddressCardList';
 export default function AccountDetails() {
   const {user, fetchAddresses, addresses} = useUserStore();
   const [isEditing, setIsEditing] = useState(false);
@@ -31,7 +33,8 @@ export default function AccountDetails() {
     fetchAddresses();
   },[])
 
-  const handleDeleteAddress = async (id:string) => {
+  const handleDeleteAddress = async (id:string|undefined) => {
+    if (!id) return;
     const {success,message} = await api.delete<ApiResponse>(`${API_ADDRESS_LIST}/${id}`);
     if (success) {
       fetchAddresses({refresh:true});
@@ -133,35 +136,7 @@ export default function AccountDetails() {
         </div>
         
         <div className="bg-white rounded-lg shadow-sm divide-y divide-gray-100">
-          {addresses.map((address) => (
-            <div key={address.id} className="p-6">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-4 mb-3">
-                    <span className="text-gray-900 font-medium">{address.first_name}</span>
-                    <span className="text-gray-900">{address.email}</span>
-                    <div className="flex gap-2 ml-auto">
-                      <button
-                        onClick={() => handleDeleteAddress(address.id)}
-                        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-                      >
-                        Delete
-                      </button>
-                      {/* <button className="p-1 text-gray-400 hover:text-blue-500 transition-colors">
-                        Edit
-                      </button> */}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-gray-700">{address.street}</span>
-                    {/* {address?.type && (
-                      <span className="text-gray-500 text-sm">{address?.type}</span>
-                    )} */}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+          <AddressCardList addressList={addresses} handleDeleteAddress={handleDeleteAddress} />
           
           <div className="p-6 text-center">
             <button

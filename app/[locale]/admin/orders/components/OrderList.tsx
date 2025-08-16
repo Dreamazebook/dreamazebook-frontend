@@ -3,6 +3,7 @@
 import { FC } from 'react';
 import { formatCurrency, formatDate } from '../utils';
 import { OrderDetail } from '@/app/[locale]/(website)/checkout/components/types';
+import DisplayPrice from '@/app/[locale]/(website)/components/component/DisplayPrice';
 
 interface OrderListProps {
   orders: OrderDetail[];
@@ -54,24 +55,24 @@ const OrderList: FC<OrderListProps> = ({
             orders.map((order) => (
               <tr key={order.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {order.id}
+                  {order.order_number}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{order.shipping_address.firstName}</div>
-                  <div className="text-sm text-gray-500">{order.shipping_address.lastName}</div>
+                  <div className="text-sm font-medium text-gray-900">{order?.shipping_address?.first_name}</div>
+                  <div className="text-sm text-gray-500">{order?.shipping_address?.last_name}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900 font-medium">{formatCurrency(order.total_amount)}</div>
+                  <DisplayPrice value={order.total_amount} style='text-sm text-gray-900 font-medium' />
                   <div className="text-xs text-gray-500">{order.items.length} 件商品</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[order.status]}`}>
-                    {statusLabels[order.status]}
+                    {statusLabels[order.status] || order.status}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${paymentStatusColors[order.payment_status]}`}>
-                    {paymentStatusLabels[order.payment_status]}
+                    {paymentStatusLabels[order.payment_status] || order.payment_status}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

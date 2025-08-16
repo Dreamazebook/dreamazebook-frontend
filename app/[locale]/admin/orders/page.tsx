@@ -56,18 +56,19 @@ const AdminOrdersPage: FC = () => {
       try {
         const {data,code,success} = await api.get<ApiResponse>(API_ADMIN_ORDERS);
         if (success) {
-
+          setOrders(data);
         }
 
         // 使用模拟数据
-        setTimeout(() => {
-          setOrders(mockOrders);
-          setLoading(false);
-        }, 800);
+        // setTimeout(() => {
+        //   setOrders(mockOrders);
+        //   setLoading(false);
+        // }, 800);
         
       } catch (err) {
         console.error('Error fetching orders:', err);
         setError('Failed to load orders');
+      } finally {
         setLoading(false);
       }
     };

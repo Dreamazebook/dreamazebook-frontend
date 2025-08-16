@@ -29,6 +29,7 @@ export interface OrderDetail {
   stripe_payment_intent_id: string;
   stripe_client_secret: string;
   shipping_address: any;
+  shipping_options: ShippingOption[];
   paid_at: string | null;
   completed_at: string | null;
   cancelled_at: string | null;
@@ -54,11 +55,11 @@ export interface CartItem {
 
 export interface ShippingErrors {
   email?: string;
-  firstName?: string;
-  lastName?: string;
+  first_name?: string;
+  last_name?: string;
   address?: string;
   city?: string;
-  postalcode?: string;
+  post_code?: string;
   country?: string;
   state?: string;
   phone?: string;
@@ -71,5 +72,18 @@ export interface BillingErrors {
   billingAddress?: string;
 }
 
-export type DeliveryOption = "STANDARD" | "EXPRESS";
 export type PaymentOption = "card" | "paypal" | null;
+
+export interface ShippingOption {
+  charge_weight?: string;
+  code: string;
+  cost: number;
+  currency?: string;
+  description?: string;
+  estimated_days?: string;
+  is_trackable?: boolean;
+  name?: string;
+  original_cost?: string;
+  original_currency?: string;
+  type?: string;
+}

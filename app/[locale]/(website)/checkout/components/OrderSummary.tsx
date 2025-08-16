@@ -1,21 +1,19 @@
 'use client';
 
 import React from 'react';
-import { CartItem, DeliveryOption, OrderDetail, OrderDetailResponse } from './types';
+import { CartItem, OrderDetail, OrderDetailResponse } from './types';
 import DisplayPrice from '../../components/component/DisplayPrice';
 
 interface OrderSummaryProps {
   orderDetail?: OrderDetailResponse;
-  selectedDeliveryOption: DeliveryOption;
 }
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
   orderDetail,
-  selectedDeliveryOption
 }) => {
   const order = orderDetail?.order;
   const subtotal = order?.total_amount || 0;
-  const shippingCost = selectedDeliveryOption === 'STANDARD' ? 4.99 : 9.99;
+  const shippingCost = order?.shipping_cost || 0;
   const discount = 0; // No discount in the original code
   const total = subtotal + shippingCost - discount;
 
@@ -24,7 +22,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       <h3 className="text-lg font-medium mb-4">Order Summary</h3>
       
       <div className="space-y-4 mb-6">
-        {order?.items.map((item) => (
+        {order?.items?.map((item) => (
           <div key={item.id} className="flex items-start">
             <div className="h-16 w-12 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 mr-4">
               <img
