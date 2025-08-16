@@ -13,11 +13,14 @@ import echo from '@/app/config/echo';
 import useUserStore from '@/stores/userStore';
 
 import { BasicInfoData } from '../components/personalize/BasicInfoForm';
-export interface PersonalizeFormData extends BasicInfoData {
-  singleChoice: string; // Single choice feature
-  multipleChoice: string[]; // Multiple choice features
-}
-export interface PersonalizeFormData2 extends BasicInfoData {
+import { PersonalizeFormData } from '../components/personalize/SingleCharacterForm1';
+
+// 为SingleCharacterForm2创建兼容的接口
+export interface PersonalizeFormData2 {
+  fullName: string;
+  gender: '' | 'boy' | 'girl';
+  skinColor: string;
+  photos: string[]; // 更新为支持多张图片
   birthSeason: '' | 'spring' | 'summer' | 'autumn' | 'winter';
   dob: Date | null;
 }
@@ -107,6 +110,7 @@ export default function PersonalizePage() {
     let genderRaw: '' | 'boy' | 'girl';
     let skinColorRaw: string;
     let photoData: BasicInfoData['photo'] = null;
+    let photosData: string[] = [];
   
     // 1. 拿到表单原始数据
     if (selectedFormType === 'SINGLE1' && singleForm1Ref.current) {
@@ -117,6 +121,8 @@ export default function PersonalizePage() {
       genderRaw     = form1.gender;
       skinColorRaw  = form1.skinColor;
       photoData     = form1.photo;
+      // 获取所有上传的图片路径
+      photosData    = (form1 as any).photos || [];
     } else if (selectedFormType === 'SINGLE2' && singleForm2Ref.current) {
       const isValid = singleForm2Ref.current.validateForm();
       if (!isValid) return;
@@ -125,6 +131,7 @@ export default function PersonalizePage() {
       genderRaw     = form2.gender;
       skinColorRaw  = form2.skinColor;
       photoData     = form2.photo;
+      photosData    = [form2.photo?.path].filter(Boolean) as string[];
     } else {
       return;
     }
@@ -165,6 +172,8 @@ export default function PersonalizePage() {
           gender:    genderCode,
           skincolor: skinColorCode,
           photo:     photoData.path,
+          // 如果有多张图片，也保存所有图片路径
+          ...(photosData.length > 0 && { photos: photosData }),
         },
       ],
     };

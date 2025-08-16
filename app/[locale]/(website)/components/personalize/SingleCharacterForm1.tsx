@@ -5,12 +5,13 @@ import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'rea
 import { FaQuestionCircle } from 'react-icons/fa';
 import { BsCheck } from 'react-icons/bs';
 import BasicInfoForm, { BasicInfoData } from './BasicInfoForm';
-import UploadArea from './UploadArea';
-import useImageUpload from '../../hooks/useImageUpload';
+import MultiImageUpload from './MultiImageUpload';
+import useMultiImageUpload from '../../hooks/useMultiImageUpload';
 
 export interface PersonalizeFormData extends BasicInfoData {
   singleChoice: string; // Single choice feature
   multipleChoice: string[]; // Multiple choice features
+  photos: string[]; // 添加多图片支持
 }
 
 export interface SingleCharacterForm1Handle {
@@ -45,35 +46,36 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     photo: initialData?.photo ? { path: initialData.photo.path } as any : null,
     singleChoice: '',
     multipleChoice: [],
+    photos: [], // 新增多图片支持
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [touched, setTouched] = useState<{ [K in keyof PersonalizeFormData]?: boolean }>({});
 
   const {
-    imageUrl,
+    images,
     isUploading,
     uploadProgress,
     error: uploadError,
     isDragging,
-    handleFileUpload,
+    handleImageUpload,
+    handleImageDelete,
     handleDragEnter,
     handleDragLeave,
     handleDragOver,
     handleDrop,
-    handleDeleteImage,
-    handleUpload
-  } = useImageUpload();
+    getUploadedPaths,
+  } = useMultiImageUpload(3);
 
   useEffect(() => {
-    if (imageUrl) {
+    if (images.length > 0) {
       const img = new Image();
-      img.src = imageUrl;
+      img.src = images[0].previewUrl;
       img.onload = () => {
         setImageSize({ width: img.width, height: img.height });
       };
     }
-  }, [imageUrl]);
+  }, [images]);
 
   // Update basic info fields
   const handleBasicInfoChange = (field: keyof BasicInfoData, value: string | { file?: File; path: string } | null) => {
@@ -86,17 +88,39 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     setErrors(prev => ({ ...prev, [field]: errorMsg }));
   };
 
-  // Handle photo upload
-  const handleUploadPhoto = async (file: File) => {
-    const uploadResult = await handleUpload(file);
-    if (uploadResult) {
-      handleBasicInfoChange('photo', {
-        file: uploadResult.file,
-        path: uploadResult.uploadedFilePath
-      });
+  // Handle multiple photos upload
+  const handlePhotosUpload = async (files: File[]) => {
+    await handleImageUpload(files);
+    // 将第一张图片设置为主要照片，保持与原有数据结构兼容
+    const uploadedPaths = getUploadedPaths();
+    if (uploadedPaths.length > 0) {
+      handleBasicInfoChange('photo', { path: uploadedPaths[0] });
       handleErrorChange('photo', '');
     }
+    // 同时更新photos字段存储所有图片
+    setFormData(prev => ({ ...prev, photos: uploadedPaths }));
+    setTouched(prev => ({ ...prev, photo: true }));
   };
+
+  // Handle photo deletion
+  const handlePhotoDelete = (id: string) => {
+    handleImageDelete(id);
+    const remainingPaths = getUploadedPaths();
+    if (remainingPaths.length > 0) {
+      handleBasicInfoChange('photo', { path: remainingPaths[0] });
+    } else {
+      handleBasicInfoChange('photo', null);
+      handleErrorChange('photo', 'Please upload a photo');
+    }
+    // 同步更新photos字段
+    setFormData(prev => ({ ...prev, photos: remainingPaths }));
+  };
+
+  // 监听images变化，同步更新photos字段
+  useEffect(() => {
+    const uploadedPaths = getUploadedPaths();
+    setFormData(prev => ({ ...prev, photos: uploadedPaths }));
+  }, [getUploadedPaths]);
 
   useImperativeHandle(ref, () => ({
     validateForm() {
@@ -123,7 +147,13 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     },
     formData,
     getFormData() {
-      return formData;
+      // 将多图片路径添加到返回数据中，以便后续处理
+      const currentPaths = getUploadedPaths();
+      return { 
+        ...formData, 
+        // 添加额外的photos字段用于存储所有图片路径
+        photos: currentPaths 
+      } as any;
     }
   }));
 
@@ -157,57 +187,25 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
               onErrorChange={handleErrorChange}
             />
 
-            {/* Photo Upload Section */}
+            {/* Photo Upload Section - 替换为多图片上传组件 */}
             <div>
-              <label className="block mb-2 flex items-center">
-                <span className="font-medium">Photo</span>
-                <span className="text-gray-400 inline-flex items-center group relative font-normal">
-                  <FaQuestionCircle className="w-4 h-4 ml-1" />
-                  <div className="hidden group-hover:block absolute left-0 top-6 w-64 p-2 bg-white/80 text-gray-800 text-sm rounded shadow-lg z-10 backdrop-blur">
-                    <p className="mb-2">
-                      Upload a photo so we can create a unique image of you. Your privacy is ensured.
-                    </p>
-                  </div>
-                </span>
-              </label>
-              <p className="text-sm mb-2 text-gray-800">Please upload a photo of your character!</p>
-              <ul className="text-sm text-gray-500 mb-4 space-y-1">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gray-300"></div>
-                  <li>Make sure the subject is facing the camera.</li>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gray-300"></div>
-                  <li>Use a close-up photo.</li>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gray-300"></div>
-                  <li>The higher the quality, the better the result!</li>
-                </div>
-              </ul>
-              <div>
-                <UploadArea
-                  imageUrl={imageUrl}
-                  isUploading={isUploading}
-                  uploadProgress={uploadProgress}
-                  error={uploadError}
-                  isDragging={isDragging}
-                  imageSize={imageSize}
-                  handleDragEnter={handleDragEnter}
-                  handleDragLeave={handleDragLeave}
-                  handleDragOver={handleDragOver}
-                  handleDrop={(e) => handleDrop(e, (file) => handleUploadPhoto(file))}
-                  handleFileUpload={(e) => handleFileUpload(e, (file) => handleUploadPhoto(file))}
-                  handleDeleteImage={() => {
-                    handleDeleteImage();
-                    handleBasicInfoChange('photo', null);
-                    handleErrorChange('photo', 'Please upload a photo');
-                  }}
-                />
-                {touched.photo && errors.photo && (
-                  <p className="text-red-500 text-sm mt-1">{errors.photo}</p>
-                )}
-              </div>
+              <MultiImageUpload
+                images={images}
+                isUploading={isUploading}
+                uploadProgress={uploadProgress}
+                error={uploadError}
+                isDragging={isDragging}
+                maxImages={3}
+                onImageUpload={handlePhotosUpload}
+                onImageDelete={handlePhotoDelete}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+              />
+              {touched.photo && errors.photo && (
+                <p className="text-red-500 text-sm mt-1">{errors.photo}</p>
+              )}
             </div>
 
             {/* Single Choice Section */}
