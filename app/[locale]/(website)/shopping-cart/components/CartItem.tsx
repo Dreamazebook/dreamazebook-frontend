@@ -7,36 +7,17 @@ import CartSubItem from './CartSubItem';
 import DisplayPrice from '../../components/component/DisplayPrice';
 import { useRouter } from '@/i18n/routing';
 import Button from '@/app/components/Button';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 interface CartItemProps {
   item: CartItemType;
-}
-
-interface BookParams {
-  name?: string;
-  gender?: string;
-  skin_color?: string;
-  photo_url?: string;
 }
 
 export default function CartItem({ item }: CartItemProps) {
   const t = useTranslations('ShoppingCart');
   const router = useRouter();
 
-  const [bookParams, setBookParams] = useState<BookParams | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (item.preview) {
-      setBookParams({
-        name: item.preview.recipient_name || '',
-        gender: item.preview.gender,
-        skin_color: item.preview.skin_color[0]?.toString(),
-        photo_url: item.preview.face_image
-      });
-    }
-  }, [item.preview]);
   
   return (
     <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm">
@@ -60,14 +41,11 @@ export default function CartItem({ item }: CartItemProps) {
               className="mt-2 !w-auto"
               isLoading={isLoading}
               handleClick={() => {
-                const url = bookParams ? 
-                  `/personalized-products/${item.preview?.picbook_id}/${item.preview?.id}/edit?${new URLSearchParams({
-                    ...(bookParams.name && { recipient_name: bookParams.name }),
-                    ...(bookParams.gender && { gender: bookParams.gender }),
-                    ...(bookParams.skin_color && { skin_color: bookParams.skin_color }),
-                    ...(bookParams.photo_url && { photo_url: bookParams.photo_url })
-                  }).toString()}` : 
-                  `/personalized-products/${item.preview?.picbook_id}/${item.preview?.id}/edit`;
+                if (!item.preview?.id || !item.preview?.picbook_id) {
+                  console.error('No preview id or book id found');
+                  return;
+                }
+                const url = `/personalized-products/${item.preview.picbook_id}/${item.preview.id}/edit`;
                 console.log('Navigating to:', url);
                 router.push(url);
               }}

@@ -103,44 +103,11 @@ const CartItemList: React.FC<CartItemListProps> = ({
                   </div>
                   
                   <Link
-                    href={(() => {
-                      const bookParams = item.preview ? {
-                        name: item.preview.recipient_name || '',
-                        gender: item.preview.gender,
-                        skin_color: item.preview.skin_color?.[0]?.toString(),
-                        photo_url: item.preview.face_image
-                      } : null;
-                      
-                      return bookParams ? 
-                        `/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit?${new URLSearchParams({
-                          ...(bookParams.name && { recipient_name: bookParams.name }),
-                          ...(bookParams.gender && { gender: bookParams.gender }),
-                          ...(bookParams.skin_color && { skin_color: bookParams.skin_color }),
-                          ...(bookParams.photo_url && { photo_url: bookParams.photo_url })
-                        }).toString()}` : 
-                        `/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit`;
-                    })()}
+                    href={`/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit`}
                     className="text-sm text-blue-600 hover:underline mt-2"
                     onClick={() => {
-                      const bookParams = item.preview ? {
-                        name: item.preview.recipient_name || '',
-                        gender: item.preview.gender,
-                        skin_color: item.preview.skin_color?.[0]?.toString(),
-                        photo_url: item.preview.face_image
-                      } : null;
-                      
-                      const url = bookParams ? 
-                        `/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit?${new URLSearchParams({
-                          ...(bookParams.name && { recipient_name: bookParams.name }),
-                          ...(bookParams.gender && { gender: bookParams.gender }),
-                          ...(bookParams.skin_color && { skin_color: bookParams.skin_color }),
-                          ...(bookParams.photo_url && { photo_url: bookParams.photo_url })
-                        }).toString()}` : 
-                        `/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit`;
-                      
-                      console.log('CartItemList - Preview data:', item.preview);
-                      console.log('CartItemList - BookParams:', bookParams);
-                      console.log('CartItemList - Generated URL:', url);
+                      const url = `/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit`;
+                      console.log('CartItemList - Navigating to:', url);
                     }}
                   >
                     Edit Book

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from '@/i18n/routing';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { IoIosArrowBack } from "react-icons/io";
 import { Link } from "@/i18n/routing";
 import Image from 'next/image';
@@ -19,7 +19,6 @@ const skinColors = ['#FFE2CF', '#DCB593', '#665444'];
 
 export default function EditPersonalizedProductPage() {
   const params = useParams();
-  const qs = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
   const bookId = params.book_id as string;
@@ -51,24 +50,8 @@ export default function EditPersonalizedProductPage() {
     return () => { ignore = true };
   }, [bookId]);
 
-  // 2) 解析 query 作为优先的初始值；否则用 previewId 从购物车拉取预览补全
+  // 从购物车列表中查找 previewId 获取初始数据
   useEffect(() => {
-    const qGender = qs.get('gender');
-    const qSkin = qs.get('skin_color');
-    const qPhoto = qs.get('photo_url');
-    const qRecipientName = qs.get('recipient_name');
-
-    if (qGender || qSkin || qPhoto || qRecipientName) {
-      setInitialData({
-        fullName: qRecipientName || '',
-        gender: qGender === '1' ? 'boy' : qGender === '2' ? 'girl' : '',
-        skinColor: qSkin ? skinColors[(parseInt(qSkin) - 1) || 0] : '',
-        photo: qPhoto ? { path: qPhoto } : null,
-      });
-      return;
-    }
-
-    // fallback: 从购物车列表中查找 previewId
     (async () => {
       try {
         const { data } = await api.get<ApiResponse<CartItems>>(`${API_CART_LIST}`);
@@ -83,7 +66,7 @@ export default function EditPersonalizedProductPage() {
         });
       } catch {}
     })();
-  }, [qs, previewId]);
+  }, [previewId]);
 
   const renderForm = () => {
     if (!formType) return null;
