@@ -12,6 +12,7 @@ import { API_ORDER_PROGRESS } from '@/constants/api';
 import OrderSummaryPrices from '../components/component/OrderSummaryPrices';
 import AddressCard from '../components/address/AddressCard';
 import OrderItem from '../components/component/OrderItem';
+import StepIndicator from './components/StepIndicator';
 
 const OrderSummary: React.FC = () => {
   const {fetchOrderDetail} = useUserStore();
@@ -64,32 +65,7 @@ const OrderSummary: React.FC = () => {
 
 
         {/* 进度状态指示 */}
-        <div className="flex items-center space-x-2 mb-8">
-          <div className="flex flex-col items-center">
-            <div className="w-6 h-6 text-sm flex items-center justify-center rounded-xl bg-gray-300">1</div>
-            <span className="text-sm capitalize mt-1 text-gray-500">place order</span>
-          </div>
-          <div className="w-8 h-0.5 bg-blue-500"></div>
-          <div className="flex flex-col items-center">
-            <div className="w-6 h-6 text-sm flex items-center justify-center rounded-xl bg-gray-300">2</div>
-            <span className="text-sm capitalize mt-1 text-gray-500">confirm the effect</span>
-          </div>
-          <div className="w-8 h-0.5 bg-blue-500"></div>
-          <div className="flex flex-col items-center">
-            <div className="w-6 h-6 text-sm flex items-center justify-center rounded-xl bg-gray-300">3</div>
-            <span className="text-sm capitalize mt-1 text-gray-500">print</span>
-          </div>
-          <div className="w-8 h-0.5 bg-blue-500"></div>
-          <div className="flex flex-col items-center">
-            <div className="w-6 h-6 text-sm flex items-center justify-center rounded-xl bg-gray-300">4</div>
-            <span className="text-sm capitalize mt-1 text-gray-500">transport</span>
-          </div>
-          <div className="w-8 h-0.5 bg-blue-500"></div>
-          <div className="flex flex-col items-center">
-            <div className="w-6 h-6 text-sm flex items-center justify-center rounded-xl bg-gray-300">5</div>
-            <span className="text-sm capitalize mt-1 text-gray-500">receive books</span>
-          </div>
-        </div>
+        <StepIndicator />
 
         {/* 订单列表 */}
         <div className="space-y-4 mb-6">
@@ -121,6 +97,7 @@ const OrderSummary: React.FC = () => {
             Buy the Same
           </button>
         </div>
+
       </div>
     </div>
   );
