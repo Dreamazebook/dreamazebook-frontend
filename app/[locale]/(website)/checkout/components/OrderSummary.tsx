@@ -12,10 +12,10 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   orderDetail,
 }) => {
   const order = orderDetail?.order;
-  const subtotal = order?.total_amount || 0;
+  const total = order?.total_amount || 0;
   const shippingCost = order?.shipping_cost || 0;
+  const subtotal = total - shippingCost;
   const discount = 0; // No discount in the original code
-  const total = subtotal + shippingCost - discount;
 
   return (
     <div className="bg-gray-50 p-6 rounded-lg">
