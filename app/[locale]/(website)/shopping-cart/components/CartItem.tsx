@@ -8,7 +8,6 @@ import DisplayPrice from '../../components/component/DisplayPrice';
 import { useRouter } from '@/i18n/routing';
 import Button from '@/app/components/Button';
 import { useState, useEffect } from 'react';
-import axios from '@/app/config/axios';
 
 interface CartItemProps {
   item: CartItemType;
@@ -33,7 +32,7 @@ export default function CartItem({ item }: CartItemProps) {
       setBookParams({
         name: item.preview.recipient_name || '',
         gender: item.preview.gender,
-        skin_color: item.preview.skin_color[0].toString(),
+        skin_color: item.preview.skin_color[0]?.toString(),
         photo_url: item.preview.face_image
       });
     }
@@ -62,15 +61,14 @@ export default function CartItem({ item }: CartItemProps) {
               isLoading={isLoading}
               handleClick={() => {
                 const url = bookParams ? 
-                  `/personalize?${new URLSearchParams({
-                    book_id: item.id.toString(),
-                    ...(bookParams.name && { name: bookParams.name }),
+                  `/personalized-products/${item.preview?.picbook_id}/${item.preview?.id}/edit?${new URLSearchParams({
+                    ...(bookParams.name && { recipient_name: bookParams.name }),
                     ...(bookParams.gender && { gender: bookParams.gender }),
                     ...(bookParams.skin_color && { skin_color: bookParams.skin_color }),
                     ...(bookParams.photo_url && { photo_url: bookParams.photo_url })
                   }).toString()}` : 
-                  `/personalize?book_id=${item.id}`;
-                console.log('Navigating to:', url); // 添加调试日志
+                  `/personalized-products/${item.preview?.picbook_id}/${item.preview?.id}/edit`;
+                console.log('Navigating to:', url);
                 router.push(url);
               }}
             />
