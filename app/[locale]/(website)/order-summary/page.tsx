@@ -9,6 +9,8 @@ import DisplayPrice from '../components/component/DisplayPrice';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
 import { API_ORDER_PROGRESS } from '@/constants/api';
+import OrderSummaryPrices from '../components/component/OrderSummaryPrices';
+import AddressCard from '../components/address/AddressCard';
 
 const OrderSummary: React.FC = () => {
   const {fetchOrderDetail} = useUserStore();
@@ -112,42 +114,14 @@ const OrderSummary: React.FC = () => {
         </div>
 
         {/* 费用小结 & 收货信息 */}
-        <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-6">
-          {/* 左侧：费用小结 */}
-          <div className="bg-gray-100 p-4 rounded md:w-1/2 md:mr-4 mb-4 md:mb-0">
-            <h2 className="font-bold text-lg mb-2">Order Summary</h2>
-            <div className="flex justify-between py-1">
-              <span>Subtotal</span>
-              <DisplayPrice value={orderDetail?.order.items.reduce((sum, item) => sum + item.total_price, 0)} />
-            </div>
-            <div className="flex justify-between py-1">
-              <span>Shipping</span>
-              <DisplayPrice value={orderDetail?.order.shipping_cost} />
-            </div>
-            {discount > 0 && (
-              <div className="flex justify-between py-1">
-                <span>Discount</span>
-                <DisplayPrice value={-discount} />
-              </div>
-            )}
-            <hr className="my-2" />
-            <div className="flex justify-between font-bold">
-              <span>Total</span>
-              <DisplayPrice value={orderDetail?.order.total_amount} />
-            </div>
-          </div>
+        <div className="grid gap-4 mb-6 bg-white p-4">
+          
+          <AddressCard address={orderDetail?.order?.shipping_address} />
+          
+          {orderDetail &&
+          <OrderSummaryPrices orderDetail={orderDetail} />
+          }
 
-          {/* 右侧：收货地址 & 预计送达 */}
-          <div className="md:w-1/2 flex flex-col justify-between">
-            <div className="border p-4 rounded mb-4">
-              <h3 className="font-semibold text-gray-700 mb-2">Shipping Address</h3>
-              <p className="text-gray-600">{orderDetail?.order?.shipping_address?.full_address || 'N/A'}</p>
-            </div>
-            <div className="border p-4 rounded">
-              <h3 className="font-semibold text-gray-700 mb-2">Delivery Date</h3>
-              <p className="text-gray-600">04/12/2024</p>
-            </div>
-          </div>
         </div>
 
         {/* 操作按钮 */}
