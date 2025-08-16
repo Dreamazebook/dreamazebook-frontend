@@ -3,6 +3,7 @@
 import React from 'react';
 import { CartItem, OrderDetail, OrderDetailResponse } from './types';
 import DisplayPrice from '../../components/component/DisplayPrice';
+import OrderSummaryPrices from '../../components/component/OrderSummaryPrices';
 
 interface OrderSummaryProps {
   orderDetail?: OrderDetailResponse;
@@ -12,10 +13,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   orderDetail,
 }) => {
   const order = orderDetail?.order;
-  const subtotal = order?.total_amount || 0;
-  const shippingCost = order?.shipping_cost || 0;
-  const discount = 0; // No discount in the original code
-  const total = subtotal + shippingCost - discount;
 
   return (
     <div className="bg-gray-50 p-6 rounded-lg">
@@ -42,26 +39,10 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         ))}
       </div>
       
-      <div className="border-t border-gray-200 pt-4 space-y-2">
-        <div className="flex justify-between text-sm">
-          <p>Subtotal</p>
-          <DisplayPrice value={subtotal} />
-        </div>
-        <div className="flex justify-between text-sm">
-          <p>Shipping</p>
-          <DisplayPrice value={shippingCost} />
-        </div>
-        {discount > 0 && (
-          <div className="flex justify-between text-sm text-green-600">
-            <p>Discount</p>
-            <DisplayPrice value={-discount} />
-          </div>
-        )}
-        <div className="flex justify-between text-base font-medium pt-2 border-t border-gray-200">
-          <p>Total</p>
-          <DisplayPrice value={total} />
-        </div>
-      </div>
+      {orderDetail &&
+      <OrderSummaryPrices orderDetail={orderDetail} />
+      }
+
     </div>
   );
 };

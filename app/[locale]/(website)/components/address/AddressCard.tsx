@@ -9,7 +9,7 @@ interface AddressCardProps {
 
 export default function AddressCard({ address, handleDeleteAddress,handleEditAddress,handleClickAddress }: AddressCardProps) {
   return (
-    <div className="p-6 flex justify-between items-start border-b border-gray-200">
+    <div className="p-6 flex justify-between items-start border-b border-gray-200 bg-[#F8F8F8]">
 
       <div className="cursor-pointer text-gray-900" onClick={handleClickAddress ? ()=> handleClickAddress(address) : undefined}>
         <div className="flex items-center gap-4 mb-3">

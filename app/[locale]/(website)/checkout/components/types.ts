@@ -51,6 +51,7 @@ export interface CartItem {
   picbook_name: string;
   picbook_cover: string;
   message: string;
+  status: string;
 }
 
 export interface ShippingErrors {

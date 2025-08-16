@@ -5,7 +5,7 @@ interface DisplayPriceProps {
 
 const DisplayPrice = ({value = 0, style}:DisplayPriceProps) => {  
   return (
-    <span className={`${style || 'text-gray-800'}`}>${value} USD</span>
+    <span className={`${style || 'text-gray-800'}`}>${value.toFixed(2)} USD</span>
   );
 };
 
