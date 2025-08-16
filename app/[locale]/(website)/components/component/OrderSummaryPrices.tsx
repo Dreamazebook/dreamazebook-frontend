@@ -11,11 +11,12 @@ const OrderSummaryPrices = ({orderDetail}:OrderSummaryPricesProps) => {
   const shippingCost = order?.shipping_cost || 0;
   const subtotal = total - shippingCost;
   const discount = 0; // No discount in the original code
+  const numberItems = order?.items?.length || 0;
 
   return (
     <div className="border-t border-gray-200 pt-4 space-y-2">
       <div className="flex justify-between text-sm">
-        <p>Subtotal</p>
+        <p>Subtotal ({numberItems} {numberItems > 1 ? 'items' : 'item'})</p>
         <DisplayPrice value={subtotal} />
       </div>
       <div className="flex justify-between text-sm">
