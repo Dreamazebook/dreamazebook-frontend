@@ -11,6 +11,7 @@ import { ApiResponse } from '@/types/api';
 import { API_ORDER_PROGRESS } from '@/constants/api';
 import OrderSummaryPrices from '../components/component/OrderSummaryPrices';
 import AddressCard from '../components/address/AddressCard';
+import OrderItem from '../components/component/OrderItem';
 
 const OrderSummary: React.FC = () => {
   const {fetchOrderDetail} = useUserStore();
@@ -93,35 +94,18 @@ const OrderSummary: React.FC = () => {
         {/* 订单列表 */}
         <div className="space-y-4 mb-6">
           {orderDetail?.order?.items.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center bg-white rounded p-4"
-            >
-              <Image
-                src={item.picbook_cover}
-                alt={item.picbook_name}
-                width={80}          // 对应 className w-20 (20 * 4 = 80 px)
-                height={80}         // 对应 className h-20
-                className="object-cover rounded mr-4"
-              />
-              <div className="flex-1">
-                <p className="font-semibold">{item.picbook_name}</p>
-                <p className="text-gray-500 text-sm">{item.message}</p>
-              </div>
-              <DisplayPrice value={item.total_price} style='text-gray-800' />
-            </div>
+            <OrderItem key={item.id} orderItem={item} />
           ))}
         </div>
 
         {/* 费用小结 & 收货信息 */}
         <div className="grid gap-4 mb-6 bg-white p-4">
-          
-          <AddressCard address={orderDetail?.order?.shipping_address} />
-          
           {orderDetail &&
-          <OrderSummaryPrices orderDetail={orderDetail} />
+            <>
+            <AddressCard address={orderDetail?.order?.shipping_address} />
+            <OrderSummaryPrices orderDetail={orderDetail} />
+            </>
           }
-
         </div>
 
         {/* 操作按钮 */}
