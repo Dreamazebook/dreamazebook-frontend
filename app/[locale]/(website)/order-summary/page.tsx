@@ -1,11 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { OrderDetailResponse } from '../checkout/components/types';
 import useUserStore from '@/stores/userStore';
-import DisplayPrice from '../components/component/DisplayPrice';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
 import { API_ORDER_PROGRESS } from '@/constants/api';
@@ -13,6 +11,7 @@ import OrderSummaryPrices from '../components/component/OrderSummaryPrices';
 import AddressCard from '../components/address/AddressCard';
 import OrderItem from '../components/component/OrderItem';
 import StepIndicator from './components/StepIndicator';
+import OrderSummaryDelivery from '../components/component/OrderSummaryDelivery';
 
 const OrderSummary: React.FC = () => {
   const {fetchOrderDetail} = useUserStore();
@@ -78,7 +77,7 @@ const OrderSummary: React.FC = () => {
         <div className="grid gap-4 mb-6 bg-white p-4">
           {orderDetail &&
             <>
-            <AddressCard address={orderDetail?.order?.shipping_address} />
+            <OrderSummaryDelivery orderDetail={orderDetail.order} />
             <OrderSummaryPrices orderDetail={orderDetail} />
             </>
           }
