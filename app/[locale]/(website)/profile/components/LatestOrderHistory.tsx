@@ -4,6 +4,7 @@ import { formatAddress } from "@/types/address";
 import { OrderDetail } from "../../checkout/components/types";
 import DisplayPrice from "../../components/component/DisplayPrice";
 import OrderItem from "../../components/component/OrderItem";
+import { formatDate } from "@/app/[locale]/admin/orders/utils";
 
 export default function LatestOrderHistory({ orderDetail }:{orderDetail:OrderDetail}) {
   const {order_number,status,shipping_address,total_amount,items,updated_at} = orderDetail;
@@ -17,14 +18,14 @@ export default function LatestOrderHistory({ orderDetail }:{orderDetail:OrderDet
         </span>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
-        <div className="space-y-1">
-          <div><span className="font-medium">Ship to</span> {formatAddress(shipping_address)}</div>
-          <div><span className="font-medium">Order date</span> {updated_at}</div>
-          {/* <div><span className="font-medium">Qty</span> 1</div> */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-[#222] mb-4 bg-[#F8F8F8] p-3">
+        <div className="space-y-3">
+          <div><span className="font-medium text-[#999] mr-4">Ship to</span> {formatAddress(shipping_address)}</div>
+          <div><span className="font-medium text-[#999] mr-4">Order date</span> {formatDate(updated_at)}</div>
+          {/* <div><span className="font-medium text-[#999] mr-4">Qty</span> 1</div> */}
         </div>
         <div>
-          <div><span className="font-medium">Delivery date</span> </div>
+          <div><span className="font-medium text-[#999] mr-4">Delivery date</span> </div>
         </div>
       </div>
 
