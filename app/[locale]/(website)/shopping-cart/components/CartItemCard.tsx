@@ -8,14 +8,16 @@ import { Link, useRouter } from '@/i18n/routing';
 import { useState } from 'react';
 
 interface CartItemProps {
+  showEditBook?: boolean;
   item: CartItemType;
-  selectedItems: number[];
+  selectedItems?: number[];
   onQuantityChange?: (id: number, delta: number) => void;
   onRemoveItem?: (id: number) => void;
   onToggleSelect?: (id: number) => void;
 }
 
-export default function CartItem({ 
+export default function CartItemCard({ 
+  showEditBook,
   item,
   selectedItems,
   onQuantityChange,
@@ -30,7 +32,7 @@ export default function CartItem({
   return (
     <div key={item.id} className="bg-white rounded-xl p-4 shadow-sm">
       <div className="flex items-center gap-3">
-        {onToggleSelect &&
+        {(onToggleSelect && selectedItems) && 
         <input
           type="checkbox"
           className="mt-1 h-6 w-6 accent-blue-600 rounded-2xl"
@@ -53,6 +55,8 @@ export default function CartItem({
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="font-bold">{item.picbook_name}</h3>
+                  <p className="text-gray-500 text-sm">{item.message}</p>
+                  <p className='capitalize'>{item.status}</p>
                   {(item.edition || item.description) && (
                     <p className="text-sm text-gray-600">
                       {item.edition}
@@ -111,6 +115,7 @@ export default function CartItem({
                 </div>
               </div>
               
+              {showEditBook &&
               <Link
                 href={`/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit`}
                 className="text-sm text-blue-600 hover:underline mt-2"
@@ -120,7 +125,7 @@ export default function CartItem({
                 }}
               >
                 Edit Book
-              </Link>
+              </Link>}
             </div>
           </div>
           

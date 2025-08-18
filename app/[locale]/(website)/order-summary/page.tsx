@@ -12,6 +12,7 @@ import AddressCard from '../components/address/AddressCard';
 import OrderItem from '../components/component/OrderItem';
 import StepIndicator from './components/StepIndicator';
 import OrderSummaryDelivery from '../components/component/OrderSummaryDelivery';
+import CartItemCard from '../shopping-cart/components/CartItemCard';
 
 const OrderSummary: React.FC = () => {
   const {fetchOrderDetail} = useUserStore();
@@ -69,7 +70,7 @@ const OrderSummary: React.FC = () => {
         {/* 订单列表 */}
         <div className="space-y-4 mb-6">
           {orderDetail?.order?.items.map((item) => (
-            <OrderItem key={item.id} orderItem={item} />
+            <CartItemCard item={item} />
           ))}
         </div>
 
