@@ -27,7 +27,7 @@
     "orderHistory": "Order History",
     "loyalty": "Loyalty",
     "logout": "Log out",
-    "goodMorning": "Good Morning, {{name}} !",
+    "goodMorning": "Good Morning,",
     "menu": "Menu"
   },
   "HomePage": {

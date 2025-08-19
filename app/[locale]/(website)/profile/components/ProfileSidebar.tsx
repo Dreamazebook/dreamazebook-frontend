@@ -72,7 +72,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
             </div>
           </div>
           <div className="text-sm md:text-lg font-medium text-gray-700 hidden sm:block">
-            {t("goodMorning", { name: user?.name })}
+            {t("goodMorning")} {user?.name || 'User'}
           </div>
         </div>
       </div>
