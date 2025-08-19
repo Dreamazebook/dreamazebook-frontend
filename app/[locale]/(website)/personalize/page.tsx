@@ -20,6 +20,8 @@ export interface PersonalizeFormData2 {
   fullName: string;
   gender: '' | 'boy' | 'girl';
   skinColor: string;
+  hairstyle: string;
+  hairColor: string;
   photos: string[]; // 更新为支持多张图片
   birthSeason: '' | 'spring' | 'summer' | 'autumn' | 'winter';
   dob: Date | null;
@@ -94,9 +96,9 @@ export default function PersonalizePage() {
 
     switch (selectedFormType) {
       case 'SINGLE1':
-        return <SingleCharacterForm1 ref={singleForm1Ref} />;
+        return <SingleCharacterForm1 ref={singleForm1Ref} bookId={bookId || '1'} />;
       case 'SINGLE2':
-        return <SingleCharacterForm2 ref={singleForm2Ref} />;
+        return <SingleCharacterForm2 ref={singleForm2Ref} bookId={bookId || '1'} />;
       case 'DOUBLE':
         // return <DoubleCharacterForm />;
       default:
@@ -109,6 +111,8 @@ export default function PersonalizePage() {
     let fullName: string;
     let genderRaw: '' | 'boy' | 'girl';
     let skinColorRaw: string;
+    let hairstyleRaw: string;
+    let hairColorRaw: string;
     let photoData: BasicInfoData['photo'] = null;
     let photosData: string[] = [];
   
@@ -120,6 +124,8 @@ export default function PersonalizePage() {
       fullName      = form1.fullName;
       genderRaw     = form1.gender;
       skinColorRaw  = form1.skinColor;
+      hairstyleRaw  = form1.hairstyle;
+      hairColorRaw  = form1.hairColor;
       photoData     = form1.photo;
       // 获取所有上传的图片路径
       photosData    = (form1 as any).photos || [];
@@ -130,6 +136,8 @@ export default function PersonalizePage() {
       fullName      = form2.fullName;
       genderRaw     = form2.gender;
       skinColorRaw  = form2.skinColor;
+      hairstyleRaw  = form2.hairstyle;
+      hairColorRaw  = form2.hairColor;
       photoData     = form2.photo;
       photosData    = [form2.photo?.path].filter(Boolean) as string[];
     } else {
@@ -156,6 +164,17 @@ export default function PersonalizePage() {
     ];
     const idx = skinColors.findIndex(c => c === skinColorRaw);
     const skinColorCode = idx >= 0 ? idx + 1 : 0; // 1,2,3
+
+    // 发型映射 (hair_1, hair_2, hair_3, hair_4 -> 1, 2, 3, 4)
+    const hairstyleCode = hairstyleRaw ? parseInt(hairstyleRaw.replace('hair_', '')) : 1;
+
+    // 发色映射
+    const hairColorMapping = {
+      'light': 1,
+      'brown': 2,
+      'dark': 3,
+    };
+    const hairColorCode = (hairColorMapping as any)[hairColorRaw] || 1;
   
     // 如果映射失败，也可以 return 或给默认
     if (!genderCode || !skinColorCode) {
@@ -171,6 +190,8 @@ export default function PersonalizePage() {
           language:  langParam || 'en',
           gender:    genderCode,
           skincolor: skinColorCode,
+          hairstyle: hairstyleCode,
+          haircolor: hairColorCode,
           photo:     photoData.path,
           // 如果有多张图片，也保存所有图片路径
           ...(photosData.length > 0 && { photos: photosData }),

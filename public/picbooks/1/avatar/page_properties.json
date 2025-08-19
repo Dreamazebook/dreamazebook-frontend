@@ -1,0 +1,59 @@
+{
+  "dpi": 300,
+  "skinToneFilter": {
+    "brown": {
+      "saturate": "+2",
+      "hue": "-4",
+      "brightness": "-31"
+    },
+    "dark": {
+      "brightness": "-80",
+      "contrast": "-30"
+    }
+  },
+  "hairColorFilter": {
+    "brown": {
+      "saturate": "+2",
+      "hue": "-4",
+      "brightness": "-31"
+    },
+    "dark": {
+      "brightness": "-80",
+      "contrast": "-30"
+    }
+  },
+  "text": [
+    {
+      "type": "dynamic",
+      "font": "Arial",
+      "fontWeight": "regular",
+      "fontSize": 12,
+      "fontUnit": "pt",
+      "color": "#3487b9",
+      "position": {"x": 846, "y": 488},
+      "alignment": "left"
+    },
+    {
+      "type": "static",
+      "text": "Test1",
+      "font": "Arial",
+      "fontWeight": "regular",
+      "fontSize": 12,
+      "fontUnit": "pt",
+      "color": "#3487b9",
+      "position": {"x": 1095, "y": 2369},
+      "alignment": "left"
+    },
+    {
+      "type": "static",
+      "text": "Test2",
+      "font": "Arial",
+      "fontWeight": "bold",
+      "fontSize": 8,
+      "fontUnit": "pt",
+      "color": "#ff0000",
+      "position": {"x": 1177, "y": 2621},
+      "alignment": "left"
+    }
+  ]
+}

@@ -4,6 +4,9 @@
 import React from 'react';
 import Image from 'next/image';
 import { FaCheck } from 'react-icons/fa';
+import HairstyleSelector from './HairstyleSelector';
+import HairColorSelector from './HairColorSelector';
+import AvatarCanvas from './AvatarCanvas';
 //import UploadArea from './UploadArea';
 //import useImageUpload from '../../hooks/useImageUpload';
 
@@ -11,6 +14,8 @@ export interface BasicInfoData {
   fullName: string;
   gender: '' | 'boy' | 'girl';
   skinColor: string;
+  hairstyle: string;
+  hairColor: string;
   photo: { file?: File; path: string } | null;
 }
 
@@ -21,6 +26,8 @@ interface BasicInfoFormProps {
   onChange: (field: keyof BasicInfoData, value: string | { file?: File; path: string } | null) => void;
   // 用于更新指定字段的错误状态
   onErrorChange?: (field: keyof BasicInfoData, error: string) => void;
+  // 书籍ID，用于获取发型图片
+  bookId?: string;
 }
 
 const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
@@ -29,6 +36,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   touched,
   onChange,
   onErrorChange,
+  bookId = '1', // 默认使用书籍ID 1
 }) => {
   // 图片上传相关的变量和函数已移至父组件 SingleCharacterForm1 和 SingleCharacterForm2
   /* 
@@ -107,6 +115,30 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
     }
   };
 
+  // hairstyle 的 onChange 与 onBlur 处理
+  const handleHairstyleSelect = (hairstyleValue: string) => {
+    onChange('hairstyle', hairstyleValue);
+    if (onErrorChange) onErrorChange('hairstyle', '');
+  };
+
+  const handleHairstyleBlur = () => {
+    if (!data.hairstyle) {
+      if (onErrorChange) onErrorChange('hairstyle', 'Please select hairstyle');
+    }
+  };
+
+  // hairColor 的 onChange 与 onBlur 处理
+  const handleHairColorSelect = (hairColorValue: string) => {
+    onChange('hairColor', hairColorValue);
+    if (onErrorChange) onErrorChange('hairColor', '');
+  };
+
+  const handleHairColorBlur = () => {
+    if (!data.hairColor) {
+      if (onErrorChange) onErrorChange('hairColor', 'Please select hair color');
+    }
+  };
+
   // photo 的 onChange（文件上传通常不使用 onBlur，此处仅在 onChange 后清除错误）
   // const handleUploadPhoto = (file: File) => {
   //   onChange('photo', { file, path: '' });
@@ -116,15 +148,16 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   return (
     <div className="space-y-6">
       {/* 预览图 */}
-      <div className="flex justify-center mb-6">
-        <Image
-          src="/character-placeholder.png"
-          alt="Character preview"
-          width={200}
-          height={200}
-          className="rounded-lg"
-        />
-      </div>
+                   <div className="flex justify-center mb-6">
+               <AvatarCanvas
+                 bookId={bookId}
+                 skinColor={data.skinColor || '#FFE2CF'}
+                 hairstyle={data.hairstyle || 'hair_1'}
+                 hairColor={data.hairColor || 'light'}
+                 width={200}
+                 height={200}
+               />
+             </div>
       <p className="text-center text-gray-500 mb-8">
         We will redesign the character in your image
       </p>
@@ -217,6 +250,29 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         {touched.skinColor && errors.skinColor && (
           <p className="text-red-500 text-sm mt-1">{errors.skinColor}</p>
         )}
+      </div>
+
+      {/* Hairstyle */}
+      <div>
+        <HairstyleSelector
+          bookId={bookId}
+          selectedHairstyle={data.hairstyle}
+          onChange={handleHairstyleSelect}
+          onBlur={handleHairstyleBlur}
+          error={errors.hairstyle}
+          touched={touched.hairstyle}
+        />
+      </div>
+
+      {/* Hair Color */}
+      <div>
+        <HairColorSelector
+          selectedHairColor={data.hairColor}
+          onChange={handleHairColorSelect}
+          onBlur={handleHairColorBlur}
+          error={errors.hairColor}
+          touched={touched.hairColor}
+        />
       </div>
 
       {/* Photo Upload

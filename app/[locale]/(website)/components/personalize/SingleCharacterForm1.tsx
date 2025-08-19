@@ -24,6 +24,8 @@ interface FormErrors {
   fullName?: string;
   gender?: string;
   skinColor?: string;
+  hairstyle?: string;
+  hairColor?: string;
   photo?: string;
   singleChoice?: string;
   multipleChoice?: string;
@@ -34,15 +36,20 @@ interface SingleCharacterForm1Props {
     fullName?: string;
     gender?: '' | 'boy' | 'girl';
     skinColor?: string;
+    hairstyle?: string;
+    hairColor?: string;
     photo?: { path: string } | null;
   };
+  bookId?: string;
 }
 
-const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharacterForm1Props>(({ initialData }, ref) => {
+const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharacterForm1Props>(({ initialData, bookId = '1' }, ref) => {
   const [formData, setFormData] = useState<PersonalizeFormData>({
     fullName: initialData?.fullName ?? '',
     gender: initialData?.gender ?? '',
     skinColor: initialData?.skinColor ?? '',
+    hairstyle: initialData?.hairstyle ?? 'hair_1', // 默认选择头发样式1
+    hairColor: initialData?.hairColor ?? 'light', // 默认选择浅色头发
     photo: initialData?.photo ? { path: initialData.photo.path } as any : null,
     singleChoice: '',
     multipleChoice: [],
@@ -129,6 +136,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
         fullName: true,
         gender: true,
         skinColor: true,
+        hairstyle: true,
+        hairColor: true,
         photo: true,
         singleChoice: true,
         multipleChoice: true,
@@ -138,6 +147,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       if (!formData.fullName.trim()) newErrors.fullName = 'Please enter the full name';
       if (!formData.gender) newErrors.gender = 'Please select gender';
       if (!formData.skinColor) newErrors.skinColor = 'Please select skin color';
+      if (!formData.hairstyle) newErrors.hairstyle = 'Please select hairstyle';
+      if (!formData.hairColor) newErrors.hairColor = 'Please select hair color';
       if (!formData.photo) newErrors.photo = 'Please upload a photo';
       if (!formData.singleChoice) newErrors.singleChoice = 'Please select one feature';
       if (formData.multipleChoice.length === 0) newErrors.multipleChoice = 'Please select at least one feature';
@@ -169,22 +180,29 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                 fullName: formData.fullName,
                 gender: formData.gender,
                 skinColor: formData.skinColor,
+                hairstyle: formData.hairstyle,
+                hairColor: formData.hairColor,
                 photo: formData.photo,
               }}
               errors={{
                 fullName: errors.fullName,
                 gender: errors.gender,
                 skinColor: errors.skinColor,
+                hairstyle: errors.hairstyle,
+                hairColor: errors.hairColor,
                 photo: errors.photo,
               }}
               touched={{
                 fullName: touched.fullName,
                 gender: touched.gender,
                 skinColor: touched.skinColor,
+                hairstyle: touched.hairstyle,
+                hairColor: touched.hairColor,
                 photo: touched.photo,
               }}
               onChange={handleBasicInfoChange}
               onErrorChange={handleErrorChange}
+              bookId={bookId}
             />
 
             {/* Photo Upload Section - 替换为多图片上传组件 */}
