@@ -68,17 +68,13 @@ export default function ShoppingCartPage() {
       ));
       
       // 调用API更新服务器
-      const {success} = await api.post<ApiResponse>(`${API_CART_UPDATE}/${id}`, {
+      const {success, data} = await api.post<ApiResponse>(`${API_CART_UPDATE}/${id}`, {
         quantity: Math.max(1, (cartItems.find(item => item.id === id)?.quantity || 1) + delta)
       });
       
       if (!success) {
         // 如果API失败，回滚本地状态
-        setCartItems(prev => prev.map(item => 
-          item.id === id 
-            ? {...item, quantity: Math.max(1, (item.quantity || 1) - delta)} 
-            : item
-        ));
+        setCartItems(data.cart_items || data.cart_item);
       }
     } catch (err) {
       console.error('Failed to update quantity:', err);

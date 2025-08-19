@@ -30,6 +30,7 @@ export interface CartItem {
   subItems?: CartSubItem[]; // 附加项目
   preview?: Preview;
   preview_id?: number;
+  status: string;
 }
 
 export interface CartItems {
