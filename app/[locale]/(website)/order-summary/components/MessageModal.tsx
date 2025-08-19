@@ -1,20 +1,19 @@
 import { useState } from "react";
 
-export default function DedicationModal() {
-  const [isOpen, setIsOpen] = useState(true);
+interface MessageModalProps {
+  handleMessageSubmit: (message: string) => void;
+  handleClose: () => void;
+}
+
+export default function MessageModal({handleClose, handleMessageSubmit}:MessageModalProps) {
   const [dedication, setDedication] = useState("Dear YUYSUSN,\n\nThe world is full of wonderful, surprising places to explore. May your days be full of discoveries, adventure and joy!");
   
   const maxLines = 10;
   const maxChars = 400;
   const remainingChars = maxChars - dedication.length;
   
-  const handleClose = () => {
-    setIsOpen(false);
-  };
-  
   const handleSubmit = () => {
-    console.log("Dedication submitted:", dedication);
-    setIsOpen(false);
+    handleMessageSubmit(dedication);
   };
   
   const countLines = (text:string) => {
@@ -29,19 +28,6 @@ export default function DedicationModal() {
       setDedication(newText);
     }
   };
-
-  if (!isOpen) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          Open Dedication Modal
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
