@@ -78,7 +78,7 @@ const OrderHistory = () => {
         {/* Order List */}
         <div className="space-y-6">
           {filteredOrders.map((order) => (
-            <OrderHistoryCard orderDetail={order} />
+            <OrderHistoryCard key={order.id} orderDetail={order} />
           ))}
         </div>
       </div>
