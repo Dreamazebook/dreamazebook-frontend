@@ -150,35 +150,10 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
         </div>
       </div>
 
-      {/* 已上传的图片显示 */}
-      {images.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          {images.map((image, index) => (
-            <div key={image.id} className="relative">
-              <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                <Image
-                  src={image.previewUrl}
-                  alt={`Uploaded image ${index + 1}`}
-                  width={200}
-                  height={200}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <button
-                onClick={() => onImageDelete(image.id)}
-                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600"
-              >
-                <FaRegTrashAlt className="w-3 h-3" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
       {/* 上传区域 - 借鉴UploadArea组件的UI */}
       {canUploadMore && (
         <div
-          className={`rounded p-4 text-center transition-colors min-h-[200px] flex flex-col items-center justify-center relative ${
+          className={`rounded p-4 text-center transition-colors h-[128px] flex flex-col items-center justify-center relative ${
             isDragging ? 'border-2 border-[#012CCE]' : 'bg-[#F8F8F8]'
           }`}
           onDragEnter={onDragEnter}
@@ -211,9 +186,9 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
                   >
                     Browse Files
                   </button>
-                  <p className="text-sm text-gray-500 mt-2">
+                  {/* <p className="text-sm text-gray-500 mt-2">
                     {images.length === 0 ? 'Upload 1-3 photos' : `Upload ${maxImages - images.length} more photo${maxImages - images.length > 1 ? 's' : ''}`}
-                  </p>
+                  </p> */}
                 </div>
               )}
             </>
@@ -222,7 +197,53 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
         </div>
       )}
 
-
+      {/* 已上传的图片显示 */}
+      {images.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          {images.map((image, index) => (
+            <div key={image.id} className="relative">
+              <div
+                className="relative bg-gray-100 rounded overflow-hidden"
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '128px',
+                }}
+              >
+                <Image
+                  src={image.previewUrl}
+                  alt={`Uploaded image ${index + 1}`}
+                  width={200}
+                  height={200}
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '128px',
+                    objectFit: 'contain',
+                  }}
+                  className="rounded-lg"
+                />
+                <button
+                  onClick={() => onImageDelete(image.id)}
+                  className="absolute top-0 right-0 bg-white shadow-md flex items-center justify-center"
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                    borderRadius: '0 0 0 4px',
+                  }}
+                >
+                  <FaRegTrashAlt
+                    style={{
+                      color: 'white',
+                      width: '18px',
+                      height: '18px',
+                    }}
+                  />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* 隐藏的文件输入 */}
       <input
