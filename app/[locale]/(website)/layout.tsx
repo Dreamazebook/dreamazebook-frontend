@@ -36,10 +36,9 @@ const philosopher = Philosopher({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: "Dreamazebook",
-  description: "Dreamazebook description",
-};
+import { sharedMetadata } from '@/components/metadata';
+
+export const metadata: Metadata = sharedMetadata;
 
 export default async function LocaleLayout({
   children,
