@@ -1,4 +1,4 @@
-import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT, API_USER_SEND_PASSWORD_RESET_EMAIL, API_ADDRESS_LIST, API_ADMIN_LOGIN, API_ORDER_LIST, API_ORDER_DETAIL } from '@/constants/api'
+import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT, API_USER_SEND_PASSWORD_RESET_EMAIL, API_ADDRESS_LIST, API_ADMIN_LOGIN, API_ORDER_LIST, API_ORDER_DETAIL, API_COUNTRY_LIST } from '@/constants/api'
 import api from '@/utils/api'
 import { ApiResponse, UserResponse } from '@/types/api'
 import { create } from 'zustand'
@@ -20,6 +20,9 @@ interface UserState {
   orderList: OrderDetail[]
   fetchOrderList: (options?:any) => void
   fetchOrderDetail: (orderId:string) => Promise<ApiResponse<OrderDetailResponse>>
+
+  countryList: []
+  fetchCountryList: () => void
 
   isLoggedIn: boolean
   login: (userData: LoginData) => Promise<ApiResponse<UserResponse> | null>
@@ -90,6 +93,17 @@ const useUserStore = create<UserState>((set,get) => ({
       console.error('Fetch addresses error:', error);
     }
   },
+
+
+  countryList: [],
+  fetchCountryList: async () => {
+    if (get().countryList.length == 0) {
+      const {data} = await api.get<ApiResponse>(API_COUNTRY_LIST);
+      set({'countryList': data});
+    }
+  },
+
+
   isLoggedIn: false,
   sendResetPasswordLink: async (email: string): Promise<boolean> => {
     try {

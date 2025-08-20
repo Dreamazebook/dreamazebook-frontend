@@ -6,6 +6,7 @@ import { Address } from '@/types/address';
 import AddressForm from './AddressForm';
 import AddressCard from '../../components/address/AddressCard';
 import AddressCardList from '../../components/address/AddressCardList';
+import useUserStore from '@/stores/userStore';
 
 interface ShippingFormProps {
   address: Address;
@@ -37,6 +38,8 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   const [showForm, setShowForm] = useState(false);
 
   const [showAddressList, setShowAddressList] = useState(false);
+
+  const {countryList, fetchCountryList} = useUserStore();
   
   // 当选择已保存的地址时，自动填充表单字段
   useEffect(() => {
@@ -48,6 +51,10 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
     //   }
     // }
   }, [addressList]);
+
+  useEffect(()=>{
+    fetchCountryList();
+  },[])
   
   const clearError = (field: keyof ShippingErrors) => {
     if (errors[field]) {
@@ -94,6 +101,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
           onClick={() => {
             setSelectedAddressId(null);
             setShowAddressList(true);
+            setShowForm(false);
           }}
         >
           <div className="flex items-center text-[#012CCE]">Change Address</div>

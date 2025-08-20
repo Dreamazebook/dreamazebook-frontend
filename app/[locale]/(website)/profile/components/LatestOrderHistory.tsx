@@ -3,6 +3,7 @@
 import { OrderDetail } from "../../checkout/components/types";
 import DisplayPrice from "../../components/component/DisplayPrice";
 import OrderItem from "../../components/component/OrderItem";
+import OrderStatusLabel from "../../components/component/OrderStatusLabel";
 import OrderSummaryDelivery from "../../components/component/OrderSummaryDelivery";
 
 export default function LatestOrderHistory({ orderDetail }:{orderDetail:OrderDetail}) {
@@ -12,9 +13,7 @@ export default function LatestOrderHistory({ orderDetail }:{orderDetail:OrderDet
     <div key={order_number} className="border rounded-lg p-3 md:p-4">
       <div className="flex flex-col sm:flex-row sm:items-center mb-5 gap-2">
         <span className="text-base md:text-lg font-medium text-gray-900">#{order_number}</span>
-        <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium w-fit capitalize">
-          {status}
-        </span>
+        <OrderStatusLabel status={status} />
       </div>
       
       <OrderSummaryDelivery orderDetail={orderDetail} />

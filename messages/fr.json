@@ -27,7 +27,7 @@
     "orderHistory": "Historique des commandes",
     "loyalty": "Fidélité",
     "logout": "Se déconnecter",
-    "goodMorning": "Bonjour, {{name}} !",
+    "goodMorning": "Bonjour,",
     "menu": "Menu"
   },
   "HomePage": {

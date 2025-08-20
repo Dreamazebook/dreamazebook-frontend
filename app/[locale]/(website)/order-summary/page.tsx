@@ -6,13 +6,12 @@ import { OrderDetailResponse } from '../checkout/components/types';
 import useUserStore from '@/stores/userStore';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
-import { API_ORDER_PROGRESS } from '@/constants/api';
+import { API_ORDER_PROGRESS, API_ORDER_UPDATE_MESSAGE } from '@/constants/api';
 import OrderSummaryPrices from '../components/component/OrderSummaryPrices';
-import AddressCard from '../components/address/AddressCard';
-import OrderItem from '../components/component/OrderItem';
 import StepIndicator from './components/StepIndicator';
 import OrderSummaryDelivery from '../components/component/OrderSummaryDelivery';
 import CartItemCard from '../shopping-cart/components/CartItemCard';
+import MessageModal from './components/MessageModal';
 
 const OrderSummary: React.FC = () => {
   const {fetchOrderDetail} = useUserStore();
@@ -38,13 +37,29 @@ const OrderSummary: React.FC = () => {
       fetchSummaryOrder(orderId);
       getOrderProgress(orderId);
     }
-  },[])  
+  },[])
+
+
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const handleClickEditMessage = () => {
+    setShowMessageModal(true);
+  }
+  const handleMessageSubmit = async(updateMessage:string) => {
+    const {message, success, code, data} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_MESSAGE}/${orderDetail?.order.id}`,{message:updateMessage});
+    if (success) {
+      setShowMessageModal(false);
+    } else {
+      alert(message);
+    }
+  }
 
   // 计算费用小结
   const discount = 0;   // 如果有优惠就填入相应数值
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
+
+      {showMessageModal && <MessageModal handleClose={()=>setShowMessageModal(false)} handleMessageSubmit={handleMessageSubmit}/>}
       {/* 容器 */}
       <div className="max-w-5xl mx-auto p-6">
         {/* 标题与提示 */}
@@ -70,7 +85,7 @@ const OrderSummary: React.FC = () => {
         {/* 订单列表 */}
         <div className="space-y-4 mb-6">
           {orderDetail?.order?.items.map((item) => (
-            <CartItemCard item={item} />
+            <CartItemCard item={item} handleClickEditMessage={handleClickEditMessage} />
           ))}
         </div>
 

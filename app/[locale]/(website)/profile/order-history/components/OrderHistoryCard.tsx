@@ -3,18 +3,7 @@ import { OrderDetail } from "../../../checkout/components/types";
 import DisplayPrice from "../../../components/component/DisplayPrice";
 import { formatDate } from "@/app/[locale]/admin/orders/utils";
 import { Link } from "@/i18n/routing";
-
-const getStatusColor = (status: string) => {
-  switch(status) {
-    case 'paid': return 'text-[#296849] bg-[#E7EDDE]';
-    case 'preparing': return 'text-[#AC7B00] bg-[#FFEDC8]';
-    case 'processing': return 'text-orange-500';
-    case 'shipped' : return 'text-[#1963C3] bg-[#E2EEFF]';
-    case 'delivered': return 'text-[#666666] bg-[#F0F0F0]';
-    case 'cancelled': return 'text-[#CF0F02] bg-[#FCF2F2]';
-    default: return 'text-gray-500';
-  }
-};
+import OrderStatusLabel from "../../../components/component/OrderStatusLabel";
 
 const OrderHistoryCard = ({orderDetail}:{orderDetail:OrderDetail}) => {
   return (
@@ -51,7 +40,7 @@ const OrderHistoryCard = ({orderDetail}:{orderDetail:OrderDetail}) => {
         <div className="flex justify-between items-start mb-2">
           <div className="flex items-center gap-2">
             <span className="text-gray-900 font-medium text-base">#{orderDetail.order_number}</span>
-            <span className={`${getStatusColor(orderDetail.status)} px-1 py-0.5 rounded capitalize font-medium`}>{orderDetail.status}</span>
+            <OrderStatusLabel status={orderDetail.status} />
           </div>
           <DisplayPrice value={orderDetail.total_amount} style='text-lg font-semibold text-gray-900' />
         </div>

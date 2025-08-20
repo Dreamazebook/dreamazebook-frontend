@@ -14,6 +14,7 @@ interface CartItemProps {
   onQuantityChange?: (id: number, delta: number) => void;
   onRemoveItem?: (id: number) => void;
   onToggleSelect?: (id: number) => void;
+  handleClickEditMessage?: () => void;
 }
 
 export default function CartItemCard({ 
@@ -23,6 +24,7 @@ export default function CartItemCard({
   onQuantityChange,
   onRemoveItem,
   onToggleSelect,
+  handleClickEditMessage
   }: CartItemProps) {
   const t = useTranslations('ShoppingCart');
   const router = useRouter();
@@ -57,6 +59,8 @@ export default function CartItemCard({
                   <h3 className="font-bold">{item.picbook_name}</h3>
                   <p className="text-gray-500 text-sm">{item.message}</p>
                   <p className='capitalize'>{item.status}</p>
+                  {handleClickEditMessage && 
+                  <span className='cursor-pointer text-[#012CCE]' onClick={handleClickEditMessage}>Edit</span>}
                   {(item.edition || item.description) && (
                     <p className="text-sm text-gray-600">
                       {item.edition}
