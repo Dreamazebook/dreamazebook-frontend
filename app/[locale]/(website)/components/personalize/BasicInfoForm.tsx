@@ -239,7 +239,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                 style={{
                   backgroundColor: color.value,
                   ...(data.skinColor === color.value
-                    ? { boxShadow: `0 0 0 3px ${color.label === 'Fair' ? '#FFCDAC' : color.value + '80'}` }
+                    ? { boxShadow: `0 0 0 4px ${color.label === 'Fair' ? '#FFCDAC' : color.value + '80'}` }
                     : {}),
                 }}
                 onClick={() => handleSkinColorSelect(color.value)}

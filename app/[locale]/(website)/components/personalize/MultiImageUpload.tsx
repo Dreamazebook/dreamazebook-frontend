@@ -56,7 +56,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
       {/* 标题和说明 */}
       <div>
         <label className="block mb-2 flex items-center">
-          <span className="text-lg font-medium">Upload 1–3 Clear Photos</span>
+          <span className="font-medium">Upload 1–3 Clear Photos</span>
           <span className="text-gray-400 inline-flex items-center group relative font-normal">
             <FaQuestionCircle className="w-4 h-4 ml-2" />
             <div className="hidden group-hover:block absolute left-0 top-6 w-64 p-2 bg-white/80 text-gray-800 text-sm rounded shadow-lg z-10 backdrop-blur">

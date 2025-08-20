@@ -20,9 +20,9 @@ const HairColorSelector: React.FC<HairColorSelectorProps> = ({
 }) => {
   // 发色选项，参考page_properties.json中的hairColorFilter
   const hairColors = [
-    { value: 'light', label: '浅色', color: '#D2B48C' },     // 浅棕色
-    { value: 'brown', label: '棕色', color: '#654321' },     // 深棕色
-    { value: 'dark', label: '黑色', color: '#2F1B14' },      // 黑色
+    { value: 'light', label: '浅色', color: '#FFD98D' },     // 浅棕色
+    { value: 'brown', label: '棕色', color: '#FF9837' },     // 深棕色
+    { value: 'dark', label: '黑色', color: '#2F1E10' },      // 黑色
   ];
 
   const handleHairColorSelect = (colorValue: string) => {
@@ -42,7 +42,7 @@ const HairColorSelector: React.FC<HairColorSelectorProps> = ({
               style={{
                 backgroundColor: color.color,
                 ...(selectedHairColor === color.value
-                  ? { boxShadow: `0 0 0 3px ${color.color}80` }
+                  ? { boxShadow: `0 0 0 4px ${color.color}80` }
                   : {}),
               }}
               onClick={() => handleHairColorSelect(color.value)}

@@ -379,7 +379,12 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       width={width}
       height={height}
       className="rounded-lg"
-      style={{ maxWidth: '100%', height: 'auto' }}
+      style={{ 
+        maxWidth: '100%', 
+        height: 'auto',
+        transform: 'scale(1.5)',
+        transformOrigin: 'center'
+      }}
     />
   );
 };
