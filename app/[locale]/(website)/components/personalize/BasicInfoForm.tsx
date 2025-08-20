@@ -154,8 +154,8 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                  skinColor={data.skinColor || '#FFE2CF'}
                  hairstyle={data.hairstyle || 'hair_1'}
                  hairColor={data.hairColor || 'light'}
-                 width={200}
-                 height={200}
+                 width={300}
+                 height={300}
                />
              </div>
       <p className="text-center text-gray-500 mb-8">
