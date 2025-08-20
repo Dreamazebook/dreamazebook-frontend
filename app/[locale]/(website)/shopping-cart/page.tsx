@@ -144,6 +144,7 @@ export default function ShoppingCartPage() {
   const shipping = 0;
   const total = subtotal + shipping - discount;
 
+  const [appliedCoupon, setAppliedCoupon] = useState('');
   const handleApplyCoupon = (code: string) => {
     // 这里应该是调用API验证优惠码并获取折扣金额
     // 为了演示，我们假设"BLACKFRIDAY"优惠码会给25%的折扣
