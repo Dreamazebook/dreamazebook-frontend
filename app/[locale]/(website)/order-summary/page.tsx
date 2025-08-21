@@ -85,7 +85,7 @@ const OrderSummary: React.FC = () => {
         {/* 订单列表 */}
         <div className="space-y-4 mb-6">
           {orderDetail?.order?.items.map((item) => (
-            <CartItemCard item={item} handleClickEditMessage={handleClickEditMessage} />
+            <CartItemCard key={item.id} item={item} handleClickEditMessage={handleClickEditMessage} />
           ))}
         </div>
 

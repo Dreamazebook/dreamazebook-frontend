@@ -204,7 +204,7 @@ export default function ShoppingCartPage() {
           </div>
           
           <div className="lg:w-1/3 relative">
-            <div className="bg-white rounded-xl p-6 shadow-sm sticky top-4 right-0">
+            <div className="bg-white rounded p-6 shadow-sm sticky top-4 right-0">
               <h2 className="text-xl font-bold mb-6">{t('orderSummary')}</h2>
               
               <div className="mb-6">

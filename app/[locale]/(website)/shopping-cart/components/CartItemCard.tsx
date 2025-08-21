@@ -32,7 +32,7 @@ export default function CartItemCard({
   const [isLoading, setIsLoading] = useState(false);
   
   return (
-    <div key={item.id} className="bg-white rounded-xl p-4 shadow-sm">
+    <div className="bg-white rounded p-4 shadow-sm">
       <div className="flex items-center gap-3">
         {(onToggleSelect && selectedItems) && 
         <div className="relative inline-block h-6 w-6 mt-1">
@@ -58,12 +58,11 @@ export default function CartItemCard({
             
             <div className="flex-1">
               <div className="flex justify-between items-start">
-                <div>
+                <div className='space-y-2'>
                   <h3 className="font-bold">{item.picbook_name}</h3>
-                  <p className="text-gray-500 text-sm">{item.message}</p>
+                  <p className='text-[#666666] font-[400]'>Premium Jumbo Hardcover | a festive gift box</p>
+                  {item.message && handleClickEditMessage && <p onClick={handleClickEditMessage} className="text-[#666] bg-[#f8f8f8] font-[400] p-1 cursor-pointer">{item.message}</p>}
                   <p className='capitalize'>{item.status}</p>
-                  {handleClickEditMessage && 
-                  <span className='cursor-pointer text-[#012CCE]' onClick={handleClickEditMessage}>Edit</span>}
                   {(item.edition || item.description) && (
                     <p className="text-sm text-gray-600">
                       {item.edition}
