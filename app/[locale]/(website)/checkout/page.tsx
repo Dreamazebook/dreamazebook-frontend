@@ -131,7 +131,7 @@ export default function CheckoutPage() {
 
   const updateOrderAddress = async (address: Address) => {
     setIsLoading(true);
-    const {data,code,message,success} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_ADDRESS}/${orderId}`, {shipping_address: address})
+    const {data,code,message,success} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_ADDRESS}/${orderId}`, {shipping_address: address,billing_address: address});
     if (success) {
       setOrderDetail(data);
       fetchOrderList();
