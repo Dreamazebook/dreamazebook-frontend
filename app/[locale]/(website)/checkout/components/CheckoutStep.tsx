@@ -24,11 +24,11 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
   return (
     <div className="mb-6">
       <div 
-        className={`flex items-center justify-between p-4 border ${isOpen ? 'border-b-0 rounded-t-lg' : 'rounded-lg'} ${isCompleted && !isOpen ? 'bg-gray-50' : 'bg-white'}`}
+        className={`flex items-center justify-between p-4 ${isOpen ? 'rounded' : 'rounded'} ${isCompleted && !isOpen ? 'bg-gray-50' : 'bg-white'}`}
         onClick={() => canOpen && onToggle()}
       >
         <div className="flex items-center">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${isCompleted ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'}`}>
+          <div className={`w-8 h-8 rounded flex items-center justify-center mr-3 ${isCompleted ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'}`}>
             {isCompleted ? (
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -54,7 +54,7 @@ const CheckoutStep: React.FC<CheckoutStepProps> = ({
         )}
       </div>
       {isOpen && (
-        <div className="border border-t-0 rounded-b-lg p-4 bg-white">
+        <div className="rounded p-4 bg-white">
           {children}
         </div>
       )}

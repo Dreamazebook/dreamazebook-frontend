@@ -6,6 +6,7 @@ import { Address, EMPTY_ADDRESS } from "@/types/address";
 import AddressForm from "./AddressForm";
 import AddressCard from "../../components/address/AddressCard";
 import useUserStore from "@/stores/userStore";
+import NextStepButton from "./NextStepButton";
 
 interface ShippingFormProps {
   address: Address;
@@ -120,13 +121,13 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
           By clicking Continue, you agree to ourterms & conditions and privacy
           policy
         </p>
-        <button
+
+        <NextStepButton
           disabled={!isAddressValidated()}
-          onClick={handleNextFromShipping}
-          className="inline-block mx-auto bg-[#222222] cursor-pointer text-white py-3 px-4 rounded transition-colors hover:opacity-80"
-        >
-          Continue to Delivery
-        </button>
+          handleOnClick={handleNextFromShipping}
+          text="Continue to Delivery"
+        />
+
       </div>
     </div>
   );

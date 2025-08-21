@@ -6,6 +6,7 @@ import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
 import { API_ORDER_SHIPPING_METHODS } from '@/constants/api';
 import DisplayPrice from '../../components/component/DisplayPrice';
+import NextStepButton from './NextStepButton';
 
 interface DeliveryOptionsProps {
   orderDetail: OrderDetail;
@@ -45,13 +46,12 @@ const DeliveryOptions: React.FC<DeliveryOptionsProps> = ({
         )}
       </div>
 
-      <div className="mt-6">
-        <button
-          onClick={handleNextFromDelivery}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-        >
-          Continue to Payment
-        </button>
+      <div className="mt-6 flex justify-center">
+        <NextStepButton
+          disabled={orderDetail.shipping_method === null}
+          handleOnClick={handleNextFromDelivery}
+          text="Continue to Payment"
+        />
       </div>
     </div>
   );
