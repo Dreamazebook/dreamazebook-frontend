@@ -68,28 +68,36 @@ export default function ShoppingCartPage() {
       ));
       
       // 调用API更新服务器
-      const {success, data} = await api.post<ApiResponse>(`${API_CART_UPDATE}/${id}`, {
+      const {success, code, message, data} = await api.post<ApiResponse>(`${API_CART_UPDATE}/${id}`, {
         quantity: Math.max(1, (cartItems.find(item => item.id === id)?.quantity || 1) + delta)
       });
       
       if (!success) {
         // 如果API失败，回滚本地状态
         setCartItems(data.cart_items || data.cart_item);
+        setError(message);
       }
     } catch (err) {
       console.error('Failed to update quantity:', err);
     }
   };
 
+  const [error, setError] = useState<string | undefined>('');
+
   const handleRemoveItem = async (id: number) => {
-    const {code,success,message,data} = await api.delete<ApiResponse>(`${API_CART_REMOVE}/${id}`);
-    if (success) {
-      // 移除主商品
-      setCartItems(prev => prev.filter(item => item.id !== id));
-      // 同时若已在选中列表中，也要移除
-      // setSelectedItems(prev => prev.filter(itemId => itemId !== id));
-    } else {
-      alert(message);
+    try {
+      const {code,success,message,data} = await api.delete<ApiResponse>(`${API_CART_REMOVE}/${id}`);
+      if (success) {
+        // 移除主商品
+        setCartItems(prev => prev.filter(item => item.id !== id));
+        // 同时若已在选中列表中，也要移除
+        // setSelectedItems(prev => prev.filter(itemId => itemId !== id));
+        setError('');
+      } else {
+        setError(message || t('removeItemFailed'));
+      }
+    } catch (err) {
+      setError(t('removeItemFailed'));
     }
   };
 
@@ -117,17 +125,23 @@ export default function ShoppingCartPage() {
   const handleCheckout = async () => {
     // const itemsToCheckout = cartItems.filter(item => selectedItems.includes(item.id));
     if (selectedItems.length === 0) {
-      alert(t('noItemsSelected'));
+      setError(t('noItemsSelected'));
       return;
     }
-    const {success,message,code,data} = await api.post<ApiResponse>(API_ORDER_CREATE, {
-      cart_item_ids: selectedItems,
-      payment_method:'stripe'
-    });
-    if (success) {
-      router.push(`/checkout?orderId=${data.order.id}`);
-    } else {
-      alert(message);
+    try {
+      const {success,message,code,data} = await api.post<ApiResponse>(API_ORDER_CREATE, {
+        cart_item_ids: selectedItems,
+        payment_method:'stripe'
+      });
+      if (success) {
+        setError('');
+        router.push(`/checkout?orderId=${data.order.id}`);
+      } else {
+        console.log(message);
+        setError(message || t('checkoutFailed'));
+      }
+    } catch (err) {
+      setError(t('checkoutFailed'));
     }
   };
 
@@ -164,6 +178,11 @@ export default function ShoppingCartPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="container mx-auto px-4">
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
         <CartHeader />
         
         <div className="flex flex-col lg:flex-row gap-6">
@@ -217,6 +236,22 @@ export default function ShoppingCartPage() {
               </div>
               
               <div className="space-y-2">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSelectedItems([])}
+                    disabled={selectedItems.length === 0}
+                    className="flex-1 py-3 cursor-pointer bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400"
+                  >
+                    {t('deselectAll')}
+                  </button>
+                  <button
+                    onClick={() => setSelectedItems(cartItems.map(item => item.id))}
+                    disabled={selectedItems.length === cartItems.length}
+                    className="flex-1 py-3 cursor-pointer bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400"
+                  >
+                    {t('selectAll')}
+                  </button>
+                </div>
                 <button
                   onClick={handleCheckout}
                   disabled={selectedItems.length === 0}
