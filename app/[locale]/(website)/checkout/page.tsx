@@ -5,7 +5,7 @@ import { useRouter } from '@/i18n/routing';
 import { useSearchParams } from 'next/navigation';
 import Loading from '../components/Loading';
 import api from '@/utils/api';
-import { API_ADDRESS_LIST, API_CREATE_STRIPE_PAYMENT, API_ORDER_DETAIL, API_ORDER_UPDATE_ADDRESS, API_ORDER_UPDATE_SHIPPING } from '@/constants/api';
+import { API_ADDRESS_LIST, API_ORDER_DETAIL, API_ORDER_UPDATE_ADDRESS, API_ORDER_UPDATE_SHIPPING } from '@/constants/api';
 import { Address, EMPTY_ADDRESS } from '@/types/address';
 import CheckoutStep from './components/CheckoutStep';
 import ShippingForm from './components/ShippingForm';
@@ -16,6 +16,7 @@ import OrderSummary from './components/OrderSummary';
 import { CartItem, ShippingErrors, BillingErrors, PaymentOption, OrderDetail, OrderDetailResponse, ShippingOption } from './components/types';
 import { ApiResponse } from '@/types/api';
 import useUserStore from '@/stores/userStore';
+import AddressCardListModal from './components/AddressCardListModal';
 
 export default function CheckoutPage() {
   const {addresses, fetchAddresses, fetchOrderList} = useUserStore();
@@ -28,28 +29,21 @@ export default function CheckoutPage() {
   // Loading and error states
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // Address list state
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
 
   // Step visibility state
   const [openStep, setOpenStep] = useState<number>(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
 
+  const [showAddressListModal, setShowAddressListModal] = useState<boolean>(false);
+
   // Shipping information state
-  const [address, setAddress] = useState<Address>(EMPTY_ADDRESS);
+  const [shippingAddress, setShippingAddress] = useState<Address>(EMPTY_ADDRESS);
   const [errors, setErrors] = useState<ShippingErrors>({});
 
   // Billing address state
   const [needsBillingAddress, setNeedsBillingAddress] = useState<boolean>(false);
-  const [billingEmail, setBillingEmail] = useState<string>('');
-  const [billingFirstName, setBillingFirstName] = useState<string>('');
-  const [billingLastName, setBillingLastName] = useState<string>('');
-  const [billingAddress, setBillingAddress] = useState<string>('');
-  const [billingCity, setBillingCity] = useState<string>('');
-  const [billingZip, setBillingZip] = useState<string>('');
-  const [billingCountry, setBillingCountry] = useState<string>('');
-  const [billingState, setBillingState] = useState<string>('');
+
+  const [billingAddress, setBillingAddress] = useState<Address>(EMPTY_ADDRESS);
   const [billingErrors, setBillingErrors] = useState<BillingErrors>({});
 
   // Delivery options state
@@ -82,9 +76,6 @@ export default function CheckoutPage() {
           //Todo: remove stripe_client_secret
           if (!data?.order) return;
           setOrderDetail(data);
-          if (data.order.shipping_address) {
-            setSelectedAddressId(data.order.shipping_address.id);
-          }
         } catch (err) { 
           setError('Failed to load order details');
           console.error('Error fetching order details:', err);
@@ -102,16 +93,6 @@ export default function CheckoutPage() {
     fetchAddresses();
   }, []);
 
-  useEffect(()=>{
-    if (selectedAddressId) {
-      const address = addresses.find((address) => address.id === selectedAddressId);
-      if (address && (address.id !== orderDetail?.order?.shipping_address?.id)) {
-        console.log('update address');
-        updateOrderAddress(address);
-      }
-    }
-  },[selectedAddressId])
-
   // Toggle step visibility
   const toggleStep = (stepNumber: number) => {
     if (openStep === stepNumber) {
@@ -125,7 +106,7 @@ export default function CheckoutPage() {
   };
 
   // Validate shipping information
-  const validateShippingInfo = () => {
+  const validateShippingInfo = (address: Address) => {
     const newErrors: ShippingErrors = {};
     
     if (!address.email) newErrors.email = "Email is required";
@@ -143,22 +124,10 @@ export default function CheckoutPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Validate billing information
-  const validateBillingInfo = () => {
-    if (!needsBillingAddress) return true;
-    
-    const newErrors: BillingErrors = {};
-    
-    if (!billingEmail) newErrors.billingEmail = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(billingEmail)) newErrors.billingEmail = "Invalid email address";
-    
-    if (!billingFirstName) newErrors.billingFirstName = "First name is required";
-    if (!billingLastName) newErrors.billingLastName = "Last name is required";
-    if (!billingAddress) newErrors.billingAddress = "Address is required";
-    
-    setBillingErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const handleClickAddress = (address: Address) => {
+    updateOrderAddress(address);
+    setShowAddressListModal(false);
+  }
 
   const updateOrderAddress = async (address: Address) => {
     setIsLoading(true);
@@ -173,18 +142,19 @@ export default function CheckoutPage() {
 
   // Handle next from shipping step
   const handleNextFromShipping = async() => {
-    if (validateShippingInfo() && validateBillingInfo()) {
+    if (validateShippingInfo(shippingAddress)) {
       let url = API_ADDRESS_LIST;
       let method = api.post;
-      if (address?.id) {
-        url = API_ADDRESS_LIST + '/' + address.id;
+      if (shippingAddress?.id) {
+        url = API_ADDRESS_LIST + '/' + shippingAddress.id;
         method = api.put;
       }
-      const {data,success,code,message} = await method<ApiResponse>(url, address);
+      setIsLoading(true);
+      const {data,success,code,message} = await method<ApiResponse>(url, shippingAddress);
+      setIsLoading(false);
       if (success) {
-        setAddress(EMPTY_ADDRESS);
+        setShippingAddress(EMPTY_ADDRESS);
         fetchAddresses({refresh:true});
-        setSelectedAddressId(data.id);
 
         updateOrderAddress(data);
         
@@ -209,6 +179,8 @@ export default function CheckoutPage() {
       <div className="container mx-auto px-4">
         <h1 className="text-2xl font-bold mb-8 text-center">Checkout</h1>
         {error && <div className="text-center text-red-500 py-4">{error}</div>}
+
+        {showAddressListModal && <AddressCardListModal handleClickAddress={handleClickAddress} handleCloseModal={() => setShowAddressListModal(false)} addressList={addresses} />}
         
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="lg:w-2/3">
@@ -224,39 +196,28 @@ export default function CheckoutPage() {
               {orderDetail &&
               <ShippingForm
                 orderDetail={orderDetail}
-                address={address}
-                setAddress={setAddress}
+                address={shippingAddress}
+                setAddress={setShippingAddress}
                 errors={errors}
                 setErrors={setErrors}
                 needsBillingAddress={needsBillingAddress}
                 setNeedsBillingAddress={setNeedsBillingAddress}
                 handleNextFromShipping={handleNextFromShipping}
-                addressList={addresses}
-                selectedAddressId={selectedAddressId}
-                setSelectedAddressId={setSelectedAddressId}
+                setShowAddressListModal={setShowAddressListModal}
               />
               }
               
-              {needsBillingAddress && (
-                <BillingAddressForm
-                  billingEmail={billingEmail}
-                  setBillingEmail={setBillingEmail}
-                  billingFirstName={billingFirstName}
-                  setBillingFirstName={setBillingFirstName}
-                  billingLastName={billingLastName}
-                  setBillingLastName={setBillingLastName}
-                  billingAddress={billingAddress}
-                  setBillingAddress={setBillingAddress}
-                  billingCity={billingCity}
-                  setBillingCity={setBillingCity}
-                  billingZip={billingZip}
-                  setBillingZip={setBillingZip}
-                  billingCountry={billingCountry}
-                  setBillingCountry={setBillingCountry}
-                  billingState={billingState}
-                  setBillingState={setBillingState}
-                  billingErrors={billingErrors}
-                  setBillingErrors={setBillingErrors}
+              {orderDetail && needsBillingAddress && (
+                <ShippingForm
+                  orderDetail={orderDetail}
+                  address={billingAddress}
+                  setAddress={setBillingAddress}
+                  errors={errors}
+                  setErrors={setErrors}
+                  needsBillingAddress={needsBillingAddress}
+                  setNeedsBillingAddress={setNeedsBillingAddress}
+                  handleNextFromShipping={handleNextFromShipping}
+                  setShowAddressListModal={setShowAddressListModal}
                 />
               )}
             </CheckoutStep>

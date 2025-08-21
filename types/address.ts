@@ -9,7 +9,8 @@ export const EMPTY_ADDRESS = {
   country: '',
   state: '',
   phone: '',
-  is_default: false
+  is_default: false,
+  type: 1,
 }
 
 export interface Address {
