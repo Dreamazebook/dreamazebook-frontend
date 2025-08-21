@@ -14,6 +14,7 @@ export const EMPTY_ADDRESS = {
 }
 
 export interface Address {
+  [key:string]: string|undefined|boolean|number;
   id?: string;
   email?: string;
   first_name?: string;
@@ -24,6 +25,7 @@ export interface Address {
   country?: string;
   state?: string;
   phone?: string;
+  type:number;
   is_default:boolean;
 }
 

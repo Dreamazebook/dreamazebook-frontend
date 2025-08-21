@@ -9,7 +9,6 @@ import { API_ADDRESS_LIST, API_ORDER_DETAIL, API_ORDER_UPDATE_ADDRESS, API_ORDER
 import { Address, EMPTY_ADDRESS } from '@/types/address';
 import CheckoutStep from './components/CheckoutStep';
 import ShippingForm from './components/ShippingForm';
-import BillingAddressForm from './components/BillingAddressForm';
 import DeliveryOptions from './components/DeliveryOptions';
 import ReviewAndPay from './components/ReviewAndPay';
 import OrderSummary from './components/OrderSummary';
@@ -38,13 +37,11 @@ export default function CheckoutPage() {
 
   // Shipping information state
   const [shippingAddress, setShippingAddress] = useState<Address>(EMPTY_ADDRESS);
-  const [errors, setErrors] = useState<ShippingErrors>({});
 
   // Billing address state
   const [needsBillingAddress, setNeedsBillingAddress] = useState<boolean>(false);
 
   const [billingAddress, setBillingAddress] = useState<Address>(EMPTY_ADDRESS);
-  const [billingErrors, setBillingErrors] = useState<BillingErrors>({});
 
   // Delivery options state
   const updateOrderShippingMethod = async (shippingOption: ShippingOption) => {
@@ -76,6 +73,12 @@ export default function CheckoutPage() {
           //Todo: remove stripe_client_secret
           if (!data?.order) return;
           setOrderDetail(data);
+          if (data.order.shipping_address) {
+            setShippingAddress(data.order.shipping_address);
+          }
+          if (data.order.billing_address) {
+            setBillingAddress(data.order.billing_address);
+          }
         } catch (err) { 
           setError('Failed to load order details');
           console.error('Error fetching order details:', err);
@@ -105,33 +108,21 @@ export default function CheckoutPage() {
     }
   };
 
-  // Validate shipping information
-  const validateShippingInfo = (address: Address) => {
-    const newErrors: ShippingErrors = {};
-    
-    if (!address.email) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(address.email)) newErrors.email = "Invalid email address";
-    
-    if (!address.first_name) newErrors.first_name = "First name is required";
-    if (!address.last_name) newErrors.last_name = "Last name is required";
-    if (!address.street) newErrors.address = "Address is required";
-    if (!address.city) newErrors.city = "City is required";
-    if (!address.post_code) newErrors.post_code = "Postal code is required";
-    if (!address.country) newErrors.country = "Country is required";
-    if (!address.state) newErrors.state = "State is required";
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleClickAddress = (address: Address) => {
     updateOrderAddress(address);
     setShowAddressListModal(false);
   }
 
   const updateOrderAddress = async (address: Address) => {
+    const options = {
+      shipping_address: address,
+      billing_address: address
+    };
+    if (needsBillingAddress) {
+      options.billing_address = billingAddress;
+    }
     setIsLoading(true);
-    const {data,code,message,success} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_ADDRESS}/${orderId}`, {shipping_address: address,billing_address: address});
+    const {data,code,message,success} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_ADDRESS}/${orderId}`, options);
     if (success) {
       setOrderDetail(data);
       fetchOrderList();
@@ -142,29 +133,27 @@ export default function CheckoutPage() {
 
   // Handle next from shipping step
   const handleNextFromShipping = async() => {
-    if (validateShippingInfo(shippingAddress)) {
-      let url = API_ADDRESS_LIST;
-      let method = api.post;
-      if (shippingAddress?.id) {
-        url = API_ADDRESS_LIST + '/' + shippingAddress.id;
-        method = api.put;
-      }
-      setIsLoading(true);
-      const {data,success,code,message} = await method<ApiResponse>(url, shippingAddress);
-      setIsLoading(false);
-      if (success) {
-        setShippingAddress(EMPTY_ADDRESS);
-        fetchAddresses({refresh:true});
-
-        updateOrderAddress(data);
-        
-      } else {
-        alert(message);
-        return;
-      }
+    let url = API_ADDRESS_LIST;
+    let method = api.post;
+    if (shippingAddress?.id) {
+      url = API_ADDRESS_LIST + '/' + shippingAddress.id;
+      method = api.put;
     }
-    setCompletedSteps([...completedSteps, 1]);
-    setOpenStep(2);
+    setIsLoading(true);
+    const {data,success,code,message} = await method<ApiResponse>(url, shippingAddress);
+    setIsLoading(false);
+    if (success) {
+      fetchAddresses({refresh:true});
+
+      updateOrderAddress(data);
+
+      setCompletedSteps([...completedSteps, 1]);
+      setOpenStep(2);
+      
+    } else {
+      alert(message);
+      return;
+    }
   };
 
   // Handle next from delivery step
@@ -198,28 +187,14 @@ export default function CheckoutPage() {
                 orderDetail={orderDetail}
                 address={shippingAddress}
                 setAddress={setShippingAddress}
-                errors={errors}
-                setErrors={setErrors}
+                billingAddress={billingAddress}
+                setBillingAddress={setBillingAddress}
                 needsBillingAddress={needsBillingAddress}
                 setNeedsBillingAddress={setNeedsBillingAddress}
                 handleNextFromShipping={handleNextFromShipping}
                 setShowAddressListModal={setShowAddressListModal}
               />
               }
-              
-              {orderDetail && needsBillingAddress && (
-                <ShippingForm
-                  orderDetail={orderDetail}
-                  address={billingAddress}
-                  setAddress={setBillingAddress}
-                  errors={errors}
-                  setErrors={setErrors}
-                  needsBillingAddress={needsBillingAddress}
-                  setNeedsBillingAddress={setNeedsBillingAddress}
-                  handleNextFromShipping={handleNextFromShipping}
-                  setShowAddressListModal={setShowAddressListModal}
-                />
-              )}
             </CheckoutStep>
             
             {/* Step 2: Delivery Options */}

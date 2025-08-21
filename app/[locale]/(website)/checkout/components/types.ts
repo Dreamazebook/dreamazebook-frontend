@@ -1,3 +1,5 @@
+import { Address } from "@/types/address";
+
 export function formatDate(date: string) {
   return date.split('T')[0];
 }
@@ -19,7 +21,7 @@ export interface OrderDetail {
   payment_status: string;
   payment_method: string | null;
   payment_id: string | null;
-  billing_address: string | null;
+  billing_address: Address;
   shipping_method: string;
   shipping_cost: number;
   tax_amount: number;
@@ -28,7 +30,7 @@ export interface OrderDetail {
   notes: string;
   stripe_payment_intent_id: string;
   stripe_client_secret: string;
-  shipping_address: any;
+  shipping_address: Address;
   shipping_options: ShippingOption[];
   paid_at: string | null;
   completed_at: string | null;

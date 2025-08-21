@@ -1,27 +1,54 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ShippingErrors } from './types';
 import { Address } from '@/types/address';
 
 interface AddressFormProps {
   address: Address;
   setAddress: (value: React.SetStateAction<Address>) => void;
-  errors: ShippingErrors;
-  clearError: (field: keyof ShippingErrors) => void;
 }
 
 const AddressForm: React.FC<AddressFormProps> = ({
   address,
   setAddress,
-  errors,
-  clearError
 }) => {
+  const [errors, setErrors] = useState<ShippingErrors>({});
+
+
+    const clearError = (field: keyof ShippingErrors) => {
+      if (errors[field]) {
+        setErrors({ ...errors, [field]: undefined });
+      }
+    };
+
+  // Validate shipping information
+  const validateShippingInfo = (address: Address) => {
+    const newErrors: ShippingErrors = {};
+    
+    if (!address.email) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(address.email)) newErrors.email = "Invalid email address";
+    
+    if (!address.first_name) newErrors.first_name = "First name is required";
+    if (!address.last_name) newErrors.last_name = "Last name is required";
+    if (!address.street) newErrors.address = "Address is required";
+    if (!address.city) newErrors.city = "City is required";
+    if (!address.post_code) newErrors.post_code = "Postal code is required";
+    if (!address.country) newErrors.country = "Country is required";
+    if (!address.state) newErrors.state = "State is required";
+    
+    return newErrors;
+  };
+  
+  useEffect(() => {
+    setErrors(validateShippingInfo(address));
+  }, [address]);
   return (
     <>
       <div className="mb-4">
         <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
         <input
+          required
           type="email"
           id="email"
           className={`w-full p-2 border rounded-md ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
@@ -38,6 +65,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
         <div>
           <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
           <input
+            required
             type="text"
             id="first_name"
             className={`w-full p-2 border rounded-md ${errors.first_name ? 'border-red-500' : 'border-gray-300'}`}
@@ -52,6 +80,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
         <div>
           <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
           <input
+            required
             type="text"
             id="last_name"
             className={`w-full p-2 border rounded-md ${errors.last_name ? 'border-red-500' : 'border-gray-300'}`}
@@ -70,6 +99,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
         <input
           type="text"
           id="address"
+          required
           className={`w-full p-2 border rounded-md ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
           value={address.street}
           onChange={(e) => {
@@ -86,6 +116,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
           <input
             type="text"
             id="city"
+            required
             className={`w-full p-2 border rounded-md ${errors.city ? 'border-red-500' : 'border-gray-300'}`}
             value={address.city}
             onChange={(e) => {
@@ -100,6 +131,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
           <input
             type="text"
             id="post_code"
+            required
             className={`w-full p-2 border rounded-md ${errors.post_code ? 'border-red-500' : 'border-gray-300'}`}
             value={address.post_code}
             onChange={(e) => {
@@ -116,6 +148,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
           <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">Country</label>
           <select
             id="country"
+            required
             className={`w-full p-2 border rounded-md ${errors.country ? 'border-red-500' : 'border-gray-300'}`}
             value={address.country}
             onChange={(e) => {
@@ -138,6 +171,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
           <input
             type="text"
             id="state"
+            required
             className={`w-full p-2 border rounded-md ${errors.state ? 'border-red-500' : 'border-gray-300'}`}
             value={address.state}
             onChange={(e) => {
@@ -150,10 +184,11 @@ const AddressForm: React.FC<AddressFormProps> = ({
       </div>
 
       <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number(optional)</label>
+        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
         <input
           type="text"
           id="phone"
+          required
           className={`w-full p-2 border rounded-md ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
           value={address.phone}
           onChange={(e) => {

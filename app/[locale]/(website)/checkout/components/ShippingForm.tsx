@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { OrderDetailResponse, ShippingErrors } from './types';
-import { Address } from '@/types/address';
-import AddressForm from './AddressForm';
-import AddressCard from '../../components/address/AddressCard';
-import useUserStore from '@/stores/userStore';
+import React, { useEffect, useState } from "react";
+import { OrderDetailResponse, ShippingErrors } from "./types";
+import { Address } from "@/types/address";
+import AddressForm from "./AddressForm";
+import AddressCard from "../../components/address/AddressCard";
+import useUserStore from "@/stores/userStore";
 
 interface ShippingFormProps {
   address: Address;
   setAddress: (value: React.SetStateAction<Address>) => void;
-  errors: ShippingErrors;
-  setErrors: (errors: ShippingErrors) => void;
+  billingAddress: Address;
+  setBillingAddress: (value: React.SetStateAction<Address>) => void;
   needsBillingAddress: boolean;
   setNeedsBillingAddress: (value: boolean) => void;
   handleNextFromShipping: () => void;
@@ -22,62 +22,70 @@ interface ShippingFormProps {
 const ShippingForm: React.FC<ShippingFormProps> = ({
   address,
   setAddress,
-  errors,
-  setErrors,
+  billingAddress,
+  setBillingAddress,
   needsBillingAddress,
   setNeedsBillingAddress,
   handleNextFromShipping,
   orderDetail,
-  setShowAddressListModal
+  setShowAddressListModal,
 }) => {
   const [showForm, setShowForm] = useState(false);
-  const {countryList, fetchCountryList} = useUserStore();
+  const { countryList, fetchCountryList } = useUserStore();
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchCountryList();
-  },[])
-  
-  const clearError = (field: keyof ShippingErrors) => {
-    if (errors[field]) {
-      setErrors({ ...errors, [field]: undefined });
+  }, []);
+
+  const isAddressValidated = () => {
+    console.log(address,billingAddress);
+    const REQUIRED_FIELDS = ["first_name", "last_name", "email", "street", "city", "post_code", "country", "state", "phone"];
+    for (const field of REQUIRED_FIELDS) {
+      if (!address[field]) {
+        return false;
+      }
+      if (needsBillingAddress && !billingAddress[field]) {
+        return false;
+      }
     }
-  };
+    return true;
+  }
 
   return (
     <div>
-      {orderDetail?.order?.shipping_address && <AddressCard style='bg-[#F8F8F8]' address={orderDetail.order.shipping_address} />}
+      {orderDetail?.order?.shipping_address && (
+        <AddressCard
+          style="bg-[#F8F8F8]"
+          address={orderDetail.order.shipping_address}
+        />
+      )}
       {/* 使用新地址选项 */}
-      <div className='flex items-center gap-5 my-5'>
-        <div 
-          role="button"
-          tabIndex={0}
-          className={`cursor-pointer`}
+      <div className="flex items-center gap-5 my-5">
+        <div
+          className={`cursor-pointer text-[#012CCE]`}
           onClick={() => {
             setShowForm(false);
             setShowAddressListModal(true);
           }}
         >
-          <div className="flex items-center text-[#012CCE]">Change Address</div>
+          Change Address
         </div>
-        <div 
-          role="button"
-          tabIndex={1}
-          className={`cursor-pointer`}
+        <div
+          className={`cursor-pointer text-[#012CCE]`}
           onClick={() => {
             setShowForm(true);
           }}
         >
-          <div className="flex items-center text-[#012CCE]">Add New Address</div>
+          Add New Address
         </div>
       </div>
-      
 
-      {showForm && <AddressForm
-  address={address}
-  setAddress={setAddress}
-  errors={errors}
-  clearError={clearError}
-/>}
+      {showForm && (
+        <AddressForm
+          address={address}
+          setAddress={setAddress}
+        />
+      )}
 
       <div className="mb-4">
         <div className="flex items-center">
@@ -88,16 +96,31 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
             checked={needsBillingAddress}
             onChange={(e) => setNeedsBillingAddress(e.target.checked)}
           />
-          <label htmlFor="needsBillingAddress" className="ml-2 block text-sm text-gray-700">
+          <label
+            htmlFor="needsBillingAddress"
+            className="ml-2 block text-sm text-gray-700"
+          >
             My billing address is different from my shipping address
           </label>
         </div>
       </div>
 
-      <div className="mt-6">
+      {needsBillingAddress && (
+        <AddressForm
+          address={billingAddress}
+          setAddress={setBillingAddress}
+        />
+      )}
+
+      <div className="mt-4 flex flex-col justify-center">
+        <p className="mb-2 text-center text-gray-500">
+          By clicking Continue, you agree to ourterms & conditions and privacy
+          policy
+        </p>
         <button
+          disabled={!isAddressValidated()}
           onClick={handleNextFromShipping}
-          className="w-full bg-blue-600 cursor-pointer text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+          className="inline-block mx-auto bg-[#222222] cursor-pointer text-white py-3 px-4 rounded transition-colors hover:opacity-80"
         >
           Continue to Delivery
         </button>
