@@ -50,8 +50,7 @@ const DeliveryOptions: React.FC<DeliveryOptionsProps> = ({
         <NextStepButton
           disabled={orderDetail.shipping_method === null}
           handleOnClick={handleNextFromDelivery}
-          text="Continue to Payment"
-        />
+        >Continue to Payment</NextStepButton>
       </div>
     </div>
   );

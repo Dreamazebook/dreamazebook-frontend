@@ -125,8 +125,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
         <NextStepButton
           disabled={!isAddressValidated()}
           handleOnClick={handleNextFromShipping}
-          text="Continue to Delivery"
-        />
+        >Continue to Delivery</NextStepButton>
 
       </div>
     </div>
