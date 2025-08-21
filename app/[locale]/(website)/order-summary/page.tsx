@@ -12,13 +12,15 @@ import StepIndicator from './components/StepIndicator';
 import OrderSummaryDelivery from '../components/component/OrderSummaryDelivery';
 import CartItemCard from '../shopping-cart/components/CartItemCard';
 import MessageModal from './components/MessageModal';
+import Loading from '../components/Loading';
 
 const OrderSummary: React.FC = () => {
   const {fetchOrderDetail} = useUserStore();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
 
-  const [orderDetail, setOrderDetail] = useState<OrderDetailResponse >();
+  const [orderDetail, setOrderDetail] = useState<OrderDetailResponse>();
+  const [isLoading, setIsLoading] = useState(true);
 
   const getOrderProgress = async(orderId:string) => {
     if (orderId) {
@@ -28,9 +30,13 @@ const OrderSummary: React.FC = () => {
 
   useEffect(()=>{
     const fetchSummaryOrder = async(orderId:string) => {
-      const {data,code,message,success} = await fetchOrderDetail(orderId);
-      if (success) {
-        setOrderDetail(data);
+      try {
+        const {data,code,message,success} = await fetchOrderDetail(orderId);
+        if (success) {
+          setOrderDetail(data);
+        }
+      } finally {
+        setIsLoading(false);
       }
     }
     if (orderId) {
@@ -55,6 +61,10 @@ const OrderSummary: React.FC = () => {
 
   // 计算费用小结
   const discount = 0;   // 如果有优惠就填入相应数值
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
