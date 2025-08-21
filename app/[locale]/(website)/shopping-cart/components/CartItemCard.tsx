@@ -35,12 +35,15 @@ export default function CartItemCard({
     <div key={item.id} className="bg-white rounded-xl p-4 shadow-sm">
       <div className="flex items-center gap-3">
         {(onToggleSelect && selectedItems) && 
-        <input
-          type="checkbox"
-          className="mt-1 h-6 w-6 accent-blue-600 rounded-2xl"
-          checked={selectedItems.includes(item.id)}
-          onChange={() => onToggleSelect(item.id)}
-        />
+        <div className="relative inline-block h-6 w-6 mt-1">
+          <span onClick={()=>onToggleSelect(item.id)} className={`absolute top-0 left-0 h-6 w-6 rounded-full border-2 ${selectedItems.includes(item.id) ? 'bg-[#012CCE]' : 'border-gray-300'} transition-colors duration-200 flex items-center justify-center`}>
+            {selectedItems.includes(item.id) && (
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </span>
+        </div>
         }
         
         <div className="flex-1">
