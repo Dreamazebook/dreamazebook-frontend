@@ -13,6 +13,7 @@ import { CartItem, CartItems } from './components/types';
 import CartHeader from './components/CartHeader';
 import CouponInput from './components/CouponInput';
 import CartItemList from './components/CartItemList';
+import Loading from '../components/Loading';
 
 export default function ShoppingCartPage() {
   const t = useTranslations('ShoppingCart');
@@ -35,9 +36,9 @@ export default function ShoppingCartPage() {
           // 默认全选所有商品
           setSelectedItems(data.cart_items.map(item => item.id));
         }
-        setLoading(false);
       } catch (err) {
         console.error('Failed to fetch carts:', err);
+      } finally {
         setLoading(false);
       }
     };
@@ -172,7 +173,7 @@ export default function ShoppingCartPage() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">{t('loading')}</div>;
+    return <Loading />
   }
 
   return (
@@ -202,8 +203,8 @@ export default function ShoppingCartPage() {
             )}
           </div>
           
-          <div className="lg:w-1/3">
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="lg:w-1/3 relative">
+            <div className="bg-white rounded-xl p-6 shadow-sm sticky top-4 right-0">
               <h2 className="text-xl font-bold mb-6">{t('orderSummary')}</h2>
               
               <div className="mb-6">
