@@ -19,7 +19,10 @@
     "couponCode": "Code de coupon",
     "enterCouponCode": "Entrez le code de coupon",
     "apply": "Appliquer",
-    "continueShopping": "Continuer vos achats"
+    "continueShopping": "Continuer vos achats",
+    "deselectAll": "Tout désélectionner",
+    "selectAll": "Tout sélectionner",
+    "checkoutFailed": "Échec du paiement"
   },
   "profileSidebar": {
     "home": "Accueil",
