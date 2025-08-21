@@ -90,9 +90,9 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
         </div>
       }
 
-      {orderDetail?.order?.shipping_address && <AddressCard address={orderDetail.order.shipping_address} />}
+      {orderDetail?.order?.shipping_address && <AddressCard style='bg-[#F8F8F8]' address={orderDetail.order.shipping_address} />}
       {/* 使用新地址选项 */}
-      <div className='flex items-center gap-5 mb-5'>
+      <div className='flex items-center gap-5 my-5'>
         <div 
           role="button"
           aria-checked={selectedAddressId === null}
