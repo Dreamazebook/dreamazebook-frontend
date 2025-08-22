@@ -79,7 +79,7 @@ export default function CheckoutPage() {
           if (data.order.billing_address) {
             setBillingAddress(data.order.billing_address);
           }
-          if (data.order.shipping_address.street !== data.order.billing_address.street) {
+          if (data.order.shipping_address?.street !== data.order.billing_address?.street) {
             setNeedsBillingAddress(true);
           }
         } catch (err) { 
