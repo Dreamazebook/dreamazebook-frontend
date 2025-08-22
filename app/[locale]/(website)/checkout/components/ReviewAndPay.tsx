@@ -71,7 +71,7 @@ const CheckoutForm: React.FC<{
       elements,
       redirect: 'if_required',
       confirmParams: {
-        // return_url: window.location.origin + `/order-summary?orderId=${orderDetail.order.id}`,
+        return_url: window.location.origin + `/order-summary?orderId=${orderDetail.order.id}`,
         receipt_email: shipping_address?.email || undefined,
       },
     });
