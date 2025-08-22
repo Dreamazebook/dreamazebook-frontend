@@ -41,7 +41,6 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   }, []);
 
   const isAddressValidated = () => {
-    console.log(address,billingAddress);
     const REQUIRED_FIELDS = ["first_name", "last_name", "email", "street", "city", "post_code", "country", "state", "phone"];
     for (const field of REQUIRED_FIELDS) {
       if (!address[field]) {
