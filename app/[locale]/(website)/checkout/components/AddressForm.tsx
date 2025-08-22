@@ -1,8 +1,38 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { ShippingErrors } from './types';
 import { Address } from '@/types/address';
+import api from '@/utils/api';
+import { ApiResponse } from '@/types/api';
+
+const PUBLIC_MAPBOX_API_KEY = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
+
+interface AddressSuggestionsProps {
+  addressSuggestions: any[];
+  handleAddressSuggestionClick: (suggestion: any) => void;
+}
+
+const AddressSuggestions: React.FC<AddressSuggestionsProps> = ({
+  addressSuggestions,
+  handleAddressSuggestionClick,
+}) => {
+  if (!addressSuggestions || addressSuggestions.length === 0) return null;
+
+  return (
+    <div className="mt-2 bg-white border border-gray-300 rounded-md shadow-lg">
+      {addressSuggestions.map((suggestion, index) => (
+        <div
+          key={index}
+          className="p-2 hover:bg-gray-100 cursor-pointer"
+          onClick={() => handleAddressSuggestionClick(suggestion)}
+        >
+          {suggestion.place_name}
+        </div>
+      ))}
+    </div>
+  );
+};
 
 interface AddressFormProps {
   address: Address;
@@ -38,6 +68,57 @@ const AddressForm: React.FC<AddressFormProps> = ({
     if (!address.state) newErrors.state = "State is required";
     
     return newErrors;
+  };
+
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const getAddressSuggestions = useCallback(async () => {
+    if (!address?.street || address?.street.length < 3) return;
+    try {
+      const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address?.street)}.json?access_token=${PUBLIC_MAPBOX_API_KEY}&limit=5`);
+      if (response.ok) {
+        const data = await response.json();
+        setAddressSuggestions(data.features);
+      }
+    } catch (error) {
+      console.error('Error fetching address suggestions:', error);
+    }
+  }, [address?.street]);
+
+  const debouncedGetAddressSuggestions = useCallback(() => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    debounceTimeoutRef.current = setTimeout(() => {
+      getAddressSuggestions();
+    }, 300);
+  }, [getAddressSuggestions]);
+
+  const handleAddressSuggestionClick = (suggestion: any) => {
+    const context = suggestion.context;
+    const street = suggestion.place_name.split(', ')[0];
+    let city = '';
+    let state = '';
+    let post_code = '';
+    let country = '';
+
+    context.forEach((item: any) => {
+      if (item.id.includes('place')) city = item.text;
+      if (item.id.includes('region')) state = item.text;
+      if (item.id.includes('postcode')) post_code = item.text;
+      if (item.id.includes('country')) country = item.short_code.toUpperCase();
+    });
+
+    setAddress(prev => ({
+      ...prev,
+      street: street.trim(),
+      city: city.trim(),
+      state: state.trim(),
+      post_code: post_code.trim(),
+      country: country.trim(),
+    }));
+    setAddressSuggestions([]);
   };
   
   useEffect(() => {
@@ -105,9 +186,14 @@ const AddressForm: React.FC<AddressFormProps> = ({
           onChange={(e) => {
             setAddress(prev => ({...prev, street: e.target.value}));
             clearError('address');
+            debouncedGetAddressSuggestions();
           }}
         />
         {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
+        <AddressSuggestions
+          addressSuggestions={addressSuggestions}
+          handleAddressSuggestionClick={handleAddressSuggestionClick}
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-4">
