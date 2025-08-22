@@ -6,7 +6,6 @@ import OrderDetailsModal from './components/OrderDetailsModal';
 import Pagination from './components/Pagination';
 import StatusFilter from './components/StatusFilter';
 import SearchBar from './components/SearchBar';
-import { mockOrders } from './mockData';
 import { OrderDetail } from '../../(website)/checkout/components/types';
 import api from '@/utils/api';
 import { API_ADMIN_ORDERS } from '@/constants/api';
@@ -58,13 +57,6 @@ const AdminOrdersPage: FC = () => {
         if (success) {
           setOrders(data);
         }
-
-        // 使用模拟数据
-        // setTimeout(() => {
-        //   setOrders(mockOrders);
-        //   setLoading(false);
-        // }, 800);
-        
       } catch (err) {
         console.error('Error fetching orders:', err);
         setError('Failed to load orders');
@@ -79,8 +71,8 @@ const AdminOrdersPage: FC = () => {
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 
       order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.shipping_address.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.shipping_address.lastName.toLowerCase().includes(searchTerm.toLowerCase());
+      order?.shipping_address?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order?.shipping_address?.last_name?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     
