@@ -117,6 +117,14 @@ export default function CheckoutPage() {
   }
 
   const updateOrderAddress = async (address: Address) => {
+    if (orderDetail?.order.shipping_address?.street === address.street) {
+      if (needsBillingAddress && orderDetail?.order.billing_address?.street === billingAddress.street) {
+        console.log('billing');
+        return;
+      }
+      console.log('shipping');
+      return;
+    }
     const options = {
       shipping_address: address,
       billing_address: address
@@ -136,6 +144,12 @@ export default function CheckoutPage() {
 
   // Handle next from shipping step
   const handleNextFromShipping = async() => {
+    if (orderDetail?.order.shipping_address.street === shippingAddress.street) {
+      setCompletedSteps([...completedSteps, 1]);
+      setOpenStep(2);
+      return;
+    }
+    
     let url = API_ADDRESS_LIST;
     let method = api.post;
     if (shippingAddress?.id) {
