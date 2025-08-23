@@ -73,7 +73,10 @@ const AddressForm: React.FC<AddressFormProps> = ({
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const getAddressSuggestions = useCallback(async () => {
-    if (!address?.street || address?.street.length < 3) return;
+    if (!address?.street || address?.street.length < 3) {
+      setAddressSuggestions([]);
+      return;
+    }
     try {
       const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address?.street)}.json?access_token=${PUBLIC_MAPBOX_API_KEY}&limit=5`);
       if (response.ok) {
@@ -189,10 +192,11 @@ const AddressForm: React.FC<AddressFormProps> = ({
           }}
         />
         {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
+        {address.street && 
         <AddressSuggestions
           addressSuggestions={addressSuggestions}
           handleAddressSuggestionClick={handleAddressSuggestionClick}
-        />
+        />}
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-4">
