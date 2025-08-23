@@ -112,6 +112,7 @@ export default function CheckoutPage() {
   };
 
   const handleClickAddress = (address: Address) => {
+    setShippingAddress(address);
     updateOrderAddress(address);
     setShowAddressListModal(false);
   }
