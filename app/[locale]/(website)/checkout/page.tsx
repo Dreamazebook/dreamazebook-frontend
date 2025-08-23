@@ -37,6 +37,7 @@ export default function CheckoutPage() {
 
   // Shipping information state
   const [shippingAddress, setShippingAddress] = useState<Address>(EMPTY_ADDRESS);
+  const [showShippingForm, setShowShippingForm] = useState<boolean>(false);
 
   // Billing address state
   const [needsBillingAddress, setNeedsBillingAddress] = useState<boolean>(false);
@@ -117,6 +118,12 @@ export default function CheckoutPage() {
     setShowAddressListModal(false);
   }
 
+  const handleEditAddress = (address: Address) => {
+    setShippingAddress(address);
+    setShowAddressListModal(false);
+    setShowShippingForm(true);
+  }
+
   const updateOrderAddress = async (address: Address) => {
     if (orderDetail?.order.shipping_address?.street === address.street) {
       if (needsBillingAddress && orderDetail?.order.billing_address?.street === billingAddress.street) {
@@ -187,7 +194,7 @@ export default function CheckoutPage() {
         <h1 className="text-2xl font-bold mb-8 text-center">Checkout</h1>
         {error && <div className="text-center text-red-500 py-4">{error}</div>}
 
-        {showAddressListModal && <AddressCardListModal handleClickAddress={handleClickAddress} handleCloseModal={() => setShowAddressListModal(false)} addressList={addresses} />}
+        {showAddressListModal && <AddressCardListModal handleClickAddress={handleClickAddress} handleEditAddress={handleEditAddress} handleCloseModal={() => setShowAddressListModal(false)} addressList={addresses} />}
         
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="lg:w-2/3">
@@ -211,6 +218,8 @@ export default function CheckoutPage() {
                 setNeedsBillingAddress={setNeedsBillingAddress}
                 handleNextFromShipping={handleNextFromShipping}
                 setShowAddressListModal={setShowAddressListModal}
+                showShippingForm={showShippingForm}
+                setShowShippingForm={setShowShippingForm}
               />
               }
             </CheckoutStep>

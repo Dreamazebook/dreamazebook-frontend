@@ -18,6 +18,8 @@ interface ShippingFormProps {
   handleNextFromShipping: () => void;
   orderDetail: OrderDetailResponse;
   setShowAddressListModal: (value: boolean) => void;
+  showShippingForm: boolean;
+  setShowShippingForm: (value: boolean) => void;
 }
 
 const ShippingForm: React.FC<ShippingFormProps> = ({
@@ -30,8 +32,9 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   handleNextFromShipping,
   orderDetail,
   setShowAddressListModal,
+  showShippingForm,
+  setShowShippingForm,
 }) => {
-  const [showShippingForm, setShowShippingForm] = useState(false);
   const { countryList, fetchCountryList } = useUserStore();
 
   // const [showBillingForm, setShowBillingForm] = useState(false);
