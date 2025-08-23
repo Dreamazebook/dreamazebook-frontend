@@ -3,8 +3,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { ShippingErrors } from './types';
 import { Address } from '@/types/address';
-import api from '@/utils/api';
-import { ApiResponse } from '@/types/api';
 
 const PUBLIC_MAPBOX_API_KEY = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
 
@@ -66,6 +64,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
     if (!address.post_code) newErrors.post_code = "Postal code is required";
     if (!address.country) newErrors.country = "Country is required";
     if (!address.state) newErrors.state = "State is required";
+    if (!address.phone) newErrors.phone = "Phone number is required";
     
     return newErrors;
   };
