@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { CartItem as CartItemType, Preview } from './types';
 import DisplayPrice from '../../components/component/DisplayPrice';
 import { Link, useRouter } from '@/i18n/routing';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface CartItemProps {
   showEditBook?: boolean;
@@ -30,6 +30,49 @@ export default function CartItemCard({
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [countdown, setCountdown] = useState<string | null>(null);
+
+  useEffect(()=>{
+    checkAndShowCountdown(item.created_at);
+    return () => {
+      setCountdown(null);
+    }
+  },[])
+
+  const checkAndShowCountdown = (createdAt: string) => {
+    const now = new Date();
+    const createdDate = new Date(createdAt);
+    const diffInMs = now.getTime() - createdDate.getTime();
+    const diffInHours = diffInMs / (1000 * 60 * 60);
+
+    if (diffInHours < 4) {
+      const remainingMs = 4 * 60 * 60 * 1000 - diffInMs;
+      const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+      const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((remainingMs % (1000 * 60)) / 1000);
+      setCountdown(`${hours}:${minutes}:${seconds}`);
+
+      const timer = setInterval(() => {
+        const updatedNow = new Date();
+        const updatedDiffInMs = updatedNow.getTime() - createdDate.getTime();
+        const updatedRemainingMs = 4 * 60 * 60 * 1000 - updatedDiffInMs;
+
+        if (updatedRemainingMs <= 0) {
+          clearInterval(timer);
+          setCountdown(null);
+        } else {
+          const updatedHours = Math.floor(updatedRemainingMs / (1000 * 60 * 60));
+          const updatedMinutes = Math.floor((updatedRemainingMs % (1000 * 60 * 60)) / (1000 * 60));
+          const updatedSeconds = Math.floor((updatedRemainingMs % (1000 * 60)) / 1000);
+          setCountdown(`${updatedHours}:${updatedMinutes}:${updatedSeconds}`);
+        }
+      }, 1000);
+
+      return () => clearInterval(timer);
+    } else {
+      setCountdown(null);
+    }
+  };
   
   return (
     <div className="bg-white rounded p-4 shadow-sm">
@@ -61,8 +104,14 @@ export default function CartItemCard({
                 <div className='space-y-2'>
                   <h3 className="font-bold">{item.picbook_name}</h3>
                   <p className='text-[#666666] font-[400]'>Premium Jumbo Hardcover | a festive gift box</p>
-                  {item.message && handleClickEditMessage && <p onClick={handleClickEditMessage} className="text-[#666] bg-[#f8f8f8] font-[400] p-1 cursor-pointer">{item.message}</p>}
-                  <p className='capitalize'>{item.status}</p>
+
+                  
+                  {countdown ? 
+                    <p className="text-sm text-gray-600">You can modify your message within {countdown} <a onClick={handleClickEditMessage} className='text-[#012CCE] cursor-pointer'>Edit</a></p>
+                    :
+                    <p onClick={handleClickEditMessage} className="text-[#666] bg-[#f8f8f8] font-[400] p-1 cursor-pointer">{item.message}</p>
+                  }
+                  
                   {(item.edition || item.description) && (
                     <p className="text-sm text-gray-600">
                       {item.edition}
@@ -98,7 +147,7 @@ export default function CartItemCard({
                     </button>
                   </div>}
                   
-                  <DisplayPrice value={item.total_price || item.price * item.quantity} />
+                  <DisplayPrice style='text-[#222222] font-bold' value={item.total_price || item.price * item.quantity} />
                   
                   
                   {onRemoveItem && 
