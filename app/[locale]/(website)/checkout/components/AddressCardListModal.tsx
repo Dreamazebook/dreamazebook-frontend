@@ -19,7 +19,7 @@ const AddressCardListModal: React.FC<AddressCardListModalProps> = ({
   handleClickAddress,
 }) => {
   return (
-    <div className='fixed inset-0 bg-black/50 overflow-y-auto h-screen w-screen' onClick={handleCloseModal}>
+    <div className='fixed z-10 inset-0 bg-black/50 overflow-y-auto h-screen w-screen' onClick={handleCloseModal}>
       <div className='fixed right-0 top-0 w-[40%] h-full bg-white'>
         <h3 className='border-b text-xl font-semibold px-5 py-4'>Addresses</h3>
         <button className="absolute top-5 right-3 w-7 h-7 rounded-md flex cursor-pointer items-center justify-center" onClick={handleCloseModal}>

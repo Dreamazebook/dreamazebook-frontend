@@ -20,7 +20,7 @@ const DeliveryOptions: React.FC<DeliveryOptionsProps> = ({
   handleNextFromDelivery
 }) => {
   return (
-    <div>
+    <>
       <div className="space-y-4 mb-6">
         {orderDetail?.shipping_options.map(({code, cost, name, description, type, estimated_days})=>
         <div 
@@ -53,7 +53,7 @@ const DeliveryOptions: React.FC<DeliveryOptionsProps> = ({
           handleOnClick={handleNextFromDelivery}
         >Continue to Payment</NextStepButton>
       </div>
-    </div>
+    </>
   );
 };
 
