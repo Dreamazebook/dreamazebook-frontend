@@ -5,7 +5,7 @@ import { useRouter } from '@/i18n/routing';
 import { useSearchParams } from 'next/navigation';
 import Loading from '../components/Loading';
 import api from '@/utils/api';
-import { API_ADDRESS_LIST, API_ORDER_DETAIL, API_ORDER_UPDATE_ADDRESS, API_ORDER_UPDATE_SHIPPING } from '@/constants/api';
+import { API_ADDRESS_LIST, API_ORDER_DETAIL, API_ORDER_STRIPE_PAID, API_ORDER_UPDATE_ADDRESS, API_ORDER_UPDATE_SHIPPING } from '@/constants/api';
 import { Address, EMPTY_ADDRESS } from '@/types/address';
 import CheckoutStep from './components/CheckoutStep';
 import ShippingForm from './components/ShippingForm';
@@ -71,9 +71,19 @@ export default function CheckoutPage() {
         try {
           const {data,code,message,success} = await api.get<ApiResponse<OrderDetailResponse>>(`${API_ORDER_DETAIL}/${orderId}`);
           // Transform order items to cart items format
-          //Todo: remove stripe_client_secret
           if (!data?.order) return;
           setOrderDetail(data);
+
+          if (data.order?.stripe_payment_intent_id) {
+            const response = await api.post<ApiResponse>(API_ORDER_STRIPE_PAID,{
+              order_id: orderId,
+              payment_intent_id: data.order.stripe_payment_intent_id,
+            })
+            if (response.success && response.data?.order?.payment_status === 'paid') {
+              return router.push(`/order-summary?orderId=${orderId}`);
+            }
+          }
+
           if (data.order.shipping_address) {
             setShippingAddress(data.order.shipping_address);
           }
