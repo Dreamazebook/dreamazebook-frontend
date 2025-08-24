@@ -91,7 +91,7 @@ export default function CartItemCard({
         
         <div className="flex-1">
           <div className="flex items-start gap-4">
-            <div className="w-20 h-20 rounded-md overflow-hidden">
+            <div className="w-20 h-22 rounded overflow-hidden">
               <img 
                 src={item.picbook_cover} 
                 alt={item.picbook_name} 
@@ -109,7 +109,7 @@ export default function CartItemCard({
                   {countdown ? 
                     <p className="text-sm text-gray-600">You can modify your message within {countdown} <a onClick={handleClickEditMessage} className='text-[#012CCE] cursor-pointer'>Edit</a></p>
                     :
-                    <p onClick={handleClickEditMessage} className="text-[#666] bg-[#f8f8f8] font-[400] p-1 cursor-pointer">{item.message}</p>
+                    <p onClick={handleClickEditMessage} className="text-[#666] bg-[#f8f8f8] font-[400] p-2">{item.message}</p>
                   }
                   
                   {(item.edition || item.description) && (
