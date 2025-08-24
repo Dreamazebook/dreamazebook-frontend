@@ -2,15 +2,30 @@ import { useState, useCallback } from 'react';
 import { uploadApi } from '@/utils/api.js';
 import type { AxiosProgressEvent, AxiosResponse } from 'axios';
 
+const toAbsoluteUrl = (path: string): string => {
+  if (!path) return path;
+  if (path.startsWith('http')) return path;
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  if (cleanPath.startsWith('user_uploads/')) {
+    return `https://s3-pro-dre002.s3.us-east-1.amazonaws.com/${cleanPath}`;
+  }
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.dreamazebook.com/api';
+  let origin = 'https://api.dreamazebook.com';
+  try { origin = new URL(apiUrl).origin; } catch {}
+  return `${origin}/${cleanPath}`;
+}
+
 interface UploadedImage {
   id: string;
   file: File;
   previewUrl: string;
   uploadedFilePath?: string;
+  isUploading?: boolean;
 }
 
 interface UploadResponse {
   path: string;
+  url?: string;
 }
 
 const useMultiImageUpload = (maxImages: number = 3) => {
@@ -74,7 +89,10 @@ const useMultiImageUpload = (maxImages: number = 3) => {
         throw new Error('Invalid server response');
       }
 
-      return response.data.path;
+      // 优先使用后端返回的完整 URL，其次回退到 path→绝对地址
+      const directUrl = response.data.url;
+      const absoluteUrl = directUrl || toAbsoluteUrl(response.data.path);
+      return absoluteUrl;
     } catch (err: unknown) {
       let errorMessage = 'Upload failed';
       
@@ -103,9 +121,9 @@ const useMultiImageUpload = (maxImages: number = 3) => {
     }
   };
 
-  const handleImageUpload = async (files: File[]) => {
+  const handleImageUpload = async (files: File[]): Promise<string[]> => {
     const validFiles = files.filter(validateFile);
-    if (validFiles.length === 0) return;
+    if (validFiles.length === 0) return [];
 
     // 检查是否超过最大数量
     const remainingSlots = maxImages - images.length;
@@ -115,29 +133,52 @@ const useMultiImageUpload = (maxImages: number = 3) => {
     setUploadProgress(0);
     setError(null);
 
-    try {
-      const newImages: UploadedImage[] = [];
+    // 生成唯一的时间戳
+    const timestamp = Date.now();
+    
+    // 立即添加图片到列表，但标记为上传中
+    const pendingImages: UploadedImage[] = filesToUpload.map((file, i) => ({
+      id: `${timestamp}-${i}`,
+      file,
+      previewUrl: URL.createObjectURL(file),
+      isUploading: true
+    }));
 
+    setImages(prev => [...prev, ...pendingImages]);
+
+    const successfulPaths: string[] = [];
+
+    try {
+      // 逐个上传文件并更新状态
       for (let i = 0; i < filesToUpload.length; i++) {
         const file = filesToUpload[i];
-        const uploadedFilePath = await uploadSingleFile(file);
+        const imageId = `${timestamp}-${i}`;
         
-        if (uploadedFilePath) {
-          const previewUrl = URL.createObjectURL(file);
-          newImages.push({
-            id: `${Date.now()}-${i}`,
-            file,
-            previewUrl,
-            uploadedFilePath
-          });
+        try {
+          const uploadedFilePath = await uploadSingleFile(file);
+          
+          if (uploadedFilePath) {
+            // 上传成功，更新对应图片的状态
+            setImages(prev => prev.map(img => 
+              img.id === imageId 
+                ? { ...img, uploadedFilePath, isUploading: false }
+                : img
+            ));
+            successfulPaths.push(uploadedFilePath);
+          } else {
+            // 上传失败，移除该图片
+            setImages(prev => prev.filter(img => img.id !== imageId));
+          }
+        } catch (error) {
+          // 上传失败，移除该图片
+          setImages(prev => prev.filter(img => img.id !== imageId));
         }
       }
-
-      setImages(prev => [...prev, ...newImages]);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
     }
+    return successfulPaths;
   };
 
   const handleImageDelete = (id: string) => {

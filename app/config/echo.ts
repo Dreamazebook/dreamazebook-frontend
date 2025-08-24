@@ -13,38 +13,42 @@ let echo: Echo<any> | null = null;
 if (typeof window !== 'undefined') {
   window.Pusher = Pusher;
   
-  // 只在用户已登录时初始化 Echo
-  if (isAuthenticated()) {
-    const token = localStorage.getItem('token');
-    console.log('初始化 WebSocket 连接，Token:', token ? '存在' : '不存在');
-    
-    if (!token) {
-      console.error('WebSocket 初始化失败：未找到认证 Token');
-    } else {
-      try {
-        echo = new Echo({
-          broadcaster: 'reverb',
-          key: process.env.NEXT_PUBLIC_REVERB_APP_KEY!,
-          wsHost: process.env.NEXT_PUBLIC_WS_HOST || '127.0.0.1',
-          wsPort: process.env.NEXT_PUBLIC_WS_PORT ? Number(process.env.NEXT_PUBLIC_WS_PORT) : undefined,
-          wssPort: process.env.NEXT_PUBLIC_WS_PORT ? Number(process.env.NEXT_PUBLIC_WS_PORT) : undefined,
-          forceTLS: process.env.NEXT_PUBLIC_WS_SECURE === 'true',
-          enabledTransports: ['ws', 'wss'],
-          authEndpoint: '/api/broadcasting/auth',
-          auth: {
-            withCredentials: true,
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: 'application/json'
-            }
-          }
-        });
+  try {
+    const token = localStorage.getItem('token') || process.env.NEXT_PUBLIC_BROADCAST_TOKEN || '';
+    const wsHost = process.env.NEXT_PUBLIC_WS_HOST || '127.0.0.1';
+    const wsPort = process.env.NEXT_PUBLIC_WS_PORT ? Number(process.env.NEXT_PUBLIC_WS_PORT) : undefined;
+    const wssPort = process.env.NEXT_PUBLIC_WS_PORT ? Number(process.env.NEXT_PUBLIC_WS_PORT) : undefined;
+    const forceTLS = process.env.NEXT_PUBLIC_WS_SECURE === 'true';
+
+    const headers: Record<string, string> = {
+      Accept: 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    echo = new Echo({
+      broadcaster: 'reverb',
+      key: process.env.NEXT_PUBLIC_REVERB_APP_KEY!,
+      wsHost,
+      wsPort,
+      wssPort,
+      forceTLS,
+      enabledTransports: ['ws', 'wss'],
+      authEndpoint: '/api/broadcasting/auth',
+      auth: {
+        withCredentials: true,
+        headers,
+      }
+    });
 
         console.log('WebSocket 配置:', {
-          wsHost: process.env.NEXT_PUBLIC_WS_HOST || '127.0.0.1',
-          wsPort: process.env.NEXT_PUBLIC_WS_PORT || '未设置',
-          wsSecure: process.env.NEXT_PUBLIC_WS_SECURE,
-          authEndpoint: '/api/broadcasting/auth'
+          wsHost,
+          wsPort: wsPort || '未设置',
+          wsSecure: forceTLS,
+          authEndpoint: '/api/broadcasting/auth',
+          hasAuthHeader: Boolean(token),
         });
 
         // 类型断言为PusherConnector
@@ -94,12 +98,8 @@ if (typeof window !== 'undefined') {
           console.log('WebSocket 连接成功，重置重连计数');
           reconnectAttempts = 0;
         });
-      } catch (error) {
-        console.error('WebSocket 初始化失败:', error);
-      }
-    }
-  } else {
-    console.log('用户未登录，跳过 WebSocket 初始化');
+  } catch (error) {
+    console.error('WebSocket 初始化失败:', error);
   }
 }
 

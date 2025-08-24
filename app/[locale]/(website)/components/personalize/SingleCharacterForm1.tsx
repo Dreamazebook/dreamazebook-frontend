@@ -84,6 +84,17 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     }
   }, [images]);
 
+  // 当某张图片上传成功后，自动把第一张已上传图片设置为主图，确保可提交
+  useEffect(() => {
+    if (!formData.photo) {
+      const firstUploaded = images.find(img => !!img.uploadedFilePath);
+      if (firstUploaded && firstUploaded.uploadedFilePath) {
+        handleBasicInfoChange('photo', { path: firstUploaded.uploadedFilePath });
+        handleErrorChange('photo', '');
+      }
+    }
+  }, [images, formData.photo]);
+
   // Update basic info fields
   const handleBasicInfoChange = (field: keyof BasicInfoData, value: string | { file?: File; path: string } | null) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -97,15 +108,21 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
 
   // Handle multiple photos upload
   const handlePhotosUpload = async (files: File[]) => {
-    await handleImageUpload(files);
-    // 将第一张图片设置为主要照片，保持与原有数据结构兼容
-    const uploadedPaths = getUploadedPaths();
-    if (uploadedPaths.length > 0) {
-      handleBasicInfoChange('photo', { path: uploadedPaths[0] });
+    // 使用 hook 返回的新上传成功路径，避免依赖异步 state 造成的时序问题
+    const newlyUploadedPaths = await handleImageUpload(files);
+
+    // 如果不存在 photo，则把第一张新上传图设为主图；否则保持已有主图
+    if (newlyUploadedPaths.length > 0 && !formData.photo) {
+      handleBasicInfoChange('photo', { path: newlyUploadedPaths[0] });
       handleErrorChange('photo', '');
     }
-    // 同时更新photos字段存储所有图片
-    setFormData(prev => ({ ...prev, photos: uploadedPaths }));
+
+    // 组合已有路径与新路径，作为 photos 字段（去重）
+    const existing = new Set(getUploadedPaths());
+    newlyUploadedPaths.forEach(p => existing.add(p));
+    const allPaths = Array.from(existing);
+
+    setFormData(prev => ({ ...prev, photos: allPaths }));
     setTouched(prev => ({ ...prev, photo: true }));
   };
 

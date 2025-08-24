@@ -7,39 +7,54 @@ export async function POST(req: NextRequest) {
     const body = await req.text()
     console.log('Broadcasting auth request body:', body)
 
-    // 2) 提取前端带来的请求头中的 Cookie 和 CSRF Token
+    // 2) 提取前端带来的请求头（仅使用 Authorization）
     const cookie = req.headers.get('cookie') || ''
-    // 从请求头或 cookies 中获取 XSRF token
-    const csrfHeader = req.headers.get('x-xsrf-token')
-    const csrfCookie = req.cookies.get('XSRF-TOKEN')?.value
-    const csrfToken = csrfHeader || csrfCookie || ''
-    // 获取 Authorization header
     const authHeader = req.headers.get('authorization') || ''
 
     console.log('Broadcasting auth headers:', {
       authHeader: authHeader ? 'Present' : 'Missing',
       cookie: cookie ? 'Present' : 'Missing',
-      csrfToken: csrfToken ? 'Present' : 'Missing'
+      csrfToken: 'Removed (api-token only)'
     })
 
-    // 3) 构造 Laravel 后端广播授权 URL
-    const laravelUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://api.dreamazebook.com'
+    // 3) 构造 Laravel 后端广播授权 URL（稳健处理异常/非法主机名）
+    const apiUrlEnv = process.env.NEXT_PUBLIC_API_URL
+    let laravelUrl = 'https://api.dreamazebook.com'
+    if (apiUrlEnv) {
+      // 先尝试按原值解析
+      try {
+        laravelUrl = new URL(apiUrlEnv).origin
+      } catch {
+        // 若因类似 https://.dreamazebook.com/api 导致解析失败，尝试去除「://.」中的点
+        try {
+          const sanitized = apiUrlEnv.replace('://.', '://')
+          laravelUrl = new URL(sanitized).origin
+        } catch {
+          // 仍失败则回退到默认域名
+          laravelUrl = 'https://api.dreamazebook.com'
+        }
+      }
+    }
+    console.log('Resolved broadcasting auth target:', laravelUrl)
 
     // 4) 转发请求给 Laravel，包括 Cookie 和 CSRF token
+    // 4) api-token ：必须带 Bearer
+    if (!/^Bearer\s+\S+/.test(authHeader)) {
+      console.warn('Missing Bearer token for broadcasting auth (api-token only mode)')
+      return NextResponse.json({ error: 'Unauthorized: missing Bearer token' }, { status: 401 })
+    }
+
     const headers: Record<string, string> = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Cookie': cookie,
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'Authorization': authHeader,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Cookie': cookie,
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      'Authorization': authHeader,
     }
-    
-    // 只有当 CSRF token 存在时才添加
-    if (csrfToken) {
-      headers['X-XSRF-TOKEN'] = decodeURIComponent(csrfToken)
-    }
-    
-    const laravelRes = await fetch(`${laravelUrl}/broadcasting/auth`, {
+    const authPath = '/api/broadcasting/auth'
+    console.log('Broadcasting auth mode:', 'api-token (forced)', 'path:', authPath)
+
+    const laravelRes = await fetch(`${laravelUrl}${authPath}`, {
       method: 'POST',
       headers,
       body,
@@ -58,6 +73,8 @@ export async function POST(req: NextRequest) {
       console.error('Laravel auth response not JSON:', text)
       return NextResponse.json({ error: 'Invalid auth response' }, { status: 502 })
     }
+
+    // 不再提供其他模式/路径的回退
 
     if (!laravelRes.ok) {
       console.error('Laravel broadcast auth failed:', {

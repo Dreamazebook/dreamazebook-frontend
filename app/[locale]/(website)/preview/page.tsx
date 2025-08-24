@@ -103,6 +103,9 @@ const MirageLoader = ({ size = "60", speed = "2.5", color = "blue", style = {} }
     } catch {}
   }, []);
 
+  // 独立的 WebSocket 订阅：依赖 echo 和 user.id，确保用户信息晚到也能订阅
+  // 已移动到主组件中，避免在此处无法访问到 user 和页面状态
+
   if (isMirageReady) {
     return React.createElement('l-mirage', { size, speed, color, style });
   }
@@ -205,6 +208,10 @@ export default function PreviewPageWithTopNav() {
 
   // 处理AI生成状态
   const [isProcessing, setIsProcessing] = useState(false);
+  // 防重复提交/创建任务
+  const hasPostedCreateRef = useRef(false);
+  const isPostingCreateRef = useRef(false);
+  const hasProcessedUserDataRef = useRef(false);
   
   // 预览数据状态
   const [previewData, setPreviewData] = useState<PreviewResponse | null>(null);
@@ -270,6 +277,69 @@ export default function PreviewPageWithTopNav() {
       setIsLoadingOptions(false);
     }
   }, []);
+
+  // 独立的 WebSocket 订阅：依赖 echo 和 user.id
+  useEffect(() => {
+    if (!echo || !user?.id) return;
+
+    const channel = echo.private(`user.${user.id}`);
+
+    const onTaskCompleted = (e: any) => {
+      console.log('任务完成:', e);
+      setIsProcessing(true);
+      try {
+        const completedPageId = e?.page_id || e?.result?.page_id || e?.task?.page_id;
+        const completedUrl = e?.result?.standard_url || e?.result?.url || e?.result?.image_url;
+        if (completedPageId && completedUrl) {
+          setPreviewData(prev => {
+            if (!prev) return prev;
+            const updatedPages = prev.preview_data.map((p) => {
+              if (p.page_id === completedPageId) {
+                return { ...p, image_url: completedUrl, has_face_swap: true };
+              }
+              return p;
+            });
+            return {
+              ...prev,
+              preview_data: updatedPages,
+              face_swap_info: {
+                ...prev.face_swap_info,
+                status: 'processing'
+              }
+            } as PreviewResponse;
+          });
+        } else {
+          setTimeout(() => { fetchPreviewData(); }, 100);
+        }
+      } catch (err) {
+        console.error('处理任务完成事件出错:', err);
+      }
+    };
+
+    const onTaskFailed = (e: any) => {
+      console.error('任务失败:', e);
+      setIsProcessing(false);
+      const msg = e?.error_message || e?.message || '任务失败';
+      toast.error('生成失败: ' + msg);
+    };
+
+    const onBatchCompleted = (e: any) => {
+      console.log('批次完成:', e);
+      setIsProcessing(false);
+      toast.success('图片生成完成！');
+      setTimeout(() => { fetchPreviewData(); }, 100);
+    };
+
+    channel.listen('face-swap.task.completed', onTaskCompleted);
+    channel.listen('face-swap.task.failed', onTaskFailed);
+    channel.listen('face-swap.batch.completed', onBatchCompleted);
+
+    return () => {
+      channel.stopListening('face-swap.task.completed');
+      channel.stopListening('face-swap.task.failed');
+      channel.stopListening('face-swap.batch.completed');
+    };
+  }, [echo, user?.id]);
 
   // 获取书籍基本信息的函数
   const fetchBookInfo = useCallback(async () => {
@@ -416,6 +486,17 @@ export default function PreviewPageWithTopNav() {
     return finalUrl;
   };
 
+  // 确保人脸图片为绝对可访问地址（优先 S3 全路径）
+  const ensureFaceImageUrl = (path: string) => {
+    if (!path) return path;
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    if (cleanPath.startsWith('user_uploads/')) {
+      return `https://s3-pro-dre002.s3.us-east-1.amazonaws.com/${cleanPath}`;
+    }
+    return `https://dreamazebook.com/${cleanPath}`;
+  };
+
   // 获取预览数据
   const fetchPreviewData = useCallback(async () => {
     try {
@@ -443,7 +524,11 @@ export default function PreviewPageWithTopNav() {
       const character = (requestData as any).characters?.[0];
       const apiRequestData = {
         picbook_id: bookId,
-        face_image: character?.photo || character?.face_image,
+        // face_image 需要为数组，优先使用 multi image upload 收集到的 photos
+        face_image: ((character?.photos && Array.isArray(character.photos) && character.photos.length > 0)
+          ? character.photos
+          : (character?.photo ? [character.photo] : []))
+          .map((p: string) => ensureFaceImageUrl(p)),
         full_name: character?.full_name,
         language: character?.language || 'en', // 默认英语
         gender: character?.gender || 1, // 默认值
@@ -458,7 +543,12 @@ export default function PreviewPageWithTopNav() {
         bookId: bookId
       });
       
-      // 修改为POST请求，传递必要的数据
+      // 防抖：避免重复创建
+      if (isPostingCreateRef.current || hasPostedCreateRef.current) {
+        console.log('跳过重复创建（无用户数据路径）');
+        return;
+      }
+      isPostingCreateRef.current = true;
       const response = await api.post(`/simple-face-swap/create-by-picbook`, apiRequestData) as ApiResponse<PreviewResponse>;
       
       if (response.success) {
@@ -510,6 +600,8 @@ export default function PreviewPageWithTopNav() {
       
       setPreviewError(errorMessage);
     } finally {
+      hasPostedCreateRef.current = true;
+      isPostingCreateRef.current = false;
       setIsLoadingPreview(false);
     }
   }, []);
@@ -535,13 +627,22 @@ export default function PreviewPageWithTopNav() {
         setIsProcessing(true);
         console.log('开始处理用户数据...');
 
+        // 避免重复处理
+        if (hasProcessedUserDataRef.current) {
+          console.log('跳过重复的用户数据处理');
+          return;
+        }
         // 调用API处理用户数据
         try {
           // 构造API要求的请求数据格式
           const character = parsedUserData.characters?.[0];
           const apiRequestData = {
             picbook_id: bookId,
-            face_image: character?.photo,
+            // face_image 必须是数组，取 photos；若无则使用单图包装
+            face_image: ((character?.photos && Array.isArray(character.photos) && character.photos.length > 0)
+              ? character.photos
+              : (character?.photo ? [character.photo] : []))
+              .map((p: string) => ensureFaceImageUrl(p)),
             full_name: character?.full_name,
             language: character?.language,
             gender: character?.gender,
@@ -556,6 +657,12 @@ export default function PreviewPageWithTopNav() {
             bookId: bookId
           });
           
+          if (isPostingCreateRef.current || hasPostedCreateRef.current) {
+            console.log('跳过重复创建（用户数据路径）');
+            return;
+          }
+          isPostingCreateRef.current = true;
+          hasProcessedUserDataRef.current = true;
           const response = await api.post(`/simple-face-swap/create-by-picbook`, apiRequestData, {
             timeout: 60000 // 60秒超时
           }) as ApiResponse<PreviewResponse>;
@@ -618,43 +725,12 @@ export default function PreviewPageWithTopNav() {
           }
           
           toast.error(errorMessage);
+        } finally {
+          hasPostedCreateRef.current = true;
+          isPostingCreateRef.current = false;
         }
 
-        // 设置WebSocket监听
-        if (echo && user) {
-          const channel = echo.channel(`face-swap.${user.id}`);
-          
-          // 监听生成完成事件
-          channel.listen('face-swap.complete', (e: { success: boolean; message: string }) => {
-            console.log('生成完成:', e);
-            setIsProcessing(false);
-            if (e.success) {
-              toast.success('图片生成完成！');
-                        // 重新获取预览数据
-          // 使用 setTimeout 避免在事件处理中直接调用
-          setTimeout(() => {
-            fetchPreviewData();
-          }, 100);
-            } else {
-              toast.error('生成失败: ' + e.message);
-            }
-          });
-
-          // 监听错误事件
-          channel.listen('face-swap.error', (e: { message: string }) => {
-            console.error('生成错误:', e.message);
-            setIsProcessing(false);
-            toast.error('生成失败: ' + e.message);
-          });
-
-          // 清理函数
-          return () => {
-            channel.stopListening('face-swap.complete');
-            channel.stopListening('face-swap.error');
-          };
-        } else {
-          console.warn('WebSocket连接未初始化或用户未登录');
-        }
+        // WebSocket 订阅逻辑在独立的 effect 中进行
 
       } catch (error) {
         console.error('处理用户数据时出错:', error);

@@ -23,10 +23,10 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 }) => {
 	// 根据bookId动态生成发型选项
 	const hairstyles = [
-		{ id: 'hair_1', name: '发型 1', image: `/picbooks/${bookId}/avatar/layer_hair_1.png` },
-		{ id: 'hair_2', name: '发型 2', image: `/picbooks/${bookId}/avatar/layer_hair_2.png` },
-		{ id: 'hair_3', name: '发型 3', image: `/picbooks/${bookId}/avatar/layer_hair_3.png` },
-		{ id: 'hair_4', name: '发型 4', image: `/picbooks/${bookId}/avatar/layer_hair_4.png` },
+		{ id: 'hair_1', image: `/picbooks/${bookId}/avatar/layer_hair_1.png` },
+		{ id: 'hair_2', image: `/picbooks/${bookId}/avatar/layer_hair_2.png` },
+		{ id: 'hair_3', image: `/picbooks/${bookId}/avatar/layer_hair_3.png` },
+		{ id: 'hair_4', image: `/picbooks/${bookId}/avatar/layer_hair_4.png` },
 	];
 
 	const handleHairstyleSelect = (hairstyleId: string) => {
@@ -54,12 +54,11 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 									}`}
 									style={{ boxShadow: '9px 31px 64px 0px #A6ABE114' }}
 									onClick={() => handleHairstyleSelect(hairstyle.id)}
-									title={hairstyle.name}
 									aria-pressed={isActive}
 								>
 									<Image
 										src={hairstyle.image}
-										alt={hairstyle.name}
+										alt={hairstyle.id}
 										fill
 										sizes="56px"
 										className="object-cover"

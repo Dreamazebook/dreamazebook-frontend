@@ -1,12 +1,14 @@
 import React, { useRef, useState } from 'react';
 import Image from 'next/image';
-import { FaRegTrashAlt, FaQuestionCircle } from 'react-icons/fa';
+import { FaRegTrashAlt } from 'react-icons/fa';
+import { IoCloudUploadOutline } from "react-icons/io5";
 
 interface UploadedImage {
   id: string;
   file: File;
   previewUrl: string;
   uploadedFilePath?: string;
+  isUploading?: boolean;
 }
 
 interface MultiImageUploadProps {
@@ -39,13 +41,61 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
   onDrop,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showToast, setShowToast] = useState(false);
+
+  const showToastMessage = () => {
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files);
+      
+      if (images.length >= maxImages) {
+        showToastMessage();
+        e.target.value = ''; // 清空input
+        return;
+      }
+      
       const remainingSlots = maxImages - images.length;
       const filesToUpload = selectedFiles.slice(0, remainingSlots);
       onImageUpload(filesToUpload);
+    }
+  };
+
+  const handleUploadAreaClick = () => {
+    if (images.length >= maxImages) {
+      showToastMessage();
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
+  const handleDragEvents = {
+    onDragEnter: (e: React.DragEvent<HTMLDivElement>) => {
+      if (images.length >= maxImages) {
+        e.preventDefault();
+        showToastMessage();
+        return;
+      }
+      onDragEnter(e);
+    },
+    onDragLeave: onDragLeave,
+    onDragOver: (e: React.DragEvent<HTMLDivElement>) => {
+      if (images.length >= maxImages) {
+        e.preventDefault();
+        return;
+      }
+      onDragOver(e);
+    },
+    onDrop: (e: React.DragEvent<HTMLDivElement>) => {
+      if (images.length >= maxImages) {
+        e.preventDefault();
+        showToastMessage();
+        return;
+      }
+      onDrop(e);
     }
   };
 
@@ -156,20 +206,26 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
         </div>
       </div>
 
-      {/* 上传区域 - 借鉴UploadArea组件的UI */}
-      {canUploadMore && (
-        <div
-          className={`rounded p-4 text-center transition-colors h-[128px] flex flex-col items-center justify-center relative ${
-            isDragging ? 'border-2 border-[#012CCE]' : 'bg-[#F8F8F8]'
-          }`}
-          onDragEnter={onDragEnter}
-          onDragLeave={onDragLeave}
-          onDragOver={onDragOver}
-          onDrop={onDrop}
-        >
+      {/* 上传区域 - 始终显示，满三张时禁用 */}
+      <div
+        className={`rounded p-4 gap-1 text-center transition-colors ${error ? 'h-[148px]' : 'h-[120px]'} flex flex-col items-center justify-center relative ${
+          !canUploadMore 
+            ? 'bg-[#F8F8F8] cursor-not-allowed text-[#999999]' 
+            : isDragging 
+              ? 'border-2 border-[#012CCE] cursor-pointer' 
+              : 'bg-[#F8F8F8] cursor-pointer'
+        }`}
+        style={{
+          backgroundColor: isDragging && canUploadMore ? 'rgba(1, 44, 206, 0.05)' : undefined
+        }}
+        onDragEnter={handleDragEvents.onDragEnter}
+        onDragLeave={handleDragEvents.onDragLeave}
+        onDragOver={handleDragEvents.onDragOver}
+        onDrop={handleDragEvents.onDrop}
+      >
           {isUploading ? (
             <div className="text-center w-full max-w-md mx-auto">
-              <div className="w-[80%] mx-auto h-1 bg-gray-200 rounded-full overflow-hidden mb-4">
+              <div className="w-[80%] mx-auto h-1 bg-gray-200 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-[#012CCE] transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
@@ -182,51 +238,64 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
               {isDragging ? (
                 <p className="text-gray-700 text-lg">Please loosen</p>
               ) : (
-                <div className="space-y-2 text-[#222222]">
-                  <p>Please drag the photo in</p>
-                  <p>or</p>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="px-6 py-2 border border-[#222222] rounded"
-                  >
-                    Browse Files
-                  </button>
-                  {/* <p className="text-sm text-gray-500 mt-2">
-                    {images.length === 0 ? 'Upload 1-3 photos' : `Upload ${maxImages - images.length} more photo${maxImages - images.length > 1 ? 's' : ''}`}
-                  </p> */}
+                <div className="space-y-1">
+                  {/* 云朵上传图标 */}
+                  <IoCloudUploadOutline className={`mx-auto text-2xl ${canUploadMore ? 'text-[#222222]' : 'text-[#999999] cursor-not-allowed'}`} />
+                  
+                  {/* 主要文字 */}
+                  <div className="">
+                    <p className={`text-[#222222] text-base ${canUploadMore ? 'text-[#012CCE]' : 'text-[#999999] cursor-not-allowed'}`}>
+                      Drag your file(s) here or{' '}
+                      <button
+                          type="button"
+                          onClick={handleUploadAreaClick}
+                          className={`${canUploadMore ? 'text-[#012CCE]' : 'text-[#999999] cursor-not-allowed'}`}
+                        >
+                        Browse
+                      </button>
+                    </p>
+                    
+                    
+                    {/* 文件信息 */}
+                    <p className="text-[#999999] text-sm">
+                      Supports: jpeg, png, webp
+                    </p>
+                  </div>
                 </div>
               )}
             </>
           )}
-          {error && <p className="text-red-500 mt-2">{error}</p>}
+          {error && <p className="text-[#CF0F02] text-sm">{error}</p>}
         </div>
-      )}
 
       {/* 已上传的图片显示 */}
       {images.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-3 gap-4 mb-4">
           {images.map((image, index) => (
             <div key={image.id} className="relative">
-              <div
-                className="relative bg-gray-100 rounded overflow-hidden"
-                style={{
-                  maxWidth: '100%',
-                  maxHeight: '128px',
-                }}
-              >
+              <div className="relative bg-gray-100 rounded overflow-hidden aspect-square w-full">
                 <Image
                   src={image.previewUrl}
                   alt={`Uploaded image ${index + 1}`}
-                  width={200}
-                  height={200}
+                  fill
+                  sizes="(min-width: 768px) 33vw, 33vw"
+                  unoptimized
                   style={{
-                    maxWidth: '100%',
-                    maxHeight: '128px',
-                    objectFit: 'contain',
+                    objectFit: 'cover',
                   }}
                   className="rounded-lg"
                 />
+                
+                {/* 上传中的loading动画 */}
+                {image.isUploading && (
+                  <div 
+                    className="absolute inset-0 rounded flex items-center justify-center z-10"
+                    style={{ backgroundColor: 'rgba(248, 248, 248, 0.4)' }}
+                  >
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#012CCE] border-t-transparent"></div>
+                  </div>
+                )}
+                
                 <button
                   onClick={() => onImageDelete(image.id)}
                   className="absolute top-0 right-0 bg-white shadow-md flex items-center justify-center"
@@ -248,6 +317,13 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Toast 提示 */}
+      {showToast && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg shadow-lg z-50">
+          Upload up to 3 pictures
         </div>
       )}
 
