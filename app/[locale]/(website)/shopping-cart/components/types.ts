@@ -31,6 +31,8 @@ export interface CartItem {
   preview?: Preview;
   preview_id?: number;
   status: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CartItems {

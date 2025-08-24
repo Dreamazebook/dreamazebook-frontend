@@ -19,7 +19,10 @@
     "couponCode": "Coupon Code",
     "enterCouponCode": "Enter coupon code",
     "apply": "Apply",
-    "continueShopping": "Continue Shopping"
+    "continueShopping": "Continue Shopping",
+    "deselectAll": "Deselect All",
+    "selectAll": "Select All",
+    "checkoutFailed": "Checkout failed"
   },
   "profileSidebar": {
     "home": "Home",

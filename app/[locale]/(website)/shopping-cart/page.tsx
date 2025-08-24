@@ -13,6 +13,7 @@ import { CartItem, CartItems } from './components/types';
 import CartHeader from './components/CartHeader';
 import CouponInput from './components/CouponInput';
 import CartItemList from './components/CartItemList';
+import Loading from '../components/Loading';
 
 export default function ShoppingCartPage() {
   const t = useTranslations('ShoppingCart');
@@ -35,9 +36,9 @@ export default function ShoppingCartPage() {
           // 默认全选所有商品
           setSelectedItems(data.cart_items.map(item => item.id));
         }
-        setLoading(false);
       } catch (err) {
         console.error('Failed to fetch carts:', err);
+      } finally {
         setLoading(false);
       }
     };
@@ -68,28 +69,36 @@ export default function ShoppingCartPage() {
       ));
       
       // 调用API更新服务器
-      const {success, data} = await api.post<ApiResponse>(`${API_CART_UPDATE}/${id}`, {
+      const {success, code, message, data} = await api.post<ApiResponse>(`${API_CART_UPDATE}/${id}`, {
         quantity: Math.max(1, (cartItems.find(item => item.id === id)?.quantity || 1) + delta)
       });
       
       if (!success) {
         // 如果API失败，回滚本地状态
         setCartItems(data.cart_items || data.cart_item);
+        setError(message);
       }
     } catch (err) {
       console.error('Failed to update quantity:', err);
     }
   };
 
+  const [error, setError] = useState<string | undefined>('');
+
   const handleRemoveItem = async (id: number) => {
-    const {code,success,message,data} = await api.delete<ApiResponse>(`${API_CART_REMOVE}/${id}`);
-    if (success) {
-      // 移除主商品
-      setCartItems(prev => prev.filter(item => item.id !== id));
-      // 同时若已在选中列表中，也要移除
-      // setSelectedItems(prev => prev.filter(itemId => itemId !== id));
-    } else {
-      alert(message);
+    try {
+      const {code,success,message,data} = await api.delete<ApiResponse>(`${API_CART_REMOVE}/${id}`);
+      if (success) {
+        // 移除主商品
+        setCartItems(prev => prev.filter(item => item.id !== id));
+        // 同时若已在选中列表中，也要移除
+        // setSelectedItems(prev => prev.filter(itemId => itemId !== id));
+        setError('');
+      } else {
+        setError(message || t('removeItemFailed'));
+      }
+    } catch (err) {
+      setError(t('removeItemFailed'));
     }
   };
 
@@ -113,21 +122,32 @@ export default function ShoppingCartPage() {
     router.push(`/personalized-products/${bookId}/${previewId}/edit?${query.toString()}`);
   };
 
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
   // 结算时，仅包含已选中的商品
   const handleCheckout = async () => {
     // const itemsToCheckout = cartItems.filter(item => selectedItems.includes(item.id));
     if (selectedItems.length === 0) {
-      alert(t('noItemsSelected'));
+      setError(t('noItemsSelected'));
       return;
     }
-    const {success,message,code,data} = await api.post<ApiResponse>(API_ORDER_CREATE, {
-      cart_item_ids: selectedItems,
-      payment_method:'stripe'
-    });
-    if (success) {
-      router.push(`/checkout?orderId=${data.order.id}`);
-    } else {
-      alert(message);
+    try {
+      setCheckoutLoading(true);
+      const {success,message,code,data} = await api.post<ApiResponse>(API_ORDER_CREATE, {
+        cart_item_ids: selectedItems,
+        payment_method:'stripe',
+        coupon_code: appliedCoupon
+      });
+      if (success) {
+        setError('');
+        router.push(`/checkout?orderId=${data.order.id}`);
+      } else {
+        setError(message || t('checkoutFailed'));
+      }
+    } catch (err) {
+      setError(t('checkoutFailed'));
+    } finally {
+      setCheckoutLoading(false);
     }
   };
 
@@ -144,6 +164,7 @@ export default function ShoppingCartPage() {
   const shipping = 0;
   const total = subtotal + shipping - discount;
 
+  const [appliedCoupon, setAppliedCoupon] = useState('');
   const handleApplyCoupon = (code: string) => {
     // 这里应该是调用API验证优惠码并获取折扣金额
     // 为了演示，我们假设"BLACKFRIDAY"优惠码会给25%的折扣
@@ -154,15 +175,21 @@ export default function ShoppingCartPage() {
     } else {
       alert(t('invalidCoupon'));
     }
+    setAppliedCoupon(code);
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">{t('loading')}</div>;
+    return <Loading />
   }
 
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="container mx-auto px-4">
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
         <CartHeader />
         
         <div className="flex flex-col lg:flex-row gap-6">
@@ -182,8 +209,8 @@ export default function ShoppingCartPage() {
             )}
           </div>
           
-          <div className="lg:w-1/3">
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className="lg:w-1/3 relative">
+            <div className="bg-white rounded p-6 shadow-sm sticky top-4 right-0">
               <h2 className="text-xl font-bold mb-6">{t('orderSummary')}</h2>
               
               <div className="mb-6">
@@ -193,6 +220,12 @@ export default function ShoppingCartPage() {
                 </p>
                 <CouponInput onApply={handleApplyCoupon} />
               </div>
+
+              {appliedCoupon && (
+                <p className="text-green-600 text-sm mb-2">
+                  {t('appliedCoupon')}: <strong>{appliedCoupon}</strong>
+                </p>
+              )}
               
               <div className="space-y-3 mb-6 border-t border-gray-200 pt-4">
                 <div className="flex justify-between">
@@ -216,12 +249,38 @@ export default function ShoppingCartPage() {
               </div>
               
               <div className="space-y-2">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setSelectedItems([])}
+                    disabled={selectedItems.length === 0}
+                    className="flex-1 py-3 cursor-pointer bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400"
+                  >
+                    {t('deselectAll')}
+                  </button>
+                  <button
+                    onClick={() => setSelectedItems(cartItems.map(item => item.id))}
+                    disabled={selectedItems.length === cartItems.length}
+                    className="flex-1 py-3 cursor-pointer bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400"
+                  >
+                    {t('selectAll')}
+                  </button>
+                </div>
                 <button
                   onClick={handleCheckout}
-                  disabled={selectedItems.length === 0}
-                  className="w-full py-3 cursor-pointer bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-400"
+                  disabled={selectedItems.length === 0 || checkoutLoading}
+                  className="w-full py-3 cursor-pointer bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-400 flex items-center justify-center gap-2"
                 >
-                  {t('checkout')}
+                  {checkoutLoading ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      {t('processing')}
+                    </>
+                  ) : (
+                    t('checkout')
+                  )}
                 </button>
                 {/* <button
                   onClick={() => alert('Checkout with PayPal')}

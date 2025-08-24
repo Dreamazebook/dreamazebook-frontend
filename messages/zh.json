@@ -19,7 +19,10 @@
     "couponCode": "优惠券代码",
     "enterCouponCode": "输入优惠券代码",
     "apply": "应用",
-    "continueShopping": "继续购物"
+    "continueShopping": "继续购物",
+    "deselectAll": "取消全选",
+    "selectAll": "全选",
+    "checkoutFailed": "结账失败"
   },
   "profileSidebar": {
     "home": "首页",

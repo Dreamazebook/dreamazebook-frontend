@@ -2,23 +2,25 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { OrderDetailResponse } from '../checkout/components/types';
+import { OrderDetail, OrderDetailResponse } from '../checkout/components/types';
 import useUserStore from '@/stores/userStore';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
-import { API_ORDER_PROGRESS, API_ORDER_UPDATE_MESSAGE } from '@/constants/api';
+import { API_ORDER_PROGRESS, API_ORDER_STRIPE_PAID, API_ORDER_UPDATE_MESSAGE } from '@/constants/api';
 import OrderSummaryPrices from '../components/component/OrderSummaryPrices';
 import StepIndicator from './components/StepIndicator';
 import OrderSummaryDelivery from '../components/component/OrderSummaryDelivery';
 import CartItemCard from '../shopping-cart/components/CartItemCard';
 import MessageModal from './components/MessageModal';
+import Loading from '../components/Loading';
 
 const OrderSummary: React.FC = () => {
   const {fetchOrderDetail} = useUserStore();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
 
-  const [orderDetail, setOrderDetail] = useState<OrderDetailResponse >();
+  const [orderDetail, setOrderDetail] = useState<OrderDetailResponse>();
+  const [isLoading, setIsLoading] = useState(true);
 
   const getOrderProgress = async(orderId:string) => {
     if (orderId) {
@@ -26,11 +28,25 @@ const OrderSummary: React.FC = () => {
     }
   }
 
+  const confirmOrderPayment = async(orderDetail:OrderDetail) => {
+    const {data, code, message, success} = await api.post<ApiResponse>(`${API_ORDER_STRIPE_PAID}`,{
+      order_id: orderId,
+      payment_intent_id:orderDetail.stripe_payment_intent_id
+    });
+  }
+
   useEffect(()=>{
     const fetchSummaryOrder = async(orderId:string) => {
-      const {data,code,message,success} = await fetchOrderDetail(orderId);
-      if (success) {
-        setOrderDetail(data);
+      try {
+        const {data,code,message,success} = await fetchOrderDetail(orderId);
+        if (success) {
+          setOrderDetail(data);
+          if (data?.order) {
+            confirmOrderPayment(data?.order);
+          }
+        }
+      } finally {
+        setIsLoading(false);
       }
     }
     if (orderId) {
@@ -55,6 +71,10 @@ const OrderSummary: React.FC = () => {
 
   // 计算费用小结
   const discount = 0;   // 如果有优惠就填入相应数值
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -85,7 +105,7 @@ const OrderSummary: React.FC = () => {
         {/* 订单列表 */}
         <div className="space-y-4 mb-6">
           {orderDetail?.order?.items.map((item) => (
-            <CartItemCard item={item} handleClickEditMessage={handleClickEditMessage} />
+            <CartItemCard key={item.id} item={item} handleClickEditMessage={handleClickEditMessage} />
           ))}
         </div>
 

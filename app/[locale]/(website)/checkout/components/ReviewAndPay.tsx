@@ -14,6 +14,7 @@ import { API_ORDER_STRIPE_PAID } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
 import { useRouter } from '@/i18n/routing';
 import DisplayPrice from '../../components/component/DisplayPrice';
+import NextStepButton from './NextStepButton';
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
@@ -70,7 +71,7 @@ const CheckoutForm: React.FC<{
       elements,
       redirect: 'if_required',
       confirmParams: {
-        // return_url: window.location.origin + `/order-summary?orderId=${orderDetail.order.id}`,
+        return_url: window.location.origin + `/order-summary?orderId=${orderDetail.order.id}`,
         receipt_email: shipping_address?.email || undefined,
       },
     });
@@ -149,24 +150,25 @@ const CheckoutForm: React.FC<{
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={!stripe || isLoading}
-          className={`w-full py-3 px-4 rounded-md font-medium transition-colors ${
-            isLoading
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700'
-          } text-white`}
-        >
-          {isLoading ? (
-            <div className="flex items-center justify-center">
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-              Processing...
-            </div>
-          ) : (
-            `Pay $${total_amount}`
-          )}
-        </button>
+        <div className='flex flex-col justify-center gap-3 mt-4'>
+          <p className='text-center text-gray-500'>Complete your payment with one of our secure checkout methods.</p>
+          <NextStepButton
+            type='submit'
+            disabled={!stripe || isLoading}
+            handleOnClick={()=>{}}
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                Processing...
+              </div>
+            ) : (
+              'Complete Payment'
+            )}
+          </NextStepButton>
+        </div>
+
+        
 
         {message && (
           <div
