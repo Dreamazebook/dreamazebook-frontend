@@ -76,7 +76,7 @@ export default function CartItemCard({
   
   return (
     <div className="bg-white rounded p-4 shadow-sm">
-      <div className="flex items-center gap-3">
+      <div className="flex items-start gap-3">
         {(onToggleSelect && selectedItems) && 
         <div className="relative inline-block h-6 w-6 mt-1">
           <span onClick={()=>onToggleSelect(item.id)} className={`absolute top-0 left-0 h-6 w-6 rounded-full border-2 ${selectedItems.includes(item.id) ? 'bg-[#012CCE]' : 'border-gray-300'} transition-colors duration-200 flex items-center justify-center`}>
@@ -99,56 +99,12 @@ export default function CartItemCard({
               />
             </div>
             
-            <div className="flex-1">
-              <div className="flex justify-between items-start">
-                <div className='space-y-2'>
-                  <h3 className="font-bold">{item.picbook_name}</h3>
-                  <p className='text-[#666666] font-[400]'>Premium Jumbo Hardcover | a festive gift box</p>
-
-                  
-                  {countdown ? 
-                    <p className="text-sm text-gray-600">You can modify your message within {countdown} <a onClick={handleClickEditMessage} className='text-[#012CCE] cursor-pointer'>Edit</a></p>
-                    :
-                    <p onClick={handleClickEditMessage} className="text-[#666] bg-[#f8f8f8] font-[400] p-2">{item.message}</p>
-                  }
-                  
-                  {(item.edition || item.description) && (
-                    <p className="text-sm text-gray-600">
-                      {item.edition}
-                      {item.edition && item.description && ' | '}
-                      {item.description}
-                    </p>
-                  )}
-                </div>
+            <div className="flex-1 space-y-2">
+              <div className='flex justify-between items-center'>
+                <h3 className="font-bold">{item.picbook_name}</h3>
                 
-                <div className="flex items-center gap-4">
-                  
-                  {onQuantityChange && 
-                  <div className="flex items-center border rounded-md">
-                    <button
-                      onClick={() => onQuantityChange(item.id, -1)}
-                      className="px-2 py-1 text-gray-600 hover:bg-gray-100"
-                      disabled={item.quantity <= 1}
-                    >
-                      -
-                    </button>
-                    <input
-                      type="number"
-                      min="1"
-                      value={item.quantity}
-                      onChange={(e) => onQuantityChange(item.id, parseInt(e.target.value) - item.quantity)}
-                      className="w-12 text-center border-x py-1"
-                    />
-                    <button
-                      onClick={() => onQuantityChange(item.id, 1)}
-                      className="px-2 py-1 text-gray-600 hover:bg-gray-100"
-                    >
-                      +
-                    </button>
-                  </div>}
-                  
+                <div className='flex items-center gap-3'>
                   <DisplayPrice style='text-[#222222] font-bold' value={item.total_price || item.price * item.quantity} />
-                  
                   
                   {onRemoveItem && 
                   <button
@@ -166,21 +122,68 @@ export default function CartItemCard({
                     </svg>
                   </button>}
 
-                  
                 </div>
+
+              </div>
+                
+                <p className='text-[#666666] font-[400]'>Premium Jumbo Hardcover | a festive gift box</p>
+                
+
+                {countdown ? 
+                  <p className="text-sm text-gray-600">You can modify your message within {countdown} <a onClick={handleClickEditMessage} className='text-[#012CCE] cursor-pointer'>Edit</a></p>
+                  :
+                  <p onClick={handleClickEditMessage} className="text-[#666] bg-[#f8f8f8] font-[400] p-2 rounded">{item.message}</p>
+                }
+                
+                {(item.edition || item.description) && (
+                  <p className="text-sm text-gray-600">
+                    {item.edition}
+                    {item.edition && item.description && ' | '}
+                    {item.description}
+                  </p>
+                )}
+              
+              <div className="flex items-center justify-between gap-4">
+
+                {showEditBook &&
+                <Link
+                  href={`/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit`}
+                  className="text-sm text-blue-600 hover:underline mt-2"
+                  onClick={() => {
+                    const url = `/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit`;
+                    console.log('CartItemList - Navigating to:', url);
+                  }}
+                >
+                  Edit Book
+                </Link>}
+                
+                {onQuantityChange && 
+                <div className="flex items-center border rounded-md">
+                  <button
+                    onClick={() => onQuantityChange(item.id, -1)}
+                    className="px-2 py-1 text-gray-600 hover:bg-gray-100"
+                    disabled={item.quantity <= 1}
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    min="1"
+                    value={item.quantity}
+                    onChange={(e) => onQuantityChange(item.id, parseInt(e.target.value) - item.quantity)}
+                    className="w-12 text-center border-x py-1"
+                  />
+                  <button
+                    onClick={() => onQuantityChange(item.id, 1)}
+                    className="px-2 py-1 text-gray-600 hover:bg-gray-100"
+                  >
+                    +
+                  </button>
+                </div>}
+
+                
               </div>
               
-              {showEditBook &&
-              <Link
-                href={`/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit`}
-                className="text-sm text-blue-600 hover:underline mt-2"
-                onClick={() => {
-                  const url = `/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit`;
-                  console.log('CartItemList - Navigating to:', url);
-                }}
-              >
-                Edit Book
-              </Link>}
             </div>
           </div>
           
