@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { OrderDetailResponse } from '../checkout/components/types';
+import { OrderDetail, OrderDetailResponse } from '../checkout/components/types';
 import useUserStore from '@/stores/userStore';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
-import { API_ORDER_PROGRESS, API_ORDER_UPDATE_MESSAGE } from '@/constants/api';
+import { API_ORDER_PROGRESS, API_ORDER_STRIPE_PAID, API_ORDER_UPDATE_MESSAGE } from '@/constants/api';
 import OrderSummaryPrices from '../components/component/OrderSummaryPrices';
 import StepIndicator from './components/StepIndicator';
 import OrderSummaryDelivery from '../components/component/OrderSummaryDelivery';
@@ -28,12 +28,22 @@ const OrderSummary: React.FC = () => {
     }
   }
 
+  const confirmOrderPayment = async(orderDetail:OrderDetail) => {
+    const {data, code, message, success} = await api.post<ApiResponse>(`${API_ORDER_STRIPE_PAID}`,{
+      order_id: orderId,
+      payment_intent_id:orderDetail.stripe_payment_intent_id
+    });
+  }
+
   useEffect(()=>{
     const fetchSummaryOrder = async(orderId:string) => {
       try {
         const {data,code,message,success} = await fetchOrderDetail(orderId);
         if (success) {
           setOrderDetail(data);
+          if (data?.order) {
+            confirmOrderPayment(data?.order);
+          }
         }
       } finally {
         setIsLoading(false);
