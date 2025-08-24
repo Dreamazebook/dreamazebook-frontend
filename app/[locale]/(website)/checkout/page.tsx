@@ -270,7 +270,7 @@ export default function CheckoutPage() {
           </div>
           
           {/* Right column - Order summary */}
-          <div className="lg:w-1/3">
+          <div className="lg:w-1/3 relative">
             <OrderSummary
               orderDetail={orderDetail}
             />
