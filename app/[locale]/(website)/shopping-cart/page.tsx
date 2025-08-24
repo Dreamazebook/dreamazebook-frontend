@@ -122,6 +122,8 @@ export default function ShoppingCartPage() {
     router.push(`/personalized-products/${bookId}/${previewId}/edit?${query.toString()}`);
   };
 
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
   // 结算时，仅包含已选中的商品
   const handleCheckout = async () => {
     // const itemsToCheckout = cartItems.filter(item => selectedItems.includes(item.id));
@@ -130,19 +132,22 @@ export default function ShoppingCartPage() {
       return;
     }
     try {
+      setCheckoutLoading(true);
       const {success,message,code,data} = await api.post<ApiResponse>(API_ORDER_CREATE, {
         cart_item_ids: selectedItems,
-        payment_method:'stripe'
+        payment_method:'stripe',
+        coupon_code: appliedCoupon
       });
       if (success) {
         setError('');
         router.push(`/checkout?orderId=${data.order.id}`);
       } else {
-        console.log(message);
         setError(message || t('checkoutFailed'));
       }
     } catch (err) {
       setError(t('checkoutFailed'));
+    } finally {
+      setCheckoutLoading(false);
     }
   };
 
@@ -170,6 +175,7 @@ export default function ShoppingCartPage() {
     } else {
       alert(t('invalidCoupon'));
     }
+    setAppliedCoupon(code);
   };
 
   if (loading) {
@@ -214,6 +220,12 @@ export default function ShoppingCartPage() {
                 </p>
                 <CouponInput onApply={handleApplyCoupon} />
               </div>
+
+              {appliedCoupon && (
+                <p className="text-green-600 text-sm mb-2">
+                  {t('appliedCoupon')}: <strong>{appliedCoupon}</strong>
+                </p>
+              )}
               
               <div className="space-y-3 mb-6 border-t border-gray-200 pt-4">
                 <div className="flex justify-between">
@@ -255,10 +267,20 @@ export default function ShoppingCartPage() {
                 </div>
                 <button
                   onClick={handleCheckout}
-                  disabled={selectedItems.length === 0}
-                  className="w-full py-3 cursor-pointer bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-400"
+                  disabled={selectedItems.length === 0 || checkoutLoading}
+                  className="w-full py-3 cursor-pointer bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-400 flex items-center justify-center gap-2"
                 >
-                  {t('checkout')}
+                  {checkoutLoading ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      {t('processing')}
+                    </>
+                  ) : (
+                    t('checkout')
+                  )}
                 </button>
                 {/* <button
                   onClick={() => alert('Checkout with PayPal')}

@@ -124,6 +124,9 @@ export default function CheckoutPage() {
     setShowShippingForm(true);
   }
 
+  const handleApplyCoupon = async (couponCode: string) => {
+  }
+
   const updateOrderAddress = async (address: Address) => {
     if (orderDetail?.order.shipping_address?.street === address.street) {
       if (needsBillingAddress && orderDetail?.order.billing_address?.street === billingAddress.street) {
@@ -273,6 +276,7 @@ export default function CheckoutPage() {
           <div className="lg:w-1/3 relative">
             <OrderSummary
               orderDetail={orderDetail}
+              handleApplyCoupon={handleApplyCoupon}
             />
           </div>
         </div>
