@@ -1,5 +1,6 @@
 "use client";
 
+import { Link } from "@/i18n/routing";
 import { OrderDetail } from "../../checkout/components/types";
 import DisplayPrice from "../../components/component/DisplayPrice";
 import OrderItem from "../../components/component/OrderItem";
@@ -12,7 +13,7 @@ export default function LatestOrderHistory({ orderDetail }:{orderDetail:OrderDet
   return (
     <div key={order_number} className="border rounded-lg p-3 md:p-4">
       <div className="flex flex-col sm:flex-row sm:items-center mb-5 gap-2">
-        <span className="text-base md:text-lg font-medium text-gray-900">#{order_number}</span>
+        <Link href={`/${orderDetail.payment_status === 'paid' ? 'order-summary' : 'checkout'}?orderId=${orderDetail.id}`} className="text-base md:text-lg font-medium text-gray-900">#{order_number}</Link>
         <OrderStatusLabel status={status} />
       </div>
       
