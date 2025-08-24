@@ -155,7 +155,7 @@ export default function CheckoutPage() {
 
   // Handle next from shipping step
   const handleNextFromShipping = async() => {
-    if (orderDetail?.order.shipping_address.street === shippingAddress.street) {
+    if (orderDetail?.order.shipping_address?.street === shippingAddress.street) {
       setCompletedSteps([...completedSteps, 1]);
       setOpenStep(2);
       return;
