@@ -16,7 +16,7 @@ import MessageModal from './components/MessageModal';
 import Loading from '../components/Loading';
 
 const OrderSummary: React.FC = () => {
-  const t = useTranslations('orderSummary.actions');
+  const t = useTranslations('orderSummary');
   const {fetchOrderDetail} = useUserStore();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
@@ -90,10 +90,10 @@ const OrderSummary: React.FC = () => {
         {/* 标题与提示 */}
         <div className="mb-4">
           <h1 className="text-2xl mb-2">
-            🎉 Your book is being carefully prepared!
+            🎉 {t('preparationTitle')}
           </h1>
           <p className="text-gray-600">
-            We will reach out within 48 hours to finalize your book&apos;s design! Keep an eye on your email ✨
+            {t('preparationSubtitle')} ✨
           </p>
         </div>
 
@@ -129,12 +129,12 @@ const OrderSummary: React.FC = () => {
           <button
             className="text-[#222] py-2 border border-[#222] px-4 rounded hover:bg-gray-300"
           >
-            {t('downloadInvoice')}
+            {t('actions.downloadInvoice')}
           </button>
           <button
             className="bg-[#222] text-white py-2 px-4 rounded hover:opacity-70 cursor-pointer"
           >
-            {t('buySame')}
+            {t('actions.buySame')}
           </button>
         </div>
 
