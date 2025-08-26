@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { OrderDetail, OrderDetailResponse } from '../checkout/components/types';
+import { CartItem, EMPTY_CART_ITEM, OrderDetail, OrderDetailResponse } from '../checkout/components/types';
 import useUserStore from '@/stores/userStore';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
@@ -57,13 +57,16 @@ const OrderSummary: React.FC = () => {
 
 
   const [showMessageModal, setShowMessageModal] = useState(false);
-  const handleClickEditMessage = () => {
+  const [selectedItem, setSelectedItem] = useState<CartItem>(EMPTY_CART_ITEM);
+  const handleClickEditMessage = (orderItem:any) => {
+    setSelectedItem(orderItem);
     setShowMessageModal(true);
   }
   const handleMessageSubmit = async(updateMessage:string) => {
-    const {message, success, code, data} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_MESSAGE}/${orderDetail?.order.id}`,{message:updateMessage});
+    const {message, success, code, data} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_MESSAGE}/${orderDetail?.order.id}`,{message:updateMessage, item_id:selectedItem?.id});
     if (success) {
       setShowMessageModal(false);
+      setSelectedItem(EMPTY_CART_ITEM);
     } else {
       alert(message);
     }
@@ -79,7 +82,7 @@ const OrderSummary: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
 
-      {showMessageModal && <MessageModal handleClose={()=>setShowMessageModal(false)} handleMessageSubmit={handleMessageSubmit}/>}
+      {showMessageModal && <MessageModal message={selectedItem.message} handleClose={()=>setShowMessageModal(false)} handleMessageSubmit={handleMessageSubmit}/>}
       {/* 容器 */}
       <div className="max-w-5xl mx-auto p-6">
         {/* 标题与提示 */}

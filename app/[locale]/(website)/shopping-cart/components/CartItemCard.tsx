@@ -14,7 +14,7 @@ interface CartItemProps {
   onQuantityChange?: (id: number, delta: number) => void;
   onRemoveItem?: (id: number) => void;
   onToggleSelect?: (id: number) => void;
-  handleClickEditMessage?: () => void;
+  handleClickEditMessage?: (orderItem:any) => void;
 }
 
 export default function CartItemCard({ 
@@ -129,10 +129,10 @@ export default function CartItemCard({
                 <p className='text-[#666666] font-[400]'>Premium Jumbo Hardcover | a festive gift box</p>
                 
 
-                {countdown ? 
-                  <p className="text-sm text-gray-600">You can modify your message within {countdown} <a onClick={handleClickEditMessage} className='text-[#012CCE] cursor-pointer'>Edit</a></p>
+                {(countdown && handleClickEditMessage) ? 
+                  <p className="text-sm text-gray-600">You can modify your message within {countdown} <a onClick={()=>handleClickEditMessage(item)} className='text-[#012CCE] cursor-pointer'>Edit</a></p>
                   :
-                  <p onClick={handleClickEditMessage} className="text-[#666] bg-[#f8f8f8] font-[400] p-2 rounded">{item.message}</p>
+                  <p className="text-[#666] bg-[#f8f8f8] font-[400] p-2 rounded">{item.message}</p>
                 }
                 
                 {(item.edition || item.description) && (

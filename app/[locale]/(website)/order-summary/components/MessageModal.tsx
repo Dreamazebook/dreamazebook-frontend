@@ -1,12 +1,13 @@
 import { useState } from "react";
 
 interface MessageModalProps {
+  message: string;
   handleMessageSubmit: (message: string) => void;
   handleClose: () => void;
 }
 
-export default function MessageModal({handleClose, handleMessageSubmit}:MessageModalProps) {
-  const [dedication, setDedication] = useState("Dear YUYSUSN,\n\nThe world is full of wonderful, surprising places to explore. May your days be full of discoveries, adventure and joy!");
+export default function MessageModal({handleClose, handleMessageSubmit, message}:MessageModalProps) {
+  const [dedication, setDedication] = useState(message);
   
   const maxLines = 10;
   const maxChars = 400;

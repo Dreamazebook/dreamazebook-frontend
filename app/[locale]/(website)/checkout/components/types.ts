@@ -41,6 +41,23 @@ export interface OrderDetail {
   items:CartItem[]
 }
 
+export const EMPTY_CART_ITEM = {
+  id: 0,
+  name: '',
+  format: '',
+  box: '',
+  image: '',
+  price: 0,
+  quantity: 0,
+  total_price: 0,
+  picbook_name: '',
+  picbook_cover: '',
+  message: '',
+  status: '',
+  created_at: '',
+  updated_at: '',
+}
+
 export interface CartItem {
   id: number;
   name: string;
