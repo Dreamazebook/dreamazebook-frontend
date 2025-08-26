@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { CartItem, EMPTY_CART_ITEM, OrderDetail, OrderDetailResponse } from '../checkout/components/types';
 import useUserStore from '@/stores/userStore';
 import api from '@/utils/api';
@@ -15,6 +16,7 @@ import MessageModal from './components/MessageModal';
 import Loading from '../components/Loading';
 
 const OrderSummary: React.FC = () => {
+  const t = useTranslations('orderSummary.actions');
   const {fetchOrderDetail} = useUserStore();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
@@ -127,12 +129,12 @@ const OrderSummary: React.FC = () => {
           <button
             className="text-[#222] py-2 border border-[#222] px-4 rounded hover:bg-gray-300"
           >
-            Download Invoice
+            {t('downloadInvoice')}
           </button>
           <button
             className="bg-[#222] text-white py-2 px-4 rounded hover:opacity-70 cursor-pointer"
           >
-            Buy the Same
+            {t('buySame')}
           </button>
         </div>
 
