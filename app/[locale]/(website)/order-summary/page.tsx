@@ -123,14 +123,14 @@ const OrderSummary: React.FC = () => {
         </div>
 
         {/* 操作按钮 */}
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex items-center justify-end gap-4">
           <button
-            className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300"
+            className="text-[#222] py-2 border border-[#222] px-4 rounded hover:bg-gray-300"
           >
             Download Invoice
           </button>
           <button
-            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+            className="bg-[#222] text-white py-2 px-4 rounded hover:opacity-70 cursor-pointer"
           >
             Buy the Same
           </button>
