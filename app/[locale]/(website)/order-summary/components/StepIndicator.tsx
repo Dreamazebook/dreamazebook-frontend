@@ -1,7 +1,8 @@
 import Image from 'next/image';
 import React, { useState } from 'react';
+import { OrderDetail } from '../../checkout/components/types';
 
-const StepIndicator = () => {
+const StepIndicator = ({orderDetail}:{orderDetail:OrderDetail}) => {
   const [currentStep, setCurrentStep] = useState(3);
 
   const steps = [
