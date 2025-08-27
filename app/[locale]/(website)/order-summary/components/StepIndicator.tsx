@@ -1,7 +1,8 @@
+import Image from 'next/image';
 import React, { useState } from 'react';
 
 const StepIndicator = () => {
-  const [currentStep, setCurrentStep] = useState(2);
+  const [currentStep, setCurrentStep] = useState(3);
 
   const steps = [
     { id: 1, title: "Place Order" },
@@ -15,24 +16,18 @@ const StepIndicator = () => {
     const isCurrent = step.id === currentStep;
     
     // Step 1: Checkmark when completed
-    if (step.id === 1 && isCompleted) {
+    if (isCompleted) {
       return (
-        <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="w-6 h-6 text-[#012CCE]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="20,6 9,17 4,12"></polyline>
         </svg>
       );
     }
 
     // Step 2: 3D Box when current
-    if (step.id === 2 && isCurrent) {
+    if (isCurrent) {
       return (
-        <div className="relative">
-          <div className="w-5 h-4 bg-orange-500 relative">
-            <div className="w-full h-full bg-orange-500 border border-orange-600"></div>
-            <div className="absolute -top-1 left-0 w-5 h-1 bg-orange-300 border border-orange-400 transform -skew-x-12 origin-bottom-left"></div>
-            <div className="absolute top-0 -right-1 w-1 h-4 bg-orange-600 border border-orange-700 transform skew-y-12 origin-top-left"></div>
-          </div>
-        </div>
+        <Image src='/order-summary/order-progress.png' width={30} height={30} alt="Order Progress" />
       );
     }
 
@@ -50,10 +45,10 @@ const StepIndicator = () => {
     
     return {
       circle: `w-12 h-12 rounded-full flex items-center justify-center shadow-lg relative z-10 ${
-        isCompleted ? 'bg-blue-600' : isCurrent ? 'bg-orange-400' : 'bg-gray-300'
+        isCompleted ? 'bg-[#FCF2F2]' : isCurrent ? '' : 'bg-gray-300'
       }`,
-      text: `font-medium text-sm ${
-        isCompleted || isCurrent ? 'text-blue-600' : 'text-gray-500'
+      text: `font-bold ${
+        isCompleted || isCurrent ? 'text-[#012CCE]' : 'text-[#666666]'
       }`
     };
   };
