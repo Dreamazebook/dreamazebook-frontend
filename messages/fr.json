@@ -143,6 +143,7 @@
       "buySame": "Acheter le même"
     },
     "preparationTitle": "Votre livre est en cours de préparation !",
-    "preparationSubtitle": "Nous vous contacterons dans les 48 heures pour finaliser la conception de votre livre ! Surveillez vos emails"
+    "preparationSubtitle": "Nous vous contacterons dans les 48 heures pour finaliser la conception de votre livre ! Surveillez vos emails",
+    "noOrderIdError": "Aucun identifiant de commande fourni. Veuillez vérifier les détails de votre commande."
   }
 }
