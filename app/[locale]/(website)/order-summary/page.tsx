@@ -77,8 +77,55 @@ const OrderSummary: React.FC = () => {
   // 计算费用小结
   const discount = 0;   // 如果有优惠就填入相应数值
 
+  if (!orderId) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 px-4 flex items-center justify-center">
+        <p className="text-red-500 text-lg">{t('noOrderIdError')}</p>
+      </div>
+    );
+  }
+
   if (isLoading) {
-    return <Loading />;
+    return (
+    <div className="min-h-screen bg-gray-50 py-8 px-4 animate-pulse">
+      <div className="max-w-5xl mx-auto p-6 space-y-6">
+        {/* 标题与提示 */}
+        <div className="space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+        </div>
+
+        {/* 订单号和预计送达 */}
+        <div className="flex space-x-8">
+          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+        </div>
+
+        {/* 进度状态指示 */}
+        <div className="h-12 bg-gray-200 rounded"></div>
+
+        {/* 订单列表 */}
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-32 bg-gray-200 rounded"></div>
+          ))}
+        </div>
+
+        {/* 费用小结 & 收货信息 */}
+        <div className="space-y-4 bg-white p-4">
+          <div className="h-6 bg-gray-200 rounded w-full"></div>
+          <div className="h-6 bg-gray-200 rounded w-full"></div>
+          <div className="h-6 bg-gray-200 rounded w-full"></div>
+        </div>
+
+        {/* 操作按钮 */}
+        <div className="flex justify-end space-x-4">
+          <div className="h-10 bg-gray-200 rounded w-32"></div>
+          <div className="h-10 bg-gray-200 rounded w-32"></div>
+        </div>
+      </div>
+    </div>
+  );
   }
 
   return (
