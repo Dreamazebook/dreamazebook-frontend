@@ -13,7 +13,6 @@ import StepIndicator from './components/StepIndicator';
 import OrderSummaryDelivery from '../components/component/OrderSummaryDelivery';
 import CartItemCard from '../shopping-cart/components/CartItemCard';
 import MessageModal from './components/MessageModal';
-import Loading from '../components/Loading';
 
 const OrderSummary: React.FC = () => {
   const t = useTranslations('orderSummary');
@@ -60,17 +59,23 @@ const OrderSummary: React.FC = () => {
 
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<CartItem>(EMPTY_CART_ITEM);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const handleClickEditMessage = (orderItem:any) => {
     setSelectedItem(orderItem);
     setShowMessageModal(true);
   }
   const handleMessageSubmit = async(updateMessage:string) => {
-    const {message, success, code, data} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_MESSAGE}/${orderDetail?.order.id}`,{message:updateMessage, item_id:selectedItem?.id});
-    if (success) {
-      setShowMessageModal(false);
-      setSelectedItem(EMPTY_CART_ITEM);
-    } else {
-      alert(message);
+    setIsSubmitting(true);
+    try {
+      const {message, success, code, data} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_MESSAGE}/${orderDetail?.order.id}`,{message:updateMessage, item_id:selectedItem?.id});
+      if (success) {
+        setShowMessageModal(false);
+        setSelectedItem(EMPTY_CART_ITEM);
+      } else {
+        alert(message);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -131,7 +136,7 @@ const OrderSummary: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
 
-      {showMessageModal && <MessageModal message={selectedItem.message} handleClose={()=>setShowMessageModal(false)} handleMessageSubmit={handleMessageSubmit}/>}
+      {showMessageModal && <MessageModal isSubmitting={isSubmitting} message={selectedItem.message} handleClose={()=>setShowMessageModal(false)} handleMessageSubmit={handleMessageSubmit}/>}
       {/* 容器 */}
       <div className="max-w-5xl mx-auto p-6">
         {/* 标题与提示 */}
