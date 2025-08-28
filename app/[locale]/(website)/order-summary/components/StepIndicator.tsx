@@ -2,8 +2,19 @@ import Image from 'next/image';
 import React, { useState } from 'react';
 import { OrderDetail } from '../../checkout/components/types';
 
+const STATUS_TO_STEP:{[key:string]:number} = {
+  "pending": 1,
+  "paid": 1,
+  "ai_processing": 2,
+  "preparing": 2,
+  "printing": 2,
+  "shipped": 3,
+  "delivered": 4
+};
+
 const StepIndicator = ({orderDetail}:{orderDetail:OrderDetail}) => {
-  const [currentStep, setCurrentStep] = useState(3);
+  const status = orderDetail.status;
+  const [currentStep, setCurrentStep] = useState(STATUS_TO_STEP[status] || 1);
 
   const steps = [
     { id: 1, title: "Place Order" },

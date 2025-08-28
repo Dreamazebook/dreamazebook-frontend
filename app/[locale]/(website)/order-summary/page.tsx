@@ -157,7 +157,7 @@ const OrderSummary: React.FC = () => {
 
 
         {/* 进度状态指示 */}
-        <StepIndicator />
+        {orderDetail && <StepIndicator orderDetail={orderDetail?.order} /> }
 
         {/* 订单列表 */}
         <div className="space-y-4 mb-6">
