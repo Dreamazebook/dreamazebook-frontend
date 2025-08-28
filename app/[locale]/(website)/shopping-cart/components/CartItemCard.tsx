@@ -76,7 +76,7 @@ export default function CartItemCard({
   
   return (
     <div className="bg-white rounded p-4 shadow-sm">
-      <div className="flex items-start gap-3">
+      <div className="flex items-center gap-3">
         {(onToggleSelect && selectedItems) && 
         <div className="relative inline-block h-6 w-6 mt-1">
           <span onClick={()=>onToggleSelect(item.id)} className={`absolute top-0 left-0 h-6 w-6 rounded-full border-2 ${selectedItems.includes(item.id) ? 'bg-[#012CCE]' : 'border-gray-300'} transition-colors duration-200 flex items-center justify-center`}>
