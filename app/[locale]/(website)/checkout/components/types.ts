@@ -14,6 +14,11 @@ export interface OrderDetailResponse {
 export interface OrderDetail {
   id: number;
   user_id: number;
+  user: {
+    id: string,
+    name: string,
+    email: string
+  },
   order_number: string;
   total_amount: number;
   currency_code: string;

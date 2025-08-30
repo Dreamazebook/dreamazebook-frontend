@@ -9,6 +9,9 @@ import OrderShippingInfo from "./OrderDetails/OrderShippingInfo";
 import OrderPaymentInfo from "./OrderDetails/OrderPaymentInfo";
 import OrderTimeline from "./OrderDetails/OrderTimeline";
 import { OrderDetail } from '@/app/[locale]/(website)/checkout/components/types';
+import api from '@/utils/api';
+import { API_ADMIN_ORDERS } from '@/constants/api';
+import { ApiResponse } from '@/types/api';
 
 interface OrderDetailsModalProps {
   orderDetail: OrderDetail;
@@ -34,9 +37,9 @@ const OrderDetailsModal: FC<OrderDetailsModalProps> = ({
   useEffect(() => {
     const loadOrderDetail = async () => {
       try {
-        const { data,success } = await fetchOrderDetail(orderDetail.id.toString());
+        const {data,code,success} = await api.get<ApiResponse>(`${API_ADMIN_ORDERS}/${orderDetail.id}`);
         if (success && data) {
-          setOrder(data?.order);
+          setOrder(data);
         }
       } catch (error) {
         console.error('Failed to fetch order details:', error);
