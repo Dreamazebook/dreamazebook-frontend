@@ -61,6 +61,15 @@ const OrderSummary: React.FC = () => {
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<CartItem>(EMPTY_CART_ITEM);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const copyOrderNumberToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(orderDetail?.order?.order_number || '');
+      alert('Order number copied!');
+    } catch (err) {
+      console.error('Failed to copy order number:', err);
+    }
+  };
   const handleClickEditMessage = (orderItem:any) => {
     setSelectedItem(orderItem);
     setShowMessageModal(true);
@@ -154,7 +163,7 @@ const OrderSummary: React.FC = () => {
         <div className="flex items-center space-x-8 mb-4">
           <span className="text-[#222222] flex items-center gap-1">
             <span>#{orderDetail?.order?.order_number}</span>
-            <Image src='/order-summary/copy.svg' width={24} height={24} alt="clipboard" />
+            <Image src='/order-summary/copy.svg' width={24} height={24} alt="clipboard" className='cursor-pointer' onClick={copyOrderNumberToClipboard} />
           </span>
           <span className="text-gray-500">{t('estimatedDelivery')}: </span>
         </div>
