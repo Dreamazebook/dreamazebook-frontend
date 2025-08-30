@@ -13,6 +13,7 @@ import StepIndicator from './components/StepIndicator';
 import OrderSummaryDelivery from '../components/component/OrderSummaryDelivery';
 import CartItemCard from '../shopping-cart/components/CartItemCard';
 import MessageModal from './components/MessageModal';
+import Image from 'next/image';
 
 const OrderSummary: React.FC = () => {
   const t = useTranslations('orderSummary');
@@ -151,8 +152,11 @@ const OrderSummary: React.FC = () => {
 
         {/* 订单号和预计送达 */}
         <div className="flex items-center space-x-8 mb-4">
-          <span className="text-gray-500">{orderDetail?.order?.order_number}</span>
-          <span className="text-gray-500">预计到达时间: 04/12/2024</span>
+          <span className="text-[#222222] flex items-center gap-1">
+            <span>#{orderDetail?.order?.order_number}</span>
+            <Image src='/order-summary/copy.svg' width={24} height={24} alt="clipboard" />
+          </span>
+          <span className="text-gray-500">{t('estimatedDelivery')}: </span>
         </div>
 
 
