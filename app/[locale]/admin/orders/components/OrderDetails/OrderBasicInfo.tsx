@@ -48,9 +48,19 @@ export default function OrderBasicInfo({
         <div className="sm:col-span-1">
           <dt className="text-sm font-medium text-gray-500">支付状态</dt>
           <dd className="mt-1">
-            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${paymentStatusColors[order.payment_status]}`}>
-              {paymentStatusLabels[order.payment_status] || order.payment_status}
-            </span>
+            <select
+              className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${paymentStatusColors[order.payment_status]}`}
+              value={order.payment_status}
+              onChange={(e) => {
+                // TODO: Add logic to update payment status
+              }}
+            >
+              <option value="pending">{paymentStatusLabels['pending'] || 'pending'}</option>
+              <option value="paid">{paymentStatusLabels['paid'] || 'paid'}</option>
+              <option value="failed">{paymentStatusLabels['failed'] || 'failed'}</option>
+              <option value="refunded">{paymentStatusLabels['refunded'] || 'refunded'}</option>
+              <option value="partial_refund">{paymentStatusLabels['partial_refund'] || 'partial_refund'}</option>
+            </select>
           </dd>
         </div>
         {order.payment_id && (
