@@ -40,9 +40,21 @@ export default function OrderBasicInfo({
         <div className="sm:col-span-1">
           <dt className="text-sm font-medium text-gray-500">订单状态</dt>
           <dd className="mt-1">
-            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[order.status]}`}>
-              {statusLabels[order.status] || order.status}
-            </span>
+            <select
+              className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[order.status]}`}
+              value={order.status}
+              onChange={(e) => {
+                // TODO: Add logic to update order status
+              }}
+            >
+              <option value="pending">{statusLabels['pending'] || 'pending'}</option>
+              <option value="confirmed">{statusLabels['confirmed'] || 'confirmed'}</option>
+              <option value="processing">{statusLabels['processing'] || 'processing'}</option>
+              <option value="shipped">{statusLabels['shipped'] || 'shipped'}</option>
+              <option value="delivered">{statusLabels['delivered'] || 'delivered'}</option>
+              <option value="cancelled">{statusLabels['cancelled'] || 'cancelled'}</option>
+              <option value="refunded">{statusLabels['refunded'] || 'refunded'}</option>
+            </select>
           </dd>
         </div>
         <div className="sm:col-span-1">
