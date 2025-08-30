@@ -94,9 +94,20 @@ const OrderDetailsModal: FC<OrderDetailsModalProps> = ({
           <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div className="sm:flex sm:items-start">
               <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-                  订单详情
-                </h3>
+                <div className="relative">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    订单详情
+                  </h3>
+                  <button
+                    type="button"
+                    className="absolute top-0 right-0 p-1 text-gray-400 hover:text-gray-500 focus:outline-none"
+                    onClick={onClose}
+                  >
+                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
                 
                 <OrderBasicInfo order={order} statusColors={statusColors} paymentStatusColors={paymentStatusColors} statusLabels={statusLabels} paymentStatusLabels={paymentStatusLabels} />
 
