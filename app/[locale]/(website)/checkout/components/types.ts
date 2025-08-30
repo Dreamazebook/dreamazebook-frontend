@@ -78,6 +78,7 @@ export interface CartItem {
   status: string;
   created_at: string;
   updated_at: string;
+  processing_progress: number;
 }
 
 export interface ShippingErrors {

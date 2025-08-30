@@ -33,6 +33,18 @@ export default function OrderBasicInfo({
           <dt className="text-sm font-medium text-gray-500">用户ID</dt>
           <dd className="mt-1 text-sm text-gray-900">{order.user_id}</dd>
         </div>
+        {order.user && (
+          <>
+            <div className="sm:col-span-1">
+              <dt className="text-sm font-medium text-gray-500">用户姓名</dt>
+              <dd className="mt-1 text-sm text-gray-900">{order.user.name || '未设置'}</dd>
+            </div>
+            <div className="sm:col-span-1">
+              <dt className="text-sm font-medium text-gray-500">用户邮箱</dt>
+              <dd className="mt-1 text-sm text-gray-900">{order.user.email || '未设置'}</dd>
+            </div>
+          </>
+        )}
         <div className="sm:col-span-1">
           <dt className="text-sm font-medium text-gray-500">支付方式</dt>
           <dd className="mt-1 text-sm text-gray-900">{order.payment_method || '未设置'}</dd>
@@ -75,12 +87,6 @@ export default function OrderBasicInfo({
             </select>
           </dd>
         </div>
-        {order.payment_id && (
-          <div className="sm:col-span-1">
-            <dt className="text-sm font-medium text-gray-500">支付ID</dt>
-            <dd className="mt-1 text-sm text-gray-900 font-mono">{order.payment_id}</dd>
-          </div>
-        )}
         {order.stripe_payment_intent_id && (
           <div className="sm:col-span-1">
             <dt className="text-sm font-medium text-gray-500">Stripe Payment Intent</dt>

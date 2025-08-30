@@ -30,6 +30,8 @@ export default function OrderItemsList({ items }: OrderItemsListProps) {
               {item.format && <p className="text-sm text-gray-500">格式: {item.format}</p>}
               {item.box && <p className="text-sm text-gray-500">包装: {item.box}</p>}
               <p className="text-sm text-gray-500">数量: {item.quantity}</p>
+              <p className="text-sm text-gray-500">状态: {item.status || '未设置'}</p>
+              <p className="text-sm text-gray-500">处理进度: {item.processing_progress}</p>
               {item.message && (
                 <p className="text-sm text-gray-600 mt-1">
                   <span className="font-medium">留言:</span> {item.message}
