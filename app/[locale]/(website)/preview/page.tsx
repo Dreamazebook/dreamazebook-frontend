@@ -208,6 +208,8 @@ export default function PreviewPageWithTopNav() {
 
   // 处理AI生成状态
   const [isProcessing, setIsProcessing] = useState(false);
+  // 排队状态
+  const [queueStatus, setQueueStatus] = useState<{position: number, total: number, estimatedWaitSeconds?: number} | null>(null);
   // 防重复提交/创建任务
   const hasPostedCreateRef = useRef(false);
   const isPostingCreateRef = useRef(false);
@@ -225,7 +227,6 @@ export default function PreviewPageWithTopNav() {
   const [detailModal, setDetailModal] = React.useState<typeof bookWrapOptions[0] | null>(null);
   // 当前展示图片的索引，用于翻页
   const [currentIndex, setCurrentIndex] = React.useState(0);
-  const [confirmationDone, setConfirmationDone] = React.useState(false);
   const [activeSection, setActiveSection] = React.useState<string>("");
 
   // 添加 options 状态
@@ -282,7 +283,12 @@ export default function PreviewPageWithTopNav() {
   useEffect(() => {
     if (!echo || !user?.id) return;
 
-    const channel = echo.private(`user.${user.id}`);
+    const userChannelName = `user.${user.id}`;
+    const queueChannelName = 'face-swap-queue-status';
+
+    const userChannel = echo.private(userChannelName);
+    // 队列状态频道改为公共频道（需认证）
+    const queueChannel = echo.channel(queueChannelName);
 
     const onTaskCompleted = (e: any) => {
       console.log('任务完成:', e);
@@ -326,18 +332,93 @@ export default function PreviewPageWithTopNav() {
     const onBatchCompleted = (e: any) => {
       console.log('批次完成:', e);
       setIsProcessing(false);
+      setQueueStatus(null); // 清除排队状态
       toast.success('图片生成完成！');
       setTimeout(() => { fetchPreviewData(); }, 100);
     };
 
-    channel.listen('face-swap.task.completed', onTaskCompleted);
-    channel.listen('face-swap.task.failed', onTaskFailed);
-    channel.listen('face-swap.batch.completed', onBatchCompleted);
+    // 监听排队状态更新
+    const onQueueStatusUpdate = (e: any) => {
+      console.log('排队状态更新:', e);
+      // 文档标准字段：queue_position, total_queue_length
+      const position = e?.queue_position ?? e?.position ?? e?.data?.queue_position ?? e?.data?.position;
+      const totalFromDoc = e?.total_queue_length ?? e?.data?.total_queue_length;
+      const totalFallback = e?.total ?? e?.queue_total ?? e?.data?.total ?? e?.data?.queue_total;
+      const regularLen = e?.regular_queue_length ?? e?.data?.regular_queue_length;
+      const priorityLen = e?.priority_queue_length ?? e?.data?.priority_queue_length;
+      const estimated = e?.estimated_wait_time ?? e?.data?.estimated_wait_time ?? e?.estimatedWaitTime ?? e?.data?.estimatedWaitTime;
+      const computedTotal = (!totalFromDoc && !totalFallback && (regularLen || priorityLen))
+        ? (parseInt(regularLen || '0') + parseInt(priorityLen || '0'))
+        : null;
+      const total = totalFromDoc ?? totalFallback ?? computedTotal;
+
+      if (position != null && total != null) {
+        console.log(`设置排队状态: 第${position}/${total}位`);
+        setQueueStatus({
+          position: parseInt(position),
+          total: parseInt(total),
+          estimatedWaitSeconds: estimated != null ? parseInt(estimated) : undefined
+        });
+      } else {
+        console.log('排队状态数据格式不匹配:', e);
+      }
+    };
+
+    // 订阅用户私有频道 - 监听换脸事件
+    console.log('订阅用户频道:', userChannelName);
+    userChannel.listen('.face-swap.task.completed', onTaskCompleted);
+    userChannel.listen('face-swap.task.completed', onTaskCompleted);
+    userChannel.listen('.face-swap.batch.completed', onBatchCompleted);
+    userChannel.listen('face-swap.batch.completed', onBatchCompleted);
+    userChannel.listen('.face-swap.task.failed', onTaskFailed);
+    userChannel.listen('face-swap.task.failed', onTaskFailed);
+    // 队列状态也会广播到用户频道
+    userChannel.listen('.face-swap.queue-status', onQueueStatusUpdate);
+    userChannel.listen('face-swap.queue-status', onQueueStatusUpdate);
+
+    // 订阅排队状态频道 - 优先使用文档标准事件名
+    console.log('订阅排队状态频道:', queueChannelName);
+    queueChannel.listen('.face-swap.queue-status', onQueueStatusUpdate);
+
+    // 新增：显式监听 face-swap.* 标准事件名
+
+    // 可选：全局事件调试（用于定位后端实际事件名）
+    const echoDebug = process.env.NEXT_PUBLIC_ECHO_DEBUG === 'true';
+    let unbindUserGlobal: (() => void) | null = null;
+    let unbindQueueGlobal: (() => void) | null = null;
+    if (echoDebug) {
+      try {
+        const connector: any = (echo as any).connector;
+        const pusher = connector?.pusher;
+        // 绑定 user.* 全局事件
+        const pusherUser = pusher?.channel(userChannelName) || pusher?.subscribe?.(userChannelName);
+        const onUserAny = (eventName: string, data: any) => {
+          console.log(`[WS][${userChannelName}] ${eventName}:`, data);
+          // 若事件包含换脸结果，尝试同样的更新逻辑
+          if (data) {
+            const completedPageId = data?.page_id || data?.result?.page_id || data?.task?.page_id;
+            const completedUrl = data?.result?.standard_url || data?.result?.url || data?.result?.image_url;
+            if (completedPageId && completedUrl) {
+              onTaskCompleted(data);
+            }
+          }
+        };
+        if (pusherUser?.bind_global) {
+          pusherUser.bind_global(onUserAny);
+          unbindUserGlobal = () => pusherUser.unbind_global(onUserAny);
+        }
+
+        // 移除与 queue.status.{userId} 相关的调试绑定
+      } catch (e) {
+        console.warn('启用全局事件调试失败:', e);
+      }
+    }
 
     return () => {
-      channel.stopListening('face-swap.task.completed');
-      channel.stopListening('face-swap.task.failed');
-      channel.stopListening('face-swap.batch.completed');
+      // 清理事件监听器
+      if (unbindUserGlobal) unbindUserGlobal();
+      // 清理排队状态
+      setQueueStatus(null);
     };
   }, [echo, user?.id]);
 
@@ -438,12 +519,6 @@ export default function PreviewPageWithTopNav() {
           <path d="M17.8188 13.2969C18.0788 14.3398 18.0788 15.2523 17.6888 16.2952C17.4289 17.3381 16.909 18.2506 16.1291 18.9025C15.7392 19.2935 15.3492 19.5543 14.8293 19.815C14.3094 20.0757 13.7895 20.3364 13.1396 20.4668C12.6197 20.5972 11.9698 20.7275 11.3199 20.7275H8.20039V12.3844C7.29054 12.254 6.51066 12.1236 5.86077 11.7326C5.34085 11.4718 4.82094 11.0808 4.30102 10.6897C3.78111 10.2986 3.39117 9.77713 3.13121 9.25569C2.74128 8.73424 2.48132 8.08243 2.35134 7.43062C2.22136 6.77881 2.09138 6.127 2.09138 5.47519C2.09138 4.56266 2.22136 3.65013 2.6113 2.7376C3.26119 2.86796 3.91109 3.12868 4.56098 3.51977C5.21088 3.91085 5.73079 4.30194 6.12073 4.82339C6.25071 3.78049 6.64064 2.86796 7.16056 2.08579C7.68047 1.30362 8.33037 0.521447 9.11024 0C9.89011 0.521447 10.67 1.30362 11.1899 2.08579C11.7098 2.99832 11.9698 3.91085 12.0998 4.95375C12.6197 4.4323 13.1396 4.04121 13.6595 3.65013C14.3094 3.25904 14.9593 2.99832 15.6092 2.86796C15.9991 3.65013 16.1291 4.56266 16.1291 5.47519C16.1291 6.127 15.9991 6.77881 15.8691 7.43062C15.7392 8.08243 15.4792 8.60388 15.0893 9.25569C14.6993 9.77713 14.3094 10.2986 13.9195 10.6897C13.3995 11.0808 12.8796 11.4718 12.3597 11.7326C11.9698 11.9933 11.5798 12.1236 11.0599 12.254C10.67 12.3844 10.1501 12.5147 9.76014 12.5147V18.5114C9.89011 17.8596 10.1501 17.3381 10.54 16.8167C10.9299 16.2952 11.3199 15.7738 11.8398 15.2523C12.2297 14.8612 12.6197 14.4702 13.1396 14.2094C13.6595 13.9487 14.1794 13.688 14.6993 13.5576L16.2591 13.1665C16.779 13.1665 17.2989 13.2969 17.8188 13.2969ZM0.141699 13.2969C1.18153 13.0362 2.22136 13.1665 3.13121 13.4273C4.17104 13.688 5.0809 14.2094 5.86077 14.9916C6.25071 15.3827 6.51066 15.7738 6.77062 16.2952C7.03058 16.8167 7.29054 17.2078 7.42052 17.7292C7.55049 18.2506 7.68047 18.7721 7.68047 19.2935C7.68047 19.815 7.68047 20.3364 7.55049 20.8579C6.51066 21.1186 5.60081 20.9882 4.56098 20.7275C3.52115 20.3364 2.6113 19.815 1.83142 19.0328C1.05155 18.2506 0.531636 17.3381 0.271678 16.4256C0.0117201 15.3827 -0.118259 14.3398 0.141699 13.2969Z" fill="currentColor"/>
         </svg>
     },
-    { id: "confirmation", label: "Confirmation", 
-      icon: 
-        <svg width="22" height="24" viewBox="0 0 22 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M18.9846 23.0767H3.0154C2.43418 23.0699 1.8794 22.8328 1.47274 22.4175C1.06608 22.0022 0.840747 21.4425 0.846165 20.8613V4.98439C0.840747 4.40316 1.06608 3.84351 1.47274 3.4282C1.8794 3.01289 2.43418 2.77582 3.0154 2.76901H3.75386C3.80352 2.7643 3.8536 2.77061 3.90054 2.78751C3.94748 2.8044 3.9901 2.83144 4.02538 2.86672C4.06065 2.90199 4.0877 2.94462 4.10459 2.99155C4.12148 3.03849 4.1278 3.08858 4.12309 3.13824V4.61516C4.11792 5.39216 4.42114 6.1395 4.96623 6.69324C5.51133 7.24699 6.25379 7.56193 7.03078 7.56901H14.9692C15.7462 7.56193 16.4887 7.24699 17.0338 6.69324C17.5789 6.1395 17.8821 5.39216 17.8769 4.61516V3.13824C17.8722 3.08858 17.8785 3.03849 17.8954 2.99155C17.9123 2.94462 17.9394 2.90199 17.9746 2.86672C18.0099 2.83144 18.0525 2.8044 18.0995 2.78751C18.1464 2.77061 18.1965 2.7643 18.2462 2.76901H18.9846C19.5658 2.77582 20.1206 3.01289 20.5273 3.4282C20.9339 3.84351 21.1593 4.40316 21.1539 4.98439V20.8613C21.1593 21.4425 20.9339 22.0022 20.5273 22.4175C20.1206 22.8328 19.5658 23.0699 18.9846 23.0767ZM7.37232 13.7195C7.22562 13.7235 7.08651 13.7856 6.98555 13.8921L6.24709 14.6305C6.1968 14.6697 6.15541 14.719 6.12565 14.7754C6.09589 14.8317 6.07845 14.8937 6.07447 14.9573C6.07259 15.0342 6.08699 15.1107 6.11674 15.1816C6.14649 15.2526 6.19091 15.3164 6.24709 15.369L8.92401 18.0459C9.01814 18.1478 9.13234 18.2292 9.25943 18.2848C9.38652 18.3404 9.52374 18.3691 9.66247 18.3691C9.8012 18.3691 9.93843 18.3404 10.0655 18.2848C10.1926 18.2292 10.3068 18.1478 10.4009 18.0459L15.9394 12.5075C15.9894 12.4542 16.027 12.3904 16.0493 12.3208C16.0717 12.2512 16.0783 12.1775 16.0686 12.105C16.0635 12.0464 16.0449 11.9898 16.0143 11.9395C15.9837 11.8892 15.942 11.8467 15.8923 11.8152L15.1539 11.0767C15.1124 11.0229 15.0591 10.9793 14.9981 10.9494C14.9371 10.9195 14.8701 10.904 14.8022 10.9041C14.6555 10.9081 14.5164 10.9702 14.4154 11.0767L9.66155 15.8305L7.72309 13.8921C7.68172 13.8384 7.62858 13.7949 7.56777 13.765C7.50696 13.7351 7.44009 13.7195 7.37232 13.7195ZM15.0154 5.35362H7.03078C6.93092 5.35492 6.8319 5.33521 6.74014 5.29577C6.64839 5.25633 6.56595 5.19805 6.49817 5.1247C6.43677 5.05605 6.39076 4.97508 6.36322 4.8872C6.33568 4.79932 6.32724 4.70657 6.33847 4.61516V3.13824C6.33306 2.55701 6.55839 1.99736 6.96505 1.58205C7.37171 1.16674 7.92649 0.92967 8.5077 0.922852H13.5846C14.1658 0.92967 14.7206 1.16674 15.1273 1.58205C15.5339 1.99736 15.7593 2.55701 15.7539 3.13824V4.61516C15.755 4.71244 15.7366 4.80897 15.6999 4.89907C15.6632 4.98917 15.6088 5.07102 15.54 5.13981C15.4713 5.20861 15.3894 5.26296 15.2993 5.29968C15.2092 5.33639 15.1127 5.35473 15.0154 5.35362Z" fill="currentColor"/>
-        </svg>
-    },
     {
       id: "coverDesign",
       label: "Cover Design",
@@ -468,7 +543,6 @@ export default function PreviewPageWithTopNav() {
 
   // 为每个部分创建 ref（用于滚动定位）
   const giverDedicationRef = useRef<HTMLDivElement>(null);
-  const confirmationRef = useRef<HTMLDivElement>(null);
   const coverDesignRef = useRef<HTMLDivElement>(null);
   const bookFormatRef = useRef<HTMLDivElement>(null);
   const otherGiftsRef = useRef<HTMLDivElement>(null);
@@ -747,7 +821,6 @@ export default function PreviewPageWithTopNav() {
     let ref: React.RefObject<HTMLDivElement | null> | null = null;
     switch(sectionId) {
       case "giverDedication": ref = giverDedicationRef; break;
-      case "confirmation": ref = confirmationRef; break;
       case "coverDesign": ref = coverDesignRef; break;
       case "bookFormat": ref = bookFormatRef; break;
       case "otherGifts": ref = otherGiftsRef; break;
@@ -762,7 +835,6 @@ export default function PreviewPageWithTopNav() {
   // 各部分的完成状态判断
   const completedSections = {
     giverDedication: giver.trim() !== "" && dedication.trim() !== "",
-    confirmation: confirmationDone,
     coverDesign: selectedBookCover !== null,
     bookFormat: selectedBookFormat !== null,
     otherGifts: selectedBookWrap !== null,
@@ -779,7 +851,7 @@ export default function PreviewPageWithTopNav() {
       if (incompleteSections.length > 0) {
         // 如果有未完成的部分，跳转到第一个未完成的部分
         const firstIncomplete = incompleteSections[0];
-        if (firstIncomplete === "giverDedication" || firstIncomplete === "confirmation") {
+        if (firstIncomplete === "giverDedication") {
           setActiveTab("Book preview");
         } else {
           setActiveTab("Others");
@@ -1039,13 +1111,28 @@ export default function PreviewPageWithTopNav() {
             {previewData?.face_swap_info && (
               <div className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
                 {previewData.face_swap_info.status === 'processing' && (
-                  <p>Your book preview is currently being generated, please wait... ({previewData.face_swap_info.total_tasks} pages need face swapping)</p>
+                  <div>
+                    {queueStatus ? (
+                      <p>
+                        图书预览正在排队生成中，您当前排在第{queueStatus.position}/{queueStatus.total}位，
+                        您可以先去选择其他书籍信息，
+                        <a
+                          className="underline cursor-pointer text-blue-600"
+                          onClick={() => router.push('/books')}
+                        >
+                          去选择
+                        </a>
+                      </p>
+                    ) : (
+                      <p>图书预览正在生成中，请稍候... ({previewData.face_swap_info.total_tasks} 页需要换脸)</p>
+                    )}
+                  </div>
                 )}
                 {previewData.face_swap_info.status === 'completed' && (
-                  <p>Book preview has been generated successfully!</p>
+                  <p>图书预览已成功生成！</p>
                 )}
                 {previewData.face_swap_info.status === 'failed' && (
-                  <p>Generation failed, please try again.</p>
+                  <p>生成失败，请重试。</p>
                 )}
               </div>
             )}
@@ -1253,29 +1340,7 @@ export default function PreviewPageWithTopNav() {
               </div>
             )}
 
-            <div ref={confirmationRef} className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222] flex flex-col gap-4">
-              <div>
-                <p>We will only provide a preview of 7 pages of book content.</p>
-                <p>
-                  After you pay, we will send the entire book content to you via email for confirmation within 48 hours.
-                  Please confirm within 48 hours of receiving the information, otherwise the system will automatically determine.
-                </p>
-              </div>
-              <label className="justify-center inline-flex items-center cursor-pointer h-10">
-                <input
-                  type="checkbox"
-                  className="hidden"
-                  checked={confirmationDone}
-                  onChange={(e) => setConfirmationDone(e.target.checked)}
-                />
-                <div className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-[#222222]">
-                  {confirmationDone && <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1.5 3.5L5 7L11 1" stroke="#012CCE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>}
-                </div>
-                <span className="ml-2 text-gray-800 leading-10">I understand and accept</span>
-              </label>
-            </div>
+
 
             
 
@@ -1865,7 +1930,7 @@ export default function PreviewPageWithTopNav() {
                 <div
                   key={item.id}
                   onClick={() => {
-                    if (item.id === "giverDedication" || item.id === "confirmation") {
+                    if (item.id === "giverDedication") {
                       setActiveTab("Book preview");
                     } else {
                       setActiveTab("Others");
