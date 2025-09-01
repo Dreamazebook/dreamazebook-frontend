@@ -141,6 +141,9 @@
     "actions": {
       "downloadInvoice": "Download Invoice",
       "buySame": "Buy the Same"
-    }
+    },
+    "preparationTitle": "Your book is being carefully prepared!",
+    "preparationSubtitle": "We will reach out within 48 hours to finalize your book's design! Keep an eye on your email",
+    "noOrderIdError": "No order ID provided. Please check your order details."
   }
 }

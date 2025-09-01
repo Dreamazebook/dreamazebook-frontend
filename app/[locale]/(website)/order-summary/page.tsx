@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { OrderDetail, OrderDetailResponse } from '../checkout/components/types';
+import { useTranslations } from 'next-intl';
+import { CartItem, EMPTY_CART_ITEM, OrderDetail, OrderDetailResponse } from '../checkout/components/types';
 import useUserStore from '@/stores/userStore';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
@@ -12,9 +13,10 @@ import StepIndicator from './components/StepIndicator';
 import OrderSummaryDelivery from '../components/component/OrderSummaryDelivery';
 import CartItemCard from '../shopping-cart/components/CartItemCard';
 import MessageModal from './components/MessageModal';
-import Loading from '../components/Loading';
+import Image from 'next/image';
 
 const OrderSummary: React.FC = () => {
+  const t = useTranslations('orderSummary');
   const {fetchOrderDetail} = useUserStore();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
@@ -57,50 +59,118 @@ const OrderSummary: React.FC = () => {
 
 
   const [showMessageModal, setShowMessageModal] = useState(false);
-  const handleClickEditMessage = () => {
+  const [selectedItem, setSelectedItem] = useState<CartItem>(EMPTY_CART_ITEM);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const copyOrderNumberToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(orderDetail?.order?.order_number || '');
+      alert('Order number copied!');
+    } catch (err) {
+      console.error('Failed to copy order number:', err);
+    }
+  };
+  const handleClickEditMessage = (orderItem:any) => {
+    setSelectedItem(orderItem);
     setShowMessageModal(true);
   }
   const handleMessageSubmit = async(updateMessage:string) => {
-    const {message, success, code, data} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_MESSAGE}/${orderDetail?.order.id}`,{message:updateMessage});
-    if (success) {
-      setShowMessageModal(false);
-    } else {
-      alert(message);
+    setIsSubmitting(true);
+    try {
+      const {message, success, code, data} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_MESSAGE}/${orderDetail?.order.id}`,{message:updateMessage, item_id:selectedItem?.id});
+      if (success) {
+        setShowMessageModal(false);
+        setSelectedItem(EMPTY_CART_ITEM);
+      } else {
+        alert(message);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   // 计算费用小结
   const discount = 0;   // 如果有优惠就填入相应数值
 
+  if (!orderId) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 px-4 flex items-center justify-center">
+        <p className="text-red-500 text-lg">{t('noOrderIdError')}</p>
+      </div>
+    );
+  }
+
   if (isLoading) {
-    return <Loading />;
+    return (
+    <div className="min-h-screen bg-gray-50 py-8 px-4 animate-pulse">
+      <div className="max-w-5xl mx-auto p-6 space-y-6">
+        {/* 标题与提示 */}
+        <div className="space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+        </div>
+
+        {/* 订单号和预计送达 */}
+        <div className="flex space-x-8">
+          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+        </div>
+
+        {/* 进度状态指示 */}
+        <div className="h-12 bg-gray-200 rounded"></div>
+
+        {/* 订单列表 */}
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-32 bg-gray-200 rounded"></div>
+          ))}
+        </div>
+
+        {/* 费用小结 & 收货信息 */}
+        <div className="space-y-4 bg-white p-4">
+          <div className="h-6 bg-gray-200 rounded w-full"></div>
+          <div className="h-6 bg-gray-200 rounded w-full"></div>
+          <div className="h-6 bg-gray-200 rounded w-full"></div>
+        </div>
+
+        {/* 操作按钮 */}
+        <div className="flex justify-end space-x-4">
+          <div className="h-10 bg-gray-200 rounded w-32"></div>
+          <div className="h-10 bg-gray-200 rounded w-32"></div>
+        </div>
+      </div>
+    </div>
+  );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
 
-      {showMessageModal && <MessageModal handleClose={()=>setShowMessageModal(false)} handleMessageSubmit={handleMessageSubmit}/>}
+      {showMessageModal && <MessageModal isSubmitting={isSubmitting} message={selectedItem.message} handleClose={()=>setShowMessageModal(false)} handleMessageSubmit={handleMessageSubmit}/>}
       {/* 容器 */}
       <div className="max-w-5xl mx-auto p-6">
         {/* 标题与提示 */}
         <div className="mb-4">
           <h1 className="text-2xl mb-2">
-            🎉 Your book is being carefully prepared!
+            🎉 {t('preparationTitle')}
           </h1>
           <p className="text-gray-600">
-            We will reach out within 48 hours to finalize your book&apos;s design! Keep an eye on your email ✨
+            {t('preparationSubtitle')} ✨
           </p>
         </div>
 
         {/* 订单号和预计送达 */}
         <div className="flex items-center space-x-8 mb-4">
-          <span className="text-gray-500">{orderDetail?.order?.order_number}</span>
-          <span className="text-gray-500">预计到达时间: 04/12/2024</span>
+          <span className="text-[#222222] flex items-center gap-1">
+            <span>#{orderDetail?.order?.order_number}</span>
+            <Image src='/order-summary/copy.svg' width={24} height={24} alt="clipboard" className='cursor-pointer' onClick={copyOrderNumberToClipboard} />
+          </span>
+          <span className="text-gray-500">{t('estimatedDelivery')}: </span>
         </div>
 
 
         {/* 进度状态指示 */}
-        <StepIndicator />
+        {orderDetail && <StepIndicator orderDetail={orderDetail?.order} /> }
 
         {/* 订单列表 */}
         <div className="space-y-4 mb-6">
@@ -120,16 +190,16 @@ const OrderSummary: React.FC = () => {
         </div>
 
         {/* 操作按钮 */}
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex items-center justify-end gap-4">
           <button
-            className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300"
+            className="text-[#222] py-2 border border-[#222] px-4 rounded hover:bg-gray-300"
           >
-            Download Invoice
+            {t('actions.downloadInvoice')}
           </button>
           <button
-            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+            className="bg-[#222] text-white py-2 px-4 rounded hover:opacity-70 cursor-pointer"
           >
-            Buy the Same
+            {t('actions.buySame')}
           </button>
         </div>
 

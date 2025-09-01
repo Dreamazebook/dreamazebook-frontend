@@ -13,6 +13,13 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
   const pathname = usePathname();
   const t = useTranslations('profileSidebar');
 
+  const navItems = [
+    { href: "/profile", translationKey: "home" },
+    { href: "/profile/detail", translationKey: "accountDetails" },
+    { href: "/profile/order-history", translationKey: "orderHistory" },
+    { href: "#", translationKey: "loyalty" },
+  ];
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -109,50 +116,27 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
                   className="w-full h-full object-cover"
                 />
               </div>
-              <h2 className="text-lg font-medium text-gray-900">{user?.name}</h2>
+              <h2 className="text-lg font-semibold text-[#222222]">{user?.name}</h2>
             </div>
 
             <nav className="space-y-1">
-              <Link
-                href="/profile"
-                className={`block px-3 py-2 rounded font-medium ${
-                  pathname.endsWith('/profile')
-                    ? 'text-blue-600 bg-blue-50' 
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                {t("home")}
-              </Link>
-              <Link
-                href="/profile/detail"
-                className={`block px-3 py-2 rounded ${
-                  pathname.endsWith('/profile/detail')
-                    ? 'text-blue-600 bg-blue-50 font-medium' 
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                {t("accountDetails")}
-              </Link>
-              <Link
-                href="/profile/order-history"
-                className={`block px-3 py-2 rounded ${
-                  pathname.endsWith('/profile/order-history')
-                    ? 'text-blue-600 bg-blue-50 font-medium' 
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                {t("orderHistory")}
-              </Link>
-              <Link
-                href="#"
-                className="block px-3 py-2 text-gray-700 hover:bg-gray-50 rounded"
-              >
-                {t("loyalty")}
-              </Link>
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`block px-3 text-center py-2 rounded ${
+                    pathname.endsWith(item.href)
+                      ? 'text-[#012CCE] font-medium text-[18px]'
+                      : 'text-[#222222] hover:bg-gray-50'
+                  }`}
+                >
+                  {t(item.translationKey)}
+                </Link>
+              ))}
             </nav>
 
             <div className="mt-12">
-              <button className="text-gray-600 cursor-pointer hover:text-gray-800 text-sm" onClick={()=>{
+              <button className="text-gray-600 cursor-pointer text-center w-full hover:text-gray-800 text-sm" onClick={()=>{
                 logout();
                 router.push('/');
               }}>

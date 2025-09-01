@@ -5,18 +5,29 @@ interface OrderSummaryDeliveryProps {
   orderDetail: OrderDetail;
 }
 
-const OrderSummaryDelivery = ({orderDetail}:OrderSummaryDeliveryProps) => {
-  const {shipping_address,updated_at} = orderDetail;
+const OrderSummaryDelivery = ({ orderDetail }: OrderSummaryDeliveryProps) => {
+  const { shipping_address, updated_at } = orderDetail;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-[#222] mb-4 bg-[#F8F8F8] p-3">
-      <div className="space-y-3">
-        <div><span className="font-medium text-[#999] mr-4">Ship to</span> {formatAddress(shipping_address)}</div>
-        <div><span className="font-medium text-[#999] mr-4">Order date</span> {formatDate(updated_at)}</div>
-        {/* <div><span className="font-medium text-[#999] mr-4">Qty</span> 1</div> */}
+    <div className="text-lg text-[#222] mb-4 bg-[#F8F8F8] p-3 space-y-3">
+      <div>
+        <span className="font-medium text-[#999] mr-4">Ship to</span>{" "}
+        {formatAddress(shipping_address)}
+      </div>
+
+      <div className="grid grid-cols-2">
+        <div>
+          <span className="font-medium text-[#999] mr-4">Order date</span>{" "}
+          {formatDate(updated_at)}
+        </div>
+
+        <div>
+          <span className="font-medium text-[#999] mr-4">Delivery date</span>{" "}
+        </div>
       </div>
       <div>
-        <div><span className="font-medium text-[#999] mr-4">Delivery date</span> </div>
+        <span className="font-medium text-[#999] mr-4">Qty</span>{" "}
+        {orderDetail.items.length}
       </div>
     </div>
   );

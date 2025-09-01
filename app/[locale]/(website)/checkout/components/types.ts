@@ -14,6 +14,11 @@ export interface OrderDetailResponse {
 export interface OrderDetail {
   id: number;
   user_id: number;
+  user: {
+    id: string,
+    name: string,
+    email: string
+  },
   order_number: string;
   total_amount: number;
   currency_code: string;
@@ -41,6 +46,23 @@ export interface OrderDetail {
   items:CartItem[]
 }
 
+export const EMPTY_CART_ITEM = {
+  id: 0,
+  name: '',
+  format: '',
+  box: '',
+  image: '',
+  price: 0,
+  quantity: 0,
+  total_price: 0,
+  picbook_name: '',
+  picbook_cover: '',
+  message: '',
+  status: '',
+  created_at: '',
+  updated_at: '',
+}
+
 export interface CartItem {
   id: number;
   name: string;
@@ -56,6 +78,7 @@ export interface CartItem {
   status: string;
   created_at: string;
   updated_at: string;
+  processing_progress: number;
 }
 
 export interface ShippingErrors {

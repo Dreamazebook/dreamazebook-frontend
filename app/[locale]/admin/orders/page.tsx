@@ -199,7 +199,7 @@ const AdminOrdersPage: FC = () => {
       {/* 订单详情模态框 */}
       {showDetailsModal && selectedOrder && (
         <OrderDetailsModal 
-          order={selectedOrder} 
+          orderDetail={selectedOrder} 
           onClose={() => setShowDetailsModal(false)} 
           statusColors={statusColors} 
           paymentStatusColors={paymentStatusColors} 

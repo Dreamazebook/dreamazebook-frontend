@@ -123,6 +123,9 @@
     "actions": {
       "downloadInvoice": "下载发票",
       "buySame": "购买相同"
-    }
+    },
+    "preparationTitle": "您的书籍正在精心准备中！",
+    "preparationSubtitle": "我们将在 48 小时内联系您以完成书籍设计！请留意您的邮箱",
+    "noOrderIdError": "未提供订单 ID。请检查您的订单详情。"
   }
 }
