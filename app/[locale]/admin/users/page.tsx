@@ -4,6 +4,7 @@ import { FC, useEffect, useState } from 'react';
 import { API_ADMIN_USERS } from '@/constants/api';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
+import { formatDate } from '../orders/utils';
 
 interface User {
   id: string;
@@ -43,16 +44,6 @@ const AdminDashboard: FC = () => {
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (user.name && user.name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   if (loading) {
     return (
