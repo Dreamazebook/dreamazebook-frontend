@@ -29,6 +29,12 @@ const AdminLayout: FC<AdminLayoutProps> = ({ children }) => {
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-md">
         <div className="p-6">
+          <Link href="/" className="block mb-4 text-sm text-blue-600 hover:text-blue-800 flex items-center">
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Home
+          </Link>
           <h1 className="text-xl font-bold text-gray-800">Admin Panel</h1>
           {user && (
             <p className="text-sm text-gray-600 mt-2">Welcome, {user.name || user.email}</p>
