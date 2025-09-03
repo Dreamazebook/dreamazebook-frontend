@@ -2,10 +2,11 @@
 
 import React from "react";
 import Logo from "./Logo";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/routing";
 import Image from "next/image";
 import useUserStore from "@/stores/userStore";
 import { Link } from "@/i18n/routing";
+import { useLocale } from "next-intl";
 
 const UnderlineIcon = () => (
   <svg 
@@ -26,12 +27,14 @@ const UnderlineIcon = () => (
 );
 
 const Header = () => {
+  const router = useRouter();
   const pathname = usePathname();
+  const locale = useLocale();
 
   const {user, toggleLoginModal} = useUserStore();
 
   const handleLanguageChange = (language: string) => {
-    window.location.href = window.location.pathname.replace(/\/(en|fr)/, `/${language}`) + window.location.search;
+    router.replace(pathname, { locale: language as any });
   };
 
   if (pathname === '/login') return null;
@@ -81,13 +84,13 @@ const Header = () => {
           <Image src={'/header/language.svg'} alt="language" width={48} height={24} className="cursor-pointer" />
           <div className="absolute hidden group-hover:block bg-white shadow-md rounded-md p-2 z-50">
             <button 
-              className={`block w-full text-left px-4 py-2 cursor-pointer hover:bg-gray-100 ${pathname?.startsWith('/en') ? 'bg-gray-100 font-semibold' : ''}`} 
+              className={`block w-full text-left px-4 py-2 cursor-pointer hover:bg-gray-100 ${locale === 'en' ? 'bg-gray-100 font-semibold' : ''}`} 
               onClick={() => handleLanguageChange('en')}
             >
               English
             </button>
             <button 
-              className={`block w-full text-left px-4 py-2 cursor-pointer hover:bg-gray-100 ${pathname?.startsWith('/fr') ? 'bg-gray-100 font-semibold' : ''}`} 
+              className={`block w-full text-left px-4 py-2 cursor-pointer hover:bg-gray-100 ${locale === 'fr' ? 'bg-gray-100 font-semibold' : ''}`} 
               onClick={() => handleLanguageChange('fr')}
             >
               French
