@@ -12,6 +12,7 @@ import HappinessHarvest from './components/home/HappinessHarvest';
 import LastingMemorial from './components/home/LastingMemorial';
 import Slideshow from './components/home/SlideShow';
 import PicBooksShow from './components/home/PicBooksShow';
+import TestimonialCards from './components/home/TestimonialCards';
 //import { Link } from "@/i18n/routing";
 
 export default function HomePage() {
@@ -95,7 +96,7 @@ export default function HomePage() {
 
       <PicBooksShow />
 
-      <HappinessHarvest />
+      <TestimonialCards />
 
       <LastingMemorial />
 
