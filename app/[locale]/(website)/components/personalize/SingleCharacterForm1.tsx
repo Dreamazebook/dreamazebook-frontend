@@ -47,7 +47,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
   const [formData, setFormData] = useState<PersonalizeFormData>({
     fullName: initialData?.fullName ?? '',
     gender: initialData?.gender ?? '',
-    skinColor: initialData?.skinColor ?? '',
+    skinColor: initialData?.skinColor ?? '#FFE2CF',
     hairstyle: initialData?.hairstyle ?? 'hair_1', // 默认选择头发样式1
     hairColor: initialData?.hairColor ?? 'light', // 默认选择浅色头发
     photo: initialData?.photo ? { path: initialData.photo.path } as any : null,
