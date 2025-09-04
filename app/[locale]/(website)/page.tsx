@@ -11,6 +11,7 @@ import SideLineProducts from './components/home/SideLineProducts';
 import HappinessHarvest from './components/home/HappinessHarvest';
 import LastingMemorial from './components/home/LastingMemorial';
 import Slideshow from './components/home/SlideShow';
+import PicBooksShow from './components/home/PicBooksShow';
 //import { Link } from "@/i18n/routing";
 
 export default function HomePage() {
@@ -91,6 +92,8 @@ export default function HomePage() {
       <OurBook />
 
       <SideLineProducts />
+
+      <PicBooksShow />
 
       <HappinessHarvest />
 
