@@ -8,7 +8,6 @@ import React from 'react';
 import InitialSpark from './components/home/InitialSpark';
 import OurBook from './components/home/OurBook';
 import SideLineProducts from './components/home/SideLineProducts';
-import HappinessHarvest from './components/home/HappinessHarvest';
 import LastingMemorial from './components/home/LastingMemorial';
 import Slideshow from './components/home/SlideShow';
 import PicBooksShow from './components/home/PicBooksShow';
