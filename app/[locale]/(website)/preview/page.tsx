@@ -242,6 +242,15 @@ export default function PreviewPageWithTopNav() {
   const [isLoadingBookInfo, setIsLoadingBookInfo] = useState(false);
   // 封面图片加载中状态（用于显示 mirage 动效）
   const [isCoverLoading, setIsCoverLoading] = useState(false);
+  // 每页换脸完成的记录，用于在全局仍 processing 时关闭单页蒙版
+  const [swappedPageIds, setSwappedPageIds] = useState<Set<number>>(new Set());
+  
+  // 面向 UI 的换脸状态聚合
+  const faceSwapStatus = previewData?.face_swap_info?.status;
+  const queuePos = queueStatus?.position ?? null;
+  const isQueued = faceSwapStatus === 'processing' && queuePos !== null && queuePos > 0;
+  const isGenerating = faceSwapStatus === 'processing' && (queuePos === null || queuePos === 0);
+  const isCompleted = faceSwapStatus === 'completed';
   useEffect(() => {
     // 仅当从无到有或 URL 变化时触发 loading，避免重复置为 true 导致闪烁
     setIsCoverLoading((prev) => {
@@ -294,8 +303,8 @@ export default function PreviewPageWithTopNav() {
       console.log('任务完成:', e);
       setIsProcessing(true);
       try {
-        const completedPageId = e?.page_id || e?.result?.page_id || e?.task?.page_id;
-        const completedUrl = e?.result?.standard_url || e?.result?.url || e?.result?.image_url;
+        const completedPageId = e?.page_id || e?.result?.page_id || e?.task?.page_id || e?.data?.page_id;
+        const completedUrl = extractImageUrlFromEvent(e);
         if (completedPageId && completedUrl) {
           setPreviewData(prev => {
             if (!prev) return prev;
@@ -308,11 +317,17 @@ export default function PreviewPageWithTopNav() {
             return {
               ...prev,
               preview_data: updatedPages,
+              // 不回退全局状态，保持原样（由批次完成事件统一置为 completed）
               face_swap_info: {
-                ...prev.face_swap_info,
-                status: 'processing'
+                ...prev.face_swap_info
               }
             } as PreviewResponse;
+          });
+          // 记录该页已完成，移除该页的蒙版
+          setSwappedPageIds(prev => {
+            const next = new Set(prev);
+            next.add(Number(completedPageId));
+            return next;
           });
         } else {
           setTimeout(() => { fetchPreviewData(); }, 100);
@@ -324,6 +339,10 @@ export default function PreviewPageWithTopNav() {
 
     const onTaskFailed = (e: any) => {
       console.error('任务失败:', e);
+      // 若全局已完成，忽略迟到的失败事件，避免 UI 误回退或误报
+      if (previewData?.face_swap_info?.status === 'completed') {
+        return;
+      }
       setIsProcessing(false);
       const msg = e?.error_message || e?.message || '任务失败';
       toast.error('生成失败: ' + msg);
@@ -334,7 +353,47 @@ export default function PreviewPageWithTopNav() {
       setIsProcessing(false);
       setQueueStatus(null); // 清除排队状态
       toast.success('图片生成完成！');
-      setTimeout(() => { fetchPreviewData(); }, 100);
+      try {
+        const results = e?.results || e?.data?.results || [];
+        if (Array.isArray(results) && results.length > 0) {
+          setPreviewData(prev => {
+            if (!prev) return prev;
+            const updatedPages = prev.preview_data.map((p) => {
+              const match = results.find((r: any) => (r?.page_id ?? r?.result?.page_id) === p.page_id);
+              if (match) {
+                const img = extractImageUrlFromEvent(match);
+                if (img) {
+                  return { ...p, image_url: img, has_face_swap: true };
+                }
+              }
+              return p;
+            });
+            return {
+              ...prev,
+              preview_data: updatedPages,
+              face_swap_info: {
+                ...prev.face_swap_info,
+                status: 'completed'
+              }
+            } as PreviewResponse;
+          });
+          // 记录所有完成页，立刻移除蒙版
+          setSwappedPageIds(prev => {
+            const next = new Set(prev);
+            results.forEach((r: any) => {
+              const pid = r?.page_id ?? r?.result?.page_id;
+              if (pid != null) next.add(Number(pid));
+            });
+            return next;
+          });
+        } else {
+          // 没有 results 时，回退重新拉取
+          setTimeout(() => { fetchPreviewData(); }, 100);
+        }
+      } catch (err) {
+        console.error('处理批次完成事件出错:', err);
+        setTimeout(() => { fetchPreviewData(); }, 100);
+      }
     };
 
     // 监听排队状态更新
@@ -571,6 +630,22 @@ export default function PreviewPageWithTopNav() {
     return `https://dreamazebook.com/${cleanPath}`;
   };
 
+  // 从事件或结果对象中提取最佳图片 URL（兼容多种字段名）
+  const extractImageUrlFromEvent = (evt: any): string | undefined => {
+    const r = evt?.result ?? evt?.data ?? evt;
+    return (
+      r?.standard_url ||
+      r?.url ||
+      r?.image_url ||
+      evt?.result_image_url ||
+      r?.result_image_url ||
+      r?.low_res_url ||
+      evt?.low_res_url ||
+      r?.high_res_url ||
+      evt?.high_res_url
+    );
+  };
+
   // 获取预览数据
   const fetchPreviewData = useCallback(async () => {
     try {
@@ -623,6 +698,8 @@ export default function PreviewPageWithTopNav() {
         return;
       }
       isPostingCreateRef.current = true;
+      // 新任务启动，清空每页完成集合
+      setSwappedPageIds(new Set());
       const response = await api.post(`/simple-face-swap/create-by-picbook`, apiRequestData) as ApiResponse<PreviewResponse>;
       
       if (response.success) {
@@ -737,6 +814,8 @@ export default function PreviewPageWithTopNav() {
           }
           isPostingCreateRef.current = true;
           hasProcessedUserDataRef.current = true;
+          // 新任务启动，清空每页完成集合
+          setSwappedPageIds(new Set());
           const response = await api.post(`/simple-face-swap/create-by-picbook`, apiRequestData, {
             timeout: 60000 // 60秒超时
           }) as ApiResponse<PreviewResponse>;
@@ -1107,43 +1186,29 @@ export default function PreviewPageWithTopNav() {
                 </div>
               )}
             </div>
-            {/* 换脸状态信息 */}
-            {previewData?.face_swap_info && (
+            {/* 换脸状态信息（仅排队时展示提示条） */}
+            {previewData?.face_swap_info && isQueued && (
               <div className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
-                {previewData.face_swap_info.status === 'processing' && (
-                  <div>
-                    {queueStatus ? (
-                      <p>
-                        图书预览正在排队生成中，您当前排在第{queueStatus.position}/{queueStatus.total}位，
-                        您可以先去选择其他书籍信息，
-                        <a
-                          className="underline cursor-pointer text-blue-600"
-                          onClick={() => router.push('/books')}
-                        >
-                          去选择
-                        </a>
-                      </p>
-                    ) : (
-                      <p>图书预览正在生成中，请稍候... ({previewData.face_swap_info.total_tasks} 页需要换脸)</p>
-                    )}
-                  </div>
-                )}
-                {previewData.face_swap_info.status === 'completed' && (
-                  <p>图书预览已成功生成！</p>
-                )}
-                {previewData.face_swap_info.status === 'failed' && (
-                  <p>生成失败，请重试。</p>
-                )}
+                <p>
+                  图书预览正在排队生成中，您当前排在第{queueStatus?.position}/{queueStatus?.total}位，
+                  您可以先去选择其他书籍信息，
+                  <a
+                    className="underline cursor-pointer text-blue-600"
+                    onClick={() => setActiveTab('Others')}
+                  >
+                    去选择
+                  </a>
+                </p>
               </div>
             )}
             
-            {/* 页面预览 */}
-            {previewData?.preview_data && previewData.preview_data.length > 0 && (
+            {/* 页面预览：排队时不展示，生成中/完成展示 */}
+            {previewData?.preview_data && previewData.preview_data.length > 0 && !isQueued && (
               <div className="w-full max-w-5xl mb-8">
                 <div className="w-full flex flex-col items-center gap-8">
                   {previewData.preview_data.map((page, index) => {
                     // 判断是否为换脸中的页面，根据face_swap_info的状态
-                    const isSwapping = page.has_face_swap && previewData.face_swap_info?.status === 'processing';
+                    const isSwapping = page.has_face_swap && isGenerating && !swappedPageIds.has(page.page_id);
                     
                     return (
                       <div key={page.page_id} className="w-full flex justify-center">
@@ -1200,11 +1265,11 @@ export default function PreviewPageWithTopNav() {
                                     </div>
                                   )}
                                   {/* 如果是换脸页面，显示标识 */}
-                                  {page.has_face_swap && !isSwapping && (
+                                  {/* {page.has_face_swap && !isSwapping && (
                                     <div className="absolute top-2 right-2 bg-green-100 text-green-800 px-2 py-1 rounded text-xs z-10">
                                       换脸完成
                                     </div>
-                                  )}
+                                  )} */}
                                 </div>
                               </div>
                               
