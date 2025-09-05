@@ -219,6 +219,17 @@ export default function PreviewPageWithTopNav() {
     setEditField,
   } = useStore();
 
+  // 首次渲染时根据屏幕宽度设置默认视图模式（窄屏 single，宽屏 double）
+  const hasSetInitialViewMode = useRef(false);
+  useEffect(() => {
+    if (hasSetInitialViewMode.current) return;
+    hasSetInitialViewMode.current = true;
+    try {
+      const isWide = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
+      setViewMode(isWide ? 'double' : 'single');
+    } catch {}
+  }, [setViewMode]);
+
   // 处理AI生成状态
   const [isProcessing, setIsProcessing] = useState(false);
   // 排队状态
