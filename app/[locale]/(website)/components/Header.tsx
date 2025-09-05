@@ -37,21 +37,6 @@ const Header = () => {
     router.replace(pathname, { locale: language as any });
   };
 
-  if (pathname === '/login') return null;
-
-  if (pathname === '/register') {
-    return (
-      <header className="max-w-5xl mx-auto flex items-center justify-between p-4">
-        <Logo />
-        <button 
-          className="text-2xl" 
-          onClick={toggleLoginModal}
-        >
-          Log In
-        </button>
-      </header>
-    );}
-
   return (
     <header className="max-w-5xl mx-auto flex items-center justify-between p-4">
       <button className="text-2xl md:hidden">☰ {/* Hamburger Icon */}</button>

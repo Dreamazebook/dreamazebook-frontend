@@ -9,6 +9,7 @@ import Input from '@/app/components/common/Input'
 
 export default function LoginModal() {
   const { isLoginModalOpen, closeLoginModal, register, login, loginAdmin, sendResetPasswordLink } = useUserStore()
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [mode, setMode] = useState('login');
@@ -59,7 +60,7 @@ export default function LoginModal() {
       }
     } else {
       const response = await register({
-        name: 'User',
+        name,
         email,
         password,
         password_confirmation: password
@@ -91,6 +92,17 @@ export default function LoginModal() {
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-4 text-[#222222]">
+        {(mode === 'register') && 
+        <Input
+          id="name"
+          label="Name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Enter your name"
+          required
+        />}
+
         <Input
           id="email"
           label="Email"
