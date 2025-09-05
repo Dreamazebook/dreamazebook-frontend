@@ -8,7 +8,7 @@ import Button from '@/app/components/Button'
 import Input from '@/app/components/common/Input'
 
 export default function LoginModal() {
-  const { isLoginModalOpen, closeLoginModal, register, login, loginAdmin, sendResetPasswordLink } = useUserStore()
+  const { isLoginModalOpen, closeLoginModal, register, login, loginAdmin, sendResetPasswordLink, postLoginRedirect, setPostLoginRedirect } = useUserStore()
   const [name, setName] = useState('');
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -42,21 +42,22 @@ export default function LoginModal() {
       if (email.includes('admin')) {
         const response = await loginAdmin(userData);
         if (response?.success) {
-          // closeLoginModal();
-          // 检查是否有重定向URL参数
-          return router.push('/admin');
+          closeLoginModal();
+          setLoading(false);
+          router.push('/admin');
+          return;
         }
       }
       const response = await login(userData);
       if (response?.success) {
-        // closeLoginModal();
-        // 检查是否有重定向URL参数
-        const redirectUrl = searchParams.get('redirect');
+        const redirectUrl = searchParams.get('redirect') || postLoginRedirect;
+        closeLoginModal();
+        setPostLoginRedirect(null);
+        setLoading(false);
         if (redirectUrl) {
-          return router.push(redirectUrl);
-        } else {
-          return router.push('/');
+          router.push(redirectUrl);
         }
+        return;
       }
     } else {
       const response = await register({
@@ -66,19 +67,25 @@ export default function LoginModal() {
         password_confirmation: password
       });
       if (response?.success) {
+        const redirectUrl = searchParams.get('redirect') || postLoginRedirect;
         closeLoginModal();
-        // 检查是否有重定向URL参数
-        const redirectUrl = searchParams.get('redirect');
+        setPostLoginRedirect(null);
+        setLoading(false);
         if (redirectUrl) {
           router.push(redirectUrl);
         }
+        return;
       }
     }
     setLoading(false);
   }
   
+  if (!isLoginModalOpen) return null;
+
   return (
-    <div className="bg-white p-6 rounded-lg w-96 max-w-full">
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={closeLoginModal}></div>
+      <div className="relative z-10 bg-white p-6 rounded-lg w-96 max-w-full">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-[#222222]">
           {mode === 'login' ? 'Login' : mode === 'register' ? 'Register' : 'Forgot Password'}
@@ -168,6 +175,7 @@ export default function LoginModal() {
           <a><span className='text-[#1BA7FF] cursor-pointer' onClick={() => setMode('login')}>Back to login</span></a>
         )}
       </form>
+      </div>
     </div>
   )
 }

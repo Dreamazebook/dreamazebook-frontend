@@ -53,6 +53,19 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
   }
 
   if (useNativeImg) {
+    // 过滤掉 Next/Image 专有或不适用于 <img> 的属性
+    const {
+      priority: _priority,
+      placeholder: _placeholder,
+      blurDataURL: _blurDataURL,
+      fill: _fill,
+      sizes: _sizes,
+      quality: _quality,
+      onLoadingComplete: _onLoadingComplete,
+      unoptimized: _unoptimized,
+      ...restProps
+    } = props || {};
+
     return (
       <img
         src={src}
@@ -63,7 +76,7 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
         style={style}
         onError={handleNativeImgError}
         onLoad={onLoad}
-        {...props}
+        {...restProps}
       />
     );
   }
@@ -606,28 +619,40 @@ export default function PreviewPageWithTopNav() {
   const bookFormatRef = useRef<HTMLDivElement>(null);
   const otherGiftsRef = useRef<HTMLDivElement>(null);
   
-  // 构建图片URL的辅助函数
+  // 构建图片URL的辅助函数（移除 public/ 前缀，优先使用站内相对路径）
   const buildImageUrl = (imagePath: string) => {
+    if (!imagePath) return '/imgs/picbook/goodnight/封面1.jpg';
     if (imagePath.startsWith('http')) {
       return imagePath;
     }
-    
-    // 简化逻辑：直接使用固定的域名
-    const cleanPath = imagePath.startsWith('/') ? imagePath.slice(1) : imagePath;
-    const finalUrl = `https://dreamazebook.com/${cleanPath}`;
-    
-    return finalUrl;
+    let normalized = imagePath.trim();
+    if (normalized.startsWith('/public/')) {
+      normalized = normalized.replace(/^\/public\//, '/');
+    } else if (normalized.startsWith('public/')) {
+      normalized = normalized.replace(/^public\//, '');
+      if (!normalized.startsWith('/')) normalized = '/' + normalized;
+    }
+    if (!normalized.startsWith('/')) normalized = '/' + normalized;
+    return normalized;
   };
 
-  // 确保人脸图片为绝对可访问地址（优先 S3 全路径）
+  // 确保人脸图片为绝对可访问地址（优先 S3 全路径），并移除 public/ 前缀
   const ensureFaceImageUrl = (path: string) => {
     if (!path) return path;
     if (path.startsWith('http')) return path;
-    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    let normalized = path.trim();
+    if (normalized.startsWith('/public/')) {
+      normalized = normalized.replace(/^\/public\//, '/');
+    } else if (normalized.startsWith('public/')) {
+      normalized = normalized.replace(/^public\//, '');
+      if (!normalized.startsWith('/')) normalized = '/' + normalized;
+    }
+    const cleanPath = normalized.startsWith('/') ? normalized.slice(1) : normalized;
     if (cleanPath.startsWith('user_uploads/')) {
       return `https://s3-pro-dre002.s3.us-east-1.amazonaws.com/${cleanPath}`;
     }
-    return `https://dreamazebook.com/${cleanPath}`;
+    // 其余走站内静态资源相对路径
+    return normalized.startsWith('/') ? normalized : '/' + normalized;
   };
 
   // 从事件或结果对象中提取最佳图片 URL（兼容多种字段名）
@@ -1091,7 +1116,7 @@ export default function PreviewPageWithTopNav() {
                       className={`max-w-sm rounded-lg shadow-md w-[400px] h-[392px] ${isCoverLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
                       style={{ objectFit: 'cover' }}
                       onError={(e) => {
-                        console.error(`封面图片加载失败: ${bookInfo.default_cover}`);
+                        console.error(`封面图片加载失败: ${buildImageUrl(bookInfo.default_cover)} (raw: ${bookInfo.default_cover})`);
                         setIsCoverLoading(false);
                       }}
                       onLoadingComplete={() => {
