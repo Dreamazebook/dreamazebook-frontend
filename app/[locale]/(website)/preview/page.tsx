@@ -205,6 +205,9 @@ export default function PreviewPageWithTopNav() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useUserStore();
+  // 从路径中推断语言
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const currentLang: 'en' | 'zh' | 'fr' = (pathname.match(/^\/(en|zh|fr)\b/)?.[1] as any) || 'en';
   
   const {
     activeTab,
@@ -274,6 +277,12 @@ export default function PreviewPageWithTopNav() {
     faceSwapStatusRef.current = previewData?.face_swap_info?.status;
   }, [previewData?.face_swap_info?.status]);
   
+  // 每页进度（0-100），定时驱动：60s 线性至 98%，未完成停在 98%，完成后迅速到 100%
+  const [pageProgress, setPageProgress] = useState<Record<number, number>>({});
+  const progressTimersRef = useRef<Record<number, any>>({});
+  // 完成后短暂保留蒙版的集合（例如 300ms），用于展示 100%
+  const [completedOverlayHold, setCompletedOverlayHold] = useState<Set<number>>(new Set());
+  
   // 面向 UI 的换脸状态聚合
   const faceSwapStatus = previewData?.face_swap_info?.status;
   const queuePos = queueStatus?.position ?? null;
@@ -286,6 +295,51 @@ export default function PreviewPageWithTopNav() {
       return Boolean(bookInfo?.default_cover);
     });
   }, [bookInfo?.default_cover]);
+
+  // 启动/清理每页的进度定时器（仅在生成中，并且该页尚未完成时运行）
+  useEffect(() => {
+    if (!previewData?.preview_data) return;
+    // 若不在生成中，清理所有定时器
+    if (!isGenerating) {
+      Object.values(progressTimersRef.current).forEach((id) => clearInterval(id));
+      progressTimersRef.current = {};
+      return;
+    }
+    // 为需要换脸且尚未完成的页启动进度计时
+    previewData.preview_data.forEach((p) => {
+      const pid = p.page_id;
+      const needProgress = p.has_face_swap && !swappedPageIds.has(pid);
+      if (needProgress) {
+        if (!progressTimersRef.current[pid]) {
+          // 初始化进度
+          setPageProgress((prev) => (prev[pid] == null ? { ...prev, [pid]: 0 } : prev));
+          // 200ms 步进，60s 到 98% → 98 / (60/0.2) = 98/300 ≈ 0.3267 每步
+          const step = 98 / 300;
+          const id = setInterval(() => {
+            setPageProgress((prev) => {
+              const current = prev[pid] ?? 0;
+              if (current >= 98) return prev;
+              const next = Math.min(98, current + step);
+              return { ...prev, [pid]: next };
+            });
+          }, 200);
+          progressTimersRef.current[pid] = id;
+        }
+      } else {
+        // 不再需要计时，清理该页定时器
+        if (progressTimersRef.current[pid]) {
+          clearInterval(progressTimersRef.current[pid]);
+          delete progressTimersRef.current[pid];
+        }
+      }
+    });
+
+    // 卸载时清理
+    return () => {
+      Object.values(progressTimersRef.current).forEach((id) => clearInterval(id));
+      progressTimersRef.current = {};
+    };
+  }, [previewData?.preview_data, isGenerating, swappedPageIds]);
 
   // 获取 book options 的函数
   const fetchBookOptions = useCallback(async () => {
@@ -358,6 +412,26 @@ export default function PreviewPageWithTopNav() {
             next.add(Number(completedPageId));
             return next;
           });
+          // 冲刺到 100%，并短暂保留蒙版
+          const pid = Number(completedPageId);
+          setPageProgress(prev => ({ ...prev, [pid]: 100 }));
+          // 清理定时器
+          if (progressTimersRef.current[pid]) {
+            clearInterval(progressTimersRef.current[pid]);
+            delete progressTimersRef.current[pid];
+          }
+          setCompletedOverlayHold(prev => {
+            const next = new Set(prev);
+            next.add(pid);
+            return next;
+          });
+          setTimeout(() => {
+            setCompletedOverlayHold(prev => {
+              const next = new Set(prev);
+              next.delete(pid);
+              return next;
+            });
+          }, 300);
         } else {
           setTimeout(() => { fetchPreviewData(); }, 100);
         }
@@ -415,6 +489,35 @@ export default function PreviewPageWithTopNav() {
             });
             return next;
           });
+          // 完成页冲刺到 100%，且短暂保留蒙版
+          results.forEach((r: any) => {
+            const pid = Number(r?.page_id ?? r?.result?.page_id);
+            if (!isNaN(pid)) {
+              setPageProgress(prev => ({ ...prev, [pid]: 100 }));
+              if (progressTimersRef.current[pid]) {
+                clearInterval(progressTimersRef.current[pid]);
+                delete progressTimersRef.current[pid];
+              }
+            }
+          });
+          setCompletedOverlayHold(prev => {
+            const next = new Set(prev);
+            results.forEach((r: any) => {
+              const pid = Number(r?.page_id ?? r?.result?.page_id);
+              if (!isNaN(pid)) next.add(pid);
+            });
+            return next;
+          });
+          setTimeout(() => {
+            setCompletedOverlayHold(prev => {
+              const next = new Set(prev);
+              results.forEach((r: any) => {
+                const pid = Number(r?.page_id ?? r?.result?.page_id);
+                if (!isNaN(pid)) next.delete(pid);
+              });
+              return next;
+            });
+          }, 300);
         } else {
           // 没有 results 时，回退重新拉取
           setTimeout(() => { fetchPreviewData(); }, 100);
@@ -964,6 +1067,37 @@ export default function PreviewPageWithTopNav() {
     otherGifts: selectedBookWrap !== null,
   };
 
+  // Others 标签页可选项提示文本（按需拼接 binding/cover/wrap）
+  const selectableItems = [
+    !completedSections.bookFormat ? 'binding' : null,
+    !completedSections.coverDesign ? 'cover' : null,
+    !completedSections.otherGifts ? 'wrap' : null,
+  ].filter((x): x is string => Boolean(x));
+
+  // 文案拼接工具（支持中英文）
+  const buildOptions = (opts: { binding?: boolean; cover?: boolean; wrap?: boolean }, lang: 'en' | 'zh' = 'en') => {
+    const mapEn = [
+      opts.binding && 'binding',
+      opts.cover && 'cover',
+      opts.wrap && 'wrap options',
+    ].filter(Boolean) as string[];
+
+    const mapZh = [
+      opts.binding && '装订',
+      opts.cover && '封面',
+      opts.wrap && '包封（wrap）',
+    ].filter(Boolean) as string[];
+
+    const items = lang === 'en' ? mapEn : mapZh;
+    if (items.length === 0) return lang === 'en' ? 'options' : '选项';
+    if (items.length === 1) return items[0];
+    if (lang === 'en') {
+      return items.slice(0, -1).join(', ') + ', and ' + items.slice(-1);
+    } else {
+      return items.length === 2 ? items.join(' 和 ') : items.slice(0, -1).join('、') + ' 和 ' + items.slice(-1);
+    }
+  };
+
   // 点击 Continue 按钮处理：添加到购物车
   const handleContinue = async () => {
     try {
@@ -1235,13 +1369,17 @@ export default function PreviewPageWithTopNav() {
             {previewData?.face_swap_info && isQueued && (
               <div className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
                 <p>
-                  Book preview is currently in the queue for generation. You are currently at position {queueStatus?.position}/{queueStatus?.total}.
-                  You can proceed to select other book information,
+                  Book preview is currently in the queue for generation. You are currently at position {queueStatus?.position}/{queueStatus?.total}. <br />
+                  You can proceed to select {buildOptions({
+                    cover: !completedSections.coverDesign,
+                    binding: !completedSections.bookFormat,
+                    wrap: !completedSections.otherGifts
+                  }, currentLang === 'zh' ? 'zh' : 'en')},{' '}
                   <a
                     className="underline cursor-pointer text-blue-600"
                     onClick={() => setActiveTab('Others')}
                   >
-                    去选择
+                    Others
                   </a>
                 </p>
               </div>
@@ -1279,13 +1417,14 @@ export default function PreviewPageWithTopNav() {
                                         />
                                       </div>
                                       <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-                                        <div className="text-center">
-                                          <div className="flex justify-center mb-4">
-                                            <div className="flex space-x-2">
-                                              <MirageLoader size="60" speed="2.5" color="blue" />
-                                            </div>
+                                        <div className="text-center" style={{ width: 240 }}>
+                                          <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
+                                            <div
+                                              className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
+                                              style={{ width: `${Math.round(pageProgress[page.page_id] ?? 0)}%` }}
+                                            />
                                           </div>
-                                          <p className="text-gray-600">loading...</p>
+                                          <p className="text-gray-700 mt-2 text-sm">{Math.round(pageProgress[page.page_id] ?? 0)}%</p>
                                         </div>
                                       </div>
                                     </>
@@ -1336,13 +1475,14 @@ export default function PreviewPageWithTopNav() {
                                         />
                                       </div>
                                       <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-                                        <div className="text-center">
-                                          <div className="flex justify-center mb-4">
-                                            <div className="flex space-x-2">
-                                              <MirageLoader size="60" speed="2.5" color="blue" />
-                                            </div>
+                                        <div className="text-center" style={{ width: 240 }}>
+                                          <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
+                                            <div
+                                              className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
+                                              style={{ width: `${Math.round(pageProgress[page.page_id] ?? 0)}%` }}
+                                            />
                                           </div>
-                                          <p className="text-gray-600">loading...</p>
+                                          <p className="text-gray-700 mt-2 text-sm">{Math.round(pageProgress[page.page_id] ?? 0)}%</p>
                                         </div>
                                       </div>
                                     </>
@@ -1389,13 +1529,14 @@ export default function PreviewPageWithTopNav() {
                                     className="w-full h-auto rounded-lg object-cover"
                                   />
                                   <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-                                    <div className="text-center">
-                                      <div className="flex justify-center mb-4">
-                                        <div className="flex space-x-2">
-                                          <MirageLoader size="60" speed="2.5" color="blue" />
-                                        </div>
+                                    <div className="text-center" style={{ width: 240 }}>
+                                      <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
+                                        <div
+                                          className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
+                                          style={{ width: `${Math.round(pageProgress[page.page_id] ?? 0)}%` }}
+                                        />
                                       </div>
-                                      <p className="text-gray-600">loading...</p>
+                                      <p className="text-gray-700 mt-2 text-sm">{Math.round(pageProgress[page.page_id] ?? 0)}%</p>
                                     </div>
                                   </div>
                                 </div>
