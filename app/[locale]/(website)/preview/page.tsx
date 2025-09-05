@@ -1235,8 +1235,8 @@ export default function PreviewPageWithTopNav() {
             {previewData?.face_swap_info && isQueued && (
               <div className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
                 <p>
-                  图书预览正在排队生成中，您当前排在第{queueStatus?.position}/{queueStatus?.total}位，
-                  您可以先去选择其他书籍信息，
+                  Book preview is currently in the queue for generation. You are currently at position {queueStatus?.position}/{queueStatus?.total}.
+                  You can proceed to select other book information,
                   <a
                     className="underline cursor-pointer text-blue-600"
                     onClick={() => setActiveTab('Others')}
@@ -1435,12 +1435,17 @@ export default function PreviewPageWithTopNav() {
                     );
                   })}
                 </div>
+                {(isGenerating || isCompleted) && (
+                  <p className="text-center text-[#999999] mt-8">
+                    We've specially curated the first {previewData.preview_data.length} pages for you – enjoy a sneak peek of your unique story!
+                  </p>
+                )}
               </div>
             )}
 
             
             
-            {/* 删除 Processing 提示块 */}
+            
 
 
 
