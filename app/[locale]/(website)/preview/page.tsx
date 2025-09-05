@@ -268,6 +268,11 @@ export default function PreviewPageWithTopNav() {
   const [isCoverLoading, setIsCoverLoading] = useState(false);
   // 每页换脸完成的记录，用于在全局仍 processing 时关闭单页蒙版
   const [swappedPageIds, setSwappedPageIds] = useState<Set<number>>(new Set());
+  // 最新的全局换脸状态引用，供 WS 回调中使用，避免闭包陈旧值
+  const faceSwapStatusRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    faceSwapStatusRef.current = previewData?.face_swap_info?.status;
+  }, [previewData?.face_swap_info?.status]);
   
   // 面向 UI 的换脸状态聚合
   const faceSwapStatus = previewData?.face_swap_info?.status;
@@ -423,6 +428,10 @@ export default function PreviewPageWithTopNav() {
     // 监听排队状态更新
     const onQueueStatusUpdate = (e: any) => {
       console.log('排队状态更新:', e);
+      // 若已经完成，忽略后续队列广播，避免 UI 回退
+      if (faceSwapStatusRef.current === 'completed') {
+        return;
+      }
       // 文档标准字段：queue_position, total_queue_length
       const position = e?.queue_position ?? e?.position ?? e?.data?.queue_position ?? e?.data?.position;
       const totalFromDoc = e?.total_queue_length ?? e?.data?.total_queue_length;
@@ -1407,11 +1416,11 @@ export default function PreviewPageWithTopNav() {
                                     }}
                                   />
                                   {/* 如果是换脸页面，显示标识 */}
-                                  {page.has_face_swap && (
+                                  {/* {page.has_face_swap && (
                                     <div className="absolute top-2 right-2 bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
                                       换脸完成
                                     </div>
-                                  )}
+                                  )} */}
                                 </div>
                               )}
                               {page.content && (
@@ -1431,15 +1440,7 @@ export default function PreviewPageWithTopNav() {
 
             
             
-            {/* 处理状态 */}
-            {isProcessing && (
-              <div className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#E8F4FD] border-[#012CCE] rounded-[4px] text-center text-[#012CCE]">
-                <div className="flex items-center justify-center space-x-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  <span>Processing...</span>
-                </div>
-              </div>
-            )}
+            {/* 删除 Processing 提示块 */}
 
 
 
