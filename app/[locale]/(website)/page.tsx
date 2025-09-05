@@ -8,9 +8,10 @@ import React from 'react';
 import InitialSpark from './components/home/InitialSpark';
 import OurBook from './components/home/OurBook';
 import SideLineProducts from './components/home/SideLineProducts';
-import HappinessHarvest from './components/home/HappinessHarvest';
 import LastingMemorial from './components/home/LastingMemorial';
 import Slideshow from './components/home/SlideShow';
+import PicBooksShow from './components/home/PicBooksShow';
+import TestimonialCards from './components/home/TestimonialCards';
 //import { Link } from "@/i18n/routing";
 
 export default function HomePage() {
@@ -92,7 +93,9 @@ export default function HomePage() {
 
       <SideLineProducts />
 
-      <HappinessHarvest />
+      <PicBooksShow />
+
+      <TestimonialCards />
 
       <LastingMemorial />
 

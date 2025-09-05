@@ -37,21 +37,6 @@ const Header = () => {
     router.replace(pathname, { locale: language as any });
   };
 
-  if (pathname === '/login') return null;
-
-  if (pathname === '/register') {
-    return (
-      <header className="max-w-5xl mx-auto flex items-center justify-between p-4">
-        <Logo />
-        <button 
-          className="text-2xl" 
-          onClick={toggleLoginModal}
-        >
-          Log In
-        </button>
-      </header>
-    );}
-
   return (
     <header className="max-w-5xl mx-auto flex items-center justify-between p-4">
       <button className="text-2xl md:hidden">☰ {/* Hamburger Icon */}</button>
@@ -98,16 +83,12 @@ const Header = () => {
           </div>
         </div>
 
-        <Link href={"/shopping-cart"} className="text-2xl">
+        <Link href={user ? "/shopping-cart" : '/login?redirect=/shopping-cart'} className="text-2xl">
           <Image src={'/header/cart.svg'} alt="Shopping Cart" width={28} height={28} className="cursor-pointer" />
         </Link>
-        {user ? (
-          <Link href={user.role === 'admin' ? "/admin" : "/profile"}>
-            <Image src={'/header/profile.svg'} alt="Profile" width={28} height={28} className="cursor-pointer" />
-          </Link>
-        ) : (
-          <Image src={'/header/profile.svg'} alt="Profile" width={28} height={28} className="cursor-pointer" onClick={toggleLoginModal} />
-        )}
+        <Link href={user ? user.role === 'admin' ? "/admin" : "/profile" : '/login'}>
+          <Image src={'/header/profile.svg'} alt="Login" width={28} height={28} className="cursor-pointer" />
+        </Link>
       </div>
     </header>
   );

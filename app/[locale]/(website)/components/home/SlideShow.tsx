@@ -1,118 +1,210 @@
 import React, { useState, useEffect } from 'react';
+import { FaArrowRight as ArrowRight, FaChevronLeft as ChevronLeft, FaChevronRight as ChevronRight } from 'react-icons/fa';
 
-const Slideshow = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  
-  const slides = [
-    {
-      id: 1,
-      title: "Every child deserves to be the hero of their own story.",
-      backgroundImage: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI2MDAiIHZpZXdCb3g9IjAgMCAxMjAwIDYwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjZjhmOWZhIi8+CjxjaXJjbGUgY3g9IjkwMCIgY3k9IjMwMCIgcj0iMjAwIiBmaWxsPSIjZTVlN2ViIiBvcGFjaXR5PSIwLjMiLz4KPGNpcmNsZSBjeD0iMzAwIiBjeT0iMTAwIiByPSIxMDAiIGZpbGw9IiNkMWQ1ZGIiIG9wYWNpdHk9IjAuMiIvPgo8L3N2Zz4K"
-    },
-    {
-      id: 2,
-      title: "Every adventure begins with a single page.",
-      backgroundImage: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI2MDAiIHZpZXdCb3g9IjAgMCAxMjAwIDYwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjZjBmOWZmIi8+CjxjaXJjbGUgY3g9IjIwMCIgY3k9IjQwMCIgcj0iMTUwIiBmaWxsPSIjZGJlYWZlIiBvcGFjaXR5PSIwLjQiLz4KPGNpcmNsZSBjeD0iMTAwMCIgY3k9IjE1MCIgcj0iMTIwIiBmaWxsPSIjYzNkZGZkIiBvcGFjaXR5PSIwLjMiLz4KPC9zdmc+Cg=="
-    },
-    {
-      id: 3,
-      title: "Reading opens doors to infinite possibilities.",
-      backgroundImage: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI2MDAiIHZpZXdCb3g9IjAgMCAxMjAwIDYwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjZmVmN2VkIi8+CjxjaXJjbGUgY3g9IjgwMCIgY3k9IjIwMCIgcj0iMTgwIiBmaWxsPSIjZmVkN2FhIiBvcGFjaXR5PSIwLjMiLz4KPGNpcmNsZSBjeD0iNDAwIiBjeT0iNDUwIiByPSIxMDAiIGZpbGw9IiNmYmM2YTQiIG9wYWNpdHk9IjAuMiIvPgo8L3N2Zz4K"
+interface Slide {
+  id: number;
+  title: string[];
+  subtitle?: string;
+  backgroundImage: string;
+  bookCard: {
+    title: string;
+    subtitle: string;
+    color: string;
+  };
+}
+
+const slides: Slide[] = [
+  {
+    id: 1,
+    title: ['Every child deserves', 'to be the hero of', 'their own story.'],
+    backgroundImage: 'https://images.pexels.com/photos/4474031/pexels-photo-4474031.jpeg?auto=compress&cs=tinysrgb&w=1600',
+    bookCard: {
+      title: 'Adventure Tales',
+      subtitle: 'For young heroes',
+      color: 'from-pink-200 to-pink-300'
     }
-  ];
+  },
+  {
+    id: 2,
+    title: ['Spark imagination', 'with magical stories', 'that inspire wonder.'],
+    backgroundImage: 'https://images.pexels.com/photos/4473775/pexels-photo-4473775.jpeg?auto=compress&cs=tinysrgb&w=1600',
+    bookCard: {
+      title: 'Magic Kingdom',
+      subtitle: 'Fantasy adventures',
+      color: 'from-purple-200 to-purple-300'
+    }
+  },
+  {
+    id: 3,
+    title: ['Build confidence', 'through stories of', 'courage and friendship.'],
+    backgroundImage: 'https://images.pexels.com/photos/4473494/pexels-photo-4473494.jpeg?auto=compress&cs=tinysrgb&w=1600',
+    bookCard: {
+      title: 'Brave Hearts',
+      subtitle: 'Stories of courage',
+      color: 'from-green-200 to-green-300'
+    }
+  },
+  {
+    id: 4,
+    title: ['Discover new worlds', 'where learning becomes', 'an exciting journey.'],
+    backgroundImage: 'https://images.pexels.com/photos/4473622/pexels-photo-4473622.jpeg?auto=compress&cs=tinysrgb&w=1600',
+    bookCard: {
+      title: 'Learning Quest',
+      subtitle: 'Educational fun',
+      color: 'from-blue-200 to-blue-300'
+    }
+  }
+];
+
+const SlideShow: React.FC = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+
+  // Auto-advance slides
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+    
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [isAutoPlaying]);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
+    setIsAutoPlaying(false);
   };
 
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    setIsAutoPlaying(false);
   };
 
-  const goToSlide = (index:number) => {
+  const goToSlide = (index: number) => {
     setCurrentSlide(index);
+    setIsAutoPlaying(false);
   };
 
-  // Auto-advance slides every 5 seconds
-  useEffect(() => {
-    const interval = setInterval(nextSlide, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  const currentSlideData = slides[currentSlide];
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
-      {/* Slide Container */}
-      <div className="relative w-full h-full">
-        {slides.map((slide, index) => (
-          <div
-            key={slide.id}
-            className={`absolute inset-0 transition-opacity duration-500 ${
-              index === currentSlide ? 'opacity-100' : 'opacity-0'
-            }`}
-            style={{
-              backgroundImage: `url(${slide.backgroundImage})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundColor: '#f8f9fa'
-            }}
-          >
-            {/* Content Overlay */}
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full max-w-7xl mx-auto px-8 md:px-16">
-                <div className="max-w-2xl">
-                  <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-blue-600 leading-tight mb-8">
-                    {slide.title}
-                  </h1>
-                  <div className="flex items-center text-gray-700 hover:text-gray-900 transition-colors cursor-pointer group">
-                    <span className="text-lg font-medium mr-2">view more</span>
-                    <div className="w-6 h-6 transition-transform group-hover:translate-x-1">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
-                        <path d="M9 18l6-6-6-6"/>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+    <section className="min-h-[80vh] relative overflow-hidden">
+      {/* Background Images */}
+      {slides.map((slide, index) => (
+        <div
+          key={slide.id}
+          className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000 ${
+            index === currentSlide ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{
+            backgroundImage: `linear-gradient(rgba(253, 242, 248, 0.85), rgba(253, 242, 248, 0.85)), url('${slide.backgroundImage}')`
+          }}
+        />
+      ))}
 
       {/* Navigation Arrows */}
       <button
         onClick={prevSlide}
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 shadow-lg transition-all duration-200 z-10"
+        className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/80 hover:bg-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
+        aria-label="Previous slide"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-gray-700">
-          <path d="M15 18l-6-6 6-6"/>
-        </svg>
-      </button>
-      
-      <button
-        onClick={nextSlide}
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 shadow-lg transition-all duration-200 z-10"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-gray-700">
-          <path d="M9 18l6-6-6-6"/>
-        </svg>
+        <ChevronLeft className="w-6 h-6 text-gray-700" />
       </button>
 
-      {/* Dot Indicators */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 z-10">
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => goToSlide(index)}
-            className={`w-3 h-3 rounded-full transition-all duration-200 ${
-              index === currentSlide 
-                ? 'bg-blue-600 scale-125' 
-                : 'bg-gray-400 hover:bg-gray-600'
-            }`}
-          />
-        ))}
+      <button
+        onClick={nextSlide}
+        className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/80 hover:bg-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110"
+        aria-label="Next slide"
+      >
+        <ChevronRight className="w-6 h-6 text-gray-700" />
+      </button>
+
+      <div className="container mx-auto px-6 py-16 lg:py-24 relative z-10">
+        <div className="flex items-center min-h-[60vh]">
+          {/* Left Content */}
+          <div className="space-y-8 max-w-2xl">
+            <div className="space-y-6">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-blue-600 leading-tight">
+                {currentSlideData.title.map((line, index) => (
+                  <React.Fragment key={index}>
+                    {index === 0 && line}
+                    {index === 1 && (
+                      <>
+                        <br />
+                        <span className="text-blue-700">{line}</span>
+                      </>
+                    )}
+                    {index === 2 && (
+                      <>
+                        <br />
+                        <span className="text-blue-800">{line}</span>
+                      </>
+                    )}
+                  </React.Fragment>
+                ))}
+              </h1>
+              {currentSlideData.subtitle && (
+                <p className="text-lg text-gray-600 max-w-lg">
+                  {currentSlideData.subtitle}
+                </p>
+              )}
+            </div>
+
+            <button className="group inline-flex items-center space-x-3 text-gray-700 hover:text-blue-600 transition-all duration-300 text-lg font-medium">
+              <span>view more</span>
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+
+      {/* Floating Book Card */}
+      <div className="absolute bottom-16 right-8 lg:right-16 bg-white rounded-xl shadow-xl p-4 transform rotate-3 hover:rotate-0 transition-all duration-500 z-10">
+        <div className="flex items-center space-x-3">
+          <div className={`w-12 h-16 bg-gradient-to-br ${currentSlideData.bookCard.color} rounded-md flex items-center justify-center transition-all duration-500`}>
+            <span className="text-gray-700 font-bold text-xs">BOOK</span>
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-800 text-sm transition-all duration-300">
+              {currentSlideData.bookCard.title}
+            </h3>
+            <p className="text-gray-500 text-xs transition-all duration-300">
+              {currentSlideData.bookCard.subtitle}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Slide Indicators */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+        <div className="flex space-x-3">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                index === currentSlide
+                  ? 'bg-blue-600 scale-125'
+                  : 'bg-white/60 hover:bg-white/80 hover:scale-110'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Slide Counter */}
+      <div className="absolute top-8 right-8 bg-white/80 rounded-full px-4 py-2 text-sm font-medium text-gray-700 z-20">
+        {currentSlide + 1} / {slides.length}
+      </div>
+
+      {/* Decorative Elements */}
+      <div className="absolute top-20 right-20 w-20 h-20 bg-yellow-200/30 rounded-full blur-xl animate-pulse"></div>
+      <div className="absolute bottom-32 left-10 w-16 h-16 bg-blue-200/30 rounded-full blur-xl animate-pulse delay-1000"></div>
+      <div className="absolute top-1/3 left-1/4 w-12 h-12 bg-pink-200/20 rounded-full blur-lg animate-pulse delay-500"></div>
+    </section>
   );
 };
 
-export default Slideshow;
+export default SlideShow;
