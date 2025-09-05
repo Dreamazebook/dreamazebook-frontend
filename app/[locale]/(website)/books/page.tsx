@@ -9,6 +9,21 @@ import { BaseBook, ApiResponse } from '@/types/book';
 import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
 
+// 规范化图片地址：
+// - 移除以 /public/ 开头的前缀
+// - 确保本地静态资源以 / 开头
+// - 保留 http(s) 绝对地址
+const normalizeImageUrl = (imagePath: string): string => {
+  if (!imagePath) return '/imgs/picbook/goodnight/封面1.jpg';
+  if (imagePath.startsWith('http')) return imagePath;
+  let normalized = imagePath.trim();
+  if (!normalized.startsWith('/')) {
+    normalized = '/' + normalized;
+  }
+  normalized = normalized.replace(/^\/public\//, '/');
+  return normalized;
+};
+
 const StarRating = ({ rating, reviews }: { rating: number; reviews?: number }) => {
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating % 1 !== 0;
@@ -138,7 +153,7 @@ export default function BooksPage() {
               >
                 <div className="relative aspect-[3/4] mb-3 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
                   <Image
-                    src={book.default_cover}
+                    src={normalizeImageUrl(book.default_cover)}
                     alt={book.default_name}
                     fill
                     className="object-cover group-hover:opacity-90 transition-opacity"
