@@ -167,6 +167,201 @@ const useStore = create<{
   setEditField: (field: 'giver' | 'dedication' | null) => set({ editField: field }),
 }));
 
+// 记忆化的单页预览组件，尽量只在相关 props 变化时重渲染
+const PreviewPageItem = React.memo(function PreviewPageItem({
+  pageId,
+  pageNumber,
+  src,
+  viewMode,
+  showOverlay,
+  progress,
+  content,
+}: {
+  pageId: number;
+  pageNumber: number;
+  src: string;
+  viewMode: 'single' | 'double';
+  showOverlay: boolean;
+  progress: number;
+  content?: string | null;
+}) {
+  if (viewMode === 'single') {
+    return (
+      <div className="w-full flex flex-col items-center gap-4">
+        {/* 左半部分 */}
+        <div className="w-full flex justify-center">
+          <div className="relative max-w-[500px] w-full" style={{ aspectRatio: '512/519' }}>
+            {showOverlay ? (
+              <>
+                <div className="absolute inset-0 overflow-hidden rounded-lg">
+                  <img
+                    src={src}
+                    alt={`Page ${pageNumber} - Left Half`}
+                    className="object-cover rounded-lg"
+                    style={{ 
+                      objectPosition: 'left center',
+                      width: '100%',
+                      height: '100%'
+                    }}
+                  />
+                </div>
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                  <div className="text-center" style={{ width: 240 }}>
+                    <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
+                      <div
+                        className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
+                        style={{ width: `${Math.round(progress)}%` }}
+                      />
+                    </div>
+                    <p className="text-gray-700 mt-2 text-sm">{Math.round(progress)}%</p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg">
+                <img
+                  src={src}
+                  alt={`Page ${pageNumber} - Left Half`}
+                  className="object-cover rounded-lg"
+                  style={{ 
+                    objectPosition: 'left center',
+                    width: '100%',
+                    height: '100%'
+                  }}
+                  onError={() => {
+                    console.error(`图片加载失败: ${src}`);
+                  }}
+                  onLoad={() => {
+                    console.log(`图片加载成功: ${src}`);
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* 右半部分 */}
+        <div className="w-full flex justify-center">
+          <div className="relative max-w-[500px] w-full" style={{ aspectRatio: '512/519' }}>
+            {showOverlay ? (
+              <>
+                <div className="absolute inset-0 overflow-hidden rounded-lg">
+                  <img
+                    src={src}
+                    alt={`Page ${pageNumber} - Right Half`}
+                    className="object-cover rounded-lg"
+                    style={{ 
+                      objectPosition: 'right center',
+                      width: '100%',
+                      height: '100%'
+                    }}
+                  />
+                </div>
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                  <div className="text-center" style={{ width: 240 }}>
+                    <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
+                      <div
+                        className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
+                        style={{ width: `${Math.round(progress)}%` }}
+                      />
+                    </div>
+                    <p className="text-gray-700 mt-2 text-sm">{Math.round(progress)}%</p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg">
+                <img
+                  src={src}
+                  alt={`Page ${pageNumber} - Right Half`}
+                  className="object-cover rounded-lg"
+                  style={{ 
+                    objectPosition: 'right center',
+                    width: '100%',
+                    height: '100%'
+                  }}
+                  onError={() => {
+                    console.error(`图片加载失败: ${src}`);
+                  }}
+                  onLoad={() => {
+                    console.log(`图片加载成功: ${src}`);
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {content && (
+          <div className="mt-2 p-2 bg-gray-100 rounded w-full max-w-2xl">
+            <p className="text-sm">{content}</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // double 模式
+  return (
+    <div className="w-full relative">
+      {showOverlay ? (
+        <div className="w-full relative">
+          <OptimizedImage
+            src={src}
+            alt={`Page ${pageNumber}`}
+            width={1600}
+            height={600}
+            className="w-full h-auto rounded-lg object-cover"
+          />
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+            <div className="text-center" style={{ width: 240 }}>
+              <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
+                <div
+                  className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
+                  style={{ width: `${Math.round(progress)}%` }}
+                />
+              </div>
+              <p className="text-gray-700 mt-2 text-sm">{Math.round(progress)}%</p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="w-full relative">
+          <OptimizedImage
+            src={src}
+            alt={`Page ${pageNumber}`}
+            width={1600}
+            height={600}
+            className="w-full h-auto rounded-lg object-cover"
+            onError={() => {
+              console.error(`图片加载失败: ${src}`);
+            }}
+            onLoad={() => {
+              console.log(`图片加载成功: ${src}`);
+            }}
+          />
+        </div>
+      )}
+      {content && (
+        <div className="mt-2 p-2 bg-gray-100 rounded w-full">
+          <p className="text-sm">{content}</p>
+        </div>
+      )}
+    </div>
+  );
+}, (prev, next) => {
+  // 仅在关键展示数据变化时重渲染
+  return (
+    prev.pageId === next.pageId &&
+    prev.pageNumber === next.pageNumber &&
+    prev.src === next.src &&
+    prev.viewMode === next.viewMode &&
+    prev.showOverlay === next.showOverlay &&
+    Math.round(prev.progress) === Math.round(next.progress) &&
+    prev.content === next.content
+  );
+});
+
 interface BookOptions {
   cover_options: Array<{
     id: number;
@@ -1389,188 +1584,22 @@ export default function PreviewPageWithTopNav() {
             {previewData?.preview_data && previewData.preview_data.length > 0 && !isQueued && (
               <div className="w-full max-w-5xl mb-8">
                 <div className="w-full flex flex-col items-center gap-8">
-                  {previewData.preview_data.map((page, index) => {
-                    // 判断是否为换脸中的页面，根据face_swap_info的状态
+                  {previewData.preview_data.map((page) => {
                     const isSwapping = page.has_face_swap && isGenerating && !swappedPageIds.has(page.page_id);
-                    
+                    const progress = Math.round(pageProgress[page.page_id] ?? 0);
+                    const src = buildImageUrl(page.image_url);
                     return (
                       <div key={page.page_id} className="w-full flex justify-center">
                         <div className="w-full max-w-5xl">
-                          {viewMode === 'single' ? (
-                            // Single page mode: 左右分割显示
-                            <div className="w-full flex flex-col items-center gap-4">
-                              {/* 左半部分 */}
-                              <div className="w-full flex justify-center">
-                                <div className="relative max-w-[500px] w-full" style={{ aspectRatio: '512/519' }}>
-                                  {isSwapping ? (
-                                    <>
-                                      <div className="absolute inset-0 overflow-hidden rounded-lg">
-                                        <img
-                                          src={buildImageUrl(page.image_url)}
-                                          alt={`Page ${page.page_number} - Left Half`}
-                                          className="object-cover rounded-lg"
-                                          style={{ 
-                                            objectPosition: 'left center',
-                                            width: '100%',
-                                            height: '100%'
-                                          }}
-                                        />
-                                      </div>
-                                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-                                        <div className="text-center" style={{ width: 240 }}>
-                                          <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
-                                            <div
-                                              className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
-                                              style={{ width: `${Math.round(pageProgress[page.page_id] ?? 0)}%` }}
-                                            />
-                                          </div>
-                                          <p className="text-gray-700 mt-2 text-sm">{Math.round(pageProgress[page.page_id] ?? 0)}%</p>
-                                        </div>
-                                      </div>
-                                    </>
-                                  ) : (
-                                    <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg">
-                                      <img
-                                        src={buildImageUrl(page.image_url)}
-                                        alt={`Page ${page.page_number} - Left Half`}
-                                        className="object-cover rounded-lg"
-                                        style={{ 
-                                          objectPosition: 'left center',
-                                          width: '100%',
-                                          height: '100%'
-                                        }}
-                                        onError={(e) => {
-                                          console.error(`图片加载失败: ${page.image_url}`);
-                                        }}
-                                        onLoad={() => {
-                                          console.log(`图片加载成功: ${page.image_url}`);
-                                        }}
-                                      />
-                                    </div>
-                                  )}
-                                  {/* 如果是换脸页面，显示标识 */}
-                                  {/* {page.has_face_swap && !isSwapping && (
-                                    <div className="absolute top-2 right-2 bg-green-100 text-green-800 px-2 py-1 rounded text-xs z-10">
-                                      换脸完成
-                                    </div>
-                                  )} */}
-                                </div>
-                              </div>
-                              
-                              {/* 右半部分 */}
-                              <div className="w-full flex justify-center">
-                                <div className="relative max-w-[500px] w-full" style={{ aspectRatio: '512/519' }}>
-                                  {isSwapping ? (
-                                    <>
-                                      <div className="absolute inset-0 overflow-hidden rounded-lg">
-                                        <img
-                                          src={buildImageUrl(page.image_url)}
-                                          alt={`Page ${page.page_number} - Right Half`}
-                                          className="object-cover rounded-lg"
-                                          style={{ 
-                                            objectPosition: 'right center',
-                                            width: '100%',
-                                            height: '100%'
-                                          }}
-                                        />
-                                      </div>
-                                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-                                        <div className="text-center" style={{ width: 240 }}>
-                                          <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
-                                            <div
-                                              className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
-                                              style={{ width: `${Math.round(pageProgress[page.page_id] ?? 0)}%` }}
-                                            />
-                                          </div>
-                                          <p className="text-gray-700 mt-2 text-sm">{Math.round(pageProgress[page.page_id] ?? 0)}%</p>
-                                        </div>
-                                      </div>
-                                    </>
-                                  ) : (
-                                    <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg">
-                                      <img
-                                        src={buildImageUrl(page.image_url)}
-                                        alt={`Page ${page.page_number} - Right Half`}
-                                        className="object-cover rounded-lg"
-                                        style={{ 
-                                          objectPosition: 'right center',
-                                          width: '100%',
-                                          height: '100%'
-                                        }}
-                                        onError={(e) => {
-                                          console.error(`图片加载失败: ${page.image_url}`);
-                                        }}
-                                        onLoad={() => {
-                                          console.log(`图片加载成功: ${page.image_url}`);
-                                        }}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                              
-                              {page.content && (
-                                <div className="mt-2 p-2 bg-gray-100 rounded w-full max-w-2xl">
-                                  <p className="text-sm">{page.content}</p>
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            // Double page mode: 保持原有显示方式
-                            <div className="w-full relative">
-                              {isSwapping ? (
-                                // 换脸处理中状态：显示底图 + 叠加加载动画
-                                <div className="w-full relative">
-                                  <OptimizedImage
-                                    src={buildImageUrl(page.image_url)}
-                                    alt={`Page ${page.page_number}`}
-                                    width={1600}
-                                    height={600}
-                                    className="w-full h-auto rounded-lg object-cover"
-                                  />
-                                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-                                    <div className="text-center" style={{ width: 240 }}>
-                                      <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
-                                        <div
-                                          className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
-                                          style={{ width: `${Math.round(pageProgress[page.page_id] ?? 0)}%` }}
-                                        />
-                                      </div>
-                                      <p className="text-gray-700 mt-2 text-sm">{Math.round(pageProgress[page.page_id] ?? 0)}%</p>
-                                    </div>
-                                  </div>
-                                </div>
-                              ) : (
-                                // 正常显示图片
-                                <div className="w-full relative">
-                                  <OptimizedImage
-                                    src={buildImageUrl(page.image_url)}
-                                    alt={`Page ${page.page_number}`}
-                                    width={1600}
-                                    height={600}
-                                    className="w-full h-auto rounded-lg object-cover"
-                                    onError={(e) => {
-                                      console.error(`图片加载失败: ${page.image_url}`);
-                                    }}
-                                    onLoad={() => {
-                                      console.log(`图片加载成功: ${page.image_url}`);
-                                    }}
-                                  />
-                                  {/* 如果是换脸页面，显示标识 */}
-                                  {/* {page.has_face_swap && (
-                                    <div className="absolute top-2 right-2 bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
-                                      换脸完成
-                                    </div>
-                                  )} */}
-                                </div>
-                              )}
-                              {page.content && (
-                                <div className="mt-2 p-2 bg-gray-100 rounded w-full">
-                                  <p className="text-sm">{page.content}</p>
-                                </div>
-                              )}
-                            </div>
-                          )}
+                          <PreviewPageItem
+                            pageId={page.page_id}
+                            pageNumber={page.page_number}
+                            src={src}
+                            viewMode={viewMode}
+                            showOverlay={isSwapping}
+                            progress={progress}
+                            content={page.content}
+                          />
                         </div>
                       </div>
                     );
