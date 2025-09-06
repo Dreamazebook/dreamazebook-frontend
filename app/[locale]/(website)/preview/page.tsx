@@ -144,12 +144,14 @@ const useStore = create<{
   viewMode: 'single' | 'double';
   dedication: string;
   giver: string;
+  recipient: string;
   editField: 'giver' | 'dedication' | null;
   setActiveStep: (step: number) => void;
   setActiveTab: (tab: 'Book preview' | 'Others') => void;
   setViewMode: (mode: 'single' | 'double') => void;
   setDedication: (dedication: string) => void;
   setGiver: (giver: string) => void;
+  setRecipient: (recipient: string) => void;
   setEditField: (field: 'giver' | 'dedication' | null) => void;
 }>((set) => ({
   activeStep: 2,
@@ -158,12 +160,14 @@ const useStore = create<{
   dedication:
     ' ',
   giver: ' ',
+  recipient: ' ',
   editField: null,
   setActiveStep: (step: number) => set({ activeStep: step }),
   setActiveTab: (tab: 'Book preview' | 'Others') => set({ activeTab: tab }),
   setViewMode: (mode: 'single' | 'double') => set({ viewMode: mode }),
   setDedication: (dedication: string) => set({ dedication }),
   setGiver: (giver: string) => set({ giver }),
+  setRecipient: (recipient: string) => set({ recipient }),
   setEditField: (field: 'giver' | 'dedication' | null) => set({ editField: field }),
 }));
 
@@ -436,11 +440,13 @@ export default function PreviewPageWithTopNav() {
     viewMode,
     dedication,
     giver,
+    recipient,
     editField,
     setActiveTab,
     setViewMode,
     setDedication,
     setGiver,
+    setRecipient,
     setEditField,
   } = useStore();
 
@@ -471,8 +477,8 @@ export default function PreviewPageWithTopNav() {
 
   // 为 Others 标签页添加局部状态，用于记录选中的选项
   const [selectedBookCover, setSelectedBookCover] = React.useState<number | null>(null);
-  const [selectedBookFormat, setSelectedBookFormat] = React.useState<number | null>(null);
-  const [selectedBookWrap, setSelectedBookWrap] = React.useState<number | null>(null);
+  const [selectedBinding, setSelectedBinding] = React.useState<number | null>(null);
+  const [selectedGiftBox, setSelectedGiftBox] = React.useState<number | null>(null);
   const [detailModal, setDetailModal] = React.useState<GiftBoxOption | null>(null);
   // 当前展示图片的索引，用于翻页
   const [currentIndex, setCurrentIndex] = React.useState(0);
@@ -941,8 +947,8 @@ export default function PreviewPageWithTopNav() {
   // 为每个部分创建 ref（用于滚动定位）
   const giverDedicationRef = useRef<HTMLDivElement>(null);
   const coverDesignRef = useRef<HTMLDivElement>(null);
-  const bookFormatRef = useRef<HTMLDivElement>(null);
-  const otherGiftsRef = useRef<HTMLDivElement>(null);
+  const bindingRef = useRef<HTMLDivElement>(null);
+  const giftBoxRef = useRef<HTMLDivElement>(null);
   
   // 构建图片URL的辅助函数（移除 public/ 前缀，优先使用站内相对路径）
   const buildImageUrl = (imagePath: string) => {
@@ -1074,11 +1080,8 @@ export default function PreviewPageWithTopNav() {
           if (userData) {
             const parsedUserData = JSON.parse(userData);
             const character = parsedUserData.characters?.[0];
-            const newGiver = character?.full_name || '';
-            // 只有当 giver 值不同时才更新，避免无限循环
-            if (giver !== newGiver) {
-              setGiver(newGiver);
-            }
+            const fullName = character?.full_name || '';
+            if (recipient !== fullName) setRecipient(fullName);
           }
         } catch (e) {
           console.warn('无法获取角色名称:', e);
@@ -1200,11 +1203,8 @@ export default function PreviewPageWithTopNav() {
               if (userData) {
                 const parsedUserData = JSON.parse(userData);
                 const character = parsedUserData.characters?.[0];
-                const newGiver = character?.full_name || '';
-                // 只有当 giver 值不同时才更新，避免无限循环
-                if (giver !== newGiver) {
-                  setGiver(newGiver);
-                }
+                const fullName = character?.full_name || '';
+                if (recipient !== fullName) setRecipient(fullName);
               }
             } catch (e) {
               console.warn('无法获取角色名称:', e);
@@ -1269,8 +1269,8 @@ export default function PreviewPageWithTopNav() {
     switch(sectionId) {
       case "giverDedication": ref = giverDedicationRef; break;
       case "coverDesign": ref = coverDesignRef; break;
-      case "binding": ref = bookFormatRef; break;
-      case "giftBox": ref = otherGiftsRef; break;
+      case "binding": ref = bindingRef; break;
+      case "giftBox": ref = giftBoxRef; break;
       default: break;
     }
     if (ref && ref.current) {
@@ -1283,8 +1283,8 @@ export default function PreviewPageWithTopNav() {
   const completedSections = {
     giverDedication: giver.trim() !== "" && dedication.trim() !== "",
     coverDesign: selectedBookCover !== null,
-    binding: selectedBookFormat !== null,
-    giftBox: selectedBookWrap !== null,
+    binding: selectedBinding !== null,
+    giftBox: selectedGiftBox !== null,
   };
 
   // Others 标签页可选项提示文本（按需拼接 binding/cover/wrap）
@@ -1369,8 +1369,8 @@ export default function PreviewPageWithTopNav() {
         recipient_name: giver.trim(),
         message: message.trim(),
         cover_type: getCoverKey(selectedBookCover),
-        binding_type: getBindingKey(selectedBookFormat),
-        gift_box: getGiftBoxKey(selectedBookWrap),
+        binding_type: getBindingKey(selectedBinding),
+        gift_box: getGiftBoxKey(selectedGiftBox),
       };
 
       await api.post(`/preview/update-options/${previewData.preview_id}`, updateData);
@@ -1495,7 +1495,7 @@ export default function PreviewPageWithTopNav() {
 
         {activeTab === 'Book preview' ? (
           <main className="flex-1 flex flex-col items-center justify-start w-full pt-14">
-            <h1 className="text-[28px] mt-2 mb-4 text-center w-full">Your Book Preview</h1>
+            <h1 className="text-[28px] mt-2 mb-4 text-center w-full">Your book for {recipient?.trim()}</h1>
             
             {/* 书籍封面 */}
             <div className="flex flex-col items-center w-full max-w-3xl">
@@ -1837,7 +1837,7 @@ export default function PreviewPageWithTopNav() {
             </section>
             
             {/* Book Format Section */}
-            <section  ref={bookFormatRef} className="w-full mt-2 max-w-3xl mx-auto">
+            <section  ref={bindingRef} className="w-full mt-2 max-w-3xl mx-auto">
               <h1 className="text-[28px] text-center mb-2">Choose a binding for your book</h1>
               <p className="text-center text-gray-600 mb-4">
                 Please select your preferred binding.
@@ -1846,9 +1846,9 @@ export default function PreviewPageWithTopNav() {
                 {bookOptions?.binding_options?.map((option) => (
                   <div
                     key={option.id}
-                    onClick={() => setSelectedBookFormat(selectedBookFormat === option.id ? null : option.id)}
+                    onClick={() => setSelectedBinding(selectedBinding === option.id ? null : option.id)}
                     className={`bg-white p-4 rounded flex flex-col cursor-pointer ${
-                      selectedBookFormat === option.id
+                      selectedBinding === option.id
                         ? 'border-2 border-[#012CCE]'
                         : 'border-2 border-transparent'
                     }`}
@@ -1867,12 +1867,12 @@ export default function PreviewPageWithTopNav() {
                       {/* 左侧圆形选中框 */}
                       <span
                         className={`flex-shrink-0 inline-flex items-center justify-center w-5 h-5 border rounded-full ${
-                          selectedBookFormat === option.id
+                          selectedBinding === option.id
                             ? 'bg-[#012CCE] border-[#012CCE]'
                             : 'border-gray-400'
                         }`}
                       >
-                        {selectedBookFormat === option.id && (
+                        {selectedBinding === option.id && (
                           <svg
                             width="9"
                             height="6"
@@ -1892,7 +1892,7 @@ export default function PreviewPageWithTopNav() {
                       </span>
                       {/* 便签名称，根据选中状态改变 */}
                       <span className="text-center">
-                        {selectedBookFormat === option.id
+                        {selectedBinding === option.id
                           ? `${option.name} Selected`
                           : `Select ${option.name}`}
                       </span>
@@ -1903,8 +1903,8 @@ export default function PreviewPageWithTopNav() {
             </section>
 
             {/* Book Wrap Section */}
-            <section ref={otherGiftsRef} className="w-full mt-2 max-w-3xl mb-8 mx-auto">
-              <h1 className="text-[28px] text-center mb-2">Box it up in magic</h1>
+            <section ref={giftBoxRef} className="w-full mt-2 max-w-3xl mb-8 mx-auto">
+              <h1 className="text-[28px] text-center mb-2">Box it in magic</h1>
               <p className="text-center text-gray-600 mb-4">
                 Please select your preferred gift box option.
               </p>
@@ -1912,9 +1912,9 @@ export default function PreviewPageWithTopNav() {
                 {bookOptions?.gift_box_options?.map((option) => (
                   <div
                     key={option.id}
-                    onClick={() => setSelectedBookWrap(selectedBookWrap === option.id ? null : option.id)}
+                    onClick={() => setSelectedGiftBox(selectedGiftBox === option.id ? null : option.id)}
                     className={`bg-white p-4 rounded flex flex-col cursor-pointer ${
-                      selectedBookWrap === option.id
+                      selectedGiftBox === option.id
                         ? 'border-2 border-[#012CCE]'
                         : 'border-2 border-transparent'
                     }`}
@@ -1958,12 +1958,12 @@ export default function PreviewPageWithTopNav() {
                       {/* 左侧圆形选中框 */}
                       <span
                         className={`flex-shrink-0 inline-flex items-center justify-center w-5 h-5 border rounded-full ${
-                          selectedBookWrap === option.id
+                          selectedGiftBox === option.id
                             ? 'bg-[#012CCE] border-[#012CCE]'
                             : 'border-gray-400'
                         }`}
                       >
-                        {selectedBookWrap === option.id && (
+                        {selectedGiftBox === option.id && (
                           <svg
                             width="9"
                             height="6"
@@ -1983,7 +1983,7 @@ export default function PreviewPageWithTopNav() {
                       </span>
                       {/* 便签名称，根据选中状态改变 */}
                       <span className="text-center">
-                        {selectedBookWrap === option.id
+                        {selectedGiftBox === option.id
                           ? `${option.name} Selected`
                           : `Select ${option.name}`}
                       </span>
