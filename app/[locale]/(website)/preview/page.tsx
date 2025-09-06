@@ -924,13 +924,13 @@ export default function PreviewPageWithTopNav() {
           <path fillRule="evenodd" clipRule="evenodd" d="M18.1727 3.36602C18.1727 2.94414 18.5149 2.60195 18.9368 2.60195C19.3586 2.60195 19.7008 2.94414 19.7008 3.36602V19.498C19.7008 20.5973 18.8102 21.4879 17.711 21.4879H2.2938C1.19458 21.4879 0.303955 20.5973 0.303955 19.498V1.72539C0.303955 1.05039 0.852393 0.501953 1.52739 0.501953H15.7211C16.3961 0.501953 16.9446 1.04805 16.9446 1.72539V14.6113C16.9446 15.2863 16.3985 15.8348 15.7211 15.8348H3.05786C2.38286 15.8348 1.83442 16.3809 1.83442 17.0582V18.7316C1.83442 19.4066 2.38286 19.9551 3.05786 19.9551H16.9493C17.6243 19.9551 18.1727 19.4066 18.1727 18.7316V3.36602ZM2.91956 17.7621C2.91956 17.3402 3.26174 16.998 3.68362 16.998H16.0539C16.4758 16.998 16.818 17.3402 16.818 17.7621C16.818 18.184 16.4758 18.5262 16.0539 18.5262H3.68362C3.26174 18.5262 2.91956 18.184 2.91956 17.7621Z" fill="currentColor"/>
         </svg>
     },
-    { id: "bookFormat", label: "Binding", 
+    { id: "binding", label: "Binding", 
       icon: 
         <svg width="19" height="22" viewBox="0 0 19 22" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path fillRule="evenodd" clipRule="evenodd" d="M1.65002 0.5H16.95C17.85 0.5 18.6 1.1 18.3 1.85V13.65C18.3 14.55 17.7 15.15 16.8 15.15H14.25C13.5 15.15 12.75 15.9 12.75 16.65V19.8C12.75 20.7 12.15 21.3 11.25 21.3H1.65002C0.900024 21.3 0.150024 20.55 0.150024 19.8V2C0.150024 1.1 0.750024 0.5 1.65002 0.5ZM11.25 13.55C11.7 13.55 12 13.25 12 12.8C12 12.2 11.7 11.9 11.25 11.9H4.50002C4.05002 11.9 3.75002 12.2 3.75002 12.65V12.8C3.75002 13.25 4.05002 13.55 4.50002 13.55H11.25ZM14.55 9.5C15 9.5 15.3 9.2 15.3 8.75C15.3 8.15 15 7.85 14.4 7.85H4.35002C3.90002 7.85 3.60002 8.15 3.60002 8.6V8.75C3.60002 9.05 4.05002 9.35 4.50002 9.5H14.55ZM14.55 5.45C15 5.45 15.3 5.15 15.3 4.7C15.3 4.1 15 3.8 14.55 3.8H4.50002C4.05002 3.8 3.75002 4.1 3.75002 4.55V4.7C3.75002 5.15 4.05002 5.45 4.50002 5.45H14.55ZM13.8 19.7998V17.6998C13.8 16.7998 14.55 16.0498 15.45 16.0498H17.55C18.3 16.0498 18.6 16.9498 18.15 17.3998L15.15 20.3998C14.7 20.8498 13.8 20.5498 13.8 19.7998Z" fill="currentColor"/>
         </svg>
     },
-    { id: "otherGifts", label: "Other Gifts", 
+    { id: "giftBox", label: "Gift Box", 
       icon: 
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M13.2313 3.77614C12.8615 4.14596 12.5157 4.36523 12.207 4.52123H11.2677C11.3037 4.18196 11.5622 3.51214 12.2648 2.80851C13.2008 1.87469 14.0757 1.71978 14.1968 1.84305C14.3168 1.96305 14.1662 2.84014 13.2313 3.77614ZM7.82477 4.52123C7.44529 4.33087 7.0996 4.07953 6.8015 3.77723C5.8655 2.84014 5.71604 1.96523 5.83604 1.84414C5.85895 1.82232 5.90804 1.80923 5.97786 1.80923C6.28768 1.80923 7.00768 2.05032 7.76804 2.81069C8.4695 3.51214 8.72804 4.17978 8.76404 4.52123H7.82477ZM9.3335 9.98451V19.5452H3.18732C2.84901 19.5459 2.52254 19.4207 2.27134 19.1941C2.02014 18.9675 1.86215 18.6556 1.82804 18.3191L1.8215 18.1794V9.98451H9.3335ZM18.2102 9.98451V18.1794C18.2105 18.3589 18.1754 18.5366 18.1068 18.7024C18.0383 18.8683 17.9377 19.019 17.8108 19.1458C17.6839 19.2727 17.5333 19.3733 17.3674 19.4419C17.2016 19.5104 17.0238 19.5455 16.8444 19.5452H10.6993V9.98451H18.2102ZM15.1633 0.877598C15.9106 1.62705 15.628 3.05942 14.5459 4.34669L14.3931 4.52123H18.2113C18.9182 4.52123 19.4997 5.05796 19.5706 5.74742L19.5771 5.88705V7.25287C19.5771 7.96196 19.0393 8.54233 18.351 8.61214L18.2113 8.61869H10.6993V4.52123H9.33459V8.61869H1.82041C1.48224 8.61884 1.15604 8.49353 0.904944 8.26702C0.653847 8.04051 0.495708 7.7289 0.461135 7.39251L0.45459 7.25287V5.88705C0.45459 5.17905 0.992408 4.59869 1.68077 4.52887L1.82041 4.52123H5.63859C4.42986 3.19032 4.08732 1.66196 4.8695 0.879779C5.69314 0.0506884 7.35677 0.468507 8.7335 1.84523C9.39568 2.50851 9.82986 3.23723 10.0153 3.90705C10.2008 3.23723 10.6339 2.50851 11.2982 1.84523C12.675 0.466325 14.3397 0.0539614 15.1622 0.878689L15.1633 0.877598Z" fill="currentColor"/>
@@ -1269,8 +1269,8 @@ export default function PreviewPageWithTopNav() {
     switch(sectionId) {
       case "giverDedication": ref = giverDedicationRef; break;
       case "coverDesign": ref = coverDesignRef; break;
-      case "bookFormat": ref = bookFormatRef; break;
-      case "otherGifts": ref = otherGiftsRef; break;
+      case "binding": ref = bookFormatRef; break;
+      case "giftBox": ref = otherGiftsRef; break;
       default: break;
     }
     if (ref && ref.current) {
@@ -1283,15 +1283,15 @@ export default function PreviewPageWithTopNav() {
   const completedSections = {
     giverDedication: giver.trim() !== "" && dedication.trim() !== "",
     coverDesign: selectedBookCover !== null,
-    bookFormat: selectedBookFormat !== null,
-    otherGifts: selectedBookWrap !== null,
+    binding: selectedBookFormat !== null,
+    giftBox: selectedBookWrap !== null,
   };
 
   // Others 标签页可选项提示文本（按需拼接 binding/cover/wrap）
   const selectableItems = [
-    !completedSections.bookFormat ? 'binding' : null,
+    !completedSections.binding ? 'binding' : null,
     !completedSections.coverDesign ? 'cover' : null,
-    !completedSections.otherGifts ? 'wrap' : null,
+    !completedSections.giftBox ? 'wrap' : null,
   ].filter((x): x is string => Boolean(x));
 
   // 文案拼接工具（支持中英文）
@@ -1619,8 +1619,8 @@ export default function PreviewPageWithTopNav() {
                   Book preview is currently in the queue for generation. You are currently at position {queueStatus?.position}/{queueStatus?.total}. <br />
                   You can proceed to select {buildOptions({
                     cover: !completedSections.coverDesign,
-                    binding: !completedSections.bookFormat,
-                    wrap: !completedSections.otherGifts
+                    binding: !completedSections.binding,
+                    wrap: !completedSections.giftBox
                   }, currentLang === 'zh' ? 'zh' : 'en')},{' '}
                   <a
                     className="underline cursor-pointer text-blue-600"
@@ -1904,9 +1904,9 @@ export default function PreviewPageWithTopNav() {
 
             {/* Book Wrap Section */}
             <section ref={otherGiftsRef} className="w-full mt-2 max-w-3xl mb-8 mx-auto">
-              <h1 className="text-[28px] text-center mb-2">Wrap it up in magic</h1>
+              <h1 className="text-[28px] text-center mb-2">Box it up in magic</h1>
               <p className="text-center text-gray-600 mb-4">
-                Please select your preferred book wrap option.
+                Please select your preferred gift box option.
               </p>
               <div className="grid grid-cols-2 gap-4 w-[80%] mx-auto">
                 {bookOptions?.gift_box_options?.map((option) => (
