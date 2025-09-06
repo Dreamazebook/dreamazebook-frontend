@@ -504,6 +504,8 @@ export default function PreviewPageWithTopNav() {
   const progressTimersRef = useRef<Record<number, any>>({});
   // 完成后短暂保留蒙版的集合（例如 300ms），用于展示 100%
   const [completedOverlayHold, setCompletedOverlayHold] = useState<Set<number>>(new Set());
+  // 当前批次 batch_id（仅处理该批次的广播）
+  const currentBatchIdRef = useRef<string | null>(null);
   
   // 面向 UI 的换脸状态聚合
   const faceSwapStatus = previewData?.face_swap_info?.status;
@@ -611,6 +613,12 @@ export default function PreviewPageWithTopNav() {
     const onTaskCompleted = (e: any) => {
       console.log('任务完成:', e);
       setIsProcessing(true);
+      // 仅处理当前 batch
+      const eventBatchId = extractBatchIdFromEvent(e);
+      if (currentBatchIdRef.current && eventBatchId && eventBatchId !== currentBatchIdRef.current) {
+        console.log('忽略非当前批次任务完成事件:', eventBatchId, '当前:', currentBatchIdRef.current);
+        return;
+      }
       try {
         const completedPageId = e?.page_id || e?.result?.page_id || e?.task?.page_id || e?.data?.page_id;
         const completedUrl = extractImageUrlFromEvent(e);
@@ -668,6 +676,12 @@ export default function PreviewPageWithTopNav() {
 
     const onTaskFailed = (e: any) => {
       console.error('任务失败:', e);
+      // 仅处理当前 batch
+      const eventBatchId = extractBatchIdFromEvent(e);
+      if (currentBatchIdRef.current && eventBatchId && eventBatchId !== currentBatchIdRef.current) {
+        console.log('忽略非当前批次任务失败事件:', eventBatchId, '当前:', currentBatchIdRef.current);
+        return;
+      }
       // 若全局已完成，忽略迟到的失败事件，避免 UI 误回退或误报
       if (previewData?.face_swap_info?.status === 'completed') {
         return;
@@ -679,6 +693,12 @@ export default function PreviewPageWithTopNav() {
 
     const onBatchCompleted = (e: any) => {
       console.log('批次完成:', e);
+      // 仅处理当前 batch
+      const eventBatchId = extractBatchIdFromEvent(e);
+      if (currentBatchIdRef.current && eventBatchId && eventBatchId !== currentBatchIdRef.current) {
+        console.log('忽略非当前批次完成事件:', eventBatchId, '当前:', currentBatchIdRef.current);
+        return;
+      }
       setIsProcessing(false);
       setQueueStatus(null); // 清除排队状态
       toast.success('图片生成完成！');
@@ -757,6 +777,12 @@ export default function PreviewPageWithTopNav() {
     // 监听排队状态更新
     const onQueueStatusUpdate = (e: any) => {
       console.log('排队状态更新:', e);
+      // 仅处理当前 batch
+      const eventBatchId = extractBatchIdFromEvent(e);
+      if (currentBatchIdRef.current && eventBatchId && eventBatchId !== currentBatchIdRef.current) {
+        console.log('忽略非当前批次队列事件:', eventBatchId, '当前:', currentBatchIdRef.current);
+        return;
+      }
       // 若已经完成，忽略后续队列广播，避免 UI 回退
       if (faceSwapStatusRef.current === 'completed') {
         return;
@@ -969,6 +995,14 @@ export default function PreviewPageWithTopNav() {
       evt?.high_res_url
     );
   };
+  // 从广播事件中提取 batch_id（兼容多种包裹层级）
+  const extractBatchIdFromEvent = (evt: any): string | undefined => {
+    return (
+      evt?.batch_id ||
+      evt?.data?.batch_id ||
+      evt?.task?.batch_id
+    );
+  };
 
   // 获取预览数据
   const fetchPreviewData = useCallback(async () => {
@@ -1028,6 +1062,11 @@ export default function PreviewPageWithTopNav() {
       
       if (response.success) {
         setPreviewData(response.data!);
+        // 记录本次任务的 batch_id，用于筛选后续广播
+        try {
+          const bid = response.data?.face_swap_info?.batch_id;
+          if (bid) currentBatchIdRef.current = bid;
+        } catch {}
         
         // 由于新的API结构中characters是数字数组，我们从localStorage获取角色名称
         try {
@@ -1149,6 +1188,11 @@ export default function PreviewPageWithTopNav() {
           // 保存预览数据
           if (response.success) {
             setPreviewData(response.data!);
+            // 记录本次任务的 batch_id，用于筛选后续广播
+            try {
+              const bid = response.data?.face_swap_info?.batch_id;
+              if (bid) currentBatchIdRef.current = bid;
+            } catch {}
             
             // 由于新的API结构中characters是数字数组，我们从localStorage获取角色名称
             try {
@@ -1303,6 +1347,33 @@ export default function PreviewPageWithTopNav() {
       }
 
       setIsAddingToCart(true);
+
+      // 先更新预览选项（recipient_name、message、cover_type、binding_type、gift_box）
+      const getCoverKey = (id: number | null) => {
+        if (id == null) return undefined;
+        const item = bookOptions?.cover_options?.find(o => o.id === id);
+        return item?.option_key ?? String(id);
+      };
+      const getBindingKey = (id: number | null) => {
+        if (id == null) return undefined;
+        const item = bookOptions?.binding_options?.find(o => o.id === id);
+        return item?.option_key ?? String(id);
+      };
+      const getGiftBoxKey = (id: number | null) => {
+        if (id == null) return undefined;
+        const item = bookOptions?.gift_box_options?.find(o => o.id === id);
+        return item?.option_key ?? String(id);
+      };
+
+      const updateData = {
+        recipient_name: giver.trim(),
+        message: message.trim(),
+        cover_type: getCoverKey(selectedBookCover),
+        binding_type: getBindingKey(selectedBookFormat),
+        gift_box: getGiftBoxKey(selectedBookWrap),
+      };
+
+      await api.post(`/preview/update-options/${previewData.preview_id}`, updateData);
 
       // 构建添加到购物车的数据
       const cartData: CartAddRequest = {
