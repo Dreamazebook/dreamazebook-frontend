@@ -362,38 +362,65 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   );
 });
 
+interface CoverOption {
+  id: number;
+  option_type: string;
+  option_key: string;
+  name: string;
+  description: string | null;
+  price: number;
+  currency_code: string;
+  image_url: string;
+  is_default: boolean;
+  gender: number;
+  skincolor: number;
+  has_face: boolean;
+  has_text: boolean;
+  text_config: {
+    color: string;
+    title: string;
+    position: string;
+    font_size: number;
+  };
+  face_config: {
+    positions: Array<{
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }>;
+  };
+}
+
+interface BindingOption {
+  id: number;
+  option_type: string;
+  option_key: string;
+  name: string;
+  description: string | null;
+  price: number;
+  currency_code: string;
+  image_url?: string | null;
+  is_default?: boolean;
+}
+
+interface GiftBoxOption {
+  id: number;
+  option_type?: string;
+  option_key?: string;
+  name: string;
+  description?: string | null;
+  price?: number;
+  currency_code?: string;
+  image_url?: string | null;
+  images?: string[];
+  is_default?: boolean;
+}
+
 interface BookOptions {
-  cover_options: Array<{
-    id: number;
-    option_type: string;
-    option_key: string;
-    name: string;
-    description: string | null;
-    price: number;
-    currency_code: string;
-    image_url: string;
-    is_default: boolean;
-    gender: number;
-    skincolor: number;
-    has_face: boolean;
-    has_text: boolean;
-    text_config: {
-      color: string;
-      title: string;
-      position: string;
-      font_size: number;
-    };
-    face_config: {
-      positions: Array<{
-        x: number;
-        y: number;
-        width: number;
-        height: number;
-      }>;
-    };
-  }>;
-  binding_options: any[];
-  gift_box_options: any[];
+  cover_options: Array<CoverOption>;
+  binding_options: Array<BindingOption>;
+  gift_box_options: Array<GiftBoxOption>;
 }
 
 export default function PreviewPageWithTopNav() {
@@ -446,7 +473,7 @@ export default function PreviewPageWithTopNav() {
   const [selectedBookCover, setSelectedBookCover] = React.useState<number | null>(null);
   const [selectedBookFormat, setSelectedBookFormat] = React.useState<number | null>(null);
   const [selectedBookWrap, setSelectedBookWrap] = React.useState<number | null>(null);
-  const [detailModal, setDetailModal] = React.useState<typeof bookWrapOptions[0] | null>(null);
+  const [detailModal, setDetailModal] = React.useState<GiftBoxOption | null>(null);
   // 当前展示图片的索引，用于翻页
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [activeSection, setActiveSection] = React.useState<string>("");
@@ -548,12 +575,16 @@ export default function PreviewPageWithTopNav() {
       setIsLoadingOptions(true);
       setOptionsError(null);
 
-      const response = await api.get(`/preview/options/1`) as ApiResponse<BookOptions>;
+      const response = await api.get(`/preview/options/${bookId}`) as ApiResponse<BookOptions>;
 
       if (response.success) {
         setBookOptions(response.data!);
         console.log('Book options 获取成功:', response.data);
         console.log('Cover options:', response.data?.cover_options);
+        console.log('Binding options:', response.data?.binding_options);
+        console.log('Gift box options:', response.data?.gift_box_options);
+
+        // 不设置任何默认选中项，保持初始为 null
       } else {
         console.error('获取 book options 失败:', response);
         setOptionsError(response.message || '获取选项失败');
@@ -849,57 +880,7 @@ export default function PreviewPageWithTopNav() {
 
 
 
-  const bookFormatOptions = [
-    {
-      id: 1,
-      image: '/format.png',
-      title: 'Premium Hardcover',
-      price: '$14.99',
-      description: 'High-quality hardcover with premium finish.',
-    },
-    {
-      id: 2,
-      image: '/format.png',
-      title: 'Standard Paperback',
-      price: '$9.99',
-      description: 'Cost-effective and lightweight paperback.',
-    },
-    {
-      id: 3,
-      image: '/format.png',
-      title: 'Deluxe Leather Bound',
-      price: '$19.99',
-      description: 'Luxurious leather-bound edition.',
-    },
-    {
-      id: 4,
-      image: '/format.png',
-      title: 'Digital Edition',
-      price: 'Free',
-      description: 'Instant access to your book on digital devices.',
-    },
-  ];
-  
-  const bookWrapOptions = [
-    {
-      id: 1,
-      image: '/wrap.png',
-      images: ['/wrap-1.png', '/wrap-2.png'],
-      title: 'Classic Wrap',
-      price: '$4.99',
-      description: 'A timeless design with a simple finish.',
-      fullDescription: 'Classic Wrap provides a subtle yet elegant cover wrap that suits any book style. It is designed for those who appreciate classic aesthetics with modern functionality.',
-    },
-    {
-      id: 2,
-      image: '/wrap.png',
-      images: ['/wrap-1.png', '/wrap2-2.png'],
-      title: 'Modern Wrap',
-      price: '$5.99',
-      description: 'A sleek design with modern aesthetics.',
-      fullDescription: 'Modern Wrap offers a contemporary look with bold lines and vibrant colors, perfect for those who want their book to stand out with a modern flair.',
-    },
-  ];
+  // 占位数组移除，使用 API 返回的 binding_options 与 gift_box_options
 
   // 定义侧边栏各项，并为每个项配置默认图标和完成后的图标
   const sidebarItems = [
@@ -917,7 +898,7 @@ export default function PreviewPageWithTopNav() {
           <path fillRule="evenodd" clipRule="evenodd" d="M18.1727 3.36602C18.1727 2.94414 18.5149 2.60195 18.9368 2.60195C19.3586 2.60195 19.7008 2.94414 19.7008 3.36602V19.498C19.7008 20.5973 18.8102 21.4879 17.711 21.4879H2.2938C1.19458 21.4879 0.303955 20.5973 0.303955 19.498V1.72539C0.303955 1.05039 0.852393 0.501953 1.52739 0.501953H15.7211C16.3961 0.501953 16.9446 1.04805 16.9446 1.72539V14.6113C16.9446 15.2863 16.3985 15.8348 15.7211 15.8348H3.05786C2.38286 15.8348 1.83442 16.3809 1.83442 17.0582V18.7316C1.83442 19.4066 2.38286 19.9551 3.05786 19.9551H16.9493C17.6243 19.9551 18.1727 19.4066 18.1727 18.7316V3.36602ZM2.91956 17.7621C2.91956 17.3402 3.26174 16.998 3.68362 16.998H16.0539C16.4758 16.998 16.818 17.3402 16.818 17.7621C16.818 18.184 16.4758 18.5262 16.0539 18.5262H3.68362C3.26174 18.5262 2.91956 18.184 2.91956 17.7621Z" fill="currentColor"/>
         </svg>
     },
-    { id: "bookFormat", label: "Format", 
+    { id: "bookFormat", label: "Binding", 
       icon: 
         <svg width="19" height="22" viewBox="0 0 19 22" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path fillRule="evenodd" clipRule="evenodd" d="M1.65002 0.5H16.95C17.85 0.5 18.6 1.1 18.3 1.85V13.65C18.3 14.55 17.7 15.15 16.8 15.15H14.25C13.5 15.15 12.75 15.9 12.75 16.65V19.8C12.75 20.7 12.15 21.3 11.25 21.3H1.65002C0.900024 21.3 0.150024 20.55 0.150024 19.8V2C0.150024 1.1 0.750024 0.5 1.65002 0.5ZM11.25 13.55C11.7 13.55 12 13.25 12 12.8C12 12.2 11.7 11.9 11.25 11.9H4.50002C4.05002 11.9 3.75002 12.2 3.75002 12.65V12.8C3.75002 13.25 4.05002 13.55 4.50002 13.55H11.25ZM14.55 9.5C15 9.5 15.3 9.2 15.3 8.75C15.3 8.15 15 7.85 14.4 7.85H4.35002C3.90002 7.85 3.60002 8.15 3.60002 8.6V8.75C3.60002 9.05 4.05002 9.35 4.50002 9.5H14.55ZM14.55 5.45C15 5.45 15.3 5.15 15.3 4.7C15.3 4.1 15 3.8 14.55 3.8H4.50002C4.05002 3.8 3.75002 4.1 3.75002 4.55V4.7C3.75002 5.15 4.05002 5.45 4.50002 5.45H14.55ZM13.8 19.7998V17.6998C13.8 16.7998 14.55 16.0498 15.45 16.0498H17.55C18.3 16.0498 18.6 16.9498 18.15 17.3998L15.15 20.3998C14.7 20.8498 13.8 20.5498 13.8 19.7998Z" fill="currentColor"/>
@@ -1389,7 +1370,7 @@ export default function PreviewPageWithTopNav() {
 
   // 处理点击 "View Details" 链接
   const handleViewDetails = (
-    option: typeof bookWrapOptions[0],
+    option: GiftBoxOption,
     e: React.MouseEvent<HTMLAnchorElement>
   ) => {
     e.stopPropagation(); // 阻止冒泡
@@ -1669,36 +1650,11 @@ export default function PreviewPageWithTopNav() {
                       }`}
                     >
                       <Image
-                        src={(() => {
-                          // 检查图片URL是否有效
-                          if (!option.image_url) {
-                            console.log(`Cover ${option.id}: No image_url, using fallback`);
-                            return '/imgs/picbook/goodnight/封面1.jpg';
-                          }
-                          if (option.image_url.includes('example.com')) {
-                            console.log(`Cover ${option.id}: Invalid example.com URL, using fallback`);
-                            return '/imgs/picbook/goodnight/封面1.jpg';
-                          }
-                          if (option.image_url.includes('http') && !option.image_url.includes('dreamazebook.com')) {
-                            console.log(`Cover ${option.id}: External URL not from dreamazebook.com, using fallback`);
-                            return '/imgs/picbook/goodnight/封面1.jpg';
-                          }
-                          console.log(`Cover ${option.id}: Using valid URL:`, option.image_url);
-                          return option.image_url;
-                        })()}
+                        src={'/imgs/picbook/goodnight/封面1.jpg'}
                         alt={`Cover ${option.id} - ${option.name}`}
                         width={200}
                         height={200}
                         className="w-full h-auto mb-2"
-                        onError={(e) => {
-                          console.error(`Failed to load image for cover ${option.id}:`, option.image_url);
-                          // 图片加载失败时使用回退图片
-                          const target = e.target as HTMLImageElement;
-                          target.src = '/imgs/picbook/goodnight/封面1.jpg';
-                        }}
-                        onLoad={() => {
-                          console.log(`Successfully loaded image for cover ${option.id}:`, option.image_url);
-                        }}
                       />
                       <div className="flex items-center justify-center space-x-2 w-full py-2">
                         <span
@@ -1811,12 +1767,12 @@ export default function PreviewPageWithTopNav() {
             
             {/* Book Format Section */}
             <section  ref={bookFormatRef} className="w-full mt-2 max-w-3xl mx-auto">
-              <h1 className="text-[28px] text-center mb-2">Choose a format for your book</h1>
+              <h1 className="text-[28px] text-center mb-2">Choose a binding for your book</h1>
               <p className="text-center text-gray-600 mb-4">
-                Please select your preferred book format.
+                Please select your preferred binding.
               </p>
               <div className="grid grid-cols-2 gap-4 w-[80%] mx-auto">
-                {bookFormatOptions.map((option) => (
+                {bookOptions?.binding_options?.map((option) => (
                   <div
                     key={option.id}
                     onClick={() => setSelectedBookFormat(selectedBookFormat === option.id ? null : option.id)}
@@ -1827,14 +1783,14 @@ export default function PreviewPageWithTopNav() {
                     }`}
                   >
                     <Image
-                      src={option.image}
-                      alt={option.title}
+                      src={(option.image_url && option.image_url.startsWith('http')) ? option.image_url : '/format.png'}
+                      alt={option.name}
                       width={300}
                       height={200}
                       className="w-full h-auto mb-2"
                     />
-                    <h2 className="text-lg font-medium text-center">{option.title}</h2>
-                    <p className="text-lg font-medium text-center mb-2">{option.price}</p>
+                    <h2 className="text-lg font-medium text-center">{option.name}</h2>
+                    <p className="text-lg font-medium text-center mb-2">${option.price} {option.currency_code}</p>
                     <p className="text-sm text-gray-500 text-center mb-4">{option.description}</p>
                     <div className="flex items-center justify-center mt-auto space-x-2 mb-2">
                       {/* 左侧圆形选中框 */}
@@ -1866,8 +1822,8 @@ export default function PreviewPageWithTopNav() {
                       {/* 便签名称，根据选中状态改变 */}
                       <span className="text-center">
                         {selectedBookFormat === option.id
-                          ? `${option.title} Selected`
-                          : `Select ${option.title}`}
+                          ? `${option.name} Selected`
+                          : `Select ${option.name}`}
                       </span>
                     </div>
                   </div>
@@ -1882,7 +1838,7 @@ export default function PreviewPageWithTopNav() {
                 Please select your preferred book wrap option.
               </p>
               <div className="grid grid-cols-2 gap-4 w-[80%] mx-auto">
-                {bookWrapOptions.map((option) => (
+                {bookOptions?.gift_box_options?.map((option) => (
                   <div
                     key={option.id}
                     onClick={() => setSelectedBookWrap(selectedBookWrap === option.id ? null : option.id)}
@@ -1893,17 +1849,19 @@ export default function PreviewPageWithTopNav() {
                     }`}
                   >
                     <Image
-                      src={option.image}
-                      alt={option.title}
+                      src={(option.image_url && option.image_url.startsWith('http')) ? option.image_url : '/wrap.png'}
+                      alt={option.name}
                       width={300}
                       height={200}
                       className="w-full h-auto mb-2"
                     />
-                    <h2 className="text-lg font-medium text-center">{option.title}</h2>
-                    <p className="text-lg font-medium text-center mb-2">{option.price}</p>
+                    <h2 className="text-lg font-medium text-center">{option.name}</h2>
+                    {option.price != null && (
+                      <p className="text-lg font-medium text-center mb-2">${option.price} {option.currency_code}</p>
+                    )}
                     
                     <a
-                      onClick={(e) => handleViewDetails(option, e)}
+                      onClick={(e) => handleViewDetails(option as GiftBoxOption, e)}
                       className="more-details text-[#012CCE] inline-flex items-center justify-center gap-x-2 cursor-pointer mb-2"
                     >
                       More Details
@@ -1955,8 +1913,8 @@ export default function PreviewPageWithTopNav() {
                       {/* 便签名称，根据选中状态改变 */}
                       <span className="text-center">
                         {selectedBookWrap === option.id
-                          ? `${option.title} Selected`
-                          : `Select ${option.title}`}
+                          ? `${option.name} Selected`
+                          : `Select ${option.name}`}
                       </span>
                     </div>
                   </div>
@@ -2006,8 +1964,8 @@ export default function PreviewPageWithTopNav() {
                     <div className="mt-8 flex flex-col gap-4">
                       <div>
                         <Image
-                          src={detailModal.images[currentIndex]}
-                          alt={detailModal.title}
+                          src={(detailModal.images && detailModal.images[currentIndex]) || detailModal.image_url || '/wrap.png'}
+                          alt={detailModal.name}
                           width={800}
                           height={600}
                           className="w-full h-auto"
@@ -2035,11 +1993,13 @@ export default function PreviewPageWithTopNav() {
                             </svg>
                           </button>
                           <span className="text-sm text-gray-700">
-                            {currentIndex + 1} / {detailModal.images.length}
+                            {(detailModal.images && detailModal.images.length > 0) ? (currentIndex + 1) : 1}
+                            {' '}/{' '}
+                            {(detailModal.images && detailModal.images.length > 0) ? detailModal.images.length : 1}
                           </span>
                           <button
                             onClick={() => setCurrentIndex((prev) => prev + 1)}
-                            disabled={currentIndex === detailModal.images.length - 1}
+                            disabled={!detailModal.images || detailModal.images.length === 0 || currentIndex === detailModal.images.length - 1}
                             className="p-2"
                           >
                             <svg
@@ -2061,9 +2021,9 @@ export default function PreviewPageWithTopNav() {
                         </div>
                       </div>
                       <div>
-                        <h2 className="text-xl">{detailModal.title}</h2>
+                        <h2 className="text-xl">{detailModal.name}</h2>
                         <p className="text-gray-600 mt-2">
-                          {detailModal.fullDescription}
+                          {detailModal.description}
                         </p>
                       </div>
                     </div>
@@ -2071,8 +2031,9 @@ export default function PreviewPageWithTopNav() {
 
                   <div className="mt-auto flex gap-6 h-[44px] justify-between">
                     <div className="flex items-end gap-3">
-                      <span className="text-[#012CCE] text-3xl font-semibold">$320</span>
-                      <span className="text-gray-400 line-through">$540</span>
+                      <span className="text-[#012CCE] text-3xl font-semibold">
+                        ${detailModal.price ?? 0} {detailModal.currency_code ?? ''}
+                      </span>
                     </div>
                     <button 
                       onClick={handleContinue}
