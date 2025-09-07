@@ -55,9 +55,10 @@ export default function LoginModal() {
         setPostLoginRedirect(null);
         setLoading(false);
         if (redirectUrl) {
-          router.push(redirectUrl);
+          return router.push(redirectUrl);
+        } else {
+          return router.push('/');
         }
-        return;
       }
     } else {
       const response = await register({
@@ -80,13 +81,8 @@ export default function LoginModal() {
     setLoading(false);
   }
   
-  if (!isLoginModalOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={closeLoginModal}></div>
-      <div className="relative z-10 bg-white p-6 rounded-lg w-96 max-w-full">
-      <div className="flex justify-between items-center mb-4">
+    <div className="flex flex-col items-center justify-center bg-white p-4 w-96 gap-4">
         <h2 className="text-xl font-semibold text-[#222222]">
           {mode === 'login' ? 'Login' : mode === 'register' ? 'Register' : 'Forgot Password'}
         </h2>
@@ -96,9 +92,8 @@ export default function LoginModal() {
         >
           ✕
         </button> */}
-      </div>
       
-      <form onSubmit={handleSubmit} className="space-y-4 text-[#222222]">
+      <form onSubmit={handleSubmit} className="space-y-4 text-[#222222] w-full">
         {(mode === 'register') && 
         <Input
           id="name"
@@ -175,7 +170,6 @@ export default function LoginModal() {
           <a><span className='text-[#1BA7FF] cursor-pointer' onClick={() => setMode('login')}>Back to login</span></a>
         )}
       </form>
-      </div>
     </div>
   )
 }
