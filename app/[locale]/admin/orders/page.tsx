@@ -53,10 +53,10 @@ const AdminOrdersPage: FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('Lucy');
-  const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('Lucy');
-  const [discountFilter, setDiscountFilter] = useState<string>('Lucy');
-  const [regionFilter, setRegionFilter] = useState<string>('Lucy');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('');
+  const [discountFilter, setDiscountFilter] = useState<string>('');
+  const [regionFilter, setRegionFilter] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(6);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedOrder, setSelectedOrder] = useState<OrderDetail | null>(null);
@@ -327,28 +327,29 @@ const AdminOrdersPage: FC = () => {
 
         {/* Filters Section */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
-            {/* Date Range */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">下单时间：</label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="date"
-                  value={dateRange.start}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="开始日期"
-                />
-                <span className="text-gray-500 text-sm">至</span>
-                <input
-                  type="date"
-                  value={dateRange.end}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="结束日期"
-                />
-              </div>
+          {/* Date Range */}
+          <div className='w-full md:w-1/2 mb-4'>
+            <label className="block text-sm font-medium text-gray-700 mb-2">下单时间：</label>
+            <div className="flex items-center space-x-2">
+              <input
+                type="date"
+                value={dateRange.start}
+                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="开始日期"
+              />
+              <span className="text-gray-500 text-sm">至</span>
+              <input
+                type="date"
+                value={dateRange.end}
+                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="结束日期"
+              />
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
 
             {/* Order Status Filter */}
             <div>
@@ -358,7 +359,7 @@ const AdminOrdersPage: FC = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="Lucy">Lucy</option>
+                <option value="">全部</option>
                 <option value="pending">未付款</option>
                 <option value="ai_processing">AI生成中</option>
                 <option value="preparing">人工审核中</option>
@@ -377,7 +378,7 @@ const AdminOrdersPage: FC = () => {
                 onChange={(e) => setPaymentStatusFilter(e.target.value)}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="Lucy">Lucy</option>
+                <option value="">全部</option>
                 <option value="paid">已支付</option>
                 <option value="unpaid">支付失败</option>
                 <option value="refunded">已退款</option>
@@ -393,7 +394,7 @@ const AdminOrdersPage: FC = () => {
                 onChange={(e) => setDiscountFilter(e.target.value)}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="Lucy">Lucy</option>
+                <option value="">全部</option>
                 <option value="0-50">$0-$50</option>
                 <option value="50-100">$50-$100</option>
                 <option value="100+">$100+</option>
@@ -408,7 +409,7 @@ const AdminOrdersPage: FC = () => {
                 onChange={(e) => setRegionFilter(e.target.value)}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="Lucy">Lucy</option>
+                <option value="">全部</option>
                 <option value="US">美国</option>
                 <option value="CN">中国</option>
                 <option value="CA">加拿大</option>
@@ -424,7 +425,7 @@ const AdminOrdersPage: FC = () => {
                 onChange={(e) => setDiscountFilter(e.target.value)}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="Lucy">Lucy</option>
+                <option value="">全部</option>
                 <option value="SSJDUI">SSJDUI</option>
                 <option value="DFGFXI">DFGFXI</option>
               </select>
