@@ -158,6 +158,12 @@ export default function BooksPage() {
                     fill
                     className="object-cover group-hover:opacity-90 transition-opacity"
                     sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                    unoptimized={normalizeImageUrl(book.default_cover).startsWith('http')}
+                    onError={(e) => {
+                      const target = e.currentTarget as HTMLImageElement & { srcset?: string };
+                      target.src = '/imgs/picbook/goodnight/封面1.jpg';
+                      if (target.srcset) target.srcset = '';
+                    }}
                   />
                 </div>
                 <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1 line-clamp-2 group-hover:text-black dark:group-hover:text-gray-300 transition-colors">
