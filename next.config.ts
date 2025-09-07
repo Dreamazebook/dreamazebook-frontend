@@ -29,6 +29,12 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'pub-276765949af547aba1ca5c576f2859ea.r2.dev',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'pro-s3-dre01.s3.amazonaws.com',
         port: '',
         pathname: '/**',
