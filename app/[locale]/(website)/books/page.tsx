@@ -15,7 +15,13 @@ import { useTranslations } from 'next-intl';
 // - 保留 http(s) 绝对地址
 const normalizeImageUrl = (imagePath: string): string => {
   if (!imagePath) return '/imgs/picbook/goodnight/封面1.jpg';
-  if (imagePath.startsWith('http')) return imagePath;
+  if (imagePath.startsWith('http')) {
+    try {
+      return encodeURI(imagePath);
+    } catch {
+      return imagePath;
+    }
+  }
   let normalized = imagePath.trim();
   if (!normalized.startsWith('/')) {
     normalized = '/' + normalized;

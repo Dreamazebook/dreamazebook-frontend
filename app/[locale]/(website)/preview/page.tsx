@@ -954,7 +954,11 @@ export default function PreviewPageWithTopNav() {
   const buildImageUrl = (imagePath: string) => {
     if (!imagePath) return '/imgs/picbook/goodnight/封面1.jpg';
     if (imagePath.startsWith('http')) {
-      return imagePath;
+      try {
+        return encodeURI(imagePath);
+      } catch {
+        return imagePath;
+      }
     }
     let normalized = imagePath.trim();
     if (normalized.startsWith('/public/')) {
