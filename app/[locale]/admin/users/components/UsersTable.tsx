@@ -18,9 +18,10 @@ interface User {
 interface UsersTableProps {
   users: User[];
   searchTerm: string;
+  setSelectedUser: Function;
 }
 
-const UsersTable: FC<UsersTableProps> = ({ users, searchTerm }) => {
+const UsersTable: FC<UsersTableProps> = ({ users, searchTerm, setSelectedUser }) => {
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -125,7 +126,7 @@ const UsersTable: FC<UsersTableProps> = ({ users, searchTerm }) => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <button className="text-blue-600 hover:text-blue-900 transition-colors">
+                  <button onClick={() => setSelectedUser(user)} className="text-blue-600 hover:text-blue-900 transition-colors">
                     详情
                   </button>
                 </td>

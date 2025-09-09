@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import UsersHeader from './components/UsersHeader';
 import UsersFilters from './components/UsersFilters';
 import UsersTable from './components/UsersTable';
@@ -10,6 +10,7 @@ import { useUsersFilters } from './hooks/useUsersFilters';
 import { useUsersPagination } from './hooks/useUsersPagination';
 import LoadingState from '../orders/components/LoadingState';
 import ErrorState from '../orders/components/ErrorState';
+import UserDetailModal from './components/UserDetailModal';
 
 const AdminUsersPage: FC = () => {
   const { users, loading, error } = useUsersData();
@@ -35,11 +36,16 @@ const AdminUsersPage: FC = () => {
   const totalUsers = 2;
   const lastUpdated = '2025/03/12 12:34';
 
+  const [selectedUser, setSelectedUser] = useState(null);
+
   if (loading) return <LoadingState />;
   if (error) return <ErrorState error={error} />;
 
   return (
     <div className="bg-gray-50 min-h-screen">
+
+      {selectedUser && <UserDetailModal user={selectedUser} onClose={() => setSelectedUser(null)} />}
+
       <UsersHeader totalUsers={totalUsers} lastUpdated={lastUpdated} />
 
       <div className="px-6 py-6">
@@ -56,7 +62,7 @@ const AdminUsersPage: FC = () => {
           setSatisfactionFilter={setSatisfactionFilter}
         />
         
-        <UsersTable users={users} searchTerm={searchTerm} />
+        <UsersTable users={users} searchTerm={searchTerm} setSelectedUser={setSelectedUser} />
         
         <UsersPagination
           totalUsers={users.length}
