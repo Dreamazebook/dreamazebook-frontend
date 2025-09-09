@@ -1,7 +1,10 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { formatDate } from '../../orders/utils';
+import api from '@/utils/api';
+import { API_ADMIN_USERS } from '@/constants/api';
+import { ApiResponse } from '@/types/api';
 
 interface User {
   id: string;
@@ -42,6 +45,12 @@ interface UserDetailModalProps {
 }
 
 const UserDetailModal: FC<UserDetailModalProps> = ({ user, onClose }) => {
+  useEffect(() => {
+    const fetchUserDetail = async () => {
+      const {data, success} = await api.get<ApiResponse>(`${API_ADMIN_USERS}/${user.id}`);
+    }
+    fetchUserDetail();
+  }, [user.id]);
   // Mock data for demonstration - in real app this would come from API
   const mockUserData = {
     ...user,
