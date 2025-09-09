@@ -11,6 +11,9 @@ interface UserState {
   openLoginModal: () => void
   closeLoginModal: () => void
   toggleLoginModal: () => void
+  // Post-login redirect state
+  postLoginRedirect: string | null
+  setPostLoginRedirect: (url: string | null) => void
   
   // User state
   user: UserType | null
@@ -58,6 +61,9 @@ const useUserStore = create<UserState>((set,get) => ({
   openLoginModal: () => set({ isLoginModalOpen: true }),
   closeLoginModal: () => set({ isLoginModalOpen: false }),
   toggleLoginModal: () => set((state) => ({ isLoginModalOpen: !state.isLoginModalOpen })),
+  // Post-login redirect state
+  postLoginRedirect: null,
+  setPostLoginRedirect: (url) => set({ postLoginRedirect: url }),
   
   // User state - initially not logged in
   user: null,

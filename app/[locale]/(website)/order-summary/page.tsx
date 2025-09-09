@@ -59,7 +59,7 @@ const OrderSummary: React.FC = () => {
 
 
   const [showMessageModal, setShowMessageModal] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<CartItem>(EMPTY_CART_ITEM);
+  const [selectedItem, setSelectedItem] = useState<CartItem|null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const copyOrderNumberToClipboard = async () => {
@@ -80,7 +80,7 @@ const OrderSummary: React.FC = () => {
       const {message, success, code, data} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_MESSAGE}/${orderDetail?.order.id}`,{message:updateMessage, item_id:selectedItem?.id});
       if (success) {
         setShowMessageModal(false);
-        setSelectedItem(EMPTY_CART_ITEM);
+        setSelectedItem(null);
       } else {
         alert(message);
       }
@@ -146,7 +146,7 @@ const OrderSummary: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
 
-      {showMessageModal && <MessageModal isSubmitting={isSubmitting} message={selectedItem.message} handleClose={()=>setShowMessageModal(false)} handleMessageSubmit={handleMessageSubmit}/>}
+      {showMessageModal && selectedItem && <MessageModal isSubmitting={isSubmitting} message={selectedItem.message} handleClose={()=>setShowMessageModal(false)} handleMessageSubmit={handleMessageSubmit}/>}
       {/* 容器 */}
       <div className="max-w-5xl mx-auto p-6">
         {/* 标题与提示 */}

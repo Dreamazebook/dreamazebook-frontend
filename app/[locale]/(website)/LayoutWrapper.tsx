@@ -21,6 +21,8 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     fetchCurrentUser();
   }, [fetchCurrentUser]);
 
+  console.log(!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage));
+
   return (
     <>
       {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage) && <Header />}
