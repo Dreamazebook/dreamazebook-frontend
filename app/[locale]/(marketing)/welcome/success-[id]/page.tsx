@@ -1,3 +1,4 @@
+'use client';
 import Button from "@/app/components/Button";
 import {
   DREAMAZEBOOK_LOGO,
@@ -6,7 +7,7 @@ import {
   SUCCESS_STAR,
   SUCCESS_UNDERLINE,
 } from "@/constants/cdn";
-import { FACEBOOK_GROUP_URL, KICKSTARTER_URL } from "@/constants/links";
+import { KICKSTARTER_URL } from "@/constants/links";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
@@ -46,6 +47,66 @@ const KICKSTARTER = (
 );
 
 export default function Thankyou() {
+  function addToCalendar() {
+    try {
+      // Event details
+      const eventTitle = "DreamazeBook Early Bird Deal";
+      const eventDescription = "Don't miss your 40% OFF Early Bird deal for DreamazeBook!";
+      const eventLocation = "Online";
+      const startDate = new Date("2025-09-16T08:00:00-05:00"); // Sept 16, 8AM EST
+      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour duration
+      
+      // Format dates for calendar links
+      const formatDate = (date: Date) => {
+        return date.toISOString().replace(/[-:]/g, '').replace(/\..+/, 'Z');
+      };
+      
+      // Check if mobile device
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        // For iOS devices
+        if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+          const calendarUrl = `webcal://p28-caldav.icloud.com/published/2/${encodeURIComponent(eventTitle)}?start=${formatDate(startDate)}&end=${formatDate(endDate)}&title=${encodeURIComponent(eventTitle)}&notes=${encodeURIComponent(eventDescription)}&location=${encodeURIComponent(eventLocation)}`;
+          window.location.href = calendarUrl;
+        } 
+        // For Android devices
+        else if (/Android/i.test(navigator.userAgent)) {
+          const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&dates=${formatDate(startDate)}/${formatDate(endDate)}&details=${encodeURIComponent(eventDescription)}&location=${encodeURIComponent(eventLocation)}&sf=true&output=xml`;
+          window.open(calendarUrl, '_blank');
+        }
+      } else {
+        // For desktop browsers, provide a downloadable .ics file
+        const icsContent = [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          'BEGIN:VEVENT',
+          `DTSTART:${formatDate(startDate)}`,
+          `DTEND:${formatDate(endDate)}`,
+          `SUMMARY:${eventTitle}`,
+          `DESCRIPTION:${eventDescription}`,
+          `LOCATION:${eventLocation}`,
+          'END:VEVENT',
+          'END:VCALENDAR'
+        ].join('\n');
+        
+        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'DreamazeBook-Event.ics';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      console.error('Error adding to calendar:', error);
+      // Fallback to Google Calendar link
+      window.open(`https://www.google.com/calendar/render?action=TEMPLATE&text=DreamazeBook+Early+Bird+Deal&dates=20230916T080000Z/20230916T090000Z&details=Don't+miss+your+40%25+OFF+Early+Bird+deal+for+DreamazeBook!&location=Online&sf=true&output=xml`, '_blank');
+    }
+  }
   return (
     <main className="bg-white">
       <Link href={"/"} className="block max-w-7xl mx-auto mb-1.5 md:mb-3">
@@ -67,7 +128,7 @@ export default function Thankyou() {
         }
         className="bg-[#F5E3E3] flex justify-center items-center h-(--center-height) relative bg-(image:--success-logo-app) bg-no-repeat md:bg-none"
       >
-        <div className="bg-white p-10 md:px-[88px] md:pt-12 md:pb-16 text-[#222222] max-w-sm md:max-w-4xl mx-auto relative z-10 md:text-center">
+        <div className="bg-white p-10 md:px-[88px] md:pt-12 md:pb-16 text-[#222222] max-w-sm md:max-w-4xl mx-auto relative z-10">
           <h2 className="font-bold text-[20px] md:text-[40px] text-center">
             Congrats!
           </h2>
@@ -78,9 +139,9 @@ export default function Thankyou() {
                   "--success-underline": `url(${SUCCESS_UNDERLINE})`,
                 } as React.CSSProperties
               }
-              className="font-bold text-center text-nowrap text-[20px] md:text-[40px] bg-no-repeat [background-size:130px] bg-[150px_25px] md:bg-[330px_40px] md:[background-size:250px] bg-(image:--success-underline)"
+              className="font-bold text-center text-nowrap text-[20px] md:text-[40px] bg-no-repeat [background-size:130px] bg-[150px_20px] md:bg-[330px_40px] md:[background-size:250px] bg-(image:--success-underline)"
             >
-              You’re Now Part of the Story
+              You’re almost there
             </h2>
             <Image
               src={SUCCESS_STAR}
@@ -90,50 +151,41 @@ export default function Thankyou() {
               className="absolute -top-5 -right-5 md:right-25"
             />
           </div>
-          <div className="text-[18px] md:text-xl font-light text-left mb-6">
-            <p className=" font-semibold mt-6 mb-3">
-              📩 Keep an Eye on Your Inbox.
-            </p>
+          <div className="text-[18px] md:text-xl font-light text-left my-6">
             <p className=" font-light mb-5">
-              Your gift, previews & launch perks are on the way — look for emails from <b className="font-bold">DreamazeBook</b> (they may land in Promotions).
+              Thanks for signing up for DreamazeBook’s Early Bird list 💛, Your <b className="font-bold">40% OFF</b> Early Bird deal goes live on Sept 16, 8AM EST.
             </p>
 
-            <p className="mb-1 font-semibold">🎁  Don’t Miss the Good Stuff — Join the VIP Group!</p>
-            <p className="mb-1 ">Be part of where the real fun happens:</p>
-            <p className="mb-1 "> ✅  Get the most beloved coloring book — <b className="font-bold">FREE!</b></p>
-            <p className="mb-1 ">✅Get first looks at personalized pages</p>
-            <p className="mb-1 ">✅ Unlock <b className="font-bold">VIP-only</b> launch rewards</p>
+            <p className="mb-1 font-semibold">Next steps to make sure you don’t miss it:</p>
+            <p className="mb-1 ">1、Add to Calendar — Get a reminder right on your phone.</p>
+            <div className="flex justify-center">
+              <Button
+                tl="Add to my Calendar"
+                className="w-[426px]"
+                onClick={addToCalendar}
+              />
+            </div>
           </div>  
 
-          <div className="flex justify-center">
-            <Button
-              tl="👉 Join Now — Limited-Time Perks Inside!"
-              className="w-[426px]"
-              target="_blank"
-              url={FACEBOOK_GROUP_URL}
-            />
-          </div>
-
           <p className="text-[18px] md:text-xl font-light mt-6 md:mt-12 mb-3">
-            Follow us on {KICKSTARTER} to get launch alerts
+            2、Get Your {KICKSTARTER} Ready
           </p>
-          <p className="text-xl font-light mb-4">
-            don’t miss our big first-day sale!
-          </p>
+          <ul className="text-xl font-light mb-4 list-disc ml-6">
+            <li>Bookmark our Kickstarter page now 📌</li>
+            <li>If you don’t have a Kickstarter account yet, create one today (it only takes a minute).</li>
+          </ul>
 
           <div className="flex justify-center">
             <Button
-              tl="Notify Me for the Big Deal"
+              tl="👉 Go to Kickstarter Preview"
               className="w-[426px]"
               target="_blank"
               url={KICKSTARTER_URL}
             />
           </div>
 
-          {/* <a href='https://www.facebook.com/groups/632313426083796/' target='_blank' className='flex justify-center items-center gap-3'>
-            <Image alt='Facebook' src={SUCCESS_FACEBOOK} width={18} height={18} />
-            <span className='font-bold text-xl text-[#012CCE]'>Dreamaze Book Facebook Club</span>
-          </a> */}
+          <p className="text-[18px] md:text-xl font-light mt-6 md:mt-12 mb-3 text-center">⚡ Only 300 Early Bird spots on Day 1 — once they’re gone, they’re gone!</p>
+
         </div>
         <Image
           src={SUCCESS_LOGO}

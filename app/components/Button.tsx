@@ -9,15 +9,15 @@ interface ButtonProps {
   icon?: string
   target?: string
   leftIcon?: string
-  handleClick?: () => void
+  onClick?: () => void
 }
 
-export default function Button({tl,id='',isLoading,url,target,icon,leftIcon,handleClick,className='w-full'}:ButtonProps) {
+export default function Button({tl,id='',isLoading,url,target,icon,leftIcon,onClick,className='w-full'}:ButtonProps) {
   const buttonStyle = `${className} cursor-pointer font-bold bg-[#FFC023] text-[#222222] px-4 py-3 rounded capitalize disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center`;
 
   if (url) {
     return (
-      <a className={buttonStyle} id={id} target={target} href={url} onClick={handleClick}>
+      <a className={buttonStyle} id={id} target={target} href={url} onClick={onClick}>
         {leftIcon && <Image src={leftIcon} className="mr-2" alt="" width={12} height={12} />}
         <span>{tl}</span>
         {icon && <Image src={icon} className="ml-2" alt="" width={28} height={28} />}
@@ -28,7 +28,7 @@ export default function Button({tl,id='',isLoading,url,target,icon,leftIcon,hand
     <button 
       id={id}
       disabled={isLoading}
-      onClick={handleClick}
+      onClick={onClick}
       className={buttonStyle}
     >
       {isLoading ? (

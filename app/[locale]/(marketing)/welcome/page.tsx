@@ -1,20 +1,22 @@
 "use client";
 import React from "react";
 import Image from 'next/image'
-import Growth from "../components/Growth";
-import PromotionBanner from "../components/PromotionBanner";
-import ReserveSection from "../components/ReserveSection";
-import TheOnlyBook from "../components/TheOnlyBook";
-import EffortlessGifting from "../components/DeeplyMeaningful";
-import SuperStrongEmotionalConnection from "./components/SuperStrongEmotionalConnection";
-import ExpertlyCrafted from "../components/ExpertlyCrafted";
-import FAQWelcome from "../components/FAQWelcome";
-import {AnimatedSection} from "@/app/components/AnimatedSection";
-import Footer from "../components/Footer";
-import HeroBanner from "../components/HeroBanner";
-import { AboutUs } from "../components/AboutUs";
-import BelovedByEarlyTesters from "../components/BelovedByEarlyTesters";
-import { DREAMAZEBOOK_LOGO, VIP_DISCOUNT, VIP_DISCOUNT_APP } from "@/constants/cdn";
+// import Growth from "../components/Growth";
+// import PromotionBanner from "../components/PromotionBanner";
+// import ReserveSection from "../components/ReserveSection";
+// import TheOnlyBook from "../components/TheOnlyBook";
+// import EffortlessGifting from "../components/DeeplyMeaningful";
+// import SuperStrongEmotionalConnection from "./components/SuperStrongEmotionalConnection";
+// import ExpertlyCrafted from "../components/ExpertlyCrafted";
+// import FAQWelcome from "../components/FAQWelcome";
+// import {AnimatedSection} from "@/app/components/AnimatedSection";
+// import Footer from "../components/Footer";
+// import HeroBanner from "../components/HeroBanner";
+// import { AboutUs } from "../components/AboutUs";
+// import BelovedByEarlyTesters from "../components/BelovedByEarlyTesters";
+import { DREAMAZEBOOK_LOGO } from "@/constants/cdn";
+import CountdownBanner from "../components/CountdownBanner";
+import TestimonialSlider from "./components/TestimonialSlider";
 
 
 export default function LandingPage() {
@@ -22,15 +24,16 @@ export default function LandingPage() {
   return (
     <main className="bg-white relative">
       <Image className="absolute top-0 left-4 md:left-10 z-10" src={DREAMAZEBOOK_LOGO} alt="Logo" width={168} height={56} />
-      <HeroBanner />
+
+      <CountdownBanner />
+
+      <TestimonialSlider />
+      
+      {/* <HeroBanner />
 
       <AnimatedSection>
         <PromotionBanner />
       </AnimatedSection>
-
-      {/* <AnimatedSection>
-        <ReserveSection redirectUrl={'/en/welcome/success-2'} style={{'--early-access-app':`url(${EARLY_ACCESS_APP})`,'--early-access':`url(${EARLY_ACCESS})`} as React.CSSProperties} cssClass={"text-white bg-(image:--early-access-app) md:bg-(image:--early-access)"} title={"For Families Who Believe in Magic Moments"} btnText={'Join Early & Be Part of the Magic'} desc={'Join a community that cherishes creativity and connection.<br/> Leave your email to be the first to bring this magic to life when we launch on Kickstarter.'} />
-      </AnimatedSection> */}
 
       <AnimatedSection>
         <TheOnlyBook />
@@ -79,7 +82,7 @@ export default function LandingPage() {
           btnText="Reserve Early & Save Big" />
       </AnimatedSection>
 
-      <Footer />
+      <Footer /> */}
     </main>
   )
 }

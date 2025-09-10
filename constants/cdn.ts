@@ -108,3 +108,6 @@ export const RESERVE_VIDEO_BG = `${CLOUDFLARE_CDN_URL}reserve/video_bg.png`;
 export const VIP_PERK_SAVE_40 = `${CLOUDFLARE_CDN_URL}reserve/vip-perk-save-40.png`;
 export const VIP_PERK_UNLOCK_GIFT = `${CLOUDFLARE_CDN_URL}reserve/vip-perk-unlock-gift.png`;
 export const VIP_PERK_FIRST_PICK = `${CLOUDFLARE_CDN_URL}vip-perk-first-pick.png`;
+
+export const COUNTDOWN_BANNER = `${CLOUDFLARE_CDN_URL}countdown-banner.png`;
+export const TESTIMONIAL_BANNER = `${CLOUDFLARE_CDN_URL}testimonial.png`;

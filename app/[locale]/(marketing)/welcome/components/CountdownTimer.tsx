@@ -80,7 +80,7 @@ const CountdownTimer: React.FC<CountdownProps> = ({ targetDate, onComplete }) =>
 
   return (
     <div className="flex flex-col items-center justify-center p-4">
-      <div className="p-8 sm:p-12 md:p-16 max-w-4xl w-full">
+      <div className=" max-w-4xl w-full">
         <div className="flex items-center justify-center gap-2 sm:gap-6 md:gap-8">
           <TimeUnit value={timeLeft.days} label="DAYS" />
           <Separator />
