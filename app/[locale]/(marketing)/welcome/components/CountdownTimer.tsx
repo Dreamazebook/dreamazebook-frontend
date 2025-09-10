@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
-interface CountdownTimerProps {
+interface CountdownProps {
   targetDate: Date;
-  title?: string;
-  subtitle?: string;
-  className?: string;
+  onComplete?: () => void;
 }
 
 interface TimeLeft {
@@ -14,87 +12,84 @@ interface TimeLeft {
   seconds: number;
 }
 
-const CountdownTimer: React.FC<CountdownTimerProps> = ({
-  targetDate,
-  title = "Launching on Kickstarter - Sept 16, 8:00 AM EST",
-  subtitle = "Only 300 Early Bird spots - 40% OFF",
-  className = ""
-}) => {
+const CountdownTimer: React.FC<CountdownProps> = ({ targetDate, onComplete }) => {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     days: 0,
     hours: 0,
     minutes: 0,
-    seconds: 0
+    seconds: 0,
   });
 
-  useEffect(() => {
-    const calculateTimeLeft = () => {
-      const difference = targetDate.getTime() - new Date().getTime();
-      
-      if (difference > 0) {
-        setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-          minutes: Math.floor((difference / 1000 / 60) % 60),
-          seconds: Math.floor((difference / 1000) % 60)
-        });
-      } else {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-      }
-    };
+  const calculateTimeLeft = (): TimeLeft => {
+    const difference = +targetDate - +new Date();
+    
+    if (difference > 0) {
+      return {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60),
+      };
+    }
+    
+    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  };
 
-    calculateTimeLeft();
-    const timer = setInterval(calculateTimeLeft, 1000);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const newTimeLeft = calculateTimeLeft();
+      setTimeLeft(newTimeLeft);
+      
+      if (newTimeLeft.days === 0 && newTimeLeft.hours === 0 && 
+          newTimeLeft.minutes === 0 && newTimeLeft.seconds === 0) {
+        onComplete?.();
+      }
+    }, 1000);
+
+    // Set initial time
+    setTimeLeft(calculateTimeLeft());
 
     return () => clearInterval(timer);
-  }, [targetDate]);
+  }, [targetDate, onComplete]);
 
   const formatNumber = (num: number): string => {
     return num.toString().padStart(2, '0');
   };
 
-  const TimeUnit: React.FC<{ label: string; value: number }> = ({ label, value }) => {
-    const digits = formatNumber(value).split('');
-    
-    return (
-      <div className="flex flex-col items-center">
-        <div className="text-gray-300 text-sm font-medium mb-3 tracking-wider uppercase">
-          {label}
-        </div>
-        <div className="flex space-x-1">
-          {digits.map((digit, index) => (
-            <div
-              key={index}
-              className="bg-slate-800 bg-opacity-80 backdrop-blur-sm rounded-lg w-10 h-12 flex items-center justify-center border border-slate-700 shadow-lg"
-            >
-              <span className="text-white text-3xl font-bold font-mono tracking-tight">
-                {digit}
-              </span>
-            </div>
-          ))}
-        </div>
+  const TimeUnit: React.FC<{ value: number; label: string }> = ({ value, label }) => (
+    <div className="flex flex-col items-center group">
+      <div className="relative">
+        <span className="text-6xl lg:text-7xl font-light text-[#222] tabular-nums transition-all duration-300 group-hover:scale-105">
+          {formatNumber(value)}
+        </span>
+        <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
       </div>
-    );
-  };
+      <span className="text-xs sm:text-sm md:text-base font-medium text-[#666] uppercase tracking-wider mt-2">
+        {label}
+      </span>
+    </div>
+  );
+
+  const Separator: React.FC = () => (
+    <div className="flex items-center justify-center h-full pb-8">
+      <span className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-gray-400">
+        :
+      </span>
+    </div>
+  );
 
   return (
-    <div className={`bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-8 rounded-2xl shadow-2xl ${className}`}>
-      {/* Countdown Display */}
-      <div className="flex justify-center gap-2 mb-8">
-        <TimeUnit label="Days" value={timeLeft.days} />
-        <TimeUnit label="Hours" value={timeLeft.hours} />
-        <TimeUnit label="Minutes" value={timeLeft.minutes} />
-        <TimeUnit label="Seconds" value={timeLeft.seconds} />
-      </div>
-      
-      {/* Description Text */}
-      <div className="text-center space-y-2">
-        <p className="text-gray-200 text-lg font-medium">
-          {title}
-        </p>
-        <p className="text-blue-300 text-base font-medium">
-          {subtitle}
-        </p>
+    <div className="flex flex-col items-center justify-center p-4">
+      <div className="p-8 sm:p-12 md:p-16 max-w-4xl w-full">
+        <div className="flex items-center justify-center gap-2 sm:gap-6 md:gap-8">
+          <TimeUnit value={timeLeft.days} label="DAYS" />
+          <Separator />
+          <TimeUnit value={timeLeft.hours} label="HOURS" />
+          <Separator />
+          <TimeUnit value={timeLeft.minutes} label="MIN" />
+          <Separator />
+          <TimeUnit value={timeLeft.seconds} label="SEC" />
+        </div>
       </div>
     </div>
   );

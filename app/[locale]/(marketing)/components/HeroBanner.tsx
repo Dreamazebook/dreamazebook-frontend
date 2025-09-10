@@ -1,7 +1,6 @@
 import EmailForm from "./EmailForm";
 import { APP_HERO_COVER, DESKTOP_HERO_COVER } from "@/constants/cdn";
 import { useState } from "react";
-import CountdownTimer from "../welcome/components/CountdownTimer";
 
 export default function HeroBanner() {
   const [hideForm, setHideForm] = useState(false);
@@ -16,12 +15,6 @@ export default function HeroBanner() {
           Personalized Books with Your Child as the Star
           </h1>
           <p className="p-4 md:p-0 md:mt-4 w-2/3 md:w-auto">Turn your child’s real face, name, and personality into a one-of-a-kind story—no more generic avatars.</p>
-          {/* <CountdownTimer
-            targetDate={new Date('2025-09-16T08:00:00Z')}
-            title="Flash Sale Ends Soon!"
-            subtitle="Limited Time - Get 50% OFF Everything"
-            className=""
-          /> */}
         </div>
 
         <div className='p-4 m-4 md:m-0 max-w-[528px] bg-white/75 text-center absolute bottom-2 left-1 right-1 md:static'>
