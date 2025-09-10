@@ -103,19 +103,22 @@ export default function Thankyou() {
             </p>
             <ul className="text-xl font-light mb-3 list-disc ml-6">
               <li>Bookmark our Kickstarter page now 📌</li>
-              <li>If you don’t have a Kickstarter account yet, create one today (it only takes a minute).</li>
+              <li>Don’t have a Kickstarter account yet? Create one today (it only takes a minute).</li>
             </ul>
 
             <div className="flex justify-center">
               <Button
-                tl="👉 Go to Kickstarter Preview"
+                tl="Set Up My Access"
                 className="w-[426px]"
                 target="_blank"
                 url={KICKSTARTER_URL}
               />
             </div>
 
-            <p className="mb-3 mt-5">2、Add to Calendar — Get a reminder right on your phone.</p>
+            <p className="mb-3 mt-5">2、Add to Calendar</p>
+            <ul className="text-xl font-light mb-3 list-disc ml-6">
+              <li> Add a reminder so you won’t miss the launch.</li>
+            </ul>
             <div className="flex justify-center">
               <Button
                 tl="Add to my Calendar"
