@@ -1,10 +1,11 @@
-import Button from '@/app/components/Button';
 import DreamzeImage from '@/app/components/DreamzeImage';
 import { TESTIMONIAL_BANNER } from '@/constants/cdn';
-import { KICKSTARTER_URL } from '@/constants/links';
-import React from 'react';
+import React, { useState } from 'react';
+import EmailForm from '../../components/EmailForm';
 
 const TestimonialSlider: React.FC = () => {
+
+  const [hideForm, setHideForm] = useState(false);
 
   return (
     <div className="relative w-full max-w-4xl py-18 mx-auto bg-white">
@@ -22,13 +23,12 @@ const TestimonialSlider: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex justify-center">
-        <Button
-          tl="Unlock 40% Off Early"
-          className="w-[426px]"
-          target="_blank"
-          url={KICKSTARTER_URL}
-        />
+      <div className='p-4 max-w-[528px] bg-white/75 text-center absolute bottom-1 left-1 right-1 mx-auto md:static'>
+        {!hideForm && <h3 className="mb-4 font-bold text-[24px]">Only 300 Early Bird spots – <span className="text-[#012DCE]">40% OFF</span></h3>}
+
+        <div className="max-w-lg">
+          <EmailForm btnId="email_submit_header" btnText="Unlock 40% Off Early" redirectUrl={'/en/welcome/success'} handleCallBack={()=>setHideForm(true)} />
+        </div>
       </div>
 
     </div>

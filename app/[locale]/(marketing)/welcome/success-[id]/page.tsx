@@ -47,66 +47,6 @@ const KICKSTARTER = (
 );
 
 export default function Thankyou() {
-  function addToCalendar() {
-    try {
-      // Event details
-      const eventTitle = "DreamazeBook Early Bird Deal";
-      const eventDescription = "Don't miss your 40% OFF Early Bird deal for DreamazeBook!";
-      const eventLocation = "Online";
-      const startDate = new Date("2025-09-16T08:00:00-05:00"); // Sept 16, 8AM EST
-      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour duration
-      
-      // Format dates for calendar links
-      const formatDate = (date: Date) => {
-        return date.toISOString().replace(/[-:]/g, '').replace(/\..+/, 'Z');
-      };
-      
-      // Check if mobile device
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      
-      if (isMobile) {
-        // For iOS devices
-        if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-          const calendarUrl = `webcal://p28-caldav.icloud.com/published/2/${encodeURIComponent(eventTitle)}?start=${formatDate(startDate)}&end=${formatDate(endDate)}&title=${encodeURIComponent(eventTitle)}&notes=${encodeURIComponent(eventDescription)}&location=${encodeURIComponent(eventLocation)}`;
-          window.location.href = calendarUrl;
-        } 
-        // For Android devices
-        else if (/Android/i.test(navigator.userAgent)) {
-          const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&dates=${formatDate(startDate)}/${formatDate(endDate)}&details=${encodeURIComponent(eventDescription)}&location=${encodeURIComponent(eventLocation)}&sf=true&output=xml`;
-          window.open(calendarUrl, '_blank');
-        }
-      } else {
-        // For desktop browsers, provide a downloadable .ics file
-        const icsContent = [
-          'BEGIN:VCALENDAR',
-          'VERSION:2.0',
-          'BEGIN:VEVENT',
-          `DTSTART:${formatDate(startDate)}`,
-          `DTEND:${formatDate(endDate)}`,
-          `SUMMARY:${eventTitle}`,
-          `DESCRIPTION:${eventDescription}`,
-          `LOCATION:${eventLocation}`,
-          'END:VEVENT',
-          'END:VCALENDAR'
-        ].join('\n');
-        
-        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'DreamazeBook-Event.ics';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }
-    } catch (error) {
-      console.error('Error adding to calendar:', error);
-      // Fallback to Google Calendar link
-      window.open(`https://www.google.com/calendar/render?action=TEMPLATE&text=DreamazeBook+Early+Bird+Deal&dates=20230916T080000Z/20230916T090000Z&details=Don't+miss+your+40%25+OFF+Early+Bird+deal+for+DreamazeBook!&location=Online&sf=true&output=xml`, '_blank');
-    }
-  }
   return (
     <main className="bg-white">
       <Link href={"/"} className="block max-w-7xl mx-auto mb-1.5 md:mb-3">
@@ -157,32 +97,34 @@ export default function Thankyou() {
             </p>
 
             <p className="mb-1 font-semibold">Next steps to make sure you don’t miss it:</p>
-            <p className="mb-1 ">1、Add to Calendar — Get a reminder right on your phone.</p>
+
+            <p className="text-[18px] md:text-xl font-light mt-6 md:mt-12 mb-3">
+            1、Get Your {KICKSTARTER} Ready
+            </p>
+            <ul className="text-xl font-light mb-3 list-disc ml-6">
+              <li>Bookmark our Kickstarter page now 📌</li>
+              <li>If you don’t have a Kickstarter account yet, create one today (it only takes a minute).</li>
+            </ul>
+
+            <div className="flex justify-center">
+              <Button
+                tl="👉 Go to Kickstarter Preview"
+                className="w-[426px]"
+                target="_blank"
+                url={KICKSTARTER_URL}
+              />
+            </div>
+
+            <p className="mb-3 mt-5">2、Add to Calendar — Get a reminder right on your phone.</p>
             <div className="flex justify-center">
               <Button
                 tl="Add to my Calendar"
                 className="w-[426px]"
-                onClick={addToCalendar}
+                url="https://www.addevent.com/event/hV26670576"
+                target="_blank"
               />
             </div>
           </div>  
-
-          <p className="text-[18px] md:text-xl font-light mt-6 md:mt-12 mb-3">
-            2、Get Your {KICKSTARTER} Ready
-          </p>
-          <ul className="text-xl font-light mb-4 list-disc ml-6">
-            <li>Bookmark our Kickstarter page now 📌</li>
-            <li>If you don’t have a Kickstarter account yet, create one today (it only takes a minute).</li>
-          </ul>
-
-          <div className="flex justify-center">
-            <Button
-              tl="👉 Go to Kickstarter Preview"
-              className="w-[426px]"
-              target="_blank"
-              url={KICKSTARTER_URL}
-            />
-          </div>
 
           <p className="text-[18px] md:text-xl font-light mt-6 md:mt-12 mb-3 text-center">⚡ Only 300 Early Bird spots on Day 1 — once they’re gone, they’re gone!</p>
 

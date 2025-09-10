@@ -22,7 +22,7 @@ export default function CountdownBanner() {
           />
         </div>
 
-        <div className='p-4 m-4 md:m-0 max-w-[528px] bg-white/75 text-center absolute bottom-1 left-1 right-1 mx-auto md:static'>
+        <div className='p-4 max-w-[528px] bg-white/75 text-center absolute bottom-1 left-1 right-1 mx-auto md:static'>
           {!hideForm && <h3 className="mb-4 font-bold text-[24px]">Only 300 Early Bird spots – <span className="text-[#012DCE]">40% OFF</span></h3>}
 
           <div className="max-w-lg">
