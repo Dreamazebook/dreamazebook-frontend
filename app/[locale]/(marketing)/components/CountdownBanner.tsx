@@ -17,7 +17,7 @@ export default function CountdownBanner() {
           </h1>
           <p className="p-4 md:p-0 md:mt-4 text-center font-light">Ultimate personalized books with your child’s real face & name & uniqueness.</p>
           <CountdownTimer 
-            targetDate={new Date('2025-09-16T08:00:00.000Z')} 
+            targetDate={new Date('2025-09-23T08:00:00.000Z')} 
             onComplete={()=>{}}
           />
         </div>
