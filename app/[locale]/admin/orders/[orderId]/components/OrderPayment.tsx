@@ -3,6 +3,7 @@
 import { FC } from 'react';
 import { OrderDetail } from '../../../../(website)/checkout/components/types';
 import { formatCurrency, formatDate } from '../../utils';
+import DisplayPrice from '@/app/[locale]/(website)/components/component/DisplayPrice';
 
 interface OrderPaymentProps {
   order: OrderDetail;
@@ -56,34 +57,32 @@ const OrderPayment: FC<OrderPaymentProps> = ({ order }) => {
         <div className="space-y-3">
           <div className="flex justify-between py-2">
             <span className="text-sm text-gray-600">商品小计</span>
-            <span className="text-sm text-gray-900">
-              {formatCurrency(order.total_amount - order.shipping_cost - order.tax_amount + order.discount_amount)}
-            </span>
+            <DisplayPrice style='text-sm text-gray-900' value={order.total_amount - order.shipping_cost - order.tax_amount + order.discount_amount} />
           </div>
           
           <div className="flex justify-between py-2">
             <span className="text-sm text-gray-600">配送费用</span>
-            <span className="text-sm text-gray-900">{formatCurrency(order.shipping_cost)}</span>
+            <DisplayPrice style='text-sm text-gray-900' value={order.shipping_cost} />
           </div>
           
           {order.tax_amount > 0 && (
             <div className="flex justify-between py-2">
               <span className="text-sm text-gray-600">税费</span>
-              <span className="text-sm text-gray-900">{formatCurrency(order.tax_amount)}</span>
+              <DisplayPrice style='text-sm text-gray-900' value={order.tax_amount} />
             </div>
           )}
           
           {order.discount_amount > 0 && (
             <div className="flex justify-between py-2 text-green-600">
               <span className="text-sm">折扣金额</span>
-              <span className="text-sm">-{formatCurrency(order.discount_amount)}</span>
+              <DisplayPrice style='text-sm text-green-600' value={order.discount_amount} />
             </div>
           )}
           
           <div className="border-t border-gray-200 pt-3">
             <div className="flex justify-between">
               <span className="text-base font-medium text-gray-900">总金额</span>
-              <span className="text-lg font-semibold text-gray-900">{formatCurrency(order.total_amount)}</span>
+              <DisplayPrice style='text-base font-medium text-gray-900' value={order.total_amount} />
             </div>
           </div>
         </div>

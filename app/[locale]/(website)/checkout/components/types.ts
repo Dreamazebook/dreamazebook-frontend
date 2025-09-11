@@ -92,10 +92,7 @@ export interface CartItem {
   created_at: string;
   updated_at: string;
   processing_progress: number;
-  picbook: {
-    default_cover: string,
-    default_name: string
-  };
+  picbook: Pickbook;
   result_images: ResultImage[]
 }
 
@@ -132,4 +129,25 @@ export interface ShippingOption {
   original_cost?: string;
   original_currency?: string;
   type?: string;
+}
+
+export interface Pickbook {
+  default_name: string;
+  default_cover: string;
+  pricesymbol: string;
+  price: number;
+  currencycode: string;
+  total_pages: number;
+  preview_pages_count: number;
+  rating: number;
+  has_choices: boolean;
+  has_question: boolean;
+  supported_languages: string[];
+  supported_genders: string[];
+  supported_skincolors: string[];
+  character_count: number;
+  tags: string[];
+  status: string;
+  is_saleable: boolean;
+  choices_type: string;
 }

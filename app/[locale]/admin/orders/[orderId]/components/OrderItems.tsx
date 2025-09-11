@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { OrderDetail } from '../../../../(website)/checkout/components/types';
 import { formatCurrency } from '../../utils';
 import ResultImagesModal from './ResultImagesModal';
+import DisplayPrice from '@/app/[locale]/(website)/components/component/DisplayPrice';
 
 interface OrderItemsProps {
   order: OrderDetail;
@@ -118,13 +119,9 @@ const OrderItems: FC<OrderItemsProps> = ({ order }) => {
                   {/* Pricing */}
                   <div className="text-right ml-4">
                     <div className="text-sm text-gray-500 mb-1">单价</div>
-                    <div className="text-sm font-medium text-gray-900 mb-2">
-                      {formatCurrency(item.price)}
-                    </div>
+                    <DisplayPrice value={item.price} style='text-sm font-medium text-gray-900 mb-2' />
                     <div className="text-sm text-gray-500 mb-1">小计</div>
-                    <div className="text-base font-semibold text-gray-900">
-                      {formatCurrency(item.total_price)}
-                    </div>
+                    <DisplayPrice value={item.total_price} style='text-sm font-medium text-gray-900 mb-2' />
                   </div>
                 </div>
               </div>
@@ -139,9 +136,7 @@ const OrderItems: FC<OrderItemsProps> = ({ order }) => {
           <span className="text-base font-medium text-gray-900">
             商品总计 ({order.items?.length || 0} 件)
           </span>
-          <span className="text-lg font-semibold text-gray-900">
-            {formatCurrency(order.total_amount - order.shipping_cost - order.tax_amount + order.discount_amount)}
-          </span>
+          <DisplayPrice value={order.total_amount - order.shipping_cost - order.tax_amount + order.discount_amount} style='text-lg font-semibold text-gray-900' />
         </div>
       </div>
       </div>

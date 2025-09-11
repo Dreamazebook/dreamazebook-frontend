@@ -4,6 +4,7 @@ import { FC } from 'react';
 import { OrderDetail } from '../../../../(website)/checkout/components/types';
 import { formatDate, formatCurrency } from '../../utils';
 import { formatAddress } from '@/types/address';
+import DisplayPrice from '@/app/[locale]/(website)/components/component/DisplayPrice';
 
 interface OrderOverviewProps {
   order: OrderDetail;
@@ -24,7 +25,7 @@ const OrderOverview: FC<OrderOverviewProps> = ({ order }) => {
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">订单总额</dt>
-              <dd className="mt-1 text-2xl font-semibold text-gray-900">{formatCurrency(order.total_amount)}</dd>
+              <DisplayPrice style='mt-1 text-2xl font-semibold text-gray-900' value={order.total_amount} />
             </div>
           </div>
 
@@ -32,18 +33,16 @@ const OrderOverview: FC<OrderOverviewProps> = ({ order }) => {
             <div className="grid grid-cols-1 gap-3">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">商品小计</span>
-                <span className="text-sm text-gray-900">
-                  {formatCurrency(order.total_amount - order.shipping_cost - order.tax_amount + order.discount_amount)}
-                </span>
+                <DisplayPrice style='text-sm text-gray-900' value={order.total_amount - order.shipping_cost - order.tax_amount + order.discount_amount} />
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">配送费用</span>
-                <span className="text-sm text-gray-900">{formatCurrency(order.shipping_cost)}</span>
+                <DisplayPrice style='text-sm text-gray-900' value={order.shipping_cost} />
               </div>
               {order.discount_amount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span className="text-sm">折扣</span>
-                  <span className="text-sm">-{formatCurrency(order.discount_amount)}</span>
+                  <DisplayPrice style='text-sm text-green-600' value={order.discount_amount} />
                 </div>
               )}
             </div>

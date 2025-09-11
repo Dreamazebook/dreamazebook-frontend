@@ -4,6 +4,7 @@ import { FC } from 'react';
 import { OrderDetail } from '../../../../(website)/checkout/components/types';
 import { formatAddress } from '@/types/address';
 import { formatCurrency } from '../../utils';
+import DisplayPrice from '@/app/[locale]/(website)/components/component/DisplayPrice';
 
 interface OrderShippingProps {
   order: OrderDetail;
@@ -90,7 +91,7 @@ const OrderShipping: FC<OrderShippingProps> = ({ order }) => {
           
           <div className="p-4 bg-gray-50 rounded-lg">
             <dt className="text-sm font-medium text-gray-500 mb-1">配送费用</dt>
-            <dd className="text-sm text-gray-900">{formatCurrency(order.shipping_cost)}</dd>
+            <DisplayPrice value={order.shipping_cost} style='text-sm text-gray-900' />
           </div>
           
           <div className="p-4 bg-gray-50 rounded-lg">
