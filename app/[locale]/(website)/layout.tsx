@@ -25,7 +25,7 @@ const geistMono = Geist_Mono({
 const roboto = Roboto({
   variable: "--font-roboto",
   subsets: ["latin"],
-  weight: ["400"],
+  weight: ["400", "500", "700"],
   display: 'swap',
 });
 

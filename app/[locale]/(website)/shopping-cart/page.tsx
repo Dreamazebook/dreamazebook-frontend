@@ -14,6 +14,7 @@ import CartHeader from './components/CartHeader';
 import CouponInput from './components/CouponInput';
 import CartItemList from './components/CartItemList';
 import Loading from '../components/Loading';
+import ConfirmModal from '../components/component/ConfirmModal';
 
 export default function ShoppingCartPage() {
   const t = useTranslations('ShoppingCart');
@@ -123,6 +124,9 @@ export default function ShoppingCartPage() {
   };
 
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmContent, setConfirmContent] = useState<React.ReactNode>(null);
+  const [confirmNextUrl, setConfirmNextUrl] = useState<string | null>(null);
 
   // 结算时，仅包含已选中的商品
   const handleCheckout = async () => {
@@ -238,6 +242,34 @@ export default function ShoppingCartPage() {
                 onQuantityChange={handleQuantityChange}
                 onRemoveItem={handleRemoveItem}
                 onToggleSelect={handleToggleSelectItem}
+                onClickEditBook={async (ci) => {
+                  try {
+                    const { data } = await api.get<ApiResponse<CartItems>>(API_CART_LIST);
+                    const list = (data as any)?.cart_items || [];
+                    const current = list.find((it: any) => it.id === ci.id);
+                    const remaining = current?.remaining_previews;
+                    const url = `/personalized-products/${ci.preview?.picbook_id}/${ci.preview_id}/edit`;
+
+                    if (remaining && typeof remaining.remaining_previews === 'number') {
+                      const desc = (
+                        <div>
+                          <p>A product can only be edited five times a day.</p>
+                          <p>
+                            You have edited it {remaining.used_previews_today} times and you have {remaining.remaining_previews} more chances.
+                          </p>
+                        </div>
+                      );
+                      setConfirmContent(desc);
+                      setConfirmOpen(true);
+                      setConfirmNextUrl(url);
+                    } else {
+                      router.push(url);
+                    }
+                  } catch (e) {
+                    const url = `/personalized-products/${ci.preview?.picbook_id}/${ci.preview_id}/edit`;
+                    router.push(url);
+                  }
+                }}
               />
             )}
           </div>
@@ -327,6 +359,18 @@ export default function ShoppingCartPage() {
           </div>
         </div>
       </div>
+      <ConfirmModal
+        open={confirmOpen}
+        title="Important tips"
+        description={confirmContent}
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={() => {
+          setConfirmOpen(false);
+          if (confirmNextUrl) {
+            router.push(confirmNextUrl);
+          }
+        }}
+      />
     </div>
   );
 }

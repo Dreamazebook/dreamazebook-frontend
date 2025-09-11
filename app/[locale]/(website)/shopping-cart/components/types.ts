@@ -33,6 +33,11 @@ export interface CartItem {
   status: string;
   created_at: string;
   updated_at: string;
+  remaining_previews?: {
+    max_previews_per_day: number;
+    used_previews_today: number;
+    remaining_previews: number;
+  };
 }
 
 export interface CartItems {

@@ -146,16 +146,21 @@ export default function CartItemCard({
               <div className="flex items-center justify-between gap-4">
 
                 {showEditBook &&
-                <Link
-                  href={`/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit`}
-                  className="text-sm text-blue-600 hover:underline mt-2"
-                  onClick={() => {
-                    const url = `/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit`;
-                    console.log('CartItemList - Navigating to:', url);
+                <a
+                  className="text-sm text-blue-600 hover:underline mt-2 cursor-pointer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (handleClickEditMessage) {
+                      handleClickEditMessage(item);
+                    } else {
+                      const url = `/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit`;
+                      console.log('CartItemList - Navigating to:', url);
+                      router.push(url);
+                    }
                   }}
                 >
                   Edit Book
-                </Link>}
+                </a>}
                 
                 {onQuantityChange && 
                 <div className="flex items-center border rounded-md">
