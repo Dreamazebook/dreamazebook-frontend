@@ -1,24 +1,40 @@
 'use client';
 
 import { FC } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { OrderDetail } from '../../../../(website)/checkout/components/types';
 import { formatCurrency } from '../../utils';
+import ResultImagesModal from './ResultImagesModal';
 
 interface OrderItemsProps {
   order: OrderDetail;
 }
 
 const OrderItems: FC<OrderItemsProps> = ({ order }) => {
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleViewImages = (item: any) => {
+    setSelectedItem(item);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedItem(null);
+  };
+
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <>
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-200">
         <h3 className="text-lg font-medium text-gray-900">订单商品</h3>
       </div>
       
       <div className="divide-y divide-gray-200">
         {order.items?.map((item) => (
-          <div key={item.id} className="p-6">
+          <div key={item.id} className="p-6 cursor-pointer hover:bg-gray-50" onClick={() => handleViewImages(item)}>
             <div className="flex items-start space-x-4">
               {/* Product Image */}
               <div className="flex-shrink-0">
@@ -89,6 +105,14 @@ const OrderItems: FC<OrderItemsProps> = ({ order }) => {
                         <p className="text-sm text-gray-600 mt-1">{item.message}</p>
                       </div>
                     )}
+
+                    {item.result_images && item.result_images.length > 0 && (
+                      <div className="mt-3">
+                        <span className="text-sm font-medium text-blue-600">
+                          点击查看 {item.result_images.length} 张结果图片
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Pricing */}
@@ -120,7 +144,16 @@ const OrderItems: FC<OrderItemsProps> = ({ order }) => {
           </span>
         </div>
       </div>
-    </div>
+      </div>
+
+      {/* Result Images Modal */}
+      <ResultImagesModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        images={selectedItem?.result_images || []}
+        itemName={selectedItem?.picbook_name || ''}
+      />
+    </>
   );
 };
 
