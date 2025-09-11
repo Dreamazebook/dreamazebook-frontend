@@ -93,7 +93,7 @@ export default function Thankyou() {
           </div>
           <div className="text-[18px] md:text-xl font-light text-left my-6">
             <p className=" font-light mb-5">
-              Thanks for signing up for DreamazeBook’s Early Bird list 💛, Your <b className="font-bold">40% OFF</b> Early Bird deal goes live on Sept 16, 8AM EST.
+              Thanks for signing up for DreamazeBook’s Early Bird list 💛, Your <b className="font-bold">40% OFF</b> Early Bird deal goes live on Sept 23, 8AM EST.
             </p>
 
             <p className="mb-1 font-semibold">Next steps to make sure you don’t miss it:</p>
