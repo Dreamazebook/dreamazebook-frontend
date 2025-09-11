@@ -1,7 +1,6 @@
 'use client';
 
-import { FC, useEffect, useState } from 'react';
-import useUserStore from "@/stores/userStore";
+import { FC, useState } from 'react';
 import OrderBasicInfo from "./OrderDetails/OrderBasicInfo";
 import OrderItemsList from "./OrderDetails/OrderItemsList";
 import OrderAddressInfo from "./OrderDetails/OrderAddressInfo";
@@ -9,9 +8,6 @@ import OrderShippingInfo from "./OrderDetails/OrderShippingInfo";
 import OrderPaymentInfo from "./OrderDetails/OrderPaymentInfo";
 import OrderTimeline from "./OrderDetails/OrderTimeline";
 import { OrderDetail } from '@/app/[locale]/(website)/checkout/components/types';
-import api from '@/utils/api';
-import { API_ADMIN_ORDERS } from '@/constants/api';
-import { ApiResponse } from '@/types/api';
 
 interface OrderDetailsModalProps {
   orderDetail: OrderDetail;
@@ -30,42 +26,7 @@ const OrderDetailsModal: FC<OrderDetailsModalProps> = ({
   statusLabels,
   paymentStatusLabels,
 }) => {
-  const { fetchOrderDetail } = useUserStore();
   const [order, setOrder] = useState<OrderDetail>(orderDetail);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const loadOrderDetail = async () => {
-      try {
-        const {data,code,success} = await api.get<ApiResponse>(`${API_ADMIN_ORDERS}/${orderDetail.id}`);
-        if (success && data) {
-          setOrder(data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch order details:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadOrderDetail();
-  }, [orderDetail, fetchOrderDetail]);
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 overflow-y-auto z-50 bg-black/60">
-        <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-          <div className="inline-block align-middle bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full max-h-[90vh] overflow-y-auto">
-            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <div className="flex justify-center items-center h-64">
-                <p className="text-gray-600">加载中...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (!order) {
     return (
