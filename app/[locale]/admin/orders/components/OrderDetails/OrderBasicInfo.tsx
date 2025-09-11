@@ -29,10 +29,6 @@ export default function OrderBasicInfo({
           <dt className="text-sm font-medium text-gray-500">订单日期</dt>
           <dd className="mt-1 text-sm text-gray-900">{formatDate(order.created_at)}</dd>
         </div>
-        <div className="sm:col-span-1">
-          <dt className="text-sm font-medium text-gray-500">用户ID</dt>
-          <dd className="mt-1 text-sm text-gray-900">{order.user_id}</dd>
-        </div>
         {order.user && (
           <>
             <div className="sm:col-span-1">
@@ -45,10 +41,10 @@ export default function OrderBasicInfo({
             </div>
           </>
         )}
-        <div className="sm:col-span-1">
+        {/* <div className="sm:col-span-1">
           <dt className="text-sm font-medium text-gray-500">支付方式</dt>
           <dd className="mt-1 text-sm text-gray-900">{order.payment_method || '未设置'}</dd>
-        </div>
+        </div> */}
         <div className="sm:col-span-1">
           <dt className="text-sm font-medium text-gray-500">订单状态</dt>
           <dd className="mt-1">

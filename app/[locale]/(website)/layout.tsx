@@ -64,7 +64,7 @@ export default async function LocaleLayout({
       >
         <NextIntlClientProvider locale={locale as Locale} messages={messages}>
           <LdrsRegistry />
-          <LoginModal />
+          {/* <LoginModal /> */}
           <LayoutWrapper>
             {children}
           </LayoutWrapper>
