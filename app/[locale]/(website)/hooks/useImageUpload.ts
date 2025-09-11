@@ -6,6 +6,30 @@ interface UploadResponse {
   path: string;
 }
 
+const toAbsoluteUrl = (raw: string): string => {
+  if (!raw) return raw as unknown as string;
+  let path = raw;
+  const trimmed = raw.trim();
+  // 兼容 JSON 数组字符串
+  if (trimmed.startsWith('[')) {
+    try {
+      const arr = JSON.parse(trimmed);
+      if (Array.isArray(arr) && arr.length > 0 && typeof arr[0] === 'string') {
+        path = arr[0];
+      }
+    } catch {}
+  }
+  if (path.startsWith('http')) return path;
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  if (cleanPath.startsWith('user_uploads/')) {
+    return `https://s3-pro-dre002.s3.us-east-1.amazonaws.com/${cleanPath}`;
+  }
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.dreamazebook.com/api';
+  let origin = 'https://api.dreamazebook.com';
+  try { origin = new URL(apiUrl).origin; } catch {}
+  return `${origin}/${cleanPath}`;
+}
+
 const useImageUpload = () => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -170,6 +194,12 @@ const useImageUpload = () => {
     handleDrop,
     handleFileUpload,
     handleDeleteImage,
+    initializeWithUrl: (url: string | null | undefined) => {
+      if (!url) return;
+      const absolute = toAbsoluteUrl(url);
+      setImageUrl(absolute);
+      setError(null);
+    }
   };
 };
 

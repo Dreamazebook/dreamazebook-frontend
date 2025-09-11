@@ -2,14 +2,7 @@ import React, { useRef, useState } from 'react';
 import Image from 'next/image';
 import { FaRegTrashAlt } from 'react-icons/fa';
 import { IoCloudUploadOutline } from "react-icons/io5";
-
-interface UploadedImage {
-  id: string;
-  file: File;
-  previewUrl: string;
-  uploadedFilePath?: string;
-  isUploading?: boolean;
-}
+import type { UploadedImage } from '../../hooks/useMultiImageUpload';
 
 interface MultiImageUploadProps {
   images: UploadedImage[];

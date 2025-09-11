@@ -84,6 +84,7 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
     handleDrop,
     handleDeleteImage,
     handleUpload,
+    initializeWithUrl,
   } = useImageUpload();
 
   useEffect(() => {
@@ -95,6 +96,18 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
       };
     }
   }, [imageUrl]);
+
+  // 初始化：如果传入了 initialData.photo.path，则显示已有图片
+  useEffect(() => {
+    const url = initialData?.photo?.path;
+    if (url) {
+      initializeWithUrl(url);
+      handleBasicInfoChange('photo', { path: url });
+      handleErrorChange('photo', '');
+    }
+  // 仅在初次挂载或 initialData 变化时运行
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData?.photo?.path]);
 
   // Update basic info fields and mark as touched
   const handleBasicInfoChange = (field: keyof BasicInfoData, value: string | { file?: File; path: string } | null) => {

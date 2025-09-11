@@ -72,6 +72,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     handleDragOver,
     handleDrop,
     getUploadedPaths,
+    initializeWithUrls,
   } = useMultiImageUpload(3);
 
   useEffect(() => {
@@ -83,6 +84,18 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       };
     }
   }, [images]);
+
+  // 初始化：如果传入了 initialData.photo.path，则作为已有图片显示
+  useEffect(() => {
+    const url = initialData?.photo?.path;
+    if (url) {
+      initializeWithUrls([url]);
+      handleBasicInfoChange('photo', { path: url });
+      handleErrorChange('photo', '');
+    }
+  // 仅在初次挂载或 initialData 变化时运行
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData?.photo?.path]);
 
   // 当某张图片上传成功后，自动把第一张已上传图片设置为主图，确保可提交
   useEffect(() => {
@@ -225,7 +238,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
             {/* Photo Upload Section - 替换为多图片上传组件 */}
             <div>
               <MultiImageUpload
-                images={images}
+                images={images as any}
                 isUploading={isUploading}
                 uploadProgress={uploadProgress}
                 error={uploadError}

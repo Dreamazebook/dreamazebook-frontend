@@ -2,8 +2,19 @@ import { useState, useCallback } from 'react';
 import { uploadApi } from '@/utils/api.js';
 import type { AxiosProgressEvent, AxiosResponse } from 'axios';
 
-const toAbsoluteUrl = (path: string): string => {
-  if (!path) return path;
+const toAbsoluteUrl = (raw: string): string => {
+  if (!raw) return raw as unknown as string;
+  let path = raw;
+  const trimmed = raw.trim();
+  // 兼容 JSON 数组字符串，例如: "[\"https://...\"]" 或 "[\"user_uploads/...\"]"
+  if (trimmed.startsWith('[')) {
+    try {
+      const arr = JSON.parse(trimmed);
+      if (Array.isArray(arr) && arr.length > 0 && typeof arr[0] === 'string') {
+        path = arr[0];
+      }
+    } catch {}
+  }
   if (path.startsWith('http')) return path;
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   if (cleanPath.startsWith('user_uploads/')) {
@@ -17,7 +28,7 @@ const toAbsoluteUrl = (path: string): string => {
 
 interface UploadedImage {
   id: string;
-  file: File;
+  file?: File;
   previewUrl: string;
   uploadedFilePath?: string;
   isUploading?: boolean;
@@ -185,8 +196,10 @@ const useMultiImageUpload = (maxImages: number = 3) => {
     setImages(prev => {
       const imageToDelete = prev.find(img => img.id === id);
       if (imageToDelete) {
-        // 清理预览URL
-        URL.revokeObjectURL(imageToDelete.previewUrl);
+        // 清理预览URL（仅对 blob: 链接执行）
+        if (imageToDelete.previewUrl && imageToDelete.previewUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(imageToDelete.previewUrl);
+        }
       }
       return prev.filter(img => img.id !== id);
     });
@@ -220,7 +233,9 @@ const useMultiImageUpload = (maxImages: number = 3) => {
 
   const clearAllImages = () => {
     images.forEach(image => {
-      URL.revokeObjectURL(image.previewUrl);
+      if (image.previewUrl && image.previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(image.previewUrl);
+      }
     });
     setImages([]);
     setError(null);
@@ -249,6 +264,21 @@ const useMultiImageUpload = (maxImages: number = 3) => {
     handleDrop,
     clearAllImages,
     getUploadedPaths,
+    // 使用已有 URL 初始化图片展示
+    initializeWithUrls: (urls: string[]) => {
+      const timestamp = Date.now();
+      const initialImages: UploadedImage[] = urls.filter(Boolean).slice(0, maxImages).map((u, i) => {
+        const absolute = toAbsoluteUrl(u);
+        return {
+          id: `${timestamp}-init-${i}`,
+          previewUrl: absolute,
+          uploadedFilePath: absolute,
+          isUploading: false,
+        } as UploadedImage;
+      });
+      setImages(initialImages);
+      setError(null);
+    },
   };
 };
 

@@ -58,11 +58,19 @@ export default function EditPersonalizedProductPage() {
         const item = data.cart_items.find(ci => ci.preview_id === previewId);
         const p = item?.preview;
         if (!p) return;
+        // 兼容 face_image 为 JSON 数组字符串或单值
+        let face = p.face_image as unknown as string | null;
+        try {
+          if (face && typeof face === 'string' && face.trim().startsWith('[')) {
+            const arr = JSON.parse(face);
+            if (Array.isArray(arr) && arr.length > 0) face = arr[0];
+          }
+        } catch {}
         setInitialData({
           fullName: p.recipient_name || '',
           gender: p.gender === '1' ? 'boy' : p.gender === '2' ? 'girl' : '',
           skinColor: p.skin_color?.length ? skinColors[(p.skin_color[0] - 1) || 0] : '',
-          photo: p.face_image ? { path: p.face_image } : null,
+          photo: face ? { path: face } : null,
         });
       } catch {}
     })();
