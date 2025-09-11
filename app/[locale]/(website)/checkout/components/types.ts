@@ -63,6 +63,19 @@ export const EMPTY_CART_ITEM = {
   updated_at: '',
 }
 
+export interface ResultImage {
+  page_id: number;
+  page_number: number;
+  result: {
+    low_res_url: string;
+    high_res_url: string;
+    standard_url: string;
+  };
+  result_image_url: string;
+  reused: boolean;
+  variant_id: number;
+}
+
 export interface CartItem {
   id: number;
   name: string;
@@ -79,6 +92,11 @@ export interface CartItem {
   created_at: string;
   updated_at: string;
   processing_progress: number;
+  picbook: {
+    default_cover: string,
+    default_name: string
+  };
+  result_images: ResultImage[]
 }
 
 export interface ShippingErrors {

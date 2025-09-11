@@ -3,6 +3,7 @@
 import { FC } from 'react';
 import { OrderDetail } from '../../../(website)/checkout/components/types';
 import { formatDate } from '../utils';
+import { Link } from '@/i18n/routing';
 
 interface OrdersTableProps {
   orders: OrderDetail[];
@@ -123,8 +124,11 @@ const OrdersTable: FC<OrdersTableProps> = ({
                     onClick={() => onViewDetails(order)}
                     className="text-blue-600 hover:text-blue-900 transition-colors"
                   >
-                    详情
+                    预览
                   </button>
+                  <Link href={`/admin/orders/${order.id}`} className="ml-2 text-blue-600 hover:text-blue-900 transition-colors">
+                    详情
+                  </Link>
                 </td>
               </tr>
             ))}
