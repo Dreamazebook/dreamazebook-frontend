@@ -69,9 +69,6 @@ export default function Thankyou() {
         className="bg-[#F5E3E3] flex justify-center items-center h-(--center-height) relative bg-(image:--success-logo-app) bg-no-repeat md:bg-none"
       >
         <div className="bg-white p-10 md:px-[88px] md:pt-12 md:pb-16 text-[#222222] max-w-sm md:max-w-4xl mx-auto relative z-10">
-          <h2 className="font-bold text-[20px] md:text-[40px] text-center">
-            Congrats!
-          </h2>
           <div className="relative">
             <h2
               style={
@@ -81,22 +78,22 @@ export default function Thankyou() {
               }
               className="font-bold text-center text-nowrap text-[20px] md:text-[40px] bg-no-repeat [background-size:130px] bg-[150px_20px] md:bg-[330px_40px] md:[background-size:250px] bg-(image:--success-underline)"
             >
-              You’re almost there
+              Congrats! You’re almost there
             </h2>
             <Image
               src={SUCCESS_STAR}
               alt="Star"
-              width={54}
-              height={51}
-              className="absolute -top-5 -right-5 md:right-25"
+              width={34}
+              height={31}
+              className="absolute -top-5 -right-2 md:right-25"
             />
           </div>
           <div className="text-[18px] md:text-xl font-light text-left my-6">
             <p className=" font-light mb-5">
-              Thanks for signing up for DreamazeBook’s Early Bird list 💛, Your <b className="font-bold">40% OFF</b> Early Bird deal goes live on Sept 23, 8AM EST.
+              Thanks for signing up for DreamazeBook’s Early Bird list 💛, Your <b className="font-bold">40% OFF</b> Early Bird deal goes live on <b className="font-bold">Sept 23, 8AM EST</b>.
             </p>
 
-            <p className="mb-1 font-semibold">Next steps to make sure you don’t miss it:</p>
+            <p className="mb-1 font-light">Next steps to make sure you don’t miss it:</p>
 
             <p className="text-[18px] md:text-xl font-light mt-6 md:mt-12 mb-3">
             1、Get Your {KICKSTARTER} Ready
