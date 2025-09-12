@@ -63,6 +63,19 @@ export const EMPTY_CART_ITEM = {
   updated_at: '',
 }
 
+export interface ResultImage {
+  page_id: number;
+  page_number: number;
+  result: {
+    low_res_url: string;
+    high_res_url: string;
+    standard_url: string;
+  };
+  result_image_url: string;
+  reused: boolean;
+  variant_id: number;
+}
+
 export interface CartItem {
   id: number;
   name: string;
@@ -79,6 +92,8 @@ export interface CartItem {
   created_at: string;
   updated_at: string;
   processing_progress: number;
+  picbook: Pickbook;
+  result_images: ResultImage[]
 }
 
 export interface ShippingErrors {
@@ -114,4 +129,25 @@ export interface ShippingOption {
   original_cost?: string;
   original_currency?: string;
   type?: string;
+}
+
+export interface Pickbook {
+  default_name: string;
+  default_cover: string;
+  pricesymbol: string;
+  price: number;
+  currencycode: string;
+  total_pages: number;
+  preview_pages_count: number;
+  rating: number;
+  has_choices: boolean;
+  has_question: boolean;
+  supported_languages: string[];
+  supported_genders: string[];
+  supported_skincolors: string[];
+  character_count: number;
+  tags: string[];
+  status: string;
+  is_saleable: boolean;
+  choices_type: string;
 }
