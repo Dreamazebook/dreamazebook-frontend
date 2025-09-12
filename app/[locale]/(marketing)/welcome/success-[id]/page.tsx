@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import Button from "@/app/components/Button";
 import {
   DREAMAZEBOOK_LOGO,
@@ -63,7 +63,7 @@ export default function Thankyou() {
         style={
           {
             "--success-logo-app": `url(${SUCCESS_LOGO_APP})`,
-            '--center-height': "calc(100vh - 56px)"
+            "--center-height": "calc(100vh - 56px)",
           } as React.CSSProperties
         }
         className="bg-[#F5E3E3] flex justify-center items-center h-(--center-height) relative bg-(image:--success-logo-app) bg-no-repeat md:bg-none"
@@ -90,44 +90,69 @@ export default function Thankyou() {
           </div>
           <div className="text-[18px] md:text-xl font-light text-left my-6">
             <p className=" font-light mb-5">
-              Thanks for signing up for DreamazeBook’s Early Bird list 💛, Your <b className="font-bold">40% OFF</b> Early Bird deal goes live on <b className="font-bold">Sept 23, 8AM EST</b>.
+              Thanks for signing up for DreamazeBook’s Early Bird list 💛, Your{" "}
+              <b className="font-bold">40% OFF</b> Early Bird deal goes live on{" "}
+              <b className="font-bold">Sept 23, 8AM EST</b>.
             </p>
 
-            <p className="mb-1 font-light">Next steps to make sure you don’t miss it:</p>
-
-            <p className="text-[18px] md:text-xl font-light mt-6 md:mt-12 mb-3">
-            1、Get Your {KICKSTARTER} Ready
+            <p className="mb-1 font-light">
+              Next steps to make sure you don’t miss it:
             </p>
-            <ul className="text-xl font-light mb-3 list-disc ml-6">
-              <li>Bookmark our Kickstarter page now 📌</li>
-              <li>Don’t have a Kickstarter account yet? Create one today (it only takes a minute).</li>
-            </ul>
 
-            <div className="flex justify-center">
-              <Button
-                tl="Set Up My Access"
-                className="w-[426px]"
-                target="_blank"
-                url={KICKSTARTER_URL}
-              />
+            <div className="bg-[#f8f8f8] p-3 mt-6 md:mt-12">
+              <p className="text-[18px] md:text-xl font-bold mb-3 flex items-center gap-2">
+                <span className="bg-[#4099FF] px-2 rounded text-white">1</span>
+                <span>Get Your {KICKSTARTER} Ready</span>
+              </p>
+              <ul className="text-xl font-light mb-3 list-disc ml-6">
+                <li>Bookmark our Kickstarter page now 📌</li>
+                <li>
+                  Don’t have a Kickstarter account yet? Create one today (it
+                  only takes a minute).
+                </li>
+              </ul>
+
+              <div className="flex justify-center">
+                <Button
+                  tl="👉 Set Up My Access"
+                  className="w-full"
+                  target="_blank"
+                  url={KICKSTARTER_URL}
+                />
+              </div>
+
+              <p className="text-[18px] md:text-xl font-bold mt-6 md:mt-12 mb-3 flex items-center gap-2">
+                <span className="bg-[#4099FF] px-2 rounded text-white">2</span>
+                <span>Add to Calendar</span>
+              </p>
+              <ul className="text-xl font-light mb-3 list-disc ml-6">
+                <li>Get a reminder right on your phone.</li>
+              </ul>
+              <div className="flex justify-center">
+                <Button
+                  tl="Add to Calendar"
+                  className="w-full"
+                  url="https://www.addevent.com/event/hV26670576"
+                  target="_blank"
+                />
+              </div>
             </div>
+          </div>
 
-            <p className="mb-3 mt-5">2、Add to Calendar</p>
-            <ul className="text-xl font-light mb-3 list-disc ml-6">
-              <li> Add a reminder so you won’t miss the launch.</li>
-            </ul>
-            <div className="flex justify-center">
-              <Button
-                tl="Add to my Calendar"
-                className="w-[426px]"
-                url="https://www.addevent.com/event/hV26670576"
-                target="_blank"
-              />
-            </div>
-          </div>  
+          <p className="text-[18px] md:text-xl font-light mt-6 md:mt-12 mb-3 text-center">
+            ⚡ Only 300 Early Bird spots on Day 1 — once they’re gone, they’re
+            gone!
+          </p>
 
-          <p className="text-[18px] md:text-xl font-light mt-6 md:mt-12 mb-3 text-center">⚡ Only 300 Early Bird spots on Day 1 — once they’re gone, they’re gone!</p>
-
+          <div className="text-center">
+            <Image
+              src={"/landing-page/bonus.png"}
+              alt="Bonus"
+              width={88}
+              height={88}
+              className=""
+            />
+          </div>
         </div>
         <Image
           src={SUCCESS_LOGO}
