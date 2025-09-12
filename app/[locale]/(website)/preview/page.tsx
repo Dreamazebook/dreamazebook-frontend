@@ -14,10 +14,10 @@ import useUserStore from '@/stores/userStore';
 import toast from 'react-hot-toast';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
 import { BaseBook } from '@/types/book';
-import { API_CART_CREATE } from '@/constants/api';
+import { API_CART_CREATE, API_CART_LIST } from '@/constants/api';
 
 // 自定义图片组件，支持Next.js Image和原生img的回退
-const OptimizedImage = ({ src, alt, width, height, className, style, onError, onLoad, onLoadingComplete, ...props }: {
+const OptimizedImage = ({ src, alt, width, height, className, style, onError, onLoad, onLoadingComplete, fallbackSrc, ...props }: {
   src: string;
   alt: string;
   width: number;
@@ -27,19 +27,42 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
   onError?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
   onLoad?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
   onLoadingComplete?: (img: HTMLImageElement) => void;
+  fallbackSrc?: string;
   [key: string]: any;
 }) => {
   const [useNativeImg, setUseNativeImg] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState(src);
+  const [hasTriedFallback, setHasTriedFallback] = useState(false);
+
+  useEffect(() => {
+    setCurrentSrc(src);
+    setUseNativeImg(false);
+    setImgError(false);
+    setHasTriedFallback(false);
+  }, [src]);
 
   const handleNextImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    console.warn('Next.js Image failed, falling back to native img:', src);
+    console.warn('Next.js Image failed, switching to native img:', currentSrc);
+    if (fallbackSrc && !hasTriedFallback) {
+      console.warn('Trying fallback image:', fallbackSrc);
+      setCurrentSrc(fallbackSrc);
+      setHasTriedFallback(true);
+      setUseNativeImg(true);
+      return;
+    }
+    // 不立即判定失败，切换到原生 img 再尝试一次
     setUseNativeImg(true);
-    if (onError) onError(e);
   };
 
   const handleNativeImgError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    console.error('Native img also failed:', src);
+    if (fallbackSrc && !hasTriedFallback) {
+      console.warn('Native img failed, trying fallback:', fallbackSrc);
+      setCurrentSrc(fallbackSrc);
+      setHasTriedFallback(true);
+      return;
+    }
+    console.error('Image failed to load finally:', currentSrc);
     setImgError(true);
     if (onError) onError(e);
   };
@@ -68,7 +91,7 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
 
     return (
       <img
-        src={src}
+        src={currentSrc}
         alt={alt}
         width={width}
         height={height}
@@ -83,13 +106,13 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
 
   return (
     <Image
-      src={src}
+      src={currentSrc}
       alt={alt}
       width={width}
       height={height}
       className={className}
       style={style}
-      unoptimized={src.includes('s3-pro-dre001')}
+      unoptimized={src.includes('s3-pro-dre001') || src.includes('.r2.dev')}
       onError={handleNextImageError}
       onLoad={onLoad}
       onLoadingComplete={onLoadingComplete}
@@ -449,6 +472,161 @@ export default function PreviewPageWithTopNav() {
     setRecipient,
     setEditField,
   } = useStore();
+
+  // 页面加载即尝试从 localStorage 预填 recipient，避免等待接口返回
+  useEffect(() => {
+    try {
+      const userData = localStorage.getItem('previewUserData');
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        const name = parsed?.characters?.[0]?.full_name;
+        if (name && typeof name === 'string') {
+          setRecipient(name);
+        }
+      }
+    } catch {}
+  }, [setRecipient]);
+
+  // 从购物车列表预填充 recipient 和 message（若存在）
+  useEffect(() => {
+    const previewIdParam = searchParams.get('previewid');
+    // 仅编辑流程（带 previewid）下启用
+    if (!previewIdParam) return;
+    (async () => {
+      try {
+        const res = await api.get(API_CART_LIST) as any;
+        const items = res?.data?.cart_items || res?.cart_items || [];
+        if (!Array.isArray(items) || items.length === 0) return;
+        // 优先用 previewid 匹配
+        let match = null as any;
+        if (previewIdParam) {
+          match = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
+        }
+        if (!match) return;
+        const rname = match?.preview?.recipient_name;
+        const msg = match?.preview?.message || match?.preview?.dedication;
+        console.debug('预填购物车留言命中:', { previewIdParam, hasMatch: !!match, rname, msgExists: typeof msg === 'string' && !!msg.trim() });
+        if (typeof rname === 'string' && rname.trim()) {
+          setRecipient(rname);
+        }
+        // 仅当当前 message 还是默认文案时覆盖，避免用户已编辑被覆盖
+        if (typeof msg === 'string' && msg.trim()) {
+          if (message === defaultMessage || !message || message.trim() === '') {
+            setMessage(msg);
+          }
+          // 同步到画布渲染用的 dedication（后端 message 即前端 dedication）
+          setDedication(msg);
+        }
+      } catch (e) {
+        console.warn('获取购物车失败，跳过预填:', e);
+      }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 工具：将 result_images 应用到 preview_data
+  const applyResultImagesToPreviewData = (data: any) => {
+    try {
+      const resultImages = data?.result_images;
+      if (!Array.isArray(resultImages) || !Array.isArray(data?.preview_data)) return data;
+      const mapByPageId: Record<number, string> = {};
+      resultImages.forEach((r: any) => {
+        const url = r?.result?.standard_url || r?.result_image_url || r?.result?.high_res_url || r?.result?.low_res_url;
+        const pid = r?.page_id ?? r?.result?.page_id;
+        if (pid != null && url) {
+          mapByPageId[Number(pid)] = url;
+        }
+      });
+      const updatedPages = data.preview_data.map((p: any) => {
+        const newUrl = mapByPageId[p.page_id];
+        if (newUrl) {
+          return { ...p, image_url: newUrl, has_face_swap: true };
+        }
+        return p;
+      });
+      return {
+        ...data,
+        preview_data: updatedPages,
+        face_swap_info: {
+          ...(data?.face_swap_info || {}),
+          status: 'completed',
+        },
+      };
+    } catch {
+      return data;
+    }
+  };
+
+  // 编辑流程：检查 create-by-picbook 状态，决定直接使用结果或继续走 WS
+  useEffect(() => {
+    const previewIdParam = searchParams.get('previewid');
+    const bookIdParam = searchParams.get('bookid');
+    if (!previewIdParam || !bookIdParam) return;
+    (async () => {
+      try {
+        // 先从购物车拿到 face_image 和基础参数
+        const cartRes = await api.get(API_CART_LIST) as any;
+        const items = cartRes?.data?.cart_items || [];
+        const match = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
+        const pv = match?.preview;
+        if (!pv) return;
+        const faceImageRaw = pv?.face_image;
+        let faceImages: string[] = [];
+        try {
+          if (typeof faceImageRaw === 'string' && faceImageRaw.trim().startsWith('[')) {
+            const arr = JSON.parse(faceImageRaw);
+            if (Array.isArray(arr)) faceImages = arr;
+          } else if (typeof faceImageRaw === 'string' && faceImageRaw) {
+            faceImages = [faceImageRaw];
+          } else if (Array.isArray(faceImageRaw)) {
+            faceImages = faceImageRaw;
+          }
+        } catch {}
+        const apiRequestData = {
+          picbook_id: bookIdParam,
+          face_image: faceImages.map((p: string) => ensureFaceImageUrl(p)),
+          full_name: pv?.recipient_name,
+          language: pv?.language || 'en',
+          gender: parseInt(pv?.gender || '1'),
+          skincolor: Array.isArray(pv?.skin_color) ? (pv.skin_color[0] || 1) : 1,
+        };
+        // 调用 create-by-picbook：若已完成将直接返回结果
+        const resp = await api.post(`/simple-face-swap/create-by-picbook`, apiRequestData) as ApiResponse<any>;
+        if (resp?.success && resp?.data) {
+          const status = resp.data?.face_swap_info?.status || resp.data?.status;
+          // 若返回完成且有结果，直接使用
+          if (status === 'completed' && (Array.isArray(resp.data?.preview_data) || Array.isArray(resp.data?.result_images))) {
+            const merged = applyResultImagesToPreviewData(resp.data);
+            setPreviewData(merged);
+            setIsProcessing(false);
+            try {
+              const bid = merged?.face_swap_info?.batch_id;
+              if (bid) currentBatchIdRef.current = bid;
+            } catch {}
+            // 标记完成页，更新进度
+            const completedIds = new Set<number>();
+            (merged?.preview_data || []).forEach((p: any) => {
+              if (p?.has_face_swap) completedIds.add(Number(p.page_id));
+            });
+            setSwappedPageIds(completedIds);
+            const progressMap: Record<number, number> = {};
+            completedIds.forEach((id) => { progressMap[id] = 100; });
+            setPageProgress(progressMap);
+            return; // 不走 WS
+          }
+          // 未完成：保持现有 WS 流程
+          try {
+            const bid = resp.data?.face_swap_info?.batch_id;
+            if (bid) currentBatchIdRef.current = bid;
+          } catch {}
+          setIsProcessing(true);
+        }
+      } catch (e) {
+        console.warn('编辑流程状态检查失败，回退到 WS 流程:', e);
+      }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 首次渲染时根据屏幕宽度设置默认视图模式（窄屏 single，宽屏 double）
   const hasSetInitialViewMode = useRef(false);
@@ -1514,6 +1692,7 @@ export default function PreviewPageWithTopNav() {
                     )}
                     <OptimizedImage
                       src={buildImageUrl(bookInfo.default_cover)}
+                      fallbackSrc={'/imgs/picbook/goodnight/封面1.jpg'}
                       alt="Book Cover"
                       width={400}
                       height={392}

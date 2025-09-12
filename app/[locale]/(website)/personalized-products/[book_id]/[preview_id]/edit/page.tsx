@@ -23,10 +23,12 @@ export default function EditPersonalizedProductPage() {
   const router = useRouter();
   const bookId = params.book_id as string;
   const previewId = Number(params.preview_id as string);
-  const locale = pathname.split('/')[1] || 'en';
+  const currentLang = (pathname.match(/^\/(en|zh|fr)\b/)?.[1] as 'en'|'zh'|'fr') || 'en';
 
   const [formType, setFormType] = useState<'SINGLE1'|'SINGLE2'|'DOUBLE'|null>(null);
   const [initialData, setInitialData] = useState<any>();
+  // 绘本语言（与网页语言不同），必须从 cart/list 的 preview.language 获取
+  const [bookLanguage, setBookLanguage] = useState<string | null>(null);
 
   const form1Ref = useRef<SingleCharacterForm1Handle>(null);
   const form2Ref = useRef<SingleCharacterForm2Handle>(null);
@@ -72,6 +74,9 @@ export default function EditPersonalizedProductPage() {
           skinColor: p.skin_color?.length ? skinColors[(p.skin_color[0] - 1) || 0] : '',
           photo: face ? { path: face } : null,
         });
+        if (p.language) {
+          setBookLanguage(String(p.language));
+        }
       } catch {}
     })();
   }, [previewId]);
@@ -88,6 +93,7 @@ export default function EditPersonalizedProductPage() {
     let genderRaw: '' | 'boy' | 'girl';
     let skinColorRaw: string;
     let photoData: { file?: File; path: string } | null = null;
+    let photosData: string[] = [];
 
     if (formType === 'SINGLE1' && form1Ref.current) {
       const isValid = form1Ref.current.validateForm();
@@ -97,6 +103,7 @@ export default function EditPersonalizedProductPage() {
       genderRaw = form1.gender;
       skinColorRaw = form1.skinColor;
       photoData = form1.photo;
+      photosData = (form1 as any).photos || [];
     } else if (formType === 'SINGLE2' && form2Ref.current) {
       const isValid = form2Ref.current.validateForm();
       if (!isValid) return;
@@ -105,6 +112,7 @@ export default function EditPersonalizedProductPage() {
       genderRaw = form2.gender;
       skinColorRaw = form2.skinColor;
       photoData = form2.photo;
+      photosData = [form2.photo?.path].filter(Boolean) as string[];
     } else {
       return;
     }
@@ -120,20 +128,30 @@ export default function EditPersonalizedProductPage() {
     const skinColorCode = idx >= 0 ? idx + 1 : 0;
     if (!genderCode || !skinColorCode) return;
 
+    // 必须从购物车中获取绘本语言，且为2字符
+    if (!bookLanguage || typeof bookLanguage !== 'string' || bookLanguage.length !== 2) {
+      console.error('Invalid or missing book language from cart preview.language');
+      return;
+    }
+
+    // 由预览页负责创建任务：此处仅写入本地并跳转
+
+    // 维持与原流程一致：保存到 localStorage 并进入预览页
     const userData = {
       characters: [
         {
           full_name: fullName,
-          language: locale,
+          language: bookLanguage,
           gender: genderCode,
           skincolor: skinColorCode,
           photo: photoData.path,
+          ...(photosData.length > 0 && { photos: photosData }),
         },
       ],
     };
     localStorage.setItem('previewUserData', JSON.stringify(userData));
     localStorage.setItem('previewBookId', String(bookId));
-    router.push(`/personalized-products/${bookId}/${previewId}/preview`);
+    router.push(`/preview?bookid=${bookId}&previewid=${previewId}`);
   };
 
   return (
