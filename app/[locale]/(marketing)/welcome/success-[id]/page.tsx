@@ -2,12 +2,13 @@
 import Button from "@/app/components/Button";
 import {
   DREAMAZEBOOK_LOGO,
+  MORE_MAGIC,
   SUCCESS_LOGO,
   SUCCESS_LOGO_APP,
   SUCCESS_STAR,
   SUCCESS_UNDERLINE,
 } from "@/constants/cdn";
-import { KICKSTARTER_URL } from "@/constants/links";
+import { FACEBOOK_GROUP_URL, KICKSTARTER_URL } from "@/constants/links";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
@@ -144,14 +145,21 @@ export default function Thankyou() {
             gone!
           </p>
 
-          <div className="text-center">
+          <div className="flex flex-col justify-center gap-4 text-center">
             <Image
               src={"/landing-page/bonus.png"}
               alt="Bonus"
-              width={88}
-              height={88}
-              className=""
+              width={44}
+              height={44}
+              className="mx-auto"
             />
+
+            <p className="font-bold">BONUS</p>
+            <p>Join our VIP group for behind-the-scenes updates + a free coloring book for your child.</p>
+            <a href={FACEBOOK_GROUP_URL} target="_blank" className="text-[#012CCE] font-semibold">👉 Join VIP - Free Coloring Book Awaits</a>
+
+            <Image src={MORE_MAGIC} alt="More Magic" width={133} height={100} className="mx-auto" />
+
           </div>
         </div>
         <Image
