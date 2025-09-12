@@ -64,12 +64,11 @@ export default function Thankyou() {
         style={
           {
             "--success-logo-app": `url(${SUCCESS_LOGO_APP})`,
-            "--center-height": "calc(100vh - 56px)",
           } as React.CSSProperties
         }
-        className="bg-[#F5E3E3] flex justify-center items-center h-(--center-height) relative bg-(image:--success-logo-app) bg-no-repeat md:bg-none"
+        className="bg-[#F5E3E3] flex justify-center relative bg-(image:--success-logo-app) bg-no-repeat md:bg-none"
       >
-        <div className="bg-white p-10 md:px-[88px] md:pt-12 md:pb-16 text-[#222222] max-w-sm md:max-w-4xl mx-auto relative z-10">
+        <div className="bg-white p-5 md:p-10 md:px-[88px] md:pt-12 md:pb-16 text-[#222222] max-w-sm md:max-w-4xl mx-auto relative z-10">
           <div className="relative">
             <h2
               style={
