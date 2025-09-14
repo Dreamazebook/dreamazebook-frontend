@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from '@/i18n/routing';
 import { useSearchParams } from 'next/navigation';
 import { Drawer } from "antd";
@@ -8,12 +8,14 @@ import { create } from 'zustand';
 import TopNavBarWithTabs from '../components/TopNavBarWithTabs';
 import Image from 'next/image';
 import GiverDedicationCanvas from './components/GiverDedicationCanvas';
+import AvatarComposer from './components/AvatarComposer';
 import api from '@/utils/api';
 import echo from '@/app/config/echo';
+import useImageUpload from '../hooks/useImageUpload';
 import useUserStore from '@/stores/userStore';
 import toast from 'react-hot-toast';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
-import { BaseBook } from '@/types/book';
+import { BaseBook, DetailedBook } from '@/types/book';
 import { API_CART_CREATE, API_CART_LIST } from '@/constants/api';
 
 // 自定义图片组件，支持Next.js Image和原生img的回退
@@ -168,6 +170,7 @@ const useStore = create<{
   dedication: string;
   giver: string;
   recipient: string;
+  giverImageUrl: string | null;
   editField: 'giver' | 'dedication' | null;
   setActiveStep: (step: number) => void;
   setActiveTab: (tab: 'Book preview' | 'Others') => void;
@@ -175,6 +178,7 @@ const useStore = create<{
   setDedication: (dedication: string) => void;
   setGiver: (giver: string) => void;
   setRecipient: (recipient: string) => void;
+  setGiverImageUrl: (url: string | null) => void;
   setEditField: (field: 'giver' | 'dedication' | null) => void;
 }>((set) => ({
   activeStep: 2,
@@ -184,6 +188,7 @@ const useStore = create<{
     ' ',
   giver: ' ',
   recipient: ' ',
+  giverImageUrl: null,
   editField: null,
   setActiveStep: (step: number) => set({ activeStep: step }),
   setActiveTab: (tab: 'Book preview' | 'Others') => set({ activeTab: tab }),
@@ -191,6 +196,7 @@ const useStore = create<{
   setDedication: (dedication: string) => set({ dedication }),
   setGiver: (giver: string) => set({ giver }),
   setRecipient: (recipient: string) => set({ recipient }),
+  setGiverImageUrl: (url: string | null) => set({ giverImageUrl: url }),
   setEditField: (field: 'giver' | 'dedication' | null) => set({ editField: field }),
 }));
 
@@ -464,12 +470,14 @@ export default function PreviewPageWithTopNav() {
     dedication,
     giver,
     recipient,
+    giverImageUrl,
     editField,
     setActiveTab,
     setViewMode,
     setDedication,
     setGiver,
     setRecipient,
+    setGiverImageUrl,
     setEditField,
   } = useStore();
 
@@ -562,6 +570,14 @@ export default function PreviewPageWithTopNav() {
     const previewIdParam = searchParams.get('previewid');
     const bookIdParam = searchParams.get('bookid');
     if (!previewIdParam || !bookIdParam) return;
+    // 如果存在本地编辑数据，则优先走本地数据流程，跳过购物车旧数据分支
+    try {
+      const ud = localStorage.getItem('previewUserData');
+      if (ud) {
+        console.log('检测到本地用户数据，跳过购物车预览分支');
+        return;
+      }
+    } catch {}
     (async () => {
       try {
         // 先从购物车拿到 face_image 和基础参数
@@ -675,6 +691,11 @@ export default function PreviewPageWithTopNav() {
   const [isLoadingBookInfo, setIsLoadingBookInfo] = useState(false);
   // 封面图片加载中状态（用于显示 mirage 动效）
   const [isCoverLoading, setIsCoverLoading] = useState(false);
+  // 预览页数量（来自 /picbooks/{id} 的 preview_pages_count）
+  const [previewPagesCount, setPreviewPagesCount] = useState<number | null>(null);
+  // has_replaceable_text==2 的目标页集合（来自 /picbooks/{id} data.pages[]）
+  const [replaceableTextPageIds, setReplaceableTextPageIds] = useState<Set<number>>(new Set());
+  const [replaceableTextPageNumbers, setReplaceableTextPageNumbers] = useState<Set<number>>(new Set());
   // 每页换脸完成的记录，用于在全局仍 processing 时关闭单页蒙版
   const [swappedPageIds, setSwappedPageIds] = useState<Set<number>>(new Set());
   // 最新的全局换脸状态引用，供 WS 回调中使用，避免闭包陈旧值
@@ -804,9 +825,11 @@ export default function PreviewPageWithTopNav() {
         return;
       }
       try {
-        const completedPageId = e?.page_id || e?.result?.page_id || e?.task?.page_id || e?.data?.page_id;
-        const completedUrl = extractImageUrlFromEvent(e);
-        if (completedPageId && completedUrl) {
+        const evt = normalizeWsEvent(e);
+        const completedPageIdRaw = evt?.page_id || evt?.result?.page_id || evt?.task?.page_id || evt?.data?.page_id;
+        const completedPageId = completedPageIdRaw != null ? Number(completedPageIdRaw) : undefined;
+        const completedUrl = extractImageUrlFromEvent(evt);
+        if (completedPageId != null && !Number.isNaN(completedPageId) && completedUrl) {
           setPreviewData(prev => {
             if (!prev) return prev;
             const updatedPages = prev.preview_data.map((p) => {
@@ -887,12 +910,16 @@ export default function PreviewPageWithTopNav() {
       setQueueStatus(null); // 清除排队状态
       toast.success('图片生成完成！');
       try {
-        const results = e?.results || e?.data?.results || [];
+        const evt = normalizeWsEvent(e);
+        const results = evt?.results || evt?.data?.results || [];
         if (Array.isArray(results) && results.length > 0) {
           setPreviewData(prev => {
             if (!prev) return prev;
             const updatedPages = prev.preview_data.map((p) => {
-              const match = results.find((r: any) => (r?.page_id ?? r?.result?.page_id) === p.page_id);
+              const match = results.find((r: any) => {
+                const pid = Number(r?.page_id ?? r?.result?.page_id);
+                return pid === p.page_id;
+              });
               if (match) {
                 const img = extractImageUrlFromEvent(match);
                 if (img) {
@@ -1053,7 +1080,7 @@ export default function PreviewPageWithTopNav() {
     };
   }, [echo, user?.id]);
 
-  // 获取书籍基本信息的函数
+  // 获取书籍基本信息及 pages（用于定位 has_replaceable_text==2 的页）
   const fetchBookInfo = useCallback(async () => {
     try {
       const bookId = searchParams.get('bookid');
@@ -1064,10 +1091,24 @@ export default function PreviewPageWithTopNav() {
 
       setIsLoadingBookInfo(true);
       
-      const response = await api.get<ApiResponse<BaseBook>>(`/picbooks/${bookId}`);
+      const response = await api.get<ApiResponse<DetailedBook>>(`/picbooks/${bookId}`);
       
       if (response.success) {
         setBookInfo(response.data!);
+        // 记录预览页数量
+        try {
+          const count = Number((response.data as any)?.preview_pages_count);
+          if (!Number.isNaN(count) && count > 0) setPreviewPagesCount(count);
+        } catch {}
+        // 记录有可替换文本（2）的页ID集合，供预览渲染时判断
+        try {
+          const pages = response.data?.pages || [];
+          const targets = pages.filter(p => Number(p?.has_replaceable_text) === 2);
+          const ids = targets.map(p => Number(p.id)).filter(n => !Number.isNaN(n));
+          const nums = targets.map(p => Number(p.page_number)).filter(n => !Number.isNaN(n));
+          setReplaceableTextPageIds(new Set(ids));
+          setReplaceableTextPageNumbers(new Set(nums));
+        } catch {}
         console.log('书籍信息获取成功:', response.data);
       } else {
         console.error('获取书籍信息失败:', response);
@@ -1168,27 +1209,46 @@ export default function PreviewPageWithTopNav() {
     return normalized.startsWith('/') ? normalized : '/' + normalized;
   };
 
+  // 归一化 WS 事件，处理字符串 payload 与 data 包裹
+  const normalizeWsEvent = (raw: any): any => {
+    let evt: any = raw;
+    try {
+      if (typeof evt === 'string') {
+        evt = JSON.parse(evt);
+      }
+    } catch {}
+    try {
+      if (evt && typeof evt.data === 'string') {
+        const parsed = JSON.parse(evt.data);
+        evt = { ...evt, ...parsed, data: parsed };
+      }
+    } catch {}
+    return evt;
+  };
+
   // 从事件或结果对象中提取最佳图片 URL（兼容多种字段名）
   const extractImageUrlFromEvent = (evt: any): string | undefined => {
-    const r = evt?.result ?? evt?.data ?? evt;
+    const e = normalizeWsEvent(evt);
+    const r = e?.result ?? e?.data ?? e;
     return (
       r?.standard_url ||
       r?.url ||
       r?.image_url ||
-      evt?.result_image_url ||
+      e?.result_image_url ||
       r?.result_image_url ||
       r?.low_res_url ||
-      evt?.low_res_url ||
+      e?.low_res_url ||
       r?.high_res_url ||
-      evt?.high_res_url
+      e?.high_res_url
     );
   };
   // 从广播事件中提取 batch_id（兼容多种包裹层级）
   const extractBatchIdFromEvent = (evt: any): string | undefined => {
+    const e = normalizeWsEvent(evt);
     return (
-      evt?.batch_id ||
-      evt?.data?.batch_id ||
-      evt?.task?.batch_id
+      e?.batch_id ||
+      e?.data?.batch_id ||
+      e?.task?.batch_id
     );
   };
 
@@ -1249,12 +1309,29 @@ export default function PreviewPageWithTopNav() {
       const response = await api.post(`/simple-face-swap/create-by-picbook`, apiRequestData) as ApiResponse<PreviewResponse>;
       
       if (response.success) {
-        setPreviewData(response.data!);
-        // 记录本次任务的 batch_id，用于筛选后续广播
-        try {
-          const bid = response.data?.face_swap_info?.batch_id;
-          if (bid) currentBatchIdRef.current = bid;
-        } catch {}
+        // 若后端已完成直接返回结果，直接应用
+        const status = (response as any)?.data?.face_swap_info?.status || (response as any)?.data?.status;
+        if (status === 'completed' && (Array.isArray((response as any)?.data?.preview_data) || Array.isArray((response as any)?.data?.result_images))) {
+          const merged = applyResultImagesToPreviewData((response as any).data);
+          setPreviewData(merged);
+          try {
+            const bid = merged?.face_swap_info?.batch_id;
+            if (bid) currentBatchIdRef.current = bid;
+          } catch {}
+          // 标记完成页
+          const completedIds = new Set<number>();
+          (merged?.preview_data || []).forEach((p: any) => {
+            if (p?.has_face_swap) completedIds.add(Number(p.page_id));
+          });
+          setSwappedPageIds(completedIds);
+        } else {
+          setPreviewData(response.data!);
+          // 记录本次任务的 batch_id，用于筛选后续广播
+          try {
+            const bid = response.data?.face_swap_info?.batch_id;
+            if (bid) currentBatchIdRef.current = bid;
+          } catch {}
+        }
         
         // 由于新的API结构中characters是数字数组，我们从localStorage获取角色名称
         try {
@@ -1372,12 +1449,29 @@ export default function PreviewPageWithTopNav() {
           
           // 保存预览数据
           if (response.success) {
-            setPreviewData(response.data!);
-            // 记录本次任务的 batch_id，用于筛选后续广播
-            try {
-              const bid = response.data?.face_swap_info?.batch_id;
-              if (bid) currentBatchIdRef.current = bid;
-            } catch {}
+            // 若已完成，直接应用返回图片
+            const status = (response as any)?.data?.face_swap_info?.status || (response as any)?.data?.status;
+            if (status === 'completed' && (Array.isArray((response as any)?.data?.preview_data) || Array.isArray((response as any)?.data?.result_images))) {
+              const merged = applyResultImagesToPreviewData((response as any).data);
+              setPreviewData(merged);
+              try {
+                const bid = merged?.face_swap_info?.batch_id;
+                if (bid) currentBatchIdRef.current = bid;
+              } catch {}
+              // 标记完成的页
+              const completedIds = new Set<number>();
+              (merged?.preview_data || []).forEach((p: any) => {
+                if (p?.has_face_swap) completedIds.add(Number(p.page_id));
+              });
+              setSwappedPageIds(completedIds);
+            } else {
+              setPreviewData(response.data!);
+              // 记录本次任务的 batch_id，用于筛选后续广播
+              try {
+                const bid = response.data?.face_swap_info?.batch_id;
+                if (bid) currentBatchIdRef.current = bid;
+              } catch {}
+            }
             
             // 由于新的API结构中characters是数字数组，我们从localStorage获取角色名称
             try {
@@ -1463,7 +1557,8 @@ export default function PreviewPageWithTopNav() {
 
   // 各部分的完成状态判断
   const completedSections = {
-    giverDedication: giver.trim() !== "" && dedication.trim() !== "",
+    // 仅需：寄语 + 头像（不再需要署名）
+    giverDedication: dedication.trim() !== "" && !!giverImageUrl,
     coverDesign: selectedBookCover !== null,
     binding: selectedBinding !== null,
     giftBox: selectedGiftBox !== null,
@@ -1728,73 +1823,7 @@ export default function PreviewPageWithTopNav() {
                 )}
               </div>
             </div>
-
-
-            {/* Giver & Dedication 编辑区域 - Canvas 300dpi 渲染 */}
-            <div ref={giverDedicationRef} className="w-full max-w-5xl mb-8">
-              {viewMode === 'single' ? (
-                <div className="flex flex-col items-center gap-6">
-                  <GiverDedicationCanvas
-                    className="w-full max-w-[500px]"
-                    imageUrl={`/picbooks/${searchParams.get('bookid') || '1'}/giver.webp`}
-                    mode="single"
-                    giverText={giver}
-                    dedicationText={dedication}
-                    leftBelow={
-                      <button
-                        type="button"
-                        onClick={() => setEditField('giver')}
-                        className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                      >
-                        Edit Giver
-                      </button>
-                    }
-                    rightBelow={
-                      <button
-                        type="button"
-                        onClick={() => setEditField('dedication')}
-                        className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                      >
-                        Edit Dedication
-                      </button>
-                    }
-                  />
-                </div>
-              ) : (
-                <div className="w-full flex justify-center">
-                  <div className="relative w-full">
-                    <GiverDedicationCanvas
-                      className="w-full"
-                      imageUrl={`/picbooks/${searchParams.get('bookid') || '1'}/giver.webp`}
-                      mode="double"
-                      giverText={giver}
-                      dedicationText={dedication}
-                    />
-                    {/* 双页模式：按钮覆盖在左右半区 */}
-                    <div className="pointer-events-none">
-                      <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
-                        <button
-                          type="button"
-                          onClick={() => setEditField('giver')}
-                          className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                        >
-                          Edit Giver
-                        </button>
-                      </div>
-                      <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
-                        <button
-                          type="button"
-                          onClick={() => setEditField('dedication')}
-                          className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                        >
-                          Edit Dedication
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Giver & Dedication 按 has_replaceable_text==2 的页渲染到对应位置 */}
             {/* 换脸状态信息（仅排队时展示提示条） */}
             {previewData?.face_swap_info && isQueued && (
               <div className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
@@ -1819,22 +1848,88 @@ export default function PreviewPageWithTopNav() {
             {previewData?.preview_data && previewData.preview_data.length > 0 && !isQueued && (
               <div className="w-full max-w-5xl mb-8">
                 <div className="w-full flex flex-col items-center gap-8">
-                  {previewData.preview_data.map((page) => {
+                  {(previewPagesCount ? previewData.preview_data.slice(0, previewPagesCount) : previewData.preview_data).map((page, idx) => {
                     const isSwapping = page.has_face_swap && isGenerating && !swappedPageIds.has(page.page_id);
                     const progress = Math.round(pageProgress[page.page_id] ?? 0);
                     const src = buildImageUrl(page.image_url);
+                    const isReplaceablePage = replaceableTextPageIds.has(page.page_id) || replaceableTextPageNumbers.has(page.page_number);
+                    const isSecondDisplayedPage = idx === 1;
                     return (
-                      <div key={page.page_id} className="w-full flex justify-center">
-                        <div className="w-full max-w-5xl">
-                          <PreviewPageItem
-                            pageId={page.page_id}
-                            pageNumber={page.page_number}
-                            src={src}
-                            viewMode={viewMode}
-                            showOverlay={isSwapping}
-                            progress={progress}
-                            content={page.content}
-                          />
+                      <div key={page.page_id} className="w-full flex flex-col items-center">
+                        <div className="w-full max-w-5xl" ref={isSecondDisplayedPage ? giverDedicationRef : undefined}>
+                          {isSecondDisplayedPage ? (
+                            viewMode === 'single' ? (
+                              <GiverDedicationCanvas
+                                className="w-full max-w-[500px]"
+                                imageUrl={src}
+                                mode="single"
+                                giverText={giver}
+                                dedicationText={dedication}
+                                giverImageUrl={giverImageUrl}
+                                leftBelow={
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditField('dedication')}
+                                    className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                  >
+                                    Edit Dedication
+                                  </button>
+                                }
+                                rightBelow={
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditField('giver')}
+                                    className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                  >
+                                    Edit Giver
+                                  </button>
+                                }
+                              />
+                            ) : (
+                              <div className="w-full flex justify-center">
+                                <div className="relative w-full">
+                                  <GiverDedicationCanvas
+                                    className="w-full"
+                                    imageUrl={src}
+                                    mode="double"
+                                    giverText={giver}
+                                    dedicationText={dedication}
+                                    giverImageUrl={giverImageUrl}
+                                  />
+                                  <div className="pointer-events-none">
+                                    <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
+                                      <button
+                                        type="button"
+                                        onClick={() => setEditField('dedication')}
+                                        className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                      >
+                                        Edit Dedication
+                                      </button>
+                                    </div>
+                                    <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
+                                      <button
+                                        type="button"
+                                        onClick={() => setEditField('giver')}
+                                        className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                      >
+                                        Edit Giver
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          ) : (
+                            <PreviewPageItem
+                              pageId={page.page_id}
+                              pageNumber={page.page_number}
+                              src={src}
+                              viewMode={viewMode}
+                              showOverlay={isSwapping}
+                              progress={progress}
+                              content={page.content}
+                            />
+                          )}
                         </div>
                       </div>
                     );
@@ -1842,7 +1937,7 @@ export default function PreviewPageWithTopNav() {
                 </div>
                 {(isGenerating || isCompleted) && (
                   <p className="text-center text-[#999999] mt-8">
-                    We've specially curated the first {previewData.preview_data.length} pages for you – enjoy a sneak peek of your unique story!
+                    We've specially curated the first {(previewPagesCount ?? previewData.preview_data.length)} pages for you – enjoy a sneak peek of your unique story!
                   </p>
                 )}
               </div>
@@ -2315,40 +2410,29 @@ export default function PreviewPageWithTopNav() {
         {editField && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             {editField === 'giver' ? (
-              // Giver's name 弹窗
-              <div className="bg-white w-[400px] h-[196px] rounded-sm pt-6 pr-6 pb-3 pl-6 flex flex-col gap-9">
-                {/* 标题和关闭按钮 */}
-                <div className="w-[352px] h-[80px] flex flex-col gap-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">Giver&apos;s name</h2>
-                    <button
-                      className="text-xl text-gray-500 hover:text-gray-700"
-                      onClick={() => setEditField(null)}
-                    >
-                      &#x2715;
-                    </button>
-                  </div>
-                  {/* 输入区域 */}
-                  <div className="w-full">
-                    <textarea
-                      value={giver}
-                      onChange={(e) => setGiver(e.target.value)}
-                      placeholder="Please enter..."
-                      className="w-full h-[40px] p-2 border border-[#E5E5E5] rounded placeholder-[#999999] focus:outline-none ring-0"
-                    />
-                  </div>
+              // 使用 AvatarComposer 作为 giver 编辑器
+              <div className="bg-white w-[860px] max-w-[95vw] rounded-sm pt-6 pr-6 pb-4 pl-6 flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold">Giver Avatar</h2>
+                  <button className="text-xl text-gray-500 hover:text-gray-700" onClick={() => setEditField(null)}>&#x2715;</button>
                 </div>
-                {/* 保存按钮 */}
-                <div className="flex justify-end">
-                  <button
-                    className="bg-[#222222] text-[#F5E3E3] py-2 px-4 rounded-sm"
-                    onClick={() => {
-                      setEditField(null);
-                    }}
-                  >
-                    Submit
-                  </button>
-                </div>
+                <AvatarComposer
+                  backgroundUrl={undefined}
+                  outputWidth={1024}
+                  outputHeight={1024}
+                  maskPreview="rounded"
+                  exportMime="image/jpeg"
+                  exportQuality={0.95}
+                  backgroundOnTop={false}
+                  exportMode="cropped"
+                  disableDownload
+                  exportButtonText="提交"
+                  onExport={(blob) => {
+                    const url = URL.createObjectURL(blob);
+                    setGiverImageUrl(url);
+                    setEditField(null);
+                  }}
+                />
               </div>
             ) : (
               // 寄语弹窗
@@ -2413,11 +2497,8 @@ export default function PreviewPageWithTopNav() {
             {sidebarItems.map((item, index) => {
               const isActive = activeSection === item.id;
               const isCompleted = completedSections[item.id as keyof typeof completedSections];
-              const iconClass = isCompleted
-              ? "w-full h-full text-[#012CCE]"
-              : isActive
-              ? "w-full h-full text-[#012CCE]"
-              : "w-full h-full text-[#CCCCCC]";
+              // 规则：激活 或 完成 都显示为蓝色，其余为灰色
+              const iconClass = (isActive || isCompleted) ? "w-full h-full text-[#012CCE]" : "w-full h-full text-[#CCCCCC]";
               return (
                 <div
                   key={item.id}
@@ -2446,7 +2527,6 @@ export default function PreviewPageWithTopNav() {
                         ) : React.cloneElement(item.icon, {
                           className: `${item.icon.props.className ?? ""} ${iconClass}`,
                         })}
-                        
                       </div>
                       {/* 除最后一项外，图标下方添加灰色竖线 */}
                       {index !== sidebarItems.length - 1 && (
