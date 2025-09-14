@@ -158,9 +158,11 @@ export default function ShoppingCartPage() {
   // 示例计算价格：仅计算选中的书（含其子项目）
   const subtotal = cartItems.reduce((acc, item) => {
     if (!selectedItems.includes(item.id)) return acc; // 未选中则跳过
-    let sum = item.price * (item.quantity || 1);
+    let sum = 0;
     if (item.subItems) {
-      sum += item.subItems.reduce((subAcc, sub) => subAcc + sub.total_price, 0);
+      sum += item.subItems.reduce((subAcc, sub) => subAcc + (sub.discount_price || sub.total_price), 0);
+    } else {
+      sum += (item.discount_price || item.price) * (item.quantity || 1)
     }
     return acc + sum;
   }, 0);
