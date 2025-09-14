@@ -160,7 +160,7 @@ export default function ShoppingCartPage() {
     if (!selectedItems.includes(item.id)) return acc; // 未选中则跳过
     let sum = item.price * (item.quantity || 1);
     if (item.subItems) {
-      sum += item.subItems.reduce((subAcc, sub) => subAcc + sub.price, 0);
+      sum += item.subItems.reduce((subAcc, sub) => subAcc + sub.total_price, 0);
     }
     return acc + sum;
   }, 0);
