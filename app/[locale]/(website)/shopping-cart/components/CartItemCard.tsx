@@ -15,9 +15,11 @@ interface CartItemProps {
   onRemoveItem?: (id: number) => void;
   onToggleSelect?: (id: number) => void;
   handleClickEditMessage?: (orderItem:any) => void;
+  isSubItem?: boolean;
 }
 
 export default function CartItemCard({ 
+  isSubItem = false,
   showEditBook,
   item,
   selectedItems,
@@ -75,8 +77,8 @@ export default function CartItemCard({
   };
   
   return (
-    <div className="bg-white rounded p-4 shadow-sm">
-      <div className="flex items-center gap-3">
+    <div className={`bg-white ${isSubItem ? 'p-4' : 'rounded p-4 shadow-sm'}`}>
+      <div className="flex items-start gap-3">
         {(onToggleSelect && selectedItems) && 
         <div className="relative inline-block h-6 w-6 mt-1">
           <span onClick={()=>onToggleSelect(item.id)} className={`absolute top-0 left-0 h-6 w-6 rounded-full border-2 ${selectedItems.includes(item.id) ? 'bg-[#012CCE]' : 'border-gray-300'} transition-colors duration-200 flex items-center justify-center`}>
@@ -90,11 +92,12 @@ export default function CartItemCard({
         }
         
         <div className="flex-1">
+          {(item.item_type !== 'package') ?
           <div className="flex items-start gap-4">
             <div className="w-20 h-22 rounded overflow-hidden">
               <img 
                 src={item.picbook_cover} 
-                alt={item.picbook_name} 
+                alt={item.picbook_name}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -104,7 +107,7 @@ export default function CartItemCard({
                 <h3 className="font-bold">{item.picbook_name}</h3>
                 
                 <div className='flex items-center gap-3'>
-                  <DisplayPrice style='text-[#222222] font-bold' value={item.total_price || item.price * item.quantity} />
+                  <DisplayPrice style='text-[#222222] font-bold' discount={item.discount_price} value={item.total_price || item.price * item.quantity} />
                   
                   {onRemoveItem && 
                   <button
@@ -126,7 +129,7 @@ export default function CartItemCard({
 
               </div>
                 
-                <p className='text-[#666666] font-[400]'>Premium Jumbo Hardcover | a festive gift box</p>
+                <p className='text-[#666666] font-[400] capitalize'>{item.binding_type}</p>
                 
 
                 {(countdown && handleClickEditMessage) ? 
@@ -191,30 +194,16 @@ export default function CartItemCard({
               
             </div>
           </div>
+          :
+          <div className="flex items-start gap-4">KICKSTARTER package</div>
+          }
+
+
           
           {item.subItems && item.subItems.length > 0 && (
-            <div className="mt-3 ml-6">
+            <div className="mt-3">
               {item.subItems.map((sub, idx) => (
-                <div
-                  key={`${item.id}-sub-${idx}`}
-                  className="flex items-center justify-between py-2"
-                >
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={sub.image}
-                      alt={sub.name}
-                      width={48}
-                      height={48}
-                      className="object-cover rounded"
-                    />
-                    <span className="text-sm text-gray-700">
-                      {sub.name}
-                    </span>
-                  </div>
-                  <span className="text-sm font-semibold">
-                    ${sub.price.toFixed(2)}
-                  </span>
-                </div>
+                <CartItemCard key={sub.id} item={sub} isSubItem={true} />
               ))}
             </div>
           )}
