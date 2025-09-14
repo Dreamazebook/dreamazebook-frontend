@@ -10,7 +10,6 @@ import Image from 'next/image'
 // import ExpertlyCrafted from "../components/ExpertlyCrafted";
 // import FAQWelcome from "../components/FAQWelcome";
 // import {AnimatedSection} from "@/app/components/AnimatedSection";
-// import Footer from "../components/Footer";
 // import HeroBanner from "../components/HeroBanner";
 // import { AboutUs } from "../components/AboutUs";
 // import BelovedByEarlyTesters from "../components/BelovedByEarlyTesters";
