@@ -11,6 +11,7 @@ interface Props {
   mode: ViewMode;
   giverText: string;
   dedicationText: string;
+  giverImageUrl?: string | null;
   className?: string;
   leftBelow?: React.ReactNode;
   rightBelow?: React.ReactNode;
@@ -71,6 +72,7 @@ export default function GiverDedicationCanvas({
   mode,
   giverText,
   dedicationText,
+  giverImageUrl,
   className,
   leftBelow,
   rightBelow,
@@ -81,6 +83,7 @@ export default function GiverDedicationCanvas({
   const [ready, setReady] = useState(false);
   const locale = useLocale();
   const isChinese = useMemo(() => locale?.toLowerCase().startsWith('zh'), [locale]);
+  const rootClassName = useMemo(() => [className, 'mx-auto'].filter(Boolean).join(' '), [className]);
 
   // 目标字体（按需求：Philosopher 14pt，Roboto 14pt，300dpi）
   const dedicationPx = useMemo(() => Math.round(ptToPxAt300Dpi(14)), []); // ~58px
@@ -131,19 +134,37 @@ export default function GiverDedicationCanvas({
   useEffect(() => {
     if (!ready) return;
 
+    // 尝试优先以 CORS 方式加载，失败则降级为非 CORS 加载（允许画布被 taint，只用于显示）
+    const loadImageWithCorsFallback = (src: string): Promise<HTMLImageElement> => {
+      return new Promise((resolve, reject) => {
+        // 优先 CORS
+        const corsImg = new Image();
+        corsImg.crossOrigin = 'anonymous';
+        corsImg.onload = () => resolve(corsImg);
+        corsImg.onerror = () => {
+          // 降级：不带 crossOrigin（如果服务器无 CORS 头，仍可显示，但画布将被 taint）
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+          img.src = src;
+        };
+        corsImg.src = src;
+      });
+    };
+
     const drawDouble = async () => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.src = imageUrl;
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject();
-      });
+      const needOverlay = typeof giverImageUrl === 'string' && !!giverImageUrl.trim();
+      const [img, overlay]: [HTMLImageElement, HTMLImageElement | null] = await Promise.all([
+        loadImageWithCorsFallback(imageUrl),
+        needOverlay
+          ? loadImageWithCorsFallback(giverImageUrl as string).catch(() => null)
+          : Promise.resolve(null),
+      ]);
 
       // 使用原图分辨率，保证高精度（近似 300dpi 来源自图像像素）
       canvas.width = img.naturalWidth;
@@ -157,42 +178,50 @@ export default function GiverDedicationCanvas({
       const halfW = canvas.width / 2;
       const padding = Math.round(canvas.width * 0.03); // 基于宽度的内边距
 
-      // Giver（根据语言动态选择：中文→思源黑体；非中文→Roboto）
-      ctx.save();
-      ctx.fillStyle = '#222222';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.font = `${giverPx}px ${giverFontFamily}`;
-      const giverMaxWidth = halfW - padding * 2;
-      const giverLines = wrapText(ctx, (giverText || '').trim(), giverMaxWidth);
-      const giverLineHeight = Math.round(giverPx * 1.25);
-      const giverTotalHeight = giverLines.length * giverLineHeight;
-      let giverY = canvas.height / 2 - giverTotalHeight / 2;
-      for (const line of giverLines) {
-        ctx.fillText(line, halfW / 2, giverY + giverLineHeight / 2, giverMaxWidth);
-        giverY += giverLineHeight;
-      }
-      ctx.restore();
-
-      // Dedication（根据语言动态选择：中文→思源黑体；非中文→Philosopher）
+      // Dedication（交换：现在左侧绘制 Dedication）
       ctx.save();
       ctx.fillStyle = '#222222';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.font = `${dedicationPx}px ${dedicationFontFamily}`;
+      const leftMaxWidth = halfW - padding * 2;
+      const leftLines = wrapText(ctx, (dedicationText || '').trim(), leftMaxWidth);
+      const leftLineHeight = Math.round(dedicationPx * 1.25);
+      const leftTotalHeight = leftLines.length * leftLineHeight;
+      let leftY = canvas.height / 2 - leftTotalHeight / 2;
+      for (const line of leftLines) {
+        ctx.fillText(line, halfW / 2, leftY + leftLineHeight / 2, leftMaxWidth);
+        leftY += leftLineHeight;
+      }
+      ctx.restore();
+
+      // Giver（交换：现在右侧绘制 Giver；若有头像则优先绘制头像）
+      ctx.save();
+      ctx.fillStyle = '#222222';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
       const rightCenterX = halfW + halfW / 2;
-      const dedicationMaxWidth = halfW - padding * 2;
-      const dedicationLines = wrapText(
-        ctx,
-        (dedicationText || '').trim(),
-        dedicationMaxWidth
-      );
-      const dedicationLineHeight = Math.round(dedicationPx * 1.25);
-      const dedicationTotalHeight = dedicationLines.length * dedicationLineHeight;
-      let dedicationY = canvas.height / 2 - dedicationTotalHeight / 2;
-      for (const line of dedicationLines) {
-        ctx.fillText(line, rightCenterX, dedicationY + dedicationLineHeight / 2, dedicationMaxWidth);
-        dedicationY += dedicationLineHeight;
+      const rightMaxWidth = halfW - padding * 2;
+      const hasAvatar = !!(needOverlay && overlay && overlay.naturalWidth > 0 && overlay.naturalHeight > 0);
+      if (hasAvatar && overlay) {
+        const targetSize = Math.min(halfW - padding * 2, canvas.height - padding * 2) * 0.45;
+        const targetX = rightCenterX - targetSize / 2;
+        const targetY = canvas.height / 2 - targetSize / 2;
+        // 将头像裁剪为正方形后等比填充到目标方框
+        const srcSize = Math.min(overlay.naturalWidth, overlay.naturalHeight);
+        const sx = Math.floor((overlay.naturalWidth - srcSize) / 2);
+        const sy = Math.floor((overlay.naturalHeight - srcSize) / 2);
+        ctx.drawImage(overlay as CanvasImageSource, sx, sy, srcSize, srcSize, targetX, targetY, targetSize, targetSize);
+      } else {
+        ctx.font = `${giverPx}px ${giverFontFamily}`;
+        const rightLines = wrapText(ctx, (giverText || '').trim(), rightMaxWidth);
+        const rightLineHeight = Math.round(giverPx * 1.25);
+        const rightTotalHeight = rightLines.length * rightLineHeight;
+        let rightY = canvas.height / 2 - rightTotalHeight / 2;
+        for (const line of rightLines) {
+          ctx.fillText(line, rightCenterX, rightY + rightLineHeight / 2, rightMaxWidth);
+          rightY += rightLineHeight;
+        }
       }
       ctx.restore();
     };
@@ -205,20 +234,21 @@ export default function GiverDedicationCanvas({
       const rctx = rightCanvas.getContext('2d');
       if (!lctx || !rctx) return;
 
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.src = imageUrl;
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject();
-      });
+      const needOverlay = typeof giverImageUrl === 'string' && !!giverImageUrl.trim();
+      const [loadedImg, overlay]: [HTMLImageElement, HTMLImageElement | null] = await Promise.all([
+        loadImageWithCorsFallback(imageUrl),
+        needOverlay
+          ? loadImageWithCorsFallback(giverImageUrl as string).catch(() => null)
+          : Promise.resolve(null),
+      ]);
+      const img: HTMLImageElement = loadedImg;
 
       // 左右各自画半张（裁剪）
       const fullW = img.naturalWidth;
       const fullH = img.naturalHeight;
       const halfW = Math.floor(fullW / 2);
 
-      // 左页
+      // 左页（Dedication）
       leftCanvas.width = halfW;
       leftCanvas.height = fullH;
       lctx.clearRect(0, 0, halfW, fullH);
@@ -227,11 +257,11 @@ export default function GiverDedicationCanvas({
       lctx.fillStyle = '#222222';
       lctx.textAlign = 'center';
       lctx.textBaseline = 'middle';
-      lctx.font = `${giverPx}px ${giverFontFamily}`;
+      lctx.font = `${dedicationPx}px ${dedicationFontFamily}`;
       const padding = Math.round(halfW * 0.06);
       const lMaxW = halfW - padding * 2;
-      const lLines = wrapText(lctx, (giverText || '').trim(), lMaxW);
-      const lLH = Math.round(giverPx * 1.25);
+      const lLines = wrapText(lctx, (dedicationText || '').trim(), lMaxW);
+      const lLH = Math.round(dedicationPx * 1.25);
       const lTotalH = lLines.length * lLH;
       let lY = fullH / 2 - lTotalH / 2;
       for (const line of lLines) {
@@ -240,7 +270,7 @@ export default function GiverDedicationCanvas({
       }
       lctx.restore();
 
-      // 右页
+      // 右页（Giver）
       rightCanvas.width = halfW;
       rightCanvas.height = fullH;
       rctx.clearRect(0, 0, halfW, fullH);
@@ -250,44 +280,68 @@ export default function GiverDedicationCanvas({
       rctx.fillStyle = '#222222';
       rctx.textAlign = 'center';
       rctx.textBaseline = 'middle';
-      rctx.font = `${dedicationPx}px ${dedicationFontFamily}`;
       const rMaxW = halfW - padding * 2;
-      const rLines = wrapText(rctx, (dedicationText || '').trim(), rMaxW);
-      const rLH = Math.round(dedicationPx * 1.25);
-      const rTotalH = rLines.length * rLH;
-      let rY = fullH / 2 - rTotalH / 2;
-      for (const line of rLines) {
-        rctx.fillText(line, halfW / 2, rY + rLH / 2, rMaxW);
-        rY += rLH;
+      const hasAvatar = !!(needOverlay && overlay && overlay.naturalWidth > 0 && overlay.naturalHeight > 0);
+      if (hasAvatar) {
+        const targetSize = Math.min(halfW - padding * 2, fullH - padding * 2) * 0.45;
+        const targetX = halfW / 2 - targetSize / 2;
+        const targetY = fullH / 2 - targetSize / 2;
+        const o = overlay as HTMLImageElement;
+        const srcSize = Math.min(o.naturalWidth, o.naturalHeight);
+        const sx = Math.floor((o.naturalWidth - srcSize) / 2);
+        const sy = Math.floor((o.naturalHeight - srcSize) / 2);
+        rctx.drawImage(o, sx, sy, srcSize, srcSize, targetX, targetY, targetSize, targetSize);
+      } else {
+        rctx.font = `${giverPx}px ${giverFontFamily}`;
+        const rLines = wrapText(rctx, (giverText || '').trim(), rMaxW);
+        const rLH = Math.round(giverPx * 1.25);
+        const rTotalH = rLines.length * rLH;
+        let rY = fullH / 2 - rTotalH / 2;
+        for (const line of rLines) {
+          rctx.fillText(line, halfW / 2, rY + rLH / 2, rMaxW);
+          rY += rLH;
+        }
       }
       rctx.restore();
     };
 
-    if (mode === 'double') {
-      drawDouble();
-    } else {
-      drawSingle();
-    }
-  }, [ready, imageUrl, mode, giverText, dedicationText, giverPx, dedicationPx]);
+    (async () => {
+      try {
+        if (mode === 'double') {
+          await drawDouble();
+        } else {
+          await drawSingle();
+        }
+      } catch (e) {
+        console.error('GiverDedicationCanvas draw error:', e);
+      }
+    })();
+  }, [ready, imageUrl, mode, giverText, dedicationText, giverImageUrl, giverPx, dedicationPx]);
 
   if (mode === 'double') {
     return (
-      <div className={className}>
+      <div className={rootClassName}>
         <canvas ref={canvasRef} style={{ width: '100%', height: 'auto', display: 'block' }} />
       </div>
     );
   }
   return (
-    <div className={className}>
-      <div className="flex flex-col items-center gap-8">
-        <div className="w-full flex flex-col items-center gap-4">
-          <canvas ref={leftCanvasRef} style={{ width: '100%', height: 'auto', display: 'block' }} />
-          {leftBelow}
+    <div className={rootClassName}>
+      <div className="flex flex-col items-center gap-4">
+        {/* 左半：结构与 PreviewPageItem 单页模式保持一致 */}
+        <div className="w-full flex justify-center">
+          <div className="relative max-w-[500px] w-full rounded-lg overflow-hidden" style={{ aspectRatio: '512/519' }}>
+            <canvas ref={leftCanvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }} />
+          </div>
         </div>
-        <div className="w-full flex flex-col items-center gap-4">
-          <canvas ref={rightCanvasRef} style={{ width: '100%', height: 'auto', display: 'block' }} />
-          {rightBelow}
+        {leftBelow}
+        {/* 右半：结构与 PreviewPageItem 单页模式保持一致 */}
+        <div className="w-full flex justify-center">
+          <div className="relative max-w-[500px] w-full rounded-lg overflow-hidden" style={{ aspectRatio: '512/519' }}>
+            <canvas ref={rightCanvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }} />
+          </div>
         </div>
+        {rightBelow}
       </div>
     </div>
   );
