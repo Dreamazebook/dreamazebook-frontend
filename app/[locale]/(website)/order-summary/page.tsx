@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { CartItem, EMPTY_CART_ITEM, OrderDetail, OrderDetailResponse } from '../checkout/components/types';
+import { EMPTY_CART_ITEM, OrderDetail, OrderDetailResponse } from '../checkout/components/types';
 import useUserStore from '@/stores/userStore';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
@@ -14,6 +14,7 @@ import OrderSummaryDelivery from '../components/component/OrderSummaryDelivery';
 import CartItemCard from '../shopping-cart/components/CartItemCard';
 import MessageModal from './components/MessageModal';
 import Image from 'next/image';
+import { CartItem } from '../shopping-cart/components/types';
 
 const OrderSummary: React.FC = () => {
   const t = useTranslations('orderSummary');
