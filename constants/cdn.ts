@@ -111,3 +111,6 @@ export const VIP_PERK_FIRST_PICK = `${CLOUDFLARE_CDN_URL}vip-perk-first-pick.png
 
 export const COUNTDOWN_BANNER = `${CLOUDFLARE_CDN_URL}countdown-banner.png`;
 export const TESTIMONIAL_BANNER = `${CLOUDFLARE_CDN_URL}testimonial.png`;
+
+
+export const A_GIFT_CONNECT_HEARTS = `${CLOUDFLARE_CDN_URL}a_gift_connect_hearts.gif`;

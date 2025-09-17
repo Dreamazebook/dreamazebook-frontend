@@ -4,7 +4,7 @@ import Image from 'next/image'
 // import Growth from "../components/Growth";
 // import PromotionBanner from "../components/PromotionBanner";
 // import ReserveSection from "../components/ReserveSection";
-import TheOnlyBook from "../components/TheOnlyBook";
+// import TheOnlyBook from "../components/TheOnlyBook";
 // import EffortlessGifting from "../components/DeeplyMeaningful";
 // import SuperStrongEmotionalConnection from "./components/SuperStrongEmotionalConnection";
 // import ExpertlyCrafted from "../components/ExpertlyCrafted";
@@ -16,6 +16,7 @@ import {AnimatedSection} from "@/app/components/AnimatedSection";
 import { DREAMAZEBOOK_LOGO } from "@/constants/cdn";
 import CountdownBanner from "../components/CountdownBanner";
 import TestimonialSlider from "./components/TestimonialSlider";
+import AGiftConnectHearts from "../components/AGiftConnectHearts";
 
 
 export default function LandingPage() {
@@ -27,7 +28,7 @@ export default function LandingPage() {
       <CountdownBanner />
 
       <AnimatedSection>
-        <TheOnlyBook />
+        <AGiftConnectHearts />
       </AnimatedSection>
 
       <AnimatedSection>
