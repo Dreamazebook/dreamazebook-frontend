@@ -2,7 +2,7 @@ import DreamzeImage from "@/app/components/DreamzeImage";
 import { Container } from "./Container";
 import { ContainerTitle } from "./ContainerTitle";
 import { ContainerDesc } from "./ContainerDesc";
-import { A_GIFT_CONNECT_HEARTS, THE_ONLY_BOOK, THE_ONLY_BOOK_FEATURE, THE_ONLY_BOOK_FEATURE_APP } from "@/constants/cdn";
+import { A_GIFT_CONNECT_HEARTS, THE_ONLY_BOOK_FEATURE, THE_ONLY_BOOK_FEATURE_APP } from "@/constants/cdn";
 
 export default function AGiftConnectHearts() {
   return (
