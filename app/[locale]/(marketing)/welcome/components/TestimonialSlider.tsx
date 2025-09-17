@@ -24,7 +24,7 @@ const TestimonialSlider: React.FC = () => {
       </div>
 
       <div className='p-4 max-w-[528px] bg-white/75 text-center absolute bottom-1 left-1 right-1 mx-auto md:static'>
-        {!hideForm && <h3 className="mb-4 font-bold text-[24px]">Only 300 Early Bird spots – <p className="text-[#012DCE]">40% OFF</p></h3>}
+        {!hideForm && <h3 className="mb-4 font-bold text-[24px]">Now it’s Your Turn to Make Your Child the Hero</h3>}
 
         <div className="max-w-lg">
           <EmailForm btnId="email_submit_header" btnText="Unlock 40% Off Early" redirectUrl={'/en/welcome/success'} handleCallBack={()=>setHideForm(true)} />
