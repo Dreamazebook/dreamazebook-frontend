@@ -22,12 +22,10 @@ export default function CountdownBanner() {
           />
         </div>
 
-        <div className='p-4 max-w-[528px] bg-white/75 text-center absolute bottom-1 left-1 right-1 mx-auto md:static'>
+        <div className='p-4 md:w-2xl bg-white/75 text-center absolute bottom-1 left-1 right-1 mx-auto md:static'>
           {!hideForm && <h3 className="mb-4 font-bold text-[24px]"> Day 1 Exclusive<br/>300 Spots • 40% OFF</h3>}
 
-          <div className="max-w-lg">
-            <EmailForm btnId="email_submit_header" btnText="Sign Up & Don't Miss Out" redirectUrl={'/en/welcome/success'} handleCallBack={()=>setHideForm(true)} />
-          </div>
+        <EmailForm btnId="email_submit_header" btnText="Sign Up & Don't Miss Out" redirectUrl={'/en/welcome/success'} handleCallBack={()=>setHideForm(true)} />
         </div>
 
       </div>
