@@ -4,6 +4,7 @@ import { FC, useState } from 'react';
 import Image from 'next/image';
 import React from 'react';
 import { OrderDetail } from '@/app/[locale]/(website)/checkout/components/types';
+import { Link } from '@/i18n/routing';
 
 interface AuditsTableProps {
   audits: OrderDetail[];
@@ -159,9 +160,9 @@ const AuditsTable: FC<AuditsTableProps> = ({ audits, setSelectedAudit }) => {
                             <span className={`px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full ${getStatusColor(book.status)}`}>
                               
                             </span>
-                            <button className="text-blue-600 hover:text-blue-900 text-xs">
+                            <Link href={`/admin/audits/${audit.id}?previewId=${book.id}`} className="text-blue-600 hover:text-blue-900 text-xs">
                               去审核
-                            </button>
+                            </Link>
                           </div>
                         ))}
                       </div>
