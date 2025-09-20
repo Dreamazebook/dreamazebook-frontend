@@ -195,7 +195,10 @@ export default function CartItemCard({
             </div>
           </div>
           :
-          <div className="flex items-start gap-4">KICKSTARTER package</div>
+          <div className="flex justify-between gap-4">
+            <span>KICKSTARTER package</span>
+            {/* <DisplayPrice value={item.total_price} discount={item.discount_price} style='text-[#222222] font-bold' /> */}
+          </div>
           }
 
 
