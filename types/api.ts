@@ -10,7 +10,7 @@ export interface UserResponse {
     id: string;
     name?: string;
     email: string;
-    role?: string;
+    user_type?: string;
   };
   token?: string;
 }
