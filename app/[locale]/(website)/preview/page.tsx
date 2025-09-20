@@ -208,6 +208,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   viewMode,
   showOverlay,
   progress,
+  overlayMode = 'progress',
   content,
 }: {
   pageId: number;
@@ -216,6 +217,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   viewMode: 'single' | 'double';
   showOverlay: boolean;
   progress: number;
+  overlayMode?: 'progress' | 'loading';
   content?: string | null;
 }) {
   if (viewMode === 'single') {
@@ -239,15 +241,22 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                   />
                 </div>
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-                  <div className="text-center" style={{ width: 240 }}>
-                    <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
-                      <div
-                        className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
-                        style={{ width: `${Math.round(progress)}%` }}
-                      />
+                  {overlayMode === 'progress' ? (
+                    <div className="text-center" style={{ width: 240 }}>
+                      <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
+                        <div
+                          className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
+                          style={{ width: `${Math.round(progress)}%` }}
+                        />
+                      </div>
+                      <p className="text-gray-700 mt-2 text-sm">{Math.round(progress)}%</p>
                     </div>
-                    <p className="text-gray-700 mt-2 text-sm">{Math.round(progress)}%</p>
-                  </div>
+                  ) : (
+                    <div className="text-center">
+                      <MirageLoader size="60" speed="2.5" color="blue" />
+                      <p className="text-gray-600 mt-2">loading...</p>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
@@ -291,15 +300,22 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                   />
                 </div>
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-                  <div className="text-center" style={{ width: 240 }}>
-                    <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
-                      <div
-                        className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
-                        style={{ width: `${Math.round(progress)}%` }}
-                      />
+                  {overlayMode === 'progress' ? (
+                    <div className="text-center" style={{ width: 240 }}>
+                      <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
+                        <div
+                          className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
+                          style={{ width: `${Math.round(progress)}%` }}
+                        />
+                      </div>
+                      <p className="text-gray-700 mt-2 text-sm">{Math.round(progress)}%</p>
                     </div>
-                    <p className="text-gray-700 mt-2 text-sm">{Math.round(progress)}%</p>
-                  </div>
+                  ) : (
+                    <div className="text-center">
+                      <MirageLoader size="60" speed="2.5" color="blue" />
+                      <p className="text-gray-600 mt-2">loading...</p>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
@@ -347,15 +363,22 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
             className="w-full h-auto rounded-lg object-cover"
           />
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-            <div className="text-center" style={{ width: 240 }}>
-              <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
-                <div
-                  className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
-                  style={{ width: `${Math.round(progress)}%` }}
-                />
+            {overlayMode === 'progress' ? (
+              <div className="text-center" style={{ width: 240 }}>
+                <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
+                  <div
+                    className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
+                    style={{ width: `${Math.round(progress)}%` }}
+                  />
+                </div>
+                <p className="text-gray-700 mt-2 text-sm">{Math.round(progress)}%</p>
               </div>
-              <p className="text-gray-700 mt-2 text-sm">{Math.round(progress)}%</p>
-            </div>
+            ) : (
+              <div className="text-center">
+                <MirageLoader size="60" speed="2.5" color="blue" />
+                <p className="text-gray-600 mt-2">loading...</p>
+              </div>
+            )}
           </div>
         </div>
       ) : (
@@ -725,7 +748,7 @@ export default function PreviewPageWithTopNav() {
     });
   }, [bookInfo?.default_cover]);
 
-  // 启动/清理每页的进度定时器（仅在生成中，并且该页尚未完成时运行）
+  // 启动/清理进度定时器：仅为“第一张未完成的换脸页”推进进度，其余保持 0
   useEffect(() => {
     if (!previewData?.preview_data) return;
     // 若不在生成中，清理所有定时器
@@ -734,39 +757,44 @@ export default function PreviewPageWithTopNav() {
       progressTimersRef.current = {};
       return;
     }
-    // 为需要换脸且尚未完成的页启动进度计时
-    previewData.preview_data.forEach((p) => {
-      const pid = p.page_id;
-      const needProgress = p.has_face_swap && !swappedPageIds.has(pid);
-      if (needProgress) {
-        if (!progressTimersRef.current[pid]) {
-          // 初始化进度
-          setPageProgress((prev) => (prev[pid] == null ? { ...prev, [pid]: 0 } : prev));
-          // 200ms 步进，60s 到 98% → 98 / (60/0.2) = 98/300 ≈ 0.3267 每步
-          const step = 98 / 300;
-          const id = setInterval(() => {
-            setPageProgress((prev) => {
-              const current = prev[pid] ?? 0;
-              if (current >= 98) return prev;
-              const next = Math.min(98, current + step);
-              return { ...prev, [pid]: next };
-            });
-          }, 200);
-          progressTimersRef.current[pid] = id;
-        }
-      } else {
-        // 不再需要计时，清理该页定时器
-        if (progressTimersRef.current[pid]) {
-          clearInterval(progressTimersRef.current[pid]);
-          delete progressTimersRef.current[pid];
-        }
+
+    // 找到第一张需要换脸且未完成的页
+    const firstPending = previewData.preview_data.find((p) => p.has_face_swap && !swappedPageIds.has(p.page_id));
+    const firstPid = firstPending?.page_id;
+
+    // 清理除 firstPid 外的所有计时器，并将其进度重置为 0（保持 loading 态）
+    Object.keys(progressTimersRef.current).forEach((key) => {
+      const pid = Number(key);
+      if (pid !== firstPid) {
+        clearInterval(progressTimersRef.current[pid]);
+        delete progressTimersRef.current[pid];
+        setPageProgress((prev) => (prev[pid] ? { ...prev, [pid]: 0 } : prev));
       }
     });
 
-    // 卸载时清理
+    if (firstPid == null) {
+      // 没有需要推进的页
+      return;
+    }
+
+    // 若首个未完成页没有定时器，则启动一个
+    if (!progressTimersRef.current[firstPid]) {
+      setPageProgress((prev) => (prev[firstPid] == null ? { ...prev, [firstPid]: 0 } : prev));
+      const step = 98 / 300; // 60s 线性到 98%
+      const id = setInterval(() => {
+        setPageProgress((prev) => {
+          const current = prev[firstPid!] ?? 0;
+          if (current >= 98) return prev;
+          const next = Math.min(98, current + step);
+          return { ...prev, [firstPid!]: next };
+        });
+      }, 200);
+      progressTimersRef.current[firstPid] = id;
+    }
+
+    // 卸载或依赖变化时清理不相关定时器（相关定时器在上面已处理）
     return () => {
-      Object.values(progressTimersRef.current).forEach((id) => clearInterval(id));
-      progressTimersRef.current = {};
+      // 不全清，避免切换时丢失当前推进；此处保持现状
     };
   }, [previewData?.preview_data, isGenerating, swappedPageIds]);
 
@@ -1848,12 +1876,17 @@ export default function PreviewPageWithTopNav() {
             {previewData?.preview_data && previewData.preview_data.length > 0 && !isQueued && (
               <div className="w-full max-w-5xl mb-8">
                 <div className="w-full flex flex-col items-center gap-8">
-                  {(previewPagesCount ? previewData.preview_data.slice(0, previewPagesCount) : previewData.preview_data).map((page, idx) => {
+                  {(() => {
+                    const displayedPages = (previewPagesCount ? previewData.preview_data.slice(0, previewPagesCount) : previewData.preview_data);
+                    const firstSwapping = displayedPages.find((p) => p.has_face_swap && isGenerating && !swappedPageIds.has(p.page_id));
+                    const firstSwappingPageId = firstSwapping ? firstSwapping.page_id : null;
+                    return displayedPages.map((page, idx) => {
                     const isSwapping = page.has_face_swap && isGenerating && !swappedPageIds.has(page.page_id);
                     const progress = Math.round(pageProgress[page.page_id] ?? 0);
                     const src = buildImageUrl(page.image_url);
                     const isReplaceablePage = replaceableTextPageIds.has(page.page_id) || replaceableTextPageNumbers.has(page.page_number);
                     const isSecondDisplayedPage = idx === 1;
+                      const overlayMode = isSwapping && firstSwappingPageId !== null && page.page_id !== firstSwappingPageId ? 'loading' : 'progress';
                     return (
                       <div key={page.page_id} className="w-full flex flex-col items-center">
                         <div className="w-full max-w-5xl" ref={isSecondDisplayedPage ? giverDedicationRef : undefined}>
@@ -1927,13 +1960,15 @@ export default function PreviewPageWithTopNav() {
                               viewMode={viewMode}
                               showOverlay={isSwapping}
                               progress={progress}
+                              overlayMode={overlayMode as any}
                               content={page.content}
                             />
                           )}
                         </div>
                       </div>
                     );
-                  })}
+                  });
+                  })()}
                 </div>
                 {(isGenerating || isCompleted) && (
                   <p className="text-center text-[#999999] mt-8">
