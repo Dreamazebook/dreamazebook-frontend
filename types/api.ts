@@ -85,6 +85,49 @@ export interface PreviewRequest {
   photo: string;
 }
 
+export interface OrderPreviewItem {
+  item_id: number;
+  picbook: {
+    id: number;
+    name: string;
+    description: number;
+  };
+  character_info: {
+    full_name: string;
+    language: string;
+    gender: number;
+    skincolor: number;
+  };
+  personalization: {
+    recipient_name: string;
+    message: string;
+    cover_type: string;
+    binding_type: string;
+    gift_box: boolean;
+  };
+  face_images: string;
+  pages: Array<{
+    page_number: number;
+    page_id: number;
+    image_url: string;
+    result_image_url: string;
+    is_face_swap: number;
+    text: string;
+    character_positions: any[];
+  }>;
+  processing_info: {
+    status: string;
+    progress: number;
+    face_swap_batch: {
+      status: string;
+      batch_id: string;
+      total_pages: number;
+    };
+    has_generated_book: boolean;
+  };
+  generated_file: any;
+}
+
 export interface OrderPreviewResponse {
   order_info: {
     id: number;
@@ -100,48 +143,7 @@ export interface OrderPreviewResponse {
     name: string;
     email: string;
   };
-  items: Array<{
-    item_id: number;
-    picbook: {
-      id: number;
-      name: string;
-      description: number;
-    };
-    character_info: {
-      full_name: string;
-      language: string;
-      gender: number;
-      skincolor: number;
-    };
-    personalization: {
-      recipient_name: string;
-      message: string;
-      cover_type: string;
-      binding_type: string;
-      gift_box: boolean;
-    };
-    face_images: string;
-    pages: Array<{
-      page_number: number;
-      page_id: number;
-      image_url: string;
-      result_image_url: string;
-      is_face_swap: number;
-      text: string;
-      character_positions: any[];
-    }>;
-    processing_info: {
-      status: string;
-      progress: number;
-      face_swap_batch: {
-        status: string;
-        batch_id: string;
-        total_pages: number;
-      };
-      has_generated_book: boolean;
-    };
-    generated_file: any;
-  }>;
+  items: Array<OrderPreviewItem>;
   summary: {
     total_items: number;
     items_with_generated_files: number;

@@ -1,19 +1,26 @@
 'use client';
 
 import { FC, useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';;
+import { useParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import api from '@/utils/api';
 import { API_ADMIN_ORDERS } from '@/constants/api';
 import { ApiResponse, OrderPreviewResponse } from '@/types/api';
 import LoadingState from '../../orders/components/LoadingState';
 import ErrorState from '../../orders/components/ErrorState';
+import OrderPreviewHeader from './components/OrderPreviewHeader';
+import OrderPreviewInfo from './components/OrderPreviewInfo';
+import OrderPreviewItems from './components/OrderPreviewItems';
+import OrderPreviewSummary from './components/OrderPreviewSummary';
 
 const AdminAuditDetailPage: FC = () => {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const orderId = params.orderId as string;
+  const previewId = searchParams.get('previewId');
   
-  const [order, setOrder] = useState<OrderPreviewResponse | null>(null);
+  const [orderPreview, setOrderPreview] = useState<OrderPreviewResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,7 +29,7 @@ const AdminAuditDetailPage: FC = () => {
       try {
         const { data, success, message } = await api.get<ApiResponse<OrderPreviewResponse>>(`${API_ADMIN_ORDERS}/${orderId}/preview`);
         if (success && data) {
-          setOrder(data);
+          setOrderPreview(data);
         } else {
           setError(message || 'Failed to fetch order preview');
         }
@@ -37,39 +44,59 @@ const AdminAuditDetailPage: FC = () => {
     if (orderId) {
       fetchOrderPreview();
     }
-  }, []);
+  }, [orderId]);
+
+  const handleApprove = async (itemId: number) => {
+    try {
+      // API call to approve the item
+      const { success } = await api.post<ApiResponse>(`${API_ADMIN_ORDERS}/${orderId}/items/${itemId}/approve`);
+      if (success) {
+        // Refresh the data
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error('Error approving item:', err);
+    }
+  };
+
+  const handleReject = async (itemId: number, reason: string) => {
+    try {
+      // API call to reject the item
+      const { success } = await api.post<ApiResponse>(`${API_ADMIN_ORDERS}/${orderId}/items/${itemId}/reject`, {
+        reason
+      });
+      if (success) {
+        // Refresh the data
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error('Error rejecting item:', err);
+    }
+  };
 
   if (loading) return <LoadingState />;
   if (error) return <ErrorState error={error} />;
-  if (!order) return <ErrorState error="Order preview not found" />;
+  if (!orderPreview) return <ErrorState error="Order preview not found" />;
 
   return (
-    <div className="bg-gray-50 min-h-screen p-6">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-bold mb-6">Order Preview</h1>
-        
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-2">Order Info</h2>
-          <p>Order Number: {order.order_info.order_number}</p>
-          <p>Status: {order.order_info.status_text}</p>
-          <p>Created At: {order.order_info.created_at}</p>
-        </div>
-        
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-2">User Info</h2>
-          <p>Name: {order.user_info.name}</p>
-          <p>Email: {order.user_info.email}</p>
-        </div>
-        
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-2">Items</h2>
-          {order.items.map((item) => (
-            <div key={item.item_id} className="mb-4 p-4 border rounded">
-              <h3 className="font-medium">{item.picbook.name}</h3>
-              <p>Recipient: {item.personalization.recipient_name}</p>
-              <p>Message: {item.personalization.message}</p>
-            </div>
-          ))}
+    <div className="bg-gray-50 min-h-screen">
+      <OrderPreviewHeader 
+        orderPreview={orderPreview}
+        onBack={() => router.push('/admin/audits')}
+      />
+
+      <div className="px-6 py-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <OrderPreviewInfo orderPreview={orderPreview} />
+          
+          <OrderPreviewItems 
+            items={orderPreview.items}
+            previewId={previewId}
+            onApprove={handleApprove}
+            onReject={handleReject}
+          />
+          
+          <OrderPreviewSummary orderPreview={orderPreview} />
         </div>
       </div>
     </div>
