@@ -136,13 +136,29 @@ export default function GiverDedicationCanvas({
 
     // 尝试优先以 CORS 方式加载，失败则降级为非 CORS 加载（允许画布被 taint，只用于显示）
     const loadImageWithCorsFallback = (src: string): Promise<HTMLImageElement> => {
+      const shouldBypassCors = (() => {
+        try {
+          const u = new URL(src, window.location.href);
+          return u.hostname.endsWith('.r2.dev');
+        } catch {
+          return src.includes('.r2.dev');
+        }
+      })();
       return new Promise((resolve, reject) => {
-        // 优先 CORS
+        // 对于已知未开启 CORS 的源（如 r2.dev），直接跳过 crossOrigin 以避免控制台报错噪音
+        if (shouldBypassCors) {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+          img.src = src;
+          return;
+        }
+
+        // 其他源优先尝试 CORS，失败后降级
         const corsImg = new Image();
         corsImg.crossOrigin = 'anonymous';
         corsImg.onload = () => resolve(corsImg);
         corsImg.onerror = () => {
-          // 降级：不带 crossOrigin（如果服务器无 CORS 头，仍可显示，但画布将被 taint）
           const img = new Image();
           img.onload = () => resolve(img);
           img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
