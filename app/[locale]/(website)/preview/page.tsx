@@ -706,6 +706,68 @@ export default function PreviewPageWithTopNav() {
   const [isLoadingOptions, setIsLoadingOptions] = useState(false);
   const [optionsError, setOptionsError] = useState<string | null>(null);
 
+  // 仅预填一次个性化产品的封面/装订/礼盒选项
+  const hasPrefilledOptionsRef = useRef(false);
+  useEffect(() => {
+    if (hasPrefilledOptionsRef.current) return;
+    if (!bookOptions) return;
+    const previewIdParam = searchParams.get('previewid');
+    if (!previewIdParam) return;
+    (async () => {
+      try {
+        const res = await api.get(API_CART_LIST) as any;
+        const items = res?.data?.cart_items || res?.cart_items || [];
+        if (!Array.isArray(items) || items.length === 0) return;
+        const match = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
+        const pv = match?.preview;
+        if (!pv) return;
+
+        // 服务器存储的是 option_key（或回退为 id/name），尝试多种键名以兼容历史数据
+        const coverKey = pv?.cover_type || pv?.cover || pv?.cover_option || pv?.cover_key;
+        const bindingKey = pv?.binding_type || pv?.binding || pv?.binding_option || pv?.binding_key;
+        const giftKey = pv?.gift_box || pv?.wrap || pv?.wrap_option || pv?.gift_box_key;
+
+        let changed = false;
+
+        if (selectedBookCover == null && coverKey) {
+          const cover = bookOptions?.cover_options?.find(
+            (o) => o.option_key === String(coverKey) || String(o.id) === String(coverKey)
+          );
+          if (cover) {
+            setSelectedBookCover(cover.id);
+            changed = true;
+          }
+        }
+
+        if (selectedBinding == null && bindingKey) {
+          const binding = bookOptions?.binding_options?.find(
+            (o) => o.option_key === String(bindingKey) || String(o.id) === String(bindingKey)
+          );
+          if (binding) {
+            setSelectedBinding(binding.id);
+            changed = true;
+          }
+        }
+
+        if (selectedGiftBox == null && giftKey) {
+          const gift = bookOptions?.gift_box_options?.find(
+            (o) => (o.option_key ? o.option_key === String(giftKey) : false) || String(o.id) === String(giftKey) || o.name === String(giftKey)
+          );
+          if (gift) {
+            setSelectedGiftBox(gift.id);
+            changed = true;
+          }
+        }
+
+        if (changed) {
+          hasPrefilledOptionsRef.current = true;
+        }
+      } catch (e) {
+        console.warn('预填选项失败，跳过:', e);
+      }
+    })();
+  }, [bookOptions, searchParams, selectedBookCover, selectedBinding, selectedGiftBox]);
+
   // 添加到购物车的状态
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
