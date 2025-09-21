@@ -3,31 +3,18 @@
 import { FC, useState } from 'react';
 import Image from 'next/image';
 import React from 'react';
-
-interface AuditItem {
-  id: string;
-  order_id: string;
-  duration: string;
-  book_count: number;
-  auditor: string;
-  books: Array<{
-    id: string;
-    name: string;
-    preview_image: string;
-    status: 'pending' | 'completed' | 'rejected';
-  }>;
-  created_at: string;
-}
+import { OrderDetail } from '@/app/[locale]/(website)/checkout/components/types';
+import { Link } from '@/i18n/routing';
 
 interface AuditsTableProps {
-  audits: AuditItem[];
+  audits: OrderDetail[];
   setSelectedAudit: Function;
 }
 
 const AuditsTable: FC<AuditsTableProps> = ({ audits, setSelectedAudit }) => {
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
-  const toggleRowExpansion = (auditId: string) => {
+  const toggleRowExpansion = (auditId: number) => {
     const newExpanded = new Set(expandedRows);
     if (newExpanded.has(auditId)) {
       newExpanded.delete(auditId);
@@ -124,16 +111,16 @@ const AuditsTable: FC<AuditsTableProps> = ({ audits, setSelectedAudit }) => {
                     </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {audit.order_id}
+                    {audit.order_number}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {audit.duration}
+                    
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {audit.book_count}
+                    {audit.items.length}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {audit.auditor}
+                    
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <button
@@ -157,13 +144,13 @@ const AuditsTable: FC<AuditsTableProps> = ({ audits, setSelectedAudit }) => {
                           <span>操作</span>
                         </div>
                         
-                        {audit.books.map((book) => (
+                        {audit.items.map((book) => (
                           <div key={book.id} className="grid grid-cols-4 gap-4 items-center py-2 text-sm">
-                            <span className="text-gray-900">{book.name}</span>
+                            <span className="text-gray-900">{book.picbook.default_name}</span>
                             <div className="w-12 h-16 bg-blue-100 rounded flex items-center justify-center overflow-hidden">
                               <Image 
-                                src={book.preview_image} 
-                                alt={book.name}
+                                src={book.picbook.default_cover} 
+                                alt={book.picbook.default_name}
                                 width={48}
                                 height={64}
                                 className="w-full h-full object-cover"
@@ -171,11 +158,11 @@ const AuditsTable: FC<AuditsTableProps> = ({ audits, setSelectedAudit }) => {
                               />
                             </div>
                             <span className={`px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full ${getStatusColor(book.status)}`}>
-                              {getStatusLabel(book.status)}
+                              
                             </span>
-                            <button className="text-blue-600 hover:text-blue-900 text-xs">
+                            <Link href={`/admin/audits/${audit.id}?previewId=${book.id}`} className="text-blue-600 hover:text-blue-900 text-xs">
                               去审核
-                            </button>
+                            </Link>
                           </div>
                         ))}
                       </div>

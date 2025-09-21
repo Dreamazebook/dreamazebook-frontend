@@ -86,7 +86,7 @@ const Header = () => {
         <Link href={user ? "/shopping-cart" : '/login?redirect=/shopping-cart'} className="text-2xl">
           <Image src={'/header/cart.svg'} alt="Shopping Cart" width={28} height={28} className="cursor-pointer" />
         </Link>
-        <Link href={user ? user.role === 'admin' ? "/admin" : "/profile" : '/login'}>
+        <Link href={user ? user.user_type === 'admin' ? "/admin" : "/profile" : '/login'}>
           <Image src={'/header/profile.svg'} alt="Login" width={28} height={28} className="cursor-pointer" />
         </Link>
       </div>
