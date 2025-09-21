@@ -37,6 +37,7 @@ export const API_ADMIN_LOGIN = API_DOMAIN + '/admin/login';
 
 export const API_ADMIN_USERS = API_DOMAIN + '/admin/users';
 export const API_ADMIN_ROLES = API_DOMAIN + '/admin/roles';
+export const API_ADMIN_ASSIGN_USER_ROLES = (userId: number) => `${API_DOMAIN}/admin/user-roles/${userId}/roles`;
 export const API_ADMIN_PERMISSIONS = API_DOMAIN + '/admin/permissions';
 
 export const API_ADMIN_ORDERS = API_DOMAIN + '/admin/orders'

@@ -3,44 +3,11 @@
 import { FC, useEffect, useState } from 'react';
 import { formatDate } from '../../orders/utils';
 import api from '@/utils/api';
-import { API_ADMIN_USERS } from '@/constants/api';
+import { API_ADMIN_ASSIGN_USER_ROLES, API_ADMIN_USERS } from '@/constants/api';
 import { AdminUser, ApiResponse, Role } from '@/types/api';
 
-interface User {
-  id: string;
-  name?: string;
-  email: string;
-  created_at: string;
-  updated_at: string;
-  // Extended user data that would come from API
-  phone?: string;
-  address?: {
-    street: string;
-    city: string;
-    state: string;
-    country: string;
-    postal_code: string;
-  };
-  registration_ip?: string;
-  last_login?: string;
-  orders?: Array<{
-    id: string;
-    order_number: string;
-    status: string;
-    total_amount: number;
-    created_at: string;
-    items: Array<{
-      name: string;
-      image: string;
-      quantity: number;
-      price: number;
-      total: number;
-    }>;
-  }>;
-}
-
 interface UserDetailModalProps {
-  user: User;
+  user: AdminUser;
   roles: Role[]
   onClose: () => void;
 }
@@ -48,14 +15,15 @@ interface UserDetailModalProps {
 const UserDetailModal: FC<UserDetailModalProps> = ({ user, roles, onClose }) => {
 
   const [userDetail, setUserDetail] = useState<AdminUser|null>(null);
+  const [selectedRoles, setSelectedRoles] = useState<Role[]>(user.roles || []);
 
   useEffect(() => {
     const fetchUserDetail = async () => {
       const {data, success} = await api.get<ApiResponse<AdminUser>>(`${API_ADMIN_USERS}/${user.id}`);
       if (success && data) {
-        setUserDetail(data)
+        setUserDetail(data);
       }
-    }
+    };
     fetchUserDetail();
   }, [user.id]);
   // Mock data for demonstration - in real app this would come from API
@@ -97,6 +65,25 @@ const UserDetailModal: FC<UserDetailModalProps> = ({ user, roles, onClose }) => 
 
   const toggleOrderExpansion = (orderId: string) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
+  };
+
+  const handleRoleToggle = (role: Role) => {
+    setSelectedRoles(prev => 
+      prev.some(r => r.id === role.id) 
+        ? prev.filter(r => r.id !== role.id) 
+        : [...prev, role]
+    );
+  };
+
+  const handleSaveRoles = async () => {
+    try {
+      const { success } = await api.post<ApiResponse>(`${API_ADMIN_ASSIGN_USER_ROLES(user.id)}`, { roles: selectedRoles });
+      if (success) {
+        // Optional: Show success message or refresh data
+      }
+    } catch (error) {
+      console.error('Error saving roles:', error);
+    }
   };
 
   return (
@@ -195,21 +182,35 @@ const UserDetailModal: FC<UserDetailModalProps> = ({ user, roles, onClose }) => 
                 <h3 className="text-lg font-medium text-gray-900">角色信息</h3>
               </div>
               <div className="space-y-2">
-                {userDetail?.roles?.length ? (
-                  userDetail.roles.map((role) => (
-                    <div key={role.id} className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{role.name}</span>
-                        <span className="text-sm text-gray-500">{role.guard_name}</span>
+                {roles?.length ? (
+                  roles.map((role) => (
+                    <div key={role.id} className="p-3 bg-gray-50 rounded-md flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedRoles.some(r => r.id === role.id)}
+                            onChange={() => handleRoleToggle(role)}
+                            className="mr-2"
+                          />
+                          <span className="font-medium">{role.name}</span>
+                        </div>
+                        <div className="mt-1 text-sm text-gray-500">
+                          <span>创建时间: {formatDate(role.created_at)}</span>
+                        </div>
                       </div>
-                      <div className="mt-1 text-sm text-gray-500">
-                        <span>创建时间: {formatDate(role.created_at)}</span>
-                      </div>
+                      <span className="text-sm text-gray-500">{role.guard_name}</span>
                     </div>
                   ))
                 ) : (
                   <span className="text-sm text-gray-500">暂无角色信息</span>
                 )}
+                <button
+                  onClick={handleSaveRoles}
+                  className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                >
+                  保存角色分配
+                </button>
               </div>
             </div>
 
