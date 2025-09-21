@@ -2,6 +2,8 @@
 
 import React, { useRef, useState, useCallback } from 'react';
 import { Cropper } from 'react-cropper';
+import type { ReactCropperElement } from 'react-cropper';
+import type { AxiosResponse } from 'axios';
 import { uploadApi } from '@/utils/api.js';
 
 type Props = {
@@ -42,7 +44,7 @@ function toAbsoluteUrl(raw: string): string {
 
 export default function GiverAvatarCropper({ onDone, onCancel, aspectRatio, maxSize, exportMime = 'image/jpeg', exportQuality = 0.92 }: Props) {
   const [src, setSrc] = useState<string | undefined>();
-  const cropperRef = useRef<Cropper>(null);
+  const cropperRef = useRef<ReactCropperElement>(null);
   const [sx, setSx] = useState(1);
   const [sy, setSy] = useState(1);
   const [isUploading, setIsUploading] = useState(false);
@@ -77,10 +79,10 @@ export default function GiverAvatarCropper({ onDone, onCancel, aspectRatio, maxS
     const form = new FormData();
     form.append('file', blob, 'giver-avatar.jpg');
     form.append('type', 'aiface');
-    const resp = await uploadApi.post('/files/upload', form, {
+    const resp: AxiosResponse<{ path?: string; url?: string }> = await uploadApi.post('/files/upload', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    const data = resp?.data as { path?: string; url?: string } | undefined;
+    const data = resp.data;
     if (!data || (!data.path && !data.url)) {
       throw new Error('Invalid upload response');
     }
