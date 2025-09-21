@@ -13,7 +13,7 @@ import ErrorState from '../orders/components/ErrorState';
 import UserDetailModal from './components/UserDetailModal';
 
 const AdminUsersPage: FC = () => {
-  const { users, loading, error } = useUsersData();
+  const { users, loading, error, roles } = useUsersData();
   const {
     searchTerm,
     setSearchTerm,
@@ -44,7 +44,7 @@ const AdminUsersPage: FC = () => {
   return (
     <div className="bg-gray-50 min-h-screen">
 
-      {selectedUser && <UserDetailModal user={selectedUser} onClose={() => setSelectedUser(null)} />}
+      {selectedUser && <UserDetailModal roles={roles} user={selectedUser} onClose={() => setSelectedUser(null)} />}
 
       <UsersHeader totalUsers={totalUsers} lastUpdated={lastUpdated} />
 

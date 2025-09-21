@@ -4,7 +4,7 @@ import { FC, useEffect, useState } from 'react';
 import { formatDate } from '../../orders/utils';
 import api from '@/utils/api';
 import { API_ADMIN_USERS } from '@/constants/api';
-import { ApiResponse } from '@/types/api';
+import { AdminUser, ApiResponse, Role } from '@/types/api';
 
 interface User {
   id: string;
@@ -41,13 +41,20 @@ interface User {
 
 interface UserDetailModalProps {
   user: User;
+  roles: Role[]
   onClose: () => void;
 }
 
-const UserDetailModal: FC<UserDetailModalProps> = ({ user, onClose }) => {
+const UserDetailModal: FC<UserDetailModalProps> = ({ user, roles, onClose }) => {
+
+  const [userDetail, setUserDetail] = useState<AdminUser|null>(null);
+
   useEffect(() => {
     const fetchUserDetail = async () => {
-      const {data, success} = await api.get<ApiResponse>(`${API_ADMIN_USERS}/${user.id}`);
+      const {data, success} = await api.get<ApiResponse<AdminUser>>(`${API_ADMIN_USERS}/${user.id}`);
+      if (success && data) {
+        setUserDetail(data)
+      }
     }
     fetchUserDetail();
   }, [user.id]);
@@ -98,7 +105,7 @@ const UserDetailModal: FC<UserDetailModalProps> = ({ user, onClose }) => {
         <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">切换书籍</h2>
+            <h2 className="text-xl font-semibold text-gray-900">用户详情</h2>
             <button
               onClick={onClose}
               className="p-1 text-gray-400 hover:text-gray-500 focus:outline-none"
@@ -128,19 +135,19 @@ const UserDetailModal: FC<UserDetailModalProps> = ({ user, onClose }) => {
                 <div className="flex-1 grid grid-cols-2 gap-4">
                   <div>
                     <span className="text-sm text-gray-500">用户名：</span>
-                    <span className="text-sm text-gray-900">{formatDate(user.created_at)}</span>
+                    <span className="text-sm text-gray-900">{userDetail?.name || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="text-sm text-gray-500">ID：</span>
-                    <span className="text-sm text-gray-900">{formatDate(user.created_at)}</span>
+                    <span className="text-sm text-gray-900">{userDetail?.id || 'N/A'}</span>
                   </div>
                   <div className="col-span-2">
                     <span className="text-sm text-gray-500">邮箱：</span>
-                    <span className="text-sm text-gray-900">{mockUserData.phone}</span>
+                    <span className="text-sm text-gray-900">{userDetail?.email || 'N/A'}</span>
                   </div>
                   <div className="col-span-2">
                     <span className="text-sm text-gray-500">地区：</span>
-                    <span className="text-sm text-gray-900">中国四川成都青羊区</span>
+                    
                   </div>
                 </div>
               </div>
@@ -160,24 +167,49 @@ const UserDetailModal: FC<UserDetailModalProps> = ({ user, onClose }) => {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-gray-500">注册时间：</span>
-                  <span className="text-gray-900">{formatDate(user.created_at)}</span>
+                  <span className="text-gray-900">{formatDate(userDetail?.created_at || '')}</span>
                 </div>
                 <div>
                   <span className="text-gray-500">注册来源：</span>
-                  <span className="text-gray-900">{mockUserData.phone}</span>
+                  <span className="text-gray-900">{userDetail?.last_login_ip || 'N/A'}</span>
                 </div>
                 <div>
                   <span className="text-gray-500">最后登录时间：</span>
-                  <span className="text-gray-900">{mockUserData.last_login}</span>
+                  <span className="text-gray-900">{formatDate(userDetail?.last_login_at || '')}</span>
                 </div>
                 <div>
                   <span className="text-gray-500">登录设备：</span>
-                  <span className="text-gray-900">{mockUserData.login_device}</span>
+                  <span className="text-gray-900">{userDetail?.last_login_ip || 'N/A'}</span>
                 </div>
                 <div className="col-span-2">
                   <span className="text-gray-500">最后登录IP地址：</span>
-                  <span className="text-gray-900">{mockUserData.registration_ip}</span>
+                  <span className="text-gray-900">{userDetail?.last_login_ip || 'N/A'}</span>
                 </div>
+              </div>
+            </div>
+
+            {/* Roles Information Section */}
+            <div>
+              <div className="flex items-center mb-4">
+                <div className="w-1 h-5 bg-blue-500 mr-3"></div>
+                <h3 className="text-lg font-medium text-gray-900">角色信息</h3>
+              </div>
+              <div className="space-y-2">
+                {userDetail?.roles?.length ? (
+                  userDetail.roles.map((role) => (
+                    <div key={role.id} className="p-3 bg-gray-50 rounded-md">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{role.name}</span>
+                        <span className="text-sm text-gray-500">{role.guard_name}</span>
+                      </div>
+                      <div className="mt-1 text-sm text-gray-500">
+                        <span>创建时间: {formatDate(role.created_at)}</span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <span className="text-sm text-gray-500">暂无角色信息</span>
+                )}
               </div>
             </div>
 
@@ -190,6 +222,12 @@ const UserDetailModal: FC<UserDetailModalProps> = ({ user, onClose }) => {
                   </svg>
                   <span className="text-lg font-medium">常用收货地址</span>
                 </button>
+              </div>
+              <div className="text-sm">
+                <span className="text-gray-500">地址：</span>
+                <span className="text-gray-900">
+                  
+                </span>
               </div>
               
               <div className="space-y-4">

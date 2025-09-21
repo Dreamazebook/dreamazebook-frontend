@@ -15,6 +15,47 @@ export interface UserResponse {
   token?: string;
 }
 
+export interface Permission {
+  id: number;
+  name: string;
+  guard_name: string;
+  created_at: string;
+  updated_at: string;
+  pivot: {
+    role_id: number;
+    permission_id: number;
+  };
+}
+
+export interface Role {
+  id: number;
+  name: string;
+  guard_name: string;
+  created_at: string;
+  updated_at: string;
+  permissions: Array<Permission>;
+}
+
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  avatar: string | null;
+  phone: string | null;
+  birthday: string | null;
+  gender: string | null;
+  email_verified_at: string;
+  status: number;
+  user_type: string;
+  last_login_at: string | null;
+  last_login_ip: string | null;
+  created_at: string;
+  updated_at: string;
+  roles: Array<Role>;
+  permissions: Permission[];
+
+}
+
 // 购物车相关的类型定义
 export interface CartAddRequest {
   preview_id: number;
