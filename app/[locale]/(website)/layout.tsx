@@ -7,6 +7,7 @@ import {setRequestLocale} from 'next-intl/server';
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Roboto, Philosopher } from "next/font/google";
 import "../globals.css";
+import 'cropperjs/dist/cropper.css';
 import LayoutWrapper from './LayoutWrapper';
 import LoginModal from './components/LoginModal';
 import LdrsRegistry from './components/LdrsRegistry';

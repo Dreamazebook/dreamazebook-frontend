@@ -8,7 +8,7 @@ import { create } from 'zustand';
 import TopNavBarWithTabs from '../components/TopNavBarWithTabs';
 import Image from 'next/image';
 import GiverDedicationCanvas from './components/GiverDedicationCanvas';
-import AvatarComposer from './components/AvatarComposer';
+import GiverAvatarCropper from './components/GiverAvatarCropper';
 import api from '@/utils/api';
 import echo from '@/app/config/echo';
 import useImageUpload from '../hooks/useImageUpload';
@@ -705,6 +705,68 @@ export default function PreviewPageWithTopNav() {
   const [bookOptions, setBookOptions] = useState<BookOptions | null>(null);
   const [isLoadingOptions, setIsLoadingOptions] = useState(false);
   const [optionsError, setOptionsError] = useState<string | null>(null);
+
+  // 仅预填一次个性化产品的封面/装订/礼盒选项
+  const hasPrefilledOptionsRef = useRef(false);
+  useEffect(() => {
+    if (hasPrefilledOptionsRef.current) return;
+    if (!bookOptions) return;
+    const previewIdParam = searchParams.get('previewid');
+    if (!previewIdParam) return;
+    (async () => {
+      try {
+        const res = await api.get(API_CART_LIST) as any;
+        const items = res?.data?.cart_items || res?.cart_items || [];
+        if (!Array.isArray(items) || items.length === 0) return;
+        const match = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
+        const pv = match?.preview;
+        if (!pv) return;
+
+        // 服务器存储的是 option_key（或回退为 id/name），尝试多种键名以兼容历史数据
+        const coverKey = pv?.cover_type || pv?.cover || pv?.cover_option || pv?.cover_key;
+        const bindingKey = pv?.binding_type || pv?.binding || pv?.binding_option || pv?.binding_key;
+        const giftKey = pv?.gift_box || pv?.wrap || pv?.wrap_option || pv?.gift_box_key;
+
+        let changed = false;
+
+        if (selectedBookCover == null && coverKey) {
+          const cover = bookOptions?.cover_options?.find(
+            (o) => o.option_key === String(coverKey) || String(o.id) === String(coverKey)
+          );
+          if (cover) {
+            setSelectedBookCover(cover.id);
+            changed = true;
+          }
+        }
+
+        if (selectedBinding == null && bindingKey) {
+          const binding = bookOptions?.binding_options?.find(
+            (o) => o.option_key === String(bindingKey) || String(o.id) === String(bindingKey)
+          );
+          if (binding) {
+            setSelectedBinding(binding.id);
+            changed = true;
+          }
+        }
+
+        if (selectedGiftBox == null && giftKey) {
+          const gift = bookOptions?.gift_box_options?.find(
+            (o) => (o.option_key ? o.option_key === String(giftKey) : false) || String(o.id) === String(giftKey) || o.name === String(giftKey)
+          );
+          if (gift) {
+            setSelectedGiftBox(gift.id);
+            changed = true;
+          }
+        }
+
+        if (changed) {
+          hasPrefilledOptionsRef.current = true;
+        }
+      } catch (e) {
+        console.warn('预填选项失败，跳过:', e);
+      }
+    })();
+  }, [bookOptions, searchParams, selectedBookCover, selectedBinding, selectedGiftBox]);
 
   // 添加到购物车的状态
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -1902,19 +1964,19 @@ export default function PreviewPageWithTopNav() {
                                 leftBelow={
                                   <button
                                     type="button"
-                                    onClick={() => setEditField('dedication')}
+                                    onClick={() => setEditField('giver')}
                                     className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
                                   >
-                                    Edit Dedication
+                                    Edit Giver
                                   </button>
                                 }
                                 rightBelow={
                                   <button
                                     type="button"
-                                    onClick={() => setEditField('giver')}
+                                    onClick={() => setEditField('dedication')}
                                     className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
                                   >
-                                    Edit Giver
+                                    Edit Dedication
                                   </button>
                                 }
                               />
@@ -1933,19 +1995,19 @@ export default function PreviewPageWithTopNav() {
                                     <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
                                       <button
                                         type="button"
-                                        onClick={() => setEditField('dedication')}
+                                        onClick={() => setEditField('giver')}
                                         className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
                                       >
-                                        Edit Dedication
+                                        Edit Giver
                                       </button>
                                     </div>
                                     <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
                                       <button
                                         type="button"
-                                        onClick={() => setEditField('giver')}
+                                        onClick={() => setEditField('dedication')}
                                         className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
                                       >
-                                        Edit Giver
+                                        Edit Dedication
                                       </button>
                                     </div>
                                   </div>
@@ -2445,25 +2507,14 @@ export default function PreviewPageWithTopNav() {
         {editField && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             {editField === 'giver' ? (
-              // 使用 AvatarComposer 作为 giver 编辑器
               <div className="bg-white w-[860px] max-w-[95vw] rounded-sm pt-6 pr-6 pb-4 pl-6 flex flex-col gap-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">Giver Avatar</h2>
-                  <button className="text-xl text-gray-500 hover:text-gray-700" onClick={() => setEditField(null)}>&#x2715;</button>
-                </div>
-                <AvatarComposer
-                  backgroundUrl={undefined}
-                  outputWidth={1024}
-                  outputHeight={1024}
-                  maskPreview="rounded"
+                <GiverAvatarCropper
+                  aspectRatio={1}
+                  maxSize={1024}
                   exportMime="image/jpeg"
-                  exportQuality={0.95}
-                  backgroundOnTop={false}
-                  exportMode="cropped"
-                  disableDownload
-                  exportButtonText="提交"
-                  onExport={(blob) => {
-                    const url = URL.createObjectURL(blob);
+                  exportQuality={0.92}
+                  onCancel={() => setEditField(null)}
+                  onDone={(url) => {
                     setGiverImageUrl(url);
                     setEditField(null);
                   }}

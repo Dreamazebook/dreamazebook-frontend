@@ -31,7 +31,17 @@ function getRadianAngle(degree: number): number {
 function createImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const image = new Image();
-    image.crossOrigin = "anonymous";
+    // 对 r2.dev 源跳过 crossOrigin 以避免控制台 CORS 报错
+    try {
+      const u = new URL(url, window.location.href);
+      if (!u.hostname.endsWith('.r2.dev')) {
+        image.crossOrigin = "anonymous";
+      }
+    } catch {
+      if (!url.includes('.r2.dev')) {
+        image.crossOrigin = "anonymous";
+      }
+    }
     image.onload = () => resolve(image);
     image.onerror = (err) => reject(err);
     image.src = url;
@@ -324,9 +334,16 @@ export default function AvatarComposer(props: AvatarComposerProps) {
           <div className={`relative w-full aspect-[${"" + (0 || 1)}] bg-gray-100 ${previewWrapperClass}`} style={{ aspectRatio: `${outputWidth}/${outputHeight}` }}>
             {/* 背景图层（仅当提供 backgroundUrl 且不置顶时显示） */}
             {!overlayOnTop && backgroundUrl && (
-              <img
+            <img
                 src={backgroundUrl}
-                crossOrigin="anonymous"
+                crossOrigin={(() => {
+                  try {
+                    const u = new URL(backgroundUrl, window.location.href);
+                    return u.hostname.endsWith('.r2.dev') ? undefined : 'anonymous';
+                  } catch {
+                    return backgroundUrl && backgroundUrl.includes('.r2.dev') ? undefined : 'anonymous';
+                  }
+                })() as any}
                 alt="background"
                 className="absolute inset-0 w-full h-full object-cover"
                 draggable={false}
@@ -360,9 +377,16 @@ export default function AvatarComposer(props: AvatarComposerProps) {
 
             {/* 背景覆盖层（仅当提供 backgroundUrl 且置顶时显示） */}
             {overlayOnTop && backgroundUrl && (
-              <img
+            <img
                 src={backgroundUrl}
-                crossOrigin="anonymous"
+                crossOrigin={(() => {
+                  try {
+                    const u = new URL(backgroundUrl, window.location.href);
+                    return u.hostname.endsWith('.r2.dev') ? undefined : 'anonymous';
+                  } catch {
+                    return backgroundUrl && backgroundUrl.includes('.r2.dev') ? undefined : 'anonymous';
+                  }
+                })() as any}
                 alt="background overlay"
                 className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                 draggable={false}
