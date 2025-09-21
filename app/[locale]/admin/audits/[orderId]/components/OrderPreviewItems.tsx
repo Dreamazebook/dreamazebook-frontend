@@ -2,8 +2,6 @@
 
 import { OrderPreviewItem } from '@/types/api';
 import { FC, useState } from 'react';
-import Image from 'next/image';
-import DreamzeImage from '@/app/components/DreamzeImage';
 
 type OrderPreviewItemsProps = {
   items: OrderPreviewItem[];
@@ -12,80 +10,7 @@ type OrderPreviewItemsProps = {
   onReject: (itemId: number, reason: string) => void;
 };
 
-interface PagesModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  pages: any[];
-  bookTitle: string;
-}
-
-const PagesModal: FC<PagesModalProps> = ({ isOpen, onClose, pages, bookTitle }) => {
-  
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h2 className="text-lg font-medium text-gray-900">{bookTitle}</h2>
-          </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-500">共 {pages.length} 页</span>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          {/* Book Title */}
-          <div className="text-center mb-6">
-            <h3 className="text-xl font-medium text-gray-900 mb-2">{bookTitle}</h3>
-          </div>
-
-          {/* Page Thumbnails */}
-          <div className="grid gap-2 mb-6">
-            {pages.map((page, index) => (
-              <div key={index} className="relative w-full aspect-[960/487]">
-              <DreamzeImage
-                src={page.result_image_url || page.image_url}
-                alt={`Page ${page.page_number}`}
-                cssClass=""
-              />
-              </div>
-            ))}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-center space-x-4">
-            <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
-              导入人
-            </button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-              Edit Dedication
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+import PagesModal from './PagesModal';
 
 const OrderPreviewItems: FC<OrderPreviewItemsProps> = ({
   items,
@@ -95,13 +20,19 @@ const OrderPreviewItems: FC<OrderPreviewItemsProps> = ({
 }) => {
   const [rejectReason, setRejectReason] = useState<string>('');
   const [activeItemId, setActiveItemId] = useState<number | null>(null);
-  const [expandedItem, setExpandedItem] = useState<number | null>(null);
   const [selectedItem, setSelectedItem] = useState<OrderPreviewItem | null>(null);
   const [isPagesModalOpen, setIsPagesModalOpen] = useState(false);
 
-  const toggleExpand = (itemId: number) => {
-    setExpandedItem(expandedItem === itemId ? null : itemId);
-  };
+  // Auto-open modal if previewId matches an item
+  useState(() => {
+    if (previewId) {
+      const matchedItem = items.find(item => item.item_id.toString() === previewId);
+      if (matchedItem) {
+        setSelectedItem(matchedItem);
+        setIsPagesModalOpen(true);
+      }
+    }
+  });
 
   const handleViewPages = (item: OrderPreviewItem) => {
     setSelectedItem(item);
@@ -148,48 +79,6 @@ const OrderPreviewItems: FC<OrderPreviewItemsProps> = ({
                       </p>
                     </div>
                   </div>
-                  
-                  {/* <button 
-                    onClick={() => toggleExpand(item.item_id)}
-                    className="mt-2 text-sm text-indigo-600 hover:text-indigo-800"
-                  >
-                    {expandedItem === item.item_id ? '收起详情' : '查看详情'}
-                  </button> */}
-                  
-                  {/* {expandedItem === item.item_id && (
-                    <div className="mt-4 space-y-4">
-                      <div>
-                        <h5 className="text-sm font-medium text-gray-700">个性化设置</h5>
-                        <p className="text-sm text-gray-500">
-                          收件人: {item.personalization.recipient_name}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          留言: {item.personalization.message}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          封面类型: {item.personalization.cover_type}
-                        </p>
-                      </div>
-                      
-                      <div>
-                        <h5 className="text-sm font-medium text-gray-700">页面预览</h5>
-                        <div className="grid gap-2 mt-2">
-                          {item.pages.map((page) => (
-                            <div key={page.page_id} className="border rounded-md p-2">
-                              <img 
-                                src={page.result_image_url || page.image_url} 
-                                alt={`Page ${page.page_number}`}
-                                className="w-full h-auto"
-                              />
-                              <p className="text-xs text-center mt-1">
-                                第 {page.page_number} 页
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )} */}
                 </div>
                 
                 {previewId && (
