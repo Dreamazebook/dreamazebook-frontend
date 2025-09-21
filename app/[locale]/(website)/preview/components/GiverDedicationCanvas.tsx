@@ -178,50 +178,63 @@ export default function GiverDedicationCanvas({
       const halfW = canvas.width / 2;
       const padding = Math.round(canvas.width * 0.03); // 基于宽度的内边距
 
-      // Dedication（交换：现在左侧绘制 Dedication）
+      // Giver（调整：现在左侧绘制 Giver；若有头像则优先绘制头像）
       ctx.save();
       ctx.fillStyle = '#222222';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.font = `${dedicationPx}px ${dedicationFontFamily}`;
       const leftMaxWidth = halfW - padding * 2;
-      const leftLines = wrapText(ctx, (dedicationText || '').trim(), leftMaxWidth);
-      const leftLineHeight = Math.round(dedicationPx * 1.25);
-      const leftTotalHeight = leftLines.length * leftLineHeight;
-      let leftY = canvas.height / 2 - leftTotalHeight / 2;
-      for (const line of leftLines) {
-        ctx.fillText(line, halfW / 2, leftY + leftLineHeight / 2, leftMaxWidth);
-        leftY += leftLineHeight;
+      const needOverlayLeft = typeof giverImageUrl === 'string' && !!giverImageUrl.trim();
+      // 在双页模式下，左边优先显示头像（与右侧原逻辑对称）
+      if (needOverlayLeft) {
+        try {
+          const overlay = await loadImageWithCorsFallback(giverImageUrl as string);
+          const targetSize = Math.min(halfW - padding * 2, canvas.height - padding * 2) * 0.45;
+          const targetX = halfW / 2 - targetSize / 2;
+          const targetY = canvas.height / 2 - targetSize / 2;
+          const srcSize = Math.min(overlay.naturalWidth, overlay.naturalHeight);
+          const sx = Math.floor((overlay.naturalWidth - srcSize) / 2);
+          const sy = Math.floor((overlay.naturalHeight - srcSize) / 2);
+          ctx.drawImage(overlay as CanvasImageSource, sx, sy, srcSize, srcSize, targetX, targetY, targetSize, targetSize);
+        } catch (_) {
+          ctx.font = `${giverPx}px ${giverFontFamily}`;
+          const leftLines = wrapText(ctx, (giverText || '').trim(), leftMaxWidth);
+          const leftLineHeight = Math.round(giverPx * 1.25);
+          const leftTotalHeight = leftLines.length * leftLineHeight;
+          let leftY = canvas.height / 2 - leftTotalHeight / 2;
+          for (const line of leftLines) {
+            ctx.fillText(line, halfW / 2, leftY + leftLineHeight / 2, leftMaxWidth);
+            leftY += leftLineHeight;
+          }
+        }
+      } else {
+        ctx.font = `${giverPx}px ${giverFontFamily}`;
+        const leftLines = wrapText(ctx, (giverText || '').trim(), leftMaxWidth);
+        const leftLineHeight = Math.round(giverPx * 1.25);
+        const leftTotalHeight = leftLines.length * leftLineHeight;
+        let leftY = canvas.height / 2 - leftTotalHeight / 2;
+        for (const line of leftLines) {
+          ctx.fillText(line, halfW / 2, leftY + leftLineHeight / 2, leftMaxWidth);
+          leftY += leftLineHeight;
+        }
       }
       ctx.restore();
 
-      // Giver（交换：现在右侧绘制 Giver；若有头像则优先绘制头像）
+      // Dedication（调整：现在右侧绘制 Dedication）
       ctx.save();
       ctx.fillStyle = '#222222';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       const rightCenterX = halfW + halfW / 2;
       const rightMaxWidth = halfW - padding * 2;
-      const hasAvatar = !!(needOverlay && overlay && overlay.naturalWidth > 0 && overlay.naturalHeight > 0);
-      if (hasAvatar && overlay) {
-        const targetSize = Math.min(halfW - padding * 2, canvas.height - padding * 2) * 0.45;
-        const targetX = rightCenterX - targetSize / 2;
-        const targetY = canvas.height / 2 - targetSize / 2;
-        // 将头像裁剪为正方形后等比填充到目标方框
-        const srcSize = Math.min(overlay.naturalWidth, overlay.naturalHeight);
-        const sx = Math.floor((overlay.naturalWidth - srcSize) / 2);
-        const sy = Math.floor((overlay.naturalHeight - srcSize) / 2);
-        ctx.drawImage(overlay as CanvasImageSource, sx, sy, srcSize, srcSize, targetX, targetY, targetSize, targetSize);
-      } else {
-        ctx.font = `${giverPx}px ${giverFontFamily}`;
-        const rightLines = wrapText(ctx, (giverText || '').trim(), rightMaxWidth);
-        const rightLineHeight = Math.round(giverPx * 1.25);
-        const rightTotalHeight = rightLines.length * rightLineHeight;
-        let rightY = canvas.height / 2 - rightTotalHeight / 2;
-        for (const line of rightLines) {
-          ctx.fillText(line, rightCenterX, rightY + rightLineHeight / 2, rightMaxWidth);
-          rightY += rightLineHeight;
-        }
+      ctx.font = `${dedicationPx}px ${dedicationFontFamily}`;
+      const rightLines = wrapText(ctx, (dedicationText || '').trim(), rightMaxWidth);
+      const rightLineHeight = Math.round(dedicationPx * 1.25);
+      const rightTotalHeight = rightLines.length * rightLineHeight;
+      let rightY = canvas.height / 2 - rightTotalHeight / 2;
+      for (const line of rightLines) {
+        ctx.fillText(line, rightCenterX, rightY + rightLineHeight / 2, rightMaxWidth);
+        rightY += rightLineHeight;
       }
       ctx.restore();
     };
@@ -248,7 +261,7 @@ export default function GiverDedicationCanvas({
       const fullH = img.naturalHeight;
       const halfW = Math.floor(fullW / 2);
 
-      // 左页（Dedication）
+      // 左页（Giver；若有头像则优先绘制头像）
       leftCanvas.width = halfW;
       leftCanvas.height = fullH;
       lctx.clearRect(0, 0, halfW, fullH);
@@ -257,20 +270,32 @@ export default function GiverDedicationCanvas({
       lctx.fillStyle = '#222222';
       lctx.textAlign = 'center';
       lctx.textBaseline = 'middle';
-      lctx.font = `${dedicationPx}px ${dedicationFontFamily}`;
       const padding = Math.round(halfW * 0.06);
       const lMaxW = halfW - padding * 2;
-      const lLines = wrapText(lctx, (dedicationText || '').trim(), lMaxW);
-      const lLH = Math.round(dedicationPx * 1.25);
-      const lTotalH = lLines.length * lLH;
-      let lY = fullH / 2 - lTotalH / 2;
-      for (const line of lLines) {
-        lctx.fillText(line, halfW / 2, lY + lLH / 2, lMaxW);
-        lY += lLH;
+      const hasAvatarLeft = !!(needOverlay && overlay && overlay.naturalWidth > 0 && overlay.naturalHeight > 0);
+      if (hasAvatarLeft && overlay) {
+        const targetSize = Math.min(halfW - padding * 2, fullH - padding * 2) * 0.45;
+        const targetX = halfW / 2 - targetSize / 2;
+        const targetY = fullH / 2 - targetSize / 2;
+        const o = overlay as HTMLImageElement;
+        const srcSize = Math.min(o.naturalWidth, o.naturalHeight);
+        const sx = Math.floor((o.naturalWidth - srcSize) / 2);
+        const sy = Math.floor((o.naturalHeight - srcSize) / 2);
+        lctx.drawImage(o, sx, sy, srcSize, srcSize, targetX, targetY, targetSize, targetSize);
+      } else {
+        lctx.font = `${giverPx}px ${giverFontFamily}`;
+        const lLines = wrapText(lctx, (giverText || '').trim(), lMaxW);
+        const lLH = Math.round(giverPx * 1.25);
+        const lTotalH = lLines.length * lLH;
+        let lY = fullH / 2 - lTotalH / 2;
+        for (const line of lLines) {
+          lctx.fillText(line, halfW / 2, lY + lLH / 2, lMaxW);
+          lY += lLH;
+        }
       }
       lctx.restore();
 
-      // 右页（Giver）
+      // 右页（Dedication）
       rightCanvas.width = halfW;
       rightCanvas.height = fullH;
       rctx.clearRect(0, 0, halfW, fullH);
@@ -281,26 +306,14 @@ export default function GiverDedicationCanvas({
       rctx.textAlign = 'center';
       rctx.textBaseline = 'middle';
       const rMaxW = halfW - padding * 2;
-      const hasAvatar = !!(needOverlay && overlay && overlay.naturalWidth > 0 && overlay.naturalHeight > 0);
-      if (hasAvatar) {
-        const targetSize = Math.min(halfW - padding * 2, fullH - padding * 2) * 0.45;
-        const targetX = halfW / 2 - targetSize / 2;
-        const targetY = fullH / 2 - targetSize / 2;
-        const o = overlay as HTMLImageElement;
-        const srcSize = Math.min(o.naturalWidth, o.naturalHeight);
-        const sx = Math.floor((o.naturalWidth - srcSize) / 2);
-        const sy = Math.floor((o.naturalHeight - srcSize) / 2);
-        rctx.drawImage(o, sx, sy, srcSize, srcSize, targetX, targetY, targetSize, targetSize);
-      } else {
-        rctx.font = `${giverPx}px ${giverFontFamily}`;
-        const rLines = wrapText(rctx, (giverText || '').trim(), rMaxW);
-        const rLH = Math.round(giverPx * 1.25);
-        const rTotalH = rLines.length * rLH;
-        let rY = fullH / 2 - rTotalH / 2;
-        for (const line of rLines) {
-          rctx.fillText(line, halfW / 2, rY + rLH / 2, rMaxW);
-          rY += rLH;
-        }
+      rctx.font = `${dedicationPx}px ${dedicationFontFamily}`;
+      const rLines = wrapText(rctx, (dedicationText || '').trim(), rMaxW);
+      const rLH = Math.round(dedicationPx * 1.25);
+      const rTotalH = rLines.length * rLH;
+      let rY = fullH / 2 - rTotalH / 2;
+      for (const line of rLines) {
+        rctx.fillText(line, halfW / 2, rY + rLH / 2, rMaxW);
+        rY += rLH;
       }
       rctx.restore();
     };

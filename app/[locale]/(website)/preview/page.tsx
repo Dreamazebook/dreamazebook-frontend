@@ -8,7 +8,7 @@ import { create } from 'zustand';
 import TopNavBarWithTabs from '../components/TopNavBarWithTabs';
 import Image from 'next/image';
 import GiverDedicationCanvas from './components/GiverDedicationCanvas';
-import AvatarComposer from './components/AvatarComposer';
+import GiverAvatarCropper from './components/GiverAvatarCropper';
 import api from '@/utils/api';
 import echo from '@/app/config/echo';
 import useImageUpload from '../hooks/useImageUpload';
@@ -1902,19 +1902,19 @@ export default function PreviewPageWithTopNav() {
                                 leftBelow={
                                   <button
                                     type="button"
-                                    onClick={() => setEditField('dedication')}
+                                    onClick={() => setEditField('giver')}
                                     className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
                                   >
-                                    Edit Dedication
+                                    Edit Giver
                                   </button>
                                 }
                                 rightBelow={
                                   <button
                                     type="button"
-                                    onClick={() => setEditField('giver')}
+                                    onClick={() => setEditField('dedication')}
                                     className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
                                   >
-                                    Edit Giver
+                                    Edit Dedication
                                   </button>
                                 }
                               />
@@ -1933,19 +1933,19 @@ export default function PreviewPageWithTopNav() {
                                     <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
                                       <button
                                         type="button"
-                                        onClick={() => setEditField('dedication')}
+                                        onClick={() => setEditField('giver')}
                                         className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
                                       >
-                                        Edit Dedication
+                                        Edit Giver
                                       </button>
                                     </div>
                                     <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
                                       <button
                                         type="button"
-                                        onClick={() => setEditField('giver')}
+                                        onClick={() => setEditField('dedication')}
                                         className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
                                       >
-                                        Edit Giver
+                                        Edit Dedication
                                       </button>
                                     </div>
                                   </div>
@@ -2445,25 +2445,14 @@ export default function PreviewPageWithTopNav() {
         {editField && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             {editField === 'giver' ? (
-              // 使用 AvatarComposer 作为 giver 编辑器
               <div className="bg-white w-[860px] max-w-[95vw] rounded-sm pt-6 pr-6 pb-4 pl-6 flex flex-col gap-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">Giver Avatar</h2>
-                  <button className="text-xl text-gray-500 hover:text-gray-700" onClick={() => setEditField(null)}>&#x2715;</button>
-                </div>
-                <AvatarComposer
-                  backgroundUrl={undefined}
-                  outputWidth={1024}
-                  outputHeight={1024}
-                  maskPreview="rounded"
+                <GiverAvatarCropper
+                  aspectRatio={1}
+                  maxSize={1024}
                   exportMime="image/jpeg"
-                  exportQuality={0.95}
-                  backgroundOnTop={false}
-                  exportMode="cropped"
-                  disableDownload
-                  exportButtonText="提交"
-                  onExport={(blob) => {
-                    const url = URL.createObjectURL(blob);
+                  exportQuality={0.92}
+                  onCancel={() => setEditField(null)}
+                  onDone={(url) => {
                     setGiverImageUrl(url);
                     setEditField(null);
                   }}
