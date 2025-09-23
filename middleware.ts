@@ -23,10 +23,13 @@ export function middleware(request: NextRequest) {
   const curLocale = getLocale(request)
 
   const redirectURL = process.env.REDIRECT_URL;
-  if (redirectURL && pathname.indexOf(`/${curLocale}${redirectURL}`) === -1) {
-    request.nextUrl.pathname = `/${curLocale}${redirectURL}`;
-    return NextResponse.redirect(request.nextUrl);
+  if (redirectURL) {
+    return NextResponse.redirect(redirectURL);
   }
+  // if (redirectURL && pathname.indexOf(`/${curLocale}${redirectURL}`) === -1) {
+  //   request.nextUrl.pathname = `/${curLocale}${redirectURL}`;
+  //   return NextResponse.redirect(request.nextUrl);
+  // }
   
   // Check if the pathname already has a locale
   const pathnameHasLocale = locales.some(
