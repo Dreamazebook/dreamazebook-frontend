@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import DreamzeImage from '@/app/components/DreamzeImage';
 
 interface PagesModalProps {
@@ -11,12 +11,28 @@ interface PagesModalProps {
 }
 
 const PagesModal: FC<PagesModalProps> = ({ isOpen, onClose, pages, bookTitle }) => {
+  const [selectedPageIds, setSelectedPageIds] = useState<number[]>([]);
   
   if (!isOpen) return null;
 
+  const handleCheckboxChange = (pageId: number) => {
+    console.log('Checkbox clicked for pageId:', pageId);
+    setSelectedPageIds(prev => {
+      const newSelected = [...prev];
+      const index = newSelected.indexOf(pageId);
+      if (index === -1) {
+        newSelected.push(pageId);
+      } else {
+        newSelected.splice(index, 1);
+      }
+      console.log('Updated selectedPageIds:', newSelected);
+      return newSelected;
+    });
+  };
+
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
+    <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded shadow-xl w-full h-full overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <div className="flex items-center space-x-4">
@@ -41,7 +57,7 @@ const PagesModal: FC<PagesModalProps> = ({ isOpen, onClose, pages, bookTitle }) 
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+        <div className="p-6 overflow-y-auto max-h-full">
           {/* Book Title */}
           <div className="text-center mb-6">
             <h3 className="text-xl font-medium text-gray-900 mb-2">{bookTitle}</h3>
@@ -50,12 +66,20 @@ const PagesModal: FC<PagesModalProps> = ({ isOpen, onClose, pages, bookTitle }) 
           {/* Page Thumbnails */}
           <div className="grid gap-2 mb-6">
             {pages.map((page, index) => (
-              <div key={index} className="relative w-full aspect-[960/487]">
-              <DreamzeImage
-                src={page.result_image_url || page.image_url}
-                alt={`Page ${page.page_number}`}
-                cssClass=""
-              />
+              <div key={index} className="relative w-full aspect-[960/487] flex items-center group">
+                <DreamzeImage
+                  src={page.result_image_url || page.image_url}
+                  alt={`Page ${page.page_number}`}
+                  cssClass=""
+                />
+                <div className="absolute right-2 top-2 z-10">
+                  <input
+                    type="checkbox"
+                    checked={selectedPageIds.includes(page.page_id)}
+                    onChange={() => handleCheckboxChange(page.page_id)}
+                    className="w-5 h-5 rounded-full border-gray-300 text-blue-600 focus:ring-blue-500 bg-white"
+                  />
+                </div>
               </div>
             ))}
           </div>

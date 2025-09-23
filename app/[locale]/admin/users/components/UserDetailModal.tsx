@@ -195,9 +195,6 @@ const UserDetailModal: FC<UserDetailModalProps> = ({ user, roles, onClose }) => 
                           />
                           <span className="font-medium">{role.name}</span>
                         </div>
-                        <div className="mt-1 text-sm text-gray-500">
-                          <span>创建时间: {formatDate(role.created_at)}</span>
-                        </div>
                       </div>
                       <span className="text-sm text-gray-500">{role.guard_name}</span>
                     </div>
