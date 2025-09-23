@@ -12,8 +12,20 @@ interface PagesModalProps {
 
 const PagesModal: FC<PagesModalProps> = ({ isOpen, onClose, pages, bookTitle }) => {
   const [selectedPageIds, setSelectedPageIds] = useState<number[]>([]);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   
   if (!isOpen) return null;
+
+  const handleApprove = () => {
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmApprove = () => {
+    // 这里添加实际审核通过逻辑
+    console.log('审核通过:', selectedPageIds);
+    setShowConfirmModal(false);
+    onClose();
+  };
 
   const handleCheckboxChange = (pageId: number) => {
     console.log('Checkbox clicked for pageId:', pageId);
@@ -31,7 +43,37 @@ const PagesModal: FC<PagesModalProps> = ({ isOpen, onClose, pages, bookTitle }) 
   };
 
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
+    <>
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="absolute inset-0 z-100 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">审核通过</h3>
+            <p className="text-gray-600">
+              确定要信息无误审核通过
+            </p>
+            <p className="text-gray-600 mb-6">
+              审核人： 鱼鱼鱼
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 cursor-pointer border rounded-md hover:bg-gray-50"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleConfirmApprove}
+                className="px-4 py-2 cursor-pointer bg-blue-500 text-white rounded-md hover:bg-blue-700"
+              >
+                确认
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded shadow-xl w-full h-full overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
@@ -50,7 +92,10 @@ const PagesModal: FC<PagesModalProps> = ({ isOpen, onClose, pages, bookTitle }) 
             <button className="px-4 py-2 border rounded-md cursor-pointer">
               重申生成
             </button>
-            <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700 cursor-pointer">
+            <button 
+              onClick={handleApprove}
+              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-700 cursor-pointer"
+            >
               审核通过
             </button>
           </div>
@@ -58,6 +103,28 @@ const PagesModal: FC<PagesModalProps> = ({ isOpen, onClose, pages, bookTitle }) 
 
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-full">
+          <div className='flex justify-between mb-6'>
+            <div className='flex items-center space-x-2'>
+            {selectedPageIds.length > 0 && (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium">已选:</span>
+                <div className="flex space-x-1">
+                  {selectedPageIds.map((id, index) => (
+                    <span key={index} className="text-sm">
+                      {pages.find(p => p.page_id === id)?.page_number || id}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            <button className='text-blue-500 cursor-pointer' onClick={()=>{
+              setSelectedPageIds(pages.map(p=>p.page_id))
+            }}>全选</button>
+            <button className='text-blue-500 cursor-pointer' onClick={()=>{
+              setSelectedPageIds([])
+            }}>取消</button>
+            </div>
+          </div>
           {/* Book Title */}
           <div className="text-center mb-6">
             <h3 className="text-xl font-medium text-gray-900 mb-2">{bookTitle}</h3>
@@ -72,13 +139,15 @@ const PagesModal: FC<PagesModalProps> = ({ isOpen, onClose, pages, bookTitle }) 
                   alt={`Page ${page.page_number}`}
                   cssClass=""
                 />
-                <div className="absolute right-2 top-2 z-10">
-                  <input
-                    type="checkbox"
-                    checked={selectedPageIds.includes(page.page_id)}
-                    onChange={() => handleCheckboxChange(page.page_id)}
-                    className="w-5 h-5 rounded-full border-gray-300 text-blue-600 focus:ring-blue-500 bg-white"
-                  />
+                <div 
+                  className={`absolute right-2 top-2 z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedPageIds.includes(page.page_id) ? 'border-blue-500 bg-blue-500' : 'border-gray-300 bg-white'}`}
+                  onClick={() => handleCheckboxChange(page.page_id)}
+                >
+                  {selectedPageIds.includes(page.page_id) && (
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
                 </div>
               </div>
             ))}
@@ -87,6 +156,7 @@ const PagesModal: FC<PagesModalProps> = ({ isOpen, onClose, pages, bookTitle }) 
         </div>
       </div>
     </div>
+    </>
   );
 };
 
