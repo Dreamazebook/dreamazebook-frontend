@@ -13,6 +13,7 @@ interface PagesModalProps {
 const PagesModal: FC<PagesModalProps> = ({ isOpen, onClose, pages, bookTitle }) => {
   const [selectedPageIds, setSelectedPageIds] = useState<number[]>([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showRegenerateModal, setShowRegenerateModal] = useState(false);
   
   if (!isOpen) return null;
 
@@ -25,6 +26,16 @@ const PagesModal: FC<PagesModalProps> = ({ isOpen, onClose, pages, bookTitle }) 
     console.log('审核通过:', selectedPageIds);
     setShowConfirmModal(false);
     onClose();
+  };
+
+  const handleRegenerate = () => {
+    setShowRegenerateModal(true);
+  };
+
+  const handleConfirmRegenerate = () => {
+    // 这里添加实际重新生成逻辑
+    console.log('重新生成:', selectedPageIds);
+    setShowRegenerateModal(false);
   };
 
   const handleCheckboxChange = (pageId: number) => {
@@ -73,6 +84,31 @@ const PagesModal: FC<PagesModalProps> = ({ isOpen, onClose, pages, bookTitle }) 
         </div>
       )}
       
+      {showRegenerateModal && (
+        <div className="absolute inset-0 z-100 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">重新生成</h3>
+            <p className="text-gray-600 mb-6">
+              确定要重新生成选中的 {selectedPageIds.length} 个页面吗？
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowRegenerateModal(false)}
+                className="px-4 py-2 cursor-pointer border rounded-md hover:bg-gray-50"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleConfirmRegenerate}
+                className="px-4 py-2 cursor-pointer bg-blue-500 text-white rounded-md hover:bg-blue-700"
+              >
+                确认
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded shadow-xl w-full h-full overflow-hidden">
         {/* Header */}
@@ -89,8 +125,11 @@ const PagesModal: FC<PagesModalProps> = ({ isOpen, onClose, pages, bookTitle }) 
             <h2 className="text-lg font-medium text-gray-900">{bookTitle}</h2>
           </div>
           <div className="flex items-center space-x-4">
-            <button className="px-4 py-2 border rounded-md cursor-pointer">
-              重申生成
+            <button 
+              onClick={handleRegenerate}
+              className="px-4 py-2 border rounded-md cursor-pointer hover:bg-gray-50"
+            >
+              重新生成
             </button>
             <button 
               onClick={handleApprove}
