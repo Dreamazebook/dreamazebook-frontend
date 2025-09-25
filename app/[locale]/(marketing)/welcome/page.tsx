@@ -34,6 +34,10 @@ export default function LandingPage() {
       <AnimatedSection>
       <TestimonialSlider />
       </AnimatedSection>
+
+      {/* <AnimatedSection>
+        <FAQWelcome />
+      </AnimatedSection> */}
       
       {/* <HeroBanner />
 
@@ -67,10 +71,6 @@ export default function LandingPage() {
 
       <AnimatedSection>
         <Growth />
-      </AnimatedSection>
-
-      <AnimatedSection>
-        <FAQWelcome />
       </AnimatedSection>
 
       <AnimatedSection>

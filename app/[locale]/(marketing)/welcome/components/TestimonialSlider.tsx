@@ -2,6 +2,8 @@ import DreamzeImage from '@/app/components/DreamzeImage';
 import { TESTIMONIAL_BANNER } from '@/constants/cdn';
 import React, { useState } from 'react';
 import EmailForm from '../../components/EmailForm';
+import Button from '@/app/components/Button';
+import { KICKSTARTER_URL } from '@/constants/links';
 
 const TestimonialSlider: React.FC = () => {
 
@@ -23,12 +25,8 @@ const TestimonialSlider: React.FC = () => {
         </div>
       </div>
 
-      <div className='p-4 max-w-[528px] bg-white/75 text-center absolute bottom-1 left-1 right-1 mx-auto md:static'>
-        {!hideForm && <h3 className="mb-4 font-bold text-[24px]">Now it’s Your Turn to Make Your Child the Hero</h3>}
-
-        <div className="max-w-lg">
-          <EmailForm btnId="email_submit_header" btnText="Unlock 40% Off Early" redirectUrl={'/en/welcome/success'} handleCallBack={()=>setHideForm(true)} />
-        </div>
+      <div className="mt-10 max-w-[334px] mx-auto">
+        <Button url={KICKSTARTER_URL} tl={'Unlock 40% Off Early'} />
       </div>
 
     </div>

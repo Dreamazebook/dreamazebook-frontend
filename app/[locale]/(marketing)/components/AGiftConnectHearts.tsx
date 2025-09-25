@@ -3,6 +3,8 @@ import { Container } from "./Container";
 import { ContainerTitle } from "./ContainerTitle";
 import { ContainerDesc } from "./ContainerDesc";
 import { A_GIFT_CONNECT_HEARTS, THE_ONLY_BOOK_FEATURE, THE_ONLY_BOOK_FEATURE_APP } from "@/constants/cdn";
+import Button from "@/app/components/Button";
+import { KICKSTARTER_URL } from "@/constants/links";
 
 export default function AGiftConnectHearts() {
   return (
@@ -22,6 +24,10 @@ export default function AGiftConnectHearts() {
         <div className="w-full relative aspect-[764/611] mt-3 md:mt-6">
           <DreamzeImage cssClass="md:hidden" src={THE_ONLY_BOOK_FEATURE_APP} alt="" />
           <DreamzeImage cssClass="hidden md:block" src={THE_ONLY_BOOK_FEATURE} alt="" />
+        </div>
+
+        <div className="mt-10 max-w-[334px] mx-auto">
+          <Button url={KICKSTARTER_URL} tl={'Nice, I want this book for my child'} />
         </div>
 
       </div>
