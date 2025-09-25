@@ -17,7 +17,7 @@ const SUPPORT_FEATURES = [
     icon:VIP_PERK_UNLOCK_GIFT
   },
   {
-    tl:'First pick, First ship',
+    tl:'Back Early, Ship Early',
     desc:'Rceive before the big holidays.',
     label: 'Priority Access Ticket',
     icon:VIP_PERK_FIRST_PICK
