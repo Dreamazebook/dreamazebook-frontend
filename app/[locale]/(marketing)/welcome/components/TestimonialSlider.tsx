@@ -1,14 +1,10 @@
 import DreamzeImage from '@/app/components/DreamzeImage';
 import { TESTIMONIAL_BANNER } from '@/constants/cdn';
-import React, { useState } from 'react';
-import EmailForm from '../../components/EmailForm';
+import React from 'react';
 import Button from '@/app/components/Button';
 import { KICKSTARTER_URL } from '@/constants/links';
 
 const TestimonialSlider: React.FC = () => {
-
-  const [hideForm, setHideForm] = useState(false);
-
   return (
     <div className="relative w-full max-w-4xl py-18 mx-auto bg-white">
       {/* Header */}

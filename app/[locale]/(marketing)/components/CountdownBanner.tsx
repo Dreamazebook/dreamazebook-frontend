@@ -1,8 +1,6 @@
 import Button from "@/app/components/Button";
-import EmailForm from "./EmailForm";
 import { COUNTDOWN_BANNER, VIP_PERK_FIRST_PICK, VIP_PERK_SAVE_40, VIP_PERK_UNLOCK_GIFT } from "@/constants/cdn";
 import Image from "next/image";
-import { useState } from "react";
 import { KICKSTARTER_URL } from "@/constants/links";
 
 const SUPPORT_FEATURES = [
@@ -27,7 +25,6 @@ const SUPPORT_FEATURES = [
 ];
 
 export default function CountdownBanner() {
-  const [hideForm, setHideForm] = useState(false);
   return (
     <div
       style={{'--desktop-bg' : `url(${COUNTDOWN_BANNER})`,'--app-bg' : `url(${COUNTDOWN_BANNER})`} as React.CSSProperties} 
@@ -41,7 +38,7 @@ export default function CountdownBanner() {
           <p className="p-4 md:p-0 md:mt-4 text-center font-light">Ultimate personalized books with your child’s real face & name & uniqueness.</p>
           
           <div className="bg-white p-8 space-y-4 m-4">
-            {SUPPORT_FEATURES.map(({tl,desc,label,icon})=>
+            {SUPPORT_FEATURES.map(({tl,desc,icon})=>
             <article key={tl} className="text-center">
               <div className="flex justify-center gap-3 items-center">
                 <Image src={icon} width={21} height={21} alt={tl} />

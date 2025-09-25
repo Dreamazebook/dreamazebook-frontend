@@ -114,3 +114,4 @@ export const TESTIMONIAL_BANNER = `${CLOUDFLARE_CDN_URL}testimonial.png`;
 
 
 export const A_GIFT_CONNECT_HEARTS = `${CLOUDFLARE_CDN_URL}a_gift_connect_hearts.webp`;
+export const GERGOE_VIDEO = `${CLOUDFLARE_CDN_URL}geroge.mp4`;

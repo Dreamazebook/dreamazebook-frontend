@@ -17,6 +17,7 @@ import { DREAMAZEBOOK_LOGO } from "@/constants/cdn";
 import CountdownBanner from "../components/CountdownBanner";
 import TestimonialSlider from "./components/TestimonialSlider";
 import AGiftConnectHearts from "../components/AGiftConnectHearts";
+import FAQKickstarter from "../components/FAQKickstarter";
 
 
 export default function LandingPage() {
@@ -35,9 +36,9 @@ export default function LandingPage() {
       <TestimonialSlider />
       </AnimatedSection>
 
-      {/* <AnimatedSection>
-        <FAQWelcome />
-      </AnimatedSection> */}
+      <AnimatedSection>
+        <FAQKickstarter />
+      </AnimatedSection>
       
       {/* <HeroBanner />
 
