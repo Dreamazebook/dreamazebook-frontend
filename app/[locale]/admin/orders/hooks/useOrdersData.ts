@@ -11,11 +11,15 @@ export const useOrdersData = (filters: any) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  function getOrdersAPI() {
+    return `${API_ADMIN_ORDERS}?status=${filters.statusFilter}&payment_status=${filters.paymentStatus}&discount=${filters.discountFilter}&region=${filters.regionFilter}&date_from=${filters.dateRange.start}&date_to=${filters.dateRange.end}`;
+  }
+
   useEffect(() => {
     const fetchOrders = async () => {
       setLoading(true);
       try {
-        const { data, code, success } = await api.get<ApiResponse>(`${API_ADMIN_ORDERS}?status=${filters.statusFilter}`);
+        const { data, code, success } = await api.get<ApiResponse>(getOrdersAPI());
         if (success) {
           setOrders(data);
         }

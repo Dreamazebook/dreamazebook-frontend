@@ -11,7 +11,7 @@ interface OrdersFiltersProps {
   filters: {
     dateRange: DateRange;
     statusFilter: string;
-    paymentStatusFilter: string;
+    paymentStatus: string;
     discountFilter: string;
     regionFilter: string;
   };
@@ -76,7 +76,7 @@ const OrdersFilters: FC<OrdersFiltersProps> = ({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">支付状态：</label>
           <select
-            value={filters.paymentStatusFilter}
+            value={filters.paymentStatus}
             onChange={(e) => onFilterChange.setPaymentStatusFilter(e.target.value)}
             className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
@@ -131,18 +131,6 @@ const OrdersFilters: FC<OrdersFiltersProps> = ({
             <option value="SSJDUI">SSJDUI</option>
             <option value="DFGFXI">DFGFXI</option>
           </select>
-        </div>
-      </div>
-
-      {/* Search and Action Buttons */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
-            查询
-          </button>
-          <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 text-sm">
-            搜索
-          </button>
         </div>
       </div>
     </div>
