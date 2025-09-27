@@ -68,6 +68,18 @@ const useImageUpload = () => {
     setError(null);
 
     try {
+      const FRONTEND_PREVIEW = process.env.NEXT_PUBLIC_FRONTEND_PREVIEW === 'true';
+      // 仅前端预览：跳过上传，直接生成本地 blob 预览和伪路径
+      if (FRONTEND_PREVIEW) {
+        const previewUrl = URL.createObjectURL(file);
+        setImageUrl(previewUrl);
+        return {
+          file,
+          previewUrl,
+          uploadedFilePath: '/personalize/face.png',
+        };
+      }
+
       const formData = new FormData();
       formData.append('file', file);
       formData.append('type', 'aiface');

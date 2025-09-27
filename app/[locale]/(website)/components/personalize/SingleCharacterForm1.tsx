@@ -256,7 +256,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
               )}
             </div>
 
-            {/* Single Choice Section */}
+            {/* Single Choice Section（默认隐藏于大多数书籍） */}
+            {bookId === '2' && (
             <div>
               <label className="block mb-2 font-medium">
                 Features <span className="ml-2 text-gray-500">(Single choice)</span>
@@ -295,8 +296,10 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                 <p className="text-red-500 text-sm">{errors.singleChoice}</p>
               )}
             </div>
+            )}
 
-            {/* Multiple Choice Section */}
+            {/* Multiple Choice Section（默认隐藏于大多数书籍） */}
+            {bookId === '2' && (
             <div>
               <label className="block mb-2 font-medium">
                 Features <span className="ml-2 text-gray-500">(Multiple choice)</span>
@@ -348,6 +351,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                 <p className="text-red-500 text-sm">{errors.multipleChoice}</p>
               )}
             </div>
+            )}
           </form>
         </div>
       </div>

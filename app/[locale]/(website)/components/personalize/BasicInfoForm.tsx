@@ -252,28 +252,32 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         )}
       </div>
 
-      {/* Hairstyle */}
-      <div>
-        <HairstyleSelector
-          bookId={bookId}
-          selectedHairstyle={data.hairstyle}
-          onChange={handleHairstyleSelect}
-          onBlur={handleHairstyleBlur}
-          error={errors.hairstyle}
-          touched={touched.hairstyle}
-        />
-      </div>
+      {/* Hairstyle - 某些书籍隐藏（如 bookId === '5'） */}
+      {bookId !== '5' && (
+        <div>
+          <HairstyleSelector
+            bookId={bookId}
+            selectedHairstyle={data.hairstyle}
+            onChange={handleHairstyleSelect}
+            onBlur={handleHairstyleBlur}
+            error={errors.hairstyle}
+            touched={touched.hairstyle}
+          />
+        </div>
+      )}
 
-      {/* Hair Color */}
-      <div>
-        <HairColorSelector
-          selectedHairColor={data.hairColor}
-          onChange={handleHairColorSelect}
-          onBlur={handleHairColorBlur}
-          error={errors.hairColor}
-          touched={touched.hairColor}
-        />
-      </div>
+      {/* Hair Color - 某些书籍隐藏（如 bookId === '5'） */}
+      {bookId !== '5' && (
+        <div>
+          <HairColorSelector
+            selectedHairColor={data.hairColor}
+            onChange={handleHairColorSelect}
+            onBlur={handleHairColorBlur}
+            error={errors.hairColor}
+            touched={touched.hairColor}
+          />
+        </div>
+      )}
 
       {/* Photo Upload
       <div>

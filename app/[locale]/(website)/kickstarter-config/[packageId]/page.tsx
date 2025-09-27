@@ -6,7 +6,7 @@ import api from '@/utils/api'
 import { BaseBook, DetailedBook } from '@/types/book'
 import BookDetailView from '../../components/BookDetailView'
 import { Link, useRouter } from '@/i18n/routing'
-import { API_KS_PACKAGE_STATUS, API_KS_ITEM_OPTIONS } from '@/constants/api'
+import { API_KS_PACKAGE_STATUS, API_KS_ITEM_PICBOOK } from '@/constants/api'
 
 interface ApiList<T> { success: boolean; data: T }
 
@@ -101,27 +101,19 @@ export default function KickstarterConfigPage() {
   }
 
   const onFinish = async () => {
-    // 将所选书本提交到后端配置接口：对每个待配置位置，调用 PUT /items/{packageItemId}/options
+    // 仅提交用户选择的书本：将所选 N 本映射到前 N 个待配置 item
     try {
-      // 简化起见：假设每次提交选中的 N 本书，对应后端将自动填充到未配置的位置
-      // 若需要携带 itemId，可在 status 接口里拿到 package_items 并匹配
       const status = await api.get<any>(API_KS_PACKAGE_STATUS(packageId as any))
       const items = status?.data?.package_items || status?.package_items || []
       const pendingItems = items.filter((it: any) => it.config_status === 'pending')
-      const toAssign = selectedBooks.slice(0, pendingItems.length)
-      for (let i = 0; i < toAssign.length; i++) {
+      const count = Math.min(selectedBooks.length, pendingItems.length)
+      for (let i = 0; i < count; i++) {
         const item = pendingItems[i]
-        const bk = toAssign[i]
-        if (!item) break
-        await api.put(API_KS_ITEM_OPTIONS(item.id), {
-          picbook_id: bk.id,
-          cover_type: 'personalized',
-          binding_type: packageOptions?.binding_type ?? 'hardcover',
-          gift_box: packageOptions?.gift_box ?? null,
-        })
+        const bk = selectedBooks[i]
+        await api.put(API_KS_ITEM_PICBOOK(item.id), { picbook_id: bk.id })
       }
     } catch (e) {
-      console.error('Failed to update KS options:', e)
+      console.error('Failed to submit selected books:', e)
     }
     router.push('/shopping-cart')
   }

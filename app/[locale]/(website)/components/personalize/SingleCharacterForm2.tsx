@@ -5,9 +5,9 @@ import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'rea
 import Image from 'next/image';
 import { FaQuestionCircle } from 'react-icons/fa';
 import BasicInfoForm, { BasicInfoData } from './BasicInfoForm';
-import UploadArea from './UploadArea';
+import MultiImageUpload from './MultiImageUpload';
 import Sidebar from './Sidebar';
-import useImageUpload from '../../hooks/useImageUpload';
+import useMultiImageUpload from '../../hooks/useMultiImageUpload';
 import { TextField } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -60,7 +60,6 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
     dob: null,
   });
   const [errors, setErrors] = useState<FormErrors>({});
-  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [touched, setTouched] = useState<Partial<Record<keyof PersonalizeFormData2, boolean>>>({});
 
   // Define season options (each with a label and image source)
@@ -72,36 +71,39 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
   ];
 
   const {
-    imageUrl,
+    images,
     isUploading,
     uploadProgress,
     error: uploadError,
     isDragging,
-    handleFileUpload,
+    handleImageUpload,
+    handleImageDelete,
     handleDragEnter,
     handleDragLeave,
     handleDragOver,
     handleDrop,
-    handleDeleteImage,
-    handleUpload,
-    initializeWithUrl,
-  } = useImageUpload();
+    getUploadedPaths,
+    initializeWithUrls,
+  } = useMultiImageUpload(3);
 
+  // 书籍2的品质选择移至 select-book-content 页面
+
+  // 当某张图片上传成功后，自动把第一张已上传图片设置为主图，确保可提交
   useEffect(() => {
-    if (imageUrl) {
-      const img: HTMLImageElement = document.createElement('img');
-      img.src = imageUrl;
-      img.onload = () => {
-        setImageSize({ width: img.width, height: img.height });
-      };
+    if (!formData.photo) {
+      const firstUploaded = images.find(img => !!img.uploadedFilePath);
+      if (firstUploaded && firstUploaded.uploadedFilePath) {
+        handleBasicInfoChange('photo', { path: firstUploaded.uploadedFilePath });
+        handleErrorChange('photo', '');
+      }
     }
-  }, [imageUrl]);
+  }, [images, formData.photo]);
 
-  // 初始化：如果传入了 initialData.photo.path，则显示已有图片
+  // 初始化：如果传入了 initialData.photo.path，则作为已有图片显示
   useEffect(() => {
     const url = initialData?.photo?.path;
     if (url) {
-      initializeWithUrl(url);
+      initializeWithUrls([url]);
       handleBasicInfoChange('photo', { path: url });
       handleErrorChange('photo', '');
     }
@@ -120,15 +122,24 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
     setErrors(prev => ({ ...prev, [field]: errorMsg }));
   };
 
-  // Handle photo upload
-  const handleUploadPhoto = async (file: File) => {
-    const uploadResult = await handleUpload(file);
-    if (uploadResult) {
-      handleBasicInfoChange('photo', {
-        file: uploadResult.file,
-        path: uploadResult.uploadedFilePath
-      });
+  // Handle multiple photos upload（与书籍1一致）
+  const handlePhotosUpload = async (files: File[]) => {
+    const newlyUploadedPaths = await handleImageUpload(files);
+    if (newlyUploadedPaths.length > 0 && !formData.photo) {
+      handleBasicInfoChange('photo', { path: newlyUploadedPaths[0] });
       handleErrorChange('photo', '');
+    }
+  };
+
+  // 处理删除
+  const handlePhotoDelete = (id: string) => {
+    handleImageDelete(id);
+    const remainingPaths = getUploadedPaths();
+    if (remainingPaths.length > 0) {
+      handleBasicInfoChange('photo', { path: remainingPaths[0] });
+    } else {
+      handleBasicInfoChange('photo', null);
+      handleErrorChange('photo', 'Please upload a photo');
     }
   };
 
@@ -292,58 +303,28 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
                 <p className="text-red-500 text-sm mt-1">{errors.birthSeason}</p>
               )}
             </div>
+
+            {/* 品质选择已迁移至 select-book-content 页面 */}
   
-            {/* Photo Upload Section */}
+            {/* Photo Upload Section - 与书籍1一致，使用多图片上传组件 */}
             <div>
-              <label className="block mb-2 flex items-center">
-                <span className="font-medium">Photo</span>
-                <span className="text-gray-400 inline-flex items-center group relative font-normal">
-                  <FaQuestionCircle className="w-4 h-4 ml-1" />
-                  <div className="hidden group-hover:block absolute left-0 top-6 w-64 p-2 bg-white/80 text-gray-800 text-sm rounded shadow-lg z-10 backdrop-blur">
-                    <p className="mb-2">
-                      Upload a photo so we can create a unique image of you. Your privacy is ensured.
-                    </p>
-                  </div>
-                </span>
-              </label>
-              <p className="text-sm mb-2 text-gray-800">Please upload a photo of your character!</p>
-              <ul className="text-sm text-gray-500 mb-4 space-y-1">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gray-300"></div>
-                  <li>Make sure the subject is facing the camera.</li>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gray-300"></div>
-                  <li>Use a close-up photo.</li>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-gray-300"></div>
-                  <li>The higher the quality, the better the result!</li>
-                </div>
-              </ul>
-              <div>
-                <UploadArea
-                  imageUrl={imageUrl}
-                  isUploading={isUploading}
-                  uploadProgress={uploadProgress}
-                  error={uploadError}
-                  isDragging={isDragging}
-                  imageSize={imageSize}
-                  handleDragEnter={handleDragEnter}
-                  handleDragLeave={handleDragLeave}
-                  handleDragOver={handleDragOver}
-                  handleDrop={(e) => handleDrop(e, (file) => handleUploadPhoto(file))}
-                  handleFileUpload={(e) => handleFileUpload(e, (file) => handleUploadPhoto(file))}
-                  handleDeleteImage={() => {
-                    handleDeleteImage();
-                    handleBasicInfoChange('photo', null);
-                    handleErrorChange('photo', 'Please upload a photo');
-                  }}
-                />
-                {touched.photo && errors.photo && (
-                  <p className="text-red-500 text-sm mt-1">{errors.photo}</p>
-                )}
-              </div>
+              <MultiImageUpload
+                images={images as any}
+                isUploading={isUploading}
+                uploadProgress={uploadProgress}
+                error={uploadError}
+                isDragging={isDragging}
+                maxImages={3}
+                onImageUpload={handlePhotosUpload}
+                onImageDelete={handlePhotoDelete}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+              />
+              {touched.photo && errors.photo && (
+                <p className="text-red-500 text-sm mt-1">{errors.photo}</p>
+              )}
             </div>
           </form>
         </div>

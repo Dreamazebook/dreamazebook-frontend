@@ -70,6 +70,12 @@ const useMultiImageUpload = (maxImages: number = 3) => {
 
   const uploadSingleFile = async (file: File): Promise<string | null> => {
     try {
+      const FRONTEND_PREVIEW = process.env.NEXT_PUBLIC_FRONTEND_PREVIEW === 'true';
+      if (FRONTEND_PREVIEW) {
+        // 预览模式直接返回占位图绝对路径
+        return toAbsoluteUrl('/personalize/face.png');
+      }
+
       const formData = new FormData();
       formData.append('file', file);
       formData.append('type', 'aiface');

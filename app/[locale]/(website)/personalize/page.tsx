@@ -25,6 +25,7 @@ export interface PersonalizeFormData2 {
   photos: string[]; // 更新为支持多张图片
   birthSeason: '' | 'spring' | 'summer' | 'autumn' | 'winter';
   dob: Date | null;
+  qualities?: string[];
 }
 
 import SingleCharacterForm1, {
@@ -46,6 +47,7 @@ export default function PersonalizePage() {
   const searchParams = useSearchParams();
   const bookId = searchParams.get('bookid');
   const langParam = searchParams.get('language') || 'en';
+  const mockParam = searchParams.get('mock');
   const router = useRouter();
   const { user } = useUserStore();
 
@@ -60,28 +62,34 @@ export default function PersonalizePage() {
   useEffect(() => {
     const fetchBook = async () => {
       if (bookId) {
+        const FRONTEND_PREVIEW = process.env.NEXT_PUBLIC_FRONTEND_PREVIEW === 'true' || mockParam === '1';
+        if (FRONTEND_PREVIEW) {
+          // 预览模式：跳过接口
+          if (bookId === '2') {
+            setSelectedFormType('SINGLE2');
+          } else {
+            setSelectedFormType('SINGLE1');
+          }
+          setLoading(false);
+          return;
+        }
         try {
           const response = await api.get<ApiResponse>(`/picbooks/${bookId}`);
           setBook(response.data);
-          switch (response.data.character_count) {
-            case 1:
-              setSelectedFormType('SINGLE1');
-              break;
-            case 2:
-              setSelectedFormType('SINGLE2');
-              break;
-            case 3:
-              setSelectedFormType('DOUBLE');
-              break;
-            case 4:
-              setShowModal(true);
-              break;
-            default:
-              console.error('Invalid form type');
-              break;
+          // 基于书籍ID控制表单类型
+          if (bookId === '2') {
+            setSelectedFormType('SINGLE2');
+          } else {
+            setSelectedFormType('SINGLE1');
           }
         } catch (error) {
           console.error('Failed to fetch book:', error);
+          // 接口失败也允许前端预览
+          if (bookId === '2') {
+            setSelectedFormType('SINGLE2');
+          } else {
+            setSelectedFormType('SINGLE1');
+          }
         } finally {
           setLoading(false);
         }
@@ -140,14 +148,24 @@ export default function PersonalizePage() {
       hairColorRaw  = form2.hairColor;
       photoData     = form2.photo;
       photosData    = [form2.photo?.path].filter(Boolean) as string[];
+      // 附加字段（书籍2）
+      const dobStr = form2.dob ? new Date(form2.dob).toISOString().slice(0,10) : undefined;
+      const birthSeason = form2.birthSeason || undefined;
+      // qualities 改为在 select-book-content 里选择与保存
+      (window as any).__extraPersonalize = { dob: dobStr, birthSeason };
     } else {
       return;
     }
   
-    // 校验 photo
+    // 校验 photo（预览模式可用占位图）
+    const FRONTEND_PREVIEW = process.env.NEXT_PUBLIC_FRONTEND_PREVIEW === 'true' || mockParam === '1';
     if (!photoData || !photoData.path) {
-      console.error('Please upload photo');
-      return;
+      if (FRONTEND_PREVIEW) {
+        photoData = { path: '/personalize/face.png' } as any;
+      } else {
+        console.error('Please upload photo');
+        return;
+      }
     }
   
     // 2. 字符串 → 数字 映射
@@ -183,6 +201,7 @@ export default function PersonalizePage() {
     }
   
     // 3. 将用户数据保存到 localStorage，以便在 preview 页面使用
+    const extras = (window as any).__extraPersonalize || {};
     const userData = {
       characters: [
         {
@@ -195,6 +214,9 @@ export default function PersonalizePage() {
           photo:     photoData.path,
           // 如果有多张图片，也保存所有图片路径
           ...(photosData.length > 0 && { photos: photosData }),
+          ...(extras.dob ? { dob: extras.dob } : {}),
+          ...(extras.birthSeason ? { birth_season: extras.birthSeason } : {}),
+          // qualities 在 select-book-content 进行保存
         },
       ],
     };
