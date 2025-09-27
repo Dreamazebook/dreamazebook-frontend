@@ -161,6 +161,9 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
 
   useImperativeHandle(ref, () => ({
     validateForm() {
+      // 是否需要校验“特征”字段（仅书籍2需要）
+      const shouldValidateFeatures = bookId === '2';
+
       // Mark all fields as touched for validation feedback
       setTouched({
         fullName: true,
@@ -169,8 +172,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
         hairstyle: true,
         hairColor: true,
         photo: true,
-        singleChoice: true,
-        multipleChoice: true,
+        ...(shouldValidateFeatures ? { singleChoice: true, multipleChoice: true } : {}),
       });
 
       const newErrors: FormErrors = {};
@@ -180,8 +182,10 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       if (!formData.hairstyle) newErrors.hairstyle = 'Please select hairstyle';
       if (!formData.hairColor) newErrors.hairColor = 'Please select hair color';
       if (!formData.photo) newErrors.photo = 'Please upload a photo';
-      if (!formData.singleChoice) newErrors.singleChoice = 'Please select one feature';
-      if (formData.multipleChoice.length === 0) newErrors.multipleChoice = 'Please select at least one feature';
+      if (shouldValidateFeatures) {
+        if (!formData.singleChoice) newErrors.singleChoice = 'Please select one feature';
+        if (formData.multipleChoice.length === 0) newErrors.multipleChoice = 'Please select at least one feature';
+      }
 
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0;

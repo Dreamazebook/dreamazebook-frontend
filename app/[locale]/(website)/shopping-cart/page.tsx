@@ -45,6 +45,8 @@ export default function ShoppingCartPage() {
                   const subItems = packageItems.map((pi: any) => ({
                     id: pi.id,
                     item_type: 'package_item',
+                    package_id: item.package_id,
+                    picbook_id: pi.picbook_id,
                     picbook_cover: pi.picbook?.default_cover,
                     picbook_name: pi.picbook?.default_name,
                     price: 0,

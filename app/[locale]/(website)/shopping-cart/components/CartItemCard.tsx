@@ -170,8 +170,16 @@ export default function CartItemCard({
                       onClick={(e) => {
                         e.preventDefault();
                         // 无预览则去创建
-                        const bookId = item.preview?.picbook_id || (item.picbook as any)?.id;
-                        const url = `/personalize?bookid=${bookId}`;
+                        const bookId = (item as any)?.preview?.picbook_id || (item as any)?.picbook_id || (item as any)?.picbook?.id;
+                        let url = '';
+                        if (bookId) {
+                          const ksParams = isSubItem
+                            ? `&ks=1&package_item_id=${(item as any)?.id || ''}&package_id=${(item as any)?.package_id || ''}`
+                            : '';
+                          url = `/personalize?bookid=${bookId}${ksParams}`;
+                        } else {
+                          url = '/shopping-cart';
+                        }
                         router.push(url);
                       }}
                     >

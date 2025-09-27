@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from '@/i18n/routing';
+import { usePathname, Link, useRouter } from '@/i18n/routing';
 import { useSearchParams } from 'next/navigation';
 import api from '@/utils/api';
-import { Link } from "@/i18n/routing";
+// Link 已从上方 i18n/routing 导入
 import { DetailedBook } from '@/types/book';
 import { IoIosArrowBack } from "react-icons/io";
 import { getWebSocketUrl } from '@/utils/wsConfig';
@@ -48,7 +48,12 @@ export default function PersonalizePage() {
   const bookId = searchParams.get('bookid');
   const langParam = searchParams.get('language') || 'en';
   const mockParam = searchParams.get('mock');
+  const isKs = searchParams.get('ks') === '1';
+  const ksPackageItemId = searchParams.get('package_item_id') || '';
+  const ksPackageId = searchParams.get('package_id') || '';
   const router = useRouter();
+  const pathname = usePathname();
+  const locale = pathname.split('/')[1] || 'en';
   const { user } = useUserStore();
 
   const [book, setBook] = useState<DetailedBook | null>(null);
@@ -211,7 +216,7 @@ export default function PersonalizePage() {
           skincolor: skinColorCode,
           hairstyle: hairstyleCode,
           haircolor: hairColorCode,
-          photo:     photoData.path,
+          photo:     (photoData as any).path,
           // 如果有多张图片，也保存所有图片路径
           ...(photosData.length > 0 && { photos: photosData }),
           ...(extras.dob ? { dob: extras.dob } : {}),
@@ -224,8 +229,13 @@ export default function PersonalizePage() {
     localStorage.setItem('previewUserData', JSON.stringify(userData));
     localStorage.setItem('previewBookId', bookId || '');
     
-    // 4. 立即跳转到预览页面
-    router.push(`/preview?bookid=${bookId || ''}`);
+    // 4. 立即跳转到预览页面（使用 i18n 路由）
+    const qs = new URLSearchParams();
+    if (bookId) qs.set('bookid', bookId);
+    if (isKs) qs.set('ks', '1');
+    if (isKs && ksPackageItemId) qs.set('package_item_id', ksPackageItemId);
+    if (isKs && ksPackageId) qs.set('package_id', ksPackageId);
+    router.push(`/preview?${qs.toString()}`);
   };
 
   if (loading) {
@@ -237,7 +247,7 @@ export default function PersonalizePage() {
       {/* 顶部导航栏 */}
       <div className="h-14 bg-white flex items-center px-4 sm:px-32">
         <div className="flex items-center justify-between w-full sm:hidden">
-          <Link href={`/books/${bookId}`} className="flex items-center text-gray-700 hover:text-blue-500">
+          <Link href={isKs ? `/shopping-cart` : `/books/${bookId}`} className="flex items-center text-gray-700 hover:text-blue-500">
             <IoIosArrowBack size={24} />
           </Link>
           <Link href="/" className="flex items-center justify-center flex-grow p-2">
@@ -251,10 +261,16 @@ export default function PersonalizePage() {
             />
           </Link>
         </div>
-        <Link href={`/books/${bookId}`} className="hidden sm:flex items-center text-sm">
-          <span className="mr-2">←</span> Back to the product page
+        <Link href={isKs ? `/shopping-cart` : `/books/${bookId}`} className="hidden sm:flex items-center text-sm">
+          <span className="mr-2">←</span> {isKs ? 'Back to the cart' : 'Back to the product page'}
         </Link>
       </div>
+
+      {isKs && (
+        <div className="h-12 px-4 sm:px-32 py-2 bg-[#FCF2F2] text-center text-xs sm:text-sm text-[#000000] flex items-center justify-center">
+          A book can only be regenerated 3 times per day. You still have 2 chances left.
+        </div>
+      )}
 
       {showModal && book?.character_count === 3 && (
         <div>Modal to choose SINGLE or DOUBLE</div>

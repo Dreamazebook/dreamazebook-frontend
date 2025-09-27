@@ -21,6 +21,8 @@ export interface Preview {
 
 export interface CartItem {
   id: number;
+  package_id?: number;
+  picbook_id?: number;
   picbook_cover: string;
   picbook_name: string;
   binding_type?: string;

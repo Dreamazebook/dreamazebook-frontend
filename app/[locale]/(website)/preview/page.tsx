@@ -504,6 +504,9 @@ export default function PreviewPageWithTopNav() {
     setEditField,
   } = useStore();
 
+  // KS 流程：通过查询参数关闭 Others 标签
+  const isKs = searchParams.get('ks') === '1';
+
   // 页面加载即尝试从 localStorage 预填 recipient，避免等待接口返回
   useEffect(() => {
     try {
@@ -1853,9 +1856,13 @@ export default function PreviewPageWithTopNav() {
           <div className="w-[95%] mx-auto">
             <TopNavBarWithTabs
               activeTab={activeTab}
-              onTabChange={setActiveTab}
+              onTabChange={(tab) => {
+                if (isKs && tab === 'Others') return;
+                setActiveTab(tab);
+              }}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
+              hideOthers={isKs}
             />
           </div>
         </div>
@@ -1924,12 +1931,14 @@ export default function PreviewPageWithTopNav() {
                     binding: !completedSections.binding,
                     wrap: !completedSections.giftBox
                   }, currentLang === 'zh' ? 'zh' : 'en')},{' '}
-                  <a
-                    className="underline cursor-pointer text-blue-600"
-                    onClick={() => setActiveTab('Others')}
-                  >
-                    Others
-                  </a>
+                  {!isKs && (
+                    <a
+                      className="underline cursor-pointer text-blue-600"
+                      onClick={() => setActiveTab('Others')}
+                    >
+                      Others
+                    </a>
+                  )}
                 </p>
               </div>
             )}

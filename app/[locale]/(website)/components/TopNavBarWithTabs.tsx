@@ -6,6 +6,7 @@ interface TopNavBarProps {
   onTabChange: (tab: 'Book preview' | 'Others') => void;
   viewMode: 'double' | 'single';
   onViewModeChange: (mode: 'double' | 'single') => void;
+  hideOthers?: boolean;
 }
 
 const UnderlineIcon = () => (
@@ -118,6 +119,7 @@ export default function TopNavBarWithTabs({
   onTabChange,
   viewMode,
   onViewModeChange,
+  hideOthers,
 }: TopNavBarProps) {
   return (
     <div
@@ -143,15 +145,17 @@ export default function TopNavBarWithTabs({
         </div>
 
         {/* Others 按钮 */}
-        <div className="relative">
-          <button
-            onClick={() => onTabChange('Others')}
-            className="relative z-10 text-sm font-medium text-black bg-transparent"
-          >
-            Others
-          </button>
-          {activeTab === 'Others' && <UnderlineIcon />}
-        </div>
+        {!hideOthers && (
+          <div className="relative">
+            <button
+              onClick={() => onTabChange('Others')}
+              className="relative z-10 text-sm font-medium text-black bg-transparent"
+            >
+              Others
+            </button>
+            {activeTab === 'Others' && <UnderlineIcon />}
+          </div>
+        )}
       </div>
 
       {/* 右侧单页/双页切换 */}
