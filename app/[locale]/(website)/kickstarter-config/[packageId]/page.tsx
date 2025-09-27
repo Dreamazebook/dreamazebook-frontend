@@ -166,7 +166,7 @@ export default function KickstarterConfigPage() {
                   <div key={idx} className="relative flex items-center w-12 h-16">
                     {b ? (
                       <>
-                        <div className="absolute top-2 left-1 w-[42px] h-[48px] rounded-[2px] border-[0.5px] bg-white overflow-hidden" style={inactiveShadowStyle}>
+                        <div className="absolute top-2 left-1 w-[42px] h-[48px] rounded-[2px] bg-white overflow-hidden" style={inactiveShadowStyle}>
                           <img src={b.default_cover} alt={b.default_name} className="w-full h-full object-cover" />
                         </div>
                         <button
