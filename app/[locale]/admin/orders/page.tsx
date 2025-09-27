@@ -21,21 +21,15 @@ import {
 } from './constants/orderConstants';
 
 const AdminOrdersPage: FC = () => {
-  const { orders, loading, error } = useOrdersData();
   const {
     searchTerm,
     setSearchTerm,
-    statusFilter,
-    setStatusFilter,
-    paymentStatusFilter,
-    setPaymentStatusFilter,
-    discountFilter,
-    setDiscountFilter,
-    regionFilter,
-    setRegionFilter,
-    dateRange,
-    setDateRange,
+    filters,
+    onFilterChange
   } = useOrdersFilters();
+
+  const { orders, loading, error } = useOrdersData(filters);
+
   const {
     currentPage,
     setCurrentPage,
@@ -51,9 +45,9 @@ const AdminOrdersPage: FC = () => {
     setShowDetailsModal(true);
   };
 
-  const totalOrders = 312;
+  const totalOrders = orders.length;
   const growthPercentage = 12;
-  const lastUpdated = '2025/03/12 12:34';
+  const lastUpdated = new Date().toLocaleString();
 
   if (loading) return <LoadingState />;
   if (error) return <ErrorState error={error} />;
@@ -66,16 +60,8 @@ const AdminOrdersPage: FC = () => {
         <OrdersStatistics totalOrders={totalOrders} growthPercentage={growthPercentage} />
         
         <OrdersFilters
-          dateRange={dateRange}
-          setDateRange={setDateRange}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          paymentStatusFilter={paymentStatusFilter}
-          setPaymentStatusFilter={setPaymentStatusFilter}
-          discountFilter={discountFilter}
-          setDiscountFilter={setDiscountFilter}
-          regionFilter={regionFilter}
-          setRegionFilter={setRegionFilter}
+          filters={filters}
+          onFilterChange={onFilterChange}
         />
         
         <OrdersTable

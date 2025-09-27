@@ -1,22 +1,10 @@
 'use client';
 
+import { AdminUser } from '@/types/api';
 import { FC } from 'react';
 
-interface User {
-  id: string;
-  name?: string;
-  email: string;
-  created_at: string;
-  updated_at: string;
-  region?: string;
-  source?: string;
-  satisfaction?: string;
-  order_count?: number;
-  total_spent?: number;
-}
-
 interface UsersTableProps {
-  users: User[];
+  users: AdminUser[];
   searchTerm: string;
   setSelectedUser: Function;
 }
@@ -64,25 +52,22 @@ const UsersTable: FC<UsersTableProps> = ({ users, searchTerm, setSelectedUser })
                 邮箱
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                地区
+                角色
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                下单次数
+                注册时间
                 <svg className="inline w-4 h-4 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                 </svg>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                累计消费金额
+                最后登录时间
                 <svg className="inline w-4 h-4 ml-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                 </svg>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                注册来源
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                满意度
+                注册IP
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 操作
@@ -105,25 +90,16 @@ const UsersTable: FC<UsersTableProps> = ({ users, searchTerm, setSelectedUser })
                   {user.email}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {user.region}
+                  {user.roles?.map(role => role.name).join(', ') || 'N/A'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {user.order_count}
+                  {user.created_at}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {user.total_spent}
+                  {user.last_login_at}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {user.source}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                    user.satisfaction === '满意' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {user.satisfaction}
-                  </span>
+                  {user.last_login_ip}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <button onClick={() => setSelectedUser(user)} className="text-blue-600 hover:text-blue-900 transition-colors">

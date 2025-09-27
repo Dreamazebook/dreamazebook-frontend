@@ -9,24 +9,26 @@ interface DateRange {
 
 export const useOrdersFilters = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
-  const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('');
-  const [discountFilter, setDiscountFilter] = useState<string>('');
-  const [regionFilter, setRegionFilter] = useState<string>('');
-  const [dateRange, setDateRange] = useState<DateRange>({ start: '', end: '' });
+  const [filters, setFilters] = useState({
+    statusFilter: '',
+    paymentStatus: '',
+    discountFilter: '',
+    regionFilter: '',
+    dateRange: { start: '', end: '' },
+  });
+
+  const onFilterChange = {
+    setStatusFilter: (status: string) => setFilters({ ...filters, statusFilter: status }),
+    setPaymentStatusFilter: (status: string) => setFilters({ ...filters, paymentStatus: status }),
+    setDiscountFilter: (filter: string) => setFilters({ ...filters, discountFilter: filter }),
+    setRegionFilter: (region: string) => setFilters({ ...filters, regionFilter: region }),
+    setDateRange: (range: DateRange) => setFilters({ ...filters, dateRange: range }),
+  };
 
   return {
     searchTerm,
     setSearchTerm,
-    statusFilter,
-    setStatusFilter,
-    paymentStatusFilter,
-    setPaymentStatusFilter,
-    discountFilter,
-    setDiscountFilter,
-    regionFilter,
-    setRegionFilter,
-    dateRange,
-    setDateRange,
+    filters,
+    onFilterChange,
   };
 };

@@ -7,23 +7,32 @@ interface DateRange {
   end: string;
 }
 
+interface UserFilters {
+  searchTerm: string;
+  dateRange: DateRange;
+  regionFilter: string;
+  sourceFilter: string;
+  satisfactionFilter: string;
+  role: string;
+}
+
 export const useUsersFilters = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [dateRange, setDateRange] = useState<DateRange>({ start: '', end: '' });
-  const [regionFilter, setRegionFilter] = useState('');
-  const [sourceFilter, setSourceFilter] = useState('');
-  const [satisfactionFilter, setSatisfactionFilter] = useState('');
+  const [filters, setFilters] = useState<UserFilters>({
+    searchTerm: '',
+    dateRange: { start: '', end: '' },
+    regionFilter: '',
+    sourceFilter: '',
+    satisfactionFilter: '',
+    role: ''
+  });
+
+  const updateFilter = <K extends keyof UserFilters>(key: K, value: UserFilters[K]) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
 
   return {
-    searchTerm,
-    setSearchTerm,
-    dateRange,
-    setDateRange,
-    regionFilter,
-    setRegionFilter,
-    sourceFilter,
-    setSourceFilter,
-    satisfactionFilter,
-    setSatisfactionFilter,
+    filters,
+    setFilters,
+    updateFilter
   };
 };

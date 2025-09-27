@@ -33,8 +33,13 @@ export const API_COUNTRY_LIST = API_DOMAIN + '/shipping/countries';
 export const API_CREATE_STRIPE_PAYMENT = API_DOMAIN + '/stripe/create-payment-intent'
 
 
-export const API_ADMIN_LOGIN = API_DOMAIN + '/admin/login'
-export const API_ADMIN_USERS = API_DOMAIN + '/admin/users'
+export const API_ADMIN_LOGIN = API_DOMAIN + '/admin/login';
+
+export const API_ADMIN_USERS = API_DOMAIN + '/admin/users';
+export const API_ADMIN_ROLES = API_DOMAIN + '/admin/roles';
+export const API_ADMIN_ASSIGN_USER_ROLES = (userId: number) => `${API_DOMAIN}/admin/user-roles/${userId}/roles`;
+export const API_ADMIN_PERMISSIONS = API_DOMAIN + '/admin/permissions';
+
 export const API_ADMIN_ORDERS = API_DOMAIN + '/admin/orders'
 export const API_ADMIN_PICBOOKS = API_DOMAIN + '/admin/picbooks'
 export const API_ADMIN_PICBOOK_DETAIL = (id: string | number) => `${API_ADMIN_PICBOOKS}/${id}`

@@ -8,29 +8,25 @@ interface DateRange {
 }
 
 interface OrdersFiltersProps {
-  dateRange: DateRange;
-  setDateRange: (range: DateRange) => void;
-  statusFilter: string;
-  setStatusFilter: (status: string) => void;
-  paymentStatusFilter: string;
-  setPaymentStatusFilter: (status: string) => void;
-  discountFilter: string;
-  setDiscountFilter: (filter: string) => void;
-  regionFilter: string;
-  setRegionFilter: (region: string) => void;
+  filters: {
+    dateRange: DateRange;
+    statusFilter: string;
+    paymentStatus: string;
+    discountFilter: string;
+    regionFilter: string;
+  };
+  onFilterChange: {
+    setDateRange: (range: DateRange) => void;
+    setStatusFilter: (status: string) => void;
+    setPaymentStatusFilter: (status: string) => void;
+    setDiscountFilter: (filter: string) => void;
+    setRegionFilter: (region: string) => void;
+  };
 }
 
 const OrdersFilters: FC<OrdersFiltersProps> = ({
-  dateRange,
-  setDateRange,
-  statusFilter,
-  setStatusFilter,
-  paymentStatusFilter,
-  setPaymentStatusFilter,
-  discountFilter,
-  setDiscountFilter,
-  regionFilter,
-  setRegionFilter,
+  filters,
+  onFilterChange,
 }) => {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
@@ -40,16 +36,16 @@ const OrdersFilters: FC<OrdersFiltersProps> = ({
         <div className="flex items-center space-x-2">
           <input
             type="date"
-            value={dateRange.start}
-            onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+            value={filters.dateRange.start}
+            onChange={(e) => onFilterChange.setDateRange({ ...filters.dateRange, start: e.target.value })}
             className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="开始日期"
           />
           <span className="text-gray-500 text-sm">至</span>
           <input
             type="date"
-            value={dateRange.end}
-            onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+            value={filters.dateRange.end}
+            onChange={(e) => onFilterChange.setDateRange({ ...filters.dateRange, end: e.target.value })}
             className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="结束日期"
           />
@@ -61,8 +57,8 @@ const OrdersFilters: FC<OrdersFiltersProps> = ({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">订单状态：</label>
           <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            value={filters.statusFilter}
+            onChange={(e) => onFilterChange.setStatusFilter(e.target.value)}
             className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">全部</option>
@@ -80,8 +76,8 @@ const OrdersFilters: FC<OrdersFiltersProps> = ({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">支付状态：</label>
           <select
-            value={paymentStatusFilter}
-            onChange={(e) => setPaymentStatusFilter(e.target.value)}
+            value={filters.paymentStatus}
+            onChange={(e) => onFilterChange.setPaymentStatusFilter(e.target.value)}
             className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">全部</option>
@@ -96,8 +92,8 @@ const OrdersFilters: FC<OrdersFiltersProps> = ({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">实付金额：</label>
           <select
-            value={discountFilter}
-            onChange={(e) => setDiscountFilter(e.target.value)}
+            value={filters.discountFilter}
+            onChange={(e) => onFilterChange.setDiscountFilter(e.target.value)}
             className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">全部</option>
@@ -111,8 +107,8 @@ const OrdersFilters: FC<OrdersFiltersProps> = ({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">收货地区：</label>
           <select
-            value={regionFilter}
-            onChange={(e) => setRegionFilter(e.target.value)}
+            value={filters.regionFilter}
+            onChange={(e) => onFilterChange.setRegionFilter(e.target.value)}
             className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">全部</option>
@@ -127,26 +123,14 @@ const OrdersFilters: FC<OrdersFiltersProps> = ({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">折扣码：</label>
           <select
-            value={discountFilter}
-            onChange={(e) => setDiscountFilter(e.target.value)}
+            value={filters.discountFilter}
+            onChange={(e) => onFilterChange.setDiscountFilter(e.target.value)}
             className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">全部</option>
             <option value="SSJDUI">SSJDUI</option>
             <option value="DFGFXI">DFGFXI</option>
           </select>
-        </div>
-      </div>
-
-      {/* Search and Action Buttons */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
-            查询
-          </button>
-          <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 text-sm">
-            搜索
-          </button>
         </div>
       </div>
     </div>
