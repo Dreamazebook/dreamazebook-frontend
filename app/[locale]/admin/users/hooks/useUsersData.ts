@@ -18,17 +18,26 @@ interface User {
   total_spent?: number;
 }
 
-export const useUsersData = () => {
+export const useUsersData = (filters:any) => {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [roles, setRoles] = useState<Role[]>([]);
 
+  const getAdminUsersAPI = () => {
+    const {role} = filters;
+    let result = API_ADMIN_USERS+'?';
+    if (role) {
+      result += `role=${role}`;
+    }
+    return result
+  }
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await api.get<ApiResponse<AdminUser[]>>(API_ADMIN_USERS);
+        const response = await api.get<ApiResponse<AdminUser[]>>(getAdminUsersAPI());
         if (response.success && response.data) {
           setUsers(response.data);
         } else {
@@ -49,7 +58,7 @@ export const useUsersData = () => {
     };
 
     fetchUsers();
-  }, []);
+  }, [filters]);
 
   return { users, loading, error, setUsers, roles };
 };

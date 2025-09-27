@@ -13,19 +13,8 @@ import ErrorState from '../orders/components/ErrorState';
 import UserDetailModal from './components/UserDetailModal';
 
 const AdminUsersPage: FC = () => {
-  const { users, loading, error, roles } = useUsersData();
-  const {
-    searchTerm,
-    setSearchTerm,
-    dateRange,
-    setDateRange,
-    regionFilter,
-    setRegionFilter,
-    sourceFilter,
-    setSourceFilter,
-    satisfactionFilter,
-    setSatisfactionFilter,
-  } = useUsersFilters();
+  const { filters, updateFilter } = useUsersFilters();
+  const { users, loading, error, roles } = useUsersData(filters);
   const {
     currentPage,
     setCurrentPage,
@@ -50,19 +39,12 @@ const AdminUsersPage: FC = () => {
 
       <div className="px-6 py-6">
         <UsersFilters
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          dateRange={dateRange}
-          setDateRange={setDateRange}
-          regionFilter={regionFilter}
-          setRegionFilter={setRegionFilter}
-          sourceFilter={sourceFilter}
-          setSourceFilter={setSourceFilter}
-          satisfactionFilter={satisfactionFilter}
-          setSatisfactionFilter={setSatisfactionFilter}
+          filters={filters}
+          updateFilter={updateFilter}
+          roles={roles}
         />
         
-        <UsersTable users={users} searchTerm={searchTerm} setSelectedUser={setSelectedUser} />
+        <UsersTable users={users} searchTerm={filters.searchTerm} setSelectedUser={setSelectedUser} />
         
         <UsersPagination
           totalUsers={users.length}
