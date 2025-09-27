@@ -148,22 +148,37 @@ export default function CartItemCard({
               
               <div className="flex items-center justify-between gap-4">
 
-                {showEditBook &&
-                <a
-                  className="text-sm text-blue-600 hover:underline mt-2 cursor-pointer"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (handleClickEditMessage) {
-                      handleClickEditMessage(item);
-                    } else {
-                      const url = `/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit`;
-                      console.log('CartItemList - Navigating to:', url);
-                      router.push(url);
-                    }
-                  }}
-                >
-                  Edit Book
-                </a>}
+                {showEditBook && (
+                  item.preview && item.preview_id ? (
+                    <a
+                      className="text-sm text-blue-600 hover:underline mt-2 cursor-pointer"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (handleClickEditMessage) {
+                          handleClickEditMessage(item);
+                        } else {
+                          const url = `/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit`;
+                          router.push(url);
+                        }
+                      }}
+                    >
+                      Edit Book
+                    </a>
+                  ) : (
+                    <a
+                      className="text-sm text-blue-600 hover:underline mt-2 cursor-pointer"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        // 无预览则去创建
+                        const bookId = item.preview?.picbook_id || (item.picbook as any)?.id;
+                        const url = `/personalize?bookid=${bookId}`;
+                        router.push(url);
+                      }}
+                    >
+                      Create Book
+                    </a>
+                  )
+                )}
                 
                 {onQuantityChange && 
                 <div className="flex items-center border rounded-md">
@@ -206,7 +221,7 @@ export default function CartItemCard({
           {item.subItems && item.subItems.length > 0 && (
             <div className="mt-3">
               {item.subItems.map((sub, idx) => (
-                <CartItemCard key={sub.id} item={sub} isSubItem={true} />
+                <CartItemCard key={sub.id} item={sub} isSubItem={true} showEditBook={true} />
               ))}
             </div>
           )}

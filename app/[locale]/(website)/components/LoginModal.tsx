@@ -8,7 +8,7 @@ import Button from '@/app/components/Button'
 import Input from '@/app/components/common/Input'
 
 export default function LoginModal() {
-  const { isLoginModalOpen, closeLoginModal, register, login, loginAdmin, sendResetPasswordLink, postLoginRedirect, setPostLoginRedirect } = useUserStore()
+  const { isLoginModalOpen, closeLoginModal, register, login, loginAdmin, sendResetPasswordLink, postLoginRedirect, setPostLoginRedirect, checkKickstarterStatus } = useUserStore()
   const [name, setName] = useState('');
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -50,6 +50,8 @@ export default function LoginModal() {
       }
       const response = await login(userData);
       if (response?.success) {
+        // 登录成功后检查Kickstarter套餐
+        checkKickstarterStatus();
         const redirectUrl = searchParams.get('redirect') || postLoginRedirect;
         closeLoginModal();
         setPostLoginRedirect(null);

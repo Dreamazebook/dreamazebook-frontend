@@ -6,7 +6,7 @@ import { useRouter, usePathname } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
-import { API_CART_LIST, API_CART_REMOVE, API_CART_UPDATE, API_ORDER_CREATE } from '@/constants/api';
+import { API_CART_LIST, API_CART_REMOVE, API_CART_UPDATE, API_ORDER_CREATE, API_KS_PACKAGE_STATUS } from '@/constants/api';
 import { CartItem, CartItems } from './components/types';
 
 // 导入组件
@@ -33,9 +33,41 @@ export default function ShoppingCartPage() {
       try {
         const { data, message, success, code } = await api.get<ApiResponse<CartItems>>(API_CART_LIST);
         if (data?.cart_items) {
-          setCartItems(data.cart_items);
-          // 默认全选所有商品
-          setSelectedItems(data.cart_items.map(item => item.id));
+          // 为每个 package 拉取其 items 作为子项，便于显示 Create/Edit Book
+          const augmented = await Promise.all(
+            data.cart_items.map(async (item: any) => {
+              if (item.item_type === 'package' && item.package_id) {
+                try {
+                  const status = await api.get<any>(API_KS_PACKAGE_STATUS(item.package_id));
+                  const packageItems = status?.data?.package_items || [];
+                  const progress = status?.data?.progress || {};
+                  const pendingCount = packageItems.filter((pi:any)=>pi.config_status === 'pending').length;
+                  const subItems = packageItems.map((pi: any) => ({
+                    id: pi.id,
+                    item_type: 'package_item',
+                    picbook_cover: pi.picbook?.default_cover,
+                    picbook_name: pi.picbook?.default_name,
+                    price: 0,
+                    quantity: 1,
+                    total_price: 0,
+                    preview_id: pi.preview_id,
+                    preview: pi.preview, // 可能为 null
+                    status: pi.config_status,
+                    created_at: pi.created_at,
+                    updated_at: pi.updated_at,
+                    picbook: pi.picbook,
+                    message: '',
+                  }));
+                  return { ...item, subItems, ks_pending: pendingCount > 0 || (progress.configured_items ?? 0) < (progress.total_items ?? 0), ks_progress: progress };
+                } catch (e) {
+                  return item;
+                }
+              }
+              return item;
+            })
+          );
+          setCartItems(augmented as any);
+          setSelectedItems(augmented.map((item:any) => item.id));
         }
       } catch (err) {
         console.error('Failed to fetch carts:', err);

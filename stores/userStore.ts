@@ -1,4 +1,4 @@
-import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT, API_USER_SEND_PASSWORD_RESET_EMAIL, API_ADDRESS_LIST, API_ADMIN_LOGIN, API_ORDER_LIST, API_ORDER_DETAIL, API_COUNTRY_LIST } from '@/constants/api'
+import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT, API_USER_SEND_PASSWORD_RESET_EMAIL, API_ADDRESS_LIST, API_ADMIN_LOGIN, API_ORDER_LIST, API_ORDER_DETAIL, API_COUNTRY_LIST, API_CART_LIST } from '@/constants/api'
 import api from '@/utils/api'
 import { ApiResponse, UserResponse } from '@/types/api'
 import { create } from 'zustand'
@@ -34,6 +34,12 @@ interface UserState {
   logout: () => void
   fetchCurrentUser: () => void
   sendResetPasswordLink: (email: string) => Promise<boolean>
+
+  // Kickstarter welcome modal
+  showKickstarterWelcome: boolean
+  ksSummary: KickstarterUserSummary | null
+  checkKickstarterStatus: () => Promise<void>
+  closeKickstarterWelcome: () => void
 }
 
 type UserType = {
@@ -53,6 +59,14 @@ type RegisterData = {
   email: string
   password: string
   password_confirmation: string
+}
+
+type KickstarterUserSummary = {
+  has_package: boolean
+  package_id?: number
+  configured_items?: number
+  total_items?: number
+  need_attention?: boolean
 }
 
 const useUserStore = create<UserState>((set,get) => ({
@@ -118,6 +132,55 @@ const useUserStore = create<UserState>((set,get) => ({
     } catch (error) {
       console.error('Send reset password link error:', error);
       return false;
+    }
+  },
+  // Kickstarter welcome modal state
+  showKickstarterWelcome: false,
+  ksSummary: null,
+  closeKickstarterWelcome: () => set({ showKickstarterWelcome: false }),
+  checkKickstarterStatus: async () => {
+    try {
+      // 复用购物车接口，查找是否有套餐型条目
+      const { data, success } = await api.get<ApiResponse<any>>(API_CART_LIST);
+      console.log('[KS] cart/list success:', success, 'data keys:', Object.keys(data || {}));
+      if (!success || !data) return;
+
+      const items = (data as any).cart_items || [];
+      console.log('[KS] cart_items length:', items.length, items);
+      const packages = items.filter((it: any) => it?.item_type === 'package');
+      console.log('[KS] found packages:', packages?.length);
+
+      if (packages && packages.length > 0) {
+        const evaluate = (p: any) => {
+          const configured = p.configured_items ?? p.package?.configured_items;
+          const total = p.package?.book_count ?? p.total_items;
+          const status = p.package_status || p.package?.status;
+          const needByCount = (typeof configured === 'number' && typeof total === 'number') ? configured < total : undefined;
+          const need = typeof needByCount === 'boolean' ? needByCount : (status ? status !== 'configured' : true);
+          return { configured, total, status, need };
+        };
+
+        // 优先选择任意“未完成”的套餐
+        const pendingPkg = packages.find((p: any) => evaluate(p).need);
+        const target = pendingPkg || packages[0];
+        const { configured, total, need, status } = evaluate(target);
+        const packageId = target.package_id || target.package?.id || target.packageId;
+
+        const summary: KickstarterUserSummary = {
+          has_package: true,
+          package_id: packageId,
+          configured_items: configured,
+          total_items: total,
+          need_attention: !!pendingPkg, // 只有存在未完成的才弹
+        };
+        console.log('[KS] summary(multi):', summary, 'status:', status);
+        set({ ksSummary: summary, showKickstarterWelcome: !!pendingPkg });
+      } else {
+        set({ ksSummary: { has_package: false }, showKickstarterWelcome: false });
+      }
+    } catch (error) {
+      // 静默失败，不影响正常流程
+      console.error('Check Kickstarter status error:', error);
     }
   },
   register: async (userData): Promise<ApiResponse<UserResponse> | null> => {

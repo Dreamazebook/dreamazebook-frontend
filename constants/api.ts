@@ -41,3 +41,9 @@ export const API_ADMIN_PICBOOK_DETAIL = (id: string | number) => `${API_ADMIN_PI
 
 export const API_PICBOOKS = API_DOMAIN + '/picbooks'
 export const API_PICBOOK_DETAIL = (id: string | number) => `${API_PICBOOKS}/${id}`
+
+// Kickstarter
+export const API_KS_PACKAGES = API_DOMAIN + '/kickstarter-packages'
+export const API_KS_PACKAGE_STATUS = (id: string | number) => `${API_KS_PACKAGES}/${id}/status`
+export const API_KS_ITEM_PICBOOK = (itemId: string | number) => `${API_KS_PACKAGES}/items/${itemId}/picbook`
+export const API_KS_ITEM_OPTIONS = (itemId: string | number) => `${API_KS_PACKAGES}/items/${itemId}/options`
