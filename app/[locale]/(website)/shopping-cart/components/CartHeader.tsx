@@ -9,7 +9,7 @@ export default function CartHeader() {
   return (
     <div className="flex justify-between items-center">
       <h1 className="text-3xl">{t('shoppingCart')}</h1>
-      <Link href="/picbooks" className="text-[#222222]">
+      <Link href="/books" className="text-[#222222]">
         {t('continueShopping')} &rarr;
       </Link>
     </div>

@@ -81,7 +81,7 @@ export default function CartItemCard({
   return (
     <div className={`bg-white ${!isPackage ? 'w-full h-[120px] pl-3 opacity-100 rounded' : ''}`}>
       <div className={`flex ${isPackage ? 'items-start' : 'items-center'} gap-3 ${!isPackage ? 'h-full relative' : ''}`}>
-        {(onToggleSelect && selectedItems) && 
+        {(onToggleSelect && selectedItems && !isPackage) && 
         <div className={`relative inline-block h-6 w-6 ${isPackage ? 'mt-1' : ''}`}>
           <span onClick={()=>onToggleSelect(item.id)} className={`absolute top-0 left-0 h-6 w-6 rounded-full border-2 ${selectedItems.includes(item.id) ? 'bg-[#012CCE]' : 'border-gray-300'} transition-colors duration-200 flex items-center justify-center`}>
             {selectedItems.includes(item.id) && (
@@ -104,7 +104,7 @@ export default function CartItemCard({
               />
             </div>
             
-            <div className="w-[576px] h-[120px] flex flex-col gap-[12px] pt-4 pr-6 pb-4 pl-6 opacity-100 box-border">
+            <div className="w-full h-[120px] flex flex-col gap-[12px] pt-4 pr-6 pb-4 pl-6 opacity-100 box-border">
               <div className='flex justify-between items-center'>
                 <h3 className="font-bold">{item.picbook_name}</h3>
                 <div className='flex items-center gap-3'>
@@ -236,7 +236,20 @@ export default function CartItemCard({
           :
           <div className="flex flex-col gap-3">
             <div className="flex justify-between gap-3 w-[712px] h-10 pt-4 pl-3 opacity-100">
-              <img src="/covers/ks.png" alt="KICKSTARTER" className="h-4 object-contain" />
+              <div className="flex items-center gap-2">
+                {(onToggleSelect && selectedItems) && (
+                  <div className="relative inline-block h-6 w-6">
+                    <span onClick={()=>onToggleSelect(item.id)} className={`absolute top-0 left-0 h-6 w-6 rounded-full border-2 ${selectedItems.includes(item.id) ? 'bg-[#012CCE]' : 'border-gray-300'} transition-colors duration-200 flex items-center justify-center`}>
+                      {selectedItems.includes(item.id) && (
+                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </span>
+                  </div>
+                )}
+                <img src="/covers/ks.png" alt="KICKSTARTER" className="h-4 object-contain" />
+              </div>
             </div>
             {(item.ks_pending || item.subItems?.length === 0) && item.package_id && (
               <KickstarterInlineCard packageId={item.package_id} />

@@ -129,7 +129,7 @@
       "receiveBooks": "receive books"
     },
     "orderSummary": {
-      "title": "Order Summary",
+        "title": "summary",
       "subtotal": "Subtotal",
       "shipping": "Shipping",
       "discount": "Discount",
