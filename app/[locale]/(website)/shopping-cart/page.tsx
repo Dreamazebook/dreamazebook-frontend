@@ -22,6 +22,7 @@ export default function ShoppingCartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [discount, setDiscount] = useState(0);
+  const [mobileSummaryOpen, setMobileSummaryOpen] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
   const locale = pathname.split('/')[1];
@@ -260,16 +261,16 @@ export default function ShoppingCartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F8F8]">
+    <div className="min-h-screen bg-[#F8F8F8] pb-40 md:pb-0">
       <div className="w-full">
         {error && (
           <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
             {error}
           </div>
         )}
-        <div className="flex gap-6 w-full">
+        <div className="flex w-full">
           <div className="w-full opacity-100 flex flex-col gap-6">
-            <div className="w-full" style={{ height: '108px', padding: '48px 64px 24px 120px', boxSizing: 'border-box' }}>
+            <div className="w-full hidden md:block" style={{ height: '108px', padding: '48px 64px 24px 120px', boxSizing: 'border-box' }}>
               <CartHeader />
             </div>
             {cartItems.length === 0 ? (
@@ -279,7 +280,7 @@ export default function ShoppingCartPage() {
                 </div>
               </div>
             ) : (
-              <div className="w-full box-border flex flex-col gap-[12px] pr-[64px] pb-[64px] pl-[120px] opacity-100">
+              <div className="w-full box-border flex flex-col gap-[12px] pr-[16px] pl-[16px] md:pr-[64px] md:pb-[64px] md:pl-[120px] opacity-100">
                 <CartItemList
                   items={cartItems}
                   selectedItems={selectedItems}
@@ -319,7 +320,7 @@ export default function ShoppingCartPage() {
             )}
           </div>
           
-          <div className="bg-white w-[544px] relative pt-[64px] pr-[120px] pb-[64px] pl-[64px] flex flex-col gap-[10px] opacity-100 ml-auto min-h-screen">
+          <div className="hidden md:flex bg-white w-[544px] relative pt-[64px] pr-[120px] pb-[64px] pl-[64px] flex-col gap-[10px] opacity-100 ml-auto min-h-screen">
             <div className="bg-white w-[360px] rounded sticky top-4 right-0 flex flex-col opacity-100 gap-4">
               <h2 className="text-3xl font-normal">{t('orderSummary')}</h2>
               
@@ -402,6 +403,104 @@ export default function ShoppingCartPage() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+      {/* Mobile bottom summary sheet */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white rounded z-50">
+        <div className="max-w-screen-md mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            {!mobileSummaryOpen && <p className="text-base font-normal">{t('total')}</p>}
+            {!mobileSummaryOpen && (
+              <button
+                aria-label="toggle-summary"
+                onClick={() => setMobileSummaryOpen(true)}
+                className="flex items-center gap-2"
+              >
+                <span className="font-md text-lg">${total.toFixed(2)}</span>
+                <svg className={`w-5 h-5 transition-transform`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+            )}
+          </div>
+          {!mobileSummaryOpen && (
+            <div className="mt-2">
+              <button
+                onClick={handleCheckout}
+                disabled={selectedItems.length === 0 || checkoutLoading}
+                className="w-full py-3 cursor-pointer bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-400 flex items-center justify-center gap-2"
+              >
+                {checkoutLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    {t('processing')}
+                  </>
+                ) : (
+                  'Checkout'
+                )}
+              </button>
+            </div>
+          )}
+          {mobileSummaryOpen && (
+            <div className="mt-3 space-y-3">
+              <div className="border-b border-[#E5E5E5] pb-4">
+                <h2 className="text-3xl font-normal mb-4">{t('orderSummary')}</h2>
+                <p className="text-md font-medium">{t('haveCouponCode')}</p>
+                <p className="text-[#666666] text-md">25% off with code: BLACKFRIDAY</p>
+                <CouponInput onApply={handleApplyCoupon} />
+              </div>
+
+              <div className="space-y-3 text-[#666666]">
+                <div className="flex justify-between">
+                  <p className="text-[#666666]">{t('subtotal')} ({selectedItems.length} {t('items')})</p>
+                  <p>${subtotal.toFixed(2)}</p>
+                </div>
+                <div className="flex justify-between">
+                  <p className="text-[#666666]">{t('shipping')}</p>
+                  <p>${shipping.toFixed(2)}</p>
+                </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-[#666666]">
+                    <p>{t('discount')}</p>
+                    <p>-${discount.toFixed(2)}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-[#E5E5E5] pt-3 flex items-center justify-between mb-6">
+                <p className='font-normal'>{t('total')}</p>
+                <div className="flex items-center gap-2">
+                  <p className='font-md text-lg'>${total.toFixed(2)}</p>
+                  <button aria-label="toggle-summary" onClick={() => setMobileSummaryOpen(false)} className="p-1">
+                    <svg className={`w-5 h-5 transition-transform rotate-180`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <button
+                onClick={handleCheckout}
+                disabled={selectedItems.length === 0 || checkoutLoading}
+                className="w-full py-3 cursor-pointer bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-400 flex items-center justify-center gap-2"
+              >
+                {checkoutLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    {t('processing')}
+                  </>
+                ) : (
+                  'Checkout'
+                )}
+              </button>
+            </div>
+          )}
         </div>
       </div>
       <ConfirmModal
