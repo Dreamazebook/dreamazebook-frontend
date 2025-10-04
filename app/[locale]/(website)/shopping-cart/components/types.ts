@@ -41,6 +41,8 @@ export interface CartItem {
   updated_at: string;
   item_type?: string;
   picbook: Pickbook;
+  ks_pending?: boolean;
+  ks_progress?: any;
   remaining_previews?: {
     max_previews_per_day: number;
     used_previews_today: number;

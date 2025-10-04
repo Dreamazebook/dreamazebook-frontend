@@ -15,6 +15,7 @@ import CouponInput from './components/CouponInput';
 import CartItemList from './components/CartItemList';
 import Loading from '../components/Loading';
 import ConfirmModal from '../components/component/ConfirmModal';
+import useUserStore from '@/stores/userStore';
 
 export default function ShoppingCartPage() {
   const t = useTranslations('ShoppingCart');
@@ -24,6 +25,7 @@ export default function ShoppingCartPage() {
   const router = useRouter();
   const pathname = usePathname();
   const locale = pathname.split('/')[1];
+  const { checkKickstarterStatus } = useUserStore();
 
   // 记录被选中的书本 ID，只有被选中的书才会结账
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
@@ -79,6 +81,8 @@ export default function ShoppingCartPage() {
     };
 
     fetchCartList();
+    // 同步检查 Kickstarter 套餐状态（用于控制卡片显示）
+    checkKickstarterStatus();
   }, []);
 
   const handleToggleSelectItem = (id: number) => {

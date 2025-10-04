@@ -6,6 +6,7 @@ import { CartItem as CartItemType, Preview } from './types';
 import DisplayPrice from '../../components/component/DisplayPrice';
 import { Link, useRouter } from '@/i18n/routing';
 import { useEffect, useState } from 'react';
+import KickstarterInlineCard from './KickstarterInlineCard';
 
 interface CartItemProps {
   showEditBook?: boolean;
@@ -77,7 +78,7 @@ export default function CartItemCard({
   };
   
   return (
-    <div className={`bg-white ${isSubItem ? 'p-4' : 'rounded p-4 shadow-sm'}`}>
+    <div className={`bg-white ${isSubItem ? 'p-4' : 'rounded p-4'}`}>
       <div className="flex items-start gap-3">
         {(onToggleSelect && selectedItems) && 
         <div className="relative inline-block h-6 w-6 mt-1">
@@ -218,9 +219,13 @@ export default function CartItemCard({
             </div>
           </div>
           :
-          <div className="flex justify-between gap-4">
-            <span>KICKSTARTER package</span>
-            {/* <DisplayPrice value={item.total_price} discount={item.discount_price} style='text-[#222222] font-bold' /> */}
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-between gap-3 w-[712px] h-10 pt-4 pl-3 opacity-100">
+              <img src="/covers/ks.png" alt="KICKSTARTER" className="h-4 object-contain" />
+            </div>
+            {(item.ks_pending || item.subItems?.length === 0) && item.package_id && (
+              <KickstarterInlineCard packageId={item.package_id} />
+            )}
           </div>
           }
 
