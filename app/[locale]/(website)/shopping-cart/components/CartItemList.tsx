@@ -28,7 +28,7 @@ const CartItemList: React.FC<CartItemListProps> = ({
   onClickEditBook,
 }) => {
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {items.map(item => (
         <CartItemCard key={item.id} item={item} showEditBook={true} selectedItems={selectedItems} onQuantityChange={onQuantityChange} onRemoveItem={onRemoveItem} onToggleSelect={onToggleSelect} handleClickEditMessage={onClickEditBook as any} />
       ))}

@@ -19,7 +19,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
 
   return (
     <div className="bg-gray-50 p-6 rounded sticky top-4 right-0 z-0">
-      <h3 className="text-lg font-medium mb-4">Order Summary</h3>
+      <h3 className="text-lg font-medium mb-4">Summary</h3>
       
       <div className="space-y-4 mb-6">
         {order?.items?.map((item) => (

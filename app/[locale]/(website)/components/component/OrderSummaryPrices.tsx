@@ -16,11 +16,11 @@ const OrderSummaryPrices = ({orderDetail}:OrderSummaryPricesProps) => {
   return (
     <div className="border-t border-gray-200 pt-4 space-y-2">
       <div className="flex justify-between text-sm">
-        <p>Subtotal ({numberItems} {numberItems > 1 ? 'items' : 'item'})</p>
+        <p className="text-[#666666]">Subtotal ({numberItems} {numberItems > 1 ? 'items' : 'item'})</p>
         <DisplayPrice value={subtotal} />
       </div>
       <div className="flex justify-between text-sm">
-        <p>Shipping</p>
+        <p className="text-[#666666]">Shipping</p>
         <DisplayPrice value={shippingCost} />
       </div>
       {discount > 0 && (
@@ -29,7 +29,7 @@ const OrderSummaryPrices = ({orderDetail}:OrderSummaryPricesProps) => {
           <DisplayPrice value={-discount} />
         </div>
       )}
-      <div className="flex justify-between text-base font-medium pt-2 border-t border-gray-200">
+      <div className="flex justify-between text-base pt-2 border-t border-gray-200">
         <p>Total</p>
         <DisplayPrice value={total} />
       </div>

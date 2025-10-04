@@ -34,6 +34,7 @@ export default function CartItemCard({
 
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState<string | null>(null);
+  const isPackage = item.item_type === 'package';
 
   useEffect(()=>{
     checkAndShowCountdown(item.created_at);
@@ -78,10 +79,10 @@ export default function CartItemCard({
   };
   
   return (
-    <div className={`bg-white ${isSubItem ? 'p-4' : 'rounded p-4'}`}>
-      <div className="flex items-start gap-3">
+    <div className={`bg-white ${!isPackage ? 'w-full h-[120px] pl-3 opacity-100 rounded' : ''}`}>
+      <div className={`flex ${isPackage ? 'items-start' : 'items-center'} gap-3 ${!isPackage ? 'h-full relative' : ''}`}>
         {(onToggleSelect && selectedItems) && 
-        <div className="relative inline-block h-6 w-6 mt-1">
+        <div className={`relative inline-block h-6 w-6 ${isPackage ? 'mt-1' : ''}`}>
           <span onClick={()=>onToggleSelect(item.id)} className={`absolute top-0 left-0 h-6 w-6 rounded-full border-2 ${selectedItems.includes(item.id) ? 'bg-[#012CCE]' : 'border-gray-300'} transition-colors duration-200 flex items-center justify-center`}>
             {selectedItems.includes(item.id) && (
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -94,7 +95,7 @@ export default function CartItemCard({
         
         <div className="flex-1">
           {(item.item_type !== 'package') ?
-          <div className="flex items-start gap-4">
+          <div className="flex items-center gap-4 h-full relative">
             <div className="w-20 h-22 rounded overflow-hidden">
               <img 
                 src={item.picbook_cover} 
@@ -103,13 +104,11 @@ export default function CartItemCard({
               />
             </div>
             
-            <div className="flex-1 space-y-2">
+            <div className="w-[576px] h-[120px] flex flex-col gap-[12px] pt-4 pr-6 pb-4 pl-6 opacity-100 box-border">
               <div className='flex justify-between items-center'>
                 <h3 className="font-bold">{item.picbook_name}</h3>
-                
                 <div className='flex items-center gap-3'>
                   <DisplayPrice style='text-[#222222] font-bold' discount={item.discount_price} value={item.total_price || item.price * item.quantity} />
-                  
                   {onRemoveItem && 
                   <button
                     onClick={() => onRemoveItem(item.id)}
@@ -125,12 +124,14 @@ export default function CartItemCard({
                       <path d="M6 2a2 2 0 00-2 2v1H2.5a.5.5 0 000 1h.548l.764 10.697A2 2 0 005.8 19h8.4a2 2 0 001.988-1.303L16.952 6H17.5a.5.5 0 000-1H15V4a2 2 0 00-2-2H6zm3 13a.5.5 0 01-1 0V8a.5.5 0 011 0v7zm3 0a.5.5 0 01-1 0V8a.5.5 0 011 0v7z" />
                     </svg>
                   </button>}
-
                 </div>
-
               </div>
-                
-                <p className='text-[#666666] font-[400] capitalize'>{item.binding_type}</p>
+
+              <p className='text-[#666666] font-[400] capitalize'>
+                {item.binding_type}
+                {(item.binding_type && (item.description || item.edition)) && ' | '}
+                {item.description || item.edition}
+              </p>
                 
 
                 {(countdown && handleClickEditMessage) ? 
@@ -139,56 +140,70 @@ export default function CartItemCard({
                   <p className={`text-[#666] bg-[#f8f8f8] font-[400] ${item.message?'p-2':''} rounded`}>{item.message}</p>
                 }
                 
-                {(item.edition || item.description) && (
-                  <p className="text-sm text-gray-600">
-                    {item.edition}
-                    {item.edition && item.description && ' | '}
-                    {item.description}
-                  </p>
-                )}
+                {/* 额外描述合并到装订信息一行展示 */}
               
               <div className="flex items-center justify-between gap-4">
 
-                {showEditBook && (
-                  item.preview && item.preview_id ? (
-                    <a
-                      className="text-sm text-blue-600 hover:underline mt-2 cursor-pointer"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (handleClickEditMessage) {
-                          handleClickEditMessage(item);
-                        } else {
-                          const url = `/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit`;
+                <div className='flex items-center gap-6'>
+                  {showEditBook && (
+                    item.preview && item.preview_id ? (
+                      <a
+                        className={`text-sm text-blue-600 hover:underline cursor-pointer ${isPackage ? 'mt-2' : ''}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (handleClickEditMessage) {
+                            handleClickEditMessage(item);
+                          } else {
+                            const url = `/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit`;
+                            router.push(url);
+                          }
+                        }}
+                      >
+                        {t('editBook')}
+                      </a>
+                    ) : (
+                      <a
+                        className={`text-sm text-blue-600 hover:underline cursor-pointer ${isPackage ? 'mt-2' : ''}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          // 无预览则去创建
+                          const bookId = (item as any)?.preview?.picbook_id || (item as any)?.picbook_id || (item as any)?.picbook?.id;
+                          let url = '';
+                          if (bookId) {
+                            const ksParams = isSubItem
+                              ? `&ks=1&package_item_id=${(item as any)?.id || ''}&package_id=${(item as any)?.package_id || ''}`
+                              : '';
+                            url = `/personalize?bookid=${bookId}${ksParams}`;
+                          } else {
+                            url = '/shopping-cart';
+                          }
                           router.push(url);
-                        }
-                      }}
-                    >
-                      Edit Book
-                    </a>
-                  ) : (
-                    <a
-                      className="text-sm text-blue-600 hover:underline mt-2 cursor-pointer"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        // 无预览则去创建
-                        const bookId = (item as any)?.preview?.picbook_id || (item as any)?.picbook_id || (item as any)?.picbook?.id;
-                        let url = '';
-                        if (bookId) {
-                          const ksParams = isSubItem
-                            ? `&ks=1&package_item_id=${(item as any)?.id || ''}&package_id=${(item as any)?.package_id || ''}`
-                            : '';
-                          url = `/personalize?bookid=${bookId}${ksParams}`;
-                        } else {
-                          url = '/shopping-cart';
-                        }
-                        router.push(url);
-                      }}
-                    >
-                      Create Book
-                    </a>
-                  )
-                )}
-                
+                        }}
+                      >
+                        {t('editBook')}
+                      </a>
+                    )
+                  )}
+
+                  {/* 添加附加产品链接：进入编辑页的附加项标签 */}
+                  <a
+                    className="text-sm text-blue-600 hover:underline cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const bookId = (item as any)?.preview?.picbook_id || (item as any)?.picbook_id || (item as any)?.picbook?.id;
+                      if (item.preview && item.preview_id) {
+                        router.push(`/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit?tab=addons`);
+                      } else if (bookId) {
+                        router.push(`/personalize?bookid=${bookId}&step=addons`);
+                      } else {
+                        router.push('/shopping-cart');
+                      }
+                    }}
+                  >
+                    {t('addAdditionalProducts')}
+                  </a>
+                </div>
+
                 {onQuantityChange && 
                 <div className="flex items-center border rounded-md">
                   <button
@@ -232,7 +247,7 @@ export default function CartItemCard({
 
           
           {item.subItems && item.subItems.length > 0 && (
-            <div className="mt-3">
+            <div className="mt-3 ml-[2.5rem]">
               {item.subItems.map((sub, idx) => (
                 <CartItemCard key={sub.id} item={sub} isSubItem={true} showEditBook={true} />
               ))}

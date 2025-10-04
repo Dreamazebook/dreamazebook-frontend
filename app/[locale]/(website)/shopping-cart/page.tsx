@@ -260,29 +260,33 @@ export default function ShoppingCartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-[#F8F8F8]">
+      <div className="w-full">
         {error && (
           <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
             {error}
           </div>
         )}
-        <CartHeader />
-        
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="lg:w-2/3">
+        <div className="flex gap-6 w-full">
+          <div className="w-full opacity-100 flex flex-col gap-6">
+            <div className="w-full" style={{ height: '108px', padding: '48px 64px 24px 120px', boxSizing: 'border-box' }}>
+              <CartHeader />
+            </div>
             {cartItems.length === 0 ? (
-              <div className="bg-white rounded-xl p-6 shadow-sm text-center">
-                <p>{t('emptyCart')}</p>
+              <div className="w-full box-border flex flex-col gap-[12px] pr-[64px] pb-[64px] pl-[120px] opacity-100">
+                <div className="bg-white rounded-xl p-6 shadow-sm text-center">
+                  <p>{t('emptyCart')}</p>
+                </div>
               </div>
             ) : (
-              <CartItemList
-                items={cartItems}
-                selectedItems={selectedItems}
-                onQuantityChange={handleQuantityChange}
-                onRemoveItem={handleRemoveItem}
-                onToggleSelect={handleToggleSelectItem}
-                onClickEditBook={async (ci) => {
+              <div className="w-full box-border flex flex-col gap-[12px] pr-[64px] pb-[64px] pl-[120px] opacity-100">
+                <CartItemList
+                  items={cartItems}
+                  selectedItems={selectedItems}
+                  onQuantityChange={handleQuantityChange}
+                  onRemoveItem={handleRemoveItem}
+                  onToggleSelect={handleToggleSelectItem}
+                  onClickEditBook={async (ci) => {
                   try {
                     const { data } = await api.get<ApiResponse<CartItems>>(API_CART_LIST);
                     const list = (data as any)?.cart_items || [];
@@ -309,30 +313,31 @@ export default function ShoppingCartPage() {
                     const url = `/personalized-products/${ci.preview?.picbook_id}/${ci.preview_id}/edit`;
                     router.push(url);
                   }
-                }}
-              />
+                  }}
+                />
+              </div>
             )}
           </div>
           
-          <div className="lg:w-1/3 relative">
-            <div className="bg-white rounded p-6 shadow-sm sticky top-4 right-0">
-              <h2 className="text-xl font-bold mb-6">{t('orderSummary')}</h2>
+          <div className="bg-white w-[544px] relative pt-[64px] pr-[120px] pb-[64px] pl-[64px] flex flex-col gap-[10px] opacity-100 ml-auto">
+            <div className="bg-white w-[360px] rounded sticky top-4 right-0 flex flex-col opacity-100 gap-4">
+              <h2 className="text-3xl font-normal">{t('orderSummary')}</h2>
               
-              <div className="mb-6">
-                <p className="text-sm mb-1">{t('haveCouponCode')}</p>
-                <p className="text-blue-600 text-sm">
-                  25% off with code: <strong>BLACKFRIDAY</strong>
+              <div className="">
+                <p className="text-md font-medium">{t('haveCouponCode')}</p>
+                <p className="text-[#666666] text-md">
+                  25% off with code: BLACKFRIDAY
                 </p>
                 <CouponInput onApply={handleApplyCoupon} />
               </div>
 
               {appliedCoupon && (
-                <p className="text-green-600 text-sm mb-2">
+                <p className="text-green-600 text-sm">
                   {t('appliedCoupon')}: <strong>{appliedCoupon}</strong>
                 </p>
               )}
               
-              <div className="space-y-3 mb-6 border-t border-gray-200 pt-4">
+              <div className="space-y-3 border-t border-gray-200 pt-4">
                 <div className="flex justify-between">
                   <p className="text-gray-600">{t('subtotal')} ({selectedItems.length} {t('items')})</p>
                   <p>${subtotal.toFixed(2)}</p>
@@ -347,15 +352,15 @@ export default function ShoppingCartPage() {
                     <p>-${discount.toFixed(2)}</p>
                   </div>
                 )}
-                <div className="border-t border-gray-200 pt-3 flex justify-between font-bold">
+                <div className="border-t border-gray-200 pt-3 flex justify-between">
                   <p>{t('total')}</p>
-                  <p>${total.toFixed(2)}</p>
+                  <p className='font-bold'>${total.toFixed(2)}</p>
                 </div>
               </div>
               
               <div className="space-y-2">
                 <div className="flex gap-2">
-                  <button
+                  {/* <button
                     onClick={() => setSelectedItems([])}
                     disabled={selectedItems.length === 0}
                     className="flex-1 py-3 cursor-pointer bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400"
@@ -368,7 +373,7 @@ export default function ShoppingCartPage() {
                     className="flex-1 py-3 cursor-pointer bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400"
                   >
                     {t('selectAll')}
-                  </button>
+                  </button> */}
                 </div>
                 <button
                   onClick={handleCheckout}
@@ -384,7 +389,7 @@ export default function ShoppingCartPage() {
                       {t('processing')}
                     </>
                   ) : (
-                    t('checkout')
+                    'Checkout'
                   )}
                 </button>
                 {/* <button
