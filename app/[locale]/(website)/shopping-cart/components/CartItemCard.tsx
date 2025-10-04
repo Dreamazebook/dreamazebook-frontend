@@ -144,7 +144,7 @@ export default function CartItemCard({
               
               <div className="flex items-center justify-between gap-4">
 
-                <div className='flex items-center gap-6'>
+              <div className='flex items-center gap-6 overflow-hidden'>
                   {showEditBook && (
                     item.preview && item.preview_id ? (
                       <a
@@ -187,7 +187,7 @@ export default function CartItemCard({
 
                   {/* 添加附加产品链接：进入编辑页的附加项标签 */}
                   <a
-                    className="text-sm text-blue-600 hover:underline cursor-pointer"
+                    className="text-sm text-blue-600 hover:underline cursor-pointer truncate max-w-[180px] md:max-w-[260px]"
                     onClick={(e) => {
                       e.preventDefault();
                       const bookId = (item as any)?.preview?.picbook_id || (item as any)?.picbook_id || (item as any)?.picbook?.id;

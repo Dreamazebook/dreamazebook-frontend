@@ -261,16 +261,16 @@ export default function ShoppingCartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F8F8] pb-40 md:pb-0">
+    <div className="min-h-screen bg-[#F8F8F8] pb-40 lg:pb-0">
       <div className="w-full">
         {error && (
           <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
             {error}
           </div>
         )}
-        <div className="flex w-full">
-          <div className="w-full opacity-100 flex flex-col gap-6">
-            <div className="w-full hidden md:block" style={{ height: '108px', padding: '48px 64px 24px 120px', boxSizing: 'border-box' }}>
+        <div className="flex w-full mx-auto">
+          <div className="flex-1 opacity-100 flex flex-col gap-6">
+            <div className="w-full hidden lg:block box-border h-[108px] pt-12 pr-16 pb-6 pl-[120px]">
               <CartHeader />
             </div>
             {cartItems.length === 0 ? (
@@ -280,7 +280,7 @@ export default function ShoppingCartPage() {
                 </div>
               </div>
             ) : (
-              <div className="w-full box-border flex flex-col gap-[12px] pr-[16px] pl-[16px] md:pr-[64px] md:pb-[64px] md:pl-[120px] opacity-100">
+              <div className="w-full box-border flex flex-col gap-[12px] pr-[16px] pl-[16px] pt-4 lg:pt-0 lg:pr-16 lg:pb-[64px] lg:pl-[120px] opacity-100">
                 <CartItemList
                   items={cartItems}
                   selectedItems={selectedItems}
@@ -320,8 +320,8 @@ export default function ShoppingCartPage() {
             )}
           </div>
           
-          <div className="hidden md:flex bg-white w-[544px] relative pt-[64px] pr-[120px] pb-[64px] pl-[64px] flex-col gap-[10px] opacity-100 ml-auto min-h-screen">
-            <div className="bg-white w-[360px] rounded sticky top-4 right-0 flex flex-col opacity-100 gap-4">
+          <div className="hidden lg:flex bg-white lg:w-[480px] xl:w-[544px] relative pt-[64px] pr-[48px] pb-[64px] pl-[48px] xl:pr-[120px] xl:pl-[64px] flex-col gap-[10px] opacity-100 ml-auto min-h-screen">
+            <div className="bg-white w-full rounded sticky top-4 right-0 flex flex-col opacity-100 gap-4">
               <h2 className="text-3xl font-normal">{t('orderSummary')}</h2>
               
               <div className="">
@@ -406,7 +406,7 @@ export default function ShoppingCartPage() {
         </div>
       </div>
       {/* Mobile bottom summary sheet */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white rounded z-50">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white rounded z-50">
         <div className="max-w-screen-md mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             {!mobileSummaryOpen && <p className="text-base font-normal">{t('total')}</p>}
