@@ -319,7 +319,7 @@ export default function ShoppingCartPage() {
             )}
           </div>
           
-          <div className="bg-white w-[544px] relative pt-[64px] pr-[120px] pb-[64px] pl-[64px] flex flex-col gap-[10px] opacity-100 ml-auto">
+          <div className="bg-white w-[544px] relative pt-[64px] pr-[120px] pb-[64px] pl-[64px] flex flex-col gap-[10px] opacity-100 ml-auto min-h-screen">
             <div className="bg-white w-[360px] rounded sticky top-4 right-0 flex flex-col opacity-100 gap-4">
               <h2 className="text-3xl font-normal">{t('orderSummary')}</h2>
               
