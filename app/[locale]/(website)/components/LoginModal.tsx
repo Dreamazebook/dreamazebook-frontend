@@ -15,12 +15,14 @@ export default function LoginModal() {
   const [mode, setMode] = useState('login');
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true);
+    setErrorMessage('');
     
     if (mode === 'forgotPassword') {
       // 调用API发送重置密码邮件
@@ -28,7 +30,7 @@ export default function LoginModal() {
       setResetSent(success);
       setLoading(false);
       if (!success) {
-        console.error('Failed to send reset password email');
+        setErrorMessage('Failed to send reset password email. Please try again.');
       }
       return;
     }
@@ -61,6 +63,9 @@ export default function LoginModal() {
         } else {
           return router.push('/');
         }
+      } else {
+        setErrorMessage('Login failed. Please check your email and password.');
+        setLoading(false);
       }
     } else {
       const response = await register({
@@ -78,6 +83,9 @@ export default function LoginModal() {
           router.push(redirectUrl);
         }
         return;
+      } else {
+        setErrorMessage('Registration failed. Please try again.');
+        setLoading(false);
       }
     }
     setLoading(false);
@@ -129,6 +137,11 @@ export default function LoginModal() {
           />
         )}
         
+        {errorMessage && (
+          <div className="bg-red-50 p-3 rounded-md text-red-700">
+            <p>{errorMessage}</p>
+          </div>
+        )}
         {mode === 'forgotPassword' && resetSent ? (
           <div className="bg-green-50 p-3 rounded-md text-green-700">
             <p>Password reset link has been sent to your email address.</p>
