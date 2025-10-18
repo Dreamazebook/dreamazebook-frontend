@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Logo from "./Logo";
 import { usePathname, useRouter } from "@/i18n/routing";
 import Image from "next/image";
@@ -32,6 +32,10 @@ const Header = () => {
   const locale = useLocale();
 
   const {user, toggleLoginModal} = useUserStore();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLanguageChange = (language: string) => {
     router.replace(pathname, { locale: language as any });
@@ -87,10 +91,10 @@ const Header = () => {
         <Link href={'/books?showSearch=1'} className="text-2xl" aria-label="Search books">
           <Image src={'/header/search.svg'} alt="Search" width={28} height={28} className="cursor-pointer" />
         </Link>
-        <Link href={user ? "/shopping-cart" : '/login?redirect=/shopping-cart'} className="text-2xl">
+        <Link href={(mounted && user) ? "/shopping-cart" : '/login?redirect=/shopping-cart'} className="text-2xl">
           <Image src={'/header/cart.svg'} alt="Shopping Cart" width={28} height={28} className="cursor-pointer" />
         </Link>
-        <Link href={user ? user.user_type === 'admin' ? "/admin" : "/profile" : '/login'}>
+        <Link href={(mounted && user) ? (user.user_type === 'admin' ? "/admin" : "/profile") : '/login'}>
           <Image src={'/header/profile.svg'} alt="Login" width={28} height={28} className="cursor-pointer" />
         </Link>
       </div>

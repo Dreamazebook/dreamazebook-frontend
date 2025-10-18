@@ -275,7 +275,7 @@ export default function ShoppingCartPage() {
             </div>
             {cartItems.length === 0 ? (
               <div className="w-full box-border flex flex-col gap-[12px] pr-[64px] pb-[64px] pl-[120px] opacity-100">
-                <div className="bg-white rounded-xl p-6 shadow-sm text-center">
+                <div className="bg-white rounded-xl p-6 shadow-sm text-center mt-4">
                   <p>{t('emptyCart')}</p>
                 </div>
               </div>

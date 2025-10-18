@@ -220,10 +220,9 @@ export default function BooksPage() {
               const imgSrc = '/products/picbooks/PICBOOK_GOODNIGHT2/thumb.jpg';
               const priceVal = (book as any)?.current_price ?? (book as any)?.price ?? 0;
               return (
-              <div className="bg-[#dbdbdb] w-full">
+              <div className="bg-[#dbdbdb] w-full" key={String(idOrCode)}>
                 <Link 
                   href={`/books/${idOrCode}`} 
-                  key={String(idOrCode)} 
                   className="group flex flex-col items-center text-center w-full"
                 >
                   <div className="relative aspect-[3/4] w-full mx-auto">
