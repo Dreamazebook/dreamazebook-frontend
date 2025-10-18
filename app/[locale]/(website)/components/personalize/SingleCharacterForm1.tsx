@@ -97,12 +97,13 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData?.photo?.path]);
 
-  // 当某张图片上传成功后，自动把第一张已上传图片设置为主图，确保可提交
+  // 当某张图片上传成功后，自动把第一张已上传图片设置为主图（兼容 dataUrl / uploadedFilePath）
   useEffect(() => {
     if (!formData.photo) {
-      const firstUploaded = images.find(img => !!img.uploadedFilePath);
-      if (firstUploaded && firstUploaded.uploadedFilePath) {
-        handleBasicInfoChange('photo', { path: firstUploaded.uploadedFilePath });
+      const firstUploaded = images.find(img => (img as any).dataUrl || (img as any).uploadedFilePath);
+      const picked = (firstUploaded as any)?.dataUrl || (firstUploaded as any)?.uploadedFilePath;
+      if (picked) {
+        handleBasicInfoChange('photo', { path: picked });
         handleErrorChange('photo', '');
       }
     }

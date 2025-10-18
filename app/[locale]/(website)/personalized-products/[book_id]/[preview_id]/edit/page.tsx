@@ -38,7 +38,7 @@ export default function EditPersonalizedProductPage() {
     let ignore = false;
     const fetchBook = async () => {
       try {
-        const { data } = await api.get<ApiResponse<DetailedBook>>(`/picbooks/${bookId}`);
+        const { data } = await api.get<ApiResponse<DetailedBook>>(`/products/${bookId}`, { params: { language: currentLang } });
         if (ignore) return;
         switch (data.character_count) {
           case 1: setFormType('SINGLE1'); break;
@@ -145,7 +145,7 @@ export default function EditPersonalizedProductPage() {
           gender: genderCode,
           skincolor: skinColorCode,
           photo: photoData.path,
-          ...(photosData.length > 0 && { photos: photosData }),
+          photos: photosData.length > 0 ? photosData : (photoData?.path ? [photoData.path] : []),
         },
       ],
     };

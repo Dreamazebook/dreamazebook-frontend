@@ -5,7 +5,29 @@ import Image from 'next/image';
 import { Link } from "@/i18n/routing";
 import { FaStar, FaStarHalf, FaSearch, FaFilter } from 'react-icons/fa';
 import api from "@/utils/api";
-import { BaseBook, ApiResponse } from '@/types/book';
+// Types for new products API
+type Product = {
+  spu_code: string;
+  name: string;
+  category: string;
+  current_price: number;
+  primary_image: string | null;
+  base_price?: string;
+  market_price?: string;
+  description?: string;
+};
+
+type ProductsResponse = {
+  success: boolean;
+  data: Product[];
+  pagination?: {
+    current_page: number;
+    per_page: number;
+    total: number;
+    last_page: number;
+  };
+  meta?: { timestamp: number; version: string };
+};
 import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
 
@@ -53,17 +75,32 @@ const StarRating = ({ rating, reviews }: { rating: number; reviews?: number }) =
 export default function BooksPage() {
   const locale = useLocale();
   const t = useTranslations('BooksPage');
-  const [books, setBooks] = useState<BaseBook[]>([]);
+  const [books, setBooks] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('featured');
+  const [pageInfo, setPageInfo] = useState<{ page: number; perPage: number; total: number; lastPage: number }>({ page: 1, perPage: 0, total: 0, lastPage: 1 });
 
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const response = await api.get<ApiResponse<BaseBook[]>>(`/picbooks`);
-        setBooks(response.data);
+        const body = await api.get<ProductsResponse>(`/products`, {
+          params: {
+            page: 1,
+            per_page: 20,
+            category: 'picbook',
+            language: locale,
+          },
+        });
+        const list = Array.isArray(body?.data) ? body.data : [];
+        setBooks(list);
+        setPageInfo({
+          page: body.pagination?.current_page ?? 1,
+          perPage: body.pagination?.per_page ?? list.length,
+          total: body.pagination?.total ?? list.length,
+          lastPage: body.pagination?.last_page ?? 1,
+        });
         setLoading(false);
       } catch (err) {
         console.error('Failed to fetch books:', err);
@@ -75,16 +112,17 @@ export default function BooksPage() {
     fetchBooks();
   }, [t]);
 
-  const filteredBooks = books.filter(book =>
-    book.default_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredBooks = books.filter((book) => {
+    const name = (book as any)?.name ?? (book as any)?.default_name ?? '';
+    return String(name).toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   const sortedBooks = [...filteredBooks].sort((a, b) => {
     switch (sortOption) {
       case 'price-low':
-        return Number(a.price) - Number(b.price);
+        return Number((a as any)?.current_price ?? (a as any)?.price ?? 0) - Number((b as any)?.current_price ?? (b as any)?.price ?? 0);
       case 'price-high':
-        return Number(b.price) - Number(a.price);
+        return Number((b as any)?.current_price ?? (b as any)?.price ?? 0) - Number((a as any)?.current_price ?? (a as any)?.price ?? 0);
       default:
         return 0;
     }
@@ -151,39 +189,45 @@ export default function BooksPage() {
         {/* Books Grid */}
         {sortedBooks.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {sortedBooks.map((book) => (
+            {sortedBooks.map((book, idx) => {
+              const idOrCode = (book as any)?.spu_code ?? (book as any)?.id ?? (book as any)?.code ?? `idx-${idx}`;
+              const name = (book as any)?.name ?? (book as any)?.default_name ?? 'Product';
+              const primary = (book as any)?.primary_image ?? (book as any)?.default_cover ?? '';
+              const imgSrc = primary && typeof primary === 'string' ? normalizeImageUrl(primary) : '/home-page/cover.png';
+              const priceVal = (book as any)?.current_price ?? (book as any)?.price ?? 0;
+              return (
               <Link 
-                href={`/books/${book.id}`} 
-                key={book.id} 
+                href={`/books/${idOrCode}`} 
+                key={String(idOrCode)} 
                 className="group flex flex-col"
               >
                 <div className="relative aspect-[3/4] mb-3 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
                   <Image
-                    src={normalizeImageUrl(book.default_cover)}
-                    alt={book.default_name}
+                    src={imgSrc}
+                    alt={String(name || 'Product image')}
                     fill
                     className="object-cover group-hover:opacity-90 transition-opacity"
                     sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                    unoptimized={normalizeImageUrl(book.default_cover).startsWith('http')}
+                    unoptimized={imgSrc.startsWith('http')}
                     onError={(e) => {
                       const target = e.currentTarget as HTMLImageElement & { srcset?: string };
-                      target.src = '/imgs/picbook/goodnight/封面1.jpg';
+                      target.src = '/home-page/cover.png';
                       if (target.srcset) target.srcset = '';
                     }}
                   />
                 </div>
                 <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1 line-clamp-2 group-hover:text-black dark:group-hover:text-gray-300 transition-colors">
-                  {book.default_name}
+                  {name}
                 </h3>
                 {/* <StarRating rating={book.rating || 0} reviews={book.reviews} /> */}
                 <p className="text-sm font-medium text-gray-900 dark:text-white mt-1">
-                  ${book.price}
+                  ${Number(priceVal).toFixed(2)}
                 </p>
                 <button className="mt-2 bg-black dark:bg-white text-white dark:text-black px-3 py-1 rounded-full text-xs font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors w-fit">
                   {t('personalize')}
                 </button>
               </Link>
-            ))}
+            )})}
           </div>
         ) : (
           <div className="text-center py-12">

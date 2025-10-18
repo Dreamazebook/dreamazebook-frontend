@@ -1,6 +1,6 @@
 "use client";
 
-import { DetailedBook } from '@/types/book'
+// Accept any product detail shape to support new API
 import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 import { useTranslations } from 'next-intl'
@@ -20,7 +20,7 @@ export default function BookDetailView({
   primaryButtonHref,
   onPrimaryClick,
 }: {
-  book: DetailedBook,
+  book: any,
   pagePics: PagePic[],
   tags: { tname: string }[],
   keywords: any[],
@@ -33,26 +33,33 @@ export default function BookDetailView({
   const [selectedLanguage, setSelectedLanguage] = useState('en')
   const [openFaq, setOpenFaq] = useState<number>(1)
 
-  const description = book.variant ? book.variant.description : 'No description available.'
+  const description = (book as any)?.description || (book as any)?.variant?.description || 'No description available.'
 
   return (
     <div className={`min-h-screen bg-white ${roboto.className}`}>
       <div className="grid grid-cols-1 md:grid-cols-2">
         <div className="relative">
           <div className="grid grid-cols-1 gap-0">
-            {pagePics.map((page) => (
+            {pagePics.map((page) => {
+              const src = page.pagepic
+              return (
               <div key={page.id} className="w-full">
                 <div className="relative w-full">
-                  <Image src={page.pagepic} alt={`Page ${page.pagenum}`} width={0} height={0} sizes="100vw" className="w-full h-auto" priority={page.pagenum === 1} />
+                  <img 
+                    src={src} 
+                    alt={`Page ${page.pagenum}`} 
+                    className="w-full h-auto" 
+                    loading={page.pagenum === 1 ? 'eager' : 'lazy'}
+                  />
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </div>
 
         <div className="sticky top-0 h-screen overflow-y-auto">
           <div className="max-w-xl mx-auto p-12">
-            <h1 className="text-[36px] leading-tight font-normal mb-4">{book.default_name}</h1>
+            <h1 className="text-[36px] leading-tight font-normal mb-4">{(book as any)?.name ?? (book as any)?.default_name}</h1>
             <div className="flex items-center gap-4 mb-6">
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
@@ -85,8 +92,8 @@ export default function BookDetailView({
 
             <div className="flex items-center justify-between gap-8 mb-12">
               <div className="flex items-baseline gap-3">
-                <span className="text-[#012CCE] text-[36px] font-medium">${book.price}</span>
-                <span className="text-gray-400 line-through">${(Number(book.price) * 1.25).toFixed(2)}</span>
+                <span className="text-[#012CCE] text-[36px] font-medium">${Number((book as any)?.default_sku?.current_price ?? (book as any)?.current_price ?? (book as any)?.price ?? 0).toFixed(2)}</span>
+                <span className="text-gray-400 line-through">${Number((book as any)?.default_sku?.market_price ?? (book as any)?.market_price ?? ((Number((book as any)?.price ?? 0) * 1.25) || 0)).toFixed(2)}</span>
               </div>
               <Link href={primaryButtonHref} onClick={onPrimaryClick} className="bg-[#222222] text-[#F5E3E3] w-[243px] h-[44px] px-4 py-3 rounded-[4px] hover:bg-gray-800 transition-colors text-base font-medium flex items-center justify-center">
                 {primaryButtonLabel}

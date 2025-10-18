@@ -79,7 +79,9 @@ export default function PersonalizePage() {
           return;
         }
         try {
-          const response = await api.get<ApiResponse>(`/picbooks/${bookId}`);
+          const response = await api.get<ApiResponse>(`/products/${bookId}`, {
+            params: { language: locale },
+          });
           setBook(response.data);
           // 基于书籍ID控制表单类型
           if (bookId === '2') {
@@ -205,7 +207,7 @@ export default function PersonalizePage() {
       return;
     }
   
-    // 3. 将用户数据保存到 localStorage，以便在 preview 页面使用
+    // 3. 将用户数据保存到 localStorage：使用 data URL 列表作为 face_images 来源
     const extras = (window as any).__extraPersonalize || {};
     const userData = {
       characters: [
@@ -216,9 +218,11 @@ export default function PersonalizePage() {
           skincolor: skinColorCode,
           hairstyle: hairstyleCode,
           haircolor: hairColorCode,
+          // 为兼容旧结构保留 photo 字段，但后续以 photos（data URL 列表）为准
           photo:     (photoData as any).path,
-          // 如果有多张图片，也保存所有图片路径
-          ...(photosData.length > 0 && { photos: photosData }),
+          photos:    (photosData && photosData.length > 0) 
+                      ? photosData 
+                      : ((photoData as any)?.path ? [ (photoData as any).path ] : []),
           ...(extras.dob ? { dob: extras.dob } : {}),
           ...(extras.birthSeason ? { birth_season: extras.birthSeason } : {}),
           // qualities 在 select-book-content 进行保存

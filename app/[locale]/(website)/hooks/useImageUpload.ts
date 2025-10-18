@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { uploadApi } from '@/utils/api.js';
-import type { AxiosProgressEvent, AxiosResponse } from 'axios';
+// Switched to inline data URL approach (no direct upload)
 
 interface UploadResponse {
   path: string;
@@ -68,63 +67,19 @@ const useImageUpload = () => {
     setError(null);
 
     try {
-      const FRONTEND_PREVIEW = process.env.NEXT_PUBLIC_FRONTEND_PREVIEW === 'true';
-      // 仅前端预览：跳过上传，直接生成本地 blob 预览和伪路径
-      if (FRONTEND_PREVIEW) {
-        const previewUrl = URL.createObjectURL(file);
-        setImageUrl(previewUrl);
-        return {
-          file,
-          previewUrl,
-          uploadedFilePath: '/personalize/face.png',
-        };
-      }
-
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', 'aiface');
-
-      console.log('Uploading file:', {
-        name: file.name,
-        type: file.type,
-        size: file.size
-      });
-
-      const response: AxiosResponse<UploadResponse> = await uploadApi.post(
-        '/files/upload',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          onUploadProgress: (e: AxiosProgressEvent) => {
-            if (e.total) {
-              const progress = Math.round((e.loaded * 100) / e.total);
-              setUploadProgress(progress);
-              console.log(`Upload progress: ${progress}%`);
-            }
-          }
-        }
-      );
-
-      console.log('Upload response:', response);
-
-      if (!response.data || !response.data.path) {
-        throw new Error('Invalid server response');
-      }
-
-      // 保存上传后的文件路径
-      const uploadedFilePath = response.data.path;
-      
-      // 创建本地预览URL
+      // 统一改为读取 Data URL
       const previewUrl = URL.createObjectURL(file);
       setImageUrl(previewUrl);
-
-      // 返回上传的文件信息
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
       return {
         file,
         previewUrl,
-        uploadedFilePath
+        uploadedFilePath: dataUrl,
       };
     } catch (err: unknown) {
       let errorMessage = 'Upload failed';
@@ -135,19 +90,6 @@ const useImageUpload = () => {
         } else {
           errorMessage = err.message;
         }
-      } else if (err && typeof err === 'object' && 'response' in err) {
-        // 服务器返回错误
-        const errorResponse = err as { response?: { data?: { errors?: { file?: string[] }, message?: string } } };
-        console.error('Server error response:', errorResponse.response?.data);
-        if (errorResponse.response?.data?.errors?.file) {
-          errorMessage = errorResponse.response.data.errors.file[0];
-        } else {
-          errorMessage = errorResponse.response?.data?.message || 'Server Error';
-        }
-      } else if (err && typeof err === 'object' && 'request' in err) {
-        // 请求发送失败
-        console.error('Request error:', err.request);
-        errorMessage = 'Network error, please check the network connection';
       }
       
       setError(errorMessage);

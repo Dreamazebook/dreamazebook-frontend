@@ -17,8 +17,10 @@ if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token') || process.env.NEXT_PUBLIC_BROADCAST_TOKEN || '';
     const wsHost = process.env.NEXT_PUBLIC_WS_HOST || '127.0.0.1';
     const wsPort = process.env.NEXT_PUBLIC_WS_PORT ? Number(process.env.NEXT_PUBLIC_WS_PORT) : undefined;
-    const wssPort = process.env.NEXT_PUBLIC_WS_PORT ? Number(process.env.NEXT_PUBLIC_WS_PORT) : undefined;
+    const wssPort = process.env.NEXT_PUBLIC_WS_WSS_PORT ? Number(process.env.NEXT_PUBLIC_WS_WSS_PORT) : (process.env.NEXT_PUBLIC_WS_PORT ? Number(process.env.NEXT_PUBLIC_WS_PORT) : undefined);
     const forceTLS = process.env.NEXT_PUBLIC_WS_SECURE === 'true';
+    const wsPath = process.env.NEXT_PUBLIC_WS_PATH || '/app';
+    const enabledTransports = forceTLS ? ['wss'] as Array<'ws' | 'wss'> : ['ws'];
 
     const headers: Record<string, string> = {
       Accept: 'application/json',
@@ -35,7 +37,9 @@ if (typeof window !== 'undefined') {
       wsPort,
       wssPort,
       forceTLS,
-      enabledTransports: ['ws', 'wss'],
+      enabledTransports,
+      wsPath,
+      disableStats: true,
       authEndpoint: '/api/broadcasting/auth',
       auth: {
         withCredentials: true,
@@ -46,7 +50,9 @@ if (typeof window !== 'undefined') {
         console.log('WebSocket 配置:', {
           wsHost,
           wsPort: wsPort || '未设置',
+          wssPort: wssPort || '未设置',
           wsSecure: forceTLS,
+          wsPath,
           authEndpoint: '/api/broadcasting/auth',
           hasAuthHeader: Boolean(token),
         });

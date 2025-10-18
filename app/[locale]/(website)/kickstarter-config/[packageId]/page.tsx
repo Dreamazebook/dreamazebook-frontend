@@ -65,13 +65,17 @@ export default function KickstarterConfigPage() {
           setBooks(normalized)
         } else {
           // 兜底：回退所有绘本
-          const fallback = await api.get<ApiList<BaseBook[]>>('/picbooks')
-          if (fallback?.data) setBooks(fallback.data)
+          const fallback = await api.get<ApiList<BaseBook[]>>('/products', {
+            params: { page: 1, per_page: 20, category: 'picbook', language: 'en' },
+          })
+          if (fallback?.data) setBooks(fallback.data as any)
         }
       } catch (e) {
         // 兜底：回退到全部绘本
-        const res = await api.get<ApiList<BaseBook[]>>('/picbooks')
-        if (res?.data) setBooks(res.data)
+        const res = await api.get<ApiList<BaseBook[]>>('/products', {
+          params: { page: 1, per_page: 20, category: 'picbook', language: 'en' },
+        })
+        if (res?.data) setBooks(res.data as any)
       }
     }
     load()
@@ -82,7 +86,7 @@ export default function KickstarterConfigPage() {
     const id = books[activeIndex]?.id
     if (!id) return
     const loadDetail = async () => {
-      const res = await api.get<any>(`/picbooks/${id}`)
+      const res = await api.get<any>(`/products/${id}`, { params: { language: 'en' } })
       if (res?.data) {
         setDetail(res.data)
         setPagePics(res.data.pages.map((p: any) => ({ id: p.id, pagenum: p.page_number, pagepic: p.image_url })))

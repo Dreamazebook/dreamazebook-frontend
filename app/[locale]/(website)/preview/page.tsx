@@ -632,13 +632,14 @@ export default function PreviewPageWithTopNav() {
           gender: parseInt(pv?.gender || '1'),
           skincolor: Array.isArray(pv?.skin_color) ? (pv.skin_color[0] || 1) : 1,
         };
-        // 调用 create-by-picbook：若已完成将直接返回结果
-        const resp = await api.post(`/simple-face-swap/create-by-picbook`, apiRequestData) as ApiResponse<any>;
+        // 仅使用 GET 预览接口
+        const resp = await api.get(`/products/${bookIdParam}/preview`) as ApiResponse<any>;
         if (resp?.success && resp?.data) {
           const status = resp.data?.face_swap_info?.status || resp.data?.status;
-          // 若返回完成且有结果，直接使用
-          if (status === 'completed' && (Array.isArray(resp.data?.preview_data) || Array.isArray(resp.data?.result_images))) {
-            const merged = applyResultImagesToPreviewData(resp.data);
+          // 新接口：没有 face_swap_info，直接使用 preview_pages
+          const mergedSource = (Array.isArray(resp.data?.preview_pages) ? normalizePreviewApi(resp.data) : resp.data);
+          if (Array.isArray((mergedSource as any)?.preview_data) || Array.isArray((mergedSource as any)?.result_images)) {
+            const merged = applyResultImagesToPreviewData(mergedSource as any);
             setPreviewData(merged);
             setIsProcessing(false);
             try {
@@ -875,7 +876,8 @@ export default function PreviewPageWithTopNav() {
       setIsLoadingOptions(true);
       setOptionsError(null);
 
-      const response = await api.get(`/preview/options/${bookId}`) as ApiResponse<BookOptions>;
+      // 新接口：产品的定制选项
+      const response = await api.get(`/products/${bookId}/customization-options`) as ApiResponse<BookOptions>;
 
       if (response.success) {
         setBookOptions(response.data!);
@@ -1184,7 +1186,7 @@ export default function PreviewPageWithTopNav() {
 
       setIsLoadingBookInfo(true);
       
-      const response = await api.get<ApiResponse<DetailedBook>>(`/picbooks/${bookId}`);
+      const response = await api.get<ApiResponse<DetailedBook>>(`/products/${bookId}`, { params: { language: (searchParams.get('lang') || 'en') } });
       
       if (response.success) {
         setBookInfo(response.data!);
@@ -1345,6 +1347,179 @@ export default function PreviewPageWithTopNav() {
     );
   };
 
+  // 将 GET /products/{spu}/preview 返回的数据规范为内部结构
+  const normalizePreviewApi = (apiData: any): PreviewResponse => {
+    const pages = Array.isArray(apiData?.preview_pages) ? apiData.preview_pages : [];
+    const preview_data = pages.map((p: any, idx: number) => ({
+      page_id: idx + 1,
+      page_code: p?.page_code,
+      page_number: p?.preview_order ?? idx + 1,
+      image_url: p?.image_url,
+      has_face_swap: !!p?.has_face_elements,
+    }));
+    return {
+      preview_id: undefined as any,
+      preview_data,
+      face_swap_info: { status: 'completed' } as any,
+    } as unknown as PreviewResponse;
+  };
+
+  // 批次轮询（作为 WS 以外的兜底）
+  const batchPollTimerRef = useRef<any>(null);
+  const clearBatchPolling = () => {
+    if (batchPollTimerRef.current) {
+      clearInterval(batchPollTimerRef.current);
+      batchPollTimerRef.current = null;
+    }
+  };
+  const startBatchPolling = (spuCode: string, batchId: string) => {
+    clearBatchPolling();
+    batchPollTimerRef.current = window.setInterval(async () => {
+      try {
+        const res = await api.get(`/products/${spuCode}/preview/batches/${batchId}`) as ApiResponse<any>;
+        const batch = (res as any)?.data?.batch;
+        if (batch?.pages) {
+          setPreviewData((prev) => {
+            if (!prev) return prev as any;
+            const updated = {
+              ...prev,
+              preview_data: prev.preview_data.map((p: any) => {
+                const match = batch.pages.find((bp: any) => bp.page_code === p.page_code);
+                const newUrl = match?.final_image_url || match?.base_image_url; // 最终图优先，其次基础图
+                return newUrl ? { ...p, image_url: newUrl, has_face_swap: !!match?.has_face_elements } : p;
+              }),
+            } as any;
+            return updated;
+          });
+        }
+        if (batch?.status === 'completed' || batch?.status === 'failed') {
+          clearBatchPolling();
+        }
+      } catch (_e) {
+        // 忽略轮询错误，继续下一轮
+      }
+    }, 3000);
+  };
+
+  // 处理 NDJSON 流事件
+  const handleNdjsonEvent = (chunk: any, spuCode: string) => {
+    const { event, data } = chunk || {};
+    if (!event) return;
+    switch (event) {
+      case 'accepted':
+        setIsProcessing(true);
+        break;
+      case 'page': {
+        const pageCode = data?.page_code;
+        const imageUrl = data?.final_image_url || data?.base_image_url; // 最终图优先，其次基础图
+        if (pageCode) {
+          setPreviewData((prev) => {
+            if (!prev) return prev as any;
+            const next = {
+              ...prev,
+              preview_data: prev.preview_data.map((p: any) =>
+                p.page_code === pageCode
+                  ? { ...p, image_url: imageUrl || p.image_url, has_face_swap: !!data?.has_face_elements }
+                  : p
+              ),
+            } as any;
+            return next;
+          });
+        }
+        break;
+      }
+      case 'completed': {
+        setIsProcessing(false);
+        const batchId = data?.batch?.batch_id;
+        if (batchId) {
+          currentBatchIdRef.current = batchId;
+          startBatchPolling(spuCode, batchId);
+        }
+        break;
+      }
+      case 'error':
+        setIsProcessing(false);
+        toast.error(data?.message || '生成预览失败');
+        break;
+      default:
+        break;
+    }
+  };
+
+  // 启动渲染：POST /products/{spu}/preview/render 并解析 NDJSON 流
+  const startNdjsonRender = async (spuCode: string, payload: any) => {
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.dreamazebook.com/api';
+      const url = `${apiBase}/products/${encodeURIComponent(spuCode)}/preview/render`;
+      let authHeader: string | undefined = undefined;
+      try {
+        const tk = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        if (tk) authHeader = `Bearer ${tk}`;
+      } catch {}
+      if (!authHeader && process.env.NEXT_PUBLIC_API_STATIC_TOKEN) {
+        authHeader = `Bearer ${process.env.NEXT_PUBLIC_API_STATIC_TOKEN}`;
+      }
+      const resp = await fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/x-ndjson',
+          ...(authHeader ? { Authorization: authHeader } : {}),
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!resp.ok) {
+        const text = await resp.text();
+        throw new Error(`请求失败 (${resp.status}): ${text}`);
+      }
+      const reader = resp.body?.getReader();
+      if (!reader) {
+        throw new Error('当前环境不支持流式响应');
+      }
+      const decoder = new TextDecoder();
+      let buffer = '';
+      // 持续读取 NDJSON
+      while (true) {
+        const { value, done } = await reader.read();
+        if (value) {
+          buffer += decoder.decode(value, { stream: !done });
+          let newlineIndex;
+          // 逐行处理
+          while ((newlineIndex = buffer.indexOf('\n')) >= 0) {
+            const line = buffer.slice(0, newlineIndex).trim();
+            buffer = buffer.slice(newlineIndex + 1);
+            if (!line) continue;
+            try {
+              const evt = JSON.parse(line);
+              handleNdjsonEvent(evt, spuCode);
+            } catch (_e) {
+              // 忽略单行解析错误
+            }
+          }
+        }
+        if (done) break;
+      }
+      buffer = buffer.trim();
+      if (buffer) {
+        try {
+          const evt = JSON.parse(buffer);
+          handleNdjsonEvent(evt, spuCode);
+        } catch (_e) {}
+      }
+    } catch (e: any) {
+      console.error('预览渲染流式请求失败:', e);
+      toast.error(e?.message || '预览渲染失败');
+    }
+  };
+
+  // 组件卸载时清理轮询
+  useEffect(() => {
+    return () => {
+      clearBatchPolling();
+    };
+  }, []);
+
   // 获取预览数据
   const fetchPreviewData = useCallback(async () => {
     try {
@@ -1370,13 +1545,17 @@ export default function PreviewPageWithTopNav() {
       
       // 构造API要求的请求数据格式
       const character = (requestData as any).characters?.[0];
+      const faceImages = (character?.photos && Array.isArray(character.photos))
+        ? character.photos
+        : (character?.photo ? [character.photo] : []);
       const apiRequestData = {
         picbook_id: bookId,
-        // face_image 需要为数组，优先使用 multi image upload 收集到的 photos
-        face_image: ((character?.photos && Array.isArray(character.photos) && character.photos.length > 0)
-          ? character.photos
-          : (character?.photo ? [character.photo] : []))
-          .map((p: string) => ensureFaceImageUrl(p)),
+        // 新接口：face_images 为对象数组，包含 filename/mime/data（data URL）
+        face_images: faceImages.map((dataUrl: string, idx: number) => ({
+          filename: `face_${idx + 1}.jpg`,
+          mime: dataUrl?.slice(5, dataUrl.indexOf(';'))?.replace('data:', '') || 'image/jpeg',
+          data: dataUrl,
+        })),
         full_name: character?.full_name,
         language: character?.language || 'en', // 默认英语
         gender: character?.gender || 1, // 默认值
@@ -1385,7 +1564,7 @@ export default function PreviewPageWithTopNav() {
       
       // 添加详细的调试日志
       console.log('调用换脸接口（无用户数据）:', {
-        url: '/simple-face-swap/create-by-picbook',
+        url: `/products/${bookId}/preview`,
         originalData: requestData,
         apiRequestData: apiRequestData,
         bookId: bookId
@@ -1399,7 +1578,7 @@ export default function PreviewPageWithTopNav() {
       isPostingCreateRef.current = true;
       // 新任务启动，清空每页完成集合
       setSwappedPageIds(new Set());
-      const response = await api.post(`/simple-face-swap/create-by-picbook`, apiRequestData) as ApiResponse<PreviewResponse>;
+      const response = await api.get(`/products/${bookId}/preview`) as ApiResponse<PreviewResponse>;
       
       if (response.success) {
         // 若后端已完成直接返回结果，直接应用
@@ -1505,13 +1684,17 @@ export default function PreviewPageWithTopNav() {
         try {
           // 构造API要求的请求数据格式
           const character = parsedUserData.characters?.[0];
+          const faceImages = (character?.photos && Array.isArray(character.photos))
+            ? character.photos
+            : (character?.photo ? [character.photo] : []);
           const apiRequestData = {
             picbook_id: bookId,
-            // face_image 必须是数组，取 photos；若无则使用单图包装
-            face_image: ((character?.photos && Array.isArray(character.photos) && character.photos.length > 0)
-              ? character.photos
-              : (character?.photo ? [character.photo] : []))
-              .map((p: string) => ensureFaceImageUrl(p)),
+            // 新接口：face_images（data URL 列表转对象）
+            face_images: faceImages.map((dataUrl: string, idx: number) => ({
+              filename: `face_${idx + 1}.jpg`,
+              mime: dataUrl?.slice(5, dataUrl.indexOf(';'))?.replace('data:', '') || 'image/jpeg',
+              data: dataUrl,
+            })),
             full_name: character?.full_name,
             language: character?.language,
             gender: character?.gender,
@@ -1520,7 +1703,7 @@ export default function PreviewPageWithTopNav() {
           
           // 添加详细的调试日志
           console.log('调用换脸接口（有用户数据）:', {
-            url: '/simple-face-swap/create-by-picbook',
+            url: `/products/${bookId}/preview`,
             originalData: parsedUserData,
             apiRequestData: apiRequestData,
             bookId: bookId
@@ -1534,55 +1717,24 @@ export default function PreviewPageWithTopNav() {
           hasProcessedUserDataRef.current = true;
           // 新任务启动，清空每页完成集合
           setSwappedPageIds(new Set());
-          const response = await api.post(`/simple-face-swap/create-by-picbook`, apiRequestData, {
-            timeout: 60000 // 60秒超时
-          }) as ApiResponse<PreviewResponse>;
+          // 不再预拉基础预览，直接启动 NDJSON 渲染
+          startNdjsonRender(String(bookId), apiRequestData);
           
-          console.log('换脸接口调用成功:', response);
-          
-          // 保存预览数据
-          if (response.success) {
-            // 若已完成，直接应用返回图片
-            const status = (response as any)?.data?.face_swap_info?.status || (response as any)?.data?.status;
-            if (status === 'completed' && (Array.isArray((response as any)?.data?.preview_data) || Array.isArray((response as any)?.data?.result_images))) {
-              const merged = applyResultImagesToPreviewData((response as any).data);
-              setPreviewData(merged);
-              try {
-                const bid = merged?.face_swap_info?.batch_id;
-                if (bid) currentBatchIdRef.current = bid;
-              } catch {}
-              // 标记完成的页
-              const completedIds = new Set<number>();
-              (merged?.preview_data || []).forEach((p: any) => {
-                if (p?.has_face_swap) completedIds.add(Number(p.page_id));
-              });
-              setSwappedPageIds(completedIds);
-            } else {
-              setPreviewData(response.data!);
-              // 记录本次任务的 batch_id，用于筛选后续广播
-              try {
-                const bid = response.data?.face_swap_info?.batch_id;
-                if (bid) currentBatchIdRef.current = bid;
-              } catch {}
+          // 由于新的API结构中characters是数字数组，我们从localStorage获取角色名称
+          try {
+            const userData = localStorage.getItem('previewUserData');
+            if (userData) {
+              const parsedUserData = JSON.parse(userData);
+              const character = parsedUserData.characters?.[0];
+              const fullName = character?.full_name || '';
+              if (recipient !== fullName) setRecipient(fullName);
             }
-            
-            // 由于新的API结构中characters是数字数组，我们从localStorage获取角色名称
-            try {
-              const userData = localStorage.getItem('previewUserData');
-              if (userData) {
-                const parsedUserData = JSON.parse(userData);
-                const character = parsedUserData.characters?.[0];
-                const fullName = character?.full_name || '';
-                if (recipient !== fullName) setRecipient(fullName);
-              }
-            } catch (e) {
-              console.warn('无法获取角色名称:', e);
-            }
-            
-            toast.success('处理已开始，请等待WebSocket通知');
+          } catch (e) {
+            console.warn('无法获取角色名称:', e);
           }
           
-          setIsProcessing(false);
+          toast.success('处理已开始');
+          setIsProcessing(true);
           
           // 清理localStorage（成功后立即清理）
           localStorage.removeItem('previewUserData');

@@ -50,9 +50,9 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       setIsLoading(true);
       const cacheBuster = `ts=${Date.now()}`;
       const candidatePaths = [
-        `/picbooks/${bookId}/avatar/page_properties.json?${cacheBuster}`,
+        `/products/picbooks/${bookId}/avatar/page_properties.json?${cacheBuster}`,
         // 回退为 bookId=1
-        `/picbooks/1/avatar/page_properties.json?${cacheBuster}`,
+        `/products/picbooks/1/avatar/page_properties.json?${cacheBuster}`,
       ];
 
       for (const path of candidatePaths) {
@@ -268,18 +268,31 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
         ? pageProperties.hairColorFilter[hairColor] : null;
 
       // 帮助函数：将图层绘制到离屏画布并应用滤镜后再合成
-      const drawLayerWithFilter = async (imgSrc: string, filter: any | null, layerName: string) => {
+      const drawLayerWithFilter = async (imgSrcs: string[], filter: any | null, layerName: string) => {
         console.log(`=== DRAWING ${layerName} ===`);
-        console.log('Image source:', imgSrc);
+        console.log('Image candidates:', imgSrcs);
         console.log('Filter to apply:', filter);
         
         const img = new Image();
         img.crossOrigin = 'anonymous';
-        await new Promise((resolve, reject) => {
-          img.onload = resolve as any;
-          img.onerror = reject as any;
-          img.src = imgSrc;
-        });
+        // 依次尝试候选地址
+        let lastErr: any = null;
+        for (const src of imgSrcs) {
+          try {
+            await new Promise((resolve, reject) => {
+              img.onload = resolve as any;
+              img.onerror = () => reject(new Error(`Image load error for ${src}`));
+              img.src = src;
+            });
+            console.log(`${layerName} loaded from`, src);
+            lastErr = null;
+            break;
+          } catch (e) {
+            console.warn(`${layerName} failed from`, src, e);
+            lastErr = e;
+          }
+        }
+        if (lastErr) throw lastErr;
 
         console.log(`${layerName} image loaded:`, img.width, 'x', img.height);
 
@@ -315,21 +328,43 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       };
 
       // 1. 皮肤层（Fair 不用滤镜；Medium/Dark 使用 skinToneFilter）
-      await drawLayerWithFilter(`/picbooks/${bookId}/avatar/layer_skin.png`, skinFilter, 'SKIN');
+      {
+        const ts = Date.now();
+        await drawLayerWithFilter([
+          `/products/picbooks/${bookId}/avatar/layer_skin.png?ts=${ts}`,
+          `/products/picbooks/1/avatar/layer_skin.png?ts=${ts}`,
+        ], skinFilter, 'SKIN');
+      }
 
       // 2. 发型层（Light 不用滤镜；Brown/Dark 使用 hairColorFilter）
       if (hairstyle) {
-        await drawLayerWithFilter(`/picbooks/${bookId}/avatar/layer_${hairstyle}.png`, hairFilter, 'HAIR');
+        const ts = Date.now();
+        await drawLayerWithFilter([
+          `/products/picbooks/${bookId}/avatar/layer_${hairstyle}.png?ts=${ts}`,
+          `/products/picbooks/1/avatar/layer_${hairstyle}.png?ts=${ts}`,
+        ], hairFilter, 'HAIR');
       }
 
       // 3. 眼睛层（不应用滤镜）
-      await drawLayerWithFilter(`/picbooks/${bookId}/avatar/layer_eyes.png`, null, 'EYES');
+      {
+        const ts = Date.now();
+        await drawLayerWithFilter([
+          `/products/picbooks/${bookId}/avatar/layer_eyes.png?ts=${ts}`,
+          `/products/picbooks/1/avatar/layer_eyes.png?ts=${ts}`,
+        ], null, 'EYES');
+      }
 
       // 4. 瞳孔层（使用 skinToneFilter）
-      await drawLayerWithFilter(`/picbooks/${bookId}/avatar/layer_pupils.png`, skinFilter, 'PUPILS');
+      {
+        const ts = Date.now();
+        await drawLayerWithFilter([
+          `/products/picbooks/${bookId}/avatar/layer_pupils.png?ts=${ts}`,
+          `/products/picbooks/1/avatar/layer_pupils.png?ts=${ts}`,
+        ], skinFilter, 'PUPILS');
+      }
 
     } catch (error) {
-      console.error('Error drawing avatar:', error);
+      console.error('Error drawing avatar:', error instanceof Error ? error.message : error);
       // 如果绘制失败，显示占位符
       ctx.fillStyle = '#f0f0f0';
       ctx.fillRect(0, 0, width, height);

@@ -23,10 +23,10 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 }) => {
 	// 根据bookId动态生成发型选项
 	const hairstyles = [
-		{ id: 'hair_1', image: `/picbooks/${bookId}/avatar/layer_hair_1.png` },
-		{ id: 'hair_2', image: `/picbooks/${bookId}/avatar/layer_hair_2.png` },
-		{ id: 'hair_3', image: `/picbooks/${bookId}/avatar/layer_hair_3.png` },
-		{ id: 'hair_4', image: `/picbooks/${bookId}/avatar/layer_hair_4.png` },
+		{ id: 'hair_1', image: `/products/picbooks/${bookId}/avatar/layer_hair_1.png` },
+		{ id: 'hair_2', image: `/products/picbooks/${bookId}/avatar/layer_hair_2.png` },
+		{ id: 'hair_3', image: `/products/picbooks/${bookId}/avatar/layer_hair_3.png` },
+		{ id: 'hair_4', image: `/products/picbooks/${bookId}/avatar/layer_hair_4.png` },
 	];
 
 	const handleHairstyleSelect = (hairstyleId: string) => {

@@ -88,12 +88,13 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
 
   // 书籍2的品质选择移至 select-book-content 页面
 
-  // 当某张图片上传成功后，自动把第一张已上传图片设置为主图，确保可提交
+  // 当某张图片上传成功后，自动把第一张已上传图片设置为主图（兼容 dataUrl / uploadedFilePath）
   useEffect(() => {
     if (!formData.photo) {
-      const firstUploaded = images.find(img => !!img.uploadedFilePath);
-      if (firstUploaded && firstUploaded.uploadedFilePath) {
-        handleBasicInfoChange('photo', { path: firstUploaded.uploadedFilePath });
+      const firstUploaded = images.find((img: any) => img.dataUrl || img.uploadedFilePath);
+      const picked = (firstUploaded as any)?.dataUrl || (firstUploaded as any)?.uploadedFilePath;
+      if (picked) {
+        handleBasicInfoChange('photo', { path: picked });
         handleErrorChange('photo', '');
       }
     }

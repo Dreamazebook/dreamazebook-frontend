@@ -1,6 +1,4 @@
 import { useState, useCallback } from 'react';
-import { uploadApi } from '@/utils/api.js';
-import type { AxiosProgressEvent, AxiosResponse } from 'axios';
 
 const toAbsoluteUrl = (raw: string): string => {
   if (!raw) return raw as unknown as string;
@@ -30,13 +28,8 @@ interface UploadedImage {
   id: string;
   file?: File;
   previewUrl: string;
-  uploadedFilePath?: string;
+  dataUrl?: string; // inline base64 data URL for JSON sending
   isUploading?: boolean;
-}
-
-interface UploadResponse {
-  path: string;
-  url?: string;
 }
 
 const useMultiImageUpload = (maxImages: number = 3) => {
@@ -75,41 +68,14 @@ const useMultiImageUpload = (maxImages: number = 3) => {
         // 预览模式直接返回占位图绝对路径
         return toAbsoluteUrl('/personalize/face.png');
       }
-
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', 'aiface');
-
-      console.log('Uploading file:', {
-        name: file.name,
-        type: file.type,
-        size: file.size
+      // 改为本地转 data URL
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
       });
-
-      const response: AxiosResponse<UploadResponse> = await uploadApi.post(
-        '/files/upload',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          onUploadProgress: (e: AxiosProgressEvent) => {
-            if (e.total) {
-              const progress = Math.round((e.loaded * 100) / e.total);
-              setUploadProgress(progress);
-            }
-          }
-        }
-      );
-
-      if (!response.data || !response.data.path) {
-        throw new Error('Invalid server response');
-      }
-
-      // 优先使用后端返回的完整 URL，其次回退到 path→绝对地址
-      const directUrl = response.data.url;
-      const absoluteUrl = directUrl || toAbsoluteUrl(response.data.path);
-      return absoluteUrl;
+      return dataUrl;
     } catch (err: unknown) {
       let errorMessage = 'Upload failed';
       
@@ -119,17 +85,6 @@ const useMultiImageUpload = (maxImages: number = 3) => {
         } else {
           errorMessage = err.message;
         }
-      } else if (err && typeof err === 'object' && 'response' in err) {
-        const errorResponse = err as { response?: { data?: { errors?: { file?: string[] }, message?: string } } };
-        console.error('Server error response:', errorResponse.response?.data);
-        if (errorResponse.response?.data?.errors?.file) {
-          errorMessage = errorResponse.response.data.errors.file[0];
-        } else {
-          errorMessage = errorResponse.response?.data?.message || 'Server Error';
-        }
-      } else if (err && typeof err === 'object' && 'request' in err) {
-        console.error('Request error:', err.request);
-        errorMessage = 'Network error, please check the network connection';
       }
       
       setError(errorMessage);
@@ -172,16 +127,16 @@ const useMultiImageUpload = (maxImages: number = 3) => {
         const imageId = `${timestamp}-${i}`;
         
         try {
-          const uploadedFilePath = await uploadSingleFile(file);
+          const dataUrl = await uploadSingleFile(file);
           
-          if (uploadedFilePath) {
+          if (dataUrl) {
             // 上传成功，更新对应图片的状态
             setImages(prev => prev.map(img => 
               img.id === imageId 
-                ? { ...img, uploadedFilePath, isUploading: false }
+                ? { ...img, dataUrl, isUploading: false }
                 : img
             ));
-            successfulPaths.push(uploadedFilePath);
+            successfulPaths.push(dataUrl);
           } else {
             // 上传失败，移除该图片
             setImages(prev => prev.filter(img => img.id !== imageId));
@@ -250,8 +205,8 @@ const useMultiImageUpload = (maxImages: number = 3) => {
   // 获取所有上传的文件路径
   const getUploadedPaths = useCallback((): string[] => {
     return images
-      .filter(img => img.uploadedFilePath)
-      .map(img => img.uploadedFilePath!);
+      .filter(img => img.dataUrl)
+      .map(img => img.dataUrl!);
   }, [images]);
 
   return {
