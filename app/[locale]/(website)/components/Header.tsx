@@ -65,6 +65,7 @@ const Header = () => {
         </Link>
       </nav>
       <div className="flex items-center space-x-4">
+        {/* Search icon next to cart, opens books page and reveals search */}
         <div className="relative group">
           <Image src={'/header/language.svg'} alt="language" width={48} height={24} className="cursor-pointer" />
           <div className="absolute hidden group-hover:block bg-white shadow-md rounded-md p-2 z-50">
@@ -83,6 +84,9 @@ const Header = () => {
           </div>
         </div>
 
+        <Link href={'/books?showSearch=1'} className="text-2xl" aria-label="Search books">
+          <Image src={'/header/search.svg'} alt="Search" width={28} height={28} className="cursor-pointer" />
+        </Link>
         <Link href={user ? "/shopping-cart" : '/login?redirect=/shopping-cart'} className="text-2xl">
           <Image src={'/header/cart.svg'} alt="Shopping Cart" width={28} height={28} className="cursor-pointer" />
         </Link>

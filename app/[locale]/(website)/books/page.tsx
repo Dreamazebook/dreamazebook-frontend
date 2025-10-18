@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
-import { Link } from "@/i18n/routing";
-import { FaStar, FaStarHalf, FaSearch, FaFilter } from 'react-icons/fa';
+import { Link, usePathname } from "@/i18n/routing";
+import { FaStar, FaStarHalf, FaSearch } from 'react-icons/fa';
+import { useSearchParams } from 'next/navigation';
 import api from "@/utils/api";
 // Types for new products API
 type Product = {
@@ -64,10 +65,10 @@ const StarRating = ({ rating, reviews }: { rating: number; reviews?: number }) =
         ))}
         {hasHalfStar && <FaStarHalf className="w-3 h-3 text-yellow-400" />}
         {[...Array(5 - Math.ceil(rating))].map((_, i) => (
-          <FaStar key={`empty-${i}`} className="w-3 h-3 text-gray-300 dark:text-gray-500" />
+          <FaStar key={`empty-${i}`} className="w-3 h-3 text-gray-300" />
         ))}
       </div>
-      {reviews && <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">({reviews})</span>}
+      {reviews && <span className="text-xs text-[#222222] ml-1">({reviews})</span>}
     </div>
   );
 };
@@ -81,6 +82,43 @@ export default function BooksPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('featured');
   const [pageInfo, setPageInfo] = useState<{ page: number; perPage: number; total: number; lastPage: number }>({ page: 1, perPage: 0, total: 0, lastPage: 1 });
+  const searchParams = useSearchParams();
+
+  // Only reveal the search input after clicking a button or when explicitly opened via URL
+  const shouldOpenFromUrl = useMemo(() => {
+    const qp = searchParams?.get('showSearch') || searchParams?.get('search');
+    return qp === '1' || qp === 'true' || qp === 'open';
+  }, [searchParams]);
+  const [showSearch, setShowSearch] = useState<boolean>(shouldOpenFromUrl);
+  const pathname = usePathname();
+
+  // If opened from URL once, remove the query param to avoid reopening on refresh
+  useEffect(() => {
+    if (!shouldOpenFromUrl) return;
+    // Replace URL without navigation so state is preserved
+    try {
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', pathname);
+      }
+    } catch {}
+  }, [shouldOpenFromUrl, pathname]);
+
+  // Open modal reactively when query param appears via in-app navigation
+  useEffect(() => {
+    if (shouldOpenFromUrl) {
+      setShowSearch(true);
+    }
+  }, [shouldOpenFromUrl]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!showSearch) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowSearch(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showSearch]);
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -145,27 +183,14 @@ export default function BooksPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-[#FFFFFF] text-[#222222]">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
+      {/* <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('title')}</h1>
           
-          {/* Search and Filter */}
+          Search and Filter
           <div className="flex flex-col md:flex-row gap-4 mb-8">
-            <div className="relative flex-1">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaSearch className="text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder={t('searchPlaceholder')}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            
             <div className="relative">
               <select
                 className="appearance-none block w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent"
@@ -182,113 +207,142 @@ export default function BooksPage() {
             </div>
           </div>
         </div>
-      </header>
+      </header> */}
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="mx-auto mt-8">
         {/* Books Grid */}
         {sortedBooks.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 place-items-center">
             {sortedBooks.map((book, idx) => {
               const idOrCode = (book as any)?.spu_code ?? (book as any)?.id ?? (book as any)?.code ?? `idx-${idx}`;
               const name = (book as any)?.name ?? (book as any)?.default_name ?? 'Product';
-              const primary = (book as any)?.primary_image ?? (book as any)?.default_cover ?? '';
-              const imgSrc = primary && typeof primary === 'string' ? normalizeImageUrl(primary) : '/home-page/cover.png';
+              const imgSrc = '/products/picbooks/PICBOOK_GOODNIGHT2/thumb.jpg';
               const priceVal = (book as any)?.current_price ?? (book as any)?.price ?? 0;
               return (
-              <Link 
-                href={`/books/${idOrCode}`} 
-                key={String(idOrCode)} 
-                className="group flex flex-col"
-              >
-                <div className="relative aspect-[3/4] mb-3 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
-                  <Image
-                    src={imgSrc}
-                    alt={String(name || 'Product image')}
-                    fill
-                    className="object-cover group-hover:opacity-90 transition-opacity"
-                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                    unoptimized={imgSrc.startsWith('http')}
-                    onError={(e) => {
-                      const target = e.currentTarget as HTMLImageElement & { srcset?: string };
-                      target.src = '/home-page/cover.png';
-                      if (target.srcset) target.srcset = '';
-                    }}
-                  />
-                </div>
-                <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1 line-clamp-2 group-hover:text-black dark:group-hover:text-gray-300 transition-colors">
-                  {name}
-                </h3>
-                {/* <StarRating rating={book.rating || 0} reviews={book.reviews} /> */}
-                <p className="text-sm font-medium text-gray-900 dark:text-white mt-1">
-                  ${Number(priceVal).toFixed(2)}
-                </p>
-                <button className="mt-2 bg-black dark:bg-white text-white dark:text-black px-3 py-1 rounded-full text-xs font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors w-fit">
-                  {t('personalize')}
-                </button>
-              </Link>
+              <div className="bg-[#dbdbdb] w-full">
+                <Link 
+                  href={`/books/${idOrCode}`} 
+                  key={String(idOrCode)} 
+                  className="group flex flex-col items-center text-center w-full"
+                >
+                  <div className="relative aspect-[3/4] w-full mx-auto">
+                    <Image
+                      src={imgSrc}
+                      alt={String(name || 'Product image')}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                      unoptimized={false}
+                    />
+                  </div>
+                  <div className="w-[432px] max-w-full min-h-[60px] flex flex-col items-center justify-center gap-2 mx-auto pb-8">
+                    <h3 className="text-base md:text-lg font-medium text-[#222222] line-clamp-2 group-hover:text-black transition-colors">
+                      {name}
+                    </h3>
+                    {/* <StarRating rating={book.rating || 0} reviews={book.reviews} /> */}
+                    <p className="text-base md:text-lg text-[#222222]">
+                      ${Number(priceVal).toFixed(2)}
+                    </p>
+                  </div>
+                  {/* <button className="mt-3 bg-black text-white px-4 py-2 rounded-full text-xs md:text-sm font-medium hover:bg-gray-800 transition-colors w-fit">
+                    {t('personalize')}
+                  </button> */}
+                </Link>
+              </div>
             )})}
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">{t('noResults')}</p>
+            <p className="text-[#222222]">{t('noResults')}</p>
           </div>
         )}
 
-        {/* Featured Book Section */}
-        <section className="mt-16 bg-gray-50 dark:bg-gray-800 p-6 rounded-xl">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">{t('featuredTitle')}</h2>
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div className="relative aspect-square md:aspect-[4/3] rounded-xl overflow-hidden shadow-lg">
-              <Image
-                src="/featured-book.png"
-                alt={t('featuredAlt')}
-                fill
-                className="object-cover"
-              />
+        {/* Featured + Newsletter container with consistent padding */}
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          {/* Featured Book Section */}
+          <section className="mt-16 bg-[#FFFFFF] p-6 rounded-xl">
+            {/* <h2 className="text-xl font-bold text-[#222222] mb-6">{t('featuredTitle')}</h2> */}
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="relative aspect-square md:aspect-[4/3] rounded-xl overflow-hidden shadow-lg">
+                <Image
+                  src="/featured-book.png"
+                  alt={t('featuredAlt')}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold text-[#222222]">{t('featuredBookTitle')}</h3>
+                <StarRating rating={5} reviews={24} />
+                <p className="text-[#222222]">
+                  {t('featuredDescription')}
+                </p>
+                <Link 
+                  href={`/books/featured`}
+                  className="inline-block bg-black text-white px-6 py-2 rounded-lg font-medium hover:bg-gray-800 transition-colors mt-4"
+                >
+                  {t('learnMore')}
+                </Link>
+              </div>
             </div>
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('featuredBookTitle')}</h3>
-              <StarRating rating={5} reviews={24} />
-              <p className="text-gray-600 dark:text-gray-300">
-                {t('featuredDescription')}
-              </p>
-              <Link 
-                href={`/books/featured`}
-                className="inline-block bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors mt-4"
-              >
-                {t('learnMore')}
-              </Link>
-            </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Newsletter Section */}
-        <section className="mt-16 bg-gray-100 dark:bg-gray-800 p-8 rounded-xl">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              {t('newsletterTitle')}
-            </h2>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              {t('newsletterSubtitle')}
-            </p>
-            <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+          {/* Newsletter Section */}
+          {/* <section className="mt-16 bg-gray-100 dark:bg-gray-800 rounded-xl">
+            <div className="max-w-2xl mx-auto text-center">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                {t('newsletterTitle')}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                {t('newsletterSubtitle')}
+              </p>
+              <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                <input
+                  type="email"
+                  placeholder={t('emailPlaceholder')}
+                  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                >
+                  {t('subscribe')}
+                </button>
+              </form>
+            </div>
+          </section> */}
+        </div>
+      </main>
+
+      {/* Search Modal */}
+      {showSearch && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowSearch(false)} />
+          <div className="relative w-full max-w-lg rounded-xl bg-[#FFFFFF] p-4 shadow-xl border border-gray-200">
+            <div className="flex items-center gap-2">
+              <FaSearch className="text-gray-400" />
               <input
-                type="email"
-                placeholder={t('emailPlaceholder')}
-                className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-transparent"
-                required
+                autoFocus
+                type="text"
+                placeholder={t('searchPlaceholder')}
+                className="flex-1 bg-transparent outline-none text-[#222222] placeholder-gray-400"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
               <button
-                type="submit"
-                className="bg-black dark:bg-white text-white dark:text-black px-6 py-2 rounded-lg font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                type="button"
+                className="px-2 py-1 text-gray-600 hover:text-gray-900"
+                onClick={() => setShowSearch(false)}
+                aria-label="Close search"
               >
-                {t('subscribe')}
+                ×
               </button>
-            </form>
+            </div>
           </div>
-        </section>
-      </main>
+        </div>
+      )}
     </div>
   );
 }
