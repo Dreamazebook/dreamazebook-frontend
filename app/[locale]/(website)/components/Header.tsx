@@ -33,18 +33,41 @@ const Header = () => {
 
   const {user, toggleLoginModal} = useUserStore();
   const [mounted, setMounted] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   const handleLanguageChange = (language: string) => {
     router.replace(pathname, { locale: language as any });
   };
 
   return (
-    <header className="max-w-5xl mx-auto flex items-center justify-between p-4">
-      <button className="text-2xl md:hidden">☰ {/* Hamburger Icon */}</button>
+    <header className="relative max-w-5xl mx-auto flex items-center justify-between p-4">
+      <button 
+        className="text-2xl md:hidden z-50" 
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        aria-label="Toggle menu"
+      >
+        {isMobileMenuOpen ? (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        ) : (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        )}
+      </button>
       <Logo />
+      
+      {/* Desktop Navigation */}
       <nav className="hidden md:flex space-x-4">
         <Link 
           className="text-lg relative" 
@@ -68,6 +91,38 @@ const Header = () => {
           {pathname === '/about' && <UnderlineIcon />}
         </Link>
       </nav>
+
+      {/* Mobile Navigation */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 bg-white z-40">
+          <nav className="flex flex-col items-center pt-20 space-y-6">
+            <Link 
+              className="text-xl relative" 
+              href="/books"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Our Books
+              {pathname?.includes('/books') && <UnderlineIcon />}
+            </Link>
+            <Link 
+              className="text-xl relative" 
+              href="/categories/1"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Mother&apos;s Day
+              {pathname?.includes('/categories/1') && <UnderlineIcon />}
+            </Link>
+            <Link 
+              className="text-xl relative" 
+              href="/about"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              About Us
+              {pathname === '/about' && <UnderlineIcon />}
+            </Link>
+          </nav>
+        </div>
+      )}
       <div className="flex items-center space-x-4">
         {/* Search icon next to cart, opens books page and reveals search */}
         <div className="relative group">
