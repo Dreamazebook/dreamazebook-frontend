@@ -7,6 +7,7 @@ import Image from "next/image";
 import useUserStore from "@/stores/userStore";
 import { Link } from "@/i18n/routing";
 import { useLocale } from "next-intl";
+import { motion, AnimatePresence } from "framer-motion";
 
 const UnderlineIcon = () => (
   <svg 
@@ -93,36 +94,92 @@ const Header = () => {
       </nav>
 
       {/* Mobile Navigation */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 bg-white z-40">
-          <nav className="flex flex-col items-center pt-20 space-y-6">
-            <Link 
-              className="text-xl relative" 
-              href="/books"
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black bg-opacity-50 z-40"
               onClick={() => setIsMobileMenuOpen(false)}
+            />
+            
+            {/* Menu Panel */}
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white z-40 shadow-xl"
             >
-              Our Books
-              {pathname?.includes('/books') && <UnderlineIcon />}
-            </Link>
-            <Link 
-              className="text-xl relative" 
-              href="/categories/1"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Mother&apos;s Day
-              {pathname?.includes('/categories/1') && <UnderlineIcon />}
-            </Link>
-            <Link 
-              className="text-xl relative" 
-              href="/about"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              About Us
-              {pathname === '/about' && <UnderlineIcon />}
-            </Link>
-          </nav>
-        </div>
-      )}
+              <motion.nav 
+                className="flex flex-col items-start p-6 pt-20 space-y-6"
+                initial="closed"
+                animate="open"
+                variants={{
+                  open: {
+                    transition: { staggerChildren: 0.1, delayChildren: 0.2 }
+                  },
+                  closed: {
+                    transition: { staggerChildren: 0.05, staggerDirection: -1 }
+                  }
+                }}
+              >
+                <motion.div
+                  variants={{
+                    open: { x: 0, opacity: 1 },
+                    closed: { x: -20, opacity: 0 }
+                  }}
+                >
+                  <Link 
+                    className="text-xl relative block" 
+                    href="/books"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Our Books
+                    {pathname?.includes('/books') && <UnderlineIcon />}
+                  </Link>
+                </motion.div>
+
+                <motion.div
+                  variants={{
+                    open: { x: 0, opacity: 1 },
+                    closed: { x: -20, opacity: 0 }
+                  }}
+                >
+                  <Link 
+                    className="text-xl relative block" 
+                    href="/categories/1"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Mother&apos;s Day
+                    {pathname?.includes('/categories/1') && <UnderlineIcon />}
+                  </Link>
+                </motion.div>
+
+                <motion.div
+                  variants={{
+                    open: { x: 0, opacity: 1 },
+                    closed: { x: -20, opacity: 0 }
+                  }}
+                >
+                  <Link 
+                    className="text-xl relative block" 
+                    href="/about"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    About Us
+                    {pathname === '/about' && <UnderlineIcon />}
+                  </Link>
+                </motion.div>
+              </motion.nav>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
       <div className="flex items-center space-x-4">
         {/* Search icon next to cart, opens books page and reveals search */}
         <div className="relative group">
