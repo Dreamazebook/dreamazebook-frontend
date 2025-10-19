@@ -27,6 +27,24 @@ const UnderlineIcon = () => (
   </svg>
 );
 
+const menuItems = [
+  {
+    label: 'Our Books',
+    href: '/books',
+    isActive: (pathname: string) => pathname?.includes('/books')
+  },
+  {
+    label: "Mother's Day",
+    href: '/categories/1',
+    isActive: (pathname: string) => pathname?.includes('/categories/1')
+  },
+  {
+    label: 'About Us',
+    href: '/about',
+    isActive: (pathname: string) => pathname === '/about'
+  }
+];
+
 const Header = () => {
   const router = useRouter();
   const pathname = usePathname();
@@ -70,27 +88,16 @@ const Header = () => {
       
       {/* Desktop Navigation */}
       <nav className="hidden md:flex space-x-4">
-        <Link 
-          className="text-lg relative" 
-          href="/books"
-        >
-          Our Books
-          {pathname?.includes('/books') && <UnderlineIcon />}
-        </Link>
-        <Link 
-          className="text-lg relative" 
-          href="/categories/1"
-        >
-          Mother&apos;s Day
-          {pathname?.includes('/categories/1') && <UnderlineIcon />}
-        </Link>
-        <Link 
-          className="text-lg relative" 
-          href="/about"
-        >
-          About Us
-          {pathname === '/about' && <UnderlineIcon />}
-        </Link>
+        {menuItems.map((item) => (
+          <Link 
+            key={item.href}
+            className="text-lg relative" 
+            href={item.href}
+          >
+            {item.label}
+            {item.isActive(pathname) && <UnderlineIcon />}
+          </Link>
+        ))}
       </nav>
 
       {/* Mobile Navigation */}
@@ -116,7 +123,7 @@ const Header = () => {
               className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white z-40 shadow-xl"
             >
               <motion.nav 
-                className="flex flex-col items-start p-6 pt-20 space-y-6"
+                className="flex flex-col items-start p-6 pt-20 h-full"
                 initial="closed"
                 animate="open"
                 variants={{
@@ -128,52 +135,69 @@ const Header = () => {
                   }
                 }}
               >
-                <motion.div
-                  variants={{
-                    open: { x: 0, opacity: 1 },
-                    closed: { x: -20, opacity: 0 }
-                  }}
-                >
-                  <Link 
-                    className="text-xl relative block" 
-                    href="/books"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Our Books
-                    {pathname?.includes('/books') && <UnderlineIcon />}
-                  </Link>
-                </motion.div>
+                <div className="space-y-6 flex-1">
+                  {menuItems.map((item) => (
+                    <motion.div
+                      key={item.href}
+                      variants={{
+                        open: { x: 0, opacity: 1 },
+                        closed: { x: -20, opacity: 0 }
+                      }}
+                    >
+                      <Link 
+                        className="text-xl relative block" 
+                        href={item.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        {item.label}
+                        {item.isActive(pathname) && <UnderlineIcon />}
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
 
-                <motion.div
+                {/* User Section */}
+                <motion.div 
+                  className="border-t border-gray-200 pt-6 mt-6 w-full space-y-4"
                   variants={{
-                    open: { x: 0, opacity: 1 },
-                    closed: { x: -20, opacity: 0 }
+                    open: { y: 0, opacity: 1 },
+                    closed: { y: 20, opacity: 0 }
                   }}
                 >
-                  <Link 
-                    className="text-xl relative block" 
-                    href="/categories/1"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Mother&apos;s Day
-                    {pathname?.includes('/categories/1') && <UnderlineIcon />}
-                  </Link>
-                </motion.div>
-
-                <motion.div
-                  variants={{
-                    open: { x: 0, opacity: 1 },
-                    closed: { x: -20, opacity: 0 }
-                  }}
-                >
-                  <Link 
-                    className="text-xl relative block" 
-                    href="/about"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    About Us
-                    {pathname === '/about' && <UnderlineIcon />}
-                  </Link>
+                  {mounted && user ? (
+                    <>
+                      <Link
+                        href={user.user_type === 'admin' ? "/admin" : "/profile"}
+                        className="flex items-center space-x-3 text-gray-700 hover:text-gray-900"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <Image src={'/header/profile.svg'} alt="Profile" width={24} height={24} />
+                        <span className="text-lg">My Profile</span>
+                      </Link>
+                      <button
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          router.push('/');
+                          useUserStore.getState().logout();
+                        }}
+                        className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 w-full"
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span className="text-lg">Logout</span>
+                      </button>
+                    </>
+                  ) : (
+                    <Link
+                      href="/login"
+                      className="flex items-center space-x-3 text-gray-700 hover:text-gray-900"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <Image src={'/header/profile.svg'} alt="Login" width={24} height={24} />
+                      <span className="text-lg">Login</span>
+                    </Link>
+                  )}
                 </motion.div>
               </motion.nav>
             </motion.div>
@@ -206,7 +230,7 @@ const Header = () => {
         <Link href={(mounted && user) ? "/shopping-cart" : '/login?redirect=/shopping-cart'} className="text-2xl">
           <Image src={'/header/cart.svg'} alt="Shopping Cart" width={28} height={28} className="cursor-pointer" />
         </Link>
-        <Link href={(mounted && user) ? (user.user_type === 'admin' ? "/admin" : "/profile") : '/login'}>
+        <Link className="hidden md:block" href={(mounted && user) ? (user.user_type === 'admin' ? "/admin" : "/profile") : '/login'}>
           <Image src={'/header/profile.svg'} alt="Login" width={28} height={28} className="cursor-pointer" />
         </Link>
       </div>
