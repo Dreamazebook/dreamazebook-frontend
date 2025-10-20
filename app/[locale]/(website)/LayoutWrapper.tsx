@@ -31,8 +31,6 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     }
   }, [isLoggedIn, checkKickstarterStatus]);
 
-  console.log(!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage));
-
   return (
     <>
       {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage) && <Header />}
