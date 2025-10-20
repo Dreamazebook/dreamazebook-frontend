@@ -165,6 +165,12 @@ export default function BooksPage() {
         return 0;
     }
   });
+  const bestSeller = sortedBooks.length > 0 ? sortedBooks[0] : null;
+  const bestSellerImage: string | null = bestSeller
+    ? normalizeImageUrl(
+        (bestSeller as any)?.primary_image ?? (bestSeller as any)?.default_cover ?? '/products/picbooks/PICBOOK_GOODNIGHT2/thumb.png'
+      )
+    : null;
 
   if (loading) {
     return (
@@ -277,34 +283,53 @@ export default function BooksPage() {
         )}
 
         {/* Featured + Newsletter container with consistent padding */}
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* Featured Book Section */}
-          <section className="mt-16 bg-[#FFFFFF] p-6 rounded-xl">
-            {/* <h2 className="text-xl font-bold text-[#222222] mb-6">{t('featuredTitle')}</h2> */}
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="relative aspect-square md:aspect-[4/3] rounded-xl overflow-hidden shadow-lg">
-                <Image
-                  src="/featured-book.png"
-                  alt={t('featuredAlt')}
-                  fill
-                  className="object-cover"
-                />
+        <div className="w-full">
+          {/* Best Seller Section */}
+          {bestSeller && (
+            <section className="w-full grid grid-cols-1 md:grid-cols-2 items-center">
+              {/* Left: info */}
+              <div className="w-full h-[420px] pt-6 pb-6 pr-6 pl-[120px] flex flex-col justify-center gap-22">
+                {/* Top block: title, desc, rating/tags */}
+                <div className="flex flex-col gap-6">
+                  <div>
+                    <p className="text-[#222222] text-[18px] font-medium">{(bestSeller as any)?.name ?? (bestSeller as any)?.default_name ?? 'Best seller'}</p>
+                    <p className="text-[#666666] text-[16px]">{(bestSeller as any)?.description ?? (bestSeller as any)?.desc ?? ''}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {[...Array(5)].map((_, i) => (
+                      <span key={i} className="text-yellow-400">★</span>
+                    ))}
+                    <span className="ml-2 inline-block px-2 py-1 text-xs rounded-full bg-[#F3F3F3] text-[#666666]">two people</span>
+                    <span className="inline-block px-2 py-1 text-xs rounded-full bg-[#F3F3F3] text-[#666666]">Mom & child</span>
+                  </div>
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-[#012CCE] text-[36px] font-medium">${Number(((bestSeller as any)?.current_price ?? (bestSeller as any)?.price ?? 0)).toFixed(0)}</span>
+                    {(bestSeller as any)?.market_price && (
+                      <span className="text-[#999999] line-through text-sm">${String((bestSeller as any)?.market_price)}</span>
+                    )}
+                  </div>
+                </div>
+                {/* Bottom block: price and CTA */}
+                <div>
+                  <Link href={`/books/${(bestSeller as any)?.spu_code ?? (bestSeller as any)?.id ?? 'featured'}`} className="inline-block bg-black text-[#F5E3E3] px-4 py-2 rounded">
+                    {t('personalize')}
+                  </Link>
+                </div>
               </div>
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold text-[#222222]">{t('featuredBookTitle')}</h3>
-                <StarRating rating={5} reviews={24} />
-                <p className="text-[#222222]">
-                  {t('featuredDescription')}
-                </p>
-                <Link 
-                  href={`/books/featured`}
-                  className="inline-block bg-black text-white px-6 py-2 rounded-lg font-medium hover:bg-gray-800 transition-colors mt-4"
-                >
-                  {t('learnMore')}
-                </Link>
+              {/* Right: image */}
+              <div className="relative bg-[#F3F3F3] w-full h-[420px] flex flex-col gap-6 justify-center items-center">
+                <div className="relative w-full flex-1">
+                  {bestSellerImage && (
+                    <Image src={bestSellerImage} alt="best seller" fill className="object-cover" />
+                  )}
+                </div>
+                {/* Best seller badge in top-right of the tile */}
+                <div className="absolute top-8 right-32 z-20 pointer-events-none">
+                  <Image src="/best_seller.png" alt="Best seller" width={140} height={40} />
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
+          )}
 
           {/* Newsletter Section */}
           {/* <section className="mt-16 bg-gray-100 dark:bg-gray-800 rounded-xl">
