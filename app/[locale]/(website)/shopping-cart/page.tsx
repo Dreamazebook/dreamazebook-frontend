@@ -35,10 +35,10 @@ export default function ShoppingCartPage() {
     const fetchCartList = async () => {
       try {
         const { data, message, success, code } = await api.get<ApiResponse<CartItems>>(API_CART_LIST);
-        if (data?.cart_items) {
+        if (data?.items) {
           // 为每个 package 拉取其 items 作为子项，便于显示 Create/Edit Book
           const augmented = await Promise.all(
-            data.cart_items.map(async (item: any) => {
+            data.items.map(async (item: any) => {
               if (item.item_type === 'package' && item.package_id) {
                 try {
                   const status = await api.get<any>(API_KS_PACKAGE_STATUS(item.package_id));
@@ -115,7 +115,7 @@ export default function ShoppingCartPage() {
       
       if (!success) {
         // 如果API失败，回滚本地状态
-        setCartItems(data.cart_items || data.cart_item);
+        setCartItems(data.items || data.cart_item);
         setError(message);
       }
     } catch (err) {
@@ -144,19 +144,20 @@ export default function ShoppingCartPage() {
 
   const handleEditBook = (id: number) => {
     const item = cartItems.find(ci => ci.id === id);
-    if (!item || !item.preview || !item.preview_id) {
+    if (!item || !item.preview_id) {
       // 回退：跳原有创建页
       router.push(`/personalize?bookid=${id}`);
       return;
     }
 
-    const bookId = item.preview.picbook_id;
+    const bookId = item.sku_code;
     const previewId = item.preview_id;
     const query = new URLSearchParams({
-      recipient_name: item.preview.recipient_name ?? '',
-      gender: item.preview.gender,
-      skin_color: (item.preview.skin_color?.[0] ?? '').toString(),
-      photo_url: item.preview.face_image || ''
+      // recipient_name: item.preview.recipient_name ?? '',
+      // gender: item.preview.gender,
+      // skin_color: (item.preview.skin_color?.[0] ?? '').toString(),
+      // photo_url: item.preview.face_image || ''
+      // 以上字段如需携带，可解注释
     });
 
     router.push(`/personalized-products/${bookId}/${previewId}/edit?${query.toString()}`);
@@ -199,9 +200,9 @@ export default function ShoppingCartPage() {
     if (!selectedItems.includes(item.id)) return acc; // 未选中则跳过
     let sum = 0;
     if (item.subItems) {
-      sum += item.subItems.reduce((subAcc, sub) => subAcc + (sub.discount_price || sub.total_price), 0);
+      sum += item.subItems.reduce((subAcc, sub) => subAcc + (sub.total_price), 0);
     } else {
-      sum += (item.discount_price || item.price) * (item.quantity || 1)
+      sum += item.total_price * (item.quantity || 1)
     }
     return acc + sum;
   }, 0);
@@ -290,10 +291,10 @@ export default function ShoppingCartPage() {
                   onClickEditBook={async (ci) => {
                   try {
                     const { data } = await api.get<ApiResponse<CartItems>>(API_CART_LIST);
-                    const list = (data as any)?.cart_items || [];
+                    const list = (data as any)?.items || [];
                     const current = list.find((it: any) => it.id === ci.id);
                     const remaining = current?.remaining_previews;
-                    const url = `/personalized-products/${ci.preview?.picbook_id}/${ci.preview_id}/edit`;
+                    const url = `/personalized-products/${ci.sku_code}/${ci.preview_id}/edit`;
 
                     if (remaining && typeof remaining.remaining_previews === 'number') {
                       const desc = (
@@ -311,7 +312,7 @@ export default function ShoppingCartPage() {
                       router.push(url);
                     }
                   } catch (e) {
-                    const url = `/personalized-products/${ci.preview?.picbook_id}/${ci.preview_id}/edit`;
+                    const url = `/personalized-products/${ci.sku_code}/${ci.preview_id}/edit`;
                     router.push(url);
                   }
                   }}

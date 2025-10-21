@@ -1,14 +1,8 @@
 import { Address } from "@/types/address";
+import { CartItem } from "../../shopping-cart/components/types";
 
 export function formatDate(date: string) {
   return date.split('T')[0];
-}
-
-export interface OrderDetailResponse {
-  order: OrderDetail;
-  payment_data: {
-    client_secret: string,
-  }
 }
 
 export interface OrderDetail {
@@ -74,26 +68,6 @@ export interface ResultImage {
   result_image_url: string;
   reused: boolean;
   variant_id: number;
-}
-
-export interface CartItem {
-  id: number;
-  name: string;
-  format?: string;
-  box?: string;
-  image: string;
-  price: number;
-  quantity: number;
-  total_price: number;
-  picbook_name: string;
-  picbook_cover: string;
-  message: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  processing_progress: number;
-  picbook: Pickbook;
-  result_images: ResultImage[]
 }
 
 export interface ShippingErrors {
