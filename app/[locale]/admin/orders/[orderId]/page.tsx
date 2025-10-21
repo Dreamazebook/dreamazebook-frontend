@@ -4,7 +4,7 @@ import { FC, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { OrderDetail } from '../../../(website)/checkout/components/types';
 import api from '@/utils/api';
-import { API_ADMIN_ORDERS } from '@/constants/api';
+import { API_ADMIN_ORDER_DETAIL, API_ADMIN_ORDERS } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
@@ -37,7 +37,7 @@ const AdminOrderDetailPage: FC = () => {
   useEffect(() => {
     const fetchOrderDetail = async () => {
       try {
-        const { data, success, message } = await api.get<ApiResponse<OrderDetail>>(`${API_ADMIN_ORDERS}/${orderId}`);
+        const { data, success, message } = await api.get<ApiResponse<OrderDetail>>(API_ADMIN_ORDER_DETAIL(orderId));
         if (success && data) {
           setOrder(data);
         } else {
