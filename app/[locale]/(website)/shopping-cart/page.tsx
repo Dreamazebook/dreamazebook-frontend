@@ -84,6 +84,7 @@ export default function ShoppingCartPage() {
     fetchCartList();
     // 同步检查 Kickstarter 套餐状态（用于控制卡片显示）
     checkKickstarterStatus();
+    console.log('mounted')
   }, []);
 
   const handleToggleSelectItem = (id: number) => {
@@ -109,7 +110,7 @@ export default function ShoppingCartPage() {
       ));
       
       // 调用API更新服务器
-      const {success, code, message, data} = await api.post<ApiResponse>(`${API_CART_UPDATE}/${id}`, {
+      const {success, code, message, data} = await api.put<ApiResponse>(API_CART_UPDATE(id), {
         quantity: Math.max(1, (cartItems.find(item => item.id === id)?.quantity || 1) + delta)
       });
       
