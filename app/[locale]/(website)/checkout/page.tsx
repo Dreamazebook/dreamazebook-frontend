@@ -12,7 +12,7 @@ import ShippingForm from './components/ShippingForm';
 import DeliveryOptions from './components/DeliveryOptions';
 import ReviewAndPay from './components/ReviewAndPay';
 import OrderSummary from './components/OrderSummary';
-import { CartItem, ShippingErrors, BillingErrors, PaymentOption, OrderDetail, OrderDetailResponse, ShippingOption } from './components/types';
+import { ShippingErrors, BillingErrors, PaymentOption, OrderDetail, ShippingOption } from './components/types';
 import { ApiResponse } from '@/types/api';
 import useUserStore from '@/stores/userStore';
 import AddressCardListModal from './components/AddressCardListModal';
@@ -23,7 +23,7 @@ export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
 
-  const [orderDetail, setOrderDetail] = useState<OrderDetailResponse>();
+  const [orderDetail, setOrderDetail] = useState<OrderDetail>();
 
   // Loading and error states
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -46,8 +46,9 @@ export default function CheckoutPage() {
 
   // Delivery options state
   const updateOrderShippingMethod = async (shippingOption: ShippingOption) => {
+    if (!orderId) return;
     setIsLoading(true);
-    const {data,success,code,message} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_SHIPPING}/${orderId}`, {shipping_method: shippingOption.code,shipping_cost:shippingOption.cost});
+    const {data,success,code,message} = await api.put<ApiResponse>(API_ORDER_UPDATE_SHIPPING(orderId), {shipping_method: shippingOption.code,shipping_cost:shippingOption.cost});
     if (success) {
       setOrderDetail(data);
     }
@@ -69,28 +70,28 @@ export default function CheckoutPage() {
         setError(null);
         
         try {
-          const {data,code,message,success} = await api.get<ApiResponse<OrderDetailResponse>>(`${API_ORDER_DETAIL}/${orderId}`);
+          const {data,code,message,success} = await api.get<ApiResponse<OrderDetail>>(API_ORDER_DETAIL(orderId));
           // Transform order items to cart items format
-          if (!data?.order) return;
+          if (!data) return;
           setOrderDetail(data);
 
-          if (data.order?.stripe_payment_intent_id) {
+          if (data?.stripe_payment_intent_id) {
             const response = await api.post<ApiResponse>(API_ORDER_STRIPE_PAID,{
               order_id: orderId,
-              payment_intent_id: data.order.stripe_payment_intent_id,
+              payment_intent_id: data.stripe_payment_intent_id,
             })
-            if (response.success && response.data?.order?.payment_status === 'paid') {
+            if (response.success && response.data?.payment_status === 'paid') {
               return router.push(`/order-summary?orderId=${orderId}`);
             }
           }
 
-          if (data.order.shipping_address) {
-            setShippingAddress(data.order.shipping_address);
+          if (data.shipping_address) {
+            setShippingAddress(data.shipping_address);
           }
-          if (data.order.billing_address) {
-            setBillingAddress(data.order.billing_address);
+          if (data.billing_address) {
+            setBillingAddress(data.billing_address);
           }
-          if (data.order.shipping_address?.street !== data.order.billing_address?.street) {
+          if (data.shipping_address?.street !== data.billing_address?.street) {
             setNeedsBillingAddress(true);
           }
         } catch (err) { 
@@ -138,15 +139,18 @@ export default function CheckoutPage() {
   }
 
   const updateOrderAddress = async (address: Address) => {
+    if (!orderId) return;
     const options = {
-      shipping_address: address,
-      billing_address: address
+      shipping_address_id: address.id,
+      billing_address_id: address.id,
+      use_shipping_as_billing:true
     };
     if (needsBillingAddress) {
-      options.billing_address = billingAddress;
+      options.billing_address_id = billingAddress.id;
+      options.use_shipping_as_billing = false;
     }
     setIsLoading(true);
-    const {data,code,message,success} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_ADDRESS}/${orderId}`, options);
+    const {data,code,message,success} = await api.put<ApiResponse>(API_ORDER_UPDATE_ADDRESS(orderId), options);
     if (success) {
       setOrderDetail(data);
       fetchOrderList();
@@ -157,8 +161,8 @@ export default function CheckoutPage() {
 
   // Handle next from shipping step
   const handleNextFromShipping = async() => {
-    const skipUpdateShippingAddress = (orderDetail?.order.shipping_address?.street === shippingAddress.street);
-    const skipUpdateBillingAddress = (!needsBillingAddress || (needsBillingAddress && orderDetail?.order.billing_address?.street === billingAddress.street));
+    const skipUpdateShippingAddress = (orderDetail?.shipping_address?.street === shippingAddress.street);
+    const skipUpdateBillingAddress = (!needsBillingAddress || (needsBillingAddress && orderDetail?.billing_address?.street === billingAddress.street));
     if (skipUpdateShippingAddress && skipUpdateBillingAddress) {
       setCompletedSteps([...completedSteps, 1]);
       setOpenStep(2);
@@ -242,7 +246,7 @@ export default function CheckoutPage() {
             >
             {orderDetail && 
               <DeliveryOptions
-                orderDetail={orderDetail?.order}
+                orderDetail={orderDetail}
                 updateOrderShippingMethod={updateOrderShippingMethod}
                 handleNextFromDelivery={handleNextFromDelivery}
               />

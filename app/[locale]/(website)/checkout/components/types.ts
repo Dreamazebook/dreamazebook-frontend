@@ -30,14 +30,16 @@ export interface OrderDetail {
   stripe_payment_intent_id: string;
   stripe_client_secret: string;
   shipping_address: Address;
-  shipping_options: ShippingOption[];
   paid_at: string | null;
   completed_at: string | null;
   cancelled_at: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-  items:CartItem[]
+  items:CartItem[];
+  shipping_options: {
+    options: ShippingOption[];
+  }  
 }
 
 export const EMPTY_CART_ITEM = {

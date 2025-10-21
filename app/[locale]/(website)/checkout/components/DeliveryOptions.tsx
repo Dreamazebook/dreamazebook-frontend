@@ -22,7 +22,7 @@ const DeliveryOptions: React.FC<DeliveryOptionsProps> = ({
   return (
     <>
       <div className="space-y-4 mb-6">
-        {orderDetail?.shipping_options.map(({code, cost, name, description, type, estimated_days})=>
+        {orderDetail?.shipping_options?.options.map(({code, cost, name, description, type, estimated_days})=>
         <div 
           key={type}
           className={`border rounded-lg p-4 cursor-pointer ${orderDetail.shipping_method === code ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}

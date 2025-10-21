@@ -1,12 +1,12 @@
-import { OrderDetailResponse } from "../../checkout/components/types";
+import { OrderDetail } from "../../checkout/components/types";
 import DisplayPrice from "./DisplayPrice";
 
 interface OrderSummaryPricesProps {
-  orderDetail: OrderDetailResponse;
+  orderDetail: OrderDetail;
 }
 
 const OrderSummaryPrices = ({orderDetail}:OrderSummaryPricesProps) => {
-  const order = orderDetail.order;
+  const order = orderDetail;
   const total = order?.total_amount || 0;
   const shippingCost = order?.shipping_cost || 0;
   const subtotal = total - shippingCost;

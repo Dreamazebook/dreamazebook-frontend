@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { OrderDetailResponse, ShippingErrors } from "./types";
+import { OrderDetail, ShippingErrors } from "./types";
 import { Address, EMPTY_ADDRESS } from "@/types/address";
 import AddressForm from "./AddressForm";
 import AddressCard from "../../components/address/AddressCard";
@@ -16,7 +16,7 @@ interface ShippingFormProps {
   needsBillingAddress: boolean;
   setNeedsBillingAddress: (value: boolean) => void;
   handleNextFromShipping: () => void;
-  orderDetail: OrderDetailResponse;
+  orderDetail: OrderDetail;
   setShowAddressListModal: (value: boolean) => void;
   showShippingForm: boolean;
   setShowShippingForm: (value: boolean) => void;
@@ -58,10 +58,10 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
 
   return (
     <div>
-      {orderDetail?.order?.shipping_address && (
+      {orderDetail?.shipping_address && (
         <AddressCard
           style="bg-[#F8F8F8]"
-          address={orderDetail.order.shipping_address}
+          address={orderDetail.shipping_address}
         />
       )}
       {/* 使用新地址选项 */}

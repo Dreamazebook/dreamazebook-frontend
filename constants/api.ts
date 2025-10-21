@@ -20,12 +20,12 @@ export const API_ORDER_CREATE = API_DOMAIN + '/checkout/create-order';
 export const API_ORDER_DETAIL = (id: string | number) => `${API_ORDER_LIST}/${id}`;
 export const API_ORDER_PROGRESS = (id: string | number) => `${API_ORDER_LIST}/${id}/progress`;
 
-export const API_ORDER_UPDATE_ADDRESS = API_DOMAIN + '/order/update-address'
+export const API_ORDER_UPDATE_ADDRESS = (id: string | number) => `${API_ORDER_LIST}/${id}/address`;
 export const API_ORDER_UPDATE_MESSAGE = API_DOMAIN + '/order/update-message'
 export const API_ORDER_REMOVE = API_DOMAIN + '/order/remove';
 
 export const API_ORDER_SHIPPING_METHODS = API_DOMAIN + '/order/shipping-methods';
-export const API_ORDER_UPDATE_SHIPPING = API_DOMAIN + '/order/select-shipping';
+export const API_ORDER_UPDATE_SHIPPING = (id: string | number) => `${API_ORDER_LIST}/${id}/shipping-method`;
 export const API_ORDER_STRIPE_PAID = API_DOMAIN + '/stripe/confirm-payment';
 
 export const API_ADDRESS_LIST = API_DOMAIN + '/user/addresses';
