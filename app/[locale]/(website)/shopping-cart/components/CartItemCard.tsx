@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { CartItem as CartItemType, Preview } from './types';
+import { CartItem as CartItemType } from './types';
 import DisplayPrice from '../../components/component/DisplayPrice';
 import { Link, useRouter } from '@/i18n/routing';
 import { useEffect, useState } from 'react';
@@ -37,7 +37,7 @@ export default function CartItemCard({
   const isPackage = item.item_type === 'package';
 
   useEffect(()=>{
-    checkAndShowCountdown(item.created_at);
+    checkAndShowCountdown(item.added_at);
     return () => {
       setCountdown(null);
     }
@@ -98,17 +98,17 @@ export default function CartItemCard({
           <div className="flex items-center gap-4 h-full relative">
             <div className="w-20 h-22 rounded overflow-hidden">
               <img 
-                src={item.picbook_cover} 
-                alt={item.picbook_name}
+                src={item.product_image || '/images/default-book-cover.png'} 
+                alt={item.sku_name}
                 className="w-full h-full object-cover"
               />
             </div>
             
             <div className="w-full h-[120px] flex flex-col gap-[12px] pt-4 pr-6 pb-4 pl-6 opacity-100 box-border">
               <div className='flex justify-between items-center'>
-                <h3 className="font-bold">{item.picbook_name}</h3>
+                <h3 className="font-bold">{item.sku_name}</h3>
                 <div className='flex items-center gap-3'>
-                  <DisplayPrice style='text-[#222222] font-bold' discount={item.discount_price} value={item.total_price || item.price * item.quantity} />
+                  <DisplayPrice style='text-[#222222] font-bold' value={item.total_price * item.quantity} />
                   {onRemoveItem && 
                   <button
                     onClick={() => onRemoveItem(item.id)}
@@ -127,11 +127,11 @@ export default function CartItemCard({
                 </div>
               </div>
 
-              <p className='text-[#666666] font-[400] capitalize'>
+              {/* <p className='text-[#666666] font-[400] capitalize'>
                 {item.binding_type}
                 {(item.binding_type && (item.description || item.edition)) && ' | '}
                 {item.description || item.edition}
-              </p>
+              </p> */}
                 
 
                 {(countdown && handleClickEditMessage) ? 
@@ -146,7 +146,7 @@ export default function CartItemCard({
 
               <div className='flex items-center gap-6 overflow-hidden'>
                   {showEditBook && (
-                    item.preview && item.preview_id ? (
+                    item.preview_id ? (
                       <a
                         className={`text-sm text-blue-600 hover:underline cursor-pointer ${isPackage ? 'mt-2' : ''}`}
                         onClick={(e) => {
@@ -154,7 +154,7 @@ export default function CartItemCard({
                           if (handleClickEditMessage) {
                             handleClickEditMessage(item);
                           } else {
-                            const url = `/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit`;
+                            const url = `/personalized-products/${item.spu_code}/${item.preview_id}/edit`;
                             router.push(url);
                           }
                         }}
@@ -167,7 +167,7 @@ export default function CartItemCard({
                         onClick={(e) => {
                           e.preventDefault();
                           // 无预览则去创建
-                          const bookId = (item as any)?.preview?.picbook_id || (item as any)?.picbook_id || (item as any)?.picbook?.id;
+                          const bookId = (item as any)?.spu_code || (item as any)?.picbook_id || (item as any)?.picbook?.id;
                           let url = '';
                           if (bookId) {
                             const ksParams = isSubItem
@@ -190,9 +190,9 @@ export default function CartItemCard({
                     className="text-sm text-blue-600 hover:underline cursor-pointer truncate max-w-[180px] md:max-w-[260px]"
                     onClick={(e) => {
                       e.preventDefault();
-                      const bookId = (item as any)?.preview?.picbook_id || (item as any)?.picbook_id || (item as any)?.picbook?.id;
-                      if (item.preview && item.preview_id) {
-                        router.push(`/personalized-products/${item.preview?.picbook_id}/${item.preview_id}/edit?tab=addons`);
+                      const bookId = (item as any)?.spu_code || (item as any)?.picbook_id || (item as any)?.picbook?.id;
+                      if (item.preview_id) {
+                        router.push(`/personalized-products/${item.spu_code}/${item.preview_id}/edit?tab=addons`);
                       } else if (bookId) {
                         router.push(`/personalize?bookid=${bookId}&step=addons`);
                       } else {

@@ -3,7 +3,7 @@ import api from '@/utils/api'
 import { ApiResponse, UserResponse } from '@/types/api'
 import { create } from 'zustand'
 import { Address } from '@/types/address'
-import { OrderDetail, OrderDetailResponse } from '@/app/[locale]/(website)/checkout/components/types'
+import { OrderDetail } from '@/app/[locale]/(website)/checkout/components/types'
 
 interface UserState {
   // Modal state
@@ -22,7 +22,7 @@ interface UserState {
 
   orderList: OrderDetail[]
   fetchOrderList: (options?:any) => void
-  fetchOrderDetail: (orderId:string) => Promise<ApiResponse<OrderDetailResponse>>
+  fetchOrderDetail: (orderId:string) => Promise<ApiResponse<OrderDetail>>
 
   countryList: []
   fetchCountryList: () => void
@@ -96,7 +96,7 @@ const useUserStore = create<UserState>((set,get) => ({
     }
   },
   fetchOrderDetail : async (orderId:string) => {
-    return await api.get<ApiResponse<OrderDetailResponse>>(`${API_ORDER_DETAIL}/${orderId}`);
+    return await api.get<ApiResponse<OrderDetail>>(API_ORDER_DETAIL(orderId));
     
   },
 

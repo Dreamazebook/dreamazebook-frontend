@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { EMPTY_CART_ITEM, OrderDetail, OrderDetailResponse } from '../checkout/components/types';
+import { EMPTY_CART_ITEM, OrderDetail } from '../checkout/components/types';
 import useUserStore from '@/stores/userStore';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
@@ -22,12 +22,12 @@ const OrderSummary: React.FC = () => {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
 
-  const [orderDetail, setOrderDetail] = useState<OrderDetailResponse>();
+  const [orderDetail, setOrderDetail] = useState<OrderDetail>();
   const [isLoading, setIsLoading] = useState(true);
 
   const getOrderProgress = async(orderId:string) => {
     if (orderId) {
-      const {} = await api.get<ApiResponse>(API_ORDER_PROGRESS + '/' + orderId);
+      const {} = await api.get<ApiResponse>(API_ORDER_PROGRESS(orderId));
     }
   }
 
@@ -44,8 +44,8 @@ const OrderSummary: React.FC = () => {
         const {data,code,message,success} = await fetchOrderDetail(orderId);
         if (success) {
           setOrderDetail(data);
-          if (data?.order) {
-            confirmOrderPayment(data?.order);
+          if (data) {
+            confirmOrderPayment(data);
           }
         }
       } finally {
@@ -65,7 +65,7 @@ const OrderSummary: React.FC = () => {
 
   const copyOrderNumberToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(orderDetail?.order?.order_number || '');
+      await navigator.clipboard.writeText(orderDetail?.order_number || '');
       alert('Order number copied!');
     } catch (err) {
       console.error('Failed to copy order number:', err);
@@ -78,7 +78,7 @@ const OrderSummary: React.FC = () => {
   const handleMessageSubmit = async(updateMessage:string) => {
     setIsSubmitting(true);
     try {
-      const {message, success, code, data} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_MESSAGE}/${orderDetail?.order.id}`,{message:updateMessage, item_id:selectedItem?.id});
+      const {message, success, code, data} = await api.put<ApiResponse>(`${API_ORDER_UPDATE_MESSAGE}/${orderDetail?.id}`,{message:updateMessage, item_id:selectedItem?.id});
       if (success) {
         setShowMessageModal(false);
         setSelectedItem(null);
@@ -147,7 +147,7 @@ const OrderSummary: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
 
-      {showMessageModal && selectedItem && <MessageModal isSubmitting={isSubmitting} message={selectedItem.message} handleClose={()=>setShowMessageModal(false)} handleMessageSubmit={handleMessageSubmit}/>}
+      {showMessageModal && selectedItem && <MessageModal isSubmitting={isSubmitting} message={selectedItem.message || ''} handleClose={()=>setShowMessageModal(false)} handleMessageSubmit={handleMessageSubmit}/>}
       {/* 容器 */}
       <div className="max-w-5xl mx-auto p-6">
         {/* 标题与提示 */}
@@ -163,7 +163,7 @@ const OrderSummary: React.FC = () => {
         {/* 订单号和预计送达 */}
         <div className="flex items-center space-x-8 mb-4">
           <span className="text-[#222222] flex items-center gap-1">
-            <span>#{orderDetail?.order?.order_number}</span>
+            <span>#{orderDetail?.order_number}</span>
             <Image src='/order-summary/copy.svg' width={24} height={24} alt="clipboard" className='cursor-pointer' onClick={copyOrderNumberToClipboard} />
           </span>
           <span className="text-gray-500">{t('estimatedDelivery')}: </span>
@@ -171,11 +171,11 @@ const OrderSummary: React.FC = () => {
 
 
         {/* 进度状态指示 */}
-        {orderDetail && <StepIndicator orderDetail={orderDetail?.order} /> }
+        {orderDetail && <StepIndicator orderDetail={orderDetail} /> }
 
         {/* 订单列表 */}
         <div className="space-y-4 mb-6">
-          {orderDetail?.order?.items.map((item) => (
+          {orderDetail?.items.map((item) => (
             <CartItemCard key={item.id} item={item} handleClickEditMessage={handleClickEditMessage} />
           ))}
         </div>
@@ -184,7 +184,7 @@ const OrderSummary: React.FC = () => {
         <div className="grid gap-4 mb-6 bg-white p-4">
           {orderDetail &&
             <>
-            <OrderSummaryDelivery orderDetail={orderDetail.order} />
+            <OrderSummaryDelivery orderDetail={orderDetail} />
             <OrderSummaryPrices orderDetail={orderDetail} />
             </>
           }
