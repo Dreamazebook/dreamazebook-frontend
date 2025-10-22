@@ -61,19 +61,48 @@ const OrderHistory = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="mb-6">
-          <div className="flex gap-0 border-b border-gray-200">
-            {tabs.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`cursor-pointer px-0 py-3 mr-8 text-sm ${activeTab === tab.id ? 'text-blue-600 border-b-2 border-blue-600 font-medium' : 'text-gray-600 hover:text-gray-800'}`}
-              >
-                {tab.label}({tab.count})
-              </button>
-            ))}
+        <div className="relative mb-6">
+          {/* Left Shadow Gradient */}
+          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+          
+          {/* Right Shadow Gradient */}
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+          
+          {/* Scrollable Tab Container */}
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="flex border-b border-gray-200 min-w-max">
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`
+                    flex-none cursor-pointer px-6 py-3 text-sm whitespace-nowrap
+                    transition-colors duration-200
+                    ${activeTab === tab.id 
+                      ? 'text-blue-600 border-b-2 border-blue-600 font-medium' 
+                      : 'text-gray-600 hover:text-gray-800 border-b-2 border-transparent'
+                    }
+                  `}
+                >
+                  {tab.label} ({tab.count})
+                </button>
+              ))}
+            </div>
           </div>
         </div>
+
+        <style jsx global>{`
+          /* Hide scrollbar for Chrome, Safari and Opera */
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+
+          /* Hide scrollbar for IE, Edge and Firefox */
+          .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+          }
+        `}</style>
 
         {/* Order List */}
         <div className="space-y-6">
