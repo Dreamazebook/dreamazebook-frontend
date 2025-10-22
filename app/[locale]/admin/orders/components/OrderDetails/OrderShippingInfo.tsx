@@ -10,7 +10,7 @@ interface OrderShippingInfoProps {
 export default function OrderShippingInfo({ order }: OrderShippingInfoProps) {
   let shippingOption:ShippingOption|undefined = undefined;
   if (order.shipping_options) {
-    shippingOption = order?.shipping_options.find((option) => option.code === order.shipping_method);
+    shippingOption = order?.shipping_options.options.find((option) => option.code === order.shipping_method);
   }
   return (
     <div className="border-t border-gray-200 py-4 mb-6">

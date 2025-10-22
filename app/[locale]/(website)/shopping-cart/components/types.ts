@@ -50,6 +50,7 @@ export interface CartItem {
   product_image: string | null;
   attributes: CartAttributes;
   preview_id: number | null;
+  preview: any;
   customization_hash: string;
   quantity: number;
   giftbox_quantity: number;
@@ -59,7 +60,7 @@ export interface CartItem {
     cover_style: PriceAdjustment;
   };
   giftbox_info: GiftboxInfo;
-  unit_price: string;
+  unit_price: number;
   total_price: number;
   is_available: boolean;
   stock_quantity: number;
@@ -70,6 +71,7 @@ export interface CartItem {
   message?: string;
   result_images?: ResultImage[]
   subItems?: CartItem[];
+  status: string;
 }
 
 export interface CartItems {

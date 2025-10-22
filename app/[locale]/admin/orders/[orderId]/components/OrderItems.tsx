@@ -41,8 +41,8 @@ const OrderItems: FC<OrderItemsProps> = ({ order }) => {
               <div className="flex-shrink-0">
                 <div className="w-20 h-24 bg-gray-100 rounded-lg overflow-hidden">
                   <Image
-                    src={item.picbook.default_cover}
-                    alt={item.picbook.default_name}
+                    src={item.product_image || '/placeholder-book.png'}
+                    alt={item.product_name}
                     width={80}
                     height={96}
                     className="w-full h-full object-cover"
@@ -55,23 +55,8 @@ const OrderItems: FC<OrderItemsProps> = ({ order }) => {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h4 className="text-base font-medium text-gray-900 mb-1">
-                      {item.picbook_name}
+                      {item.product_name}
                     </h4>
-                    <p className="text-sm text-gray-600 mb-2">{item.name}</p>
-                    
-                    {item.format && (
-                      <div className="flex items-center text-sm text-gray-500 mb-1">
-                        <span className="font-medium mr-2">格式:</span>
-                        <span>{item.format}</span>
-                      </div>
-                    )}
-                    
-                    {item.box && (
-                      <div className="flex items-center text-sm text-gray-500 mb-1">
-                        <span className="font-medium mr-2">包装:</span>
-                        <span>{item.box}</span>
-                      </div>
-                    )}
 
                     <div className="flex items-center text-sm text-gray-500 mb-1">
                       <span className="font-medium mr-2">数量:</span>
@@ -84,21 +69,6 @@ const OrderItems: FC<OrderItemsProps> = ({ order }) => {
                         {item.status || '未设置'}
                       </span>
                     </div>
-
-                    {item.processing_progress !== undefined && (
-                      <div className="flex items-center text-sm text-gray-500 mb-2">
-                        <span className="font-medium mr-2">处理进度:</span>
-                        <div className="flex-1 max-w-xs">
-                          <div className="bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${item.processing_progress}%` }}
-                            />
-                          </div>
-                          <span className="text-xs text-gray-400 mt-1">{item.processing_progress}%</span>
-                        </div>
-                      </div>
-                    )}
 
                     {item.message && (
                       <div className="mt-3 p-3 bg-gray-50 rounded-lg">
@@ -119,7 +89,7 @@ const OrderItems: FC<OrderItemsProps> = ({ order }) => {
                   {/* Pricing */}
                   <div className="text-right ml-4">
                     <div className="text-sm text-gray-500 mb-1">单价</div>
-                    <DisplayPrice value={item.price} style='text-sm font-medium text-gray-900 mb-2' />
+                    <DisplayPrice value={item.unit_price} style='text-sm font-medium text-gray-900 mb-2' />
                     <div className="text-sm text-gray-500 mb-1">小计</div>
                     <DisplayPrice value={item.total_price} style='text-sm font-medium text-gray-900 mb-2' />
                   </div>

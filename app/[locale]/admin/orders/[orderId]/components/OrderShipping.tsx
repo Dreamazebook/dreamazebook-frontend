@@ -11,7 +11,7 @@ interface OrderShippingProps {
 }
 
 const OrderShipping: FC<OrderShippingProps> = ({ order }) => {
-  const shippingOption = order.shipping_options?.find(option => option.code === order.shipping_method);
+  const shippingOption = order.shipping_options?.options.find(option => option.code === order.shipping_method);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

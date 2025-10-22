@@ -81,7 +81,7 @@ const OrderOverview: FC<OrderOverviewProps> = ({ order }) => {
           <div>
             <dt className="text-sm font-medium text-gray-500">配送方式</dt>
             <dd className="mt-1 text-sm text-gray-900">
-              {order.shipping_options?.find(opt => opt.code === order.shipping_method)?.name || order.shipping_method || '未设置'}
+              {order.shipping_options?.options.find(opt => opt.code === order.shipping_method)?.name || order.shipping_method || '未设置'}
             </dd>
           </div>
 

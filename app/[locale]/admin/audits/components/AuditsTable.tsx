@@ -146,11 +146,11 @@ const AuditsTable: FC<AuditsTableProps> = ({ audits, setSelectedAudit }) => {
                         
                         {audit.items.map((book) => (
                           <div key={book.id} className="grid grid-cols-4 gap-4 items-center py-2 text-sm">
-                            <span className="text-gray-900">{book.picbook.default_name}</span>
+                            <span className="text-gray-900">{book.product_name}</span>
                             <div className="w-12 h-16 bg-blue-100 rounded flex items-center justify-center overflow-hidden">
                               <Image 
-                                src={book.picbook.default_cover} 
-                                alt={book.picbook.default_name}
+                                src={book.product_image || '/placeholder-book.png'} 
+                                alt={book.product_name}
                                 width={48}
                                 height={64}
                                 className="w-full h-full object-cover"

@@ -57,7 +57,7 @@ export default function EditPersonalizedProductPage() {
     (async () => {
       try {
         const { data } = await api.get<ApiResponse<CartItems>>(`${API_CART_LIST}`);
-        const item = data.cart_items.find(ci => ci.preview_id === previewId);
+        const item = data.items.find(ci => ci.preview_id === previewId);
         const p = item?.preview;
         if (!p) return;
         // 兼容 face_image 为 JSON 数组字符串或单值
