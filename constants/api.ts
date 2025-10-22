@@ -3,7 +3,7 @@ export const API_DOMAIN = process.env.NEXT_PUBLIC_API_URL || 'https://api.dreama
 export const API_USER_REGISTER = API_DOMAIN + '/register';
 
 export const API_USER_LOGIN = API_DOMAIN + '/login';
-export const API_USER_LOGOUT = API_DOMAIN + '/auth/logout';
+export const API_USER_LOGOUT = API_DOMAIN + '/logout';
 
 export const API_USER_SEND_PASSWORD_RESET_EMAIL = API_DOMAIN + '/auth/forgot-password';
 
