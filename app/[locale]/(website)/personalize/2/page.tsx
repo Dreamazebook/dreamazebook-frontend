@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
+import {PageProps} from '../1/page';
 
-type PageProps = { params: { locale: string } };
-
-export default function Page({ params: { locale } }: PageProps) {
+export default async function Page({ params }: PageProps) {
+  const { locale } = await params;
   redirect(`/${locale}/personalize?bookid=2`);
 }
 

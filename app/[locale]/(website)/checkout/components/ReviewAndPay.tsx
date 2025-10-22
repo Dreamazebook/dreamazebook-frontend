@@ -8,7 +8,7 @@ import {
   useStripe,
   useElements
 } from '@stripe/react-stripe-js';
-import { OrderDetail, OrderDetailResponse } from './types';
+import { OrderDetail } from './types';
 import api from '@/utils/api';
 import { API_ORDER_STRIPE_PAID } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
@@ -21,18 +21,18 @@ import NextStepButton from './NextStepButton';
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 interface ReviewAndPayProps {
-  orderDetail: OrderDetailResponse;
+  orderDetail: OrderDetail;
   handlePlaceOrder?: () => void;
   onError?: (error: string) => void;
 }
 
 const CheckoutForm: React.FC<{
-  orderDetail: OrderDetailResponse;
+  orderDetail: OrderDetail;
   onError?: (error: string) => void;
 }> = ({ orderDetail, onError }) => {
-  const order = orderDetail.order;
+  const order = orderDetail;
   const {shipping_address,total_amount} = order;
-  const clientSecret = orderDetail.payment_data?.client_secret;
+  const clientSecret = orderDetail.client_secret;
   const stripe = useStripe();
   const elements = useElements();
   
@@ -71,7 +71,7 @@ const CheckoutForm: React.FC<{
       elements,
       redirect: 'if_required',
       confirmParams: {
-        return_url: window.location.origin + `/order-summary?orderId=${orderDetail.order.id}`,
+        return_url: window.location.origin + `/order-summary?orderId=${orderDetail.id}`,
         receipt_email: shipping_address?.email || undefined,
       },
     });
@@ -87,11 +87,11 @@ const CheckoutForm: React.FC<{
         setMessage('Payment succeeded!');
         try {
           const { success } = await api.post<ApiResponse>(API_ORDER_STRIPE_PAID, {
-            order_id: orderDetail.order.id,
-            payment_intent_id: orderDetail.order.stripe_payment_intent_id
+            order_id: orderDetail.id,
+            payment_intent_id: orderDetail.stripe_payment_intent_id
           });
           if (success) {
-            router.push(`/order-summary?orderId=${orderDetail.order.id}`);
+            router.push(`/order-summary?orderId=${orderDetail.id}`);
           } else {
             setMessage('Failed to update order status');
           }
@@ -190,7 +190,7 @@ const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
   orderDetail,
   onError,
 }) => {
-  const clientSecret = orderDetail.payment_data?.client_secret;
+  const clientSecret = orderDetail.client_secret;
   if (!clientSecret) {
     onError?.('Payment data is incomplete');
     return;

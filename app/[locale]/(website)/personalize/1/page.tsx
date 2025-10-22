@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-type PageProps = {
+export type PageProps = {
   params: Promise<{ locale: string }>
 };
 

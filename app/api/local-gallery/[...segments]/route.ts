@@ -4,12 +4,9 @@ import fs from 'fs/promises';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(
-  _request: Request,
-  context: { params: { segments?: string[] } }
-) {
+export async function GET(_request: Request, context: any) {
   try {
-    const segments = context.params.segments || [];
+    const segments: string[] = (context?.params?.segments as string[]) || [];
     // Normalize to prevent path traversal
     const rel = ('/' + segments.join('/')).replace(/\\/g, '/');
     const safeRel = path.posix
@@ -26,7 +23,7 @@ export async function GET(
       .map((e) => e.name)
       .filter((name) => /\.(png|jpe?g|webp|gif)$/i.test(name))
       .sort((a, b) => a.localeCompare(b, 'en'))
-      .map((name) => `/${safeRel}/${name}`);
+      .map((name) => `/${[safeRel, name].filter(Boolean).join('/')}`);
 
     return NextResponse.json({ success: true, files });
   } catch (err: any) {
