@@ -58,40 +58,33 @@ export default function SlideShow() {
     <>
       {/* Desktop Version */}
       <section className="hidden lg:block relative w-full h-screen overflow-hidden">
-        <div className={`absolute inset-0 bg-gradient-to-br ${slide.backgroundColor} transition-colors duration-700`}>
-          <div className="absolute inset-0 flex">
-            {/* Left Content */}
-            <div className="w-1/2 flex flex-col justify-center px-16 xl:px-24">
-              <h1 className="text-6xl xl:text-7xl font-bold leading-tight">
-                {slide.title.map((line, index) => (
-                  <span key={index}>
-                    <span className="text-blue-600 inline-block animate-fadeIn">{line}</span>
-                    {index < slide.title.length - 1 && <br />}
-                  </span>
-                ))}
-              </h1>
-              <button className="mt-12 flex items-center gap-2 text-lg font-medium text-gray-800 hover:gap-4 transition-all duration-300 group">
-                {slide.buttonText}
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
+        {/* Background image layer */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${slide.image})` }}
+        />
 
-            {/* Right Image */}
-            <div className="w-1/2 relative overflow-hidden">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <img
-                  key={slide.id}
-                  src={slide.image}
-                  alt={slide.alt}
-                  className="w-full h-full object-cover animate-slideIn"
-                />
-              </div>
-            </div>
+        {/* Content (above background and tint) */}
+        <div className="absolute inset-0 flex z-10 w-full">
+          {/* Left Content */}
+          <div className="  flex flex-col justify-center px-16 xl:px-24">
+            <h1 className="text-6xl xl:text-7xl font-bold leading-tight">
+              {slide.title.map((line, index) => (
+                <span key={index}>
+                  <span className="text-blue-600 inline-block animate-fadeIn">{line}</span>
+                  {index < slide.title.length - 1 && <br />}
+                </span>
+              ))}
+            </h1>
+            <button className="mt-12 flex items-center gap-2 text-lg font-medium text-gray-800 hover:gap-4 transition-all duration-300 group">
+              {slide.buttonText}
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </button>
           </div>
         </div>
 
         {/* Carousel Indicators */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-3 z-10">
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-3 z-20">
           {slides.map((_, index) => (
             <button
               key={index}
@@ -107,7 +100,14 @@ export default function SlideShow() {
 
       {/* Mobile Version */}
       <section className="lg:hidden relative w-full min-h-screen flex flex-col overflow-hidden">
-        <div className={`absolute inset-0 bg-gradient-to-br ${slide.backgroundColor} transition-colors duration-700`} />
+        {/* Background image layer */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${slide.image})` }}
+        />
+
+        {/* Tint gradient overlay */}
+        <div className={`absolute inset-0 bg-gradient-to-br ${slide.backgroundColor} opacity-60 transition-colors duration-700`} />
 
         <div className="relative z-10 flex-1 flex flex-col justify-center px-6 py-12">
           <h1 className="text-4xl sm:text-5xl font-bold leading-tight">
@@ -124,18 +124,11 @@ export default function SlideShow() {
           </button>
         </div>
 
-        {/* Image */}
-        <div className="relative w-full h-[50vh] sm:h-[60vh] overflow-hidden">
-          <img
-            key={slide.id}
-            src={slide.image}
-            alt={slide.alt}
-            className="w-full h-full object-cover animate-slideIn"
-          />
-        </div>
+        {/* Hidden img for accessibility */}
+        <img src={slide.image} alt={slide.alt} className="sr-only" />
 
         {/* Mobile Carousel Indicators */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-20">
           {slides.map((_, index) => (
             <button
               key={index}

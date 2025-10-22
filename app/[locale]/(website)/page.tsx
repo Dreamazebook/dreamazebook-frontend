@@ -54,65 +54,9 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({ children, className =
     </motion.section>
   );
 };
-//import { Link } from "@/i18n/routing";
 
 export default function HomePage() {
   const t = useTranslations('HomePage');
-  
-  // const features = [
-  //   {
-  //     icon: '🎁',
-  //     title: t('feature1Title'),
-  //     description: t('feature1Desc')
-  //   },
-  //   {
-  //     icon: '✏️',
-  //     title: t('feature2Title'),
-  //     description: t('feature2Desc')
-  //   },
-  //   {
-  //     icon: '🚀',
-  //     title: t('feature3Title'),
-  //     description: t('feature3Desc')
-  //   }
-  // ];
-
-  const books = [
-    {
-      id: 1,
-      title: t('book1Title'),
-      description: t('book1Desc'),
-      price: 29.99,
-      image: '/books/book1.png'
-    },
-    {
-      id: 2,
-      title: t('book2Title'),
-      description: t('book2Desc'),
-      price: 24.99,
-      image: '/books/book2.png'
-    },
-    {
-      id: 3,
-      title: t('book3Title'),
-      description: t('book3Desc'),
-      price: 27.99,
-      image: '/books/book3.png'
-    }
-  ];
-
-  const testimonials = [
-    {
-      name: t('testimonial1Name'),
-      text: t('testimonial1Text'),
-      rating: 5
-    },
-    {
-      name: t('testimonial2Name'),
-      text: t('testimonial2Text'),
-      rating: 4
-    }
-  ];
 
   const faqs = [
     {
