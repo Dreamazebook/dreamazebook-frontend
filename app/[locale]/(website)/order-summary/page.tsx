@@ -104,7 +104,7 @@ const OrderSummary: React.FC = () => {
   if (isLoading) {
     return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 animate-pulse">
-      <div className="max-w-5xl mx-auto p-6 space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         {/* 标题与提示 */}
         <div className="space-y-4">
           <div className="h-8 bg-gray-200 rounded w-1/2"></div>
@@ -149,7 +149,7 @@ const OrderSummary: React.FC = () => {
 
       {showMessageModal && selectedItem && <MessageModal isSubmitting={isSubmitting} message={selectedItem.message || ''} handleClose={()=>setShowMessageModal(false)} handleMessageSubmit={handleMessageSubmit}/>}
       {/* 容器 */}
-      <div className="max-w-5xl mx-auto p-6">
+      <div className="max-w-5xl mx-auto">
         {/* 标题与提示 */}
         <div className="mb-4">
           <h1 className="text-2xl mb-2">
@@ -161,7 +161,7 @@ const OrderSummary: React.FC = () => {
         </div>
 
         {/* 订单号和预计送达 */}
-        <div className="flex items-center space-x-8 mb-4">
+        <div className="flex items-center flex-wrap space-x-8 mb-4">
           <span className="text-[#222222] flex items-center gap-1">
             <span>#{orderDetail?.order_number}</span>
             <Image src='/order-summary/copy.svg' width={24} height={24} alt="clipboard" className='cursor-pointer' onClick={copyOrderNumberToClipboard} />

@@ -33,7 +33,7 @@ const AddressCardListModal: React.FC<AddressCardListModalProps> = ({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="fixed z-10 inset-0 overflow-y-auto h-screen w-screen"
+        className="fixed z-10 inset-0 overflow-y-auto h-screen w-screen z-50"
       >
         {/* Overlay */}
         <motion.div

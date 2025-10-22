@@ -59,14 +59,14 @@ const StepIndicator = ({orderDetail}:{orderDetail:OrderDetail}) => {
       circle: `w-12 h-12 rounded-full flex items-center justify-center shadow-lg relative z-10 ${
         isCompleted ? 'bg-[#FCF2F2]' : isCurrent ? '' : 'bg-gray-300'
       }`,
-      text: `font-bold ${
+      text: `font-bold text-sm md:text-normal ${
         isCompleted || isCurrent ? 'text-[#012CCE]' : 'text-[#666666]'
       }`
     };
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto py-12 px-8">
+    <div className="w-full max-w-5xl mx-auto p-2 md:p-6">
       {/* <div className="mb-8">
         <label className="block text-sm font-medium text-gray-700 mb-2">Current Step:</label>
         <select 
