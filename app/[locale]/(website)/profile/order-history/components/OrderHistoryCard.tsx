@@ -37,7 +37,7 @@ const OrderHistoryCard = ({orderDetail}:{orderDetail:OrderDetail}) => {
 
       {/* Order Details */}
       <div className="flex-1">
-        <div className="flex justify-between items-start mb-2">
+        <div className="flex justify-between items-start mb-2 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="text-gray-900 font-medium text-base">#{orderDetail.order_number}</span>
             <OrderStatusLabel status={orderDetail.status} />
