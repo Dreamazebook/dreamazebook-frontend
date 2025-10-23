@@ -28,7 +28,6 @@ export interface OrderDetail {
   coupon_code: string;
   notes: string;
   stripe_payment_intent_id: string;
-  client_secret: string;
   stripe_client_secret: string;
   shipping_address: Address;
   paid_at: string | null;

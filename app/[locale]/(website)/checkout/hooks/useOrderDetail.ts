@@ -5,17 +5,17 @@ import { API_ORDER_DETAIL, API_ORDER_STRIPE_PAID } from '@/constants/api';
 import { OrderDetail } from '../components/types';
 import { ApiResponse } from '@/types/api';
 import { Address } from '@/types/address';
+import { ORDER_SUMMARY_URL } from '@/constants/links';
 
 export const useOrderDetail = (orderId: string | null) => {
   const router = useRouter();
   const [orderDetail, setOrderDetail] = useState<OrderDetail>();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (orderId) {
       const fetchOrderDetails = async () => {
-        setIsLoading(true);
         setError(null);
         
         try {
@@ -29,7 +29,7 @@ export const useOrderDetail = (orderId: string | null) => {
               payment_intent_id: data.stripe_payment_intent_id,
             });
             if (response.success && response.data?.payment_status === 'paid') {
-              return router.push(`/order-summary?orderId=${orderId}`);
+              return router.push(ORDER_SUMMARY_URL(data.id));
             }
           }
         } catch (err) {

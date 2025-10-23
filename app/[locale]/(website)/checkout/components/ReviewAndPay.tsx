@@ -15,6 +15,7 @@ import { ApiResponse } from '@/types/api';
 import { useRouter } from '@/i18n/routing';
 import DisplayPrice from '../../components/component/DisplayPrice';
 import NextStepButton from './NextStepButton';
+import { ORDER_SUMMARY_URL } from '@/constants/links';
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
@@ -32,7 +33,7 @@ const CheckoutForm: React.FC<{
 }> = ({ orderDetail, onError }) => {
   const order = orderDetail;
   const {shipping_address,total_amount} = order;
-  const clientSecret = orderDetail.client_secret;
+  const clientSecret = orderDetail.stripe_client_secret;
   const stripe = useStripe();
   const elements = useElements();
   
@@ -71,7 +72,7 @@ const CheckoutForm: React.FC<{
       elements,
       redirect: 'if_required',
       confirmParams: {
-        return_url: window.location.origin + `/order-summary?orderId=${orderDetail.id}`,
+        return_url: window.location.origin + ORDER_SUMMARY_URL(orderDetail.id),
         receipt_email: shipping_address?.email || undefined,
       },
     });
@@ -91,7 +92,7 @@ const CheckoutForm: React.FC<{
             payment_intent_id: orderDetail.stripe_payment_intent_id
           });
           if (success) {
-            router.push(`/order-summary?orderId=${orderDetail.id}`);
+            router.push(ORDER_SUMMARY_URL(orderDetail.id));
           } else {
             setMessage('Failed to update order status');
           }
@@ -190,7 +191,7 @@ const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
   orderDetail,
   onError,
 }) => {
-  const clientSecret = orderDetail.client_secret;
+  const clientSecret = orderDetail.stripe_client_secret;
   if (!clientSecret) {
     onError?.('Payment data is incomplete');
     return;
