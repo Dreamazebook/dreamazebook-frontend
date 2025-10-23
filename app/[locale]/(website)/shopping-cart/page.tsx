@@ -16,6 +16,7 @@ import CartItemList from './components/CartItemList';
 import Loading from '../components/Loading';
 import ConfirmModal from '../components/component/ConfirmModal';
 import useUserStore from '@/stores/userStore';
+import { ORDER_CHECKOUT_URL } from '@/constants/links';
 
 export default function ShoppingCartPage() {
   const t = useTranslations('ShoppingCart');
@@ -185,7 +186,7 @@ export default function ShoppingCartPage() {
       });
       if (success) {
         setError('');
-        router.push(`/checkout?orderId=${data.order.id}`);
+        router.push(ORDER_CHECKOUT_URL(data.order.id));
       } else {
         setError(message || t('checkoutFailed'));
       }

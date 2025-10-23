@@ -4,8 +4,10 @@ import DisplayPrice from "../../../components/component/DisplayPrice";
 import { formatDate } from "@/app/[locale]/admin/orders/utils";
 import { Link } from "@/i18n/routing";
 import OrderStatusLabel from "../../../components/component/OrderStatusLabel";
+import { ORDER_CHECKOUT_URL, ORDER_SUMMARY_URL } from "@/constants/links";
 
 const OrderHistoryCard = ({orderDetail}:{orderDetail:OrderDetail}) => {
+  const orderDetailLink = orderDetail.payment_status === 'paid' ? ORDER_SUMMARY_URL(orderDetail.id) : ORDER_CHECKOUT_URL(orderDetail.id);
   return (
     <div className="flex gap-4 py-4">
       {/* Product Images */}
@@ -39,7 +41,7 @@ const OrderHistoryCard = ({orderDetail}:{orderDetail:OrderDetail}) => {
       <div className="flex-1">
         <div className="flex justify-between items-start mb-2 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className="text-gray-900 font-medium text-base">#{orderDetail.order_number}</span>
+            <Link href={orderDetailLink} className="text-gray-900 font-medium text-base">#{orderDetail.order_number}</Link>
             <OrderStatusLabel status={orderDetail.status} />
           </div>
           <DisplayPrice value={orderDetail.total_amount} style='text-lg font-semibold text-gray-900' />
@@ -67,7 +69,7 @@ const OrderHistoryCard = ({orderDetail}:{orderDetail:OrderDetail}) => {
           <button className="text-blue-600 hover:underline text-sm">
             Buy the Same
           </button>
-          <Link href={`/${orderDetail.payment_status === 'paid' ? 'order-summary' : 'checkout'}?orderId=${orderDetail.id}`} className="text-blue-600 hover:underline text-sm flex items-center gap-1">
+          <Link href={orderDetailLink} className="text-blue-600 hover:underline text-sm flex items-center gap-1">
             More Details
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
