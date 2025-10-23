@@ -110,7 +110,7 @@ const Header = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black bg-opacity-50 z-40"
+              className="fixed inset-0 bg-black bg-opacity-50 z-100"
               onClick={() => setIsMobileMenuOpen(false)}
             />
             
@@ -120,7 +120,7 @@ const Header = () => {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white z-40 shadow-xl"
+              className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white z-100 shadow-xl"
             >
               <motion.nav 
                 className="flex flex-col items-start p-6 pt-20 h-full"

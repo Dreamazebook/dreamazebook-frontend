@@ -23,7 +23,7 @@ export default function LatestOrderHistory({ orderDetail }:{orderDetail:OrderDet
       <div className="space-y-3">
         
         {items.map((item)=>(
-        <CartItemCard item={item} />
+        <CartItemCard item={item} key={item.id} />
         ))}
         
       </div>
