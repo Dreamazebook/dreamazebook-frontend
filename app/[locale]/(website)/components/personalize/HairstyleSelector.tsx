@@ -11,6 +11,9 @@ interface HairstyleSelectorProps {
 	onBlur?: () => void;
 	error?: string;
 	touched?: boolean;
+  // Optional: backend-driven hair style values, e.g. ["1","2","3","4"].
+  // UI remains the same; values are mapped to internal ids: hair_1..hair_4
+  hairStyleValues?: string[];
 }
 
 const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
@@ -20,14 +23,14 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 	onBlur,
 	error,
 	touched,
+  hairStyleValues,
 }) => {
-	// 根据bookId动态生成发型选项
-	const hairstyles = [
-		{ id: 'hair_1', image: `/products/picbooks/${bookId}/avatar/layer_hair_1.png` },
-		{ id: 'hair_2', image: `/products/picbooks/${bookId}/avatar/layer_hair_2.png` },
-		{ id: 'hair_3', image: `/products/picbooks/${bookId}/avatar/layer_hair_3.png` },
-		{ id: 'hair_4', image: `/products/picbooks/${bookId}/avatar/layer_hair_4.png` },
-	];
+	// 根据bookId动态生成发型选项，支持后端传值（数量与顺序跟随后端）
+	const ids = (hairStyleValues && hairStyleValues.length > 0)
+		? hairStyleValues.map(v => `hair_${v}`)
+		: ['hair_1','hair_2','hair_3','hair_4'];
+
+	const hairstyles = ids.map(id => ({ id, image: `/products/picbooks/${bookId}/avatar/layer_${id}.png` }));
 
 	const handleHairstyleSelect = (hairstyleId: string) => {
 		onChange(hairstyleId);

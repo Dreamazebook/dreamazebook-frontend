@@ -1376,7 +1376,10 @@ export default function PreviewPageWithTopNav() {
     clearBatchPolling();
     batchPollTimerRef.current = window.setInterval(async () => {
       try {
-        const res = await api.get(`/products/${spuCode}/preview/batches/${batchId}`) as ApiResponse<any>;
+        const base = (process.env.NEXT_PUBLIC_PREVIEW_API_URL || '').replace(/\/$/, '');
+        const path = `/products/${spuCode}/preview/batches/${batchId}`;
+        const url = base ? `${base}${path}` : path;
+        const res = await api.get(url) as ApiResponse<any>;
         const batch = (res as any)?.data?.batch;
         if (batch?.pages) {
           setPreviewData((prev) => {
@@ -1548,6 +1551,29 @@ export default function PreviewPageWithTopNav() {
       const faceImages = (character?.photos && Array.isArray(character.photos))
         ? character.photos
         : (character?.photo ? [character.photo] : []);
+      const toBackendAttrs = (c: any) => {
+        // Map numeric codes or UI-values to backend strings
+        const skinHexes = ['#FFE2CF', '#DCB593', '#665444'];
+        const hex = c?.skinColor || c?.skin_color_hex;
+        const idx = typeof hex === 'string' ? skinHexes.findIndex((h) => h === hex) : (c?.skincolor ? (Number(c.skincolor) - 1) : -1);
+        const skin_tone = idx === 0 ? 'white' : idx === 2 ? 'black' : 'original';
+        const hair_style = String(c?.hairstyle || c?.hair_style || '').replace('hair_', '') || String(c?.hairstyle || '1');
+        const mapHairColor = (v: any) => {
+          if (typeof v === 'string') {
+            const s = v.toLowerCase();
+            if (s === 'light') return 'blone';
+            if (s === 'dark' || s === 'black') return 'dark';
+            return 'dark';
+          }
+          const n = Number(v) || 1;
+          if (n === 1) return 'blone';
+          if (n === 3) return 'dark';
+          return 'dark';
+        };
+        const hair_color = mapHairColor(c?.hairColor || c?.haircolor);
+        return { skin_tone, hair_style, hair_color };
+      };
+
       const apiRequestData = {
         picbook_id: bookId,
         // 新接口：face_images 为对象数组，包含 filename/mime/data（data URL）
@@ -1559,7 +1585,8 @@ export default function PreviewPageWithTopNav() {
         full_name: character?.full_name,
         language: character?.language || 'en', // 默认英语
         gender: character?.gender || 1, // 默认值
-        skincolor: character?.skincolor || 1 // 默认值
+        skincolor: character?.skincolor || 1, // 默认值
+        attributes: toBackendAttrs(character)
       };
       
       // 添加详细的调试日志
@@ -1687,6 +1714,28 @@ export default function PreviewPageWithTopNav() {
           const faceImages = (character?.photos && Array.isArray(character.photos))
             ? character.photos
             : (character?.photo ? [character.photo] : []);
+          const toBackendAttrs2 = (c: any) => {
+            const skinHexes = ['#FFE2CF', '#DCB593', '#665444'];
+            const hex = c?.skinColor || c?.skin_color_hex;
+            const idx = typeof hex === 'string' ? skinHexes.findIndex((h) => h === hex) : (c?.skincolor ? (Number(c.skincolor) - 1) : -1);
+            const skin_tone = idx === 0 ? 'white' : idx === 2 ? 'black' : 'original';
+            const hair_style = String(c?.hairstyle || c?.hair_style || '').replace('hair_', '') || String(c?.hairstyle || '1');
+            const mapHairColor = (v: any) => {
+              if (typeof v === 'string') {
+                const s = v.toLowerCase();
+                if (s === 'light') return 'blone';
+                if (s === 'dark' || s === 'black') return 'dark';
+                return 'dark';
+              }
+              const n = Number(v) || 1;
+              if (n === 1) return 'blone';
+              if (n === 3) return 'dark';
+              return 'dark';
+            };
+            const hair_color = mapHairColor(c?.hairColor || c?.haircolor);
+            return { skin_tone, hair_style, hair_color };
+          };
+
           const apiRequestData = {
             picbook_id: bookId,
             // 新接口：face_images（data URL 列表转对象）
@@ -1698,7 +1747,8 @@ export default function PreviewPageWithTopNav() {
             full_name: character?.full_name,
             language: character?.language,
             gender: character?.gender,
-            skincolor: character?.skincolor
+            skincolor: character?.skincolor,
+            attributes: toBackendAttrs2(character)
           };
           
           // 添加详细的调试日志

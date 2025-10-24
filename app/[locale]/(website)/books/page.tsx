@@ -318,7 +318,7 @@ export default function BooksPage() {
                 </div>
               </div>
               {/* Right: image */}
-              <div className="relative bg-[#F3F3F3] w-full h-[420px] flex flex-col gap-6 justify-center items-center">
+              <div className="relative bg-[#F8F8F8] w-full h-[420px] flex flex-col gap-6 justify-center items-center">
                 <div className="relative w-full flex-1">
                   {bestSellerImage && (
                     <Image

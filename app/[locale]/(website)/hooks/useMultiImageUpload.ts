@@ -32,7 +32,12 @@ interface UploadedImage {
   isUploading?: boolean;
 }
 
-const useMultiImageUpload = (maxImages: number = 3) => {
+interface UploadOptions {
+  allowedTypes?: string[];
+  maxFileSize?: number; // bytes
+}
+
+const useMultiImageUpload = (maxImages: number = 3, options: UploadOptions = {}) => {
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
@@ -40,19 +45,21 @@ const useMultiImageUpload = (maxImages: number = 3) => {
   const [isDragging, setIsDragging] = useState(false);
 
   const validateFile = (file: File): boolean => {
-    const allowedTypes = [
-      'image/jpeg',
-      'image/png',
-      'image/jpg',
-      'image/webp'
-    ];
+    const allowedTypes = options.allowedTypes && options.allowedTypes.length > 0
+      ? options.allowedTypes
+      : [
+          'image/jpeg',
+          'image/png',
+          'image/jpg',
+          'image/webp'
+        ];
     
     if (!allowedTypes.includes(file.type)) {
       setError('Please upload JPEG, JPG, PNG or WebP file only');
       return false;
     }
 
-    const maxSize = 20 * 1024 * 1024; // 20MB
+    const maxSize = typeof options.maxFileSize === 'number' ? options.maxFileSize : 20 * 1024 * 1024; // default 20MB
     if (file.size > maxSize) {
       setError('Pictures cannot exceed 20M');
       return false;

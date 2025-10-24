@@ -28,6 +28,10 @@ interface BasicInfoFormProps {
   onErrorChange?: (field: keyof BasicInfoData, error: string) => void;
   // 书籍ID，用于获取发型图片
   bookId?: string;
+  // Optional backend-driven values
+  apiSkinToneValues?: string[]; // e.g. ["black","original","white"]
+  apiHairStyleValues?: string[]; // e.g. ["1","2","3","4"]
+  apiHairColorValues?: string[]; // e.g. ["blone","dark"]
 }
 
 const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
@@ -37,6 +41,9 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   onChange,
   onErrorChange,
   bookId = '1', // 默认使用书籍ID 1
+  apiSkinToneValues,
+  apiHairStyleValues,
+  apiHairColorValues,
 }) => {
   // 图片上传相关的变量和函数已移至父组件 SingleCharacterForm1 和 SingleCharacterForm2
   /* 
@@ -67,11 +74,24 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   }, [imageUrl]);
   */
 
-  const skinColors = [
+  // Skin tones: map backend labels to existing UI color circles while preserving UI
+  const mapSkinToneToColor = (val: string) => {
+    const s = (val || '').toLowerCase();
+    if (s === 'white' || s === 'fair' || s === 'light') return { value: '#FFE2CF', label: 'Fair' };
+    if (s === 'original' || s === 'medium' || s === 'tan') return { value: '#DCB593', label: 'Medium' };
+    if (s === 'black' || s === 'dark') return { value: '#665444', label: 'Dark' };
+    return { value: '#FFE2CF', label: 'Fair' };
+  };
+
+  const defaultSkinColors = [
     { value: '#FFE2CF', label: 'Fair' },
     { value: '#DCB593', label: 'Medium' },
     { value: '#665444', label: 'Dark' },
   ];
+
+  const skinColors = (apiSkinToneValues && apiSkinToneValues.length > 0)
+    ? Array.from(new Map(apiSkinToneValues.map(v => [mapSkinToneToColor(v).value, mapSkinToneToColor(v)])).values())
+    : defaultSkinColors;
 
   // fullName 的 onChange 与 onBlur 处理
   const handleFullNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -262,6 +282,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
             onBlur={handleHairstyleBlur}
             error={errors.hairstyle}
             touched={touched.hairstyle}
+            hairStyleValues={apiHairStyleValues}
           />
         </div>
       )}
@@ -275,6 +296,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
             onBlur={handleHairColorBlur}
             error={errors.hairColor}
             touched={touched.hairColor}
+            hairColorValues={apiHairColorValues}
           />
         </div>
       )}

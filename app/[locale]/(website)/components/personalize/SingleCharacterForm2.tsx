@@ -46,9 +46,19 @@ interface SingleCharacterForm2Props {
     photo?: { path: string } | null;
   };
   bookId?: string;
+  // Optional backend-driven values
+  apiSkinToneValues?: string[];
+  apiHairStyleValues?: string[];
+  apiHairColorValues?: string[];
+  // Optional upload constraints from backend
+  uploadOptions?: {
+    allowedTypes?: string[];
+    maxFileSize?: number;
+    maxImages?: number;
+  };
 }
 
-const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharacterForm2Props>(({ initialData, bookId = '1' }, ref) => {
+const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharacterForm2Props>(({ initialData, bookId = '1', apiSkinToneValues, apiHairStyleValues, apiHairColorValues, uploadOptions }, ref) => {
   const [formData, setFormData] = useState<PersonalizeFormData2>({
     fullName: initialData?.fullName ?? '',
     gender: initialData?.gender ?? '',
@@ -84,7 +94,7 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
     handleDrop,
     getUploadedPaths,
     initializeWithUrls,
-  } = useMultiImageUpload(3);
+  } = useMultiImageUpload(uploadOptions?.maxImages ?? 3, { allowedTypes: uploadOptions?.allowedTypes, maxFileSize: uploadOptions?.maxFileSize });
 
   // 书籍2的品质选择移至 select-book-content 页面
 
@@ -219,6 +229,9 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
               onChange={handleBasicInfoChange}
               onErrorChange={handleErrorChange}
               bookId={bookId}
+              apiSkinToneValues={apiSkinToneValues}
+              apiHairStyleValues={apiHairStyleValues}
+              apiHairColorValues={apiHairColorValues}
             />
   
             {/* Date of Birth Section */}
@@ -315,7 +328,7 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
                 uploadProgress={uploadProgress}
                 error={uploadError}
                 isDragging={isDragging}
-                maxImages={3}
+                maxImages={uploadOptions?.maxImages ?? 3}
                 onImageUpload={handlePhotosUpload}
                 onImageDelete={handlePhotoDelete}
                 onDragEnter={handleDragEnter}
