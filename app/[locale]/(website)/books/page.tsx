@@ -31,6 +31,7 @@ type ProductsResponse = {
 };
 import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
+import ReviewsSection from '../components/Reviews';
 
 // 规范化图片地址：
 // - 移除以 /public/ 开头的前缀
@@ -320,7 +321,18 @@ export default function BooksPage() {
               <div className="relative bg-[#F3F3F3] w-full h-[420px] flex flex-col gap-6 justify-center items-center">
                 <div className="relative w-full flex-1">
                   {bestSellerImage && (
-                    <Image src={bestSellerImage} alt="best seller" fill className="object-cover" />
+                    <Image
+                      src={bestSellerImage}
+                      alt="best seller"
+                      fill
+                      className="object-cover"
+                      unoptimized={bestSellerImage.startsWith('http')}
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement & { srcset?: string };
+                        target.src = '/products/picbooks/PICBOOK_GOODNIGHT2/thumb.png';
+                        if (target.srcset) target.srcset = '';
+                      }}
+                    />
                   )}
                 </div>
                 {/* Best seller badge in top-right of the tile */}
@@ -329,6 +341,16 @@ export default function BooksPage() {
                 </div>
               </div>
             </section>
+          )}
+
+          {/* Reviews under Best Seller */}
+          {bestSeller && (
+            <ReviewsSection
+              compact
+              book={{ rating: '5.0' } as any}
+              keywords={[] as any}
+              reviews={[] as any}
+            />
           )}
 
           {/* Newsletter Section */}
