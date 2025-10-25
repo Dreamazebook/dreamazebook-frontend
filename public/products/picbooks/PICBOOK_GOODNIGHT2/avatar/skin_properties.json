@@ -1,24 +1,29 @@
 {
   "skinToneFilter": {
     "white": {
-      "saturate": "-2",
-      "hue": "-8",
-      "brightness": "+21"
+      "saturate": 18,
+      "hue": -12,
+      "contract": -1,
+      "brightness": 10
     },
     "black": {
-      "brightness": "-40",
-      "contract": "-62"
+      "saturate": 4,
+      "contract": 9,
+      "brightness": -38
     }
   },
   "hairColorFilter": {
     "blone": {
-      "saturate": "+96",
-      "hue": "+27",
-      "brightness": "+18"
+      "saturate": 58,
+      "hue": 19,
+      "contract": 16,
+      "brightness": 10
     },
     "dark": {
-      "brightness": "-40",
-      "contract": "-18"
+      "saturate": -35,
+      "hue": 0,
+      "contract": -12,
+      "brightness": -31
     }
   }
 }

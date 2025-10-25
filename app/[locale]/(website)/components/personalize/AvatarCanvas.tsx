@@ -96,95 +96,113 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
   }, [bookId]);
 
   // 标准像素级滤镜处理
+  // 复用脚本中的 normalizeNumber 与 applyFilterToImageData
+  const normalizeNumber = (val: number | string | undefined, fallback = 0): number => {
+    if (val === undefined || val === null) return fallback;
+    if (typeof val === 'number') return val;
+    const s = String(val).trim();
+    if (s.endsWith('deg')) return parseFloat(s.replace('deg', '')) || fallback;
+    return parseFloat(s.replace('+', '')) || fallback;
+  };
+
+  const applyFilterToImageData = (imageData: ImageData, filter?: any): ImageData => {
+    if (!filter) return imageData;
+    const data = imageData.data;
+
+    const B = Math.max(-100, Math.min(100, normalizeNumber(filter.brightness, 0)));
+    const C = Math.max(-100, Math.min(100, normalizeNumber((filter as any).contrast ?? (filter as any).contract, 0)));
+    const S = Math.max(-100, Math.min(100, normalizeNumber(filter.saturate, 0)));
+    const H = normalizeNumber(filter.hue, 0);
+
+    const bAdd = 255 * (B / 100);
+    const cMul = 1 + (C / 100);
+
+    for (let i = 0; i < data.length; i += 4) {
+      const a = data[i + 3];
+      if (a === 0) continue;
+
+      let r = data[i];
+      let g = data[i + 1];
+      let b = data[i + 2];
+
+      // Brightness + Contrast
+      r = ((r + bAdd) - 128) * cMul + 128;
+      g = ((g + bAdd) - 128) * cMul + 128;
+      b = ((b + bAdd) - 128) * cMul + 128;
+
+      // Saturation + Hue (HSL)
+      if (S !== 0 || H !== 0) {
+        let rN = r / 255;
+        let gN = g / 255;
+        let bN = b / 255;
+
+        const max = Math.max(rN, gN, bN);
+        const min = Math.min(rN, gN, bN);
+        let h = 0;
+        let s = 0;
+        const l = (max + min) / 2;
+
+        if (max !== min) {
+          const delta = max - min;
+          s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+          switch (max) {
+            case rN:
+              h = (gN - bN) / delta + (gN < bN ? 6 : 0);
+              break;
+            case gN:
+              h = (bN - rN) / delta + 2;
+              break;
+            default:
+              h = (rN - gN) / delta + 4;
+              break;
+          }
+          h /= 6;
+        }
+
+        const sScale = 1 + (S / 100);
+        h = (h + (H / 360)) % 1;
+        if (h < 0) h += 1;
+        s = Math.max(0, Math.min(1, s * sScale));
+
+        let r2: number, g2: number, b2: number;
+        if (s === 0) {
+          r2 = g2 = b2 = l;
+        } else {
+          const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+          const p2 = 2 * l - q;
+          const hue2rgb = (p: number, qv: number, t: number) => {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1 / 6) return p + (qv - p) * 6 * t;
+            if (t < 1 / 2) return qv;
+            if (t < 2 / 3) return p + (qv - p) * (2 / 3 - t) * 6;
+            return p;
+          };
+          r2 = hue2rgb(p2, q, h + 1 / 3);
+          g2 = hue2rgb(p2, q, h);
+          b2 = hue2rgb(p2, q, h - 1 / 3);
+        }
+
+        r = r2 * 255;
+        g = g2 * 255;
+        b = b2 * 255;
+      }
+
+      data[i] = r < 0 ? 0 : (r > 255 ? 255 : r | 0);
+      data[i + 1] = g < 0 ? 0 : (g > 255 ? 255 : g | 0);
+      data[i + 2] = b < 0 ? 0 : (b > 255 ? 255 : b | 0);
+      data[i + 3] = a;
+    }
+
+    return imageData;
+  };
+
   const applyPixelFilter = (ctx: CanvasRenderingContext2D, filterConfig: any, x: number, y: number, w: number, h: number) => {
     if (!filterConfig) return;
-
     try {
       const imageData = ctx.getImageData(x, y, w, h);
-      const data = imageData.data;
-
-      // 解析滤镜参数
-      let brightnessValue = 0;
-      let contrastValue = 0;
-      let saturateValue = 0;
-      let hueValue = 0;
-      
-      if (filterConfig.brightness) {
-        brightnessValue = parseInt(filterConfig.brightness.replace('+', ''));
-      }
-      
-      if (filterConfig.contrast) {
-        contrastValue = parseInt(filterConfig.contrast.replace('+', ''));
-      }
-      
-      if (filterConfig.saturate) {
-        saturateValue = parseInt(filterConfig.saturate.replace('+', ''));
-      }
-
-      if (filterConfig.hue) {
-        hueValue = parseInt(filterConfig.hue.replace('+', ''));
-      }
-
-      console.log('Applying pixel filter with LayerComposer algorithm:', { 
-        brightnessValue: `${brightnessValue} (direct add/subtract)`,
-        contrastValue: `${contrastValue} (standard formula)`,
-        saturateValue: `${saturateValue} (gray + value * (color - gray))`,
-        hueValue: `${hueValue} degrees (rotation matrix)`
-      });
-
-      // 处理每个像素 - 参考LayerComposer算法
-      for (let i = 0; i < data.length; i += 4) {
-        let r = data[i];
-        let g = data[i + 1];
-        let b = data[i + 2];
-        const a = data[i + 3];
-
-        // 只对有像素的部分（非透明区域）应用滤镜
-        if (a > 0) {
-          // 1. 应用饱和度调整
-          if (saturateValue !== 0) {
-            const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-            r = Math.min(255, Math.max(0, gray + saturateValue * (r - gray)));
-            g = Math.min(255, Math.max(0, gray + saturateValue * (g - gray)));
-            b = Math.min(255, Math.max(0, gray + saturateValue * (b - gray)));
-          }
-
-          // 2. 应用色相调整
-          if (hueValue !== 0) {
-            const hueRad = hueValue * Math.PI / 180;
-            const newR = r * Math.cos(hueRad) - g * Math.sin(hueRad);
-            const newG = r * Math.sin(hueRad) + g * Math.cos(hueRad);
-            r = Math.min(255, Math.max(0, newR));
-            g = Math.min(255, Math.max(0, newG));
-            // b 保持不变
-          }
-
-          // 3. 应用亮度调整 (直接加减法)
-          if (brightnessValue !== 0) {
-            r = Math.min(255, Math.max(0, r + brightnessValue));
-            g = Math.min(255, Math.max(0, g + brightnessValue));
-            b = Math.min(255, Math.max(0, b + brightnessValue));
-          }
-
-          // 4. 应用对比度调整 (标准公式)
-          if (contrastValue !== 0) {
-            const factor = (259 * (contrastValue + 255)) / (255 * (259 - contrastValue));
-            r = Math.min(255, Math.max(0, factor * (r - 128) + 128));
-            g = Math.min(255, Math.max(0, factor * (g - 128) + 128));
-            b = Math.min(255, Math.max(0, factor * (b - 128) + 128));
-          }
-
-          data[i] = Math.min(255, Math.max(0, r));
-          data[i + 1] = Math.min(255, Math.max(0, g));
-          data[i + 2] = Math.min(255, Math.max(0, b));
-          // 保持原始alpha值不变
-          data[i + 3] = a;
-        }
-        // 透明区域保持原样，不应用滤镜
-      }
-
-      ctx.putImageData(imageData, x, y);
-      console.log('Filter applied successfully to', (data.length / 4), 'pixels');
+      const processed = applyFilterToImageData(imageData, filterConfig);
+      ctx.putImageData(processed, x, y);
     } catch (error) {
       console.error('Error applying pixel filter:', error);
     }

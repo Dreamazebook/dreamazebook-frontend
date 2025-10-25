@@ -1,52 +1,27 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { usePathname, Link, useRouter } from '@/i18n/routing';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import api from '@/utils/api';
-// Link 已从上方 i18n/routing 导入
-import { DetailedBook } from '@/types/book';
-import { IoIosArrowBack } from "react-icons/io";
-import { getWebSocketUrl } from '@/utils/wsConfig';
+import { usePathname, Link, useRouter } from '@/i18n/routing';
 import Image from 'next/image';
-import echo from '@/app/config/echo';
-import useUserStore from '@/stores/userStore';
+import { IoIosArrowBack } from 'react-icons/io';
+import api from '@/utils/api';
+import SingleCharacterForm1, { SingleCharacterForm1Handle } from '../components/personalize/SingleCharacterForm1';
+import SingleCharacterForm2, { SingleCharacterForm2Handle } from '../components/personalize/SingleCharacterForm2';
+import { buildProductSchema, extractFieldOptions, resolveSkuPrice } from '@/utils/productAdapter';
 
-import { BasicInfoData } from '../components/personalize/BasicInfoForm';
-import { PersonalizeFormData } from '../components/personalize/SingleCharacterForm1';
+type AttributeOption = { value: string; label?: string; is_default?: boolean; price_diff?: number | string };
+type Attribute = { name: string; options: AttributeOption[]; default?: string };
 
-// 为SingleCharacterForm2创建兼容的接口
-export interface PersonalizeFormData2 {
-  fullName: string;
-  gender: '' | 'boy' | 'girl';
-  skinColor: string;
-  hairstyle: string;
-  hairColor: string;
-  photos: string[]; // 更新为支持多张图片
-  birthSeason: '' | 'spring' | 'summer' | 'autumn' | 'winter';
-  dob: Date | null;
-  qualities?: string[];
-}
-
-import SingleCharacterForm1, {
-  SingleCharacterForm1Handle,
-} from '../components/personalize/SingleCharacterForm1';
-import SingleCharacterForm2, {
-  SingleCharacterForm2Handle,
-} from '../components/personalize/SingleCharacterForm2';
-
-//import DoubleCharacterForm from '../components/personalize/DoubleCharacterForm';
-interface ApiResponse {
-  success: boolean;
-  code: number;
-  message: string;
-  data: DetailedBook;
-}
-
-export default function PersonalizePage() {
+export default function PersonalizeApiDrivenPage() {
   const searchParams = useSearchParams();
-  const bookId = searchParams.get('bookid');
-  const langParam = searchParams.get('language') || 'en';
+  // Accept multiple identifiers: book name, spu_code, or legacy id
+  const bookId =
+    searchParams.get('book') ||
+    searchParams.get('name') ||
+    searchParams.get('spu') ||
+    searchParams.get('bookid') ||
+    '';
   const mockParam = searchParams.get('mock');
   const isKs = searchParams.get('ks') === '1';
   const ksPackageItemId = searchParams.get('package_item_id') || '';
@@ -54,186 +29,188 @@ export default function PersonalizePage() {
   const router = useRouter();
   const pathname = usePathname();
   const locale = pathname.split('/')[1] || 'en';
-  const { user } = useUserStore();
 
-  const [book, setBook] = useState<DetailedBook | null>(null);
-  const [selectedFormType, setSelectedFormType] = useState<'SINGLE1' | 'SINGLE2' | 'DOUBLE' | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
+  const [formType, setFormType] = useState<'SINGLE1' | 'SINGLE2'>('SINGLE1');
 
-  const singleForm1Ref = useRef<SingleCharacterForm1Handle>(null);
-  const singleForm2Ref = useRef<SingleCharacterForm2Handle>(null);
+  const [skinToneValues, setSkinToneValues] = useState<string[] | undefined>(undefined);
+  const [hairStyleValues, setHairStyleValues] = useState<string[] | undefined>(undefined);
+  const [hairColorValues, setHairColorValues] = useState<string[] | undefined>(undefined);
+
+  const [initials, setInitials] = useState<{ skinColor?: string; hairstyle?: string; hairColor?: string }>({});
+  const [productSchema, setProductSchema] = useState<any>(null);
+  const [rawApi, setRawApi] = useState<any>(null);
+  const [uploadOptions, setUploadOptions] = useState<{ allowedTypes?: string[]; maxFileSize?: number; maxImages?: number } | undefined>(undefined);
+
+  const form1Ref = useRef<SingleCharacterForm1Handle>(null);
+  const form2Ref = useRef<SingleCharacterForm2Handle>(null);
 
   useEffect(() => {
-    const fetchBook = async () => {
-      if (bookId) {
-        const FRONTEND_PREVIEW = process.env.NEXT_PUBLIC_FRONTEND_PREVIEW === 'true' || mockParam === '1';
+    const fetchConfig = async () => {
+      const FRONTEND_PREVIEW = process.env.NEXT_PUBLIC_FRONTEND_PREVIEW === 'true' || mockParam === '1';
+      try {
         if (FRONTEND_PREVIEW) {
-          // 预览模式：跳过接口
-          if (bookId === '2') {
-            setSelectedFormType('SINGLE2');
-          } else {
-            setSelectedFormType('SINGLE1');
-          }
+          // 预览模式
+          setFormType(bookId === '2' ? 'SINGLE2' : 'SINGLE1');
           setLoading(false);
           return;
         }
+        // Backend supports querying by name or spu_code; use unified endpoint with identifier as path
+        if (!bookId) throw new Error('Missing book identifier');
+        const res = await api.get<any>(`/products/${encodeURIComponent(String(bookId))}`, { params: { language: 'personalize' } });
+        setRawApi(res?.data || res);
+        const product = res?.data?.data || res?.data || {};
+        const attributes: Attribute[] = Array.isArray(product.attributes) ? product.attributes : [];
+
+        const pick = (name: string) => attributes.find(a => a?.name === name);
+        const skin = pick('skin_tone');
+        const hairStyle = pick('hair_style');
+        const hairColor = pick('hair_color');
+
+        // Values
+        setSkinToneValues(skin?.options?.map(o => o.value) || undefined);
+        setHairStyleValues(hairStyle?.options?.map(o => o.value) || undefined);
+        setHairColorValues(hairColor?.options?.map(o => o.value) || undefined);
+
+        // Defaults → map to existing UI's internal values
+        const defaultSkin = (skin?.default || skin?.options?.find(o => o.is_default)?.value || '').toString();
+        const defaultHairStyle = (hairStyle?.default || hairStyle?.options?.find(o => o.is_default)?.value || '').toString();
+        const defaultHairColor = (hairColor?.default || hairColor?.options?.find(o => o.is_default)?.value || '').toString();
+
+        const mapSkinToColor = (s: string) => {
+          const v = (s || '').toLowerCase();
+          if (v === 'white' || v === 'fair' || v === 'light') return '#FFE2CF';
+          if (v === 'original' || v === 'medium' || v === 'tan') return '#DCB593';
+          if (v === 'black' || v === 'dark') return '#665444';
+          return '#FFE2CF';
+        };
+        const mapHairStyle = (s: string) => (s ? `hair_${s}` : 'hair_1');
+        const mapHairColor = (s: string) => {
+          const v = (s || '').toLowerCase();
+          if (v === 'blone' || v === 'blonde' || v === 'light') return 'light';
+          if (v === 'dark' || v === 'black') return 'dark';
+          return 'brown';
+        };
+
+        setInitials({
+          skinColor: defaultSkin ? mapSkinToColor(defaultSkin) : undefined,
+          hairstyle: defaultHairStyle ? mapHairStyle(defaultHairStyle) : undefined,
+          hairColor: defaultHairColor ? mapHairColor(defaultHairColor) : undefined,
+        });
+
+        setFormType(bookId === '2' ? 'SINGLE2' : 'SINGLE1');
+
+        // Build normalized schema and derive options
+        const schema = buildProductSchema(res?.data || res);
+        setProductSchema(schema);
+        setSkinToneValues(extractFieldOptions(schema, 'skin_tone'));
+        setHairStyleValues(extractFieldOptions(schema, 'hair_style'));
+        setHairColorValues(extractFieldOptions(schema, 'hair_color'));
+
+        // Upload constraints
         try {
-          const response = await api.get<ApiResponse>(`/products/${bookId}`, {
-            params: { language: locale },
-          });
-          setBook(response.data);
-          // 基于书籍ID控制表单类型
-          if (bookId === '2') {
-            setSelectedFormType('SINGLE2');
-          } else {
-            setSelectedFormType('SINGLE1');
-          }
-        } catch (error) {
-          console.error('Failed to fetch book:', error);
-          // 接口失败也允许前端预览
-          if (bookId === '2') {
-            setSelectedFormType('SINGLE2');
-          } else {
-            setSelectedFormType('SINGLE1');
-          }
-        } finally {
-          setLoading(false);
-        }
+          const cfg = product?.customization_config || {};
+          const allowed = ['image/jpeg','image/png','image/jpg','image/webp'];
+          const maxSize = 20 * 1024 * 1024; // 20MB
+          const maxFiles = typeof cfg?.max_face_images === 'number' ? cfg.max_face_images : 3;
+          setUploadOptions({ allowedTypes: allowed, maxFileSize: maxSize, maxImages: maxFiles });
+        } catch {}
+      } catch (e) {
+        setFormType(bookId === '2' ? 'SINGLE2' : 'SINGLE1');
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchBook();
-  }, [bookId]);
+    fetchConfig();
+  }, [bookId, locale, mockParam]);
 
-  const renderForm = () => {
-    if (!selectedFormType) return null;
-
-    switch (selectedFormType) {
-      case 'SINGLE1':
-        return <SingleCharacterForm1 ref={singleForm1Ref} bookId={bookId || '1'} />;
-      case 'SINGLE2':
-        return <SingleCharacterForm2 ref={singleForm2Ref} bookId={bookId || '1'} />;
-      case 'DOUBLE':
-        // return <DoubleCharacterForm />;
-      default:
-        return null;
-    }
-  };
-
-  // 在你的组件里替换原来的 handleContinue
   const handleContinue = async () => {
-    let fullName: string;
-    let genderRaw: '' | 'boy' | 'girl';
-    let skinColorRaw: string;
-    let hairstyleRaw: string;
-    let hairColorRaw: string;
-    let photoData: BasicInfoData['photo'] = null;
+    let fullName = '';
+    let genderRaw: '' | 'boy' | 'girl' = '';
+    let skinColorRaw = '';
+    let hairstyleRaw = '';
+    let hairColorRaw = '';
     let photosData: string[] = [];
-  
-    // 1. 拿到表单原始数据
-    if (selectedFormType === 'SINGLE1' && singleForm1Ref.current) {
-      const isValid = singleForm1Ref.current.validateForm();
+
+    if (formType === 'SINGLE1' && form1Ref.current) {
+      const isValid = form1Ref.current.validateForm();
       if (!isValid) return;
-      const form1 = singleForm1Ref.current.getFormData();
-      fullName      = form1.fullName;
-      genderRaw     = form1.gender;
-      skinColorRaw  = form1.skinColor;
-      hairstyleRaw  = form1.hairstyle;
-      hairColorRaw  = form1.hairColor;
-      photoData     = form1.photo;
-      // 获取所有上传的图片路径
-      photosData    = (form1 as any).photos || [];
-    } else if (selectedFormType === 'SINGLE2' && singleForm2Ref.current) {
-      const isValid = singleForm2Ref.current.validateForm();
+      const f = form1Ref.current.getFormData();
+      fullName = f.fullName; genderRaw = f.gender as any; skinColorRaw = f.skinColor; hairstyleRaw = f.hairstyle; hairColorRaw = f.hairColor; photosData = (f as any).photos || [];
+    } else if (formType === 'SINGLE2' && form2Ref.current) {
+      const isValid = form2Ref.current.validateForm();
       if (!isValid) return;
-      const form2 = singleForm2Ref.current.getFormData();
-      fullName      = form2.fullName;
-      genderRaw     = form2.gender;
-      skinColorRaw  = form2.skinColor;
-      hairstyleRaw  = form2.hairstyle;
-      hairColorRaw  = form2.hairColor;
-      photoData     = form2.photo;
-      photosData    = [form2.photo?.path].filter(Boolean) as string[];
-      // 附加字段（书籍2）
-      const dobStr = form2.dob ? new Date(form2.dob).toISOString().slice(0,10) : undefined;
-      const birthSeason = form2.birthSeason || undefined;
-      // qualities 改为在 select-book-content 里选择与保存
-      (window as any).__extraPersonalize = { dob: dobStr, birthSeason };
+      const f = form2Ref.current.getFormData();
+      fullName = f.fullName; genderRaw = f.gender as any; skinColorRaw = f.skinColor; hairstyleRaw = f.hairstyle; hairColorRaw = f.hairColor; photosData = [];
     } else {
       return;
     }
-  
-    // 校验 photo（预览模式可用占位图）
+
     const FRONTEND_PREVIEW = process.env.NEXT_PUBLIC_FRONTEND_PREVIEW === 'true' || mockParam === '1';
-    if (!photoData || !photoData.path) {
-      if (FRONTEND_PREVIEW) {
-        photoData = { path: '/personalize/face.png' } as any;
-      } else {
-        console.error('Please upload photo');
-        return;
-      }
+    if ((!photosData || photosData.length === 0) && FRONTEND_PREVIEW) {
+      photosData = ['/personalize/face.png'];
     }
-  
-    // 2. 字符串 → 数字 映射
-    const genderCode =
-      genderRaw === 'boy'  ? 1 :
-      genderRaw === 'girl' ? 2 :
-      0;  // 或者抛错、return
-  
-    // 通过在 BasicInfoForm 里定义的 skinColors 数组来找下标
-    const skinColors = [
-      '#FFE2CF', // Fair
-      '#DCB593', // Medium
-      '#665444', // Dark
-    ];
+
+    const genderCode = genderRaw === 'boy' ? 1 : genderRaw === 'girl' ? 2 : 0;
+    const skinColors = ['#FFE2CF', '#DCB593', '#665444'];
     const idx = skinColors.findIndex(c => c === skinColorRaw);
-    const skinColorCode = idx >= 0 ? idx + 1 : 0; // 1,2,3
-
-    // 发型映射 (hair_1, hair_2, hair_3, hair_4 -> 1, 2, 3, 4)
+    const skinColorCode = idx >= 0 ? idx + 1 : 0; // 1..3
     const hairstyleCode = hairstyleRaw ? parseInt(hairstyleRaw.replace('hair_', '')) : 1;
+    const hairColorMapping: Record<string, number> = { light: 1, brown: 2, dark: 3 };
+    const hairColorCode = hairColorMapping[hairColorRaw] || 1;
 
-    // 发色映射
-    const hairColorMapping = {
-      'light': 1,
-      'brown': 2,
-      'dark': 3,
+    // Build backend attributes payload values
+    const mapSkinToBackend = (hex: string): string => {
+      const i = skinColors.findIndex(c => c === hex);
+      if (i === 0) return 'white';
+      if (i === 1) return 'original';
+      if (i === 2) return 'black';
+      return 'original';
     };
-    const hairColorCode = (hairColorMapping as any)[hairColorRaw] || 1;
-  
-    // 如果映射失败，也可以 return 或给默认
-    if (!genderCode || !skinColorCode) {
-      console.error('Invalid skincolor');
-      return;
-    }
-  
-    // 3. 将用户数据保存到 localStorage：使用 data URL 列表作为 face_images 来源
-    const extras = (window as any).__extraPersonalize || {};
+    const mapHairColorToBackend = (key: string | number): string => {
+      const v = typeof key === 'number' ? key : ({ light: 1, brown: 2, dark: 3 } as any)[key] || 1;
+      if (v === 1) return 'blone';
+      if (v === 3) return 'dark';
+      return 'dark';
+    };
+    const mapHairstyleToBackend = (code: number | string): string => {
+      if (typeof code === 'number') return String(code);
+      const m = String(code).replace('hair_', '');
+      return m || '1';
+    };
+    if (!genderCode || !skinColorCode) return;
+
     const userData = {
       characters: [
         {
           full_name: fullName,
-          language:  langParam || 'en',
-          gender:    genderCode,
+          language: searchParams.get('language') || 'en',
+          gender: genderCode,
           skincolor: skinColorCode,
           hairstyle: hairstyleCode,
           haircolor: hairColorCode,
-          // 为兼容旧结构保留 photo 字段，但后续以 photos（data URL 列表）为准
-          photo:     (photoData as any).path,
-          photos:    (photosData && photosData.length > 0) 
-                      ? photosData 
-                      : ((photoData as any)?.path ? [ (photoData as any).path ] : []),
-          ...(extras.dob ? { dob: extras.dob } : {}),
-          ...(extras.birthSeason ? { birth_season: extras.birthSeason } : {}),
-          // qualities 在 select-book-content 进行保存
+          photo: photosData[0] || '',
+          photos: photosData,
+          attributes: {
+            skin_tone: mapSkinToBackend(skinColorRaw),
+            hair_style: mapHairstyleToBackend(hairstyleCode),
+            hair_color: mapHairColorToBackend(hairColorRaw || hairColorCode),
+          },
         },
       ],
     };
-    
+    // Optionally compute SKU + price for downstream steps (not altering UI)
+    if (rawApi && productSchema) {
+      const selections: Record<string, string> = {
+        language: (searchParams.get('language') || 'en') as string,
+      };
+      const resolved = resolveSkuPrice(rawApi, selections);
+      if (resolved?.sku) localStorage.setItem('previewSkuCode', String(resolved.sku));
+      localStorage.setItem('previewPrice', String(resolved.price));
+    }
     localStorage.setItem('previewUserData', JSON.stringify(userData));
     localStorage.setItem('previewBookId', bookId || '');
-    
-    // 4. 立即跳转到预览页面（使用 i18n 路由）
     const qs = new URLSearchParams();
     if (bookId) qs.set('bookid', bookId);
     if (isKs) qs.set('ks', '1');
@@ -242,51 +219,61 @@ export default function PersonalizePage() {
     router.push(`/preview?${qs.toString()}`);
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className="min-h-screen bg-[#F8F8F8]">
-      {/* 顶部导航栏 */}
       <div className="h-14 bg-white flex items-center px-4 sm:px-32">
         <div className="flex items-center justify-between w-full sm:hidden">
-          <Link href={isKs ? `/shopping-cart` : `/books/${bookId}`} className="flex items-center text-gray-700 hover:text-blue-500">
+          <Link href={`/books/${bookId}`} className="flex items-center text-gray-700 hover:text-blue-500">
             <IoIosArrowBack size={24} />
           </Link>
           <Link href="/" className="flex items-center justify-center flex-grow p-2">
-            <Image 
-              src="/logo.png" 
-              alt="Home" 
-              width={115}
-              height={40}
-              priority
-              className="w-[114.29px] h-[40px]"
-            />
+            <Image src="/logo.png" alt="Home" width={115} height={40} priority className="w-[114.29px] h-[40px]" />
           </Link>
         </div>
-        <Link href={isKs ? `/shopping-cart` : `/books/${bookId}`} className="hidden sm:flex items-center text-sm">
-          <span className="mr-2">←</span> {isKs ? 'Back to the cart' : 'Back to the product page'}
+        <Link href={`/books/${bookId}`} className="hidden sm:flex items-center text-sm">
+          <span className="mr-2">←</span> Back to the product page
         </Link>
       </div>
 
-      {isKs && (
-        <div className="h-12 px-4 sm:px-32 py-2 bg-[#FCF2F2] text-center text-xs sm:text-sm text-[#000000] flex items-center justify-center">
-          A book can only be regenerated 3 times per day. You still have 2 chances left.
-        </div>
-      )}
-
-      {showModal && book?.character_count === 3 && (
-        <div>Modal to choose SINGLE or DOUBLE</div>
-      )}
-
       <div className="mx-auto">
         <h1 className="text-2xl text-center my-6">Please fill in the basic information</h1>
-        {renderForm()}
+        {formType === 'SINGLE1' ? (
+          <SingleCharacterForm1
+            ref={form1Ref}
+            bookId={bookId}
+            initialData={{
+              skinColor: initials.skinColor,
+              hairstyle: initials.hairstyle,
+              hairColor: initials.hairColor,
+            }}
+            apiSkinToneValues={skinToneValues}
+            apiHairStyleValues={hairStyleValues}
+            apiHairColorValues={hairColorValues}
+            uploadOptions={uploadOptions}
+            assetSpuCode={'PICBOOK_GOODNIGHT2'}
+          />
+        ) : (
+          <SingleCharacterForm2
+            ref={form2Ref}
+            bookId={bookId}
+            initialData={{
+              skinColor: initials.skinColor,
+              hairstyle: initials.hairstyle,
+              hairColor: initials.hairColor,
+            }}
+            apiSkinToneValues={skinToneValues}
+            apiHairStyleValues={hairStyleValues}
+            apiHairColorValues={hairColorValues}
+            uploadOptions={uploadOptions}
+            assetSpuCode={'PICBOOK_GOODNIGHT2'}
+          />
+        )}
         <div className="flex justify-center">
-          <button 
-            type="button" 
-            onClick={handleContinue} 
+          <button
+            type="button"
+            onClick={handleContinue}
             style={{ width: '180px' }}
             className="bg-black text-white py-3 rounded hover:bg-gray-800 mb-16"
           >
@@ -297,3 +284,6 @@ export default function PersonalizePage() {
     </div>
   );
 }
+
+
+
