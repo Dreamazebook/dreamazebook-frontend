@@ -56,9 +56,10 @@ interface SingleCharacterForm2Props {
     maxFileSize?: number;
     maxImages?: number;
   };
+  assetSpuCode?: string;
 }
 
-const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharacterForm2Props>(({ initialData, bookId = '1', apiSkinToneValues, apiHairStyleValues, apiHairColorValues, uploadOptions }, ref) => {
+const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharacterForm2Props>(({ initialData, bookId = '1', apiSkinToneValues, apiHairStyleValues, apiHairColorValues, uploadOptions, assetSpuCode }, ref) => {
   const [formData, setFormData] = useState<PersonalizeFormData2>({
     fullName: initialData?.fullName ?? '',
     gender: initialData?.gender ?? '',
@@ -232,6 +233,7 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
               apiSkinToneValues={apiSkinToneValues}
               apiHairStyleValues={apiHairStyleValues}
               apiHairColorValues={apiHairColorValues}
+              assetSpuCode={assetSpuCode}
             />
   
             {/* Date of Birth Section */}

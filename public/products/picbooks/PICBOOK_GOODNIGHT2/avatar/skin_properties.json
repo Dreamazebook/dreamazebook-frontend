@@ -1,0 +1,24 @@
+{
+  "skinToneFilter": {
+    "white": {
+      "saturate": "-2",
+      "hue": "-8",
+      "brightness": "+21"
+    },
+    "black": {
+      "brightness": "-40",
+      "contract": "-62"
+    }
+  },
+  "hairColorFilter": {
+    "blone": {
+      "saturate": "+96",
+      "hue": "+27",
+      "brightness": "+18"
+    },
+    "dark": {
+      "brightness": "-40",
+      "contract": "-18"
+    }
+  }
+}

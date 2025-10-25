@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+// Use native <img> to avoid next/image constraints for local public assets
 
 interface HairstyleSelectorProps {
 	bookId: string;
@@ -14,6 +14,8 @@ interface HairstyleSelectorProps {
   // Optional: backend-driven hair style values, e.g. ["1","2","3","4"].
   // UI remains the same; values are mapped to internal ids: hair_1..hair_4
   hairStyleValues?: string[];
+  // Optional: override asset spu code for icon images (defaults to PICBOOK_GOODNIGHT2)
+  assetSpuCode?: string;
 }
 
 const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
@@ -24,13 +26,15 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 	error,
 	touched,
   hairStyleValues,
+  assetSpuCode,
 }) => {
 	// 根据bookId动态生成发型选项，支持后端传值（数量与顺序跟随后端）
 	const ids = (hairStyleValues && hairStyleValues.length > 0)
 		? hairStyleValues.map(v => `hair_${v}`)
 		: ['hair_1','hair_2','hair_3','hair_4'];
 
-	const hairstyles = ids.map(id => ({ id, image: `/products/picbooks/${bookId}/avatar/layer_${id}.png` }));
+	const base = `/products/picbooks/${assetSpuCode || 'PICBOOK_GOODNIGHT2'}/avatar`;
+	const hairstyles = ids.map(id => ({ id, image: `${base}/layer_${id}.png` }));
 
 	const handleHairstyleSelect = (hairstyleId: string) => {
 		onChange(hairstyleId);
@@ -50,7 +54,7 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 									isActive ? 'bg-[#FCF2F2] border-[#012CCE]' : 'bg-[#F8F8F8] border-transparent'
 								}`}
 							>
-								<button
+                            <button
 									type="button"
 									className={`relative w-14 h-14 rounded-full overflow-hidden ${
 										isActive ? 'bg-white' : ''
@@ -59,23 +63,22 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 									onClick={() => handleHairstyleSelect(hairstyle.id)}
 									aria-pressed={isActive}
 								>
-									<Image
-										src={hairstyle.image}
-										alt={hairstyle.id}
-										fill
-										sizes="56px"
-										className="object-cover"
-										style={{ 
-											filter: 'grayscale(100%)',
-											opacity: 0.5,
-											transform: 'scale(1.2)'
-										}}
-										onError={(e) => {
-											// 如果图片加载失败，显示占位符
-											const target = e.target as HTMLImageElement;
-											target.style.display = 'none';
-										}}
-									/>
+                                    <img
+                                        src={hairstyle.image}
+                                        alt={hairstyle.id}
+                                        width={56}
+                                        height={56}
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'contain',
+                                            display: 'block',
+                                        }}
+                                        onError={(e) => {
+                                            // keep the button visible even if image fails
+                                            (e.currentTarget as HTMLImageElement).style.visibility = 'hidden';
+                                        }}
+                                    />
 								</button>
 							</div>
 						);

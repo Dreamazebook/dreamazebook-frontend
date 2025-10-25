@@ -51,9 +51,10 @@ interface SingleCharacterForm1Props {
     maxFileSize?: number;
     maxImages?: number;
   };
+  assetSpuCode?: string;
 }
 
-const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharacterForm1Props>(({ initialData, bookId = '1', apiSkinToneValues, apiHairStyleValues, apiHairColorValues, uploadOptions }, ref) => {
+const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharacterForm1Props>(({ initialData, bookId = '1', apiSkinToneValues, apiHairStyleValues, apiHairColorValues, uploadOptions, assetSpuCode }, ref) => {
   const [formData, setFormData] = useState<PersonalizeFormData>({
     fullName: initialData?.fullName ?? '',
     gender: initialData?.gender ?? '',
@@ -251,6 +252,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
               apiSkinToneValues={apiSkinToneValues}
               apiHairStyleValues={apiHairStyleValues}
               apiHairColorValues={apiHairColorValues}
+              assetSpuCode={assetSpuCode}
             />
 
             {/* Photo Upload Section - 替换为多图片上传组件 */}

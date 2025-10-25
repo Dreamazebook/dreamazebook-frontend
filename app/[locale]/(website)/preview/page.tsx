@@ -814,7 +814,7 @@ export default function PreviewPageWithTopNav() {
     });
   }, [bookInfo?.default_cover]);
 
-  // 启动/清理进度定时器：仅为“第一张未完成的换脸页”推进进度，其余保持 0
+  // 启动/清理进度定时器：仅为"第一张未完成的换脸页"推进进度，其余保持 0
   useEffect(() => {
     if (!previewData?.preview_data) return;
     // 若不在生成中，清理所有定时器
@@ -876,21 +876,52 @@ export default function PreviewPageWithTopNav() {
       setIsLoadingOptions(true);
       setOptionsError(null);
 
-      // 新接口：产品的定制选项
-      const response = await api.get(`/products/${bookId}/customization-options`) as ApiResponse<BookOptions>;
+      // 改为直接读取产品详情，并从 attributes/pages 派生可选项
+      const base = (process.env.NEXT_PUBLIC_PREVIEW_API_URL || '').replace(/\/$/, '');
+      const path = `/products/${encodeURIComponent(String(bookId))}`;
+      const url = base ? `${base}${path}` : path;
+      const resp = await api.get(url, { params: { language: 'personalize' } }) as any;
+      const product = resp?.data?.data || resp?.data || {};
 
-      if (response.success) {
-        setBookOptions(response.data!);
-        console.log('Book options 获取成功:', response.data);
-        console.log('Cover options:', response.data?.cover_options);
-        console.log('Binding options:', response.data?.binding_options);
-        console.log('Gift box options:', response.data?.gift_box_options);
+      const attributes: any[] = Array.isArray(product.attributes) ? product.attributes : [];
+      const pages: any[] = Array.isArray(product.pages) ? product.pages : [];
 
-        // 不设置任何默认选中项，保持初始为 null
-      } else {
-        console.error('获取 book options 失败:', response);
-        setOptionsError(response.message || '获取选项失败');
-      }
+      const coverAttr = attributes.find((a: any) => a?.name === 'cover_style');
+      const giftAttr = attributes.find((a: any) => a?.name === 'giftbox');
+
+      const pageImgByCode: Record<string, string> = {};
+      pages.forEach((p: any) => {
+        if (p?.page_code && p?.preview_image) pageImgByCode[p.page_code] = p.preview_image;
+      });
+
+      const cover_options = (coverAttr?.options || []).map((o: any, idx: number) => ({
+        id: idx + 1,
+        name: o?.label || String(o?.value),
+        price: Number(o?.price_diff || 0),
+        currency_code: 'USD',
+        image_url: pageImgByCode[String(o?.value)] || '',
+        is_default: !!o?.is_default,
+        option_key: String(o?.value),
+      }));
+
+      const gift_box_options = (giftAttr?.options || []).map((o: any, idx: number) => ({
+        id: idx + 1,
+        name: o?.label || String(o?.value),
+        price: Number(o?.price_diff || 0),
+        currency_code: 'USD',
+        image_url: '',
+        is_default: !!o?.is_default,
+        option_key: String(o?.value),
+      }));
+
+      const derived: BookOptions = {
+        cover_options,
+        binding_options: [],
+        gift_box_options,
+      };
+
+      setBookOptions(derived);
+      console.log('Book options(derived) 获取成功:', derived);
     } catch (error: any) {
       console.error('获取 book options 失败:', error);
       setOptionsError(error.response?.data?.message || '获取选项失败');

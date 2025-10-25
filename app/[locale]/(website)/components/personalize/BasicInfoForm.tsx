@@ -32,6 +32,8 @@ interface BasicInfoFormProps {
   apiSkinToneValues?: string[]; // e.g. ["black","original","white"]
   apiHairStyleValues?: string[]; // e.g. ["1","2","3","4"]
   apiHairColorValues?: string[]; // e.g. ["blone","dark"]
+  // Optional: override hairstyle icon assets spu code
+  assetSpuCode?: string;
 }
 
 const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
@@ -44,6 +46,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   apiSkinToneValues,
   apiHairStyleValues,
   apiHairColorValues,
+  assetSpuCode,
 }) => {
   // 图片上传相关的变量和函数已移至父组件 SingleCharacterForm1 和 SingleCharacterForm2
   /* 
@@ -283,6 +286,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
             error={errors.hairstyle}
             touched={touched.hairstyle}
             hairStyleValues={apiHairStyleValues}
+            assetSpuCode={assetSpuCode}
           />
         </div>
       )}

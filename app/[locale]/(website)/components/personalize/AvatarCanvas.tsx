@@ -50,9 +50,9 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       setIsLoading(true);
       const cacheBuster = `ts=${Date.now()}`;
       const candidatePaths = [
-        `/products/picbooks/${bookId}/avatar/page_properties.json?${cacheBuster}`,
-        // 回退为 bookId=1
-        `/products/picbooks/1/avatar/page_properties.json?${cacheBuster}`,
+        `/products/picbooks/${bookId}/avatar/skin_properties.json?${cacheBuster}`,
+        // 回退为默认 SPU 资源
+        `/products/picbooks/PICBOOK_GOODNIGHT2/avatar/skin_properties.json?${cacheBuster}`,
       ];
 
       for (const path of candidatePaths) {
@@ -67,7 +67,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
             return;
           }
         } catch (err) {
-          console.warn('Failed to fetch page_properties.json from', path, err);
+          console.warn('Failed to fetch skin_properties from', path, err);
         }
       }
 
@@ -78,12 +78,12 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
           dark: { brightness: '-80', contrast: '-30' },
         },
         hairColorFilter: {
-          brown: { saturate: '+2', hue: '-4', brightness: '-31' },
-          dark: { brightness: '-80', contrast: '-30' },
+          blone: { saturate: '+27', hue: '+12', brightness: '+10' },
+          dark: { brightness: '-40', contrast: '-18' },
         },
       };
       if (!cancelled) {
-        console.warn('Using fallback page_properties configuration');
+        console.warn('Using fallback skin_properties configuration');
         setPageProperties(fallbackProperties);
         setIsLoading(false);
       }
@@ -240,10 +240,11 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
 
     try {
       // 获取肤色滤镜配置
-      const skinColorMapping: { [key: string]: string } = {
-        '#FFE2CF': 'light',  // light 不需要滤镜，保持原色
-        '#DCB593': 'brown', 
-        '#665444': 'dark'
+      // 与 skin_properties.json 的键保持一致（white/black）。中间色不加滤镜。
+      const skinColorMapping: { [key: string]: 'white' | 'black' | null } = {
+        '#FFE2CF': 'white',
+        '#DCB593': null,
+        '#665444': 'black',
       };
       const skinFilterKey = skinColorMapping[skinColor];
       
@@ -251,10 +252,10 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
         inputSkinColor: skinColor,
         mappedKey: skinFilterKey,
         availableFilters: Object.keys(pageProperties?.skinToneFilter || {}),
-        shouldApplyFilter: skinFilterKey && skinFilterKey !== 'light'
+        shouldApplyFilter: !!skinFilterKey
       });
       
-      const skinFilter = (skinFilterKey && skinFilterKey !== 'light' && pageProperties?.skinToneFilter?.[skinFilterKey]) 
+      const skinFilter = (skinFilterKey && pageProperties?.skinToneFilter?.[skinFilterKey])
         ? pageProperties.skinToneFilter[skinFilterKey] : null;
 
       // 获取发色滤镜配置
@@ -264,8 +265,9 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
         shouldApplyFilter: hairColor && hairColor !== 'light'
       });
       
-      const hairFilter = (hairColor && hairColor !== 'light' && pageProperties?.hairColorFilter?.[hairColor]) 
-        ? pageProperties.hairColorFilter[hairColor] : null;
+      const hairColorKey = hairColor === 'brown' ? 'blone' : hairColor; // 与 skin_properties.json.json 保持一致
+      const hairFilter = (hairColorKey && hairColorKey !== 'light' && pageProperties?.hairColorFilter?.[hairColorKey]) 
+        ? pageProperties.hairColorFilter[hairColorKey] : null;
 
       // 帮助函数：将图层绘制到离屏画布并应用滤镜后再合成
       const drawLayerWithFilter = async (imgSrcs: string[], filter: any | null, layerName: string) => {

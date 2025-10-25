@@ -257,6 +257,7 @@ export default function PersonalizeApiDrivenPage() {
             apiHairStyleValues={hairStyleValues}
             apiHairColorValues={hairColorValues}
             uploadOptions={uploadOptions}
+            assetSpuCode={'PICBOOK_GOODNIGHT2'}
           />
         ) : (
           <SingleCharacterForm2
@@ -271,6 +272,7 @@ export default function PersonalizeApiDrivenPage() {
             apiHairStyleValues={hairStyleValues}
             apiHairColorValues={hairColorValues}
             uploadOptions={uploadOptions}
+            assetSpuCode={'PICBOOK_GOODNIGHT2'}
           />
         )}
         <div className="flex justify-center">
