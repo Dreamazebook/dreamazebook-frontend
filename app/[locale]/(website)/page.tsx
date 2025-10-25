@@ -13,6 +13,7 @@ import LastingMemorial from './components/home/LastingMemorial';
 import Slideshow from './components/home/SlideShow';
 import PicBooksShow from './components/home/PicBooksShow';
 import TestimonialCards from './components/home/TestimonialCards';
+import FAQ from '../(marketing)/components/FAQ';
 
 interface AnimatedSectionProps {
   children: React.ReactNode;
@@ -60,12 +61,17 @@ export default function HomePage() {
 
   const faqs = [
     {
-      question: t('faq1Question'),
-      answer: t('faq1Answer')
+      tl: 'Personalize It',
+      ans: 'Add your child’s name, upload 1–3 photos, and choose a few fun details. (Tip: the better the photo quality, the more stunning the result!)',
+      show: true
     },
     {
-      question: t('faq2Question'),
-      answer: t('faq2Answer')
+      tl: 'Preview & Confirm',
+      ans: 'Flip through sample pages to see how your story looks—then confirm with one click.'
+    },
+    {
+      tl: 'Receive & Enjoy',
+      ans: ' Your one-of-a-kind gift is on its way. Unwrap it, read it together, and get ready for smiles that last.'
     }
   ];
 
@@ -99,7 +105,7 @@ export default function HomePage() {
       </AnimatedSection>
 
       {/* Newsletter */}
-      <AnimatedSection className="py-20 bg-black text-white" delay={0.3}>
+      <AnimatedSection className="bg-black text-white" delay={0.3}>
         <div className="container mx-auto px-6 text-center">
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
@@ -138,40 +144,8 @@ export default function HomePage() {
       </AnimatedSection>
 
       {/* FAQ */}
-      <AnimatedSection className="py-20" delay={0.3}>
-        <div className="container mx-auto px-6 max-w-4xl">
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-3xl font-bold text-center mb-12"
-          >
-            {t('faqTitle')}
-          </motion.h2>
-          <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <motion.details 
-                key={index} 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="group border-b border-gray-200 dark:border-gray-700 pb-4"
-              >
-                <summary className="flex justify-between items-center py-4 cursor-pointer">
-                  <h3 className="text-lg font-semibold">{faq.question}</h3>
-                  <span className="text-xl group-open:rotate-180 transition-transform">+</span>
-                </summary>
-                <motion.p 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="text-gray-600 dark:text-gray-300 mt-2"
-                >
-                  {faq.answer}
-                </motion.p>
-              </motion.details>
-            ))}
-          </div>
-        </div>
+      <AnimatedSection delay={0.3}>
+        <FAQ FAQs={faqs} />
       </AnimatedSection>
     </main>
   );
