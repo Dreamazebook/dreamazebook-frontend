@@ -42,6 +42,8 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [pageProperties, setPageProperties] = useState<PageProperties | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [containerWidth, setContainerWidth] = useState<number | null>(null);
+  const [bgAspect, setBgAspect] = useState<number | null>(null); // width / height
 
   // 加载 page_properties.json，包含多路径尝试与无缓存
   useEffect(() => {
@@ -93,6 +95,58 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
     return () => {
       cancelled = true;
     };
+  }, [bookId]);
+
+  // 监听容器宽度，做自适应
+  useEffect(() => {
+    const el = canvasRef.current?.parentElement;
+    if (!el) return;
+    const update = () => setContainerWidth(Math.round(el.clientWidth));
+    update();
+    const RO = (window as any).ResizeObserver;
+    const ro = RO ? new RO((entries: any[]) => {
+      for (const e of entries) {
+        setContainerWidth(Math.round(e.contentRect.width));
+      }
+    }) : null;
+    if (ro && el) ro.observe(el);
+    window.addEventListener('orientationchange', update);
+    window.addEventListener('resize', update);
+    return () => {
+      try { if (ro && el) ro.unobserve(el); } catch {}
+      try { if (ro) ro.disconnect(); } catch {}
+      window.removeEventListener('orientationchange', update);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
+  // 预加载背景以获取原始宽高比
+  useEffect(() => {
+    let cancelled = false;
+    const loadBg = async () => {
+      try {
+        const ts = Date.now();
+        const candidates = [
+          `/products/picbooks/${bookId}/avatar/layer_background.png?ts=${ts}`,
+          `/products/picbooks/PICBOOK_GOODNIGHT2/avatar/layer_background.png?ts=${ts}`,
+        ];
+        for (const src of candidates) {
+          try {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            await new Promise((res, rej) => { img.onload = res as any; img.onerror = rej; img.src = src; });
+            const w = (img as any).naturalWidth || img.width;
+            const h = (img as any).naturalHeight || img.height;
+            if (!cancelled && w > 0 && h > 0) {
+              setBgAspect(w / h);
+              return;
+            }
+          } catch {}
+        }
+      } catch {}
+    };
+    loadBg();
+    return () => { cancelled = true; };
   }, [bookId]);
 
   // 标准像素级滤镜处理
@@ -249,12 +303,16 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
   const drawAvatar = async () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    // 动态确定画布尺寸（按容器宽度与背景比例）
+    const targetW = Math.max(1, Math.round((containerWidth || width)));
+    const aspect = bgAspect || (width / height) || 1;
+    const targetH = Math.max(1, Math.round(targetW / aspect));
+    canvas.width = targetW;
+    canvas.height = targetH;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
-    // 清空画布
-    ctx.clearRect(0, 0, width, height);
+    ctx.clearRect(0, 0, targetW, targetH);
 
     try {
       // 获取肤色滤镜配置
@@ -316,36 +374,45 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
 
         console.log(`${layerName} image loaded:`, img.width, 'x', img.height);
 
-        // 离屏画布
+        // 计算 contain 等比缩放参数
+        const srcW = (img as any).naturalWidth || img.width;
+        const srcH = (img as any).naturalHeight || img.height;
+        const scale = Math.min(targetW / srcW, targetH / srcH);
+        const destW = Math.max(1, Math.round(srcW * scale));
+        const destH = Math.max(1, Math.round(srcH * scale));
+        const dx = Math.round((targetW - destW) / 2);
+        const dy = Math.round((targetH - destH) / 2);
+
+        // 离屏画布（按目标尺寸绘制，避免拉伸）
         const offscreen = document.createElement('canvas');
-        offscreen.width = width;
-        offscreen.height = height;
+        offscreen.width = destW;
+        offscreen.height = destH;
         const offCtx = offscreen.getContext('2d');
         if (!offCtx) return;
-        
-        offCtx.clearRect(0, 0, width, height);
-        offCtx.drawImage(img, 0, 0, width, height);
-        
+
+        offCtx.clearRect(0, 0, destW, destH);
+        offCtx.drawImage(img, 0, 0, destW, destH);
+
         if (filter) {
           console.log(`Applying filter to ${layerName}:`, filter);
-          
-          // 测试：在应用滤镜前后获取一个像素样本来验证变化
-          const sampleData = offCtx.getImageData(100, 100, 1, 1).data;
-          console.log(`${layerName} pixel before filter:`, Array.from(sampleData));
-          
-          applyPixelFilter(offCtx, filter, 0, 0, width, height);
-          
-          const sampleDataAfter = offCtx.getImageData(100, 100, 1, 1).data;
-          console.log(`${layerName} pixel after filter:`, Array.from(sampleDataAfter));
-          console.log(`Filter applied to ${layerName}`);
+          applyPixelFilter(offCtx as any, filter, 0, 0, destW, destH);
         } else {
           console.log(`No filter applied to ${layerName}`);
         }
-        
-        // 合成到主画布
-        ctx.drawImage(offscreen, 0, 0, width, height);
-        console.log(`${layerName} composited to main canvas`);
+
+        // 合成到主画布（居中摆放）
+        ctx.drawImage(offscreen, dx, dy, destW, destH);
+        console.log(`${layerName} composited to main canvas at`, { dx, dy, destW, destH });
       };
+
+      // 0. 背景层（最底层，不应用滤镜）
+      {
+        const ts = Date.now();
+        await drawLayerWithFilter([
+          `/products/picbooks/${bookId}/avatar/layer_background.png?ts=${ts}`,
+          `/products/picbooks/PICBOOK_GOODNIGHT2/avatar/layer_background.png?ts=${ts}`,
+        ], null, 'BACKGROUND');
+      }
 
       // 1. 皮肤层（Fair 不用滤镜；Medium/Dark 使用 skinToneFilter）
       {
@@ -434,6 +501,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       width={width}
       height={height}
       className="rounded-lg"
+      style={{ width: '100%', height: 'auto', display: 'block' }}
     />
   );
 };

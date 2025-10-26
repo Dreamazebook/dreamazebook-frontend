@@ -172,13 +172,13 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
     <div className="space-y-6">
       {/* 预览图 */}
                    <div className="flex justify-center mb-6">
-               <AvatarCanvas
+             <AvatarCanvas
                  bookId={bookId}
                  skinColor={data.skinColor || '#FFE2CF'}
                  hairstyle={data.hairstyle || 'hair_1'}
                  hairColor={data.hairColor || 'light'}
-                 width={300}
-                 height={300}
+                 width={900}
+                 height={375}
                />
              </div>
       <p className="text-center text-gray-500 mb-8">
