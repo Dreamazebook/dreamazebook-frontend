@@ -7,33 +7,29 @@ interface Slide {
   buttonText: string;
   image: string;
   alt: string;
-  backgroundColor: string;
 }
 
 const slides: Slide[] = [
   {
-    id: 1,
-    title: ['Every child deserves', 'to be the hero of', 'their own story.'],
-    buttonText: 'view more',
-    image: 'https://images.pexels.com/photos/3933245/pexels-photo-3933245.jpeg?auto=compress&cs=tinysrgb&w=1200',
-    alt: 'Mother reading with child',
-    backgroundColor: 'from-gray-100 to-gray-200',
-  },
-  {
     id: 2,
     title: ['Where every child', 'is seen, celebrated,', 'and made the hero'],
     buttonText: 'View more',
-    image: 'https://images.pexels.com/photos/4009409/pexels-photo-4009409.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    image: '/home-page/slideshows/slide1.png',
     alt: 'Children reading together',
-    backgroundColor: 'from-pink-50 to-pink-100',
+  },
+  {
+    id: 1,
+    title: ['Every child deserves', 'to be the hero of', 'their own story.'],
+    buttonText: 'view more',
+    image: '/home-page/slideshows/slide2.png',
+    alt: 'Mother reading with child',
   },
   {
     id: 3,
     title: ['Creating magical', 'moments through', 'personalized stories'],
     buttonText: 'Discover more',
-    image: 'https://images.pexels.com/photos/8613089/pexels-photo-8613089.jpeg?auto=compress&cs=tinysrgb&w=1200',
+    image: '/home-page/slideshows/slide3.png',
     alt: 'Child enjoying storytime',
-    backgroundColor: 'from-blue-50 to-blue-100',
   },
 ];
 
@@ -67,11 +63,11 @@ export default function SlideShow() {
         {/* Content (above background and tint) */}
         <div className="absolute inset-0 flex z-10 w-full">
           {/* Left Content */}
-          <div className="  flex flex-col justify-center px-16 xl:px-24">
+          <div className="flex flex-col justify-center px-16 xl:px-24">
             <h1 className="text-6xl xl:text-7xl font-bold leading-tight">
               {slide.title.map((line, index) => (
                 <span key={index}>
-                  <span className="text-blue-600 inline-block animate-fadeIn">{line}</span>
+                  <span className="text-white inline-block animate-fadeIn bg-gradient-to-b from-purple-500 to-purple-700 px-2 py-1 rounded">{line}</span>
                   {index < slide.title.length - 1 && <br />}
                 </span>
               ))}
@@ -106,10 +102,7 @@ export default function SlideShow() {
           style={{ backgroundImage: `url(${slide.image})` }}
         />
 
-        {/* Tint gradient overlay */}
-        <div className={`absolute inset-0 bg-gradient-to-br ${slide.backgroundColor} opacity-60 transition-colors duration-700`} />
-
-        <div className="relative z-10 flex-1 flex flex-col justify-center px-6 py-12">
+        <div className="relative z-10 flex-1 flex flex-col justify-start px-6 py-12 animate-fadeIn bg-gradient-to-b from-purple-100 to-transparent">
           <h1 className="text-4xl sm:text-5xl font-bold leading-tight">
             {slide.title.map((line, index) => (
               <span key={index}>
