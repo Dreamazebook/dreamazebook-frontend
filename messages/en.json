@@ -146,5 +146,10 @@
     "preparationTitle": "Your book is being carefully prepared!",
     "preparationSubtitle": "We will reach out within 48 hours to finalize your book's design! Keep an eye on your email",
     "noOrderIdError": "No order ID provided. Please check your order details."
+  },
+  "Preview": {
+    "queueTip": "Book preview is currently in the queue for generation. You are currently at position {pos}/{tot}. You can proceed to select Others tab.",
+    "queueTipNoPos": "Book preview is currently in the queue for generation. You can proceed to select Others tab.",
+    "selectOptions": "You can proceed to select {options}"
   }
 }

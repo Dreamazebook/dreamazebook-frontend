@@ -6,11 +6,13 @@ import { useSearchParams } from 'next/navigation';
 import { Drawer } from "antd";
 import { create } from 'zustand';
 import TopNavBarWithTabs from '../components/TopNavBarWithTabs';
+
 import Image from 'next/image';
 import GiverDedicationCanvas from './components/GiverDedicationCanvas';
 import GiverAvatarCropper from './components/GiverAvatarCropper';
 import api from '@/utils/api';
 import echo from '@/app/config/echo';
+import { useTranslations, useLocale } from 'next-intl';
 import useImageUpload from '../hooks/useImageUpload';
 import useUserStore from '@/stores/userStore';
 import toast from 'react-hot-toast';
@@ -483,9 +485,10 @@ export default function PreviewPageWithTopNav() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useUserStore();
-  // 从路径中推断语言
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-  const currentLang: 'en' | 'zh' | 'fr' = (pathname.match(/^\/(en|zh|fr)\b/)?.[1] as any) || 'en';
+  const t = useTranslations('Preview');
+  // 使用 next-intl 的 locale，避免与 URL 语言不一致
+  const locale = useLocale();
+  const displayLang: 'en' | 'zh' = (locale || 'en').toLowerCase().startsWith('zh') ? 'zh' : 'en';
   
   const {
     activeTab,
@@ -644,7 +647,15 @@ export default function PreviewPageWithTopNav() {
             setIsProcessing(false);
             try {
               const bid = merged?.face_swap_info?.batch_id;
-              if (bid) currentBatchIdRef.current = bid;
+              if (bid) {
+                currentBatchIdRef.current = bid;
+                setCurrentBatchId(bid);
+                const spu = String(searchParams.get('bookid') || bookIdParam || '');
+                if (spu && bid) {
+                  startBatchPolling(spu, bid);
+                  subscribeToPreviewChannel(spu, bid);
+                }
+              }
             } catch {}
             // 标记完成页，更新进度
             const completedIds = new Set<number>();
@@ -660,7 +671,15 @@ export default function PreviewPageWithTopNav() {
           // 未完成：保持现有 WS 流程
           try {
             const bid = resp.data?.face_swap_info?.batch_id;
-            if (bid) currentBatchIdRef.current = bid;
+            if (bid) {
+              currentBatchIdRef.current = bid;
+              setCurrentBatchId(bid);
+              const spu = String(searchParams.get('bookid') || bookIdParam || '');
+              if (spu && bid) {
+                startBatchPolling(spu, bid);
+                subscribeToPreviewChannel(spu, bid);
+              }
+            }
           } catch {}
           setIsProcessing(true);
         }
@@ -796,10 +815,15 @@ export default function PreviewPageWithTopNav() {
   // 每页进度（0-100），定时驱动：60s 线性至 98%，未完成停在 98%，完成后迅速到 100%
   const [pageProgress, setPageProgress] = useState<Record<number, number>>({});
   const progressTimersRef = useRef<Record<number, any>>({});
+  const progressStartedRef = useRef<Set<number>>(new Set());
   // 完成后短暂保留蒙版的集合（例如 300ms），用于展示 100%
   const [completedOverlayHold, setCompletedOverlayHold] = useState<Set<number>>(new Set());
   // 当前批次 batch_id（仅处理该批次的广播）
   const currentBatchIdRef = useRef<string | null>(null);
+  const [currentBatchId, setCurrentBatchId] = useState<string | null>(null);
+  // 预览专用频道（preview.user-*/guest.*.batchId）
+  const previewChannelNameRef = useRef<string | null>(null);
+  const subscribedPreviewChannelRef = useRef<string | null>(null);
   
   // 面向 UI 的换脸状态聚合
   const faceSwapStatus = previewData?.face_swap_info?.status;
@@ -814,55 +838,83 @@ export default function PreviewPageWithTopNav() {
     });
   }, [bookInfo?.default_cover]);
 
-  // 启动/清理进度定时器：仅为"第一张未完成的换脸页"推进进度，其余保持 0
+  // 启动/清理进度定时器：顺序推进——上一张出现最终图后，下一张才开始；开始前展示 loading
   useEffect(() => {
     if (!previewData?.preview_data) return;
-    // 若不在生成中，清理所有定时器
-    if (!isGenerating) {
-      Object.values(progressTimersRef.current).forEach((id) => clearInterval(id));
-      progressTimersRef.current = {};
-      return;
-    }
+    // 找出需要换脸的页，按 page_number 升序
+    const pages = previewData.preview_data
+      .filter((p: any) => !!p.has_face_swap)
+      .sort((a: any, b: any) => Number(a.page_number) - Number(b.page_number));
 
-    // 找到第一张需要换脸且未完成的页
-    const firstPending = previewData.preview_data.find((p) => p.has_face_swap && !swappedPageIds.has(p.page_id));
-    const firstPid = firstPending?.page_id;
+    const step = 98 / 900; // 3 分钟线性到 98%
 
-    // 清理除 firstPid 外的所有计时器，并将其进度重置为 0（保持 loading 态）
-    Object.keys(progressTimersRef.current).forEach((key) => {
-      const pid = Number(key);
-      if (pid !== firstPid) {
-        clearInterval(progressTimersRef.current[pid]);
-        delete progressTimersRef.current[pid];
+    // 遍历每页：仅当上一页 final 已出现时，才启动下一页进度；
+    // 若该页仅有 base（无 final）但未轮到它，则显示 loading（由 overlayMode 控制）
+    let previousFinalAppeared = true;
+    for (let i = 0; i < pages.length; i++) {
+      const p = pages[i];
+      const pid = Number(p.page_id);
+      const hasBase = !!(p as any).base_image_url || (!!p.image_url && (p as any).base_only === true);
+      const hasFinal = !!(p as any).final_image_url && (p as any).base_only === false;
+
+      if (hasFinal) {
+        // 本页完成：清理定时器并置 100
+        if (progressTimersRef.current[pid]) {
+          clearInterval(progressTimersRef.current[pid]);
+          delete progressTimersRef.current[pid];
+        }
+        setPageProgress((prev) => ({ ...prev, [pid]: 100 }));
+        previousFinalAppeared = true;
+        continue;
+      }
+
+      const isPending = hasBase && !hasFinal;
+      if (!isPending) {
+        // 不显示进度
+        if (progressTimersRef.current[pid]) {
+          clearInterval(progressTimersRef.current[pid]);
+          delete progressTimersRef.current[pid];
+        }
+        setPageProgress((prev) => (prev[pid] ? { ...prev, [pid]: 0 } : prev));
+        previousFinalAppeared = previousFinalAppeared && hasFinal;
+        continue;
+      }
+
+      if (previousFinalAppeared) {
+        // 轮到该页：确保有进度定时器（progress 模式）
+        if (!progressTimersRef.current[pid]) {
+          setPageProgress((prev) => (prev[pid] == null ? { ...prev, [pid]: 1 } : prev));
+          const id = setInterval(() => {
+            setPageProgress((prev) => {
+              const current = prev[pid] ?? 1;
+              if (current >= 98) return prev;
+              const next = Math.min(98, current + step);
+              return { ...prev, [pid]: next };
+            });
+          }, 200);
+          progressTimersRef.current[pid] = id;
+        }
+        previousFinalAppeared = false; // 锁定，等待该页完成
+      } else {
+        // 还未轮到该页：确保不启动进度，保持 0（交由 UI 以 loading 模式展示）
+        if (progressTimersRef.current[pid]) {
+          clearInterval(progressTimersRef.current[pid]);
+          delete progressTimersRef.current[pid];
+        }
         setPageProgress((prev) => (prev[pid] ? { ...prev, [pid]: 0 } : prev));
       }
+    }
+
+    // 清理多余的定时器（不在列表中的）
+    Object.keys(progressTimersRef.current).forEach((key) => {
+      const pid = Number(key);
+      const found = pages.some((p: any) => Number(p.page_id) === pid);
+      if (!found) {
+        clearInterval(progressTimersRef.current[pid]);
+        delete progressTimersRef.current[pid];
+      }
     });
-
-    if (firstPid == null) {
-      // 没有需要推进的页
-      return;
-    }
-
-    // 若首个未完成页没有定时器，则启动一个
-    if (!progressTimersRef.current[firstPid]) {
-      setPageProgress((prev) => (prev[firstPid] == null ? { ...prev, [firstPid]: 0 } : prev));
-      const step = 98 / 300; // 60s 线性到 98%
-      const id = setInterval(() => {
-        setPageProgress((prev) => {
-          const current = prev[firstPid!] ?? 0;
-          if (current >= 98) return prev;
-          const next = Math.min(98, current + step);
-          return { ...prev, [firstPid!]: next };
-        });
-      }, 200);
-      progressTimersRef.current[firstPid] = id;
-    }
-
-    // 卸载或依赖变化时清理不相关定时器（相关定时器在上面已处理）
-    return () => {
-      // 不全清，避免切换时丢失当前推进；此处保持现状
-    };
-  }, [previewData?.preview_data, isGenerating, swappedPageIds]);
+  }, [previewData?.preview_data]);
 
   // 获取 book options 的函数
   const fetchBookOptions = useCallback(async () => {
@@ -1368,13 +1420,22 @@ export default function PreviewPageWithTopNav() {
       e?.high_res_url
     );
   };
+  // 判断是否为封面页（优先使用 page_type，其次使用 page_code 前缀 cover_）
+  const isCoverPage = (p: { page_code?: string; page_type?: string } | any): boolean => {
+    if (!p) return false;
+    if (String(p.page_type || '').toLowerCase() === 'cover') return true;
+    const code = String(p.page_code || '');
+    return /^cover([_-]\d+)?$/i.test(code);
+  };
   // 从广播事件中提取 batch_id（兼容多种包裹层级）
   const extractBatchIdFromEvent = (evt: any): string | undefined => {
     const e = normalizeWsEvent(evt);
     return (
       e?.batch_id ||
       e?.data?.batch_id ||
-      e?.task?.batch_id
+      e?.task?.batch_id ||
+      e?.batch?.batch_id ||
+      e?.data?.batch?.batch_id
     );
   };
 
@@ -1405,34 +1466,242 @@ export default function PreviewPageWithTopNav() {
   };
   const startBatchPolling = (spuCode: string, batchId: string) => {
     clearBatchPolling();
+    console.log('[Polling] Starting batch polling:', { spuCode, batchId });
     batchPollTimerRef.current = window.setInterval(async () => {
       try {
         const base = (process.env.NEXT_PUBLIC_PREVIEW_API_URL || '').replace(/\/$/, '');
         const path = `/products/${spuCode}/preview/batches/${batchId}`;
         const url = base ? `${base}${path}` : path;
+        console.log('[Polling] Fetching:', url);
         const res = await api.get(url) as ApiResponse<any>;
+        console.log('[Polling] Response:', res);
         const batch = (res as any)?.data?.batch;
         if (batch?.pages) {
+          // 若后端提供了标准频道名，记录并进行订阅
+          try {
+            const channelName = batch?.channel;
+            if (channelName && channelName !== previewChannelNameRef.current) {
+              previewChannelNameRef.current = channelName;
+              subscribeToPreviewChannel(spuCode, batchId);
+            }
+          } catch {}
+          // 更新队列状态：从batch.queue和pages中提取
+          try {
+            const queue = batch.queue;
+            const firstProcessingPage = batch.pages.find((p: any) => p.status === 'processing' && p.queue_position);
+            if (queue && firstProcessingPage) {
+              const totalQueue = (queue.preview_pending || 0) + (queue.high_priority_pending || 0);
+              setQueueStatus({
+                position: firstProcessingPage.queue_position,
+                total: totalQueue || firstProcessingPage.queue_total,
+              });
+            } else if (batch.status === 'completed') {
+              setQueueStatus(null);
+            }
+          } catch {}
           setPreviewData((prev) => {
-            if (!prev) return prev as any;
+            // 若 prev 为空，从 batch.pages 直接构造初始数据
+            if (!prev || !prev.preview_data || prev.preview_data.length === 0) {
+              console.log('[Polling] Initializing previewData from batch.pages:', batch.pages.length, 'pages');
+              const initialData = {
+                preview_id: undefined as any,
+                preview_data: batch.pages.map((bp: any, idx: number) => ({
+                  page_id: idx + 1,
+                  page_code: bp.page_code,
+                  page_number: bp.sort_order ?? idx + 1,
+                  image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
+                  has_face_swap: !!bp.has_face_elements,
+                  // 保存关键状态字段供UI使用
+                  status: bp.status,
+                  base_image_url: bp.base_image_url,
+                  final_image_url: bp.final_image_url,
+                  base_only: bp.base_only,
+                  queue_position: bp.queue_position,
+                  queue_total: bp.queue_total,
+                })),
+                face_swap_info: {
+                  status: batch.status || 'processing',
+                  batch_id: batch.batch_id,
+                } as any,
+                // 保存batch级别的队列信息
+                queue_info: batch.queue,
+              } as any;
+              console.log('[Polling] Created preview_data with', initialData.preview_data.length, 'pages');
+              console.log('[Polling] Sample page:', initialData.preview_data[0]);
+              return initialData;
+            }
+            // 如果preview_data存在但为空，也尝试从batch初始化
+            if (prev && prev.preview_data && prev.preview_data.length === 0 && batch.pages && batch.pages.length > 0) {
+              console.log('[Polling] Existing previewData is empty, reinitializing from batch.pages:', batch.pages.length, 'pages');
+              const reinitData = {
+                ...prev,
+                preview_data: batch.pages.map((bp: any, idx: number) => ({
+                  page_id: idx + 1,
+                  page_code: bp.page_code,
+                  page_number: bp.sort_order ?? idx + 1,
+                  image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
+                  has_face_swap: !!bp.has_face_elements,
+                  status: bp.status,
+                  base_image_url: bp.base_image_url,
+                  final_image_url: bp.final_image_url,
+                  base_only: bp.base_only,
+                  queue_position: bp.queue_position,
+                  queue_total: bp.queue_total,
+                })),
+                face_swap_info: {
+                  ...(prev as any).face_swap_info,
+                  status: batch.status || 'processing',
+                  batch_id: batch.batch_id,
+                },
+                queue_info: batch.queue,
+              } as any;
+              console.log('[Polling] Reinitialized preview_data with', reinitData.preview_data.length, 'pages');
+              return reinitData;
+            }
+            // 否则：全量覆盖，基于 batch.pages 重建 preview_data，确保显示所有页面
+            console.log('[Polling] Rebuilding preview_data from batch.pages');
+            const nextPreviewData = (batch.pages || []).map((bp: any, idx: number) => ({
+              page_id: idx + 1,
+              page_code: bp.page_code,
+              page_number: ((bp.sort_order != null ? Number(bp.sort_order) : idx) + 1),
+              image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
+              has_face_swap: !!bp.has_face_elements,
+              status: bp.status,
+              base_image_url: bp.base_image_url,
+              final_image_url: bp.final_image_url,
+              base_only: bp.base_only,
+              queue_position: bp.queue_position,
+              queue_total: bp.queue_total,
+              page_type: bp.page_type,
+              is_cover: isCoverPage(bp),
+            }));
+            return {
+              ...(prev || {}),
+              preview_data: nextPreviewData,
+              face_swap_info: {
+                ...(prev as any)?.face_swap_info,
+                status: batch.status || (prev as any)?.face_swap_info?.status || 'processing',
+                batch_id: batch.batch_id,
+              },
+              queue_info: batch.queue,
+            } as any;
+          });
+        }
+        // 根据batch状态更新 isProcessing
+        if (batch?.status === 'pending' || batch?.status === 'processing') {
+          setIsProcessing(true);
+        } else if (batch?.status === 'completed' || batch?.status === 'failed') {
+          setIsProcessing(false);
+          clearBatchPolling();
+        }
+      } catch (_e) {
+        console.error('[Polling] Error:', _e);
+      }
+    }, 3000);
+  };
+
+  // 订阅预览专用频道并处理实时事件
+  const subscribeToPreviewChannel = (spuCode: string, batchId: string) => {
+    if (!echo) return;
+    try {
+      const inferred = `preview.${user?.id ? `user-${user.id}` : 'guest'}.${batchId}`;
+      const channelName = previewChannelNameRef.current || inferred;
+      if (subscribedPreviewChannelRef.current && subscribedPreviewChannelRef.current !== channelName) {
+        try { (echo as any).leave(subscribedPreviewChannelRef.current); } catch {}
+      }
+      subscribedPreviewChannelRef.current = channelName;
+      const ch = (echo as any).channel(channelName);
+        const onPreviewPageUpdated = (data: any) => {
+        console.log('[WS] PreviewPageUpdated:', data);
+        const pageCode = data?.page_code;
+        const imageUrl = data?.final_image_url || data?.base_image_url || data?.image_url;
+        if (!pageCode || !imageUrl) return;
+        setPreviewData((prev) => {
+            if (!prev || !prev.preview_data) return prev as any;
+            const next = {
+              ...prev,
+              preview_data: prev.preview_data.map((p: any) =>
+                p.page_code === pageCode
+                  ? { 
+                      ...p, 
+                      image_url: imageUrl, 
+                      has_face_swap: !!data?.has_face_elements,
+                      base_only: data?.base_only ?? p.base_only,
+                      final_image_url: data?.final_image_url ?? p.final_image_url,
+                      base_image_url: data?.base_image_url ?? p.base_image_url,
+                    }
+                  : p
+              ),
+            } as any;
+            return next;
+        });
+      };
+      const onPreviewBatchCompleted = async (_data: any) => {
+        console.log('[WS] PreviewBatchCompleted:', _data);
+        setIsProcessing(false);
+        // 拉取最终结果，确保所有页同步
+        try {
+          const base = (process.env.NEXT_PUBLIC_PREVIEW_API_URL || '').replace(/\/$/, '');
+          const path = `/products/${spuCode}/preview/batches/${batchId}`;
+          const url = base ? `${base}${path}` : path;
+          const res = await api.get(url) as ApiResponse<any>;
+          const batch = (res as any)?.data?.batch;
+          if (batch?.pages) {
+            setPreviewData((prev) => {
+              // 若 prev 为空，从 batch.pages 直接构造
+              if (!prev || !prev.preview_data || prev.preview_data.length === 0) {
+                return {
+                  preview_id: undefined as any,
+                  preview_data: batch.pages.map((bp: any, idx: number) => ({
+                    page_id: idx + 1,
+                    page_code: bp.page_code,
+                    page_number: bp.sort_order ?? idx + 1,
+                    image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
+                    has_face_swap: !!bp.has_face_elements,
+                    status: bp.status,
+                    base_image_url: bp.base_image_url,
+                    final_image_url: bp.final_image_url,
+                    base_only: bp.base_only,
+                    queue_position: bp.queue_position,
+                    queue_total: bp.queue_total,
+                  })),
+                  face_swap_info: {
+                    status: 'completed',
+                    batch_id: batch.batch_id,
+                  } as any,
+                  queue_info: batch.queue,
+                } as any;
+              }
             const updated = {
               ...prev,
               preview_data: prev.preview_data.map((p: any) => {
                 const match = batch.pages.find((bp: any) => bp.page_code === p.page_code);
-                const newUrl = match?.final_image_url || match?.base_image_url; // 最终图优先，其次基础图
-                return newUrl ? { ...p, image_url: newUrl, has_face_swap: !!match?.has_face_elements } : p;
-              }),
+                  if (!match) return p;
+                  const newUrl = match.final_image_url || match.base_image_url;
+                  return {
+                    ...p,
+                    image_url: newUrl,
+                    has_face_swap: !!match.has_face_elements,
+                    status: match.status,
+                    base_image_url: match.base_image_url,
+                    final_image_url: match.final_image_url,
+                    base_only: match.base_only,
+                    queue_position: match.queue_position,
+                    queue_total: match.queue_total,
+                  };
+                }),
+                face_swap_info: { ...(prev as any).face_swap_info, status: 'completed' },
+                queue_info: batch.queue,
             } as any;
             return updated;
           });
         }
-        if (batch?.status === 'completed' || batch?.status === 'failed') {
+        } catch {}
           clearBatchPolling();
-        }
-      } catch (_e) {
-        // 忽略轮询错误，继续下一轮
-      }
-    }, 3000);
+      };
+      ch.listen('.PreviewPageUpdated', onPreviewPageUpdated);
+      ch.listen('.PreviewBatchCompleted', onPreviewBatchCompleted);
+    } catch {}
   };
 
   // 处理 NDJSON 流事件
@@ -1440,12 +1709,31 @@ export default function PreviewPageWithTopNav() {
     const { event, data } = chunk || {};
     if (!event) return;
     switch (event) {
-      case 'accepted':
+      case 'accepted': {
         setIsProcessing(true);
+        const bid = extractBatchIdFromEvent({ data }) || data?.batch?.batch_id;
+        if (bid) {
+          currentBatchIdRef.current = bid;
+          setCurrentBatchId(bid);
+          if (spuCode) startBatchPolling(spuCode, bid);
+          // 订阅预览专用频道（如有）
+          subscribeToPreviewChannel(spuCode, bid);
+        }
         break;
+      }
       case 'page': {
         const pageCode = data?.page_code;
-        const imageUrl = data?.final_image_url || data?.base_image_url; // 最终图优先，其次基础图
+        const imageUrl = data?.final_image_url || data?.base_image_url || data?.image_url; // 最终图优先，其次基础图
+        // 提前从 page 事件推断 batch_id（若后端携带）并启动轮询/订阅
+        try {
+          const bid = extractBatchIdFromEvent({ data }) || data?.batch?.batch_id;
+          if (bid && (!currentBatchIdRef.current || currentBatchIdRef.current !== bid)) {
+            currentBatchIdRef.current = bid;
+            setCurrentBatchId(bid);
+            if (spuCode) startBatchPolling(spuCode, bid);
+            subscribeToPreviewChannel(spuCode, bid);
+          }
+        } catch {}
         if (pageCode) {
           setPreviewData((prev) => {
             if (!prev) return prev as any;
@@ -1453,7 +1741,14 @@ export default function PreviewPageWithTopNav() {
               ...prev,
               preview_data: prev.preview_data.map((p: any) =>
                 p.page_code === pageCode
-                  ? { ...p, image_url: imageUrl || p.image_url, has_face_swap: !!data?.has_face_elements }
+                  ? { 
+                      ...p, 
+                      image_url: imageUrl || p.image_url, 
+                      has_face_swap: !!data?.has_face_elements,
+                      base_only: data?.base_only ?? (data?.final_image_url ? false : data?.base_image_url ? true : p.base_only),
+                      final_image_url: data?.final_image_url ?? p.final_image_url,
+                      base_image_url: data?.base_image_url ?? p.base_image_url,
+                    }
                   : p
               ),
             } as any;
@@ -1646,7 +1941,12 @@ export default function PreviewPageWithTopNav() {
           setPreviewData(merged);
           try {
             const bid = merged?.face_swap_info?.batch_id;
-            if (bid) currentBatchIdRef.current = bid;
+            if (bid) {
+              currentBatchIdRef.current = bid;
+              setCurrentBatchId(bid);
+              const spu = String(searchParams.get('bookid') || bookId || '').toLowerCase();
+              if (spu && bid) startBatchPolling(spu, bid);
+            }
           } catch {}
           // 标记完成页
           const completedIds = new Set<number>();
@@ -1655,11 +1955,37 @@ export default function PreviewPageWithTopNav() {
           });
           setSwappedPageIds(completedIds);
         } else {
+          // 如果 response.data 有 preview_data 数组，设置它；否则等待轮询填充
+          console.log('[Preview] Response data structure:', {
+            hasPreviewData: !!response.data?.preview_data,
+            previewDataLength: response.data?.preview_data?.length,
+            hasFaceSwapInfo: !!response.data?.face_swap_info
+          });
+          
+          if (response.data?.preview_data && Array.isArray(response.data.preview_data) && response.data.preview_data.length > 0) {
           setPreviewData(response.data!);
+          } else {
+            // 没有preview_data，只设置face_swap_info，让轮询来填充数据
+            console.log('[Preview] No preview_data in response, creating minimal structure for polling');
+            setPreviewData({
+              preview_id: undefined as any,
+              preview_data: [],  // 空数组，等待轮询填充
+              face_swap_info: response.data?.face_swap_info || { status: 'processing' } as any,
+            } as any);
+          }
+          
           // 记录本次任务的 batch_id，用于筛选后续广播
           try {
             const bid = response.data?.face_swap_info?.batch_id;
-            if (bid) currentBatchIdRef.current = bid;
+            if (bid) {
+              currentBatchIdRef.current = bid;
+              setCurrentBatchId(bid);
+              const spu = String(searchParams.get('bookid') || bookId || '').toLowerCase();
+              if (spu && bid) {
+                startBatchPolling(spu, bid);
+                subscribeToPreviewChannel(spu, bid);
+              }
+            }
           } catch {}
         }
         
@@ -2142,7 +2468,7 @@ export default function PreviewPageWithTopNav() {
                       </div>
                     )}
                     <Image
-                      src="/book.png"
+                      src="/cover.png"
                       alt="Book Cover"
                       width={400}
                       height={392}
@@ -2154,109 +2480,134 @@ export default function PreviewPageWithTopNav() {
               </div>
             </div>
             {/* Giver & Dedication 按 has_replaceable_text==2 的页渲染到对应位置 */}
-            {/* 换脸状态信息（仅排队时展示提示条） */}
-            {previewData?.face_swap_info && isQueued && (
-              <div className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
-                <p>
-                  Book preview is currently in the queue for generation. You are currently at position {queueStatus?.position}/{queueStatus?.total}. <br />
-                  You can proceed to select {buildOptions({
-                    cover: !completedSections.coverDesign,
-                    binding: !completedSections.binding,
-                    wrap: !completedSections.giftBox
-                  }, currentLang === 'zh' ? 'zh' : 'en')},{' '}
-                  {!isKs && (
-                    <a
-                      className="underline cursor-pointer text-blue-600"
-                      onClick={() => setActiveTab('Others')}
-                    >
-                      Others
-                    </a>
-                  )}
-                </p>
-              </div>
-            )}
-            
-            {/* 页面预览：排队时不展示，生成中/完成展示 */}
-            {previewData?.preview_data && previewData.preview_data.length > 0 && !isQueued && (
+            {/* Giver & Dedication: render immediately, independent of preview_data */}
+            <div className="w-full max-w-5xl mb-8" ref={giverDedicationRef}>
+              {viewMode === 'single' ? (
+                <GiverDedicationCanvas
+                  className="w-full max-w-[500px]"
+                  imageUrl={'/products/picbooks/PICBOOK_GOODNIGHT2/giver.webp'}
+                  mode="single"
+                  giverText={giver}
+                  dedicationText={dedication}
+                  giverImageUrl={giverImageUrl}
+                />
+              ) : (
+                <div className="w-full flex justify-center">
+                  <div className="relative w-full">
+                    <GiverDedicationCanvas
+                      className="w-full"
+                      imageUrl={'/products/picbooks/PICBOOK_GOODNIGHT2/giver.webp'}
+                      mode="double"
+                      giverText={giver}
+                      dedicationText={dedication}
+                      giverImageUrl={giverImageUrl}
+                    />
+                    <div className="pointer-events-none">
+                      <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={() => setEditField('giver')}
+                          className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                        >
+                          Edit Giver
+                        </button>
+                      </div>
+                      <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={() => setEditField('dedication')}
+                          className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                        >
+                          Edit Dedication
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 换脸状态信息（仅排队时展示提示条），放在寄语页下方 */}
+            {(() => {
+              const displayedPages = (previewData?.preview_data ?? []).filter((p: any) => !(p as any).is_cover);
+              const hasAnyBase = displayedPages.some((p: any) => !!(p as any).base_image_url || (!!p.image_url && (p as any).base_only === true));
+              if (hasAnyBase) return null; // 一旦出现任意 base 图，隐藏所有队列提示
+              const pos = Number(queueStatus?.position ?? 0);
+              const tot = Number(queueStatus?.total ?? 0);
+              const hasPos = pos > 0 && tot > 0;
+              const showNumbered = hasPos; // 一旦拿到队列信息就显示数字版本
+              return (
+                <div className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
+                  <p>
+                    {showNumbered ? t('queueTip', { pos, tot }) : t('queueTipNoPos')} <br />
+                    {t('selectOptions', { options: buildOptions({
+                      cover: !completedSections.coverDesign,
+                      binding: !completedSections.binding,
+                      wrap: !completedSections.giftBox
+                    }, displayLang) })}{' '}
+                    {!isKs && (
+                      <a
+                        className="underline cursor-pointer text-blue-600"
+                        onClick={() => setActiveTab('Others')}
+                      >
+                        Others
+                      </a>
+                    )}
+                  </p>
+                </div>
+              );
+            })()}
+
+            {/* 页面预览：有图片就展示（包括排队时的base_image） */}
+            {(() => {
+              console.log('[Preview] Check display condition:', {
+                hasPreviewData: !!previewData,
+                hasPreviewDataArray: !!previewData?.preview_data,
+                previewDataLength: previewData?.preview_data?.length,
+                previewDataSample: previewData?.preview_data?.[0],
+                isQueued,
+                isGenerating,
+                isCompleted
+              });
+              if (previewData?.preview_data) {
+                console.log('[Preview] All pages in previewData:', previewData.preview_data.map((p: any) => ({
+                  page_id: p.page_id,
+                  page_code: p.page_code,
+                  image_url: p.image_url?.substring(0, 80) + '...'
+                })));
+              }
+              return null;
+            })()}
+            {previewData?.preview_data && previewData.preview_data.length > 0 && (
               <div className="w-full max-w-5xl mb-8">
                 <div className="w-full flex flex-col items-center gap-8">
                   {(() => {
-                    const displayedPages = (previewPagesCount ? previewData.preview_data.slice(0, previewPagesCount) : previewData.preview_data);
+                    // 在预览页面显示：仅普通页（封面移至 Others 处理）
+                    const displayedPages = previewData.preview_data.filter((p: any) => !(p as any).is_cover);
+                    console.log('[Preview] Rendering', displayedPages.length, 'pages (previewPagesCount:', previewPagesCount, ', isQueued:', isQueued, ', isGenerating:', isGenerating, ')');
+                    const hasAnyBase = displayedPages.some((p: any) => !!p.base_image_url || (p.base_only === true && !!p.image_url));
+                    if (!hasAnyBase) {
+                      // 无任何 base 页：此处不再重复提示，统一在寄语页下方展示队列提示
+                      return null;
+                    }
                     const firstSwapping = displayedPages.find((p) => p.has_face_swap && isGenerating && !swappedPageIds.has(p.page_id));
                     const firstSwappingPageId = firstSwapping ? firstSwapping.page_id : null;
                     return displayedPages.map((page, idx) => {
-                    const isSwapping = page.has_face_swap && isGenerating && !swappedPageIds.has(page.page_id);
+                    // 根据batch返回的状态判断是否需要显示蒙版
+                    // 需要换脸 且 已有基础图 且 尚无最终图 → 显示蒙版 + 进度
+                    const hasSwap = !!page.has_face_swap;
+                    const hasBase = !!(page as any).base_image_url || (!!page.image_url && (page as any).base_only === true);
+                    const hasFinal = !!(page as any).final_image_url && (page as any).base_only === false;
+                    const needsOverlay = hasSwap && hasBase && !hasFinal;
+                    const isSwapping = needsOverlay;
                     const progress = Math.round(pageProgress[page.page_id] ?? 0);
                     const src = buildImageUrl(page.image_url);
                     const isReplaceablePage = replaceableTextPageIds.has(page.page_id) || replaceableTextPageNumbers.has(page.page_number);
-                    const isSecondDisplayedPage = idx === 1;
-                      const overlayMode = isSwapping && firstSwappingPageId !== null && page.page_id !== firstSwappingPageId ? 'loading' : 'progress';
+                    // 轮到该页前（progress 为 0）显示 loading；开始后显示进度
+                    const overlayMode = (progress > 0 ? 'progress' : 'loading');
                     return (
                       <div key={page.page_id} className="w-full flex flex-col items-center">
-                        <div className="w-full max-w-5xl" ref={isSecondDisplayedPage ? giverDedicationRef : undefined}>
-                          {isSecondDisplayedPage ? (
-                            viewMode === 'single' ? (
-                              <GiverDedicationCanvas
-                                className="w-full max-w-[500px]"
-                                imageUrl={src}
-                                mode="single"
-                                giverText={giver}
-                                dedicationText={dedication}
-                                giverImageUrl={giverImageUrl}
-                                leftBelow={
-                                  <button
-                                    type="button"
-                                    onClick={() => setEditField('giver')}
-                                    className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                                  >
-                                    Edit Giver
-                                  </button>
-                                }
-                                rightBelow={
-                                  <button
-                                    type="button"
-                                    onClick={() => setEditField('dedication')}
-                                    className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                                  >
-                                    Edit Dedication
-                                  </button>
-                                }
-                              />
-                            ) : (
-                              <div className="w-full flex justify-center">
-                                <div className="relative w-full">
-                                  <GiverDedicationCanvas
-                                    className="w-full"
-                                    imageUrl={src}
-                                    mode="double"
-                                    giverText={giver}
-                                    dedicationText={dedication}
-                                    giverImageUrl={giverImageUrl}
-                                  />
-                                  <div className="pointer-events-none">
-                                    <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
-                                      <button
-                                        type="button"
-                                        onClick={() => setEditField('giver')}
-                                        className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                                      >
-                                        Edit Giver
-                                      </button>
-                                    </div>
-                                    <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
-                                      <button
-                                        type="button"
-                                        onClick={() => setEditField('dedication')}
-                                        className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                                      >
-                                        Edit Dedication
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            )
-                          ) : (
+                        <div className="w-full max-w-5xl">
                             <PreviewPageItem
                               pageId={page.page_id}
                               pageNumber={page.page_number}
@@ -2267,7 +2618,6 @@ export default function PreviewPageWithTopNav() {
                               overlayMode={overlayMode as any}
                               content={page.content}
                             />
-                          )}
                         </div>
                       </div>
                     );
@@ -2276,19 +2626,11 @@ export default function PreviewPageWithTopNav() {
                 </div>
                 {(isGenerating || isCompleted) && (
                   <p className="text-center text-[#999999] mt-8">
-                    We've specially curated the first {(previewPagesCount ?? previewData.preview_data.length)} pages for you – enjoy a sneak peek of your unique story!
+                    We've specially curated {previewData.preview_data.length} pages for you – enjoy a sneak peek of your unique story!
                   </p>
                 )}
               </div>
             )}
-
-            
-            
-            
-
-
-
-            
 
           </main>
         ) : (

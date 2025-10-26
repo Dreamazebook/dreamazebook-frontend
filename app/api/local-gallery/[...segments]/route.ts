@@ -4,9 +4,12 @@ import fs from 'fs/promises';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(_request: Request, context: any) {
+export async function GET(
+  _request: Request,
+  context: { params: Promise<{ segments?: string[] }> }
+) {
   try {
-    const segments: string[] = (context?.params?.segments as string[]) || [];
+    const { segments = [] } = await context.params;
     // Normalize to prevent path traversal
     const rel = ('/' + segments.join('/')).replace(/\\/g, '/');
     const safeRel = path.posix

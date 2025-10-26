@@ -128,5 +128,10 @@
     "preparationTitle": "您的书籍正在精心准备中！",
     "preparationSubtitle": "我们将在 48 小时内联系您以完成书籍设计！请留意您的邮箱",
     "noOrderIdError": "未提供订单 ID。请检查您的订单详情。"
+  },
+  "Preview": {
+    "queueTip": "图书预览正在排队生成中，您当前排在第{pos}/{tot}位。您可以先前往 Others 标签页选择其他信息",
+    "queueTipNoPos": "图书预览正在排队生成中。您可以先前往 Others 标签页选择其他信息",
+    "selectOptions": "您可以先选择 {options}"
   }
 }

@@ -146,5 +146,10 @@
     "preparationTitle": "Votre livre est en cours de préparation !",
     "preparationSubtitle": "Nous vous contacterons dans les 48 heures pour finaliser la conception de votre livre ! Surveillez vos emails",
     "noOrderIdError": "Aucun identifiant de commande fourni. Veuillez vérifier les détails de votre commande."
+  },
+  "Preview": {
+    "queueTip": "L'aperçu du livre est actuellement dans la file d'attente pour la génération. Vous êtes actuellement à la position {pos}/{tot}. Vous pouvez passer à l'onglet Others.",
+    "queueTipNoPos": "L'aperçu du livre est actuellement dans la file d'attente pour la génération. Vous pouvez passer à l'onglet Others.",
+    "selectOptions": "Vous pouvez d'abord sélectionner {options}"
   }
 }
