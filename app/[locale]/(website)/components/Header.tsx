@@ -40,8 +40,8 @@ const menuItems = [
   },
   {
     label: 'About Us',
-    href: '/about',
-    isActive: (pathname: string) => pathname === '/about'
+    href: '/about-us',
+    isActive: (pathname: string) => pathname === '/about-us'
   }
 ];
 
