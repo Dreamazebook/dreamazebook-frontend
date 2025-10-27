@@ -212,7 +212,9 @@ export default function PersonalizeApiDrivenPage() {
     localStorage.setItem('previewUserData', JSON.stringify(userData));
     localStorage.setItem('previewBookId', bookId || '');
     const qs = new URLSearchParams();
+    const selectedLanguage = (searchParams.get('language') || 'en') as string;
     if (bookId) qs.set('bookid', bookId);
+    if (selectedLanguage) qs.set('lang', selectedLanguage);
     if (isKs) qs.set('ks', '1');
     if (isKs && ksPackageItemId) qs.set('package_item_id', ksPackageItemId);
     if (isKs && ksPackageId) qs.set('package_id', ksPackageId);

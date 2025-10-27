@@ -53,8 +53,7 @@ const BookDetailPage = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
-  const [openFaq, setOpenFaq] = useState<number>(1);
+  const [availableLanguages, setAvailableLanguages] = useState<string[]>(['en', 'zh']);
 
   useEffect(() => {
     const fetchBookDetails = async () => {
@@ -63,6 +62,14 @@ const BookDetailPage = () => {
         const body = await api.get<any>(`/products/${id}`, { params: { language: locale } });
         const data = body?.data || body;
         setBook(data);
+        try {
+          const langs = (data?.data?.customization_config?.languages
+            || data?.customization_config?.languages
+            || []) as string[];
+          if (Array.isArray(langs) && langs.length > 0) {
+            setAvailableLanguages(langs);
+          }
+        } catch {}
 
         // 2) 从 public 目录读取本地 gallery 图片
         const galleryBase = `/products/picbooks/${encodeURIComponent(String(id))}/gallery`;
@@ -91,10 +98,10 @@ const BookDetailPage = () => {
 
   const description = book?.description || "No description available.";
 
-  const handlePersonalizeClick = (e: React.MouseEvent) => {
+  const handlePersonalizeClick = (e: React.MouseEvent, lang: string) => {
     if (!isLoggedIn) {
       e.preventDefault();
-      const redirectTo = `/personalize?bookid=${id}`;
+      const redirectTo = `/personalize?bookid=${id}&language=${encodeURIComponent(lang || 'en')}`;
       router.push(`/login?redirect=${encodeURIComponent(redirectTo)}`);
       return;
     }
@@ -112,6 +119,7 @@ const BookDetailPage = () => {
         primaryButtonLabel={t('personalizeButton')}
         primaryButtonHref={`/personalize?bookid=${id}`}
         onPrimaryClick={handlePersonalizeClick}
+        availableLanguages={availableLanguages}
       />
       <ReviewsSection book={book} keywords={keywords} reviews={reviews} />
     </>

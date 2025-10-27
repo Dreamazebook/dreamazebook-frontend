@@ -98,8 +98,16 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
 
   // fullName 的 onChange 与 onBlur 处理
   const handleFullNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value.length > 13) {
+    const input = e.target as HTMLInputElement & { composing?: boolean };
+    // 忽略输入法组合中的中间态，避免中文拼写被误判长度
+    if ((input as any).isComposing || input.composing) {
+      onChange('fullName', input.value);
+      return;
+    }
+    const value = input.value;
+    // 以 code point 为单位限制长度，支持中文等多字节字符
+    const codePoints = Array.from(value);
+    if (codePoints.length > 13) {
       if (onErrorChange) onErrorChange('fullName', 'Full name cannot exceed 13 characters.');
       return;
     } else {
@@ -195,6 +203,8 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           value={data.fullName}
           onChange={handleFullNameChange}
           onBlur={handleFullNameBlur}
+          // 允许中文等本地文字的输入法
+          inputMode="text"
         />
         {touched.fullName && errors.fullName && (
           <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>

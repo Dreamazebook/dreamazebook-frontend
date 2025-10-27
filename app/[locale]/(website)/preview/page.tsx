@@ -2339,12 +2339,44 @@ export default function PreviewPageWithTopNav() {
   //寄语
   const MAX_LINES = 10;
   const MAX_CHARS = 300;
-  const defaultName = "User"; // 定义 defaultName
-
-  const defaultMessage = `Dear ${defaultName},
-  The world is full of wonderful, surprising places to explore. May your days be full of discoveries, adventure and joy!`;
+  const defaultName = (recipient && recipient.trim()) ? recipient : "User"; // 使用 Full name 作为默认名
+  // 默认寄语按预览语言（来自 personalize 传入的 ?lang）选择
+  const selectedLang = (searchParams.get('lang') || 'en').toLowerCase();
+  const isZhLang = selectedLang.startsWith('zh');
+  const buildDefaultMessage = (name: string, lang: string) => {
+    const zh = `亲爱的${name}，\n  这个世界充满了令人惊喜与奇妙的角落等待你去探索。愿你的每一天都充满发现、冒险与喜悦！`;
+    const en = `Dear ${name},\n  The world is full of wonderful, surprising places to explore. May your days be full of discoveries, adventure and joy!`;
+    return lang.startsWith('zh') ? zh : en;
+  };
+  const defaultMessage = buildDefaultMessage(defaultName, selectedLang);
 
   const [message, setMessage] = React.useState(defaultMessage);
+  // 跟踪上一次默认寄语，用于判断是否应同步更新（避免覆盖用户已编辑的内容）
+  const prevDefaultMessageRef = React.useRef(defaultMessage);
+  React.useEffect(() => {
+    const prev = prevDefaultMessageRef.current;
+    const userHasNotEdited = !message || message.trim() === '' || message === prev;
+    if (userHasNotEdited) {
+      setMessage(defaultMessage);
+      setDedication(defaultMessage);
+    } else if (!dedication || dedication.trim() === '' || dedication === ' ') {
+      // 用户编辑了 message，但画布用的 dedication 仍为空，则仅同步画布默认值
+      setDedication(defaultMessage);
+    }
+    prevDefaultMessageRef.current = defaultMessage;
+  }, [defaultMessage, message, dedication]);
+
+  // 当 recipient 变更时，如果当前文案仍是上一次的默认模板（仅名字不同），则同步替换为新名字
+  const prevRecipientRef = React.useRef(recipient);
+  React.useEffect(() => {
+    const prevRecipient = prevRecipientRef.current;
+    if (prevRecipient === recipient) return;
+    const prevTemplate = buildDefaultMessage((prevRecipient && prevRecipient.trim()) ? prevRecipient : 'User', selectedLang);
+    const nextTemplate = buildDefaultMessage(defaultName, selectedLang);
+    if (!message || message.trim() === '' || message === prevTemplate) setMessage(nextTemplate);
+    if (!dedication || dedication.trim() === '' || dedication === prevTemplate) setDedication(nextTemplate);
+    prevRecipientRef.current = recipient;
+  }, [recipient, selectedLang, defaultName, message, dedication]);
 
   const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { value } = e.target;

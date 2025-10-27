@@ -6,6 +6,7 @@ import {setRequestLocale} from 'next-intl/server';
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Roboto, Philosopher } from "next/font/google";
+import { notoSansSC } from '@/app/fonts';
 import "../globals.css";
 import 'cropperjs/dist/cropper.css';
 import LayoutWrapper from './LayoutWrapper';
@@ -61,7 +62,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale}>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${roboto.variable} ${philosopher.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${roboto.variable} ${philosopher.variable} ${notoSansSC.variable} antialiased`}
       >
         <NextIntlClientProvider locale={locale as Locale} messages={messages}>
           <LdrsRegistry />

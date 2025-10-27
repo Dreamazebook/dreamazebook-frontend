@@ -19,6 +19,7 @@ export default function BookDetailView({
   primaryButtonLabel = 'Personalize my book',
   primaryButtonHref,
   onPrimaryClick,
+  availableLanguages = ['en', 'zh'],
 }: {
   book: any,
   pagePics: PagePic[],
@@ -27,10 +28,11 @@ export default function BookDetailView({
   reviews: any[],
   primaryButtonLabel?: string,
   primaryButtonHref: string,
-  onPrimaryClick?: (e: React.MouseEvent) => void,
+  onPrimaryClick?: (e: React.MouseEvent, selectedLanguage: string) => void,
+  availableLanguages?: string[],
 }) {
   const t = useTranslations('BookDetail')
-  const [selectedLanguage, setSelectedLanguage] = useState('en')
+  const [selectedLanguage, setSelectedLanguage] = useState(availableLanguages[0] || 'en')
   const [openFaq, setOpenFaq] = useState<number>(1)
 
   const description = (book as any)?.description || (book as any)?.variant?.description || 'No description available.'
@@ -83,8 +85,9 @@ export default function BookDetailView({
 
             <div className="mb-12">
               <select value={selectedLanguage} onChange={(e) => setSelectedLanguage(e.target.value)} className="w-full p-4 border border-gray-200 rounded-lg text-gray-600 appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQgNkw4IDEwTDEyIDYiIHN0cm9rZT0iIzY2NjY2NiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==')] bg-no-repeat bg-[center_right_1rem]">
-                <option value="en">{t('language.en')}</option>
-                <option value="zh">{t('language.zh')}</option>
+                {availableLanguages.map((code) => (
+                  <option key={code} value={code}>{t(`language.${code}` as any) || code}</option>
+                ))}
               </select>
             </div>
 
@@ -93,7 +96,11 @@ export default function BookDetailView({
                 <span className="text-[#012CCE] text-[36px] font-medium">${Number((book as any)?.default_sku?.current_price ?? (book as any)?.current_price ?? (book as any)?.price ?? 0).toFixed(2)}</span>
                 <span className="text-gray-400 line-through">${Number((book as any)?.default_sku?.market_price ?? (book as any)?.market_price ?? ((Number((book as any)?.price ?? 0) * 1.25) || 0)).toFixed(2)}</span>
               </div>
-              <Link href={primaryButtonHref} onClick={onPrimaryClick} className="bg-[#222222] text-[#F5E3E3] w-[243px] h-[44px] px-4 py-3 rounded-[4px] hover:bg-gray-800 transition-colors text-base font-medium flex items-center justify-center">
+              <Link
+                href={`${primaryButtonHref}${primaryButtonHref.includes('?') ? '&' : '?'}language=${encodeURIComponent(selectedLanguage)}`}
+                onClick={(e) => onPrimaryClick?.(e, selectedLanguage)}
+                className="bg-[#222222] text-[#F5E3E3] w-[243px] h-[44px] px-4 py-3 rounded-[4px] hover:bg-gray-800 transition-colors text-base font-medium flex items-center justify-center"
+              >
                 {primaryButtonLabel}
               </Link>
             </div>
