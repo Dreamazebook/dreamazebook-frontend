@@ -37,7 +37,7 @@ export default function AboutUsPage() {
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
               A Book for the Journey of
-              <span className="text-amber-600"> Self-Recognition</span>
+              <span className="text-primary"> Self-Recognition</span>
             </h1>
             <p className="text-lg text-gray-600 leading-relaxed">
               At Dreamaze, we create storybooks where your child truly sees themselves as the hero.
@@ -62,11 +62,11 @@ export default function AboutUsPage() {
             </div>
           </div>
           <div className="relative">
-            <div className="absolute -inset-4 bg-gradient-to-r from-amber-200 to-blue-200 rounded-3xl blur-2xl opacity-30"></div>
+            <div className="absolute -inset-4 bg-gradient-to-r from-amber-200 to-blue-200 rounded blur-2xl opacity-30"></div>
             <img
               src="https://images.unsplash.com/photo-1758874961220-38296d64a674"
               alt="Parent and child reading together"
-              className="relative rounded-3xl shadow-2xl w-full h-[500px] object-cover"
+              className="relative rounded shadow w-full h-[500px] object-cover"
             />
           </div>
         </div>
@@ -77,11 +77,11 @@ export default function AboutUsPage() {
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="order-2 md:order-1 relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-blue-200 to-purple-200 rounded-3xl blur-2xl opacity-30"></div>
+              <div className="absolute -inset-4 bg-gradient-to-r from-blue-200 to-purple-200 rounded blur-2xl opacity-30"></div>
               <img
                 src="https://images.unsplash.com/photo-1758598737528-77505cac475f"
                 alt="Mother reading to child"
-                className="relative rounded-3xl shadow-2xl w-full h-[500px] object-cover"
+                className="relative rounded shadow w-full h-[500px] object-cover"
               />
             </div>
             <div className="order-1 md:order-2 space-y-6">
@@ -254,7 +254,7 @@ export default function AboutUsPage() {
               Share your ideas—together we can create stories where every child truly sees themselves.
             </p>
             <button
-              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all"
+              className="bg-primary text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl cursor-pointer transition-all"
               onClick={() => window.location.href = '#submit-idea'}
             >
               Submit Your Idea
@@ -303,11 +303,11 @@ export default function AboutUsPage() {
               </div>
             </div>
             <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-green-200 to-emerald-200 rounded-3xl blur-2xl opacity-30"></div>
+              <div className="absolute -inset-4 bg-gradient-to-r from-green-200 to-emerald-200 rounded blur-2xl opacity-30"></div>
               <img
                 src="https://images.unsplash.com/photo-1533561304446-88a43deb6229"
                 alt="Children's books"
-                className="relative rounded-3xl shadow-2xl w-full h-[500px] object-cover"
+                className="relative rounded shadow w-full h-[500px] object-cover"
               />
             </div>
           </div>
