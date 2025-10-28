@@ -584,10 +584,8 @@ export default function PreviewPageWithTopNav() {
       return {
         ...data,
         preview_data: updatedPages,
-        face_swap_info: {
-          ...(data?.face_swap_info || {}),
-          status: 'completed',
-        },
+        status: 'completed',
+        batch_id: (data as any)?.batch_id,
       };
     } catch {
       return data;
@@ -638,7 +636,7 @@ export default function PreviewPageWithTopNav() {
         // 仅使用 GET 预览接口
         const resp = await api.get(`/products/${bookIdParam}/preview`) as ApiResponse<any>;
         if (resp?.success && resp?.data) {
-          const status = resp.data?.face_swap_info?.status || resp.data?.status;
+          const status = resp.data?.status;
           // 新接口：没有 face_swap_info，直接使用 preview_pages
           const mergedSource = (Array.isArray(resp.data?.preview_pages) ? normalizePreviewApi(resp.data) : resp.data);
           if (Array.isArray((mergedSource as any)?.preview_data) || Array.isArray((mergedSource as any)?.result_images)) {
@@ -646,7 +644,7 @@ export default function PreviewPageWithTopNav() {
             setPreviewData(merged);
             setIsProcessing(false);
             try {
-              const bid = merged?.face_swap_info?.batch_id;
+              const bid = (merged as any)?.batch_id || (resp.data as any)?.batch_id;
               if (bid) {
                 currentBatchIdRef.current = bid;
                 setCurrentBatchId(bid);
@@ -670,7 +668,7 @@ export default function PreviewPageWithTopNav() {
           }
           // 未完成：保持现有 WS 流程
           try {
-            const bid = resp.data?.face_swap_info?.batch_id;
+            const bid = (resp.data as any)?.batch_id;
             if (bid) {
               currentBatchIdRef.current = bid;
               setCurrentBatchId(bid);
@@ -806,11 +804,11 @@ export default function PreviewPageWithTopNav() {
   const [replaceableTextPageNumbers, setReplaceableTextPageNumbers] = useState<Set<number>>(new Set());
   // 每页换脸完成的记录，用于在全局仍 processing 时关闭单页蒙版
   const [swappedPageIds, setSwappedPageIds] = useState<Set<number>>(new Set());
-  // 最新的全局换脸状态引用，供 WS 回调中使用，避免闭包陈旧值
+  // 最新的全局状态引用（使用顶层 status），供 WS 回调中使用，避免闭包陈旧值
   const faceSwapStatusRef = useRef<string | undefined>(undefined);
   useEffect(() => {
-    faceSwapStatusRef.current = previewData?.face_swap_info?.status;
-  }, [previewData?.face_swap_info?.status]);
+    faceSwapStatusRef.current = (previewData as any)?.status;
+  }, [(previewData as any)?.status]);
   
   // 每页进度（0-100），定时驱动：60s 线性至 98%，未完成停在 98%，完成后迅速到 100%
   const [pageProgress, setPageProgress] = useState<Record<number, number>>({});
@@ -825,11 +823,12 @@ export default function PreviewPageWithTopNav() {
   const previewChannelNameRef = useRef<string | null>(null);
   const subscribedPreviewChannelRef = useRef<string | null>(null);
   
-  // 面向 UI 的换脸状态聚合
-  const faceSwapStatus = previewData?.face_swap_info?.status;
+  // 面向 UI 的状态聚合（使用顶层 status）
+  const faceSwapStatus = (previewData as any)?.status;
   const queuePos = queueStatus?.position ?? null;
-  const isQueued = faceSwapStatus === 'processing' && queuePos !== null && queuePos > 0;
-  const isGenerating = faceSwapStatus === 'processing' && (queuePos === null || queuePos === 0);
+  const isProcessingLike = faceSwapStatus === 'processing' || faceSwapStatus === 'pending';
+  const isQueued = isProcessingLike && queuePos !== null && queuePos > 0;
+  const isGenerating = isProcessingLike && (queuePos === null || queuePos === 0);
   const isCompleted = faceSwapStatus === 'completed';
   useEffect(() => {
     // 仅当从无到有或 URL 变化时触发 loading，避免重复置为 true 导致闪烁
@@ -1020,9 +1019,6 @@ export default function PreviewPageWithTopNav() {
               ...prev,
               preview_data: updatedPages,
               // 不回退全局状态，保持原样（由批次完成事件统一置为 completed）
-              face_swap_info: {
-                ...prev.face_swap_info
-              }
             } as PreviewResponse;
           });
           // 记录该页已完成，移除该页的蒙版
@@ -1068,7 +1064,7 @@ export default function PreviewPageWithTopNav() {
         return;
       }
       // 若全局已完成，忽略迟到的失败事件，避免 UI 误回退或误报
-      if (previewData?.face_swap_info?.status === 'completed') {
+      if ((previewData as any)?.status === 'completed') {
         return;
       }
       setIsProcessing(false);
@@ -1109,10 +1105,7 @@ export default function PreviewPageWithTopNav() {
             return {
               ...prev,
               preview_data: updatedPages,
-              face_swap_info: {
-                ...prev.face_swap_info,
-                status: 'completed'
-              }
+              status: 'completed'
             } as PreviewResponse;
           });
           // 记录所有完成页，立刻移除蒙版
@@ -1452,7 +1445,8 @@ export default function PreviewPageWithTopNav() {
     return {
       preview_id: undefined as any,
       preview_data,
-      face_swap_info: { status: 'completed' } as any,
+      status: 'completed' as any,
+      batch_id: (apiData as any)?.batch_id,
     } as unknown as PreviewResponse;
   };
 
@@ -1519,10 +1513,8 @@ export default function PreviewPageWithTopNav() {
                   queue_position: bp.queue_position,
                   queue_total: bp.queue_total,
                 })),
-                face_swap_info: {
-                  status: batch.status || 'processing',
-                  batch_id: batch.batch_id,
-                } as any,
+                status: batch.status || 'processing',
+                batch_id: batch.batch_id,
                 // 保存batch级别的队列信息
                 queue_info: batch.queue,
               } as any;
@@ -1548,11 +1540,8 @@ export default function PreviewPageWithTopNav() {
                   queue_position: bp.queue_position,
                   queue_total: bp.queue_total,
                 })),
-                face_swap_info: {
-                  ...(prev as any).face_swap_info,
-                  status: batch.status || 'processing',
-                  batch_id: batch.batch_id,
-                },
+                status: batch.status || 'processing',
+                batch_id: batch.batch_id,
                 queue_info: batch.queue,
               } as any;
               console.log('[Polling] Reinitialized preview_data with', reinitData.preview_data.length, 'pages');
@@ -1578,11 +1567,8 @@ export default function PreviewPageWithTopNav() {
             return {
               ...(prev || {}),
               preview_data: nextPreviewData,
-              face_swap_info: {
-                ...(prev as any)?.face_swap_info,
-                status: batch.status || (prev as any)?.face_swap_info?.status || 'processing',
-                batch_id: batch.batch_id,
-              },
+              status: batch.status || ((prev as any)?.status) || 'processing',
+              batch_id: batch.batch_id,
               queue_info: batch.queue,
             } as any;
           });
@@ -1665,10 +1651,8 @@ export default function PreviewPageWithTopNav() {
                     queue_position: bp.queue_position,
                     queue_total: bp.queue_total,
                   })),
-                  face_swap_info: {
-                    status: 'completed',
-                    batch_id: batch.batch_id,
-                  } as any,
+                status: 'completed',
+                batch_id: batch.batch_id,
                   queue_info: batch.queue,
                 } as any;
               }
@@ -1690,7 +1674,7 @@ export default function PreviewPageWithTopNav() {
                     queue_total: match.queue_total,
                   };
                 }),
-                face_swap_info: { ...(prev as any).face_swap_info, status: 'completed' },
+                status: 'completed',
                 queue_info: batch.queue,
             } as any;
             return updated;
@@ -1935,12 +1919,12 @@ export default function PreviewPageWithTopNav() {
       
       if (response.success) {
         // 若后端已完成直接返回结果，直接应用
-        const status = (response as any)?.data?.face_swap_info?.status || (response as any)?.data?.status;
+        const status = (response as any)?.data?.status;
         if (status === 'completed' && (Array.isArray((response as any)?.data?.preview_data) || Array.isArray((response as any)?.data?.result_images))) {
           const merged = applyResultImagesToPreviewData((response as any).data);
           setPreviewData(merged);
           try {
-            const bid = merged?.face_swap_info?.batch_id;
+            const bid = (merged as any)?.batch_id || ((response as any)?.data as any)?.batch_id;
             if (bid) {
               currentBatchIdRef.current = bid;
               setCurrentBatchId(bid);
@@ -1959,24 +1943,25 @@ export default function PreviewPageWithTopNav() {
           console.log('[Preview] Response data structure:', {
             hasPreviewData: !!response.data?.preview_data,
             previewDataLength: response.data?.preview_data?.length,
-            hasFaceSwapInfo: !!response.data?.face_swap_info
+            status: (response.data as any)?.status
           });
           
           if (response.data?.preview_data && Array.isArray(response.data.preview_data) && response.data.preview_data.length > 0) {
-          setPreviewData(response.data!);
+              setPreviewData(response.data!);
           } else {
-            // 没有preview_data，只设置face_swap_info，让轮询来填充数据
+            // 没有preview_data，只设置顶层状态与 batch_id，让轮询来填充数据
             console.log('[Preview] No preview_data in response, creating minimal structure for polling');
             setPreviewData({
               preview_id: undefined as any,
               preview_data: [],  // 空数组，等待轮询填充
-              face_swap_info: response.data?.face_swap_info || { status: 'processing' } as any,
+              status: ((response.data as any)?.status) || 'processing',
+              batch_id: (response.data as any)?.batch_id,
             } as any);
           }
           
           // 记录本次任务的 batch_id，用于筛选后续广播
           try {
-            const bid = response.data?.face_swap_info?.batch_id;
+            const bid = (response.data as any)?.batch_id;
             if (bid) {
               currentBatchIdRef.current = bid;
               setCurrentBatchId(bid);
