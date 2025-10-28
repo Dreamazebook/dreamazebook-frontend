@@ -34,9 +34,9 @@ const menuItems = [
     isActive: (pathname: string) => pathname?.includes('/books')
   },
   {
-    label: "Mother's Day",
-    href: '/categories/1',
-    isActive: (pathname: string) => pathname?.includes('/categories/1')
+    label: 'Christmas',
+    href: '/christmas',
+    isActive: (pathname: string) => pathname === '/christmas'
   },
   {
     label: 'About Us',
@@ -68,7 +68,7 @@ const Header = () => {
   };
 
   return (
-    <header className="relative max-w-5xl mx-auto flex items-center justify-between p-4">
+    <header className="relative z-50 max-w-5xl mx-auto flex items-center justify-between p-4 bg-white md:bg-transparent">
       <button 
         className="text-2xl md:hidden z-50" 
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
