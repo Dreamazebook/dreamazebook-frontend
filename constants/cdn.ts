@@ -112,3 +112,4 @@ export const VIP_PERK_FIRST_PICK = `${CLOUDFLARE_CDN_URL}vip-perk-first-pick.png
 
 export const WEBSITE_CDN_URL = 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/';
 export const HOME_SLIDESHOW = (file:string) => `${WEBSITE_CDN_URL}home/${file}`;
+export const HOME_BOOKS = (file:string) => `${WEBSITE_CDN_URL}home/books/${file}`;
