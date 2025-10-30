@@ -1,4 +1,4 @@
-import { HOME_SLIDESHOW } from '@/constants/cdn';
+import { HOME_IMAGE } from '@/constants/cdn';
 import { useState, useEffect } from 'react';
 import { FaArrowRight as ArrowRight } from 'react-icons/fa';
 
@@ -15,21 +15,21 @@ const slides: Slide[] = [
     id: 2,
     title: ['Where every child', 'is seen, celebrated,', 'and made the hero'],
     buttonText: 'View more',
-    image: HOME_SLIDESHOW('slide1.png'),
+    image: HOME_IMAGE('slide1.png'),
     alt: 'Children reading together',
   },
   {
     id: 1,
     title: ['Every child deserves', 'to be the hero of', 'their own story.'],
     buttonText: 'view more',
-    image: HOME_SLIDESHOW('slide2.png'),
+    image: HOME_IMAGE('slide2.png'),
     alt: 'Mother reading with child',
   },
   {
     id: 3,
     title: ['Creating magical', 'moments through', 'personalized stories'],
     buttonText: 'Discover more',
-    image: HOME_SLIDESHOW('slide3.png'),
+    image: HOME_IMAGE('slide3.png'),
     alt: 'Child enjoying storytime',
   },
 ];
