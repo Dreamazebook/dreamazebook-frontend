@@ -199,7 +199,7 @@ export default function ChristmasPage() {
   ]
 
   return (
-    <div className="bg-[#FFF7F7]">
+    <div className="bg-[#FCF2F2]">
       {/* Hero/Banner */}
       <div className="relative overflow-hidden md:-mt-20">
         <div
@@ -207,23 +207,13 @@ export default function ChristmasPage() {
           style={{
             background: [
               'linear-gradient(358.86deg, rgba(199, 26, 31, 0) 74.91%, #C81F24 97.16%)',
+              'linear-gradient(277.52deg, rgba(163, 34, 38, 0) 43.35%, #B8191E 67.17%)',
             ].join(', '),
           }}
         />
         {/* Banner container: 1440x537 with 10px horizontal padding and 10px gap semantics */}
-        <div className="relative h-[489px] md:h-[537px] mx-auto">
-          {/* Background image: cover the entire banner area */}
-          <div className="absolute inset-0 z-0">
-            <Image
-              src="/christmas/banner.png"
-              alt="Christmas banner"
-              fill
-              className="object-cover object-bottom md:object-[center_top]"
-              priority
-            />
-          </div>
-          
-          <div className="relative z-10 flex flex-col gap-[24px] pt-6 md:gap-[88px] px-[10px] md:px-36 md:pt-36">
+        <div className="relative h-[489px] md:h-[537px] mx-auto px-[10px]">
+          <div className="relative z-10 flex flex-col gap-[24px] pt-6 md:gap-[88px] md:px-36 md:pt-36">
             <div className="text-[#FFFFFF] h-[196px] p-4 md:p-0 md:max-w-[636px]">
               <p className="text-[32px] leading-[40px] md:text-[64px] md:leading-[88px] font-medium">
                 Make the most memorable gift under the tree.
@@ -233,12 +223,23 @@ export default function ChristmasPage() {
               </p>
             </div>
           </div>
+
+          {/* Background image: cover the entire banner area */}
+          <div className="absolute inset-x-0 bottom-0 md:top-[-36px] top-[0] z-0">
+            <Image
+              src="/christmas/banner.png"
+              alt="Christmas banner"
+              fill
+              className="object-cover object-right md:object-top"
+              priority
+            />
+          </div>
         </div>
       </div>
 
       {/* Tab Selector */}
-      <div className="relative">
-        <div className="absolute pointer-events-none z-0" style={{ left: 'clamp(0px, 2vw, 180px)', top: 'clamp(0px, 0vh, 0px)' }}>
+      <div className="relative flex flex-col gap-6 md:gap-12">
+        <div className="absolute pointer-events-none z-0" style={{ left: 'clamp(0px, 2vw, 180px)' }}>
           <svg viewBox="0 0 346 253" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: 'clamp(160px, 24vw, 346px)', height: 'auto' }}>
             <g clipPath="url(#clip0_5139_8502)">
               <path d="M253.412 11.5836C242.682 2.05637 236.166 -4.44357 233.863 -7.9186C231.635 -11.2831 228.523 -19.1066 224.528 -31.3867C224.275 -32.1644 223.842 -32.8713 223.264 -33.4495C222.685 -34.0277 221.978 -34.4608 221.201 -34.7133C220.423 -34.9659 219.596 -35.0308 218.788 -34.9027C217.981 -34.7745 217.215 -34.457 216.553 -33.9761C206.83 -26.9048 199.922 -22.7335 195.833 -21.4634C191.554 -20.1345 181.902 -19.3522 166.882 -19.1164C166.115 -19.1045 165.359 -18.9222 164.671 -18.5826C163.982 -18.243 163.378 -17.7547 162.901 -17.1529C162.424 -16.5511 162.087 -15.8509 161.914 -15.1029C161.741 -14.355 161.736 -13.5779 161.9 -12.8279C167.258 11.6739 168.377 28.3014 165.258 37.0581C162.701 44.2375 156.383 54.5908 146.303 68.1122C145.091 69.7373 144.278 71.6241 143.929 73.6207C143.579 75.6173 143.703 77.6681 144.29 79.6081C144.878 81.5481 145.912 83.3232 147.31 84.7907C148.709 86.2581 150.432 87.3769 152.341 88.0572L196.667 103.844C198.578 104.525 200.623 104.747 202.636 104.492C204.648 104.238 206.573 103.515 208.255 102.38C209.938 101.246 211.33 99.7318 212.319 97.9608C213.309 96.1898 213.869 94.211 213.954 92.1839C214.654 75.5761 216.318 63.575 218.952 56.1816C222.18 47.1177 233.586 34.9028 253.169 19.5368C253.766 19.0683 254.253 18.4743 254.595 17.797C254.938 17.1196 255.127 16.3754 255.15 15.6169C255.173 14.8583 255.029 14.104 254.728 13.4073C254.427 12.7105 253.977 12.0883 253.409 11.5847L253.412 11.5836Z" fill="#11BC68"/>
@@ -256,7 +257,7 @@ export default function ChristmasPage() {
             </defs>
           </svg>
         </div>
-        <div className="absolute pointer-events-none z-0" style={{ right: 'clamp(80px, 30vw, 550px)', top: 'clamp(40px, 15vh, 220px)' }}>
+        <div className="absolute pointer-events-none z-0" style={{ right: 'clamp(60px, 20vw, 550px)', top: 'clamp(40px, 15vh, 220px)' }}>
           <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: 'clamp(36px, 4.5vw, 60px)', height: 'auto' }}>
             <g clipPath="url(#clip0_5139_8350)">
             <path d="M55.3118 10.1655L34.027 5.25622C33.4249 5.10922 32.7997 5.08324 32.1875 5.17978C31.5753 5.27632 30.9884 5.49346 30.4608 5.81861C29.9332 6.14375 29.4755 6.57042 29.1141 7.07387C28.7527 7.57732 28.4948 8.14752 28.3555 8.7514C28.2162 9.35527 28.1982 9.9808 28.3025 10.5917C28.4069 11.2026 28.6315 11.7867 28.9633 12.3101C29.2952 12.8335 29.7277 13.2858 30.2357 13.6407C30.7437 13.9957 31.3171 14.2462 31.9227 14.3778L53.209 19.2882C53.808 19.4263 54.4283 19.445 55.0345 19.3434C55.6408 19.2417 56.2211 19.0216 56.7423 18.6957C57.2635 18.3698 57.7154 17.9444 58.0722 17.4438C58.4289 16.9432 58.6837 16.3773 58.8217 15.7783C58.96 15.1793 58.9789 14.5589 58.8774 13.9526C58.7758 13.3462 58.5557 12.7659 58.2298 12.2446C57.9038 11.7234 57.4783 11.2715 56.9777 10.9147C56.477 10.558 55.9109 10.3034 55.3118 10.1655Z" fill="#DAE2E5"/>
@@ -288,14 +289,16 @@ export default function ChristmasPage() {
           </p>
         </div>
 
-        <div className="relative z-10 mt-6 mx-auto max-w-3xl w-full">
-          <div className="bg-white rounded-full p-1 shadow-sm border border-black/5 flex items-center gap-2">
+        <div className="relative w-full max-w-[1012px] z-10 mx-auto px-3 h-[60px]">
+          <div className="bg-[#FCE5E5] h-[60px] rounded-full p-1 md:p-2 flex items-center gap-[6px] md:gap-12">
             {groups.map(g => (
               <button
                 key={g.id}
                 onClick={() => setActiveTab(g.id as typeof activeTab)}
-                className={`flex-1 text-sm md:text-base px-4 py-2 rounded-full transition-colors ${
-                  activeTab === g.id ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100'
+                className={`flex-1 text-[14px] font-medium md:text-bold md:px-3 md:gap-[10px] h-full rounded-full text-center ${
+                  activeTab === g.id
+                    ? 'bg-white text-[#222222]'
+                    : 'text-[#222222] hover:bg-[#FADADA]'
                 }`}
               >
                 {g.label}
@@ -306,7 +309,7 @@ export default function ChristmasPage() {
 
         {/* Bundles */}
         <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 pb-12">
-          <div className="grid md:grid-cols-2 gap-6 md:gap-8">
+          <div className="grid md:grid-cols-2 gap-10 md:gap-8">
             <BundleCard bundle={activeGroup.bundles[0]} />
             <BundleCard bundle={activeGroup.bundles[1]} />
           </div>
