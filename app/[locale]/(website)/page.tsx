@@ -96,12 +96,17 @@ export default function HomePage() {
         <PicBooksShow />
       </AnimatedSection>
 
-      <AnimatedSection delay={0.2}>
+      {/* <AnimatedSection delay={0.2}>
         <TestimonialCards />
-      </AnimatedSection>
+      </AnimatedSection> */}
 
       <AnimatedSection delay={0.2}>
         <LastingMemorial />
+      </AnimatedSection>
+
+      {/* FAQ */}
+      <AnimatedSection delay={0.3}>
+        <FAQ FAQs={faqs} />
       </AnimatedSection>
 
       {/* Newsletter */}
@@ -143,10 +148,6 @@ export default function HomePage() {
         </div>
       </AnimatedSection>
 
-      {/* FAQ */}
-      <AnimatedSection delay={0.3}>
-        <FAQ FAQs={faqs} />
-      </AnimatedSection>
     </main>
   );
 }

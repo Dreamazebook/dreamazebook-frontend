@@ -68,7 +68,7 @@ export default function SideLineProducts() {
         <div className="lg:hidden max-w-md mx-auto">
           <div className="bg-gray-50 rounded-2xl p-8 pb-12">
             {/* Image Section */}
-            <div className="relative bg-white rounded-xl p-6 mb-10 flex items-center justify-center shadow-sm">
+            <div className="relative bg-white rounded-xl p-6 mb-10 flex items-center justify-center">
               <img
                 src={currentSlideData.image}
                 alt="Testimonial"
@@ -98,7 +98,7 @@ export default function SideLineProducts() {
             </div>
 
             {/* CTA Button */}
-            <button className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3.5 px-6 rounded-full transition-all duration-200 flex items-center justify-center gap-2">
+            <button className="w-full text-[#222] font-medium py-3.5 px-6 rounded-full transition-all duration-200 flex items-center justify-center gap-2">
               Buy the same
               <ArrowRight className="w-4 h-4" />
             </button>
@@ -151,7 +151,7 @@ export default function SideLineProducts() {
                 )}
 
                 {/* CTA Button */}
-                <button className="bg-gray-900 hover:bg-gray-800 text-white font-medium py-3.5 px-8 rounded-full transition-all duration-200 flex items-center gap-2 w-fit text-lg">
+                <button className="text-[#222] font-medium py-3.5 px-8 rounded-full transition-all duration-200 flex items-center gap-2 w-fit text-lg">
                   Buy the same
                   <ArrowRight className="w-5 h-5" />
                 </button>
@@ -172,7 +172,7 @@ export default function SideLineProducts() {
                 )}
 
                 {/* Main Image */}
-                <div className="relative bg-white rounded-2xl p-8 shadow-sm">
+                <div className="relative bg-white rounded-2xl p-8">
                   <img
                     src={currentSlideData.image}
                     alt="Testimonial"

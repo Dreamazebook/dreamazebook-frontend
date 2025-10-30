@@ -32,55 +32,56 @@ export default function ShoppingCartPage() {
   // 记录被选中的书本 ID，只有被选中的书才会结账
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
 
-  useEffect(() => {
-    const fetchCartList = async () => {
-      try {
-        const { data, message, success, code } = await api.get<ApiResponse<CartItems>>(API_CART_LIST);
-        if (data?.items) {
-          // 为每个 package 拉取其 items 作为子项，便于显示 Create/Edit Book
-          const augmented = await Promise.all(
-            data.items.map(async (item: any) => {
-              if (item.item_type === 'package' && item.package_id) {
-                try {
-                  const status = await api.get<any>(API_KS_PACKAGE_STATUS(item.package_id));
-                  const packageItems = status?.data?.package_items || [];
-                  const progress = status?.data?.progress || {};
-                  const pendingCount = packageItems.filter((pi:any)=>pi.config_status === 'pending').length;
-                  const subItems = packageItems.map((pi: any) => ({
-                    id: pi.id,
-                    item_type: 'package_item',
-                    package_id: item.package_id,
-                    picbook_id: pi.picbook_id,
-                    picbook_cover: pi.picbook?.default_cover,
-                    picbook_name: pi.picbook?.default_name,
-                    price: 0,
-                    quantity: 1,
-                    total_price: 0,
-                    preview_id: pi.preview_id,
-                    preview: pi.preview, // 可能为 null
-                    status: pi.config_status,
-                    created_at: pi.created_at,
-                    updated_at: pi.updated_at,
-                    picbook: pi.picbook,
-                    message: '',
-                  }));
-                  return { ...item, subItems, ks_pending: pendingCount > 0 || (progress.configured_items ?? 0) < (progress.total_items ?? 0), ks_progress: progress };
-                } catch (e) {
-                  return item;
-                }
+  const fetchCartList = async () => {
+    try {
+      const { data, message, success, code } = await api.get<ApiResponse<CartItems>>(API_CART_LIST);
+      if (data?.items) {
+        // 为每个 package 拉取其 items 作为子项，便于显示 Create/Edit Book
+        const augmented = await Promise.all(
+          data.items.map(async (item: any) => {
+            if (item.item_type === 'package' && item.package_id) {
+              try {
+                const status = await api.get<any>(API_KS_PACKAGE_STATUS(item.package_id));
+                const packageItems = status?.data?.package_items || [];
+                const progress = status?.data?.progress || {};
+                const pendingCount = packageItems.filter((pi: any) => pi.config_status === 'pending').length;
+                const subItems = packageItems.map((pi: any) => ({
+                  id: pi.id,
+                  item_type: 'package_item',
+                  package_id: item.package_id,
+                  picbook_id: pi.picbook_id,
+                  picbook_cover: pi.picbook?.default_cover,
+                  picbook_name: pi.picbook?.default_name,
+                  price: 0,
+                  quantity: 1,
+                  total_price: 0,
+                  preview_id: pi.preview_id,
+                  preview: pi.preview, // 可能为 null
+                  status: pi.config_status,
+                  created_at: pi.created_at,
+                  updated_at: pi.updated_at,
+                  picbook: pi.picbook,
+                  message: '',
+                }));
+                return { ...item, subItems, ks_pending: pendingCount > 0 || (progress.configured_items ?? 0) < (progress.total_items ?? 0), ks_progress: progress };
+              } catch (e) {
+                return item;
               }
-              return item;
-            })
-          );
-          setCartItems(augmented as any);
-          setSelectedItems(augmented.map((item:any) => item.id));
-        }
-      } catch (err) {
-        console.error('Failed to fetch carts:', err);
-      } finally {
-        setLoading(false);
+            }
+            return item;
+          })
+        );
+        setCartItems(augmented as any);
+        setSelectedItems(augmented.map((item: any) => item.id));
       }
-    };
+    } catch (err) {
+      console.error('Failed to fetch carts:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
 
     fetchCartList();
     // 同步检查 Kickstarter 套餐状态（用于控制卡片显示）
@@ -104,21 +105,23 @@ export default function ShoppingCartPage() {
   const handleQuantityChange = async (id: number, delta: number) => {
     try {
       // 先更新本地状态
-      setCartItems(prev => prev.map(item => 
-        item.id === id 
-          ? {...item, quantity: Math.max(1, (item.quantity || 1) + delta)} 
+      setCartItems(prev => prev.map(item =>
+        item.id === id
+          ? { ...item, quantity: Math.max(1, (item.quantity || 1) + delta) }
           : item
       ));
-      
+
       // 调用API更新服务器
-      const {success, code, message, data} = await api.put<ApiResponse>(API_CART_UPDATE(id), {
+      const { success, code, message, data } = await api.put<ApiResponse>(API_CART_UPDATE(id), {
         quantity: Math.max(1, (cartItems.find(item => item.id === id)?.quantity || 1) + delta)
       });
-      
+
       if (!success) {
         // 如果API失败，回滚本地状态
         setCartItems(data.items || data.cart_item);
         setError(message);
+      } else {
+        fetchCartList();
       }
     } catch (err) {
       console.error('Failed to update quantity:', err);
@@ -129,7 +132,7 @@ export default function ShoppingCartPage() {
 
   const handleRemoveItem = async (id: number) => {
     try {
-      const {code,success,message,data} = await api.delete<ApiResponse>(`${API_CART_REMOVE}/${id}`);
+      const { code, success, message, data } = await api.delete<ApiResponse>(`${API_CART_REMOVE}/${id}`);
       if (success) {
         // 移除主商品
         setCartItems(prev => prev.filter(item => item.id !== id));
@@ -179,9 +182,9 @@ export default function ShoppingCartPage() {
     }
     try {
       setCheckoutLoading(true);
-      const {success,message,code,data} = await api.post<ApiResponse>(API_ORDER_CREATE, {
+      const { success, message, code, data } = await api.post<ApiResponse>(API_ORDER_CREATE, {
         cart_item_ids: selectedItems,
-        payment_method:'stripe',
+        payment_method: 'stripe',
         coupon_code: appliedCoupon
       });
       if (success) {
@@ -245,7 +248,7 @@ export default function ShoppingCartPage() {
                 ))}
               </div>
             </div>
-            
+
             <div className="lg:w-1/3">
               <div className="bg-white rounded p-6 shadow-sm space-y-4">
                 <div className="h-6 bg-gray-200 rounded w-1/2 animate-pulse"></div>
@@ -291,42 +294,42 @@ export default function ShoppingCartPage() {
                   onRemoveItem={handleRemoveItem}
                   onToggleSelect={handleToggleSelectItem}
                   onClickEditBook={async (ci) => {
-                  try {
-                    const { data } = await api.get<ApiResponse<CartItems>>(API_CART_LIST);
-                    const list = (data as any)?.items || [];
-                    const current = list.find((it: any) => it.id === ci.id);
-                    const remaining = current?.remaining_previews;
-                    const url = `/personalized-products/${ci.sku_code}/${ci.preview_id}/edit`;
+                    try {
+                      const { data } = await api.get<ApiResponse<CartItems>>(API_CART_LIST);
+                      const list = (data as any)?.items || [];
+                      const current = list.find((it: any) => it.id === ci.id);
+                      const remaining = current?.remaining_previews;
+                      const url = `/personalized-products/${ci.sku_code}/${ci.preview_id}/edit`;
 
-                    if (remaining && typeof remaining.remaining_previews === 'number') {
-                      const desc = (
-                        <div>
-                          <p>A product can only be edited five times a day.</p>
-                          <p>
-                            You have edited it {remaining.used_previews_today} times and you have {remaining.remaining_previews} more chances.
-                          </p>
-                        </div>
-                      );
-                      setConfirmContent(desc);
-                      setConfirmOpen(true);
-                      setConfirmNextUrl(url);
-                    } else {
+                      if (remaining && typeof remaining.remaining_previews === 'number') {
+                        const desc = (
+                          <div>
+                            <p>A product can only be edited five times a day.</p>
+                            <p>
+                              You have edited it {remaining.used_previews_today} times and you have {remaining.remaining_previews} more chances.
+                            </p>
+                          </div>
+                        );
+                        setConfirmContent(desc);
+                        setConfirmOpen(true);
+                        setConfirmNextUrl(url);
+                      } else {
+                        router.push(url);
+                      }
+                    } catch (e) {
+                      const url = `/personalized-products/${ci.sku_code}/${ci.preview_id}/edit`;
                       router.push(url);
                     }
-                  } catch (e) {
-                    const url = `/personalized-products/${ci.sku_code}/${ci.preview_id}/edit`;
-                    router.push(url);
-                  }
                   }}
                 />
               </div>
             )}
           </div>
-          
+
           <div className="hidden lg:flex bg-white lg:w-[480px] xl:w-[544px] relative pt-[64px] pr-[48px] pb-[64px] pl-[48px] xl:pr-[120px] xl:pl-[64px] flex-col gap-[10px] opacity-100 ml-auto min-h-screen">
             <div className="bg-white w-full rounded sticky top-4 right-0 flex flex-col opacity-100 gap-4">
               <h2 className="text-3xl font-normal">{t('orderSummary')}</h2>
-              
+
               <div className="">
                 <p className="text-md font-medium">{t('haveCouponCode')}</p>
                 <p className="text-[#666666] text-md">
@@ -340,7 +343,7 @@ export default function ShoppingCartPage() {
                   {t('appliedCoupon')}: <strong>{appliedCoupon}</strong>
                 </p>
               )}
-              
+
               <div className="space-y-3 border-t border-gray-200 pt-4">
                 <div className="flex justify-between">
                   <p className="text-gray-600">{t('subtotal')} ({selectedItems.length} {t('items')})</p>
@@ -361,7 +364,7 @@ export default function ShoppingCartPage() {
                   <p className='font-bold'>${total.toFixed(2)}</p>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <div className="flex gap-2">
                   {/* <button

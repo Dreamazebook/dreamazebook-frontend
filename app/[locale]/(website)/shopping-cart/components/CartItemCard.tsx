@@ -99,16 +99,16 @@ export default function CartItemCard({
             <div className="w-20 h-22 rounded overflow-hidden">
               <img 
                 src={item.product_image || '/images/default-book-cover.png'} 
-                alt={item.sku_name}
+                alt={item.sku_code}
                 className="w-full h-full object-cover"
               />
             </div>
             
             <div className="w-full h-[120px] flex flex-col gap-[12px] pt-4 pr-6 pb-4 pl-6 opacity-100 box-border">
               <div className='flex justify-between items-center'>
-                <h3 className="font-bold">{item.sku_name}</h3>
+                <h3 className="font-bold">{item.spu_code}</h3>
                 <div className='flex items-center gap-3'>
-                  <DisplayPrice style='text-[#222222] font-bold' value={item.total_price * item.quantity} />
+                  <DisplayPrice style='text-[#222222] font-bold' value={item.total_price} />
                   {onRemoveItem && 
                   <button
                     onClick={() => onRemoveItem(item.id)}
