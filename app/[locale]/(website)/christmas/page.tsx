@@ -27,43 +27,70 @@ function formatPrice(price: number) {
 
 function BundleCard({ bundle }: { bundle: Bundle }) {
   return (
-    <div className="bg-white rounded-[12px] p-6 md:p-8 shadow-sm border border-black/5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-[16px] md:text-[18px] font-semibold text-gray-900">{bundle.title}</h3>
-        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-semibold select-none">
-          {bundle.qtyLabel}
-        </span>
-      </div>
+    <div className="bg-white rounded-[12px] p-6 md:p-8 lg:w-[528px] lg:pt-6 lg:pr-6 lg:pb-12 lg:pl-6 lg:rounded-[4px] lg:space-y-12">
+      <div className="lg:flex lg:flex-col lg:w-[480px] lg:gap-6">
+        <div className="bg-[#F8F8F8]">
+          <div className="py-6">
+            <p className="text-center text-[22px] md:text-[22px] font-semibold text-[#222222]">{bundle.title}</p>
+          </div>
 
-      <div className="grid grid-cols-3 gap-3 md:gap-4 mb-6">
-        <div className="aspect-square rounded-[8px] bg-gray-100 relative overflow-hidden">
-          <Image src="/home-page/cover.png" alt="Bundle cover" fill className="object-cover" />
-        </div>
-        <div className="aspect-square rounded-[8px] bg-gray-100 relative overflow-hidden">
-          <Image src="/home-page/cover.png" alt="Bundle cover" fill className="object-cover" />
-        </div>
-        <div className="aspect-square rounded-[8px] bg-gray-100 relative overflow-hidden">
-          <Image src="/home-page/cover.png" alt="Bundle cover" fill className="object-cover" />
-        </div>
-      </div>
+          <div className="relative w-full h-[185px] flex items-center justify-center">
+            <Image src="/christmas/bundle.png" alt="Bundle cover" width={345} height={185} className="mx-auto h-full w-auto" />
+            <span className="absolute left-[71px] top-[30px] inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#012CCE] text-white text-[24px] font-semibold select-none">
+              {bundle.qtyLabel}
+            </span>
+          </div>
 
-      <ul className="space-y-2 text-[14px] md:text-[15px] text-gray-800 list-disc pl-5">
-        {bundle.features.map((f, i) => (
-          <li key={i}>{f}</li>
-        ))}
-      </ul>
-
-      <div className="mt-6 flex items-center justify-between">
-        <div>
-          <span className="text-gray-400 text-sm line-through mr-2">{formatPrice(Math.round(bundle.price * 1.0))}</span>
-          <span className="text-gray-900 font-semibold">{formatPrice(bundle.price)}</span>
+          <div className="bg-[#F0F0F0] max-w-[397px] px-4 py-1 mb-6 mx-auto">
+            <div className="grid grid-cols-3 gap-4 md:gap-6 text-center items-start">
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-[92px] h-[72px] rounded overflow-hidden flex items-center justify-center">
+                  <Image src="/christmas/package.png" alt="package" width={92} height={72} className="h-full w-auto" />
+                </div>
+                <p className="text-[12px] md:text-[14px] text-[#222222]">package *3</p>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <div className="relative w-[92px] h-[72px] mx-auto">
+                  <div className="absolute left-2 top-2 w-[50px] h-[50px] overflow-hidden flex items-center justify-center z-10">
+                    <Image src="/christmas/sticker-1.jpg" alt="sticker" width={50} height={50} className="h-full w-auto" />
+                  </div>
+                  <div className="absolute left-4 top-4 w-[50px] h-[50px] overflow-hidden flex items-center justify-center z-20">
+                    <Image src="/christmas/sticker-2.jpg" alt="sticker" width={50} height={50} className="h-full w-auto" />
+                  </div>
+                  <div className="absolute left-6 top-6 w-[50px] h-[50px] overflow-hidden flex items-center justify-center z-30">
+                    <Image src="/christmas/sticker-3.jpg" alt="sticker" width={50} height={50} className="h-full w-auto" />
+                  </div>
+                </div>
+                <p className="text-[12px] md:text-[14px] text-[#222222]">sticker *3</p>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-[92px] h-[72px] rounded overflow-hidden flex items-center justify-center">
+                  <Image src="/christmas/bookmark.png" alt="bookmark" width={92} height={72} className="h-full w-auto" />
+                </div>
+                <p className="text-[12px] md:text-[14px] text-[#222222]">bookmark *3</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <Link
-          href={bundle.ctaHref || '#'}
-          className="px-4 py-2 rounded-[8px] bg-gray-900 text-white text-sm hover:bg-black"
-        >
-          Get This Bundle
-        </Link>
+
+        <ul className="mx-auto max-w-[397px] bg-white space-y-3 md:space-y-4 text-[14px] md:text-[16px] lg:text-[18px] text-gray-800 list-disc pl-5">
+          {bundle.features.map((f, i) => (
+            <li key={i}>{f}</li>
+          ))}
+        </ul>
+
+        <div className="bg-white mt-6 lg:mt-0 flex flex-col items-center gap-4">
+          <div className="flex items-baseline gap-1">
+            <span className="text-[#999999] text-[18px] line-through">{formatPrice(Math.round(bundle.price * 1.0))}</span>
+            <span className="text-[#222222] font-semibold text-[24px]">{formatPrice(bundle.price)}</span>
+          </div>
+          <Link
+            href={bundle.ctaHref || '#'}
+            className="px-6 py-3 rounded-[8px] bg-[#222222] text-[#F5E3E3] md:mt-3 text-sm md:text-base hover:bg-black"
+          >
+            Get This Bundle
+          </Link>
+        </div>
       </div>
     </div>
   )
@@ -309,7 +336,7 @@ export default function ChristmasPage() {
 
         {/* Bundles */}
         <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 pb-12">
-          <div className="grid md:grid-cols-2 gap-10 md:gap-8">
+          <div className="grid md:grid-cols-2 gap-3 md:gap-12">
             <BundleCard bundle={activeGroup.bundles[0]} />
             <BundleCard bundle={activeGroup.bundles[1]} />
           </div>
