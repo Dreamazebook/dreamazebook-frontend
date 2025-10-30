@@ -67,7 +67,7 @@ export default function SlideShow() {
             <h1 className="text-6xl xl:text-7xl font-bold leading-tight">
               {slide.title.map((line, index) => (
                 <span key={index}>
-                  <span className="text-white inline-block animate-fadeIn bg-gradient-to-b from-purple-500 to-purple-700 px-2 py-1 rounded">{line}</span>
+                  <span className="text-blue-600 inline-block">{line}</span>
                   {index < slide.title.length - 1 && <br />}
                 </span>
               ))}
