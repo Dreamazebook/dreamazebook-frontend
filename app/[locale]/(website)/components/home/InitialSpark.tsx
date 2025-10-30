@@ -1,19 +1,20 @@
+import { HOME_SLIDESHOW } from '@/constants/cdn';
 import React from 'react';
 
 function InitialSpark() {
   const images = [
     {
-      src: 'https://images.pexels.com/photos/1094072/pexels-photo-1094072.jpeg',
+      src: HOME_SLIDESHOW('spark1.png'),
       alt: 'Child reading books',
       showStar: false,
     },
     {
-      src: 'https://images.pexels.com/photos/1250722/pexels-photo-1250722.jpeg',
+      src: HOME_SLIDESHOW('spark2.png'),
       alt: 'Young person reading magazine',
       showStar: true,
     },
     {
-      src: 'https://images.pexels.com/photos/1370296/pexels-photo-1370296.jpeg',
+      src: HOME_SLIDESHOW('spark3.png'),
       alt: 'Person reading with coffee',
       showStar: false,
     },
@@ -38,10 +39,10 @@ function InitialSpark() {
         /* Pause animation on hover of the wrapper */
         .animate-marquee:hover { animation-play-state: paused; }
       `}</style>
-      <div className="container mx-auto px-6 py-12 max-w-5xl">
+      <div className="container mx-auto max-w-5xl">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <h1 className="text-lg font-normal text-gray-900 mb-6">
+          <h1 className="text-4xl font-normal text-gray-900 mb-6">
             Dreamaze's Initial Spark
           </h1>
           
