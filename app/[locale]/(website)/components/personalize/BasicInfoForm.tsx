@@ -98,22 +98,22 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
 
   // fullName 的 onChange 与 onBlur 处理
   const handleFullNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target as HTMLInputElement & { composing?: boolean };
-    // 忽略输入法组合中的中间态，避免中文拼写被误判长度
-    if ((input as any).isComposing || input.composing) {
-      onChange('fullName', input.value);
-      return;
-    }
-    const value = input.value;
-    // 以 code point 为单位限制长度，支持中文等多字节字符
-    const codePoints = Array.from(value);
+    const input = e.target as HTMLInputElement;
+    // 仅允许拉丁字母、空格、撇号与连字符
+    const raw = input.value;
+    const sanitized = raw.replace(/[^A-Za-z '\-]/g, '');
+    // 长度限制：按 code point 计数
+    const codePoints = Array.from(sanitized);
+    let next = sanitized;
     if (codePoints.length > 13) {
-      if (onErrorChange) onErrorChange('fullName', 'Full name cannot exceed 13 characters.');
-      return;
-    } else {
-      if (onErrorChange && errors.fullName) onErrorChange('fullName', '');
+      next = codePoints.slice(0, 13).join('');
+      if (onErrorChange) onErrorChange('fullName', 'Full name cannot exceed 13 Latin characters.');
+    } else if (sanitized !== raw) {
+      if (onErrorChange) onErrorChange('fullName', 'Only Latin letters, space, hyphen and apostrophe are allowed.');
+    } else if (onErrorChange && errors.fullName) {
+      onErrorChange('fullName', '');
     }
-    onChange('fullName', value);
+    onChange('fullName', next);
   };
 
   const handleFullNameBlur = () => {
@@ -203,8 +203,10 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           value={data.fullName}
           onChange={handleFullNameChange}
           onBlur={handleFullNameBlur}
-          // 允许中文等本地文字的输入法
+          // 仅允许拉丁字符
           inputMode="text"
+          pattern="[A-Za-z '\-]{1,13}"
+          title="Use Latin letters, spaces, hyphen (-) and apostrophe (') only"
         />
         {touched.fullName && errors.fullName && (
           <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
