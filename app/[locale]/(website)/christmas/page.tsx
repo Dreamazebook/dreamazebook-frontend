@@ -35,7 +35,7 @@ function BundleCard({ bundle }: { bundle: Bundle }) {
           </div>
 
           <div className="relative w-full h-[185px] flex items-center justify-center">
-            <Image src="/christmas/bundle.png" alt="Bundle cover" width={345} height={185} className="mx-auto h-full w-auto" />
+            <Image src="https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/bundle.png" alt="Bundle cover" width={345} height={185} className="mx-auto h-full w-auto" />
             <span className="absolute left-[71px] top-[30px] inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#012CCE] text-white text-[24px] font-semibold select-none">
               {bundle.qtyLabel}
             </span>
@@ -45,27 +45,27 @@ function BundleCard({ bundle }: { bundle: Bundle }) {
             <div className="grid grid-cols-3 gap-4 md:gap-6 text-center items-start">
               <div className="flex flex-col items-center gap-2">
                 <div className="w-[92px] h-[72px] rounded overflow-hidden flex items-center justify-center">
-                  <Image src="/christmas/package.png" alt="package" width={92} height={72} className="h-full w-auto" />
+                  <Image src="https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/package.png" alt="package" width={92} height={72} className="h-full w-auto" />
                 </div>
                 <p className="text-[12px] md:text-[14px] text-[#222222]">package *3</p>
               </div>
               <div className="flex flex-col items-center gap-2">
                 <div className="relative w-[92px] h-[72px] mx-auto">
                   <div className="absolute left-2 top-2 w-[50px] h-[50px] overflow-hidden flex items-center justify-center z-10">
-                    <Image src="/christmas/sticker-1.jpg" alt="sticker" width={50} height={50} className="h-full w-auto" />
+                    <Image src="https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/sticker-1.jpg" alt="sticker" width={50} height={50} className="h-full w-auto" />
                   </div>
                   <div className="absolute left-4 top-4 w-[50px] h-[50px] overflow-hidden flex items-center justify-center z-20">
-                    <Image src="/christmas/sticker-2.jpg" alt="sticker" width={50} height={50} className="h-full w-auto" />
+                    <Image src="https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/sticker-2.jpg" alt="sticker" width={50} height={50} className="h-full w-auto" />
                   </div>
                   <div className="absolute left-6 top-6 w-[50px] h-[50px] overflow-hidden flex items-center justify-center z-30">
-                    <Image src="/christmas/sticker-3.jpg" alt="sticker" width={50} height={50} className="h-full w-auto" />
+                    <Image src="https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/sticker-3.jpg" alt="sticker" width={50} height={50} className="h-full w-auto" />
                   </div>
                 </div>
                 <p className="text-[12px] md:text-[14px] text-[#222222]">sticker *3</p>
               </div>
               <div className="flex flex-col items-center gap-2">
                 <div className="w-[92px] h-[72px] rounded overflow-hidden flex items-center justify-center">
-                  <Image src="/christmas/bookmark.png" alt="bookmark" width={92} height={72} className="h-full w-auto" />
+                  <Image src="https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/bookmark.png" alt="bookmark" width={92} height={72} className="h-full w-auto" />
                 </div>
                 <p className="text-[12px] md:text-[14px] text-[#222222]">bookmark *3</p>
               </div>
@@ -452,7 +452,7 @@ export default function ChristmasPage() {
           {/* Background image: cover the entire banner area */}
           <div className="absolute inset-x-0 bottom-0 md:top-[-36px] top-[0] z-0">
             <Image
-              src="/christmas/banner.png"
+              src="https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/banner.png"
               alt="Christmas banner"
               fill
               className="object-cover object-right md:object-top"
