@@ -206,7 +206,7 @@ export default function ChristmasPage() {
 
   const activeGroup = groups.find(g => g.id === activeTab) || groups[0]
 
-  // Flatten all bundles from all groups for continuous scrolling
+  // Flatten all bundles from all groups for continuous scrolling (mobile only)
   const allBundles = groups.flatMap(group => group.bundles)
 
   // Create a map from bundle id to group id
@@ -262,35 +262,50 @@ export default function ChristmasPage() {
         clearTimeout(debounceTimerRef.current)
       }
 
-      // Don't update while actively scrolling, but check after scroll ends
-      if (isScrollingRef.current) {
-        return // Will be triggered again when scroll ends
-      }
+      // Use shorter debounce if scrolling, longer if not
+      const debounceTime = isScrollingRef.current ? 50 : 100
 
       debounceTimerRef.current = setTimeout(() => {
-        // Double check if still scrolling
-        if (isScrollingRef.current) return
+        if (!scrollContainerRef.current) return
 
-        // Find the bundle with highest intersection ratio
-        let maxRatio = 0
-        let mostVisibleBundleId: string | null = null
+        // Find the bundle that is most centered in the viewport
+        let mostCenteredBundleId: string | null = null
+        let minDistanceToCenter = Infinity
 
-        visibleBundles.forEach((ratio, bundleId) => {
-          if (ratio > maxRatio && ratio > 0.5) {
-            maxRatio = ratio
-            mostVisibleBundleId = bundleId
+        // Get all visible elements and calculate their center distance
+        allBundles.forEach(bundle => {
+          const element = bundleRefs.current.get(bundle.id)
+          if (!element || !scrollContainerRef.current) return
+
+          const containerRect = scrollContainerRef.current.getBoundingClientRect()
+          const bundleRect = element.getBoundingClientRect()
+          
+          // Check if bundle is visible in the viewport
+          const isVisible = bundleRect.left < containerRect.right && bundleRect.right > containerRect.left
+          if (!isVisible) return
+
+          // Calculate distance from bundle center to container center
+          const containerCenter = containerRect.left + containerRect.width / 2
+          const bundleCenter = bundleRect.left + bundleRect.width / 2
+          const distanceToCenter = Math.abs(bundleCenter - containerCenter)
+
+          // Choose the bundle closest to center
+          if (distanceToCenter < minDistanceToCenter) {
+            minDistanceToCenter = distanceToCenter
+            mostCenteredBundleId = bundle.id
           }
         })
 
-        if (mostVisibleBundleId) {
-          const groupId = bundleToGroupMap.get(mostVisibleBundleId)
+        if (mostCenteredBundleId) {
+          const groupId = bundleToGroupMap.get(mostCenteredBundleId)
           if (groupId && groupId !== activeTabRef.current) {
             setActiveTab(groupId)
           }
         }
-      }, 100) // Reduced debounce for faster response
+      }, debounceTime)
     }
 
+    // Observe all bundles for intersection (for reference, but we use direct calculation)
     allBundles.forEach(bundle => {
       const element = bundleRefs.current.get(bundle.id)
       if (!element) return
@@ -304,12 +319,10 @@ export default function ChristmasPage() {
               visibleBundles.delete(bundle.id)
             }
           })
-          // Always update visibility data, but tab update is controlled by isScrollingRef
-          updateActiveTab()
         },
         {
-          root: scrollContainerRef.current,
-          threshold: [0, 0.25, 0.5, 0.75, 1],
+          root: scrollContainerRef.current, // Use scroll container as root
+          threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
         }
       )
 
@@ -326,18 +339,26 @@ export default function ChristmasPage() {
         clearTimeout(scrollTimeoutRef.current)
       }
 
-      // Mark as not scrolling after scroll ends and trigger tab update
+      // Also check during scroll for more responsive updates
+      updateActiveTab()
+
+      // Mark as not scrolling after scroll ends and trigger final tab update
       scrollTimeoutRef.current = setTimeout(() => {
         isScrollingRef.current = false
-        // Force update tab check after scrolling stops
+        // Force final update after scrolling stops
         updateActiveTab()
-      }, 200) // Slightly longer delay to ensure scroll has fully stopped
+      }, 150) // Delay to ensure scroll has fully stopped
     }
 
     const scrollContainer = scrollContainerRef.current
     if (scrollContainer) {
       scrollContainer.addEventListener('scroll', handleScroll, { passive: true })
     }
+
+    // Initial check after a short delay to allow DOM to settle
+    setTimeout(() => {
+      updateActiveTab()
+    }, 300)
 
     return () => {
       if (debounceTimerRef.current) {
@@ -516,19 +537,26 @@ export default function ChristmasPage() {
         {/* Bundles */}
         <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 pb-12">
           <div ref={scrollContainerRef} className="flex md:grid md:grid-cols-2 gap-3 md:gap-12 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 md:pb-0 scrollbar-hide -mx-4 md:mx-0 px-4 md:px-0">
-            {allBundles.map((bundle, index) => (
-              <div 
-                key={bundle.id} 
-                ref={setBundleRef(bundle.id)} 
-                className="min-w-[calc(75vw-2rem)] md:min-w-0 snap-center flex-shrink-0 md:flex-shrink"
-                style={{
-                  scrollSnapAlign: 'center',
-                  scrollSnapStop: 'always'
-                } as React.CSSProperties}
-              >
-                <BundleCard bundle={bundle} />
-              </div>
-            ))}
+            {/* Mobile: show all bundles for continuous scrolling */}
+            {/* Desktop: show only active group bundles */}
+            {allBundles.map((bundle, index) => {
+              const bundleGroupId = bundleToGroupMap.get(bundle.id)
+              const isActiveGroup = bundleGroupId === activeTab
+              
+              return (
+                <div 
+                  key={bundle.id} 
+                  ref={setBundleRef(bundle.id)} 
+                  className={`min-w-[calc(75vw-2rem)] md:min-w-0 snap-center flex-shrink-0 md:flex-shrink ${!isActiveGroup ? 'md:hidden' : ''}`}
+                  style={{
+                    scrollSnapAlign: 'center',
+                    scrollSnapStop: 'always'
+                  } as React.CSSProperties}
+                >
+                  <BundleCard bundle={bundle} />
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>
