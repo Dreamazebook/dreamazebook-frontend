@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 
@@ -206,6 +206,183 @@ export default function ChristmasPage() {
 
   const activeGroup = groups.find(g => g.id === activeTab) || groups[0]
 
+  // Flatten all bundles from all groups for continuous scrolling
+  const allBundles = groups.flatMap(group => group.bundles)
+
+  // Create a map from bundle id to group id
+  const bundleToGroupMap = useMemo(() => {
+    const map = new Map<string, 'trio' | 'four' | 'classics'>()
+    groups.forEach(group => {
+      group.bundles.forEach(bundle => {
+        map.set(bundle.id, group.id as 'trio' | 'four' | 'classics')
+      })
+    })
+    return map
+  }, [groups])
+
+  // Refs for scroll container and bundle cards
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const bundleRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+  const activeTabRef = useRef(activeTab)
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const isScrollingRef = useRef(false)
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Keep activeTabRef in sync with activeTab
+  useEffect(() => {
+    activeTabRef.current = activeTab
+  }, [activeTab])
+
+  // Set ref for a bundle card
+  const setBundleRef = (bundleId: string) => (el: HTMLDivElement | null) => {
+    if (el) {
+      bundleRefs.current.set(bundleId, el)
+    } else {
+      bundleRefs.current.delete(bundleId)
+    }
+  }
+
+  // Observe bundle visibility and update active tab (only on mobile/horizontal scroll)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !scrollContainerRef.current) return
+
+    // Check if we're in mobile view (horizontal scroll)
+    const checkMobile = () => {
+      return window.innerWidth < 768 // md breakpoint
+    }
+
+    if (!checkMobile()) return // Only enable on mobile
+
+    const observers: IntersectionObserver[] = []
+    const visibleBundles = new Map<string, number>() // bundleId -> intersectionRatio
+
+    const updateActiveTab = () => {
+      // Clear existing timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+
+      // Don't update while actively scrolling, but check after scroll ends
+      if (isScrollingRef.current) {
+        return // Will be triggered again when scroll ends
+      }
+
+      debounceTimerRef.current = setTimeout(() => {
+        // Double check if still scrolling
+        if (isScrollingRef.current) return
+
+        // Find the bundle with highest intersection ratio
+        let maxRatio = 0
+        let mostVisibleBundleId: string | null = null
+
+        visibleBundles.forEach((ratio, bundleId) => {
+          if (ratio > maxRatio && ratio > 0.5) {
+            maxRatio = ratio
+            mostVisibleBundleId = bundleId
+          }
+        })
+
+        if (mostVisibleBundleId) {
+          const groupId = bundleToGroupMap.get(mostVisibleBundleId)
+          if (groupId && groupId !== activeTabRef.current) {
+            setActiveTab(groupId)
+          }
+        }
+      }, 100) // Reduced debounce for faster response
+    }
+
+    allBundles.forEach(bundle => {
+      const element = bundleRefs.current.get(bundle.id)
+      if (!element) return
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              visibleBundles.set(bundle.id, entry.intersectionRatio)
+            } else {
+              visibleBundles.delete(bundle.id)
+            }
+          })
+          // Always update visibility data, but tab update is controlled by isScrollingRef
+          updateActiveTab()
+        },
+        {
+          root: scrollContainerRef.current,
+          threshold: [0, 0.25, 0.5, 0.75, 1],
+        }
+      )
+
+      observer.observe(element)
+      observers.push(observer)
+    })
+
+    // Handle scroll events to detect when user is scrolling
+    const handleScroll = () => {
+      isScrollingRef.current = true
+      
+      // Clear existing timeout
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+
+      // Mark as not scrolling after scroll ends and trigger tab update
+      scrollTimeoutRef.current = setTimeout(() => {
+        isScrollingRef.current = false
+        // Force update tab check after scrolling stops
+        updateActiveTab()
+      }, 200) // Slightly longer delay to ensure scroll has fully stopped
+    }
+
+    const scrollContainer = scrollContainerRef.current
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll, { passive: true })
+    }
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('scroll', handleScroll)
+      }
+      observers.forEach(observer => observer.disconnect())
+      visibleBundles.clear()
+    }
+  }, [allBundles, bundleToGroupMap])
+
+  // Scroll to the first bundle of a group when tab is clicked
+  const scrollToGroup = (groupId: 'trio' | 'four' | 'classics') => {
+    // Update tab immediately
+    setActiveTab(groupId)
+
+    // Only scroll on mobile (horizontal scroll)
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+      return // Desktop uses grid layout, no need to scroll
+    }
+
+    // Find the first bundle of the group
+    const group = groups.find(g => g.id === groupId)
+    if (!group) return
+
+    const firstBundleId = group.bundles[0].id
+    const bundleElement = bundleRefs.current.get(firstBundleId)
+
+    if (bundleElement && scrollContainerRef.current) {
+      // Temporarily update ref to prevent observer from interfering
+      activeTabRef.current = groupId
+
+      bundleElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      })
+    }
+  }
+
   const faqs = [
     {
       q: 'Where Are You? Save the Multiverse!',
@@ -321,7 +498,9 @@ export default function ChristmasPage() {
             {groups.map(g => (
               <button
                 key={g.id}
-                onClick={() => setActiveTab(g.id as typeof activeTab)}
+                onClick={() => {
+                  scrollToGroup(g.id as typeof activeTab)
+                }}
                 className={`flex-1 text-[14px] font-medium md:text-bold md:px-3 md:gap-[10px] h-full rounded-full text-center ${
                   activeTab === g.id
                     ? 'bg-white text-[#222222]'
@@ -336,9 +515,20 @@ export default function ChristmasPage() {
 
         {/* Bundles */}
         <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 pb-12">
-          <div className="grid md:grid-cols-2 gap-3 md:gap-12">
-            <BundleCard bundle={activeGroup.bundles[0]} />
-            <BundleCard bundle={activeGroup.bundles[1]} />
+          <div ref={scrollContainerRef} className="flex md:grid md:grid-cols-2 gap-3 md:gap-12 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 md:pb-0 scrollbar-hide -mx-4 md:mx-0 px-4 md:px-0">
+            {allBundles.map((bundle, index) => (
+              <div 
+                key={bundle.id} 
+                ref={setBundleRef(bundle.id)} 
+                className="min-w-[calc(75vw-2rem)] md:min-w-0 snap-center flex-shrink-0 md:flex-shrink"
+                style={{
+                  scrollSnapAlign: 'center',
+                  scrollSnapStop: 'always'
+                } as React.CSSProperties}
+              >
+                <BundleCard bundle={bundle} />
+              </div>
+            ))}
           </div>
         </div>
       </div>
