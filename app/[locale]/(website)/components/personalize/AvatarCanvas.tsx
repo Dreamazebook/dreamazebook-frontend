@@ -36,8 +36,8 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
   skinColor,
   hairstyle,
   hairColor,
-  width = 200,
-  height = 200,
+  width = 270,
+  height = 203,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [pageProperties, setPageProperties] = useState<PageProperties | null>(null);
@@ -341,8 +341,8 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
         shouldApplyFilter: hairColor && hairColor !== 'light'
       });
       
-      const hairColorKey = hairColor === 'brown' ? 'blone' : hairColor; // 与 skin_properties.json.json 保持一致
-      const hairFilter = (hairColorKey && hairColorKey !== 'light' && pageProperties?.hairColorFilter?.[hairColorKey]) 
+      const hairColorKey = hairColor === 'light' ? 'blone' : hairColor; // 与 skin_properties.json 保持一致（light -> blone）
+      const hairFilter = (hairColorKey && pageProperties?.hairColorFilter?.[hairColorKey]) 
         ? pageProperties.hairColorFilter[hairColorKey] : null;
 
       // 帮助函数：将图层绘制到离屏画布并应用滤镜后再合成
@@ -501,7 +501,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       width={width}
       height={height}
       className="rounded-lg"
-      style={{ width: '100%', height: 'auto', display: 'block' }}
+      style={{ width: 'auto', height: '200px', display: 'block' }}
     />
   );
 };

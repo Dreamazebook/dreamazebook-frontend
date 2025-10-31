@@ -179,7 +179,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   return (
     <div className="space-y-6">
       {/* 预览图 */}
-                   <div className="flex justify-center mb-6">
+                   <div className="flex justify-center mb-1">
              <AvatarCanvas
                  bookId={bookId}
                  skinColor={data.skinColor || '#FFE2CF'}
@@ -297,6 +297,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
             touched={touched.hairstyle}
             hairStyleValues={apiHairStyleValues}
             assetSpuCode={assetSpuCode}
+            currentHairColor={data.hairColor}
           />
         </div>
       )}

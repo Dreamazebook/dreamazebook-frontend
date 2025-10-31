@@ -1,7 +1,7 @@
 /** @jsxImportSource react */
 'use client';
 
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 // Use native <img> to avoid next/image constraints for local public assets
 
 interface HairstyleSelectorProps {
@@ -16,6 +16,8 @@ interface HairstyleSelectorProps {
   hairStyleValues?: string[];
   // Optional: override asset spu code for icon images (defaults to PICBOOK_GOODNIGHT2)
   assetSpuCode?: string;
+  // Current selected hair color key: light | brown | dark
+  currentHairColor?: string;
 }
 
 const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
@@ -27,6 +29,7 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 	touched,
   hairStyleValues,
   assetSpuCode,
+  currentHairColor,
 }) => {
 	// 根据bookId动态生成发型选项，支持后端传值（数量与顺序跟随后端）
 	const ids = (hairStyleValues && hairStyleValues.length > 0)
@@ -36,6 +39,220 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 	const base = `/products/picbooks/${assetSpuCode || 'PICBOOK_GOODNIGHT2'}/avatar`;
 	const hairstyles = ids.map(id => ({ id, image: `${base}/layer_${id}.png` }));
 
+  // skin_properties: to derive hairColorFilter
+  const [pageProperties, setPageProperties] = useState<any | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const ts = Date.now();
+        const res = await fetch(`${base}/skin_properties.json?ts=${ts}`, { cache: 'no-store' });
+        if (!res.ok) throw new Error('skin_properties not found');
+        const json = await res.json();
+        if (!cancelled) setPageProperties(json);
+      } catch {}
+    };
+    load();
+    return () => { cancelled = true };
+  }, [base]);
+
+  const buildCssFilter = (filterConfig: any): string => {
+    if (!filterConfig) return 'none';
+    const filters: string[] = [];
+    if (filterConfig.brightness) {
+      const value = parseInt(String(filterConfig.brightness).replace('+',''));
+      const pct = Math.max(0, 100 + value);
+      filters.push(`brightness(${pct}%)`);
+    }
+    if (filterConfig.contrast) {
+      const value = parseInt(String(filterConfig.contrast).replace('+',''));
+      const pct = Math.max(0, 100 + value);
+      filters.push(`contrast(${pct}%)`);
+    }
+    if (filterConfig.saturate) {
+      const value = parseInt(String(filterConfig.saturate).replace('+',''));
+      const pct = Math.max(0, 100 + value);
+      filters.push(`saturate(${pct}%)`);
+    }
+    if (filterConfig.hue) {
+      const value = parseInt(String(filterConfig.hue).replace('+',''));
+      filters.push(`hue-rotate(${value}deg)`);
+    }
+    return filters.length ? filters.join(' ') : 'none';
+  };
+
+  // map UI hair color to filter key in skin_properties
+  const hairFilterKey = (currentHairColor === 'light') ? 'blone' : currentHairColor;
+  const hairFilterCfg = (hairFilterKey)
+    ? pageProperties?.hairColorFilter?.[hairFilterKey]
+    : null;
+  const hairCssFilter = buildCssFilter(hairFilterCfg);
+  const hairFilterStableKey = hairFilterKey || 'none';
+  // 当 skin_properties.json 加载完成后，使键变化一次，触发缩略图重绘以应用滤镜
+  const filterReady = !!(pageProperties && pageProperties.hairColorFilter && hairFilterKey && pageProperties.hairColorFilter[hairFilterKey]);
+  const compositeFilterKey = `${hairFilterStableKey}:${filterReady ? 'ready' : 'init'}`;
+
+  // Canvas thumb that applies pixel filter like AvatarCanvas
+  // stable in-memory cache to prevent recompute and flicker across re-mounts
+  const thumbCacheRef = (HairstyleSelector as any)._thumbCache || ((HairstyleSelector as any)._thumbCache = new Map<string, string>());
+
+  const HairThumbBase: React.FC<{ src: string; alt: string; filterConfig: any; filterKey: string }> = ({ src, alt, filterConfig, filterKey }) => {
+    const [dataUrl, setDataUrl] = useState<string>('');
+
+    const applyFilterToImageData = (imageData: ImageData, cfg: any) => {
+      if (!cfg) return imageData;
+      const data = imageData.data;
+      const B = cfg.brightness ? parseInt(String(cfg.brightness).replace('+','')) : 0;
+      const C = cfg.contrast ? parseInt(String(cfg.contrast).replace('+','')) : 0;
+      const S = cfg.saturate ? parseInt(String(cfg.saturate).replace('+','')) : 0;
+      const H = cfg.hue ? parseInt(String(cfg.hue).replace('+','')) : 0;
+
+      for (let i = 0; i < data.length; i += 4) {
+        let r = data[i];
+        let g = data[i + 1];
+        let b = data[i + 2];
+        const a = data[i + 3];
+
+        // brightness
+        if (B) {
+          r = Math.min(255, Math.max(0, r + B));
+          g = Math.min(255, Math.max(0, g + B));
+          b = Math.min(255, Math.max(0, b + B));
+        }
+
+        // contrast
+        if (C) {
+          const f = (259 * (C + 255)) / (255 * (259 - C));
+          r = Math.min(255, Math.max(0, f * (r - 128) + 128));
+          g = Math.min(255, Math.max(0, f * (g - 128) + 128));
+          b = Math.min(255, Math.max(0, f * (b - 128) + 128));
+        }
+
+        // to HSL
+        const rN = r / 255, gN = g / 255, bN = b / 255;
+        const max = Math.max(rN, gN, bN), min = Math.min(rN, gN, bN);
+        let h = 0, s = 0, l = (max + min) / 2;
+        if (max !== min) {
+          const d = max - min;
+          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+          switch (max) {
+            case rN: h = (gN - bN) / d + (gN < bN ? 6 : 0); break;
+            case gN: h = (bN - rN) / d + 2; break;
+            default: h = (rN - gN) / d + 4; break;
+          }
+          h /= 6;
+        }
+
+        const sScale = 1 + (S / 100);
+        h = (h + (H / 360)) % 1; if (h < 0) h += 1;
+        s = Math.max(0, Math.min(1, s * sScale));
+
+        let r2: number, g2: number, b2: number;
+        if (s === 0) {
+          r2 = g2 = b2 = l;
+        } else {
+          const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+          const p2 = 2 * l - q;
+          const hue2rgb = (p: number, qv: number, t: number) => {
+            if (t < 0) t += 1; if (t > 1) t -= 1;
+            if (t < 1/6) return p + (qv - p) * 6 * t;
+            if (t < 1/2) return qv;
+            if (t < 2/3) return p + (qv - p) * (2/3 - t) * 6;
+            return p;
+          };
+          r2 = hue2rgb(p2, q, h + 1/3);
+          g2 = hue2rgb(p2, q, h);
+          b2 = hue2rgb(p2, q, h - 1/3);
+        }
+
+        data[i] = Math.max(0, Math.min(255, (r2 * 255) | 0));
+        data[i+1] = Math.max(0, Math.min(255, (g2 * 255) | 0));
+        data[i+2] = Math.max(0, Math.min(255, (b2 * 255) | 0));
+        data[i+3] = a;
+      }
+      return imageData;
+    };
+
+    useEffect(() => {
+      let cancelled = false;
+      const run = async () => {
+        const cacheKey = `${src}|${filterKey}`;
+        const cached = thumbCacheRef.get(cacheKey);
+        if (cached) { setDataUrl(cached); return; }
+        try {
+          const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+            const im = new Image();
+            im.crossOrigin = 'anonymous';
+            im.onload = () => resolve(im);
+            im.onerror = () => reject(new Error('image load error'));
+            im.src = src;
+          });
+          if (cancelled) return;
+          // draw into high-res canvas to avoid blur after CSS scale
+          const baseSize = 56; // logical button content size
+          const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1;
+          const visualScale = 2.5; // CSS scale used outside
+          const scaleFactor = Math.max(2, Math.ceil(dpr * visualScale));
+          const size = baseSize * scaleFactor;
+          const canvas = document.createElement('canvas');
+          canvas.width = size; canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return;
+          ctx.imageSmoothingEnabled = true;
+          try { (ctx as any).imageSmoothingQuality = 'high'; } catch {}
+          // contain fit
+          const srcW = (img as any).naturalWidth || img.width;
+          const srcH = (img as any).naturalHeight || img.height;
+          const scale = Math.min(size / srcW, size / srcH);
+          const dw = Math.max(1, Math.round(srcW * scale));
+          const dh = Math.max(1, Math.round(srcH * scale));
+          const dx = Math.round((size - dw) / 2);
+          const dy = Math.round((size - dh) / 2);
+          ctx.clearRect(0, 0, size, size);
+          ctx.drawImage(img, dx, dy, dw, dh);
+          if (filterConfig) {
+            const imgData = ctx.getImageData(0, 0, size, size);
+            const processed = applyFilterToImageData(imgData, filterConfig);
+            ctx.putImageData(processed, 0, 0);
+          }
+          const url = canvas.toDataURL('image/png');
+          if (!cancelled) {
+            thumbCacheRef.set(cacheKey, url);
+            setDataUrl(url);
+          }
+        } catch {}
+      };
+      run();
+      return () => { cancelled = true };
+    }, [src, filterKey]);
+
+    return (
+      <img
+        src={dataUrl || src}
+        alt={alt}
+        width={56}
+        height={56}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+          display: 'block',
+          transform: 'translateY(15px) scale(2.5)',
+          transformOrigin: 'center',
+        }}
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).style.visibility = 'hidden';
+        }}
+      />
+    );
+  };
+
+  const HairThumb = React.memo(HairThumbBase, (prev, next) => (
+    prev.src === next.src && prev.filterKey === next.filterKey
+  ));
+
+  const hairstylesMemo = useMemo(() => hairstyles, [base]);
+
 	const handleHairstyleSelect = (hairstyleId: string) => {
 		onChange(hairstyleId);
 	};
@@ -44,8 +261,8 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 		<div>
 			<div className="flex items-center justify-between" tabIndex={0} onBlur={onBlur}>
 				<label className="font-medium">Hairstyle</label>
-				<div className="flex gap-[10px]">
-					{hairstyles.map((hairstyle) => {
+				<div className="flex flex-wrap gap-[10px] flex-1 justify-end ml-4">
+					{hairstylesMemo.map((hairstyle) => {
 						const isActive = selectedHairstyle === hairstyle.id;
 						return (
 							<div
@@ -63,21 +280,12 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 									onClick={() => handleHairstyleSelect(hairstyle.id)}
 									aria-pressed={isActive}
 								>
-                                    <img
+                                    <HairThumb
+                                        key={hairstyle.id}
                                         src={hairstyle.image}
                                         alt={hairstyle.id}
-                                        width={56}
-                                        height={56}
-                                        style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            objectFit: 'contain',
-                                            display: 'block',
-                                        }}
-                                        onError={(e) => {
-                                            // keep the button visible even if image fails
-                                            (e.currentTarget as HTMLImageElement).style.visibility = 'hidden';
-                                        }}
+                                        filterConfig={hairFilterCfg}
+                                        filterKey={compositeFilterKey}
                                     />
 								</button>
 							</div>
