@@ -32,7 +32,7 @@ export default function BookDetailView({
   availableLanguages?: string[],
 }) {
   const t = useTranslations('BookDetail')
-  const [selectedLanguage, setSelectedLanguage] = useState(availableLanguages[0] || 'en')
+  const selectedLanguage = 'en'
   const [openFaq, setOpenFaq] = useState<number>(1)
 
   const description = (book as any)?.description || (book as any)?.variant?.description || 'No description available.'
@@ -83,13 +83,7 @@ export default function BookDetailView({
               <div className="flex items-center gap-3"><div className="w-4 h-4 bg-gray-300 rounded"></div><span className="text-gray-600">{t('specifications.delivery')}</span></div>
             </div>
 
-            <div className="mb-12">
-              <select value={selectedLanguage} onChange={(e) => setSelectedLanguage(e.target.value)} className="w-full p-4 border border-gray-200 rounded-lg text-gray-600 appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQgNkw4IDEwTDEyIDYiIHN0cm9rZT0iIzY2NjY2NiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==')] bg-no-repeat bg-[center_right_1rem]">
-                {availableLanguages.map((code) => (
-                  <option key={code} value={code}>{t(`language.${code}` as any) || code}</option>
-                ))}
-              </select>
-            </div>
+            {/* 语言选择已隐藏，默认使用英文 */}
 
             <div className="flex items-center justify-between gap-8 mb-12">
               <div className="flex items-baseline gap-3">
