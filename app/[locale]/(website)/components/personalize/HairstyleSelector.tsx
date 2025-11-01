@@ -37,7 +37,11 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 		: ['hair_1','hair_2','hair_3','hair_4'];
 
 	const base = `/products/picbooks/${assetSpuCode || 'PICBOOK_GOODNIGHT2'}/avatar`;
-	const hairstyles = ids.map(id => ({ id, image: `${base}/layer_${id}.png` }));
+	const hairstyles = ids.map(id => {
+		// Extract number from id (e.g., 'hair_1' -> '1')
+		const number = id.replace('hair_', '');
+		return { id, image: `${base}/hairstyle/${number}.png` };
+	});
 
   // skin_properties: to derive hairColorFilter
   const [pageProperties, setPageProperties] = useState<any | null>(null);
@@ -237,7 +241,7 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
           height: '100%',
           objectFit: 'contain',
           display: 'block',
-          transform: 'translateY(15px) scale(2.5)',
+          transform: 'translateY(5px) scale(1.5)',
           transformOrigin: 'center',
         }}
         onError={(e) => {
