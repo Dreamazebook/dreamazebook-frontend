@@ -47,7 +47,7 @@ export const useShippingAddress = (orderId: string | null) => {
     }
 
     setIsLoading(true);
-    const { data, success, message } = await method<ApiResponse>(url, shippingAddress);
+    const { data, success, message } = await method<ApiResponse>(url, {...EMPTY_ADDRESS, ...shippingAddress});
     setIsLoading(false);
 
     if (success) {
