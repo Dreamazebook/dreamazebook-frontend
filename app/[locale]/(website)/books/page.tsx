@@ -31,7 +31,7 @@ type ProductsResponse = {
 };
 import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
-import ReviewsSection from '../components/Reviews';
+import ReviewsSection from '../components/reviews/Reviews';
 
 // 规范化图片地址：
 // - 移除以 /public/ 开头的前缀
