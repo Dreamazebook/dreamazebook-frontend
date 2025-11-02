@@ -99,13 +99,13 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
       </div>
       
       {/* Title and Description Container */}
-      <div className="max-w-[815px] w-full h-[136px] mx-auto flex flex-col gap-[48px] relative z-10">
+      <div className="max-w-[815px] w-full mx-auto flex flex-col md:gap-[48px] gap-[24px] relative z-10">
         {/* Title Container */}
         {section.title && (
-          <div className="max-w-[627px] w-full h-[136px] mx-auto flex flex-col gap-6">
+          <div className="max-w-[627px] w-full mx-auto flex flex-col">
             <h2
-              className="text-center text-[40px] font-medium leading-[64px]"
-              style={{ 
+              className="text-center md:text-[40px] text-[24px] font-medium md:leading-[64px] leading-[40px]"
+              style={{
                 fontFamily: 'var(--font-roboto), Roboto, sans-serif',
                 letterSpacing: '0.5px', // Headline Small/Tracking (需要确认具体值)
               }}
@@ -117,9 +117,9 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
         
         {/* Description Container */}
         {section.description && (
-          <div className="max-w-[627px] w-full h-[136px] mx-auto flex flex-col gap-6">
+          <div className="max-w-[627px] w-full mx-auto flex flex-col px-4 md:px-0">
             <p
-              className="text-center text-base font-normal leading-6 tracking-[0.5px]"
+              className="text-center md:text-[16px] text-[14px] font-normal md:leading-[24px] leading-[16px] tracking-[0.5px]"
               style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
             >
               {section.description}

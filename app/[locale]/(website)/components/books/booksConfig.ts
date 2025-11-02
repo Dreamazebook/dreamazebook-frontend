@@ -65,7 +65,7 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
         type: 'toddler-favorites',
         title: 'Toddler Favorites',
         description: 'Make storytime more meaningful with books toddlers love to hear again and again. These titles are often chosen together for ages 2-5.',
-        className: 'w-[1440px] h-[908.35px] pt-[88px] pr-[120px] pb-[88px] pl-[120px] mx-auto flex flex-col gap-[48px]',
+        className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
         books: [
           {
             title: 'Goodnight to You',
