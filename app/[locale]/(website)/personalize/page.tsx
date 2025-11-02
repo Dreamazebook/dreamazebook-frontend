@@ -57,7 +57,9 @@ export default function PersonalizeApiDrivenPage() {
         }
         // Backend supports querying by name or spu_code; use unified endpoint with identifier as path
         if (!bookId) throw new Error('Missing book identifier');
-        const res = await api.get<any>(`/products/${encodeURIComponent(String(bookId))}`, { params: { language: 'personalize' } });
+        // 根据 URL 路径决定请求语言，确保 /en 下显示英文，/zh 下显示中文
+        const requestLang = locale === 'zh' ? 'zh' : 'en';
+        const res = await api.get<any>(`/products/${encodeURIComponent(String(bookId))}`, { params: { language: requestLang } });
         setRawApi(res?.data || res);
         const product = res?.data?.data || res?.data || {};
         const attributes: Attribute[] = Array.isArray(product.attributes) ? product.attributes : [];

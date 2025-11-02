@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from '@/i18n/routing';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { Drawer } from "antd";
 import { create } from 'zustand';
 import TopNavBarWithTabs from '../components/TopNavBarWithTabs';
@@ -486,9 +486,10 @@ export default function PreviewPageWithTopNav() {
   const searchParams = useSearchParams();
   const { user } = useUserStore();
   const t = useTranslations('Preview');
-  // 使用 next-intl 的 locale，避免与 URL 语言不一致
-  const locale = useLocale();
-  const displayLang: 'en' | 'zh' = (locale || 'en').toLowerCase().startsWith('zh') ? 'zh' : 'en';
+  // 严格以 URL 段判定展示语言，避免受到浏览器/cookie 影响
+  const pathname = usePathname?.() as string;
+  const urlLocale = (typeof pathname === 'string' && pathname.split('/')[1]) || '';
+  const displayLang: 'en' | 'zh' = urlLocale.toLowerCase().startsWith('zh') ? 'zh' : 'en';
   
   const {
     activeTab,
@@ -931,7 +932,7 @@ export default function PreviewPageWithTopNav() {
       const base = (process.env.NEXT_PUBLIC_PREVIEW_API_URL || '').replace(/\/$/, '');
       const path = `/products/${encodeURIComponent(String(bookId))}`;
       const url = base ? `${base}${path}` : path;
-      const resp = await api.get(url, { params: { language: 'personalize' } }) as any;
+      const resp = await api.get(url, { params: { language: displayLang } }) as any;
       const product = resp?.data?.data || resp?.data || {};
 
       const attributes: any[] = Array.isArray(product.attributes) ? product.attributes : [];
@@ -939,6 +940,7 @@ export default function PreviewPageWithTopNav() {
 
       const coverAttr = attributes.find((a: any) => a?.name === 'cover_style');
       const giftAttr = attributes.find((a: any) => a?.name === 'giftbox');
+      const bindingAttr = attributes.find((a: any) => a?.name === 'binding_type');
 
       const pageImgByCode: Record<string, string> = {};
       pages.forEach((p: any) => {
@@ -955,6 +957,18 @@ export default function PreviewPageWithTopNav() {
         option_key: String(o?.value),
       }));
 
+      const binding_options = (bindingAttr?.options || []).map((o: any, idx: number) => ({
+        id: idx + 1,
+        option_type: String(o?.value).toUpperCase(),
+        option_key: String(o?.value),
+        name: o?.label || String(o?.value),
+        description: null,
+        price: Number(o?.price_diff || 0),
+        currency_code: 'USD',
+        image_url: '',
+        is_default: !!o?.is_default,
+      }));
+
       const gift_box_options = (giftAttr?.options || []).map((o: any, idx: number) => ({
         id: idx + 1,
         name: o?.label || String(o?.value),
@@ -967,7 +981,7 @@ export default function PreviewPageWithTopNav() {
 
       const derived: BookOptions = {
         cover_options,
-        binding_options: [],
+        binding_options,
         gift_box_options,
       };
 
@@ -2217,9 +2231,10 @@ export default function PreviewPageWithTopNav() {
     ].filter(Boolean) as string[];
 
     const mapZh = [
-      opts.binding && '装订',
+      // 要求：binding 和 wrap 在中文环境下不翻译，保持英文
+      opts.binding && 'binding',
       opts.cover && '封面',
-      opts.wrap && '包封（wrap）',
+      opts.wrap && 'wrap options',
     ].filter(Boolean) as string[];
 
     const items = lang === 'en' ? mapEn : mapZh;
