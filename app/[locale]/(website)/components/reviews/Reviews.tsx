@@ -55,12 +55,12 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
   const reviewsCount = bookReviewData.reviewsCount || reviews?.length || 18;
 
   return (
-    <div className={compact ? '' : 'py-12 bg-white gap-12'}>
+    <div className={compact ? '' : 'py-22 bg-white gap-12'}>
       {!compact && (
         <>
           {/* 标题 */}
           <div className="text-center mb-12 pt-12">
-            <span className="text-3xl font-normal">{bookReviewData.title}</span>
+            <span className="text-[40px] leading-[64px] font-medium">{bookReviewData.title}</span>
           </div>
 
           {/* 容器：平均评分区域和关键词区域 */}
@@ -70,7 +70,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
               <span className="text-[36px] font-medium text-[#222222] leading-[44px]">{displayRating.toFixed(1)}</span>
 
               {/* 星级评分 */}
-              <div className="flex mt-0">
+              <div className="flex mt-0 gap-3">
                 {[...Array(5)].map((_, i) => (
                   <img
                     key={i}
@@ -106,7 +106,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
         </>
       )}
       
-      <div className="w-[1440px] h-[496px] pr-[120px] pl-[120px] mx-auto flex flex-col gap-6">
+      <div className="w-[1440px] pr-[120px] pl-[120px] mx-auto flex flex-col gap-6">
         {/* 评论列表 */}
         {defaultReviews.map((review: Review, index: number) => (
             <React.Fragment key={index}>
@@ -129,7 +129,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
 
                   {/* 星星评分 - 放在父div下方 */}
                   <div className="flex items-center">
-                    <div className="flex gap-0.5">
+                    <div className="flex gap-3">
                       {[...Array(5)].map((_, i) => (
                         <img
                           key={i}
@@ -137,7 +137,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
                           alt="star"
                           width={18}
                           height={18}
-                          className="w-4 h-4"
+                          className="w-6 h-6"
                         />
                       ))}
                     </div>
