@@ -106,17 +106,16 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
         </>
       )}
       
-      <div className="max-w-4xl mx-auto px-4">
+      <div className="w-[1440px] h-[496px] pr-[120px] pl-[120px] mx-auto flex flex-col gap-6">
         {/* 评论列表 */}
-        <div className="space-y-0">
-          {defaultReviews.map((review: Review, index: number) => (
+        {defaultReviews.map((review: Review, index: number) => (
             <React.Fragment key={index}>
               {/* 单个评论 */}
-              <div className="flex gap-4 py-6">
+              <div className="w-[1200px] h-[88px] flex gap-[36px]">
                 {/* 左侧：头像、评论者名称和评分 */}
-                <div className="flex-shrink-0 flex flex-col">
+                <div className="flex-shrink-0 flex flex-col gap-3">
                   {/* 头像和评论者名称在同一行 */}
-                  <div className="flex items-start gap-3 mb-1.5">
+                  <div className="flex items-center gap-3 p-2">
                     {/* 头像占位符 */}
                     <div className="w-9 h-9 rounded-full bg-gray-300 flex-shrink-0"></div>
                     
@@ -132,14 +131,14 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
                   <div className="flex items-center">
                     <div className="flex gap-0.5">
                       {[...Array(5)].map((_, i) => (
-                        <svg
+                        <img
                           key={i}
-                          className="w-4 h-4 text-yellow-500 fill-current"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                        </svg>
+                          src="/star.svg"
+                          alt="star"
+                          width={18}
+                          height={18}
+                          className="w-4 h-4"
+                        />
                       ))}
                     </div>
                   </div>
@@ -147,19 +146,29 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
 
                 {/* 右侧：评论文本 */}
                 <div className="flex-1">
-                  <div className="text-gray-900 leading-relaxed">
-                    <span className="text-base font-normal">"{review.comment}"</span>
+                  <div 
+                    className="text-gray-900 text-base font-medium leading-6 tracking-[0.5px]"
+                    style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
+                  >
+                    <span 
+                      className="text-[24px] font-normal leading-8"
+                      style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
+                    >"</span>
+                    {review.comment}
+                    <span 
+                      className="text-[24px] font-normal leading-8"
+                      style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
+                    >"</span>
                   </div>
                 </div>
               </div>
 
               {/* 分隔线（最后一个评论后不显示） */}
               {index < defaultReviews.length - 1 && (
-                <div className="h-px bg-gray-200"></div>
+                <div className="h-px bg-gray-200 w-full"></div>
               )}
             </React.Fragment>
           ))}
-        </div>
       </div>
     </div>
   );
