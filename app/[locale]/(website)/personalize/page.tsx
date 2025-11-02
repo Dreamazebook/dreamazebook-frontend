@@ -9,6 +9,7 @@ import api from '@/utils/api';
 import SingleCharacterForm1, { SingleCharacterForm1Handle } from '../components/personalize/SingleCharacterForm1';
 import SingleCharacterForm2, { SingleCharacterForm2Handle } from '../components/personalize/SingleCharacterForm2';
 import { buildProductSchema, extractFieldOptions, resolveSkuPrice } from '@/utils/productAdapter';
+import usePreviewStore from '@/stores/previewStore';
 
 type AttributeOption = { value: string; label?: string; is_default?: boolean; price_diff?: number | string };
 type Attribute = { name: string; options: AttributeOption[]; default?: string };
@@ -211,8 +212,12 @@ export default function PersonalizeApiDrivenPage() {
       if (resolved?.sku) localStorage.setItem('previewSkuCode', String(resolved.sku));
       localStorage.setItem('previewPrice', String(resolved.price));
     }
-    localStorage.setItem('previewUserData', JSON.stringify(userData));
-    localStorage.setItem('previewBookId', bookId || '');
+    // 使用全局内存状态存储，避免 localStorage 配额限制
+    try {
+      const { setUserData, setBookId } = usePreviewStore.getState();
+      setUserData(userData);
+      setBookId(bookId || '');
+    } catch {}
     const qs = new URLSearchParams();
     const selectedLanguage = (searchParams.get('language') || 'en') as string;
     if (bookId) qs.set('bookid', bookId);

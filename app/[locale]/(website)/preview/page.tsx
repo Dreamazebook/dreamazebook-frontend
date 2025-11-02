@@ -15,6 +15,7 @@ import echo from '@/app/config/echo';
 import { useTranslations, useLocale } from 'next-intl';
 import useImageUpload from '../hooks/useImageUpload';
 import useUserStore from '@/stores/userStore';
+import usePreviewStore from '@/stores/previewStore';
 import toast from 'react-hot-toast';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
 import { BaseBook, DetailedBook } from '@/types/book';
@@ -514,6 +515,17 @@ export default function PreviewPageWithTopNav() {
   // 页面加载即尝试从 localStorage 预填 recipient，避免等待接口返回
   useEffect(() => {
     try {
+      // 优先使用内存中的预览数据，避免 localStorage 限制
+      try {
+        const storeUserData = usePreviewStore.getState().userData as any;
+        if (storeUserData) {
+          const name = storeUserData?.characters?.[0]?.full_name;
+          if (name && typeof name === 'string') {
+            setRecipient(name);
+            return;
+          }
+        }
+      } catch {}
       const userData = localStorage.getItem('previewUserData');
       if (userData) {
         const parsed = JSON.parse(userData);
@@ -1862,9 +1874,14 @@ export default function PreviewPageWithTopNav() {
       // 尝试从localStorage获取用户数据，用于后端验证或缓存查找
       let requestData = {};
       try {
-        const userData = localStorage.getItem('previewUserData');
-        if (userData) {
-          requestData = JSON.parse(userData);
+        const storeUserData = usePreviewStore.getState().userData;
+        if (storeUserData) {
+          requestData = storeUserData as any;
+        } else {
+          const userData = localStorage.getItem('previewUserData');
+          if (userData) {
+            requestData = JSON.parse(userData);
+          }
         }
       } catch (e) {
         console.warn('无法解析用户数据:', e);
@@ -1990,10 +2007,15 @@ export default function PreviewPageWithTopNav() {
         
         // 由于新的API结构中characters是数字数组，我们从localStorage获取角色名称
         try {
-          const userData = localStorage.getItem('previewUserData');
-          if (userData) {
-            const parsedUserData = JSON.parse(userData);
-            const character = parsedUserData.characters?.[0];
+          const storeUserData = usePreviewStore.getState().userData as any;
+          const source = storeUserData || (() => {
+            try {
+              const ud = localStorage.getItem('previewUserData');
+              return ud ? JSON.parse(ud) : null;
+            } catch { return null; }
+          })();
+          if (source) {
+            const character = source.characters?.[0];
             const fullName = character?.full_name || '';
             if (recipient !== fullName) setRecipient(fullName);
           }
@@ -2041,9 +2063,10 @@ export default function PreviewPageWithTopNav() {
   useEffect(() => {
     const handleUserDataProcessing = async () => {
       try {
-        // 从localStorage获取用户数据
-        const userData = localStorage.getItem('previewUserData');
-        const bookId = localStorage.getItem('previewBookId') || searchParams.get('bookid');
+        // 优先从内存中获取用户数据
+        const storeUserData = usePreviewStore.getState().userData as any;
+        const userData = storeUserData ? JSON.stringify(storeUserData) : localStorage.getItem('previewUserData');
+        const bookId = searchParams.get('bookid') || localStorage.getItem('previewBookId');
         
         if (!userData || !bookId) {
           console.warn('缺少用户数据或书籍ID');
@@ -2142,7 +2165,8 @@ export default function PreviewPageWithTopNav() {
           toast.success('处理已开始');
           setIsProcessing(true);
           
-          // 清理localStorage（成功后立即清理）
+          // 清理内存与localStorage（成功后立即清理）
+          try { usePreviewStore.getState().clear(); } catch {}
           localStorage.removeItem('previewUserData');
           localStorage.removeItem('previewBookId');
           
