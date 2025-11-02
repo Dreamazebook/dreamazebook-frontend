@@ -99,12 +99,12 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
       </div>
       
       {/* Title and Description Container */}
-      <div className="max-w-[815px] w-full mx-auto flex flex-col md:gap-[48px] gap-[24px] relative z-10">
+      <div className="max-w-[815px] w-full mx-auto flex flex-col lg:gap-[48px] gap-[24px] relative z-10">
         {/* Title Container */}
         {section.title && (
           <div className="max-w-[627px] w-full mx-auto flex flex-col">
             <h2
-              className="text-center md:text-[40px] text-[24px] font-medium md:leading-[64px] leading-[40px]"
+              className="text-center lg:text-[40px] text-[24px] font-medium lg:leading-[64px] leading-[40px]"
               style={{
                 fontFamily: 'var(--font-roboto), Roboto, sans-serif',
                 letterSpacing: '0.5px', // Headline Small/Tracking (需要确认具体值)
@@ -117,9 +117,9 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
         
         {/* Description Container */}
         {section.description && (
-          <div className="max-w-[627px] w-full mx-auto flex flex-col px-4 md:px-0">
+          <div className="max-w-[627px] w-full mx-auto flex flex-col px-4 lg:px-0">
             <p
-              className="text-center md:text-[16px] text-[14px] font-normal md:leading-[24px] leading-[16px] tracking-[0.5px]"
+              className="text-center lg:text-[16px] text-[14px] font-normal lg:leading-[24px] leading-[16px] tracking-[0.5px]"
               style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
             >
               {section.description}
@@ -129,10 +129,10 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
       </div>
       
       {/* Books Display and Price/Button Container */}
-      <div className="bg-[#FFFFFF] max-w-[1400px] w-full h-auto pt-12 pr-[88px] pb-12 pl-[88px] rounded-[4px] mx-auto flex flex-col gap-[24px] relative z-10">
+      <div className="bg-[#FFFFFF] max-w-[1400px] w-full h-auto pt-12 lg:px-[88px] px-4 pb-12 rounded-[4px] mx-auto flex flex-col gap-[24px] relative z-10">
         {/* Books Display */}
           {section.books && section.books.length > 0 && (
-            <div className="flex flex-col md:flex-row items-center justify-center gap-[15px] md:gap-[150px]">
+            <div className="flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-[150px]">
             {section.books.map((book, index) => {
               // 根据书的数量调整旋转角度
               const totalBooks = section.books?.length || 2;
@@ -149,7 +149,7 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
               
               return (
               <React.Fragment key={index}>
-              <div className="relative flex-shrink-0 w-[240px] md:w-[280px] sm:w-[200px] max-w-full">
+              <div className="relative flex-shrink-0 w-[240px] lg:w-[280px] sm:w-[200px] max-w-full">
                 {/* Book Card */}
                 <div
                   className="relative w-full md:aspect-square rounded-[4px]"
@@ -159,7 +159,7 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
                 >
                   {/* 宽屏：背景图整卡显示 */}
                   <div
-                    className="hidden md:block w-full h-full bg-no-repeat rounded-[4px]"
+                    className="hidden lg:block w-full h-full bg-no-repeat rounded-[4px]"
                     style={{
                       transform: `rotate(${rotation})`,
                       backgroundColor: book.backgroundImage ? 'transparent' : (book.backgroundColor || '#f0f0f0'),
@@ -189,7 +189,7 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
 
                   {/* 窄屏：左侧背景图 + 右侧文案（长方形卡片） */}
                   <div
-                    className="md:hidden w-[278px] h-[110px] rounded-[4px] overflow-hidden flex flex-row"
+                    className="lg:hidden w-[278px] h-[110px] rounded-[4px] overflow-hidden flex flex-row"
                     style={{ 
                       backgroundColor: narrowBackgroundColors[index % narrowBackgroundColors.length],
                       transform: `rotate(${narrowRotations[index % narrowRotations.length]})`,
@@ -222,7 +222,7 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
                 <>
                   {/* 中大屏：gap 150px → 位移 75px - 24px */}
                   <div 
-                    className="absolute bg-[#FCF2F2] rounded-[48px] w-[48px] h-[48px] top-1/2 left-full hidden md:flex items-center justify-center text-[#222222] font-bold"
+                    className="absolute bg-[#FCF2F2] rounded-[48px] w-[48px] h-[48px] top-1/2 left-full hidden lg:flex items-center justify-center text-[#222222] font-bold"
                     style={{
                       opacity: 1,
                       transform: 'translate(calc(75px - 24px), -50%)',
@@ -238,7 +238,7 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
               </div>
               {/* 小屏：作为流内元素（独立 flex item），与书本等距 */}
               {index < (section.books?.length || 0) - 1 && (
-                <div className="md:hidden bg-[#FCF2F2] rounded-full w-[20px] h-[20px] flex items-center justify-center text-[#222222] font-bold">
+                <div className="lg:hidden bg-[#FCF2F2] rounded-full w-[20px] h-[20px] flex items-center justify-center text-[#222222] font-bold">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22.0854 10.3666H13.0709V1.35211C13.0709 0.605391 12.4655 0 11.7188 0C10.972 0 10.3666 0.605391 10.3666 1.35211V10.3666H1.35211C0.605391 10.3666 0 10.972 0 11.7188C0 12.4655 0.605391 13.0709 1.35211 13.0709H10.3666V22.0854C10.3666 22.8321 10.972 23.4375 11.7188 23.4375C12.4655 23.4375 13.0709 22.8321 13.0709 22.0854V13.0709H22.0854C22.8321 13.0709 23.4375 12.4655 23.4375 11.7188C23.4375 10.972 22.8321 10.3666 22.0854 10.3666Z" fill="#222222"/>
                   </svg>

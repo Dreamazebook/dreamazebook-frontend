@@ -32,33 +32,48 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
   currentHairColor,
 }) => {
 	// 根据bookId动态生成发型选项，支持后端传值（数量与顺序跟随后端）
-	const ids = (hairStyleValues && hairStyleValues.length > 0)
+  const ids = (hairStyleValues && hairStyleValues.length > 0)
 		? hairStyleValues.map(v => `hair_${v}`)
 		: ['hair_1','hair_2','hair_3','hair_4'];
 
-	const base = `/products/picbooks/${assetSpuCode || 'PICBOOK_GOODNIGHT2'}/avatar`;
-	const hairstyles = ids.map(id => {
-		// Extract number from id (e.g., 'hair_1' -> '1')
-		const number = id.replace('hair_', '');
-		return { id, image: `${base}/hairstyle/${number}.png` };
-	});
+  // 优先用当前书籍 id 对应的公共资源，如不存在则回退到指定 spu 资源
+  const primaryBase = `/products/picbooks/${bookId}/avatar`;
+  const fallbackBase = `/products/picbooks/${assetSpuCode || 'PICBOOK_GOODNIGHT2'}/avatar`;
+  const hairstyles = ids.map(id => {
+    const number = id.replace('hair_', '');
+    return {
+      id,
+      image: `${primaryBase}/hairstyle/${number}.png`,
+      fallbackImage: `${fallbackBase}/hairstyle/${number}.png`,
+    } as { id: string; image: string; fallbackImage: string };
+  });
 
   // skin_properties: to derive hairColorFilter
   const [pageProperties, setPageProperties] = useState<any | null>(null);
+  // 使用稳定的 key 作为依赖，避免依赖数组长度或顺序在热更新时变化
+  const skinPropsKey = `${primaryBase}|${fallbackBase}`;
+
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
         const ts = Date.now();
-        const res = await fetch(`${base}/skin_properties.json?ts=${ts}`, { cache: 'no-store' });
-        if (!res.ok) throw new Error('skin_properties not found');
-        const json = await res.json();
-        if (!cancelled) setPageProperties(json);
+        // 先尝试 bookId 目录下的配置，不存在则回退到 spu 目录
+        const primaryUrl = `${primaryBase}/skin_properties.json?ts=${ts}`;
+        const fallbackUrl = `${fallbackBase}/skin_properties.json?ts=${ts}`;
+        let res = await fetch(primaryUrl, { cache: 'no-store' });
+        if (!res.ok) {
+          res = await fetch(fallbackUrl, { cache: 'no-store' });
+        }
+        if (res.ok) {
+          const json = await res.json();
+          if (!cancelled) setPageProperties(json);
+        }
       } catch {}
     };
     load();
     return () => { cancelled = true };
-  }, [base]);
+  }, [skinPropsKey]);
 
   const buildCssFilter = (filterConfig: any): string => {
     if (!filterConfig) return 'none';
@@ -100,8 +115,9 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
   // stable in-memory cache to prevent recompute and flicker across re-mounts
   const thumbCacheRef = (HairstyleSelector as any)._thumbCache || ((HairstyleSelector as any)._thumbCache = new Map<string, string>());
 
-  const HairThumbBase: React.FC<{ src: string; alt: string; filterConfig: any; filterKey: string }> = ({ src, alt, filterConfig, filterKey }) => {
+  const HairThumbBase: React.FC<{ src: string; fallbackSrc?: string; alt: string; filterConfig: any; filterKey: string }> = ({ src, fallbackSrc, alt, filterConfig, filterKey }) => {
     const [dataUrl, setDataUrl] = useState<string>('');
+    const [resolvedSrc, setResolvedSrc] = useState<string>(src);
 
     const applyFilterToImageData = (imageData: ImageData, cfg: any) => {
       if (!cfg) return imageData;
@@ -180,17 +196,32 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
     useEffect(() => {
       let cancelled = false;
       const run = async () => {
-        const cacheKey = `${src}|${filterKey}`;
+        const loadImage = (url: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+          const im = new Image();
+          im.crossOrigin = 'anonymous';
+          im.onload = () => resolve(im);
+          im.onerror = () => reject(new Error('image load error'));
+          im.src = url;
+        });
+
+        // 使用最终可用的资源地址作为缓存 key，避免重复处理
+        const tryKeys = [src, fallbackSrc].filter(Boolean) as string[];
+        const cacheKey = `${tryKeys.join('||')}|${filterKey}`;
         const cached = thumbCacheRef.get(cacheKey);
         if (cached) { setDataUrl(cached); return; }
         try {
-          const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-            const im = new Image();
-            im.crossOrigin = 'anonymous';
-            im.onload = () => resolve(im);
-            im.onerror = () => reject(new Error('image load error'));
-            im.src = src;
-          });
+          let img: HTMLImageElement | null = null;
+          let usedSrc = src;
+          try {
+            img = await loadImage(src);
+          } catch (e) {
+            if (fallbackSrc) {
+              img = await loadImage(fallbackSrc);
+              usedSrc = fallbackSrc;
+            } else {
+              throw e;
+            }
+          }
           if (cancelled) return;
           // draw into high-res canvas to avoid blur after CSS scale
           const baseSize = 56; // logical button content size
@@ -223,16 +254,17 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
           if (!cancelled) {
             thumbCacheRef.set(cacheKey, url);
             setDataUrl(url);
+            setResolvedSrc(usedSrc);
           }
         } catch {}
       };
       run();
       return () => { cancelled = true };
-    }, [src, filterKey]);
+    }, [src, fallbackSrc, filterKey]);
 
     return (
       <img
-        src={dataUrl || src}
+        src={dataUrl || resolvedSrc}
         alt={alt}
         width={56}
         height={56}
@@ -255,7 +287,7 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
     prev.src === next.src && prev.filterKey === next.filterKey
   ));
 
-  const hairstylesMemo = useMemo(() => hairstyles, [base]);
+  const hairstylesMemo = useMemo(() => hairstyles, [bookId, assetSpuCode, hairStyleValues]);
 
 	const handleHairstyleSelect = (hairstyleId: string) => {
 		onChange(hairstyleId);
@@ -275,7 +307,7 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 									isActive ? 'bg-[#FCF2F2] border-[#012CCE]' : 'bg-[#F8F8F8] border-transparent'
 								}`}
 							>
-                            <button
+            <button
 									type="button"
 									className={`relative w-14 h-14 rounded-full overflow-hidden ${
 										isActive ? 'bg-white' : ''
@@ -284,13 +316,14 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 									onClick={() => handleHairstyleSelect(hairstyle.id)}
 									aria-pressed={isActive}
 								>
-                                    <HairThumb
-                                        key={hairstyle.id}
-                                        src={hairstyle.image}
-                                        alt={hairstyle.id}
-                                        filterConfig={hairFilterCfg}
-                                        filterKey={compositeFilterKey}
-                                    />
+                <HairThumb
+                  key={hairstyle.id}
+                  src={hairstyle.image}
+                  fallbackSrc={hairstyle.fallbackImage}
+                  alt={hairstyle.id}
+                  filterConfig={hairFilterCfg}
+                  filterKey={compositeFilterKey}
+                />
 								</button>
 							</div>
 						);
