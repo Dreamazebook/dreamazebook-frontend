@@ -79,13 +79,13 @@ export default function CheckoutPage() {
   };
 
   const handleNextFromShipping = async () => {
-    const skipUpdateShippingAddress = (orderDetail?.shipping_address?.street === shippingAddress.street);
-    const skipUpdateBillingAddress = (!needsBillingAddress || (needsBillingAddress && orderDetail?.billing_address?.street === billingAddress.street));
+    // const skipUpdateShippingAddress = (orderDetail?.shipping_address?.street === shippingAddress.street);
+    // const skipUpdateBillingAddress = (!needsBillingAddress || (needsBillingAddress && orderDetail?.billing_address?.street === billingAddress.street));
     
-    if (skipUpdateShippingAddress && skipUpdateBillingAddress) {
-      completeStep(1);
-      return;
-    }
+    // if (skipUpdateShippingAddress && skipUpdateBillingAddress) {
+    //   completeStep(1);
+    //   return;
+    // }
 
     const { success, data, message } = await saveAddress();
     
