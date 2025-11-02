@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { Link, useRouter } from "@/i18n/routing";
 import api from "@/utils/api";
 // Using new product detail schema
-import ReviewsSection from '../../components/Reviews';
+import ReviewsSection from '../../components/reviews/Reviews';
 import BookDetailView from '../../components/BookDetailView';
 import useUserStore from '@/stores/userStore';
 import { useTranslations } from 'next-intl';
