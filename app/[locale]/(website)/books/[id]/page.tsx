@@ -9,6 +9,7 @@ import api from "@/utils/api";
 // Using new product detail schema
 import ReviewsSection from '../../components/reviews/Reviews';
 import BookDetailView from '../../components/BookDetailView';
+import BookSections from '../../components/books/BookSections';
 import useUserStore from '@/stores/userStore';
 import { useTranslations } from 'next-intl';
 
@@ -122,6 +123,8 @@ const BookDetailPage = () => {
         availableLanguages={availableLanguages}
       />
       <ReviewsSection book={book} keywords={keywords} reviews={reviews} />
+      {/* Book Sections - Dynamically rendered based on book config */}
+      <BookSections book={book} bookId={Array.isArray(id) ? id[0] : id || ''} />
     </>
   );
 }
