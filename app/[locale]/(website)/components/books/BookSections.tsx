@@ -141,66 +141,49 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
               <div key={index} className="relative flex-shrink-0 w-[280px] md:w-[280px] sm:w-[240px] max-w-full">
                 {/* Book Card */}
                 <div
-                  className="relative rounded-lg w-full aspect-square"
+                  className="relative w-full aspect-square bg-no-repeat rounded-[4px]"
                   style={{ 
-                    backgroundColor: book.backgroundColor || '#f0f0f0',
+                    backgroundColor: book.backgroundImage ? 'transparent' : (book.backgroundColor || '#f0f0f0'),
+                    backgroundImage: book.backgroundImage ? `url(${book.backgroundImage})` : undefined,
+                    backgroundSize: book.backgroundImage ? '145%' : undefined,
+                    backgroundPosition: book.backgroundImage ? 'bottom -125px left -60px' : undefined,
                     transform: `rotate(${rotation})`,
                     opacity: 1,
                   }}
                 >
                   {/* Price Tag */}
-                  <div className="absolute top-4 right-4 bg-gray-800 text-white px-3 py-1 rounded text-sm font-medium z-10">
+                  <div className="absolute top-4 right-4 bg-[#222222] text-white px-3 py-1 rounded-[24px] text-[24px] font-medium z-10">
                     {book.price}
-                  </div>
-                  
-                  {/* Book Cover */}
-                  <div className="w-full h-full bg-white rounded shadow-lg flex items-center justify-center overflow-hidden">
-                    {book.coverImage ? (
-                      <Image
-                        src={book.coverImage}
-                        alt={book.title}
-                        width={280}
-                        height={280}
-                        className="object-cover w-full h-full"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-200" />
-                    )}
                   </div>
                   
                   {/* Book Info - 绝对定位，旋转角度跟随 book card */}
                   <div 
-                    className="absolute flex flex-col"
+                    className="absolute flex flex-col items-center justify-center"
                     style={{
-                      width: '89%',
-                      maxWidth: '249px',
-                      height: '52px',
-                      transform: `rotate(${rotation})`,
+                      width: '100%',
                       opacity: 1,
-                      bottom: '22.7px',
-                      left: '12%',
+                      bottom: '15px',
                       gap: '4px',
                     }}
                   >
-                    <h3 className="text-white text-xl font-semibold">{book.title}</h3>
-                    <p className="text-white text-sm opacity-90">{book.subtitle}</p>
+                    <h3 className="text-white text-[18px] font-medium tracking-wide">{book.title}</h3>
+                    <p className="text-white text-[16px] font-normal opacity-90">{book.subtitle}</p>
                   </div>
                 </div>
               
               {/* Plus Sign between books */}
               {section.books && index < section.books.length - 1 && (
                 <div 
-                  className="absolute top-1/2 left-full flex items-center justify-center text-gray-400 font-bold"
+                  className="absolute bg-[#FCF2F2] rounded-[48px] w-[48px] h-[48px] top-1/2 left-full flex items-center justify-center text-[#222222] font-bold"
                   style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '48px',
                     opacity: 1,
                     transform: 'translate(calc(75px - 24px), -50%)', // 居中在两本书之间（gap 150px / 2 = 75px，减去自身宽度的一半 24px）
                     gap: '10px',
                   }}
                 >
-                  +
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22.0854 10.3666H13.0709V1.35211C13.0709 0.605391 12.4655 0 11.7188 0C10.972 0 10.3666 0.605391 10.3666 1.35211V10.3666H1.35211C0.605391 10.3666 0 10.972 0 11.7188C0 12.4655 0.605391 13.0709 1.35211 13.0709H10.3666V22.0854C10.3666 22.8321 10.972 23.4375 11.7188 23.4375C12.4655 23.4375 13.0709 22.8321 13.0709 22.0854V13.0709H22.0854C22.8321 13.0709 23.4375 12.4655 23.4375 11.7188C23.4375 10.972 22.8321 10.3666 22.0854 10.3666Z" fill="#222222"/>
+                  </svg>
                 </div>
               )}
               </div>
@@ -211,26 +194,26 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
         
         {/* Price and Button */}
         <div className="flex flex-col items-center gap-4">
-        {/* Price Display */}
-        <div className="flex items-center gap-3">
-          {section.originalPrice && (
-            <span className="text-gray-400 line-through text-lg">
-              {section.originalPrice}
-            </span>
+          {/* Price Display */}
+          <div className="w-[144px] flex flex-row items-center justify-center gap-3 bg-[#FCF2F2] px-4 py-2 rounded-[24px]">
+            {section.originalPrice && (
+              <span className="text-[#012CCE] line-through text-[14px]">
+                {section.originalPrice}
+              </span>
+            )}
+            {section.discountedPrice && (
+              <span className="text-[24px] font-semibold leading-[24px] text-[#012CCE]">
+                {section.discountedPrice}
+              </span>
+            )}
+          </div>
+          
+          {/* Button */}
+          {section.buttonText && (
+            <button className="bg-black text-[#F5E3E3] px-8 py-3 rounded-[4px] hover:bg-gray-800 transition-colors">
+              {section.buttonText}
+            </button>
           )}
-          {section.discountedPrice && (
-            <span className="text-3xl font-bold text-gray-900">
-              {section.discountedPrice}
-            </span>
-          )}
-        </div>
-        
-        {/* Button */}
-        {section.buttonText && (
-          <button className="bg-black text-white px-8 py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors">
-            {section.buttonText}
-          </button>
-        )}
         </div>
       </div>
     </div>

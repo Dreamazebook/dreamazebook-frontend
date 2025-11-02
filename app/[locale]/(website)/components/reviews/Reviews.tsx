@@ -59,7 +59,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
       {!compact && (
         <>
           {/* 标题 */}
-          <div className="text-center mb-12 pt-12">
+          <div className="text-center mb-12">
             <span className="text-[40px] leading-[64px] font-medium">{bookReviewData.title}</span>
           </div>
 

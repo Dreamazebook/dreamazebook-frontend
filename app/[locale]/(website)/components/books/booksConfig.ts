@@ -31,6 +31,7 @@ export interface BookSection {
     coverImage: string;
     price: string;
     backgroundColor?: string;
+    backgroundImage?: string;
   }>;
   originalPrice?: string; // 原价
   discountedPrice?: string; // 折后价
@@ -73,13 +74,15 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
             coverImage: '', // 需要添加实际图片URL
             price: '$12.2',
             backgroundColor: '#4A90E2', // 蓝色背景
+            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT2/toddler_book_1.png',
           },
           {
             title: 'Goodnight to You',
             subtitle: 'Gentle bedtime routine',
             coverImage: '', // 需要添加实际图片URL
             price: '$4.2',
-            backgroundColor: '#FF8C42', // 橙色背景
+            backgroundColor: '#FFD700', // 黄色背景
+            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT2/toddler_book_2.png',
           },
         ],
         originalPrice: '$34.5',
