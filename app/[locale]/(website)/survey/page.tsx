@@ -747,35 +747,53 @@ export default function SurveyPage() {
       </section>
 
       {/* Sign-up Section */}
-      <section className="bg-white py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-4xl md:text-5xl font-bold text-[#222222] mb-4">
+      <section 
+        className="bg-white mx-auto text-center flex flex-col py-12 md:py-22 px-4 md:px-[105px]"
+        style={{
+          width: '1440px',
+          maxWidth: '100%',
+          margin: '0 auto',
+        }}
+      >
+        <div 
+          className="mx-auto text-center flex flex-col"
+          style={{
+            width: '100%',
+            maxWidth: '100%',
+            gap: '24px',
+            opacity: 1,
+          }}
+        >
+            <h2 className="font-family-roboto text-[24px] md:text-[40px] font-semibold md:font-medium text-[#222222]">
               Help Us Shape The Next Personalized Book.
             </h2>
-            <p className="text-lg md:text-xl text-gray-600 mb-8">
+            <p className="font-family-roboto text-[14px] md:text-[20px] font-normal md:font-light text-[#222222]">
               Sign up to join the community, suggest ideas, and vote for upcoming themes.
             </p>
 
-            <form onSubmit={handleSignupSubmit} className="max-w-md mx-auto">
-              <div className="flex flex-col sm:flex-row gap-3">
+            <form 
+              onSubmit={handleSignupSubmit} 
+              className="flex justify-center"
+            >
+              <div
+                className="w-[480px] max-w-full h-[104px] flex flex-col gap-4"
+              >
                 <input
                   type="email"
                   value={signupEmail}
                   onChange={(e) => setSignupEmail(e.target.value)}
                   placeholder="Enter your email"
-                  className="flex-1 px-4 py-3 bg-[#F8F8F8] rounded-[4x] border border-[#E5E5E5] focus:outline-none focus:ring-2 focus:ring-[#222222] focus:border-transparent"
+                  className="w-full h-9 px-4 bg-gray-100 rounded-[2px] focus:outline-none focus:ring-1 focus:ring-[#222222] focus:border-transparent text-[#999999]"
                 />
                 <button
                   type="submit"
                   disabled={isSignupSubmitting}
-                  className="bg-[#222222] text-white px-8 py-3 rounded-[4px] font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="bg-[#222222] text-[#F5E3E3] h-9 px-4 rounded-[2px] hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full"
                 >
                   {isSignupSubmitting ? 'Submitting...' : 'Send It In'}
                 </button>
               </div>
             </form>
-          </div>
         </div>
       </section>
 
