@@ -14,6 +14,7 @@ import Slideshow from './components/home/SlideShow';
 import PicBooksShow from './components/home/PicBooksShow';
 import TestimonialCards from './components/home/TestimonialCards';
 import FAQ from '../(marketing)/components/FAQ';
+import ReserveSection from '../(marketing)/components/ReserveSection';
 
 interface AnimatedSectionProps {
   children: React.ReactNode;
@@ -89,11 +90,11 @@ export default function HomePage() {
       </AnimatedSection>
 
       <AnimatedSection delay={0.2}>
-        <SideLineProducts />
+        <PicBooksShow />
       </AnimatedSection>
 
       <AnimatedSection delay={0.2}>
-        <PicBooksShow />
+        <SideLineProducts />
       </AnimatedSection>
 
       {/* <AnimatedSection delay={0.2}>
@@ -111,41 +112,7 @@ export default function HomePage() {
 
       {/* Newsletter */}
       <AnimatedSection className="bg-black text-white" delay={0.3}>
-        <div className="container mx-auto px-6 text-center">
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-3xl font-bold mb-6"
-          >
-            {t('newsletterTitle')}
-          </motion.h2>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-xl mb-8 max-w-2xl mx-auto"
-          >
-            {t('newsletterSubtitle')}
-          </motion.p>
-          <motion.form 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
-          >
-            <input
-              type="email"
-              placeholder={t('emailPlaceholder')}
-              className="flex-1 px-4 py-3 rounded-lg bg-gray-900 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
-              required
-            />
-            <Button 
-              className="px-6 py-3"
-              tl={t('subscribe')}
-            />
-          </motion.form>
-        </div>
+        <ReserveSection btnId="email_submit_mid" redirectUrl={'/en/welcome/success'} title={"Every child deserves to be the hero."} desc={'Sign up to Dreamaze community to receive free printables, coloring pages, and story samples.'} btnText="Sign up Now" />
       </AnimatedSection>
 
     </main>
