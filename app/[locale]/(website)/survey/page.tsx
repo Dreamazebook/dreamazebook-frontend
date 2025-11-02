@@ -178,28 +178,48 @@ export default function SurveyPage() {
           background-position: center !important;
           background-repeat: no-repeat !important;
         }
+        .title-section {
+          min-height: 176px;
+        }
+        .bg-gradient-overlay {
+          background: linear-gradient(0deg, rgba(245, 227, 227, 0) 0%, #F5E3E3 79.55%), linear-gradient(180deg, rgba(245, 227, 227, 0) 87.25%, #E6D5D5 93.66%);
+        }
+        .input-focus:focus {
+          border-color: #222222 !important;
+          box-shadow: 0 0 0 2px rgba(34, 34, 34, 0.1) !important;
+        }
+        .select-dropdown {
+          background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23222222' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 16px center;
+        }
+        @media (max-width: 768px) {
+          .title-section {
+            min-height: auto;
+            padding-top: 32px !important;
+            padding-bottom: 16px !important;
+          }
+          .title-section-h1 {
+            font-weight: 600 !important;
+            font-size: 24px !important;
+            text-align: center !important;
+          }
+          .title-section-p {
+            font-size: 14px !important;
+          }
+        }
       `}</style>
       {/* Survey Form Section */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden px-[18px] md:p-0">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 z-[5] pointer-events-none"
-            style={{
-              background: [
-                'linear-gradient(0deg, rgba(245, 227, 227, 0) 0%, #F5E3E3 79.55%)',
-                'linear-gradient(180deg, rgba(245, 227, 227, 0) 87.25%, #E6D5D5 93.66%)',
-              ].join(', '),
-            }}
-          />
+          <div className="absolute inset-0 z-[5] pointer-events-none bg-gradient-overlay" />
           <div className="relative w-full h-full">
             <Image
               src="https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/survey/bg.png"
               alt="Child reading"
               fill
-              style={{
-                transform: 'translateY(140px) translateX(-200px) scale(1.4)',
-              }}
-              className="object-contain object-right"
+              className="object-contain object-right translate-x-[-325px] translate-y-[300px] scale-[2.5] md:translate-y-[300px] md:translate-x-[200px] md:scale-[2.5] lg:translate-y-[140px] lg:-translate-x-[200px] lg:scale-[1.5]"
               priority
             />
           </div>
@@ -208,73 +228,25 @@ export default function SurveyPage() {
         <div className="relative z-10 container mx-auto pb-22">
           <div className="mx-auto flex flex-col items-center justify-center">
             {/* Title and Subtitle */}
-            <div 
-              className="text-center mx-auto flex flex-col"
-              style={{
-                width: '1440px',
-                maxWidth: '100%',
-                height: '176px',
-                paddingTop: '64px',
-                paddingBottom: '24px',
-                gap: '24px',
-                borderBottomWidth: '1px',
-                borderBottomColor: '#E5E5E5',
-                borderBottomStyle: 'solid',
-              }}
-            >
-              <p 
-                style={{
-                  fontWeight: 500,
-                  fontSize: '40px',
-                  lineHeight: 'normal',
-                  margin: 0,
-                }}
-              >
+            <div className="text-center mx-auto flex flex-col title-section w-[1440px] max-w-full min-h-[176px] pt-16 pb-6 gap-6 border-b border-[#E5E5E5]">
+              <p className="title-section-h1 font-medium text-[40px] leading-normal m-0">
                 We'd Love to Hear Your Funny Inspiration!
               </p>
-              <p 
-                className="text-[16px] text-[#666666] tracking-wide font-normal"
-                style={{
-                  margin: 0,
-                  lineHeight: 'normal',
-                }}
-              >
+              <p className="text-[16px] text-[#666666] tracking-wide font-normal title-section-p m-0 leading-normal">
                 That silly moment or sweet idea could become the seed of a new story.
               </p>
             </div>
 
             {/* Form Container */}
-            <div 
-              className="bg-white"
-              style={{
-                width: '588px',
-                maxWidth: '100%',
-                borderRadius: '4px',
-                padding: '24px',
-              }}
-            >
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px', height: '100%' }}>
+            <div className="bg-white w-[588px] max-w-full rounded-[4px] p-6">
+              <form id="survey-form" onSubmit={handleSubmit} className="flex flex-col gap-6 h-full">
                 {/* Name */}
-                <div
-                  style={{
-                    width: '540px',
-                    minHeight: '68px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px',
-                  }}
-                >
+                <div className="w-full md:w-[540px] min-h-[68px] flex flex-col gap-1">
                   <label 
                     htmlFor="name" 
-                    style={{
-                      fontWeight: 500,
-                      fontSize: '16px',
-                      letterSpacing: '0.15px',
-                      color: '#222222',
-                      margin: 0,
-                    }}
+                    className="font-medium text-base tracking-[0.15px] text-[#222222] m-0"
                   >
-                    Name <span style={{ color: '#222222' }}>*</span>
+                    Name <span className="text-[#222222]">*</span>
                   </label>
                   <input
                     type="text"
@@ -283,52 +255,18 @@ export default function SurveyPage() {
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="please enter..."
-                    style={{
-                      width: '540px',
-                      height: '40px',
-                      paddingTop: '8px',
-                      paddingRight: '16px',
-                      paddingBottom: '8px',
-                      paddingLeft: '16px',
-                      borderRadius: '4px',
-                      borderWidth: '1px',
-                      borderStyle: 'solid',
-                      borderColor: '#D1D5DB',
-                      outline: 'none',
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = '#222222';
-                      e.target.style.boxShadow = '0 0 0 2px rgba(34, 34, 34, 0.1)';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#D1D5DB';
-                      e.target.style.boxShadow = 'none';
-                    }}
+                    className="w-full md:w-[540px] h-10 py-2 px-4 rounded-[4px] border border-[#D1D5DB] outline-none input-focus"
                   />
                   {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                 </div>
 
                 {/* Email */}
-                <div
-                  style={{
-                    width: '540px',
-                    minHeight: '68px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px',
-                  }}
-                >
+                <div className="w-full md:w-[540px] min-h-[68px] flex flex-col gap-1">
                   <label 
                     htmlFor="email" 
-                    style={{
-                      fontWeight: 500,
-                      fontSize: '16px',
-                      letterSpacing: '0.15px',
-                      color: '#222222',
-                      margin: 0,
-                    }}
+                    className="font-medium text-base tracking-[0.15px] text-[#222222] m-0"
                   >
-                    Email <span style={{ color: '#222222' }}>*</span>
+                    Email <span className="text-[#222222]">*</span>
                   </label>
                   <input
                     type="email"
@@ -337,50 +275,16 @@ export default function SurveyPage() {
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="please enter..."
-                    style={{
-                      width: '540px',
-                      height: '40px',
-                      paddingTop: '8px',
-                      paddingRight: '16px',
-                      paddingBottom: '8px',
-                      paddingLeft: '16px',
-                      borderRadius: '4px',
-                      borderWidth: '1px',
-                      borderStyle: 'solid',
-                      borderColor: '#D1D5DB',
-                      outline: 'none',
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = '#222222';
-                      e.target.style.boxShadow = '0 0 0 2px rgba(34, 34, 34, 0.1)';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#D1D5DB';
-                      e.target.style.boxShadow = 'none';
-                    }}
+                    className="w-full md:w-[540px] h-10 py-2 px-4 rounded-[4px] border border-[#D1D5DB] outline-none input-focus"
                   />
                   {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
                 </div>
 
                 {/* Occupation */}
-                <div
-                  style={{
-                    width: '540px',
-                    minHeight: '68px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px',
-                  }}
-                >
+                <div className="w-full md:w-[540px] min-h-[68px] flex flex-col gap-1">
                   <label 
                     htmlFor="occupation" 
-                    style={{
-                      fontWeight: 500,
-                      fontSize: '16px',
-                      letterSpacing: '0.15px',
-                      color: '#222222',
-                      margin: 0,
-                    }}
+                    className="font-medium text-base tracking-[0.15px] text-[#222222] m-0"
                   >
                     Occupation
                   </label>
@@ -391,49 +295,15 @@ export default function SurveyPage() {
                     value={formData.occupation}
                     onChange={handleInputChange}
                     placeholder="please enter..."
-                    style={{
-                      width: '540px',
-                      height: '40px',
-                      paddingTop: '8px',
-                      paddingRight: '16px',
-                      paddingBottom: '8px',
-                      paddingLeft: '16px',
-                      borderRadius: '4px',
-                      borderWidth: '1px',
-                      borderStyle: 'solid',
-                      borderColor: '#D1D5DB',
-                      outline: 'none',
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = '#222222';
-                      e.target.style.boxShadow = '0 0 0 2px rgba(34, 34, 34, 0.1)';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#D1D5DB';
-                      e.target.style.boxShadow = 'none';
-                    }}
+                    className="w-full md:w-[540px] h-10 py-2 px-4 rounded-[4px] border border-[#D1D5DB] outline-none input-focus"
                   />
                 </div>
 
                 {/* Your Age */}
-                <div
-                  style={{
-                    width: '540px',
-                    minHeight: '68px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px',
-                  }}
-                >
+                <div className="w-full md:w-[540px] min-h-[68px] flex flex-col gap-1">
                   <label 
                     htmlFor="yourAge" 
-                    style={{
-                      fontWeight: 500,
-                      fontSize: '16px',
-                      letterSpacing: '0.15px',
-                      color: '#222222',
-                      margin: 0,
-                    }}
+                    className="font-medium text-base tracking-[0.15px] text-[#222222] m-0"
                   >
                     Your Age
                   </label>
@@ -442,36 +312,7 @@ export default function SurveyPage() {
                     name="yourAge"
                     value={formData.yourAge}
                     onChange={handleInputChange}
-                    style={{
-                      width: '540px',
-                      height: '40px',
-                      paddingTop: '8px',
-                      paddingBottom: '8px',
-                      paddingLeft: '16px',
-                      paddingRight: '40px',
-                      borderRadius: '4px',
-                      borderWidth: '1px',
-                      borderStyle: 'solid',
-                      borderColor: '#D1D5DB',
-                      outline: 'none',
-                      backgroundColor: '#FFFFFF',
-                      color: formData.yourAge ? '#222222' : '#999999',
-                      cursor: 'pointer',
-                      appearance: 'none',
-                      WebkitAppearance: 'none',
-                      MozAppearance: 'none',
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23222222' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
-                      backgroundRepeat: 'no-repeat',
-                      backgroundPosition: 'right 16px center',
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = '#222222';
-                      e.target.style.boxShadow = '0 0 0 2px rgba(34, 34, 34, 0.1)';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#D1D5DB';
-                      e.target.style.boxShadow = 'none';
-                    }}
+                    className={`w-full md:w-[540px] h-10 py-2 pl-4 pr-10 rounded-[4px] border border-[#D1D5DB] outline-none bg-white cursor-pointer appearance-none select-dropdown input-focus ${formData.yourAge ? 'text-[#222222]' : 'text-[#999999]'}`}
                   >
                     <option value="" disabled>please select...</option>
                     <option value="18-24">18–24</option>
@@ -482,61 +323,30 @@ export default function SurveyPage() {
                 </div>
 
                 {/* Children's Age */}
-                <div
-                  style={{
-                    width: '540px',
-                    minHeight: '68px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '4px',
-                  }}
-                >
+                <div className="w-full md:w-[540px] min-h-[68px] flex flex-col gap-1">
                   <label 
                     htmlFor="childrenAge" 
-                    style={{
-                      fontWeight: 500,
-                      fontSize: '16px',
-                      letterSpacing: '0.15px',
-                      color: '#222222',
-                      margin: 0,
-                    }}
+                    className="font-medium text-base tracking-[0.15px] text-[#222222] m-0"
                   >
-                    Children's Age <span style={{ color: '#222222' }}>*</span>
+                    Children's Age <span className="text-[#222222]">*</span>
                   </label>
                   <select
                     id="childrenAge"
                     name="childrenAge"
                     value={formData.childrenAge}
                     onChange={handleInputChange}
-                    style={{
-                      width: '540px',
-                      height: '40px',
-                      paddingTop: '8px',
-                      paddingBottom: '8px',
-                      paddingLeft: '16px',
-                      paddingRight: '40px',
-                      borderRadius: '4px',
-                      borderWidth: '1px',
-                      borderStyle: 'solid',
-                      borderColor: errors.childrenAge ? '#EF4444' : '#D1D5DB',
-                      outline: 'none',
-                      backgroundColor: '#FFFFFF',
-                      color: formData.childrenAge ? '#222222' : '#999999',
-                      cursor: 'pointer',
-                      appearance: 'none',
-                      WebkitAppearance: 'none',
-                      MozAppearance: 'none',
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23222222' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
-                      backgroundRepeat: 'no-repeat',
-                      backgroundPosition: 'right 16px center',
-                    }}
+                    className={`w-full md:w-[540px] h-10 py-2 pl-4 pr-10 rounded-[4px] border outline-none bg-white cursor-pointer appearance-none select-dropdown input-focus ${errors.childrenAge ? 'border-[#EF4444]' : 'border-[#D1D5DB]'} ${formData.childrenAge ? 'text-[#222222]' : 'text-[#999999]'}`}
                     onFocus={(e) => {
-                      e.target.style.borderColor = '#222222';
-                      e.target.style.boxShadow = '0 0 0 2px rgba(34, 34, 34, 0.1)';
+                      if (!errors.childrenAge) {
+                        e.target.classList.add('border-[#222222]');
+                        e.target.classList.remove('border-[#D1D5DB]');
+                      }
                     }}
                     onBlur={(e) => {
-                      e.target.style.borderColor = errors.childrenAge ? '#EF4444' : '#D1D5DB';
-                      e.target.style.boxShadow = 'none';
+                      if (!errors.childrenAge) {
+                        e.target.classList.remove('border-[#222222]');
+                        e.target.classList.add('border-[#D1D5DB]');
+                      }
                     }}
                   >
                     <option value="" disabled>please select...</option>
@@ -550,24 +360,10 @@ export default function SurveyPage() {
 
                 {/* What do you value most */}
                 <div className="flex flex-col gap-1">
-                  <label className="block text-sm font-medium text-gray-700"
-                  style={{
-                    fontWeight: 500,
-                    fontSize: '16px',
-                    letterSpacing: '0.15px',
-                    color: '#222222',
-                    margin: 0,
-                  }}
-                  >
-                    What do you value most in a personalized book? <span style={{ color: '#222222' }}>*</span>
+                  <label className="font-medium text-base tracking-[0.15px] text-[#222222] m-0">
+                    What do you value most in a personalized book? <span className="text-[#222222]">*</span>
                   </label>
-                  <div 
-                    style={{
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: '8px',
-                    }}
-                  >
+                  <div className="flex flex-wrap gap-2">
                     {valueOptions.map((option) => {
                       const isSelected = formData.valueMost.includes(option);
                       return (
@@ -575,31 +371,11 @@ export default function SurveyPage() {
                           key={option}
                           type="button"
                           onClick={() => handleValueMostSelect(option)}
-                          style={{
-                            height: '40px',
-                            paddingTop: '8px',
-                            paddingRight: '16px',
-                            paddingBottom: '8px',
-                            paddingLeft: '16px',
-                            borderRadius: '4px',
-                            border: isSelected ? '1px solid #222222':'1px transparent solid',
-                            cursor: 'pointer',
-                            fontWeight: 400,
-                            fontSize: '14px',
-                            transition: 'all 0.2s',
-                            backgroundColor: isSelected ? '#FCF2F2' : '#F8F8F8',
-                            color: '#222222',
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!isSelected) {
-                              e.currentTarget.style.backgroundColor = '#E5E5E5';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!isSelected) {
-                              e.currentTarget.style.backgroundColor = '#F8F8F8';
-                            }
-                          }}
+                          className={`h-10 py-2 px-4 rounded-[4px] cursor-pointer font-normal text-sm transition-all duration-200 text-[#222222] ${
+                            isSelected 
+                              ? 'border border-[#222222] bg-[#FCF2F2]' 
+                              : 'border border-transparent bg-[#F8F8F8] hover:bg-[#E5E5E5]'
+                          }`}
                         >
                           {option}
                         </button>
@@ -615,15 +391,7 @@ export default function SurveyPage() {
 
                 {/* Story Idea */}
                 <div className="flex flex-col gap-1">
-                  <label htmlFor="storyIdea" className="block text-sm font-medium text-gray-700"
-                  style={{
-                    fontWeight: 500,
-                    fontSize: '16px',
-                    letterSpacing: '0.15px',
-                    color: '#222222',
-                    margin: 0,
-                  }}
-                  >
+                  <label htmlFor="storyIdea" className="font-medium text-base tracking-[0.15px] text-[#222222] m-0">
                     Your Funny or Inspiring Story Idea
                   </label>
                   <textarea
@@ -633,29 +401,7 @@ export default function SurveyPage() {
                     onChange={handleInputChange}
                     placeholder="please enter..."
                     rows={5}
-                    style={{
-                      width: '540px',
-                      height: '120px',
-                      paddingTop: '8px',
-                      paddingRight: '16px',
-                      paddingBottom: '8px',
-                      paddingLeft: '16px',
-                      borderRadius: '4px',
-                      borderWidth: '1px',
-                      borderStyle: 'solid',
-                      borderColor: '#D1D5DB',
-                      outline: 'none',
-                      resize: 'none',
-                      fontFamily: 'inherit',
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = '#222222';
-                      e.target.style.boxShadow = '0 0 0 2px rgba(34, 34, 34, 0.1)';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#D1D5DB';
-                      e.target.style.boxShadow = 'none';
-                    }}
+                    className="w-full md:w-[540px] h-[120px] py-2 px-4 rounded-[4px] border border-[#D1D5DB] outline-none resize-none font-inherit input-focus"
                   />
                 </div>
 
@@ -668,25 +414,7 @@ export default function SurveyPage() {
                         name="confirmOriginal"
                         checked={formData.confirmOriginal}
                         onChange={handleCheckboxChange}
-                        style={{
-                          width: '20px',
-                          height: '20px',
-                          minWidth: '20px',
-                          minHeight: '20px',
-                          borderWidth: '1px',
-                          borderStyle: 'solid',
-                          borderColor: '#D9D9D9',
-                          borderRadius: '50%',
-                          marginTop: '2px',
-                          marginLeft: '2px',
-                          cursor: 'pointer',
-                          backgroundColor: 'transparent',
-                          appearance: 'none',
-                          WebkitAppearance: 'none',
-                          MozAppearance: 'none',
-                          flexShrink: 0,
-                        }}
-                        className="focus:ring-[#222222] focus:ring-1"
+                        className="w-5 h-5 min-w-[20px] min-h-[20px] border border-[#D9D9D9] rounded-full mt-[2px] ml-[2px] cursor-pointer bg-transparent appearance-none flex-shrink-0 focus:ring-[#222222] focus:ring-1"
                       />
                       <span className="text-[16px] text-[#222222] tracking-wide font-normal">
                         I confirm that my submission is my own original idea and does not infringe on the rights of others.
@@ -702,25 +430,7 @@ export default function SurveyPage() {
                         name="confirmInspiration"
                         checked={formData.confirmInspiration}
                         onChange={handleCheckboxChange}
-                        style={{
-                          width: '20px',
-                          height: '20px',
-                          minWidth: '20px',
-                          minHeight: '20px',
-                          borderWidth: '1px',
-                          borderStyle: 'solid',
-                          borderColor: '#D9D9D9',
-                          borderRadius: '50%',
-                          marginTop: '2px',
-                          marginLeft: '2px',
-                          cursor: 'pointer',
-                          backgroundColor: 'transparent',
-                          appearance: 'none',
-                          WebkitAppearance: 'none',
-                          MozAppearance: 'none',
-                          flexShrink: 0,
-                        }}
-                        className="focus:ring-[#222222] focus:ring-1"
+                        className="w-5 h-5 min-w-[20px] min-h-[20px] border border-[#D9D9D9] rounded-full mt-[2px] ml-[2px] cursor-pointer bg-transparent appearance-none flex-shrink-0 focus:ring-[#222222] focus:ring-1"
                       />
                       <span className="text-[16px] text-[#222222] tracking-wide font-normal">
                         I understand that my idea will be treated as inspiration only, and Dreamaze may develop similar concepts independently or receive similar ideas from other participants.
@@ -729,41 +439,29 @@ export default function SurveyPage() {
                     {errors.confirmInspiration && <p className="text-red-500 text-sm ml-8 mt-0">{errors.confirmInspiration}</p>}
                   </div>
                 </div>
-
-                {/* Submit Button */}
-                <div className="flex justify-center pt-6">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="bg-[#222222] text-white px-8 py-3 rounded-[4px] font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? 'Submitting...' : 'Send It In'}
-                  </button>
-                </div>
               </form>
             </div>
+          </div>
+          {/* Submit Button */}
+          <div className="flex justify-center pt-6">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>);
+              }}
+              disabled={isSubmitting}
+              className="bg-[#222222] text-white px-8 py-3 rounded-[4px] font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? 'Submitting...' : 'Send It In'}
+            </button>
           </div>
         </div>
       </section>
 
       {/* Sign-up Section */}
-      <section 
-        className="bg-white mx-auto text-center flex flex-col py-12 md:py-22 px-4 md:px-[105px]"
-        style={{
-          width: '1440px',
-          maxWidth: '100%',
-          margin: '0 auto',
-        }}
-      >
-        <div 
-          className="mx-auto text-center flex flex-col"
-          style={{
-            width: '100%',
-            maxWidth: '100%',
-            gap: '24px',
-            opacity: 1,
-          }}
-        >
+      <section className="bg-white mx-auto text-center flex flex-col py-12 md:py-22 px-4 md:px-[105px] w-[1440px] max-w-full signup-section">
+        <div className="mx-auto text-center flex flex-col w-full max-w-full gap-6 opacity-100 signup-content">
             <h2 className="font-family-roboto text-[24px] md:text-[40px] font-semibold md:font-medium text-[#222222]">
               Help Us Shape The Next Personalized Book.
             </h2>
@@ -800,18 +498,11 @@ export default function SurveyPage() {
       {/* Success Modal */}
       {showSuccessModal && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
           onClick={() => setShowSuccessModal(false)}
         >
           <div 
-            className="bg-white rounded-[4px] p-8 max-w-md mx-4 relative"
-            style={{
-              width: '588px',
-              maxWidth: '90%',
-            }}
+            className="bg-white rounded-[4px] p-8 max-w-md mx-4 relative w-[588px] max-w-[90%]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
@@ -836,49 +527,22 @@ export default function SurveyPage() {
             </button>
 
             {/* Content */}
-            <div className="flex flex-col items-center text-center" style={{ gap: '16px' }}>
+            <div className="flex flex-col items-center text-center gap-4">
               <div className="text-5xl mb-1">🌟</div>
-              <h2 
-                style={{
-                  fontWeight: 500,
-                  fontSize: '24px',
-                  color: '#222222',
-                  margin: 0,
-                  lineHeight: 'normal',
-                }}
-              >
+              <h2 className="font-medium text-2xl text-[#222222] m-0 leading-normal">
                 Thank you for sharing!
               </h2>
-              <div className="flex flex-col" style={{ gap: '12px', maxWidth: '480px' }}>
-                <p 
-                  style={{
-                    fontSize: '16px',
-                    color: '#666666',
-                    letterSpacing: '0.15px',
-                    lineHeight: '1.5',
-                    margin: 0,
-                  }}
-                >
+              <div className="flex flex-col gap-3 max-w-[480px]">
+                <p className="text-base text-[#666666] tracking-[0.15px] leading-[1.5] m-0">
                   Your idea means the world to us.
                 </p>
-                <p 
-                  style={{
-                    fontSize: '16px',
-                    color: '#666666',
-                    letterSpacing: '0.15px',
-                    lineHeight: '1.5',
-                    margin: 0,
-                  }}
-                >
+                <p className="text-base text-[#666666] tracking-[0.15px] leading-[1.5] m-0">
                   If your inspiration becomes part of a published story, we'll reach out to give you credit—for example, an acknowledgment in the book.
                 </p>
               </div>
               <button
                 onClick={() => setShowSuccessModal(false)}
-                className="mt-4 bg-[#222222] text-white px-8 py-3 rounded-[4px] font-medium hover:bg-gray-800 transition-colors"
-                style={{
-                  width: 'auto',
-                }}
+                className="mt-4 bg-[#222222] text-white px-8 py-3 rounded-[4px] font-medium hover:bg-gray-800 transition-colors w-auto"
               >
                 Close
               </button>
