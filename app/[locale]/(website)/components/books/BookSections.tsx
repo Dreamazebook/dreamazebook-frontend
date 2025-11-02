@@ -129,64 +129,122 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
       </div>
       
       {/* Books Display and Price/Button Container */}
-      <div className="bg-[#FFFFFF] max-w-[919.69px] w-full h-auto pt-12 pr-[88px] pb-12 pl-[88px] rounded-[4px] mx-auto flex flex-col gap-[24px] relative z-10">
+      <div className="bg-[#FFFFFF] max-w-[1400px] w-full h-auto pt-12 pr-[88px] pb-12 pl-[88px] rounded-[4px] mx-auto flex flex-col gap-[24px] relative z-10">
         {/* Books Display */}
-        {section.books && section.books.length > 0 && (
-          <div className="flex items-center justify-center gap-[150px] flex-wrap">
+          {section.books && section.books.length > 0 && (
+            <div className="flex flex-col md:flex-row items-center justify-center gap-[15px] md:gap-[150px]">
             {section.books.map((book, index) => {
-              // 左边书 (index 0): -9deg, 右边书 (index 1): 5deg
-              const rotation = index === 0 ? '-9deg' : '5deg';
+              // 根据书的数量调整旋转角度
+              const totalBooks = section.books?.length || 2;
+              let rotation = '0deg';
+              if (totalBooks === 2) {
+                rotation = index === 0 ? '-9deg' : '5deg';
+              } else if (totalBooks === 3) {
+                rotation = index === 0 ? '-9deg' : index === 1 ? '0deg' : '5deg';
+              }
+              // 窄屏背景色（按索引）
+              const narrowBackgroundColors = ['#266BE1', '#F4AA32', '#9D59E1'];
+              // 窄屏旋转角度（按索引）
+              const narrowRotations = ['-3.44deg', '4deg', '-4deg'];
               
               return (
-              <div key={index} className="relative flex-shrink-0 w-[280px] md:w-[280px] sm:w-[240px] max-w-full">
+              <React.Fragment key={index}>
+              <div className="relative flex-shrink-0 w-[240px] md:w-[280px] sm:w-[200px] max-w-full">
                 {/* Book Card */}
                 <div
-                  className="relative w-full aspect-square bg-no-repeat rounded-[4px]"
+                  className="relative w-full md:aspect-square rounded-[4px]"
                   style={{ 
-                    backgroundColor: book.backgroundImage ? 'transparent' : (book.backgroundColor || '#f0f0f0'),
-                    backgroundImage: book.backgroundImage ? `url(${book.backgroundImage})` : undefined,
-                    backgroundSize: book.backgroundImage ? '145%' : undefined,
-                    backgroundPosition: book.backgroundImage ? 'bottom -125px left -60px' : undefined,
-                    transform: `rotate(${rotation})`,
                     opacity: 1,
                   }}
                 >
-                  {/* Price Tag */}
-                  <div className="absolute top-4 right-4 bg-[#222222] text-white px-3 py-1 rounded-[24px] text-[24px] font-medium z-10">
-                    {book.price}
-                  </div>
-                  
-                  {/* Book Info - 绝对定位，旋转角度跟随 book card */}
-                  <div 
-                    className="absolute flex flex-col items-center justify-center"
+                  {/* 宽屏：背景图整卡显示 */}
+                  <div
+                    className="hidden md:block w-full h-full bg-no-repeat rounded-[4px]"
                     style={{
-                      width: '100%',
-                      opacity: 1,
-                      bottom: '15px',
-                      gap: '4px',
+                      transform: `rotate(${rotation})`,
+                      backgroundColor: book.backgroundImage ? 'transparent' : (book.backgroundColor || '#f0f0f0'),
+                      backgroundImage: book.backgroundImage ? `url(${book.backgroundImage})` : undefined,
+                      backgroundSize: book.backgroundImage ? '145%' : undefined,
+                      backgroundPosition: book.backgroundImage ? 'bottom -125px right -60px' : undefined,
                     }}
                   >
-                    <h3 className="text-white text-[18px] font-medium tracking-wide">{book.title}</h3>
-                    <p className="text-white text-[16px] font-normal opacity-90">{book.subtitle}</p>
+                    {/* Price Tag (宽屏) */}
+                    <div className="absolute top-4 right-4 bg-[#222222] text-white px-3 py-1 rounded-[24px] text-[24px] font-medium z-10">
+                      {book.price}
+                    </div>
+                    {/* Book Info (宽屏) */}
+                    <div 
+                      className="absolute flex flex-col items-center justify-center"
+                      style={{
+                        width: '100%',
+                        opacity: 1,
+                        bottom: '15px',
+                        gap: '4px',
+                      }}
+                    >
+                      <h3 className="text-white text-[18px] font-medium tracking-wide">{book.title}</h3>
+                      <p className="text-white text-[16px] font-normal opacity-90">{book.subtitle}</p>
+                    </div>
+                  </div>
+
+                  {/* 窄屏：左侧背景图 + 右侧文案（长方形卡片） */}
+                  <div
+                    className="md:hidden w-[278px] h-[110px] rounded-[4px] overflow-hidden flex flex-row"
+                    style={{ 
+                      backgroundColor: narrowBackgroundColors[index % narrowBackgroundColors.length],
+                      transform: `rotate(${narrowRotations[index % narrowRotations.length]})`,
+                      transformOrigin: 'center',
+                    }}
+                  >
+                    {/* 左侧：背景图 */}
+                    <div
+                      className="w-[120px] h-full bg-no-repeat bg-cover"
+                      style={{
+                        backgroundImage: book.backgroundImage ? `url(${book.backgroundImage})` : undefined,
+                        backgroundPosition: book.backgroundImage ? 'center' : undefined, // 可修改图片位置：向左偏移25px，垂直居中
+                        transform: book.backgroundImage ? 'scale(1.75)' : undefined, // 可修改缩放比例
+                      }}
+                    />
+                    {/* 右侧：文案 */}
+                    <div className="flex-1 flex flex-col justify-end pb-2 z-10">
+                      <h3 className="text-white md:text-[16px] text-[14px] font-medium mb-1">{book.title}</h3>
+                      <p className="text-white text-[14px] font-normal opacity-90">{book.subtitle}</p>
+                    </div>
+                    {/* 价格（窄屏） */}
+                    <div className="absolute top-2 left-20 bg-[#222222] text-white px-2 py-1 rounded-[24px] text-[14px] font-medium z-10">
+                      {book.price}
+                    </div>
                   </div>
                 </div>
               
               {/* Plus Sign between books */}
               {section.books && index < section.books.length - 1 && (
-                <div 
-                  className="absolute bg-[#FCF2F2] rounded-[48px] w-[48px] h-[48px] top-1/2 left-full flex items-center justify-center text-[#222222] font-bold"
-                  style={{
-                    opacity: 1,
-                    transform: 'translate(calc(75px - 24px), -50%)', // 居中在两本书之间（gap 150px / 2 = 75px，减去自身宽度的一半 24px）
-                    gap: '10px',
-                  }}
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <>
+                  {/* 中大屏：gap 150px → 位移 75px - 24px */}
+                  <div 
+                    className="absolute bg-[#FCF2F2] rounded-[48px] w-[48px] h-[48px] top-1/2 left-full hidden md:flex items-center justify-center text-[#222222] font-bold"
+                    style={{
+                      opacity: 1,
+                      transform: 'translate(calc(75px - 24px), -50%)',
+                      gap: '10px',
+                    }}
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M22.0854 10.3666H13.0709V1.35211C13.0709 0.605391 12.4655 0 11.7188 0C10.972 0 10.3666 0.605391 10.3666 1.35211V10.3666H1.35211C0.605391 10.3666 0 10.972 0 11.7188C0 12.4655 0.605391 13.0709 1.35211 13.0709H10.3666V22.0854C10.3666 22.8321 10.972 23.4375 11.7188 23.4375C12.4655 23.4375 13.0709 22.8321 13.0709 22.0854V13.0709H22.0854C22.8321 13.0709 23.4375 12.4655 23.4375 11.7188C23.4375 10.972 22.8321 10.3666 22.0854 10.3666Z" fill="#222222"/>
+                    </svg>
+                  </div>
+                </>
+              )}
+              </div>
+              {/* 小屏：作为流内元素（独立 flex item），与书本等距 */}
+              {index < (section.books?.length || 0) - 1 && (
+                <div className="md:hidden bg-[#FCF2F2] rounded-full w-[20px] h-[20px] flex items-center justify-center text-[#222222] font-bold">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22.0854 10.3666H13.0709V1.35211C13.0709 0.605391 12.4655 0 11.7188 0C10.972 0 10.3666 0.605391 10.3666 1.35211V10.3666H1.35211C0.605391 10.3666 0 10.972 0 11.7188C0 12.4655 0.605391 13.0709 1.35211 13.0709H10.3666V22.0854C10.3666 22.8321 10.972 23.4375 11.7188 23.4375C12.4655 23.4375 13.0709 22.8321 13.0709 22.0854V13.0709H22.0854C22.8321 13.0709 23.4375 12.4655 23.4375 11.7188C23.4375 10.972 22.8321 10.3666 22.0854 10.3666Z" fill="#222222"/>
                   </svg>
                 </div>
               )}
-              </div>
+              </React.Fragment>
             );
           })}
         </div>

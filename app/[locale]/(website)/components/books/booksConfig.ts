@@ -65,7 +65,8 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
       {
         type: 'toddler-favorites',
         title: 'Toddler Favorites',
-        description: 'Make storytime more meaningful with books toddlers love to hear again and again. These titles are often chosen together for ages 2-5.',
+        description: `Make storytime more meaningful with books toddlers love to hear again and again.
+ These titles are often chosen together for ages 2–5.`,
         className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
         books: [
           {
@@ -77,17 +78,25 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
             backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT2/toddler_book_1.png',
           },
           {
-            title: 'Goodnight to You',
-            subtitle: 'Gentle bedtime routine',
+            title: "You’re Brave in Many Ways",
+            subtitle: 'Everyday courage',
             coverImage: '', // 需要添加实际图片URL
             price: '$4.2',
             backgroundColor: '#FFD700', // 黄色背景
             backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT2/toddler_book_2.png',
           },
+          {
+            title: 'Birthday Book for You',
+            subtitle: 'Special day keepsake',
+            coverImage: '', // 需要添加实际图片URL
+            price: '$8.5',
+            backgroundColor: '#FF6B6B', // 红色背景
+            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT2/toddler_book_3.png',
+          },
         ],
-        originalPrice: '$34.5',
-        discountedPrice: '23.2',
-        buttonText: 'add 3 books to bag',
+        originalPrice: '$25.0',
+        discountedPrice: '$19.9',
+        buttonText: 'add bundle to bag',
       },
     ],
   },
