@@ -106,19 +106,19 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
         </>
       )}
       
-      <div className="w-[1440px] pr-[120px] pl-[120px] mx-auto flex flex-col gap-6">
+      <div className="max-w-[1440px] md:pr-[120px] md:pl-[120px] pr-[20px] pl-[20px] mx-auto flex flex-col gap-6">
         {/* 评论列表 */}
         {defaultReviews.map((review: Review, index: number) => (
             <React.Fragment key={index}>
               {/* 单个评论 */}
-              <div className="w-[1200px] h-[88px] flex gap-[36px]">
-                {/* 左侧：头像、评论者名称和评分 */}
-                <div className="flex-shrink-0 flex flex-col gap-3">
-                  {/* 头像和评论者名称在同一行 */}
-                  <div className="flex items-center gap-3 p-2">
+              <div className="max-w-[1200px] flex flex-col md:flex-row md:h-[88px] gap-4 md:gap-[36px]">
+                {/* 第一排/左侧：头像、评论者名称和评分 */}
+                <div className="flex-shrink-0 flex md:flex-col flex-row items-center md:gap-3 gap-4">
+                  {/* 头像和评论者名称在同一行（小屏幕）或分开（大屏幕） */}
+                  <div className="flex items-center gap-3">
                     {/* 头像占位符 */}
                     <div className="w-9 h-9 rounded-full bg-gray-300 flex-shrink-0"></div>
-                    
+
                     {/* 评论者名称 */}
                     <div className="pt-0.5">
                       <span className="text-base font-semibold text-gray-900">
@@ -127,9 +127,9 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
                     </div>
                   </div>
 
-                  {/* 星星评分 - 放在父div下方 */}
-                  <div className="flex items-center">
-                    <div className="flex gap-3">
+                  {/* 星星评分 - 在小屏幕下和头像/名字同行，在大屏幕下在下面 */}
+                  <div className="flex items-center md:ml-2">
+                    <div className="flex gap-1">
                       {[...Array(5)].map((_, i) => (
                         <img
                           key={i}
@@ -137,25 +137,25 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
                           alt="star"
                           width={18}
                           height={18}
-                          className="w-6 h-6"
+                          className="w-4 h-4 md:w-6 md:h-6"
                         />
                       ))}
                     </div>
                   </div>
                 </div>
 
-                {/* 右侧：评论文本 */}
+                {/* 第二排/右侧：评论文本 */}
                 <div className="flex-1">
-                  <div 
+                  <div
                     className="text-gray-900 text-base font-medium leading-6 tracking-[0.5px]"
                     style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
                   >
-                    <span 
+                    <span
                       className="text-[24px] font-normal leading-8"
                       style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
                     >"</span>
                     {review.comment}
-                    <span 
+                    <span
                       className="text-[24px] font-normal leading-8"
                       style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
                     >"</span>
