@@ -73,7 +73,7 @@ function BundleCard({ bundle }: { bundle: Bundle }) {
           </div>
         </div>
 
-        <ul className="mx-auto max-w-[397px] bg-white space-y-3 md:space-y-4 text-[14px] md:text-[16px] lg:text-[18px] text-gray-800 list-disc pl-5">
+        <ul className="mx-auto max-w-[397px] h-[312px] md:h-auto bg-white space-y-3 md:space-y-4 text-[14px] md:text-[16px] lg:text-[18px] text-gray-800 list-disc pl-5">
           {bundle.features.map((f, i) => (
             <li key={i}>{f}</li>
           ))}
@@ -555,7 +555,14 @@ export default function ChristmasPage() {
 
         {/* Bundles */}
         <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 pb-12">
-          <div ref={scrollContainerRef} className="flex md:grid md:grid-cols-2 gap-3 md:gap-12 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 md:pb-0 scrollbar-hide -mx-4 md:mx-0 px-4 md:px-0">
+          <div
+            ref={scrollContainerRef}
+            className="flex md:grid md:grid-cols-2 gap-3 md:gap-12 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 md:pb-0 scrollbar-hide w-full max-w-[100svw]"
+            style={{
+              ['--card' as any]: '20rem',
+              ['scrollPaddingInline' as any]: 'calc((100svw - var(--card))/2)',
+            }}
+          >
             {/* Mobile: show all bundles for continuous scrolling */}
             {/* Desktop: show only active group bundles */}
             {allBundles.map((bundle, index) => {
@@ -566,7 +573,7 @@ export default function ChristmasPage() {
                 <div 
                   key={bundle.id} 
                   ref={setBundleRef(bundle.id)} 
-                  className={`min-w-[calc(75vw-2rem)] md:min-w-0 snap-center flex-shrink-0 md:flex-shrink ${!isActiveGroup ? 'md:hidden' : ''}`}
+                  className={`snap-center shrink-0 basis-[var(--card)] md:shrink md:basis-auto ${!isActiveGroup ? 'md:hidden' : ''}`}
                   style={{
                     scrollSnapAlign: 'center',
                     scrollSnapStop: 'always'
