@@ -42,8 +42,8 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
     return {
       title: "See what customers are saying",
       rating: parseFloat(String(book?.rating || 4.8)),
-      reviewsCount: reviews?.length || BOOK_REVIEWS_DATA['PICBOOK_GOODNIGHT2']?.reviewsCount || 18,
-      reviews: reviews?.length ? reviews : (BOOK_REVIEWS_DATA['PICBOOK_GOODNIGHT2']?.reviews || []),
+      reviewsCount: reviews?.length || BOOK_REVIEWS_DATA['PICBOOK_GOODNIGHT']?.reviewsCount || 18,
+      reviews: reviews?.length ? reviews : (BOOK_REVIEWS_DATA['PICBOOK_GOODNIGHT']?.reviews || []),
     };
   };
 

@@ -170,7 +170,7 @@ export default function BooksPage() {
   const bestSeller = sortedBooks.length > 0 ? sortedBooks[0] : null;
   const bestSellerImage: string | null = bestSeller
     ? normalizeImageUrl(
-        (bestSeller as any)?.primary_image ?? (bestSeller as any)?.default_cover ?? '/products/picbooks/PICBOOK_GOODNIGHT2/thumb.png'
+        (bestSeller as any)?.primary_image ?? (bestSeller as any)?.default_cover ?? '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png'
       )
     : null;
 
@@ -274,7 +274,7 @@ export default function BooksPage() {
                       unoptimized={bestSellerImage.startsWith('http')}
                       onError={(e) => {
                         const target = e.currentTarget as HTMLImageElement & { srcset?: string };
-                        target.src = '/products/picbooks/PICBOOK_GOODNIGHT2/thumb.png';
+                        target.src = '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png';
                         if (target.srcset) target.srcset = '';
                       }}
                     />

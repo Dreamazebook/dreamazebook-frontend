@@ -19,7 +19,7 @@ export interface BookReviewData {
 // 在此文件中更新和管理不同书籍的评论数据
 export const BOOK_REVIEWS_DATA: Record<string | number, BookReviewData> = {
   // Good Night 书籍的评论数据
-  'PICBOOK_GOODNIGHT2': {
+  'PICBOOK_GOODNIGHT': {
     title: "What parents are saying",
     rating: 5.0, // 平均评分
     reviewsCount: 18, // 评论总数

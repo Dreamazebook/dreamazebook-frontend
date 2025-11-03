@@ -173,7 +173,7 @@ export default function PersonalizeApiDrivenPage() {
     };
     const mapHairColorToBackend = (key: string | number): string => {
       const v = typeof key === 'number' ? key : ({ light: 1, brown: 2, dark: 3 } as any)[key] || 1;
-      if (v === 1) return 'blone';
+      if (v === 1) return 'blonde';
       if (v === 3) return 'dark';
       return 'dark';
     };
@@ -261,7 +261,7 @@ export default function PersonalizeApiDrivenPage() {
             apiHairStyleValues={hairStyleValues}
             apiHairColorValues={hairColorValues}
             uploadOptions={uploadOptions}
-            assetSpuCode={'PICBOOK_GOODNIGHT2'}
+            assetSpuCode={'PICBOOK_GOODNIGHT'}
           />
         ) : (
           <SingleCharacterForm2
@@ -276,7 +276,7 @@ export default function PersonalizeApiDrivenPage() {
             apiHairStyleValues={hairStyleValues}
             apiHairColorValues={hairColorValues}
             uploadOptions={uploadOptions}
-            assetSpuCode={'PICBOOK_GOODNIGHT2'}
+            assetSpuCode={'PICBOOK_GOODNIGHT'}
           />
         )}
         <div className="flex justify-center">

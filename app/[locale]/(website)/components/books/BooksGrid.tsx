@@ -15,7 +15,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books, personalizeLabel }) => {
       {books.map((book, idx) => {
         const idOrCode = (book as any)?.spu_code ?? (book as any)?.id ?? (book as any)?.code ?? `idx-${idx}`;
         const name = (book as any)?.name ?? (book as any)?.default_name ?? 'Product';
-        const imgSrc = '/products/picbooks/PICBOOK_GOODNIGHT2/thumb.png';
+        const imgSrc = '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png';
         const priceVal = (book as any)?.current_price ?? (book as any)?.price ?? 0;
         const desc = (book as any)?.description ?? (book as any)?.desc ?? '';
         return (

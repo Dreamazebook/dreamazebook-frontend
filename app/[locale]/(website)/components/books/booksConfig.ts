@@ -47,8 +47,8 @@ export interface BookConfig {
 // 存储不同书籍的配置
 export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
   // Good Night 书籍配置
-  'PICBOOK_GOODNIGHT2': {
-    id: 'PICBOOK_GOODNIGHT2',
+  'PICBOOK_GOODNIGHT': {
+    id: 'PICBOOK_GOODNIGHT',
     sections: [
       {
         type: 'behind-story',
@@ -58,7 +58,7 @@ But sometimes, the stories made her too excited to fall asleep.
 I wanted to create a story that gently guides children into dreamland.
 A story that makes them look forward to bedtime, with adventures waiting after they close their eyes.
 Turning sleep into something exciting helps reduce delays and makes nights calmer for everyone.`,
-        backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT2/bg-behind.jpg',
+        backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-behind.jpg',
         backgroundOverlay: 'linear-gradient(0deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8))',
         className: 'md:h-[408px] md:py-[88px] h-[500px] py-[32px] px-[12px]',
       },
@@ -75,7 +75,7 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
             coverImage: '', // 需要添加实际图片URL
             price: '$12.2',
             backgroundColor: '#4A90E2', // 蓝色背景
-            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT2/toddler_book_1.png',
+            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_1.png',
           },
           {
             title: "You’re Brave in Many Ways",
@@ -83,7 +83,7 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
             coverImage: '', // 需要添加实际图片URL
             price: '$4.2',
             backgroundColor: '#FFD700', // 黄色背景
-            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT2/toddler_book_2.png',
+            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_2.png',
           },
           {
             title: 'Birthday Book for You',
@@ -91,7 +91,7 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
             coverImage: '', // 需要添加实际图片URL
             price: '$8.5',
             backgroundColor: '#FF6B6B', // 红色背景
-            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT2/toddler_book_3.png',
+            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_3.png',
           },
         ],
         originalPrice: '$25.0',
