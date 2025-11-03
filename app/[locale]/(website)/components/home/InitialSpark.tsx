@@ -21,7 +21,7 @@ function InitialSpark() {
   ];
 
   return (
-    <div className="min-h-screen bg-white py-12">
+    <div className="bg-white py-12">
       {/* Local styles for marquee animation */}
       <style jsx global>{`
         @keyframes marquee {
@@ -43,14 +43,11 @@ function InitialSpark() {
         {/* Hero Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-normal text-gray-900 mb-6">
-            Dreamaze's Initial Spark
+            The Dream Behind Dreamaze
           </h1>
           
           <div className="max-w-lg mx-auto space-y-1 text-sm text-gray-600 leading-relaxed">
-            <p>Children discover kindness, courage, and wonder in stories...</p>
-            <p>But what if they were the ones living it?</p>
-            <p>That's where <span className="text-white bg-blue-600 px-1.5 py-0.5 rounded font-medium">Dreamaze</span> begins</p>
-            <p className="font-medium text-gray-800">We make your child the shining star of their own story.</p>
+            <p>Children find kindness, courage, and wonder in stories. With <span className='text-white bg-primary px-1.5 py-0.5 rounded font-medium'>Dreamaze</span>, they also find themselves. Engaging deeper, connecting closer…… in a one-of-a-kind story, just like they are.</p>
           </div>
         </div>
 
@@ -107,18 +104,14 @@ function InitialSpark() {
 
         {/* Main Headline Section */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 leading-tight">
-            <span className="text-blue-600">Dreamaze:</span>
-            <br />
-            <span className="text-gray-900">
-              See Yourself In Amazing Dreams
-            </span>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center text-primary leading-tight">
+            Dreamaze: See Yourself In Amazing Dreams
           </h2>
           
           <div className="max-w-md mx-auto space-y-1 text-sm text-gray-600">
             <p>A whole collection to celebrate your child's milestones.</p>
             <p>Heartfelt editions for grown-ups.</p>
-            <p className="text-blue-600 font-medium">More language options</p>
+            <p className="">More language options</p>
           </div>
         </div>
 

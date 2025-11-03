@@ -46,6 +46,10 @@ export const API_ADMIN_PERMISSIONS = API_DOMAIN + '/admin/permissions';
 export const API_ADMIN_ORDERS = API_DOMAIN + '/admin/orders'
 export const API_ADMIN_ORDER_DETAIL = (id: string | number) => `${API_ADMIN_ORDERS}/${id}`
 
+
+export const API_ADMIN_LOGSTICS = API_DOMAIN + '/admin/logistics'
+export const API_ADMIN_LOGSTIC_DETAIL = (id: string | number) => `${API_ADMIN_LOGSTICS}/${id}`
+
 export const API_ADMIN_PICBOOKS = API_DOMAIN + '/admin/picbooks'
 export const API_ADMIN_PICBOOK_DETAIL = (id: string | number) => `${API_ADMIN_PICBOOKS}/${id}`
 

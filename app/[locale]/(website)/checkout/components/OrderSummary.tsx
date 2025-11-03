@@ -24,7 +24,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
           <div key={item.id} className="flex items-start">
             <div className="h-16 w-12 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 mr-4">
               <img
-                src={item.product_image || '/images/placeholder.png'}
+                src={item.product_image || '/home-page/cover.png'}
                 alt={item.sku_code}
                 className="h-full w-full object-cover object-center"
               />

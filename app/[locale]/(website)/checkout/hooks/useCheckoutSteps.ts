@@ -17,8 +17,8 @@ export const useCheckoutSteps = () => {
   const completeStep = (stepNumber: number) => {
     if (!completedSteps.includes(stepNumber)) {
       setCompletedSteps([...completedSteps, stepNumber]);
-      setOpenStep(stepNumber + 1);
     }
+    setOpenStep(stepNumber + 1);
   };
 
   return {
