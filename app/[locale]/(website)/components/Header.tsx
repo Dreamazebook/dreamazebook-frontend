@@ -34,7 +34,7 @@ const menuItems = [
     isActive: (pathname: string) => pathname?.includes('/books')
   },
   {
-    label: 'Christmas',
+    label: 'Christmas Special',
     href: '/christmas',
     isActive: (pathname: string) => pathname === '/christmas'
   },
