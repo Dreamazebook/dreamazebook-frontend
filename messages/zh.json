@@ -98,6 +98,24 @@
     "emailPlaceholder": "您的邮箱地址",
     "subscribe": "订阅"
   },
+  "BookDetail": {
+    "loading": "加载中...",
+    "noBookFound": "未找到书籍",
+    "specifications": {
+      "size": "20cm x 20cm 横版",
+      "pages": "介于 54-110 页（取决于日期）",
+      "delivery": "2-4 个工作日内印刷并发货"
+    },
+    "language": {
+      "en": "English",
+      "zh": "中文"
+    },
+    "personalizeButton": "个性化我的书",
+    "faq": {
+      "title": "你在哪里？拯救多元宇宙！",
+      "description": "我们为每一本书倾注大量心血——帮助您向最重要的人表达他们对您的意义。"
+    }
+  },
   "orderSummary": {
     "title": "🎉 您的书籍正在精心准备中！",
     "subtitle": "我们将在 48 小时内联系您以完成书籍设计！请留意您的邮箱 ✨",
