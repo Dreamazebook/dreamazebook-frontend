@@ -17,7 +17,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
     { href: "/profile", translationKey: "home" },
     { href: "/profile/detail", translationKey: "accountDetails" },
     { href: "/profile/order-history", translationKey: "orderHistory" },
-    { href: "#", translationKey: "loyalty" },
+    // { href: "#", translationKey: "loyalty" },
   ];
 
 
