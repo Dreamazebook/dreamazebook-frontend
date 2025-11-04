@@ -54,7 +54,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       const candidatePaths = [
         `/products/picbooks/${bookId}/avatar/skin_properties.json?${cacheBuster}`,
         // 回退为默认 SPU 资源
-        `/products/picbooks/PICBOOK_GOODNIGHT2/avatar/skin_properties.json?${cacheBuster}`,
+        `/products/picbooks/PICBOOK_GOODNIGHT/avatar/skin_properties.json?${cacheBuster}`,
       ];
 
       for (const path of candidatePaths) {
@@ -128,7 +128,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
         const ts = Date.now();
         const candidates = [
           `/products/picbooks/${bookId}/avatar/layer_background.png?ts=${ts}`,
-          `/products/picbooks/PICBOOK_GOODNIGHT2/avatar/layer_background.png?ts=${ts}`,
+          `/products/picbooks/PICBOOK_GOODNIGHT/avatar/layer_background.png?ts=${ts}`,
         ];
         for (const src of candidates) {
           try {
@@ -410,7 +410,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
         const ts = Date.now();
         await drawLayerWithFilter([
           `/products/picbooks/${bookId}/avatar/layer_background.png?ts=${ts}`,
-          `/products/picbooks/PICBOOK_GOODNIGHT2/avatar/layer_background.png?ts=${ts}`,
+          `/products/picbooks/PICBOOK_GOODNIGHT/avatar/layer_background.png?ts=${ts}`,
         ], null, 'BACKGROUND');
       }
 

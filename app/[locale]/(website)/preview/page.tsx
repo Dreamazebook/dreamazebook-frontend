@@ -1902,12 +1902,12 @@ export default function PreviewPageWithTopNav() {
         const mapHairColor = (v: any) => {
           if (typeof v === 'string') {
             const s = v.toLowerCase();
-            if (s === 'light') return 'blone';
+            if (s === 'light') return 'blonde';
             if (s === 'dark' || s === 'black') return 'dark';
             return 'dark';
           }
           const n = Number(v) || 1;
-          if (n === 1) return 'blone';
+          if (n === 1) return 'blonde';
           if (n === 3) return 'dark';
           return 'dark';
         };
@@ -2102,12 +2102,12 @@ export default function PreviewPageWithTopNav() {
             const mapHairColor = (v: any) => {
               if (typeof v === 'string') {
                 const s = v.toLowerCase();
-                if (s === 'light') return 'blone';
+                if (s === 'light') return 'blonde';
                 if (s === 'dark' || s === 'black') return 'dark';
                 return 'dark';
               }
               const n = Number(v) || 1;
-              if (n === 1) return 'blone';
+              if (n === 1) return 'blonde';
               if (n === 3) return 'dark';
               return 'dark';
             };
@@ -2541,7 +2541,7 @@ export default function PreviewPageWithTopNav() {
               {viewMode === 'single' ? (
                 <GiverDedicationCanvas
                   className="w-full max-w-[500px]"
-                  imageUrl={'/products/picbooks/PICBOOK_GOODNIGHT2/giver.webp'}
+                  imageUrl={'/products/picbooks/PICBOOK_GOODNIGHT/giver.webp'}
                   mode="single"
                   giverText={giver}
                   dedicationText={dedication}
@@ -2552,7 +2552,7 @@ export default function PreviewPageWithTopNav() {
                   <div className="relative w-full">
                     <GiverDedicationCanvas
                       className="w-full"
-                      imageUrl={'/products/picbooks/PICBOOK_GOODNIGHT2/giver.webp'}
+                      imageUrl={'/products/picbooks/PICBOOK_GOODNIGHT/giver.webp'}
                       mode="double"
                       giverText={giver}
                       dedicationText={dedication}

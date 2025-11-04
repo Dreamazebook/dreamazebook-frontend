@@ -14,7 +14,7 @@ interface HairstyleSelectorProps {
   // Optional: backend-driven hair style values, e.g. ["1","2","3","4"].
   // UI remains the same; values are mapped to internal ids: hair_1..hair_4
   hairStyleValues?: string[];
-  // Optional: override asset spu code for icon images (defaults to PICBOOK_GOODNIGHT2)
+  // Optional: override asset spu code for icon images (defaults to PICBOOK_GOODNIGHT)
   assetSpuCode?: string;
   // Current selected hair color key: light | brown | dark
   currentHairColor?: string;
@@ -38,7 +38,7 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 
   // 优先用当前书籍 id 对应的公共资源，如不存在则回退到指定 spu 资源
   const primaryBase = `/products/picbooks/${bookId}/avatar`;
-  const fallbackBase = `/products/picbooks/${assetSpuCode || 'PICBOOK_GOODNIGHT2'}/avatar`;
+  const fallbackBase = `/products/picbooks/${assetSpuCode || 'PICBOOK_GOODNIGHT'}/avatar`;
   const hairstyles = ids.map(id => {
     const number = id.replace('hair_', '');
     return {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from '@/i18n/routing';
 import { useSearchParams } from 'next/navigation';
 import useUserStore from '@/stores/userStore'
@@ -18,6 +18,10 @@ export default function LoginModal() {
   const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    setErrorMessage('');
+  },[mode]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
