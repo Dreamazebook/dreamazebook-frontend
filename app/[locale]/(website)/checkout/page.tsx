@@ -49,6 +49,8 @@ export default function CheckoutPage() {
     if (orderDetail) {
       if (orderDetail.shipping_address) {
         setShippingAddress(orderDetail.shipping_address);
+      } else {
+        setShowShippingForm(true);
       }
       if (orderDetail.billing_address) {
         setBillingAddress(orderDetail.billing_address);
@@ -78,8 +80,19 @@ export default function CheckoutPage() {
     // TODO: Implement coupon logic
   };
 
+  const isSameAddress = (addr1: Address, addr2: Address) => {
+    return addr1.street === addr2.street &&
+           addr1.city === addr2.city &&
+           addr1.state === addr2.state &&
+           addr1.post_code === addr2.post_code &&
+           addr1.country === addr2.country;
+  }
+
   const handleNextFromShipping = async () => {
-    const skipUpdateShippingAddress = (orderDetail?.shipping_address?.street === shippingAddress.street);
+    let skipUpdateShippingAddress = false;
+    if (orderDetail?.shipping_address) {
+      skipUpdateShippingAddress = isSameAddress(orderDetail?.shipping_address, shippingAddress);
+    }
     const skipUpdateBillingAddress = (!needsBillingAddress || (needsBillingAddress && orderDetail?.billing_address?.street === billingAddress.street));
     
     if (skipUpdateShippingAddress && skipUpdateBillingAddress) {
