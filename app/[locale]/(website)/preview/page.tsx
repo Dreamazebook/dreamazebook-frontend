@@ -213,6 +213,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   progress,
   overlayMode = 'progress',
   content,
+  customOverlayContent,
 }: {
   pageId: number;
   pageNumber: number;
@@ -222,6 +223,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   progress: number;
   overlayMode?: 'progress' | 'loading';
   content?: string | null;
+  customOverlayContent?: React.ReactNode;
 }) {
   if (viewMode === 'single') {
     return (
@@ -341,6 +343,11 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                 />
               </div>
             )}
+            {customOverlayContent && (
+              <div className="absolute inset-0 z-10 pointer-events-none">
+                {customOverlayContent}
+              </div>
+            )}
           </div>
         </div>
 
@@ -383,6 +390,11 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
               </div>
             )}
           </div>
+          {customOverlayContent && (
+            <div className="absolute inset-0 z-10 pointer-events-none">
+              {customOverlayContent}
+            </div>
+          )}
         </div>
       ) : (
         <div className="w-full relative">
@@ -399,6 +411,11 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
               console.log(`图片加载成功: ${src}`);
             }}
           />
+          {customOverlayContent && (
+            <div className="absolute inset-0 z-10 pointer-events-none">
+              {customOverlayContent}
+            </div>
+          )}
         </div>
       )}
       {content && (
@@ -417,7 +434,8 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
     prev.viewMode === next.viewMode &&
     prev.showOverlay === next.showOverlay &&
     Math.round(prev.progress) === Math.round(next.progress) &&
-    prev.content === next.content
+    prev.content === next.content &&
+    prev.customOverlayContent === next.customOverlayContent
   );
 });
 
@@ -2535,53 +2553,7 @@ export default function PreviewPageWithTopNav() {
                 )}
               </div>
             </div>
-            {/* Giver & Dedication 按 has_replaceable_text==2 的页渲染到对应位置 */}
-            {/* Giver & Dedication: render immediately, independent of preview_data */}
-            <div className="w-full max-w-5xl mb-8" ref={giverDedicationRef}>
-              {viewMode === 'single' ? (
-                <GiverDedicationCanvas
-                  className="w-full max-w-[500px]"
-                  imageUrl={'/products/picbooks/PICBOOK_GOODNIGHT/giver.webp'}
-                  mode="single"
-                  giverText={giver}
-                  dedicationText={dedication}
-                  giverImageUrl={giverImageUrl}
-                />
-              ) : (
-                <div className="w-full flex justify-center">
-                  <div className="relative w-full">
-                    <GiverDedicationCanvas
-                      className="w-full"
-                      imageUrl={'/products/picbooks/PICBOOK_GOODNIGHT/giver.webp'}
-                      mode="double"
-                      giverText={giver}
-                      dedicationText={dedication}
-                      giverImageUrl={giverImageUrl}
-                    />
-                    <div className="pointer-events-none">
-                      <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
-                        <button
-                          type="button"
-                          onClick={() => setEditField('giver')}
-                          className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                        >
-                          Edit Giver
-                        </button>
-                      </div>
-                      <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
-                        <button
-                          type="button"
-                          onClick={() => setEditField('dedication')}
-                          className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                        >
-                          Edit Dedication
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* 寄语页已移除：改为叠加至第二张预览图 */}
 
             {/* 换脸状态信息（仅排队时展示提示条），放在寄语页下方 */}
             {(() => {
@@ -2673,6 +2645,51 @@ export default function PreviewPageWithTopNav() {
                               progress={progress}
                               overlayMode={overlayMode as any}
                               content={page.content}
+                              customOverlayContent={idx === 1 ? (
+                                viewMode === 'single' ? (
+                                  <div className="w-full h-full relative">
+                                    <GiverDedicationCanvas
+                                      className="w-full h-full"
+                                      imageUrl={src}
+                                      mode="single"
+                                      giverText={giver}
+                                      dedicationText={dedication}
+                                      giverImageUrl={giverImageUrl}
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="w-full h-full relative">
+                                    <GiverDedicationCanvas
+                                      className="w-full h-full"
+                                      imageUrl={src}
+                                      mode="double"
+                                      giverText={giver}
+                                      dedicationText={dedication}
+                                      giverImageUrl={giverImageUrl}
+                                    />
+                                    <div className="pointer-events-none">
+                                      <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
+                                        <button
+                                          type="button"
+                                          onClick={() => setEditField('giver')}
+                                          className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                        >
+                                          Edit Giver
+                                        </button>
+                                      </div>
+                                      <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
+                                        <button
+                                          type="button"
+                                          onClick={() => setEditField('dedication')}
+                                          className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                        >
+                                          Edit Dedication
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )
+                              ) : undefined}
                             />
                         </div>
                       </div>
@@ -2680,7 +2697,7 @@ export default function PreviewPageWithTopNav() {
                   });
                   })()}
                 </div>
-                {(isGenerating || isCompleted) && (
+                {(isCompleted) && (
                   <p className="text-center text-[#999999] mt-8">
                     We've specially curated {previewData.preview_data.length} pages for you – enjoy a sneak peek of your unique story!
                   </p>
