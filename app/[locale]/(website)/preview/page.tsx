@@ -2633,64 +2633,90 @@ export default function PreviewPageWithTopNav() {
                     const isReplaceablePage = replaceableTextPageIds.has(page.page_id) || replaceableTextPageNumbers.has(page.page_number);
                     // 轮到该页前（progress 为 0）显示 loading；开始后显示进度
                     const overlayMode = (progress > 0 ? 'progress' : 'loading');
+                    // 第二张图：单页模式直接用 GiverDedicationCanvas 取代基础图，避免重复；双页模式叠加覆盖层
+                    if (idx === 1 && viewMode === 'single') {
+                      return (
+                        <div key={page.page_id} className="w-full flex flex-col items-center">
+                          <div className="w-full max-w-5xl">
+                            <GiverDedicationCanvas
+                              className="w-full"
+                              imageUrl={src}
+                              mode="single"
+                              giverText={giver}
+                              dedicationText={dedication}
+                              giverImageUrl={giverImageUrl}
+                              leftBelow={(
+                                <div className="mt-2 w-full flex justify-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditField('giver')}
+                                    className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                  >
+                                    Edit Giver
+                                  </button>
+                                </div>
+                              )}
+                              rightBelow={(
+                                <div className="mt-2 w-full flex justify-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditField('dedication')}
+                                    className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                  >
+                                    Edit Dedication
+                                  </button>
+                                </div>
+                              )}
+                            />
+                          </div>
+                        </div>
+                      );
+                    }
                     return (
                       <div key={page.page_id} className="w-full flex flex-col items-center">
                         <div className="w-full max-w-5xl">
-                            <PreviewPageItem
-                              pageId={page.page_id}
-                              pageNumber={page.page_number}
-                              src={src}
-                              viewMode={viewMode}
-                              showOverlay={isSwapping}
-                              progress={progress}
-                              overlayMode={overlayMode as any}
-                              content={page.content}
-                              customOverlayContent={idx === 1 ? (
-                                viewMode === 'single' ? (
-                                  <div className="w-full h-full relative">
-                                    <GiverDedicationCanvas
-                                      className="w-full h-full"
-                                      imageUrl={src}
-                                      mode="single"
-                                      giverText={giver}
-                                      dedicationText={dedication}
-                                      giverImageUrl={giverImageUrl}
-                                    />
+                          <PreviewPageItem
+                            pageId={page.page_id}
+                            pageNumber={page.page_number}
+                            src={src}
+                            viewMode={viewMode}
+                            showOverlay={isSwapping}
+                            progress={progress}
+                            overlayMode={overlayMode as any}
+                            content={page.content}
+                            customOverlayContent={idx === 1 ? (
+                              <div className="w-full h-full relative">
+                                <GiverDedicationCanvas
+                                  className="w-full h-full"
+                                  imageUrl={src}
+                                  mode="double"
+                                  giverText={giver}
+                                  dedicationText={dedication}
+                                  giverImageUrl={giverImageUrl}
+                                />
+                                <div className="pointer-events-none">
+                                  <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditField('giver')}
+                                      className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                    >
+                                      Edit Giver
+                                    </button>
                                   </div>
-                                ) : (
-                                  <div className="w-full h-full relative">
-                                    <GiverDedicationCanvas
-                                      className="w-full h-full"
-                                      imageUrl={src}
-                                      mode="double"
-                                      giverText={giver}
-                                      dedicationText={dedication}
-                                      giverImageUrl={giverImageUrl}
-                                    />
-                                    <div className="pointer-events-none">
-                                      <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
-                                        <button
-                                          type="button"
-                                          onClick={() => setEditField('giver')}
-                                          className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                                        >
-                                          Edit Giver
-                                        </button>
-                                      </div>
-                                      <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
-                                        <button
-                                          type="button"
-                                          onClick={() => setEditField('dedication')}
-                                          className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                                        >
-                                          Edit Dedication
-                                        </button>
-                                      </div>
-                                    </div>
+                                  <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditField('dedication')}
+                                      className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                    >
+                                      Edit Dedication
+                                    </button>
                                   </div>
-                                )
-                              ) : undefined}
-                            />
+                                </div>
+                              </div>
+                            ) : undefined}
+                          />
                         </div>
                       </div>
                     );
