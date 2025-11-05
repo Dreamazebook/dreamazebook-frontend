@@ -278,6 +278,44 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
   );
 };
 
+// Why you need a personalized book? Section 组件
+const WhyPersonalizedSection: React.FC<{ section: BookSection }> = ({ section }) => {
+  return (
+    <div className={`${section.className || ''} flex flex-col gap-[24px] md:gap-[48px]`}>
+      {section.title && (
+        <h2
+          className="text-center text-[24px] md:text-[40px] font-semibold md:font-medium leading-[32px] md:leading-[64px]"
+          style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
+        >
+          {section.title}
+        </h2>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-[6px] md:gap-6 md:gap-3 md:w-[732px] md:h-[532px] mx-auto">
+        {(section.items || []).map((item, idx) => (
+          <div key={idx} className="relative overflow-hidden rounded-[4px] h-[124px] w-[343px] md:h-[260px] md:w-[360px] md:pt-16 md:pr-9 md:pb-12 md:pl-9 pt-6 pr-9 pb-6 pl-9 bg-[#FBE5E5]">
+            {/* 背景图层 */}
+            <div
+              className="absolute inset-0 z-0 pointer-events-none"
+              style={{
+                backgroundImage: item.backgroundImage ? `url(${item.backgroundImage})` : undefined,
+                backgroundPosition: 'right bottom',
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: 'auto 100%'
+              }}
+            />
+            {/* 文案 */}
+            <div className="absolute left-6 right-6 top-6 md:max-w-[70%] flex flex-col gap-6 z-10">
+              <h3 className="text-[#222222] text-[16px] md:text-[18px] font-medium">{item.title}</h3>
+              <p className="text-[#666666] text-[14px] md:text-[16px] leading-[22px]">{item.description}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // Section 渲染器
 const renderSection = (section: BookSection, index: number) => {
   switch (section.type) {
@@ -285,6 +323,8 @@ const renderSection = (section: BookSection, index: number) => {
       return <BehindStorySection key={index} section={section} />;
     case 'toddler-favorites':
       return <ToddlerFavoritesSection key={index} section={section} />;
+    case 'why-personalized':
+      return <WhyPersonalizedSection key={index} section={section} />;
     case 'custom':
       // 如果有自定义渲染函数，使用它
       if (section.render) {

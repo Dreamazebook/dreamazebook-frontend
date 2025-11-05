@@ -2,7 +2,7 @@ import React from 'react';
 
 // 定义书籍section的类型
 export interface BookSection {
-  type: 'behind-story' | 'toddler-favorites' | 'custom'; // section类型，可以扩展
+  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'custom'; // section类型，可以扩展
   title?: string; // section标题
   content?: string; // section内容
   description?: string; // section描述文字
@@ -36,6 +36,12 @@ export interface BookSection {
   originalPrice?: string; // 原价
   discountedPrice?: string; // 折后价
   buttonText?: string; // 按钮文字
+  // Why Personalized 专用字段
+  items?: Array<{
+    title: string;
+    description: string;
+    backgroundImage?: string; // 卡片右侧/底部背景图，稍后由你提供
+  }>;
 }
 
 // 定义书籍配置的类型
@@ -97,6 +103,33 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
         originalPrice: '$25.0',
         discountedPrice: '$19.9',
         buttonText: 'add bundle to bag',
+      },
+      {
+        type: 'why-personalized',
+        title: 'Why you need a personalized book?',
+        className: 'px-[88px] py-[120px] mx-auto md:w-full md:px-0 md:h-[860px] md:pt-[88px] md:pb-[128px]',
+        items: [
+          {
+            title: 'Makes bedtime easier',
+            description: 'Kids calm down faster when they see themselves in the story.',
+            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png'
+          },
+          {
+            title: 'Builds self-recognition',
+            description: 'Like a mirror in story form, helping children feel seen and valued.',
+            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png'
+          },
+          {
+            title: 'Strengthens bonding',
+            description: 'Creates meaningful parent–child moments you’ll both remember.',
+            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png'
+          },
+          {
+            title: 'A keepsake for life',
+            description: 'More than a book, it’s a treasure you’ll want to keep forever.',
+            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png'
+          }
+        ]
       },
     ],
   },
