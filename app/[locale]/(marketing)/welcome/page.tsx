@@ -4,11 +4,11 @@ import Image from 'next/image'
 import Growth from "../components/Growth";
 import PromotionBanner from "../components/PromotionBanner";
 import ReserveSection from "../components/ReserveSection";
-// import TheOnlyBook from "../components/TheOnlyBook";
+import TheOnlyBook from "../components/TheOnlyBook";
 import EffortlessGifting from "../components/DeeplyMeaningful";
 import SuperStrongEmotionalConnection from "./components/SuperStrongEmotionalConnection";
 import ExpertlyCrafted from "../components/ExpertlyCrafted";
-// import FAQWelcome from "../components/FAQWelcome";
+import FAQWelcome from "../components/FAQWelcome";
 import {AnimatedSection} from "@/app/components/AnimatedSection";
 import HeroBanner from "../components/HeroBanner";
 import { AboutUs } from "../components/AboutUs";
@@ -56,6 +56,8 @@ export default function LandingPage() {
         <EffortlessGifting />
       </AnimatedSection>
 
+      <TheOnlyBook />
+
       <AnimatedSection>
         <SuperStrongEmotionalConnection />
       </AnimatedSection>
@@ -86,6 +88,8 @@ export default function LandingPage() {
           desc="Be among the first to reserve and lock in our exclusive 40% VIP discount <br/> a once-only offer to reward early supporters who know a good thing when they see it."
           btnText="Reserve Early & Save Big" />
       </AnimatedSection>
+
+      <FAQWelcome />
 
       <Footer />
     </main>
