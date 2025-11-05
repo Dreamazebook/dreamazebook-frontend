@@ -5,6 +5,7 @@ import { Cropper } from 'react-cropper';
 import type { ReactCropperElement } from 'react-cropper';
 import type { AxiosResponse } from 'axios';
 import { uploadApi } from '@/utils/api.js';
+import api from '@/utils/api';
 
 type Props = {
   onDone: (url: string) => void;
@@ -16,6 +17,12 @@ type Props = {
   exportQuality?: number; // 0-1，仅 JPEG/WebP 生效
   // 可选：限制导出最大尺寸（防止超大图）
   maxSize?: number; // 最大边长，像素
+  // 可选：产品SPU代码，用于调用特殊图片上传接口
+  spu?: string;
+  // 可选：页面ID或页面编号，用于调用特殊图片上传接口
+  page?: string | number;
+  // 可选：批次ID，用于调用特殊图片上传接口
+  batchId?: string;
 };
 
 // 复制 hooks 内部的地址规范化逻辑，便于将后端 path 转为可访问 URL
@@ -42,7 +49,9 @@ function toAbsoluteUrl(raw: string): string {
   return `${origin}/${cleanPath}`;
 }
 
-export default function GiverAvatarCropper({ onDone, onCancel, aspectRatio, maxSize, exportMime = 'image/jpeg', exportQuality = 0.92 }: Props) {
+export default function GiverAvatarCropper({ onDone, onCancel, aspectRatio, maxSize, exportMime = 'image/jpeg', exportQuality = 0.92, spu, page, batchId }: Props) {
+  // 如果提供了spu和page参数，直接使用新的接口，否则使用原有逻辑
+  const useNewUploadMethod = spu && page !== undefined && page !== null;
   const [src, setSrc] = useState<string | undefined>();
   const cropperRef = useRef<ReactCropperElement>(null);
   const [sx, setSx] = useState(1);
@@ -89,6 +98,51 @@ export default function GiverAvatarCropper({ onDone, onCancel, aspectRatio, maxS
     return data.url || toAbsoluteUrl(data.path as string);
   };
 
+  // 将blob转换为base64格式
+  const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  // 上传特殊图片到指定页面
+  const uploadSpecialImage = async (base64Data: string): Promise<string> => {
+    if (!spu || page === undefined || page === null) {
+      throw new Error('Missing required parameters: spu or page');
+    }
+
+    const pageParam = String(page);
+    const requestBody: {
+      data: string;
+      batch_id?: string;
+    } = {
+      data: base64Data,
+    };
+
+    // 如果提供了batch_id，则添加到请求中
+    if (batchId) {
+      requestBody.batch_id = batchId;
+    }
+
+    const resp: AxiosResponse<{ url?: string; path?: string }> = await api.post(`/admin/products/${encodeURIComponent(spu)}/pages/${encodeURIComponent(pageParam)}/upload-special-image`, requestBody);
+    const data = resp.data;
+
+    // 假设接口返回包含 url 或 path 的响应
+    if (!data || (!data.url && !data.path)) {
+      throw new Error('Invalid upload response');
+    }
+
+    const url = data.url || toAbsoluteUrl(data.path as string);
+    console.log('Special image uploaded successfully:', url);
+    return url;
+  };
+
   const onApply = async () => {
     const cropper = cropperRef.current?.cropper;
     if (!cropper) return;
@@ -116,7 +170,17 @@ export default function GiverAvatarCropper({ onDone, onCancel, aspectRatio, maxS
       canvas.toBlob(async (blob) => {
         if (!blob) return;
         try {
-          const url = await uploadBlob(blob);
+          let url: string;
+
+          if (useNewUploadMethod) {
+            // 使用新的接口：直接上传base64数据
+            const base64Data = await blobToBase64(blob);
+            url = await uploadSpecialImage(base64Data);
+          } else {
+            // 使用原有逻辑：先上传文件获取URL
+            url = await uploadBlob(blob);
+          }
+
           onDone(url);
         } catch (e: unknown) {
           setError(e instanceof Error ? e.message : 'Upload failed');

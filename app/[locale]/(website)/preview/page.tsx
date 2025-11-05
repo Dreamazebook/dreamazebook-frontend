@@ -3191,17 +3191,34 @@ export default function PreviewPageWithTopNav() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             {editField === 'giver' ? (
               <div className="bg-white w-[860px] max-w-[95vw] rounded-sm pt-6 pr-6 pb-4 pl-6 flex flex-col gap-4">
-                <GiverAvatarCropper
-                  aspectRatio={1}
-                  maxSize={1024}
-                  exportMime="image/jpeg"
-                  exportQuality={0.92}
-                  onCancel={() => setEditField(null)}
-                  onDone={(url) => {
-                    setGiverImageUrl(url);
-                    setEditField(null);
-                  }}
-                />
+                {(() => {
+                  // 获取bookId（spu）
+                  const bookId = searchParams.get('bookid');
+                  // 找到显示giver的页面（通常是第二页，idx === 1）
+                  const displayedPages = previewData?.preview_data?.filter((p: any) => !(p as any).is_cover) || [];
+                  const giverPage = displayedPages.length > 1 ? displayedPages[1] : displayedPages[0];
+                  const pageId = giverPage?.page_id;
+                  const pageNumber = giverPage?.page_number;
+                  // 尝试获取batchId（如果存在）
+                  const currentBatchId = (previewData as any)?.batch_id;
+                  
+                  return (
+                    <GiverAvatarCropper
+                      aspectRatio={1}
+                      maxSize={1024}
+                      exportMime="image/jpeg"
+                      exportQuality={0.92}
+                      spu={bookId || undefined}
+                      page={pageId || pageNumber || undefined}
+                      batchId={currentBatchId}
+                      onCancel={() => setEditField(null)}
+                      onDone={(url) => {
+                        setGiverImageUrl(url);
+                        setEditField(null);
+                      }}
+                    />
+                  );
+                })()}
               </div>
             ) : (
               // 寄语弹窗
