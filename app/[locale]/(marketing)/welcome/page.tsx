@@ -1,24 +1,26 @@
 "use client";
 import React from "react";
 import Image from 'next/image'
-// import Growth from "../components/Growth";
-// import PromotionBanner from "../components/PromotionBanner";
-// import ReserveSection from "../components/ReserveSection";
+import Growth from "../components/Growth";
+import PromotionBanner from "../components/PromotionBanner";
+import ReserveSection from "../components/ReserveSection";
 // import TheOnlyBook from "../components/TheOnlyBook";
-// import EffortlessGifting from "../components/DeeplyMeaningful";
-// import SuperStrongEmotionalConnection from "./components/SuperStrongEmotionalConnection";
-// import ExpertlyCrafted from "../components/ExpertlyCrafted";
+import EffortlessGifting from "../components/DeeplyMeaningful";
+import SuperStrongEmotionalConnection from "./components/SuperStrongEmotionalConnection";
+import ExpertlyCrafted from "../components/ExpertlyCrafted";
 // import FAQWelcome from "../components/FAQWelcome";
 import {AnimatedSection} from "@/app/components/AnimatedSection";
-// import HeroBanner from "../components/HeroBanner";
-// import { AboutUs } from "../components/AboutUs";
-// import BelovedByEarlyTesters from "../components/BelovedByEarlyTesters";
-import { DREAMAZEBOOK_LOGO } from "@/constants/cdn";
-import CountdownBanner from "../components/CountdownBanner";
-import TestimonialSlider from "./components/TestimonialSlider";
-import AGiftConnectHearts from "../components/AGiftConnectHearts";
-import FAQKickstarter from "../components/FAQKickstarter";
+import HeroBanner from "../components/HeroBanner";
+import { AboutUs } from "../components/AboutUs";
+import BelovedByEarlyTesters from "../components/BelovedByEarlyTesters";
+import { DREAMAZEBOOK_LOGO, VIP_DISCOUNT, VIP_DISCOUNT_APP } from "@/constants/cdn";
+import Footer from "../components/Footer";
 
+
+// import CountdownBanner from "../components/CountdownBanner";
+// import TestimonialSlider from "./components/TestimonialSlider";
+// import AGiftConnectHearts from "../components/AGiftConnectHearts";
+// import FAQKickstarter from "../components/FAQKickstarter";
 
 export default function LandingPage() {
 
@@ -26,7 +28,7 @@ export default function LandingPage() {
     <main className="bg-white relative">
       <Image className="absolute top-0 left-4 md:left-10 z-10" src={DREAMAZEBOOK_LOGO} alt="Logo" width={168} height={56} />
 
-      <CountdownBanner />
+      {/* <CountdownBanner />
 
       <AnimatedSection>
         <AGiftConnectHearts />
@@ -38,9 +40,9 @@ export default function LandingPage() {
 
       <AnimatedSection>
         <FAQKickstarter />
-      </AnimatedSection>
+      </AnimatedSection> */}
       
-      {/* <HeroBanner />
+      <HeroBanner />
 
       <AnimatedSection>
         <PromotionBanner />
@@ -85,7 +87,7 @@ export default function LandingPage() {
           btnText="Reserve Early & Save Big" />
       </AnimatedSection>
 
-      <Footer /> */}
+      <Footer />
     </main>
   )
 }
