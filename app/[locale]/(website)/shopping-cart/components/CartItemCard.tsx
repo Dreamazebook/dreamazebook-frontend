@@ -106,7 +106,7 @@ export default function CartItemCard({
             
             <div className="w-full h-[120px] flex flex-col gap-[12px] pt-4 pr-6 pb-4 pl-6 opacity-100 box-border">
               <div className='flex justify-between items-center'>
-                <h3 className="font-bold">{item.spu_code}</h3>
+                <h3 className="font-bold">{item.product_name || item.spu_code}</h3>
                 <div className='flex items-center gap-3'>
                   <DisplayPrice style='text-[#222222] font-bold' value={item.total_price} />
                   {onRemoveItem && 
