@@ -52,8 +52,8 @@ export default function FormField({
           onBlur={onBlur}
         >
           <option value="">Select</option>
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
+          {options.map((opt,idx) => (
+            <option key={opt.value+idx} value={opt.value}>
               {opt.label}
             </option>
           ))}

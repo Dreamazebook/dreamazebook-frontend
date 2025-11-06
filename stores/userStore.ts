@@ -119,7 +119,16 @@ const useUserStore = create<UserState>((set,get) => ({
   fetchCountryList: async () => {
     if (get().countryList.length == 0) {
       const {data} = await api.get<ApiResponse>(API_COUNTRY_LIST);
-      set({'countryList': data});
+      if (data.length == 0) return;
+      const countryList:any = [{ value: '', label: 'Select Country' },];
+      data.forEach(({country}: any) => {
+        country.forEach(({countrys}: any) => {
+          countrys.forEach((c: any) => {
+            countryList.push({value: c.code, label: c.ename});
+          });
+        })
+      });
+      set({'countryList': countryList});
     }
   },
 
