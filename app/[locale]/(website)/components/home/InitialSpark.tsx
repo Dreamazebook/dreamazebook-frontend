@@ -1,23 +1,33 @@
-import { HOME_IMAGE } from '@/constants/cdn';
+import { HOME_SPARKS } from '@/constants/cdn';
 import React from 'react';
 
 function InitialSpark() {
   const images = [
     {
-      src: HOME_IMAGE('spark1.png'),
+      src: HOME_SPARKS('1.png'),
       alt: 'Child reading books',
       showStar: false,
     },
     {
-      src: HOME_IMAGE('spark2.png'),
+      src: HOME_SPARKS('2.png'),
       alt: 'Young person reading magazine',
       showStar: true,
     },
     {
-      src: HOME_IMAGE('spark3.png'),
+      src: HOME_SPARKS('3.png'),
       alt: 'Person reading with coffee',
       showStar: false,
     },
+    {
+      src: HOME_SPARKS('4.png'),
+      alt: 'Child reading with parent',
+      showStar: true,
+    },
+    {
+      src: HOME_SPARKS('5.png'),
+      alt: 'Child reading book outdoors',
+      showStar: false,
+    }
   ];
 
   return (
