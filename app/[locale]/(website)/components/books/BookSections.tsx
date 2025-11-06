@@ -291,7 +291,7 @@ const WhyPersonalizedSection: React.FC<{ section: BookSection }> = ({ section })
         </h2>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-[6px] md:gap-6 md:gap-3 md:w-[732px] md:h-[532px] mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 gap-[6px] md:w-[732px] md:h-[532px] mx-auto justify-items-center md:justify-items-stretch">
         {(section.items || []).map((item, idx) => (
           <div key={idx} className="relative overflow-hidden rounded-[4px] h-[124px] w-[343px] md:h-[260px] md:w-[360px] md:pt-16 md:pr-9 md:pb-12 md:pl-9 pt-6 pr-9 pb-6 pl-9 bg-[#FBE5E5]">
             {/* 背景图层 */}
@@ -305,9 +305,9 @@ const WhyPersonalizedSection: React.FC<{ section: BookSection }> = ({ section })
               }}
             />
             {/* 文案 */}
-            <div className="absolute left-6 right-6 top-6 md:max-w-[70%] flex flex-col gap-6 z-10">
-              <h3 className="text-[#222222] text-[16px] md:text-[18px] font-medium">{item.title}</h3>
-              <p className="text-[#666666] text-[14px] md:text-[16px] leading-[22px]">{item.description}</p>
+            <div className="absolute left-9 top-6 right-9 md:left-9 md:top-16 flex flex-col md:gap-6 gap-3 z-10">
+              <h3 className="text-[#222222] text-[18px] md:text-[16px] font-medium">{item.title}</h3>
+              <p className="text-[#666666] text-[14px] md:text-[16px] font-normal leading-[22px]">{item.description}</p>
             </div>
           </div>
         ))}
