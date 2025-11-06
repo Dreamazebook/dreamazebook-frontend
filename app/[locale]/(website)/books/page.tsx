@@ -33,6 +33,7 @@ import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
 import ReviewsSection from '../components/reviews/Reviews';
 import BooksGrid from '../components/books/BooksGrid';
+import LovedByKidsCarousel from '../components/books/LovedByKidsCarousel';
 
 // 规范化图片地址：
 // - 移除以 /public/ 开头的前缀
@@ -246,6 +247,40 @@ export default function BooksPage() {
           </div>
         )}
 
+        {/* Loved by Kids Carousel */}
+        <LovedByKidsCarousel
+          cards={[
+            {
+              id: '1',
+              title: "Little One, You're Brave in Many Ways",
+              description: "The book is really talking about me! If anyone says I'm not brave, I'll show them this book — then they'll know what being brave really means!",
+              image: '/products/picbooks/PICBOOK_YouAreBraveyInManyWays/thumb.png', // 需要替换为实际图片
+              bookId: 'PICBOOK_YouAreBraveyInManyWays',
+            },
+            {
+              id: '2',
+              title: 'Birthday Book for You',
+              description: "I saw some pigeons on the way to school… maybe they'll fly back to the forest and tell the animals my message!",
+              image: '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png', // 需要替换为实际图片
+              bookId: 'PICBOOK_BIRTHDAY', // 需要替换为实际书籍ID
+            },
+            {
+              id: '3',
+              title: "Santa's Letter for You",
+              description: "Santa really knows me! He even knows how I've been good… but how did he see all that?!",
+              image: '/products/picbooks/PICBOOK_SANTALETTER/thumb.png', // 需要替换为实际图片
+              bookId: 'PICBOOK_SANTALETTER',
+            },
+            {
+              id: '4',
+              title: 'Goodnight to You',
+              description: "It's me!! I can fly! Goodnight bear, goodnight cat… they all sleep so well, I'll sleep nicely too.",
+              image: '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png',
+              bookId: 'PICBOOK_GOODNIGHT',
+            },
+          ]}
+        />
+
         {/* Featured + Newsletter container with consistent padding */}
         <div className="w-full">
           {/* Best Seller Section - Mobile Only */}
@@ -328,7 +363,7 @@ export default function BooksPage() {
           )}
 
           {/* Reviews under Best Seller - Mobile Only */}
-          {bestSeller && (
+          {/* {bestSeller && (
             <div className="md:hidden">
               <ReviewsSection
                 compact
@@ -337,7 +372,7 @@ export default function BooksPage() {
                 reviews={[] as any}
               />
             </div>
-          )}
+          )} */}
 
           {/* Newsletter Section */}
           {/* <section className="mt-16 bg-gray-100 dark:bg-gray-800 rounded-xl">

@@ -39,7 +39,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books, personalizeLabel }) => {
                   unoptimized={false}
                 />
                 {/* Overlay: name and price floated over image */}
-                <div className="absolute inset-x-0 bottom-0 pt-20 pb-16 md:pt-12 md:pb-8 lg:pt-20 lg:pb-16 flex flex-col items-center gap-3 group-hover:gap-6 z-10 transform transition-transform duration-300 translate-y-[-24px] md:translate-y-[-48px] group-hover:translate-y-0">
+                <div className="absolute inset-x-0 bottom-0 pt-20 pb-8 md:pt-12 md:pb-8 lg:pt-20 lg:pb-16 flex flex-col items-center gap-3 group-hover:gap-6 z-10 transform transition-transform duration-300 translate-y-[-24px] md:translate-y-[-48px] group-hover:translate-y-0">
                   <div className="flex flex-col items-center gap-1">
                     <h3 className="text-[#222222] text-[18px] md:text-[18px] font-medium text-center px-4 line-clamp-2">
                       {name}
