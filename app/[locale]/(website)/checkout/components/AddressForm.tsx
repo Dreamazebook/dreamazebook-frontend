@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { ShippingErrors } from './types';
 import { Address } from '@/types/address';
 import FormField from './FormField';
+import useUserStore from '@/stores/userStore';
 
 const PUBLIC_MAPBOX_API_KEY = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
 
@@ -42,6 +43,8 @@ const AddressForm: React.FC<AddressFormProps> = ({
   address,
   setAddress,
 }) => {
+
+  const { countryList } = useUserStore();
   const [errors, setErrors] = useState<ShippingErrors>({});
 
   const clearError = (field: keyof ShippingErrors) => {
@@ -208,15 +211,9 @@ const AddressForm: React.FC<AddressFormProps> = ({
           }}
           onBlur={() => validateShippingInfo('country')}
           error={errors.country}
-          options={[
-            { value: '', label: 'Select Country' },
-            { value: 'US', label: 'United States' },
-            { value: 'CA', label: 'Canada' },
-            { value: 'CN', label: 'China' },
-            { value: 'UK', label: 'United Kingdom' },
-            { value: 'AU', label: 'Australia' },
-            { value: 'FR', label: 'France' },
-          ]}
+          options={
+            countryList
+          }
         />
 
         <FormField

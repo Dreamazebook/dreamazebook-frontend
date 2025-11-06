@@ -35,7 +35,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   showShippingForm,
   setShowShippingForm,
 }) => {
-  const { countryList, fetchCountryList } = useUserStore();
+  const { fetchCountryList } = useUserStore();
 
   // const [showBillingForm, setShowBillingForm] = useState(false);
 
