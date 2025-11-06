@@ -60,7 +60,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
         <>
           {/* 标题 */}
           <div className="text-center mb-12">
-            <span className="text-[40px] leading-[64px] font-medium">{bookReviewData.title}</span>
+            <span className="md:text-[40px] text-[24px] md:leading-[64px] leading-[32px] md:font-medium font-semibold">{bookReviewData.title}</span>
           </div>
 
           {/* 容器：平均评分区域和关键词区域 */}

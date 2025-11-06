@@ -24,7 +24,7 @@ const BehindStorySection: React.FC<{ section: BookSection }> = ({ section }) => 
     >
       {section.title && (
         <h2
-          className="text-center text-[40px] font-medium leading-[64px]"
+          className="text-center text-[24px] md:text-[40px] font-semibold md:font-medium leading-[32px] md:leading-[64px]"
           style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
         >
           {section.title}
@@ -104,7 +104,7 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
         {section.title && (
           <div className="max-w-[627px] w-full mx-auto flex flex-col">
             <h2
-              className="text-center lg:text-[40px] text-[24px] font-medium lg:leading-[64px] leading-[40px]"
+              className="text-center md:text-[40px] text-[24px] md:font-medium font-semibold md:leading-[64px] leading-[32px]"
               style={{
                 fontFamily: 'var(--font-roboto), Roboto, sans-serif',
                 letterSpacing: '0.5px', // Headline Small/Tracking (需要确认具体值)
