@@ -218,7 +218,25 @@ export default function BooksPage() {
       </header> */}
 
       {/* Main Content */}
-      <main className="mx-auto mt-8">
+      <main className="mx-auto">
+        {/* Hero Section */}
+        <section className="hidden md:block w-full bg-white py-12 px-4 md:h-[164px] md:pt-6 md:pb-6 md:pr-[120px] md:pl-[120px]">
+          <div className="mx-auto flex flex-col gap-3 md:gap-3">
+            <h1
+              className="text-[32px] md:text-[40px] font-semibold md:font-medium text-[#222222] md:leading-[40px] leading-tight"
+              style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
+            >
+              Who do you want to surprise with this super exciting gift?
+            </h1>
+            <p
+              className="text-[16px] font-normal text-[#666666] md:leading-[24px] leading-relaxed"
+              style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
+            >
+              Discover the only hand-drawn personalized books that let your child be the hero of the story.
+            </p>
+          </div>
+        </section>
+
         {/* Books Grid */}
         {sortedBooks.length > 0 ? (
           <BooksGrid books={sortedBooks} personalizeLabel={t('personalize')} />
@@ -230,72 +248,95 @@ export default function BooksPage() {
 
         {/* Featured + Newsletter container with consistent padding */}
         <div className="w-full">
-          {/* Best Seller Section */}
+          {/* Best Seller Section - Mobile Only */}
           {bestSeller && (
-            <section className="w-full grid grid-cols-1 md:grid-cols-2 items-center">
-              {/* Left: info */}
-              <div className="w-full h-[420px] pt-6 pb-6 pr-6 pl-[120px] flex flex-col justify-center gap-22">
-                {/* Top block: title, desc, rating/tags */}
-                <div className="flex flex-col gap-6">
-                  <div>
-                    <p className="text-[#222222] text-[18px] font-medium">{(bestSeller as any)?.name ?? (bestSeller as any)?.default_name ?? 'Best seller'}</p>
-                    <p className="text-[#666666] text-[16px]">{(bestSeller as any)?.description ?? (bestSeller as any)?.desc ?? ''}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Image key={i} src="/star.svg" alt="star" width={16} height={16} />
-                    ))}
-                    <span className="ml-2 inline-block px-2 py-1 text-xs rounded-full bg-[#F3F3F3] text-[#666666]">two people</span>
-                    <span className="inline-block px-2 py-1 text-xs rounded-full bg-[#F3F3F3] text-[#666666]">Mom & child</span>
-                  </div>
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-[#012CCE] text-[36px] font-medium">${Number(((bestSeller as any)?.current_price ?? (bestSeller as any)?.price ?? 0)).toFixed(0)}</span>
-                    {(bestSeller as any)?.market_price && (
-                      <span className="text-[#999999] line-through text-sm">${String((bestSeller as any)?.market_price)}</span>
+            <section className="md:hidden w-full px-4 pt-8 pb-12">
+              <div className="flex flex-col items-center gap-6 pt-4">
+                {/* Book Cover Image with Badge */}
+                <div className="relative w-full max-w-[150px]">
+                  {/* Book Cover Image */}
+                  <div className="relative w-full aspect-[3/4] bg-[#F8F8F8] overflow-hidden">
+                    {bestSellerImage && (
+                      <Image
+                        src={bestSellerImage}
+                        alt="best seller"
+                        fill
+                        className="object-cover"
+                        unoptimized={bestSellerImage.startsWith('http')}
+                        onError={(e) => {
+                          const target = e.currentTarget as HTMLImageElement & { srcset?: string };
+                          target.src = '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png';
+                          if (target.srcset) target.srcset = '';
+                        }}
+                      />
                     )}
                   </div>
+                  {/* Best Seller Badge - positioned at top-right of book cover, outside container */}
+                  <div className="absolute top-0 right-0 z-10 transform translate-x-20 -translate-y-8">
+                    <Image src="/best_seller.png" alt="Best seller" width={140} height={40} />
+                  </div>
                 </div>
-                {/* Bottom block: price and CTA */}
-                <div>
-                  <Link href={`/books/${(bestSeller as any)?.spu_code ?? (bestSeller as any)?.id ?? 'featured'}`} className="inline-block bg-black text-[#F5E3E3] px-4 py-2 rounded">
-                    {t('personalize')}
+
+                {/* Book Details */}
+                <div className="flex flex-col items-center gap-6 w-full">
+                  <div className="flex flex-col items-center gap-3 w-full">
+                    {/* Title */}
+                    <h2 className="text-[#222222] text-[24px] font-normal">
+                      {(bestSeller as any)?.name ?? (bestSeller as any)?.default_name ?? 'Bedtime story'}
+                    </h2>
+
+                    {/* Description */}
+                    <p className="text-[#222222] text-[14px] font-normal leading-relaxed">
+                      {(bestSeller as any)?.description ?? (bestSeller as any)?.desc ?? 'Already, our first group of stars has stepped into the spotlight, discovering the magic of seeing themselves as the heroes of their own personalized stories.'}
+                    </p>
+                  </div>
+                
+                  {/* Tags */}
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="inline-block px-3 py-1 text-xs rounded-[4px] bg-[#F3F3F3] text-[#666666]">two people</span>
+                      <span className="inline-block px-3 py-1 text-xs rounded-[4px] bg-[#F3F3F3] text-[#666666]">Mom & child</span>
+                    </div>
+                    {/* Star Rating */}
+                    <div className="flex items-center justify-center gap-[6px]">
+                      {[...Array(5)].map((_, i) => (
+                        <Image key={i} src="/star.svg" alt="star" width={18} height={18} />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Price */}
+                  <div className="flex items-baseline justify-center gap-1">
+                    {(bestSeller as any)?.market_price && (
+                      <span className="text-[#999999] line-through text-[12px]">${Number((bestSeller as any)?.market_price).toFixed(2)}</span>
+                    )}
+                    <span className="text-[#012CCE] text-[24px] font-medium">
+                      ${Number(((bestSeller as any)?.current_price ?? (bestSeller as any)?.price ?? 0)).toFixed(2)}
+                    </span>
+                  </div>
+
+                  {/* Personalize Button */}
+                  <Link 
+                    href={`/books/${(bestSeller as any)?.spu_code ?? (bestSeller as any)?.id ?? 'featured'}`} 
+                    className="text-[#222222] text-[16px] font-normal hover:underline flex items-center gap-1"
+                  >
+                    {t('personalize')} →
                   </Link>
-                </div>
-              </div>
-              {/* Right: image */}
-              <div className="relative bg-[#F8F8F8] w-full h-[420px] flex flex-col gap-6 justify-center items-center">
-                <div className="relative w-full flex-1">
-                  {bestSellerImage && (
-                    <Image
-                      src={bestSellerImage}
-                      alt="best seller"
-                      fill
-                      className="object-cover"
-                      unoptimized={bestSellerImage.startsWith('http')}
-                      onError={(e) => {
-                        const target = e.currentTarget as HTMLImageElement & { srcset?: string };
-                        target.src = '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png';
-                        if (target.srcset) target.srcset = '';
-                      }}
-                    />
-                  )}
-                </div>
-                {/* Best seller badge in top-right of the tile */}
-                <div className="absolute top-8 right-32 z-20 pointer-events-none">
-                  <Image src="/best_seller.png" alt="Best seller" width={140} height={40} />
                 </div>
               </div>
             </section>
           )}
 
-          {/* Reviews under Best Seller */}
+          {/* Reviews under Best Seller - Mobile Only */}
           {bestSeller && (
-            <ReviewsSection
-              compact
-              book={{ rating: '5.0' } as any}
-              keywords={[] as any}
-              reviews={[] as any}
-            />
+            <div className="md:hidden">
+              <ReviewsSection
+                compact
+                book={{ rating: '5.0' } as any}
+                keywords={[] as any}
+                reviews={[] as any}
+              />
+            </div>
           )}
 
           {/* Newsletter Section */}
