@@ -25,7 +25,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
   // 响应式调整显示的卡片数量
   React.useEffect(() => {
     const updateCardsToShow = () => {
-      setCardsToShow(window.innerWidth >= 768 ? 3 : 2);
+      setCardsToShow(window.innerWidth >= 1024 ? 3 : 2); // lg breakpoint (1024px)
     };
     updateCardsToShow();
     window.addEventListener('resize', updateCardsToShow);
@@ -72,11 +72,11 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
   if (!cards || cards.length === 0) return null;
 
   return (
-    <section className="w-full py-12 md:py-16 bg-white flex flex-col gap-6 md:gap-12">
-      <div className="md:gap-12 px-4 md:px-8">
+    <section className="w-full py-16 bg-white flex flex-col gap-12">
+      <div className="gap-12 px-8">
         {/* Section Title */}
         <h2
-          className="text-center md:text-left text-[24px] md:text-[40px] font-semibold md:font-medium text-[#222222]"
+          className="text-left text-[40px] font-medium text-[#222222]"
           style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
         >
           Loved by kids, chosen by kids
@@ -108,7 +108,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
                     : 'w-[280px] h-[325px] rounded-[8px]'
                   : isCenter
                   ? 'w-[800px] h-[450px] rounded-[12px]'
-                  : 'w-[480px] h-[270px] rounded-[12px] hidden md:block'
+                  : 'w-[480px] h-[270px] rounded-[12px] hidden lg:block'
               } ${align === 'start' ? 'self-start' : align === 'end' ? 'self-end' : ''}`}
             >
               {/* Image */}
@@ -141,13 +141,13 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
                   }}
                 >
                   <h3
-                    className="text-[#222222] text-[18px] md:text-[20px] font-semibold"
+                    className="text-[#222222] text-[20px] font-semibold"
                     style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
                   >
                     {card.title}
                   </h3>
                   <p
-                    className="text-[#666666] text-[14px] md:text-[16px] leading-relaxed"
+                    className="text-[#666666] text-[16px] leading-relaxed"
                     style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
                   >
                     {card.description}
@@ -160,16 +160,16 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
           return (
             <>
               {/* 桌面端：左右小卡片各露出50%，中间完整显示 */}
-              <div className="hidden md:block w-full overflow-hidden">
+              <div className="hidden lg:block w-full overflow-hidden">
                 <div className="flex items-start justify-center gap-4">
                   {renderCard(cards[prevIdx], false, 'end')}
                   {renderCard(cards[centerIdx], true)}
                   {renderCard(cards[nextIdx], false, 'start')}
                 </div>
               </div>
-              {/* 移动端：中央卡片完全显示，左右卡片部分可见（peek效果） */}
+              {/* 移动端和小屏幕：中央卡片完全显示，左右卡片部分可见（peek效果） */}
               <div 
-                className="md:hidden w-full overflow-hidden relative"
+                className="lg:hidden w-full overflow-hidden relative"
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
@@ -187,7 +187,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
         {/* Navigation Arrows - 仅桌面端显示 */}
         <button
           onClick={prevSlide}
-          className="hidden md:flex absolute top-25 w-12 h-12 rounded-full bg-white border border-[#222222] items-center justify-center hover:bg-gray-50 transition-colors z-10"
+          className="hidden lg:flex absolute top-25 w-12 h-12 rounded-full bg-white border border-[#222222] items-center justify-center hover:bg-gray-50 transition-colors z-10"
           style={{
             left: 'calc(50% - 400px - 48px - 16px)',
           }}
@@ -199,7 +199,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
         </button>
         <button
           onClick={nextSlide}
-          className="hidden md:flex absolute right-0 bottom-25 w-12 h-12 rounded-full bg-[#012CCE] items-center justify-center hover:bg-[#0119A3] transition-colors z-10"
+          className="hidden lg:flex absolute right-0 bottom-25 w-12 h-12 rounded-full bg-[#012CCE] items-center justify-center hover:bg-[#0119A3] transition-colors z-10"
           style={{
             left: 'calc(50% + 400px + 16px)',
           }}
@@ -211,8 +211,8 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
         </button>
       </div>
 
-      {/* 分页指示器 - 仅移动端显示 */}
-      <div className="md:hidden flex items-center justify-center gap-3">
+      {/* 分页指示器 - 移动端和小屏幕显示 */}
+      <div className="lg:hidden flex items-center justify-center gap-3">
         {cards.map((_, index) => (
           <button
             key={index}
