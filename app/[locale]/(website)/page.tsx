@@ -1,7 +1,7 @@
 'use client';
 
 import Button from '@/app/components/Button';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { FaStar, FaRegStar, FaQuoteLeft } from 'react-icons/fa';
 import React, { useEffect } from 'react';
@@ -16,6 +16,9 @@ import PicBooksShow from './components/home/PicBooksShow';
 import FAQ from '../(marketing)/components/FAQ';
 import ReserveSection from '../(marketing)/components/ReserveSection';
 import GiftPackage from './components/home/GiftPackage';
+import { Product } from '@/types/product';
+import { getBooks } from '@/services/bookService';
+import BooksGrid from './components/books/BooksGrid';
 
 interface AnimatedSectionProps {
   children: React.ReactNode;
@@ -60,6 +63,21 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({ children, className =
 
 export default function HomePage() {
   const t = useTranslations('HomePage');
+  const locale = useLocale();
+
+  const [books, setBooks] = React.useState<Product[]>([]);
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const {data} = await getBooks(locale);
+        setBooks(data || []);
+      } catch (error) {
+        console.error('Failed to fetch books:', error);
+      }
+    }
+
+    fetchBooks();
+  }, []);
 
   const faqs = [
     {
@@ -87,7 +105,8 @@ export default function HomePage() {
       </AnimatedSection>
 
       <AnimatedSection delay={0.2}>
-        <OurBook />
+        {/* <OurBook /> */}
+        <BooksGrid books={books} />
       </AnimatedSection>
 
       <AnimatedSection delay={0.2}>

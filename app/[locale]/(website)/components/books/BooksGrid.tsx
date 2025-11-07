@@ -1,13 +1,14 @@
 import React from 'react';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
 
 interface BooksGridProps {
   books: any[];
-  personalizeLabel: string;
 }
 
-const BooksGrid: React.FC<BooksGridProps> = ({ books, personalizeLabel }) => {
+const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
+  const t = useTranslations('BooksPage');
   if (!books || books.length === 0) return null;
 
   const getCoverUrl = (id: string, isHover: boolean = false) => {
@@ -76,7 +77,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books, personalizeLabel }) => {
                     ${Number(priceVal).toFixed(2)}
                   </p>
                   <button className="hidden group-hover:inline-flex text-[#222222] text-[16px] md:text-sm items-center gap-2">
-                    {personalizeLabel}
+                    {t('personalize')}
                     <svg width="18" height="10" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M1 5H17M17 5L12.5 1M17 5L12.5 9" stroke="#222222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>

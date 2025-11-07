@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { Link, usePathname } from "@/i18n/routing";
 import { FaStar, FaStarHalf, FaSearch } from 'react-icons/fa';
 import { useSearchParams } from 'next/navigation';
-import api from "@/utils/api";
 
 import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
@@ -213,7 +212,7 @@ export default function BooksPage() {
 
         {/* Books Grid */}
         {sortedBooks.length > 0 ? (
-          <BooksGrid books={sortedBooks} personalizeLabel={t('personalize')} />
+          <BooksGrid books={sortedBooks} />
         ) : (
           <div className="text-center py-12">
             <p className="text-[#222222]">{t('noResults')}</p>
