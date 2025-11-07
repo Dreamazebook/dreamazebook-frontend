@@ -23,6 +23,30 @@ export interface Product {
   review_count: number;
 }
 
+// Types for new products API
+// type Product = {
+//   spu_code: string;
+//   name: string;
+//   category: string;
+//   current_price: number;
+//   primary_image: string | null;
+//   base_price?: string;
+//   market_price?: string;
+//   description?: string;
+// };
+
+export type ProductsResponse = {
+  success: boolean;
+  data: Product[];
+  pagination?: {
+    current_page: number;
+    per_page: number;
+    total: number;
+    last_page: number;
+  };
+  meta?: { timestamp: number; version: string };
+};
+
 // Helper type for product creation/update
 export type CreateProductInput = Omit<Product, 
   'total_sales' | 

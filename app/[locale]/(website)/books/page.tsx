@@ -6,34 +6,14 @@ import { Link, usePathname } from "@/i18n/routing";
 import { FaStar, FaStarHalf, FaSearch } from 'react-icons/fa';
 import { useSearchParams } from 'next/navigation';
 import api from "@/utils/api";
-// Types for new products API
-type Product = {
-  spu_code: string;
-  name: string;
-  category: string;
-  current_price: number;
-  primary_image: string | null;
-  base_price?: string;
-  market_price?: string;
-  description?: string;
-};
 
-type ProductsResponse = {
-  success: boolean;
-  data: Product[];
-  pagination?: {
-    current_page: number;
-    per_page: number;
-    total: number;
-    last_page: number;
-  };
-  meta?: { timestamp: number; version: string };
-};
 import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
 import ReviewsSection from '../components/reviews/Reviews';
 import BooksGrid from '../components/books/BooksGrid';
 import LovedByKidsCarousel from '../components/books/LovedByKidsCarousel';
+import { Product } from '@/types/product';
+import { getBooks } from '@/services/bookService';
 
 // 规范化图片地址：
 // - 移除以 /public/ 开头的前缀
@@ -126,21 +106,14 @@ export default function BooksPage() {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const body = await api.get<ProductsResponse>(`/products`, {
-          params: {
-            page: 1,
-            per_page: 20,
-            category: 'picbook',
-            language: locale,
-          },
-        });
-        const list = Array.isArray(body?.data) ? body.data : [];
+        const {data, pagination} = await getBooks(locale);
+        const list = Array.isArray(data) ? data : [];
         setBooks(list);
         setPageInfo({
-          page: body.pagination?.current_page ?? 1,
-          perPage: body.pagination?.per_page ?? list.length,
-          total: body.pagination?.total ?? list.length,
-          lastPage: body.pagination?.last_page ?? 1,
+          page: pagination?.current_page ?? 1,
+          perPage: pagination?.per_page ?? list.length,
+          total: pagination?.total ?? list.length,
+          lastPage: pagination?.last_page ?? 1,
         });
         setLoading(false);
       } catch (err) {
