@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
 
@@ -19,6 +19,8 @@ interface LovedByKidsCarouselProps {
 const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [cardsToShow, setCardsToShow] = useState(2); // 默认移动端显示 2 张
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
 
   // 响应式调整显示的卡片数量
   React.useEffect(() => {
@@ -40,6 +42,31 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
 
   const goToSlide = (index: number) => {
     setCurrentIndex(index);
+  };
+
+  // 触摸事件处理
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchEndX.current = null;
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    const distance = touchStartX.current - touchEndX.current;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    if (isLeftSwipe) {
+      nextSlide();
+    }
+    if (isRightSwipe) {
+      prevSlide();
+    }
   };
 
   if (!cards || cards.length === 0) return null;
@@ -141,7 +168,12 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
                 </div>
               </div>
               {/* 移动端：中央卡片完全显示，左右卡片部分可见（peek效果） */}
-              <div className="md:hidden w-full overflow-hidden relative">
+              <div 
+                className="md:hidden w-full overflow-hidden relative"
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+              >
                 <div className="flex items-center justify-center" style={{ gap: '18px' }}>
                   {renderCard(cards[prevIdx], false, undefined, true)}
                   {renderCard(cards[centerIdx], true, undefined, true)}
