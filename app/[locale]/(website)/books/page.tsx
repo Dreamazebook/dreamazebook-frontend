@@ -11,6 +11,7 @@ import { useTranslations } from 'next-intl';
 import ReviewsSection from '../components/reviews/Reviews';
 import BooksGrid from '../components/books/BooksGrid';
 import LovedByKidsCarousel from '../components/books/LovedByKidsCarousel';
+import OccasionsSection from '../components/books/OccasionsSection';
 import { Product } from '@/types/product';
 import { getBooks } from '@/services/bookService';
 
@@ -218,6 +219,9 @@ export default function BooksPage() {
             <p className="text-[#222222]">{t('noResults')}</p>
           </div>
         )}
+
+        {/* Occasions Section */}
+        <OccasionsSection />
 
         {/* Best Seller Section - Mobile Only (before LovedByKidsCarousel) */}
         {bestSeller && (
