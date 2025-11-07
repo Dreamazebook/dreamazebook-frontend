@@ -22,6 +22,7 @@ import { ORDER_SUMMARY_URL } from '@/constants/links';
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 interface ReviewAndPayProps {
+  paymentMethod?: string;
   orderDetail: OrderDetail;
   handlePlaceOrder?: () => void;
   onError?: (error: string) => void;
@@ -29,8 +30,9 @@ interface ReviewAndPayProps {
 
 const CheckoutForm: React.FC<{
   orderDetail: OrderDetail;
+  paymentMethod?: string;
   onError?: (error: string) => void;
-}> = ({ orderDetail, onError }) => {
+}> = ({ orderDetail, paymentMethod, onError }) => {
   const order = orderDetail;
   const {shipping_address,total_amount} = order;
   const clientSecret = orderDetail.stripe_client_secret;
@@ -114,19 +116,21 @@ const CheckoutForm: React.FC<{
     setIsLoading(false);
   };
 
-  const cardElementOptions = {
-    style: {
-      base: {
-        fontSize: '16px',
-        color: '#424770',
-        '::placeholder': {
-          color: '#aab7c4',
-        },
-      },
-      invalid: {
-        color: '#9e2146',
-      },
+  console.log(paymentMethod);
+
+  const paymentElementOptions: any = {
+    layout: "tabs",
+    defaultValues: {
+      billingDetails: {
+        email: shipping_address?.email
+      }
     },
+    defaultPaymentMethod: paymentMethod,
+    paymentMethodOrder: paymentMethod == 'paypal' ? ['paypal','card'] : ['card','paypal'],
+    // wallets: {
+    //   applePay: 'never',
+    //   googlePay: 'never'
+    // }
   };
 
   return (
@@ -147,7 +151,7 @@ const CheckoutForm: React.FC<{
             Card Information
           </label>
           <div className="border border-gray-300 rounded-md p-4 bg-white w-full">
-            <PaymentElement />
+            <PaymentElement options={paymentElementOptions} />
           </div>
         </div>
 
@@ -188,6 +192,7 @@ const CheckoutForm: React.FC<{
 };
 
 const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
+  paymentMethod = 'card',
   orderDetail,
   onError,
 }) => {
@@ -245,6 +250,7 @@ const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
   return (
     <Elements stripe={stripePromise} options={options}>
       <CheckoutForm
+        paymentMethod={paymentMethod}
         orderDetail={orderDetail}
         onError={onError}
       />

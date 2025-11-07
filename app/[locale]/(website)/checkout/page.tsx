@@ -20,6 +20,7 @@ export default function CheckoutPage() {
   const { addresses, fetchAddresses } = useUserStore();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
+  const paymentMethod = searchParams.get('paymentMethod') || 'card';
 
   const { orderDetail, setOrderDetail, isLoading:isOrderLoading, error } = useOrderDetail(orderId);
   const { openStep, completedSteps, toggleStep, completeStep } = useCheckoutSteps();
@@ -185,6 +186,7 @@ export default function CheckoutPage() {
             >
               {orderDetail && 
               <ReviewAndPay
+                paymentMethod={paymentMethod}
                 orderDetail={orderDetail}
               />
               }
