@@ -247,45 +247,9 @@ export default function BooksPage() {
           </div>
         )}
 
-        {/* Loved by Kids Carousel */}
-        <LovedByKidsCarousel
-          cards={[
-            {
-              id: '1',
-              title: "Little One, You're Brave in Many Ways",
-              description: "The book is really talking about me! If anyone says I'm not brave, I'll show them this book — then they'll know what being brave really means!",
-              image: '/products/picbooks/PICBOOK_YouAreBraveyInManyWays/thumb.png', // 需要替换为实际图片
-              bookId: 'PICBOOK_YouAreBraveyInManyWays',
-            },
-            {
-              id: '2',
-              title: 'Birthday Book for You',
-              description: "I saw some pigeons on the way to school… maybe they'll fly back to the forest and tell the animals my message!",
-              image: '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png', // 需要替换为实际图片
-              bookId: 'PICBOOK_BIRTHDAY', // 需要替换为实际书籍ID
-            },
-            {
-              id: '3',
-              title: "Santa's Letter for You",
-              description: "Santa really knows me! He even knows how I've been good… but how did he see all that?!",
-              image: '/products/picbooks/PICBOOK_SANTALETTER/thumb.png', // 需要替换为实际图片
-              bookId: 'PICBOOK_SANTALETTER',
-            },
-            {
-              id: '4',
-              title: 'Goodnight to You',
-              description: "It's me!! I can fly! Goodnight bear, goodnight cat… they all sleep so well, I'll sleep nicely too.",
-              image: '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png',
-              bookId: 'PICBOOK_GOODNIGHT',
-            },
-          ]}
-        />
-
-        {/* Featured + Newsletter container with consistent padding */}
-        <div className="w-full">
-          {/* Best Seller Section - Mobile Only */}
-          {bestSeller && (
-            <section className="md:hidden w-full px-4 pt-8 pb-12">
+        {/* Best Seller Section - Mobile Only (before LovedByKidsCarousel) */}
+        {bestSeller && (
+          <section className="md:hidden w-full px-4 pt-8 pb-12">
               <div className="flex flex-col items-center gap-6 pt-4">
                 {/* Book Cover Image with Badge */}
                 <div className="relative w-full max-w-[150px]">
@@ -360,8 +324,44 @@ export default function BooksPage() {
                 </div>
               </div>
             </section>
-          )}
+        )}
 
+        {/* Loved by Kids Carousel */}
+        <LovedByKidsCarousel
+          cards={[
+            {
+              id: '1',
+              title: "Little One, You're Brave in Many Ways",
+              description: "The book is really talking about me! If anyone says I'm not brave, I'll show them this book — then they'll know what being brave really means!",
+              image: '/products/picbooks/PICBOOK_YouAreBraveyInManyWays/thumb.png', // 需要替换为实际图片
+              bookId: 'PICBOOK_YouAreBraveyInManyWays',
+            },
+            {
+              id: '2',
+              title: 'Birthday Book for You',
+              description: "I saw some pigeons on the way to school… maybe they'll fly back to the forest and tell the animals my message!",
+              image: '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png', // 需要替换为实际图片
+              bookId: 'PICBOOK_BIRTHDAY', // 需要替换为实际书籍ID
+            },
+            {
+              id: '3',
+              title: "Santa's Letter for You",
+              description: "Santa really knows me! He even knows how I've been good… but how did he see all that?!",
+              image: '/products/picbooks/PICBOOK_SANTALETTER/thumb.png', // 需要替换为实际图片
+              bookId: 'PICBOOK_SANTALETTER',
+            },
+            {
+              id: '4',
+              title: 'Goodnight to You',
+              description: "It's me!! I can fly! Goodnight bear, goodnight cat… they all sleep so well, I'll sleep nicely too.",
+              image: '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png',
+              bookId: 'PICBOOK_GOODNIGHT',
+            },
+          ]}
+        />
+
+        {/* Featured + Newsletter container with consistent padding */}
+        <div className="w-full">
           {/* Reviews under Best Seller - Mobile Only */}
           {/* {bestSeller && (
             <div className="md:hidden">
