@@ -12,15 +12,15 @@ const slides = [
     image_desktop: HOME_IMAGE('slide1_desktop.png'),
     alt: 'Children reading together',
   },
-  {
-    id: 2,
-    title: ['Every child deserves', 'to be the hero of', 'their own story.'],
-    color: 'text-primary',
-    buttonText: 'view more',
-    image: HOME_IMAGE('slide2.png'),
-    image_desktop: HOME_IMAGE('slide2_desktop.png'),
-    alt: 'Mother reading with child',
-  },
+  // {
+  //   id: 2,
+  //   title: ['Every child deserves', 'to be the hero of', 'their own story.'],
+  //   color: 'text-primary',
+  //   buttonText: 'view more',
+  //   image: HOME_IMAGE('slide2.png'),
+  //   image_desktop: HOME_IMAGE('slide2_desktop.png'),
+  //   alt: 'Mother reading with child',
+  // },
   // {
   //   id: 3,
   //   title: ['Creating magical', 'moments through', 'personalized stories'],
@@ -47,7 +47,7 @@ export default function SlideShow() {
         .slideshow-container {
           position: relative;
           width: 100%;
-          height: 100vh;
+          height: 60vh;
           overflow: hidden;
         }
 
@@ -105,16 +105,16 @@ export default function SlideShow() {
             />
             
             <div className="absolute inset-0 flex z-10 w-full">
-              <div className="slide-content flex flex-col justify-start md:justify-center p-6">
+              <div className={`slide-content flex flex-col justify-start md:justify-center p-6 ${slide.color}`}>
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
                   {slide.title.map((line, i) => (
                     <span key={i}>
-                      <span className={`${slide.color} inline-block`}>{line}</span>
+                      <span className={`inline-block`}>{line}</span>
                       {i < slide.title.length - 1 && <br />}
                     </span>
                   ))}
                 </h1>
-                <button className="mt-8 lg:mt-12 flex items-center gap-2 text-base lg:text-lg font-medium text-gray-800 hover:gap-4 transition-all duration-300 group">
+                <button className={`mt-8 lg:mt-12 flex items-center gap-2 text-lg font-medium hover:gap-4 transition-all duration-300 group`}>
                   {slide.buttonText}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
@@ -125,9 +125,9 @@ export default function SlideShow() {
 
         {/* Indicators */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center gap-2 lg:gap-3 z-20">
-          <span className="text-sm font-medium text-white bg-gray-800/70 px-2 lg:px-3 py-1 rounded-full">
+          {/* <span className="text-sm font-medium text-white bg-gray-800/70 px-2 lg:px-3 py-1 rounded-full">
             {currentIndex + 1} / {slides.length}
-          </span>
+          </span> */}
           {slides.map((_, index) => (
             <button
               key={index}

@@ -12,9 +12,10 @@ import SideLineProducts from './components/home/SideLineProducts';
 import LastingMemorial from './components/home/LastingMemorial';
 import Slideshow from './components/home/SlideShow';
 import PicBooksShow from './components/home/PicBooksShow';
-import TestimonialCards from './components/home/TestimonialCards';
+// import TestimonialCards from './components/home/TestimonialCards';
 import FAQ from '../(marketing)/components/FAQ';
 import ReserveSection from '../(marketing)/components/ReserveSection';
+import GiftPackage from './components/home/GiftPackage';
 
 interface AnimatedSectionProps {
   children: React.ReactNode;
@@ -97,9 +98,9 @@ export default function HomePage() {
         <SideLineProducts />
       </AnimatedSection>
 
-      {/* <AnimatedSection delay={0.2}>
-        <TestimonialCards />
-      </AnimatedSection> */}
+      <AnimatedSection delay={0.2}>
+        <GiftPackage />
+      </AnimatedSection>
 
       <AnimatedSection delay={0.2}>
         <LastingMemorial />
