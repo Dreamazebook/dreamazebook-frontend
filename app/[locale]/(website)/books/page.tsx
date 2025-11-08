@@ -107,6 +107,7 @@ export default function BooksPage() {
 
   useEffect(() => {
     const fetchBooks = async () => {
+      setLoading(true);
       try {
         const {data, pagination} = await getBooks(locale);
         const list = Array.isArray(data) ? data : [];
@@ -117,16 +118,16 @@ export default function BooksPage() {
           total: pagination?.total ?? list.length,
           lastPage: pagination?.last_page ?? 1,
         });
-        setLoading(false);
       } catch (err) {
         console.error('Failed to fetch books:', err);
         setError(t('error'));
+      } finally {
         setLoading(false);
       }
     };
 
     fetchBooks();
-  }, [t]);
+  }, [locale, t]);
 
   const filteredBooks = books.filter((book) => {
     const name = (book as any)?.name ?? (book as any)?.default_name ?? '';

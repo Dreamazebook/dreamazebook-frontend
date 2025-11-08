@@ -6,10 +6,12 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Link, useRouter } from "@/i18n/routing";
 import api from "@/utils/api";
+import { apiCache } from "@/utils/apiCache";
 // Using new product detail schema
 import ReviewsSection from '../../components/reviews/Reviews';
 import BookDetailView from '../../components/BookDetailView';
 import BookSections from '../../components/books/BookSections';
+import BookDetailSkeleton from '../../components/books/BookDetailSkeleton';
 import useUserStore from '@/stores/userStore';
 import { useTranslations } from 'next-intl';
 
@@ -63,7 +65,17 @@ const BookDetailPage = () => {
       setLoadingGallery(true);
       try {
         // 优先获取产品信息，让用户先看到页面内容
-        const productResponse = await api.get<any>(`/products/${id}`, { params: { language: locale } });
+        // 使用缓存，书籍详情缓存 10 分钟
+        const productResponse = await apiCache.request<any>(
+          () => api.get<any>(`/products/${id}`, { params: { language: locale } }),
+          `/products/${id}`,
+          { language: locale },
+          {
+            ttl: 10 * 60 * 1000, // 10分钟缓存
+            useCache: true,
+            useDedupe: true,
+          }
+        );
         const data = productResponse?.data || productResponse;
         setBook(data);
         setLoading(false); // 产品信息加载完成，可以先显示页面
@@ -105,7 +117,7 @@ const BookDetailPage = () => {
     }
   }, [id, locale]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">{t('loading')}</div>;
+  if (loading) return <BookDetailSkeleton />;
   if (!book) return <div className="min-h-screen flex items-center justify-center">{t('noBookFound')}</div>;
 
   const description = book?.description || "No description available.";
