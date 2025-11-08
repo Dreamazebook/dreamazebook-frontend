@@ -21,11 +21,14 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
   const [cardsToShow, setCardsToShow] = useState(2); // 默认移动端显示 2 张
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
+  const isDesktopRef = useRef<boolean>(false);
 
   // 响应式调整显示的卡片数量
   React.useEffect(() => {
     const updateCardsToShow = () => {
-      setCardsToShow(window.innerWidth >= 1024 ? 3 : 2); // lg breakpoint (1024px)
+      const isDesktop = window.innerWidth >= 1024;
+      isDesktopRef.current = isDesktop;
+      setCardsToShow(isDesktop ? 3 : 2); // lg breakpoint (1024px)
     };
     updateCardsToShow();
     window.addEventListener('resize', updateCardsToShow);
@@ -92,93 +95,112 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
           const prevIdx = (centerIdx - 1 + cards.length) % cards.length;
           const nextIdx = (centerIdx + 1) % cards.length;
 
-          const renderCard = (
+          // 统一使用绝对定位 + transform 的方式，并通过 scale 实现中间卡片放大
+          const renderAnimatedCard = (
             card: CarouselCard,
-            isCenter: boolean,
-            align?: 'start' | 'end',
-            isMobile?: boolean
-          ) => (
-            <Link
-              key={card.id}
-              href={`/books/${card.bookId}`}
-              className={`relative overflow-hidden bg-white shrink-0 ${
-                isMobile
-                  ? isCenter
-                    ? 'w-[280px] h-[361px] rounded-[8px]'
-                    : 'w-[280px] h-[325px] rounded-[8px]'
-                  : isCenter
-                  ? 'w-[800px] h-[450px] rounded-[12px]'
-                  : 'w-[480px] h-[270px] rounded-[12px] hidden lg:block'
-              } ${align === 'start' ? 'self-start' : align === 'end' ? 'self-end' : ''}`}
-            >
-              {/* Image */}
-              <Image
-                src={card.image}
-                alt={card.title}
-                fill
-                className="object-top object-cover"
-                sizes="(max-width: 768px) 90vw, 33vw"
-              />
-              {/* Overlay */}
-              <div
-                className="absolute inset-0"
+            position: 'prev' | 'center' | 'next'
+          ) => {
+            const isDesktop = isDesktopRef.current;
+            const baseW = isDesktop ? 800 : 280;
+            const baseH = isDesktop ? 450 : 361; // 中间卡片的高度 → 用于固定容器高度
+            const gap = isDesktop ? 32 : 18;
+            // 左右卡片的目标缩放（模拟 480x270 与 800x450 的比例 ≈ 0.6）
+            const sideScale = isDesktop ? 0.6 : 0.9; // 移动端原设计 325/361 ≈ 0.9
+            const centerScale = 1;
+
+            // 计算 X 位移：prev 在左，next 在右
+            const offsetX =
+              position === 'center'
+                ? 0
+                : (position === 'prev' ? -1 : 1) * (baseW * 0.5 + baseW * sideScale * 0.5 + gap / 2);
+
+            // 垂直偏移（transform-origin 为中心时的校正）：
+            // - 左侧（prev）：与父容器底部对齐 → 向下偏移 (baseH * (1 - scale) / 2)
+            // - 右侧（next）：贴顶部 → 向上偏移 (baseH * (1 - scale) / 2)
+            const offsetY =
+              position === 'prev'
+                ? baseH * (1 - sideScale) / 2
+                : position === 'next'
+                ? -baseH * (1 - sideScale) / 2
+                : 0;
+
+            const scale = position === 'center' ? centerScale : sideScale;
+            const zIndex = position === 'center' ? 20 : 10;
+            const opacity = 1;
+
+            return (
+              <Link
+                key={card.id}
+                href={`/books/${card.bookId}`}
+                className="absolute left-1/2 top-0 will-change-transform"
                 style={{
-                  background: 'linear-gradient(206.13deg, rgba(249, 232, 232, 0) 32.16%, #F9E8E8 75.03%)',
+                  width: `${baseW}px`,
+                  height: `${baseH}px`,
+                  transform: `translateX(calc(-50% + ${offsetX}px)) translateY(${offsetY}px) scale(${scale})`,
+                  transition: 'transform 450ms cubic-bezier(0.22, 1, 0.36, 1), opacity 450ms',
+                  zIndex,
+                  opacity,
                 }}
-              />
-              {/* Text */}
-              {(!isMobile || isCenter) && (
-                <div
-                  className={`absolute inset-0 flex flex-col justify-end ${
-                    isMobile ? 'items-start' : ''
-                  }`}
-                  style={{
-                    paddingTop: isMobile ? '0' : '88px',
-                    paddingRight: isMobile ? '24px' : '48px',
-                    paddingBottom: isMobile ? '24px' : '48px',
-                    paddingLeft: isMobile ? '24px' : '48px',
-                    gap: '4px',
-                  }}
-                >
-                  <h3
-                    className="text-[#222222] text-[20px] font-semibold"
-                    style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
+              >
+                <div className={`relative w-full h-full ${isDesktop ? 'rounded-[12px]' : 'rounded-[8px]'} overflow-hidden bg-white`}>
+                  <Image
+                    src={card.image}
+                    alt={card.title}
+                    fill
+                    className="object-top object-cover"
+                    sizes="(max-width: 768px) 90vw, 33vw"
+                  />
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background:
+                        'linear-gradient(206.13deg, rgba(249, 232, 232, 0) 32.16%, #F9E8E8 75.03%)',
+                    }}
+                  />
+                  {/* 文案 - 仅中间卡片（移动端），桌面端三张都显示文案但受缩放影响 */}
+                  <div
+                    className={`absolute inset-0 flex flex-col justify-end ${isDesktop ? '' : position === 'center' ? 'items-start' : 'hidden'}`}
+                    style={{
+                      paddingTop: isDesktop ? '88px' : '0',
+                      paddingRight: isDesktop ? '48px' : '24px',
+                      paddingBottom: isDesktop ? '48px' : '24px',
+                      paddingLeft: isDesktop ? '48px' : '24px',
+                      gap: '4px',
+                    }}
                   >
-                    {card.title}
-                  </h3>
-                  <p
-                    className="text-[#666666] text-[16px] leading-relaxed"
-                    style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
-                  >
-                    {card.description}
-                  </p>
+                    <h3
+                      className="text-[#222222] text-[20px] font-semibold"
+                      style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
+                    >
+                      {card.title}
+                    </h3>
+                    <p
+                      className="text-[#666666] text-[16px] leading-relaxed"
+                      style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
+                    >
+                      {card.description}
+                    </p>
+                  </div>
                 </div>
-              )}
-            </Link>
-          );
+              </Link>
+            );
+          };
 
           return (
             <>
-              {/* 桌面端：左右小卡片各露出50%，中间完整显示 */}
-              <div className="hidden lg:block w-full overflow-hidden">
-                <div className="flex items-start justify-center gap-4">
-                  {renderCard(cards[prevIdx], false, 'end')}
-                  {renderCard(cards[centerIdx], true)}
-                  {renderCard(cards[nextIdx], false, 'start')}
-                </div>
-              </div>
-              {/* 移动端和小屏幕：中央卡片完全显示，左右卡片部分可见（peek效果） */}
-              <div 
-                className="lg:hidden w-full overflow-hidden relative"
+              {/* 统一容器：固定高度，避免滑动时高度抖动 */}
+              <div
+                className="relative w-full overflow-hidden"
+                style={{
+                  height: isDesktopRef.current ? 450 : 361, // 对应中间卡片高度
+                }}
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
               >
-                <div className="flex items-center justify-center" style={{ gap: '18px' }}>
-                  {renderCard(cards[prevIdx], false, undefined, true)}
-                  {renderCard(cards[centerIdx], true, undefined, true)}
-                  {renderCard(cards[nextIdx], false, undefined, true)}
-                </div>
+                {renderAnimatedCard(cards[prevIdx], 'prev')}
+                {renderAnimatedCard(cards[centerIdx], 'center')}
+                {renderAnimatedCard(cards[nextIdx], 'next')}
               </div>
             </>
           );
