@@ -51,7 +51,7 @@ export default function SideLineProducts() {
 
         {/* Mobile Layout */}
         <div className="max-w-md mx-auto">
-          <div className="bg-gray-50 rounded-2xl p-8 pb-12">
+          <div className="bg-[#F8F8F8] rounded-sm p-8 pb-12">
             {/* Image Section */}
             <div className="relative bg-white rounded-xl p-6 mb-10 flex items-center justify-center">
               <img
@@ -90,7 +90,7 @@ export default function SideLineProducts() {
           </div>
 
           {/* Navigation Dots */}
-          <div className="flex justify-center gap-2 mt-8">
+          {/* <div className="flex justify-center gap-2 mt-8">
             {slides.map((_, index) => (
               <button
                 key={index}
@@ -103,7 +103,7 @@ export default function SideLineProducts() {
                 aria-label={`Go to slide ${index + 1}`}
               />
             ))}
-          </div>
+          </div> */}
         </div>
 
       </div>

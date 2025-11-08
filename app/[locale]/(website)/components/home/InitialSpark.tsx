@@ -49,7 +49,7 @@ function InitialSpark() {
         /* Pause animation on hover of the wrapper */
         .animate-marquee:hover { animation-play-state: paused; }
       `}</style>
-      <div className="container mx-auto max-w-5xl">
+      <div className="w-full">
         {/* Hero Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-normal text-gray-900 mb-6">
@@ -77,8 +77,8 @@ function InitialSpark() {
               {/** First mapped copy **/}
               <div className="flex gap-4">
                 {images.map((img, idx) => (
-                  <div key={`first-${idx}`} className="w-64 flex-shrink-0 overflow-hidden rounded-lg relative">
-                    <img src={img.src} alt={img.alt} className="w-full h-40 object-cover" />
+                  <div key={`first-${idx}`} className="w-96 flex-shrink-0 overflow-hidden rounded-lg relative">
+                    <img src={img.src} alt={img.alt} className="w-full h-60 object-cover" />
                     {img.showStar && (
                       <div className="absolute top-2 right-2">
                         <svg width="28" height="28" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
