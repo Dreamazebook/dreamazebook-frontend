@@ -72,11 +72,11 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
   if (!cards || cards.length === 0) return null;
 
   return (
-    <section className="w-full py-16 bg-white flex flex-col gap-12">
-      <div className="gap-12 px-8">
+    <section className="w-full py-22 bg-white flex flex-col gap-12">
+      <div className="gap-12 md:px-30 px-3">
         {/* Section Title */}
         <h2
-          className="text-left md:text-[40px] text-[24px] md:font-medium font-semibold text-[#222222]"
+          className="md:text-[40px] text-[24px] md:font-medium font-semibold text-[#222222] leading-[40px]"
           style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
         >
           Loved by kids, chosen by kids

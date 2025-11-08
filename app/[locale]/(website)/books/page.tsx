@@ -220,10 +220,7 @@ export default function BooksPage() {
           </div>
         )}
 
-        {/* Occasions Section */}
-        <OccasionsSection />
-
-        {/* Best Seller Section - Mobile Only (before LovedByKidsCarousel) */}
+        {/* Best Seller Section - Mobile Only */}
         {bestSeller && (
           <section className="md:hidden w-full px-4 pt-8 pb-12">
               <div className="flex flex-col items-center gap-6 pt-4">
@@ -335,6 +332,9 @@ export default function BooksPage() {
             },
           ]}
         />
+
+        {/* Occasions Section */}
+        <OccasionsSection />
 
         {/* Featured + Newsletter container with consistent padding */}
         <div className="w-full">
