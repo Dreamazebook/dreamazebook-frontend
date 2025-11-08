@@ -54,15 +54,20 @@ const BookDetailPage = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [keywords, setKeywords] = useState<Keyword[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingGallery, setLoadingGallery] = useState(true);
   const [availableLanguages, setAvailableLanguages] = useState<string[]>(['en', 'zh']);
 
   useEffect(() => {
     const fetchBookDetails = async () => {
+      setLoading(true);
+      setLoadingGallery(true);
       try {
-        // 1) 仍获取基本产品信息（用于名称、价格、描述）
-        const body = await api.get<any>(`/products/${id}`, { params: { language: locale } });
-        const data = body?.data || body;
+        // 优先获取产品信息，让用户先看到页面内容
+        const productResponse = await api.get<any>(`/products/${id}`, { params: { language: locale } });
+        const data = productResponse?.data || productResponse;
         setBook(data);
+        setLoading(false); // 产品信息加载完成，可以先显示页面
+        
         try {
           const langs = (data?.data?.customization_config?.languages
             || data?.customization_config?.languages
@@ -71,21 +76,27 @@ const BookDetailPage = () => {
             setAvailableLanguages(langs);
           }
         } catch {}
-
-        // 2) 从 public 目录读取本地 gallery 图片
+        
+        setTags([]);
+        setReviews([]);
+        setKeywords([]);
+      } catch (error) {
+        console.error('Failed to fetch book details:', error);
+        setLoading(false);
+      }
+      
+      // 异步加载 gallery 图片，不阻塞页面显示
+      try {
         const galleryBase = `/products/picbooks/${encodeURIComponent(String(id))}/gallery`;
         const resp = await fetch(`/api/local-gallery${galleryBase}`);
         const json = await resp.json();
         const files: string[] = Array.isArray(json?.files) ? json.files : [];
         // 映射为页面结构（简单按文件名排序后顺序当作页码）
         setPagePics(files.map((src, idx) => ({ id: idx, pagenum: idx + 1, pagepic: src })));
-        setTags([]);
-        setReviews([]);
-        setKeywords([]);
       } catch (error) {
-        console.error('Failed to fetch book details:', error);
+        console.error('Failed to fetch gallery:', error);
       } finally {
-        setLoading(false);
+        setLoadingGallery(false);
       }
     };
 

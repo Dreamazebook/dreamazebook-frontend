@@ -122,6 +122,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
               <Link 
                 href={`/books/${idOrCode}`} 
                 className="group relative flex flex-col items-center text-center w-full"
+                prefetch={true}
               >
                 {cardContent}
               </Link>
