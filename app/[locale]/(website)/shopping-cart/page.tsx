@@ -423,7 +423,7 @@ export default function ShoppingCartPage() {
         </div>
       </div>
       {/* Mobile bottom summary sheet */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white rounded z-50">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white rounded z-10">
         <div className="max-w-screen-md mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             {!mobileSummaryOpen && <p className="text-base font-normal">{t('total')}</p>}

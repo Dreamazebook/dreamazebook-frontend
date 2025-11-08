@@ -79,7 +79,7 @@ export default function CartItemCard({
   };
   
   return (
-    <div className={`bg-white ${!isPackage ? 'w-full h-[120px] pl-3 opacity-100 rounded' : ''}`}>
+    <div className={`bg-white ${!isPackage ? 'w-full pl-3 opacity-100 rounded' : ''}`}>
       <div className={`flex ${isPackage ? 'items-start' : 'items-center'} gap-3 ${!isPackage ? 'h-full relative' : ''}`}>
         {(onToggleSelect && selectedItems && !isPackage) && 
         <div className={`relative inline-block h-6 w-6 ${isPackage ? 'mt-1' : ''}`}>
@@ -104,7 +104,7 @@ export default function CartItemCard({
               />
             </div>
             
-            <div className="w-full h-[120px] flex flex-col gap-[12px] pt-4 pr-6 pb-4 pl-6 opacity-100 box-border">
+            <div className="w-full space-y-4 pt-4 pr-6 pb-4 opacity-100 box-border">
               <div className='flex justify-between items-center'>
                 <h3 className="font-bold">{item.product_name || item.spu_code}</h3>
                 <div className='flex items-center gap-3'>
@@ -202,10 +202,11 @@ export default function CartItemCard({
                   >
                     {t('addAdditionalProducts')}
                   </a>
-                </div>
-
-                {onQuantityChange && 
-                <div className="flex items-center border rounded-md">
+                </div>                
+              </div>
+              
+              {onQuantityChange && 
+                <div className="inline-flex items-center border rounded-md">
                   <button
                     onClick={() => onQuantityChange(item.id, -1)}
                     className="px-2 py-1 text-gray-600 hover:bg-gray-100"
@@ -213,13 +214,13 @@ export default function CartItemCard({
                   >
                     -
                   </button>
-                  <input
-                    type="number"
-                    min="1"
-                    value={item.quantity}
-                    onChange={(e) => onQuantityChange(item.id, parseInt(e.target.value) - item.quantity)}
+                  <span
+                    // type="number"
+                    // min="1"
+                    // value={item.quantity}
+                    // onChange={(e) => onQuantityChange(item.id, parseInt(e.target.value) - item.quantity)}
                     className="w-12 text-center border-x py-1"
-                  />
+                  >{item.quantity}</span>
                   <button
                     onClick={() => onQuantityChange(item.id, 1)}
                     className="px-2 py-1 text-gray-600 hover:bg-gray-100"
@@ -228,9 +229,6 @@ export default function CartItemCard({
                   </button>
                 </div>}
 
-                
-              </div>
-              
             </div>
           </div>
           :
