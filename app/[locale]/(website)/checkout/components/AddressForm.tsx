@@ -166,7 +166,10 @@ const AddressForm: React.FC<AddressFormProps> = ({
         }}
         onBlur={() => validateShippingInfo('email')}
         error={errors.email}
-      />
+        placeholder="Enter your email address"
+      >
+        <span className='text-[16px] text-[#999]'>We will confirm the final effect of the book with you and update you on the status of your order</span>
+      </FormField>
 
       <div className="grid grid-cols-2 gap-4">
           <FormField
@@ -181,6 +184,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
           }}
           onBlur={() => validateShippingInfo('first_name')}
           error={errors.first_name}
+          placeholder="Enter your first name"
         />
 
         <FormField
@@ -195,6 +199,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
           }}
           onBlur={() => validateShippingInfo('last_name')}
           error={errors.last_name}
+          placeholder="Enter your last name"
         />
       </div>
 
@@ -228,6 +233,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
           }}
           onBlur={() => validateShippingInfo('state')}
           error={errors.state}
+          placeholder="Enter your state or province"
         />
       </div>
 
@@ -244,6 +250,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
         }}
         onBlur={() => validateShippingInfo('address')}
         error={errors.address}
+        placeholder="Enter your street address"
       />
 
       {address.street && (
@@ -266,6 +273,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
           }}
           onBlur={() => validateShippingInfo('city')}
           error={errors.city}
+          placeholder="Enter your city"
         />
 
         <FormField
@@ -280,6 +288,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
           }}
           onBlur={() => validateShippingInfo('post_code')}
           error={errors.post_code}
+          placeholder="Enter your postal code"
         />
       </div>
 
@@ -295,7 +304,10 @@ const AddressForm: React.FC<AddressFormProps> = ({
         }}
         onBlur={() => validateShippingInfo('phone')}
         error={errors.phone}
-      />
+        placeholder="Enter your phone number"
+      >
+        <span className='text-[16px] text-[#999]'>Get free updates on where your parcel is</span>
+      </FormField>
 
       <div className="mt-4 mb-6">
         <div className="flex items-center">
@@ -305,7 +317,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
             value={address.is_default}
             onChange={(e: any) => setAddress((prev) => ({ ...prev, is_default: e.target.checked }))}
           >
-            Save as a frequently used address
+            <span className='text-[16px] text-[#999]'>Save as a frequently used address</span>
           </FormField>
         </div>
       </div>
