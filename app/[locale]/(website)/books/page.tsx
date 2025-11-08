@@ -12,6 +12,7 @@ import ReviewsSection from '../components/reviews/Reviews';
 import BooksGrid from '../components/books/BooksGrid';
 import LovedByKidsCarousel from '../components/books/LovedByKidsCarousel';
 import OccasionsSection from '../components/books/OccasionsSection';
+import WhyFamiliesChooseSection from '../components/books/WhyFamiliesChooseSection';
 import { Product } from '@/types/product';
 import { getBooks } from '@/services/bookService';
 
@@ -335,6 +336,9 @@ export default function BooksPage() {
 
         {/* Occasions Section */}
         <OccasionsSection />
+
+        {/* Why Families Choose Section */}
+        <WhyFamiliesChooseSection />
 
         {/* Featured + Newsletter container with consistent padding */}
         <div className="w-full">
