@@ -154,6 +154,7 @@ export default function KickstarterConfigPage() {
               primaryButtonLabel="I want this book"
               primaryButtonHref="#"
               onPrimaryClick={(e) => { e.preventDefault(); onPick() }}
+              bookId={detail.id}
             />
           )}
         </div>

@@ -113,7 +113,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
               {/* 单个评论 */}
               <div className="max-w-[1200px] flex flex-col md:flex-row md:h-[88px] gap-4 md:gap-[36px]">
                 {/* 第一排/左侧：头像、评论者名称和评分 */}
-                <div className="flex-shrink-0 flex md:flex-col flex-row items-center md:gap-3 gap-4">
+                <div className="flex-shrink-0 w-[200px] items-start flex md:flex-col flex-row items-center md:gap-3 gap-4">
                   {/* 头像和评论者名称在同一行（小屏幕）或分开（大屏幕） */}
                   <div className="flex items-center gap-3">
                     {/* 头像占位符 */}
@@ -128,8 +128,8 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
                   </div>
 
                   {/* 星星评分 - 在小屏幕下和头像/名字同行，在大屏幕下在下面 */}
-                  <div className="flex items-center md:ml-2">
-                    <div className="flex gap-1">
+                  <div className="flex items-center">
+                    <div className="flex gap-3">
                       {[...Array(5)].map((_, i) => (
                         <img
                           key={i}

@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl'
 import React, { useState } from 'react'
 import { roboto } from '@/app/fonts'
 import useUserStore from '@/stores/userStore'
+import { getBookConfig } from './books/booksConfig'
 
 interface PagePic { id: number; pagenum: number; pagepic: string }
 
@@ -20,6 +21,7 @@ export default function BookDetailView({
   primaryButtonHref,
   onPrimaryClick,
   availableLanguages = ['en', 'zh'],
+  bookId,
 }: {
   book: any,
   pagePics: PagePic[],
@@ -30,12 +32,30 @@ export default function BookDetailView({
   primaryButtonHref: string,
   onPrimaryClick?: (e: React.MouseEvent, selectedLanguage: string) => void,
   availableLanguages?: string[],
+  bookId?: string | number,
 }) {
   const t = useTranslations('BookDetail')
   const selectedLanguage = 'en'
   const [openFaq, setOpenFaq] = useState<number>(1)
 
   const description = (book as any)?.description || (book as any)?.variant?.description || 'No description available.'
+  
+  // 获取书籍配置
+  const bookConfig = bookId ? getBookConfig(book, bookId) : null
+  // 获取规格信息：优先使用书籍配置，否则使用默认值
+  const specifications = bookConfig?.specifications || [
+    { label: 'specifications.size' },
+    { label: 'specifications.pages' },
+    { label: 'specifications.delivery' },
+  ]
+  
+  // 渲染规格文本：如果是国际化 key（以 'specifications.' 开头），则使用 t()，否则直接显示
+  const getSpecificationText = (spec: { label: string; value?: string }) => {
+    if (spec.label.startsWith('specifications.')) {
+      return t(spec.label)
+    }
+    return spec.label
+  }
 
   return (
     <div className={`min-h-screen bg-white ${roboto.className}`}>
@@ -78,9 +98,12 @@ export default function BookDetailView({
             </div>
 
             <div className="text-sm space-y-4 mb-6">
-              <div className="flex items-center gap-3"><div className="w-4 h-4 bg-gray-300 rounded"></div><span className="text-gray-600">{t('specifications.size')}</span></div>
-              <div className="flex items-center gap-3"><div className="w-4 h-4 bg-gray-300 rounded"></div><span className="text-gray-600">{t('specifications.pages')}</span></div>
-              <div className="flex items-center gap-3"><div className="w-4 h-4 bg-gray-300 rounded"></div><span className="text-gray-600">{t('specifications.delivery')}</span></div>
+              {specifications.map((spec, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <div className="w-4 h-4 bg-gray-300 rounded"></div>
+                  <span className="text-gray-600">{getSpecificationText(spec)}</span>
+                </div>
+              ))}
             </div>
 
             {/* 语言选择已隐藏，默认使用英文 */}

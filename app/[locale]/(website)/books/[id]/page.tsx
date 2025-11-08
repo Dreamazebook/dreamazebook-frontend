@@ -144,6 +144,7 @@ const BookDetailPage = () => {
         primaryButtonHref={`/personalize?bookid=${id}`}
         onPrimaryClick={handlePersonalizeClick}
         availableLanguages={availableLanguages}
+        bookId={Array.isArray(id) ? id[0] : id || ''}
       />
       <ReviewsSection book={book} keywords={keywords} reviews={reviews} />
       {/* Book Sections - Dynamically rendered based on book config */}

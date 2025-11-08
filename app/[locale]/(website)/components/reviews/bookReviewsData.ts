@@ -47,6 +47,40 @@ export const BOOK_REVIEWS_DATA: Record<string | number, BookReviewData> = {
     ],
   },
   
+  // You're Brave in Many Ways 书籍的评论数据
+  'PICBOOK_YOUAREBRAVEYINMANYWAYS': {
+    title: "What parents are saying",
+    rating: 5.0, // 平均评分
+    reviewsCount: 23, // 评论总数
+    reviews: [
+      {
+        reviewer_name: "Emma, London",
+        rating: 5,
+        comment: "This book shows kids that bravery is in the little things.",
+      },
+      {
+        reviewer_name: "Jason, New York",
+        rating: 5,
+        comment: "It really helped my four-year-old feel proud of himself.",
+      },
+      {
+        reviewer_name: "Lily, Toronto",
+        rating: 5,
+        comment: "Perfect for bedtime talks about the brave things we did today.",
+      },
+      {
+        reviewer_name: "Sarah, Sydney",
+        rating: 5,
+        comment: "My son related to the story right away and felt confident.",
+      },
+      {
+        reviewer_name: "David, California",
+        rating: 5,
+        comment: "A gentle way to build confidence — we love reading it together.",
+      },
+    ],
+  },
+  
   // 可以在这里添加其他书籍的评论数据
   // 示例：
   // 'PICBOOK_SANTALETTER': {
