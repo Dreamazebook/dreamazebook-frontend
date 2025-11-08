@@ -114,15 +114,17 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
                 ? 0
                 : (position === 'prev' ? -1 : 1) * (baseW * 0.5 + baseW * sideScale * 0.5 + gap / 2);
 
-            // 垂直偏移（transform-origin 为中心时的校正）：
-            // - 左侧（prev）：与父容器底部对齐 → 向下偏移 (baseH * (1 - scale) / 2)
-            // - 右侧（next）：贴顶部 → 向上偏移 (baseH * (1 - scale) / 2)
-            const offsetY =
-              position === 'prev'
-                ? baseH * (1 - sideScale) / 2
-                : position === 'next'
-                ? -baseH * (1 - sideScale) / 2
-                : 0;
+            // 桌面端：调整左右两张卡片的垂直对齐
+            // - 左侧（prev）：底部与母容器底部对齐 → 向下偏移 baseH*(1 - sideScale)
+            // - 右侧（next）：贴母容器顶部 → 不偏移
+            // - 中间（center）：不偏移
+            // 以元素中心为 transform-origin 时的垂直位移修正：
+            // - 为了让左侧卡片底部贴近容器底部，需要下移 (baseH - sideScale*baseH)/2
+            // - 为了让右侧卡片贴近容器顶部，需要上移同样的距离
+            const sideDelta = isDesktop ? (baseH * (1 - sideScale)) / 2 : 0;
+            const offsetY = isDesktop
+              ? (position === 'prev' ? sideDelta : position === 'next' ? -sideDelta : 0)
+              : 0;
 
             const scale = position === 'center' ? centerScale : sideScale;
             const zIndex = position === 'center' ? 20 : 10;
@@ -157,9 +159,9 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
                         'linear-gradient(206.13deg, rgba(249, 232, 232, 0) 32.16%, #F9E8E8 75.03%)',
                     }}
                   />
-                  {/* 文案 - 仅中间卡片（移动端），桌面端三张都显示文案但受缩放影响 */}
+                  {/* 文案 - 移动端三张都显示，桌面端三张都显示（受缩放影响） */}
                   <div
-                    className={`absolute inset-0 flex flex-col justify-end ${isDesktop ? '' : position === 'center' ? 'items-start' : 'hidden'}`}
+                    className={`absolute inset-0 flex flex-col justify-end ${isDesktop ? '' : 'items-start'}`}
                     style={{
                       paddingTop: isDesktop ? '88px' : '0',
                       paddingRight: isDesktop ? '48px' : '24px',
