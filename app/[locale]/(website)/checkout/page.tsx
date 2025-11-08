@@ -129,7 +129,7 @@ export default function CheckoutPage() {
             {/* Step 1: Shipping Information */}
             <CheckoutStep
               stepNumber={1}
-              title="Shipping Information"
+              title="Shipping"
               isOpen={openStep === 1}
               isCompleted={completedSteps.includes(1)}
               onToggle={() => toggleStep(1)}

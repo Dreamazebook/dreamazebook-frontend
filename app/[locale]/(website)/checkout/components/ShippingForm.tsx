@@ -75,7 +75,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
         >
           Change Address
         </div>
-        {orderDetail?.shipping_address &&
+        {(orderDetail?.shipping_address || !showShippingForm) &&
         <div
           className={`cursor-pointer text-[#012CCE]`}
           onClick={() => {
@@ -141,8 +141,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
 
       <div className="mt-4 flex flex-col justify-center">
         <p className="mb-2 text-center text-[#666]">
-          By clicking Continue, you agree to ourterms & conditions and privacy
-          policy
+          By clicking Continue, you agree to our <a className="text-primary">terms & conditions</a> and <a className="text-primary">privacy policy</a>
         </p>
 
         <NextStepButton

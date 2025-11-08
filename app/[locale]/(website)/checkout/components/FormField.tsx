@@ -37,7 +37,7 @@ export default function FormField({
   return (
     <div className="mb-4">
       {label && (
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
+      <label htmlFor={id} className="block text-[16px] font-medium text-[#222] mb-1">
         {label}
       </label>
       )}
@@ -77,11 +77,12 @@ export default function FormField({
             onChange={onChange as any}
             className="h-4 w-4 text-blue-600 border-gray-300 rounded"
           />
-          <label htmlFor={id} className="ml-2 block text-sm text-gray-700">
+          <label htmlFor={id} className="ml-2 block">
             {children}
           </label>
         </div>
       ) : (
+        <>
         <input
           id={id}
           type={type}
@@ -92,6 +93,8 @@ export default function FormField({
           onBlur={onBlur}
           placeholder={placeholder}
         />
+        {children}
+        </>
       )}
 
       {error && type !== 'checkbox' && <p className="text-red-500 text-sm mt-1">{error}</p>}
