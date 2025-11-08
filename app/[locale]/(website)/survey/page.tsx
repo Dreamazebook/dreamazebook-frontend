@@ -330,31 +330,15 @@ export default function SurveyPage() {
                   >
                     Children's Age <span className="text-[#222222]">*</span>
                   </label>
-                  <select
+                  <input
+                    type="text"
                     id="childrenAge"
                     name="childrenAge"
                     value={formData.childrenAge}
                     onChange={handleInputChange}
-                    className={`w-full md:w-[540px] h-10 py-2 pl-4 pr-10 rounded-[4px] border outline-none bg-white cursor-pointer appearance-none select-dropdown input-focus ${errors.childrenAge ? 'border-[#EF4444]' : 'border-[#D1D5DB]'} ${formData.childrenAge ? 'text-[#222222]' : 'text-[#999999]'}`}
-                    onFocus={(e) => {
-                      if (!errors.childrenAge) {
-                        e.target.classList.add('border-[#222222]');
-                        e.target.classList.remove('border-[#D1D5DB]');
-                      }
-                    }}
-                    onBlur={(e) => {
-                      if (!errors.childrenAge) {
-                        e.target.classList.remove('border-[#222222]');
-                        e.target.classList.add('border-[#D1D5DB]');
-                      }
-                    }}
-                  >
-                    <option value="" disabled>please select...</option>
-                    <option value="under-2">under 2</option>
-                    <option value="2-4">2–4</option>
-                    <option value="5-7">5–7</option>
-                    <option value="8-10">8–10</option>
-                  </select>
+                    placeholder="please enter..."
+                    className={`w-full md:w-[540px] h-10 py-2 px-4 rounded-[4px] border outline-none input-focus ${errors.childrenAge ? 'border-[#EF4444]' : 'border-[#D1D5DB]'}`}
+                  />
                   {errors.childrenAge && <p className="text-red-500 text-sm">{errors.childrenAge}</p>}
                 </div>
 
