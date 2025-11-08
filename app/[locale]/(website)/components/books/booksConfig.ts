@@ -2,7 +2,7 @@ import React from 'react';
 
 // 定义书籍section的类型
 export interface BookSection {
-  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'custom'; // section类型，可以扩展
+  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'meet-author' | 'custom'; // section类型，可以扩展
   title?: string; // section标题
   content?: string; // section内容
   description?: string; // section描述文字
@@ -10,6 +10,9 @@ export interface BookSection {
   backgroundOverlay?: string; // 背景遮罩样式
   className?: string; // 额外的CSS类名
   render?: () => React.ReactNode; // 自定义渲染函数（可选）
+  // Meet Author 专用字段
+  authorImage?: string; // 作者图片URL
+  paragraphs?: string[]; // 段落数组
   // SVG 装饰元素配置
   svgDecorations?: Array<{
     svg: React.ReactNode; // SVG元素
@@ -44,10 +47,17 @@ export interface BookSection {
   }>;
 }
 
+// 定义书籍规格的类型
+export interface BookSpecification {
+  label: string; // 规格标签文本（支持国际化 key 或直接文本）
+  value?: string; // 规格值（如果 label 是国际化 key，则 value 会被忽略）
+}
+
 // 定义书籍配置的类型
 export interface BookConfig {
   id: string | number; // 书籍ID或代码
   sections: BookSection[]; // 该书籍显示的sections
+  specifications?: BookSpecification[]; // 该书籍的规格信息（可选，如果没有则使用默认值）
 }
 
 // 存储不同书籍的配置
@@ -55,6 +65,12 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
   // Good Night 书籍配置
   'PICBOOK_GOODNIGHT': {
     id: 'PICBOOK_GOODNIGHT',
+    // 如果没有指定 specifications，将使用默认值（从国际化文件读取）
+    specifications: [
+      { label: 'specifications.size' },
+      { label: 'specifications.pages' },
+      { label: 'specifications.delivery' },
+    ],
     sections: [
       {
         type: 'behind-story',
@@ -134,10 +150,38 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
     ],
   },
   
+  // You're Brave in Many Ways 书籍配置
+  'PICBOOK_YOUAREBRAVEYINMANYWAYS': {
+    id: 'PICBOOK_YOUAREBRAVEYINMANYWAYS',
+    specifications: [
+      { label: 'Best for ages 3–8' }, // 直接文本
+      { label: 'Landscape format' }, // 直接文本
+      { label: '34 pages' }, // 直接文本
+      { label: 'specifications.delivery' }, // 使用国际化 key
+    ],
+    sections: [
+      {
+        type: 'meet-author',
+        title: 'Meet the Author',
+        authorImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_YOUAREBRAVEYINMANYWAYS/bg-author.jpg',
+        paragraphs: [
+          "As a mom, I noticed a stage when my toddler was afraid to try many things. It's a normal part of early childhood development, but telling him \"be brave\" often made him doubt himself even more.",
+          "So I wrote this book — to show him that courage is already part of his everyday life, from simple daily acts to new challenges. When he saw himself in the story, he truly believed he was a little warrior.",
+        ],
+      },
+    ],
+  },
+  
   // 可以在这里添加其他书籍的配置
-  // 示例：
+  // 示例：另一本书的配置（使用自定义规格）
   // 'PICBOOK_SANTALETTER': {
   //   id: 'PICBOOK_SANTALETTER',
+  //   specifications: [
+  //     { label: 'Best for ages 3–8' }, // 直接文本
+  //     { label: 'Landscape format' }, // 直接文本
+  //     { label: '34 pages' }, // 直接文本
+  //     { label: 'specifications.delivery' }, // 使用国际化 key
+  //   ],
   //   sections: [
   //     {
   //       type: 'custom',

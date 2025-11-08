@@ -278,6 +278,48 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
   );
 };
 
+// Meet the Author Section 组件
+const MeetAuthorSection: React.FC<{ section: BookSection }> = ({ section }) => {
+  return (
+    <div className={`w-full bg-white pt-12 gap-8 md:h-[616px] md:pt-[88px] md:pr-[120px] md:pb-[88px] md:pl-[120px] flex flex-col md:flex-row md:gap-[48px] ${section.className || ''}`}>
+      {/* 右侧：文字内容 - 手机端在上，桌面端在右 */}
+      <div className="flex flex-col px-4 md:px-0 gap-[24px] gap-6 order-1 md:order-2">
+        {/* 标题 */}
+        {section.title && (
+          <h2 className="font-semibold md:font-medium text-center md:text-left text-[24px] md:text-[40px] leading-[32px] md:leading-[64px] text-[#222222]">
+            {section.title}
+          </h2>
+        )}
+        
+        {/* 段落 */}
+        {section.paragraphs && section.paragraphs.length > 0 && (
+          <div className="flex flex-col gap-[6px]">
+            {section.paragraphs.map((paragraph, index) => (
+              <p 
+                key={index}
+                className="font-normal text-[14px] md:text-[16px] leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] text-[#222222]"
+              >
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      {/* 左侧：作者图片 - 手机端在下，桌面端在左 */}
+      {section.authorImage && (
+        <div className="w-full md:w-auto order-2 md:order-1">
+          <img 
+            src={section.authorImage} 
+            alt="Author" 
+            className="w-full md:h-full object-cover"
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Why you need a personalized book? Section 组件
 const WhyPersonalizedSection: React.FC<{ section: BookSection }> = ({ section }) => {
   return (
@@ -325,6 +367,8 @@ const renderSection = (section: BookSection, index: number) => {
       return <ToddlerFavoritesSection key={index} section={section} />;
     case 'why-personalized':
       return <WhyPersonalizedSection key={index} section={section} />;
+    case 'meet-author':
+      return <MeetAuthorSection key={index} section={section} />;
     case 'custom':
       // 如果有自定义渲染函数，使用它
       if (section.render) {
