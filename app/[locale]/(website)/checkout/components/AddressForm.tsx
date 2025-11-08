@@ -305,7 +305,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
             value={address.is_default}
             onChange={(e: any) => setAddress((prev) => ({ ...prev, is_default: e.target.checked }))}
           >
-            Set as default shipping address
+            Save as a frequently used address
           </FormField>
         </div>
       </div>
