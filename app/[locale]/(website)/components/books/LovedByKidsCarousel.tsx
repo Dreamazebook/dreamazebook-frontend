@@ -76,7 +76,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
       <div className="gap-12 px-8">
         {/* Section Title */}
         <h2
-          className="text-left text-[40px] font-medium text-[#222222]"
+          className="text-left md:text-[40px] text-[24px] md:font-medium font-semibold text-[#222222]"
           style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
         >
           Loved by kids, chosen by kids
@@ -116,7 +116,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
                 src={card.image}
                 alt={card.title}
                 fill
-                className="object-cover"
+                className="object-top object-cover"
                 sizes="(max-width: 768px) 90vw, 33vw"
               />
               {/* Overlay */}

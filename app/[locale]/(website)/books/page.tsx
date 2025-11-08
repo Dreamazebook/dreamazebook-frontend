@@ -309,28 +309,28 @@ export default function BooksPage() {
               id: '1',
               title: "Little One, You're Brave in Many Ways",
               description: "The book is really talking about me! If anyone says I'm not brave, I'll show them this book — then they'll know what being brave really means!",
-              image: '/products/picbooks/PICBOOK_YouAreBraveyInManyWays/thumb.png', // 需要替换为实际图片
+              image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/bg.png',
               bookId: 'PICBOOK_YouAreBraveyInManyWays',
             },
             {
               id: '2',
               title: 'Birthday Book for You',
               description: "I saw some pigeons on the way to school… maybe they'll fly back to the forest and tell the animals my message!",
-              image: '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png', // 需要替换为实际图片
+              image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/bg.png',
               bookId: 'PICBOOK_BIRTHDAY', // 需要替换为实际书籍ID
             },
             {
               id: '3',
               title: "Santa's Letter for You",
               description: "Santa really knows me! He even knows how I've been good… but how did he see all that?!",
-              image: '/products/picbooks/PICBOOK_SANTALETTER/thumb.png', // 需要替换为实际图片
+              image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/bg.png',
               bookId: 'PICBOOK_SANTALETTER',
             },
             {
               id: '4',
               title: 'Goodnight to You',
               description: "It's me!! I can fly! Goodnight bear, goodnight cat… they all sleep so well, I'll sleep nicely too.",
-              image: '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png',
+              image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/bg.png',
               bookId: 'PICBOOK_GOODNIGHT',
             },
           ]}
