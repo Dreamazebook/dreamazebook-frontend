@@ -17,14 +17,6 @@ interface ReviewsSectionProps {
 }
 
 const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews, compact = false }) => {
-  const defaultKeywords = keywords?.length
-    ? keywords
-    : [
-        { keyword: "Fantasy", count: 5 },
-        { keyword: "Adventure", count: 3 },
-        { keyword: "Children's Book", count: 2 },
-      ];
-
   // 根据书籍ID获取评论数据
   const getBookReviewData = (): BookReviewData => {
     // 尝试通过book.id获取
@@ -49,6 +41,17 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
 
   const bookReviewData = getBookReviewData();
   const defaultReviews = bookReviewData.reviews;
+  
+  // 优先使用数据文件中的关键词，其次使用传入的keywords，最后使用默认值
+  const defaultKeywords = bookReviewData.keywords?.length
+    ? bookReviewData.keywords
+    : keywords?.length
+    ? keywords
+    : [
+        { keyword: "Fantasy", count: 5 },
+        { keyword: "Adventure", count: 3 },
+        { keyword: "Children's Book", count: 2 },
+      ];
   
   // 优先使用数据文件中的 rating 和 reviewsCount，如果没有则使用 book 对象中的数据
   const displayRating = bookReviewData.rating || parseFloat(String(book?.rating || 4.8));
@@ -126,7 +129,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
               {/* 单个评论 */}
               <div className="w-full md:max-w-[1200px] flex flex-col md:flex-row md:h-[88px] gap-4 md:gap-[36px]">
                 {/* 第一排/左侧：头像、评论者名称和评分 */}
-                <div className="flex-shrink-0 md:w-[200px] flex md:flex-col flex-row items-center md:gap-3 gap-4 justify-between">
+                <div className="flex-shrink-0 md:w-[200px] flex md:flex-col flex-row items-center md:gap-3 gap-4 justify-between md:items-start items-center">
                   {/* 头像和评论者名称在同一行（小屏幕）或分开（大屏幕） */}
                   <div className="flex items-center gap-3 py-1 md:py-0">
                     {/* 头像占位符 */}
