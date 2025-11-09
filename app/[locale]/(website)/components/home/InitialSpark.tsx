@@ -93,8 +93,8 @@ function InitialSpark() {
               {/** Second mapped copy (duplicate) **/}
               <div className="flex gap-4">
                 {images.map((img, idx) => (
-                  <div key={`second-${idx}`} className="w-64 flex-shrink-0 overflow-hidden rounded-lg relative">
-                    <img src={img.src} alt={img.alt} className="w-full h-40 object-cover" />
+                  <div key={`second-${idx}`} className="w-96 flex-shrink-0 overflow-hidden rounded-lg relative">
+                    <img src={img.src} alt={img.alt} className="w-full h-60 object-cover" />
                     {img.showStar && (
                       <div className="absolute top-2 right-2">
                         <svg width="28" height="28" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
