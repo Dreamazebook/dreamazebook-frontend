@@ -2714,8 +2714,10 @@ export default function PreviewPageWithTopNav() {
                     const isReplaceablePage = replaceableTextPageIds.has(page.page_id) || replaceableTextPageNumbers.has(page.page_number);
                     // 轮到该页前（progress 为 0）显示 loading；开始后显示进度
                     const overlayMode = (progress > 0 ? 'progress' : 'loading');
-                    // 第二张图：单页模式直接用 GiverDedicationCanvas 取代基础图，避免重复；双页模式叠加覆盖层
-                    if (idx === 1 && viewMode === 'single') {
+                      // 仅在 page_code === 'p3-4' 的页面渲染 Giver & Dedication
+                      const isGiverDedicationPage = String((page as any).page_code || '') === 'p3-4';
+                      // 单页模式：在 p3-4 直接用 GiverDedicationCanvas 取代基础图
+                      if (isGiverDedicationPage && viewMode === 'single') {
                       return (
                         <div key={page.page_id} ref={giverDedicationRef} className="w-full flex flex-col items-center">
                           <div className="w-full max-w-5xl">
@@ -2755,8 +2757,8 @@ export default function PreviewPageWithTopNav() {
                         </div>
                       );
                     }
-                    return (
-                      <div key={page.page_id} ref={idx === 1 ? giverDedicationRef : undefined} className="w-full flex flex-col items-center">
+                      return (
+                      <div key={page.page_id} ref={isGiverDedicationPage ? giverDedicationRef : undefined} className="w-full flex flex-col items-center">
                         <div className="w-full max-w-5xl">
                           <PreviewPageItem
                             pageId={page.page_id}
@@ -2767,7 +2769,7 @@ export default function PreviewPageWithTopNav() {
                             progress={progress}
                             overlayMode={overlayMode as any}
                             content={page.content}
-                            customOverlayContent={idx === 1 ? (
+                            customOverlayContent={isGiverDedicationPage ? (
                               <div className="w-full h-full relative">
                                 <GiverDedicationCanvas
                                   className="w-full h-full"
@@ -2786,7 +2788,7 @@ export default function PreviewPageWithTopNav() {
                                       }}
                                       className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
                                     >
-                                      Edit Giver
+                                      Personalize with a photo
                                     </button>
                                   </div>
                                   <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
@@ -3314,7 +3316,7 @@ export default function PreviewPageWithTopNav() {
                         }
                       }}
                       onDone={(url) => {
-                        setGiverImageUrl(url);
+                        if (url) setGiverImageUrl(url);
                         setEditField(null);
                         setPendingGiverFile(null);
                         if (pendingGiverFile) {
