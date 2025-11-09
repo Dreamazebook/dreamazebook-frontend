@@ -1,71 +1,25 @@
 export default function ReturnPolicy() {
   return (
-    <div className="prose prose-lg max-w-4xl mx-auto">
-      <style dangerouslySetInnerHTML={{ __html: `
-        .terms-content h1 {
-          font-size: 2rem;
-          font-weight: bold;
-          margin-bottom: 1.5rem;
-          color: #000000;
-        }
-        .terms-content h2 {
-          font-size: 1.5rem;
-          font-weight: bold;
-          margin-top: 2rem;
-          margin-bottom: 1rem;
-          color: #000000;
-        }
-        .terms-content h3 {
-          font-size: 1.25rem;
-          font-weight: bold;
-          margin-top: 1.5rem;
-          margin-bottom: 0.75rem;
-          color: #000000;
-        }
-        .terms-content p {
-          margin-bottom: 1rem;
-          line-height: 1.6;
-          color: #222222;
-        }
-        .terms-content ul, .terms-content ol {
-          margin-left: 2rem;
-          margin-bottom: 1rem;
-        }
-        .terms-content li {
-          margin-bottom: 0.5rem;
-          line-height: 1.6;
-        }
-        .terms-content a {
-          color: #0066cc;
-          text-decoration: underline;
-        }
-        .terms-content a:hover {
-          color: #004499;
-        }
-        .terms-content strong {
-          font-weight: 600;
-        }
-      ` }} />
-      
-      <div className="terms-content">
-        <h1>Dreamaze Terms and Conditions</h1>
-        <p>Welcome to Dreamaze's Terms and Conditions.</p>
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-black mb-6">Dreamaze Terms and Conditions</h1>
+        <p className="text-gray-800 leading-relaxed mb-4">Welcome to Dreamaze's Terms and Conditions.</p>
         
-        <p>
+        <p className="text-gray-800 leading-relaxed mb-4">
           Dreamaze creates personalized books based on a child's name and appearance. Each book is unique and is made to order. 
           This site is owned and operated by Dreamaze AG ("We", "Us"). If you would like to contact us about anything regarding 
-          our site or products, please contact us by email at <a className="text-primary" href="mailto:hello@dreamaze.com">hello@dreamaze.com</a>.
+          our site or products, please contact us by email at <a href="mailto:hello@dreamaze.com" className="text-blue-600 underline hover:text-blue-800">hello@dreamaze.com</a>.
         </p>
         
-        <p>
-          These Terms and Conditions govern the contents and use of the all websites of Dreamaze AG (<a href="/" className="text-primary">www.Dreamazebook.com</a>) and 
+        <p className="text-gray-800 leading-relaxed mb-4">
+          These Terms and Conditions govern the contents and use of the all websites of Dreamaze AG (<a href="/" className="text-blue-600 underline hover:text-blue-800">www.Dreamazebook.com</a>) and 
           set out the terms and conditions on which we supply the products available on the Site (the "Products"). Please read 
           these Terms and Conditions carefully before using the Site and before ordering any Products via the Site. By using the 
           Site and/or ordering the Product you signify that you have read, understand and agree to be bound by these Terms and 
           Conditions. You can print a copy of these Terms and Conditions by clicking on the print icon on your browser.
         </p>
         
-        <p>
+        <p className="text-gray-800 leading-relaxed mb-4">
           These Terms and Conditions shall apply to all sales of the Products by Us via the Site and shall supersede any other 
           terms or conditions contained or referred to elsewhere or implied by trade, custom, practice or course of dealing 
           unless specifically agreed to in writing by Us. If you do not agree with these Terms and Conditions then you may not 
@@ -74,41 +28,41 @@ export default function ReturnPolicy() {
           will be deemed to have accepted the change.
         </p>
         
-        <h2>Definitions</h2>
+        <h2 className="text-2xl font-bold text-black mt-8 mb-4">Definitions</h2>
         
-        <p>"Buyer" means you as the person placing the Order and named on the Order;</p>
+        <p className="text-gray-800 leading-relaxed mb-4">"Buyer" means you as the person placing the Order and named on the Order;</p>
         
-        <p>"Contract" means the Order and Order Confirmation;</p>
+        <p className="text-gray-800 leading-relaxed mb-4">"Contract" means the Order and Order Confirmation;</p>
         
-        <p>"Faulty" means containing a fault or defect; imperfect or defective;</p>
+        <p className="text-gray-800 leading-relaxed mb-4">"Faulty" means containing a fault or defect; imperfect or defective;</p>
         
-        <p>"Order" means your order for a Product from the Site;</p>
+        <p className="text-gray-800 leading-relaxed mb-4">"Order" means your order for a Product from the Site;</p>
         
-        <p>
+        <p className="text-gray-800 leading-relaxed mb-4">
           "Price" means the price together with postage and packing costs and any applicable taxes in force at the time of the 
           Order (excluding any taxes and duties for which the which the Buyer is responsible under the 'Pricing and Payment' 
           section of these Terms and Conditions), subject to any promotional offer or discount then applicable;
         </p>
         
-        <p>"Terms and Conditions" means the standard terms and conditions of business set out in this document.</p>
+        <p className="text-gray-800 leading-relaxed mb-4">"Terms and Conditions" means the standard terms and conditions of business set out in this document.</p>
         
-        <h2>Site access and usage</h2>
+        <h2 className="text-2xl font-bold text-black mt-8 mb-4">Site access and usage</h2>
         
-        <p>
+        <p className="text-gray-800 leading-relaxed mb-4">
           You may not use the Site in any improper or unlawful manner or in breach of any legislation or license that applies 
           to you. You agree to comply with all reasonable instructions that we may give you from time to time regarding use of 
           the Site.
         </p>
         
-        <p>
+        <p className="text-gray-800 leading-relaxed mb-4">
           Upon placing your order, you acknowledge that we may review your order, and the Content it contains, for adherence to 
           our guidelines and compliance with these Terms and Conditions and that We may refuse to process an order where we 
           believe that the Content is in breach of these Terms and Conditions and our guidelines.
         </p>
         
-        <h2>Property rights and rights of use</h2>
+        <h2 className="text-2xl font-bold text-black mt-8 mb-4">Property rights and rights of use</h2>
         
-        <p>
+        <p className="text-gray-800 leading-relaxed mb-4">
           All intellectual property rights (meaning patents, registered and unregistered trademarks and service marks, domain 
           names, registered designs and design rights, copyright, database rights and moral rights and rights in computer 
           programs) in and to the Site and all content and materials contained in the Site ("Site Content") are owned by and 
@@ -118,21 +72,21 @@ export default function ReturnPolicy() {
           proprietary notices contained in any Site Content.
         </p>
         
-        <h2>Orders and Specifications</h2>
+        <h2 className="text-2xl font-bold text-black mt-8 mb-4">Orders and Specifications</h2>
         
-        <p>
+        <p className="text-gray-800 leading-relaxed mb-4">
           To place an Order you will need to follow the order procedure set out on the Site. Details of the Price payable in 
           respect of any Product and the procedure for payment are displayed on the Site.
         </p>
         
-        <p>All Products are offered for sale subject to availability and subject to Our acceptance of your order.</p>
+        <p className="text-gray-800 leading-relaxed mb-4">All Products are offered for sale subject to availability and subject to Our acceptance of your order.</p>
         
-        <p>
+        <p className="text-gray-800 leading-relaxed mb-4">
           We reserve the right to reject any Order without the obligation to assign any reason for so doing. No Order shall be 
           deemed accepted by Us until we have confirmed it unconditionally in the Order Confirmation.
         </p>
         
-        <p>
+        <p className="text-gray-800 leading-relaxed mb-4">
           The Order Confirmation will contain details of your Order, the Price and an estimate of the delivery time for the 
           Order. It is your responsibility to contact Us and notify Us of any error or mistake with the Order as soon as 
           reasonably practicable. Failure to do so may lead to the incorrect Order being sent out to you. Any times or dates 
@@ -140,22 +94,22 @@ export default function ReturnPolicy() {
           but we do not accept liability for any failure to deliver within that time.
         </p>
         
-        <p>
+        <p className="text-gray-800 leading-relaxed mb-4">
           We endeavour to display and describe as accurately as possible the printed colors on the Products which appear on Our 
           Site, but We cannot undertake to give any assurance that the colors supplied will exactly match those displayed on 
           your monitor or mobile telephone.
         </p>
         
-        <p>
+        <p className="text-gray-800 leading-relaxed mb-4">
           We may revise, discontinue or modify products or services at any time without prior notice to you and products may 
           become unavailable without notice. We shall have no liability of any kind if any product or service is not available.
         </p>
         
-        <h2>Pricing and Payment</h2>
+        <h2 className="text-2xl font-bold text-black mt-8 mb-4">Pricing and Payment</h2>
         
-        <p>We may change the price of any Product before you place an order.</p>
+        <p className="text-gray-800 leading-relaxed mb-4">We may change the price of any Product before you place an order.</p>
         
-        <p>
+        <p className="text-gray-800 leading-relaxed mb-4">
           Despite Our best efforts, some of the Products listed on the Site may be incorrectly priced or the price may increase 
           between your order and Our acceptance of Your order. We will normally verify prices as part of the dispatch procedures 
           so that, where a Product's correct price is less than the stated price, we will charge the lower amount when 
@@ -164,14 +118,14 @@ export default function ReturnPolicy() {
           so that you can then re-order at the correct price if you wish.
         </p>
         
-        <p>
+        <p className="text-gray-800 leading-relaxed mb-4">
           Orders may be subject to import duties and taxes (including VAT) which are levied once a delivery reaches your 
           destination country. Any such additional charges as well as costs for customs clearance etc. must be borne by you as 
           the importer of the goods. You should note that customs policies and practices vary widely from country to country. 
           We recommend that you contact your local customs office for further information.
         </p>
         
-        <p>
+        <p className="text-gray-800 leading-relaxed mb-4">
           Payment must be made through our payment gateway providers at the time of placing your Order which is accepted by Us. 
           Payment in full will be taken at this time and the Contract will be in force. You will be required to submit your 
           payment details to the relevant third party payment gateway provider and you may also be required to accept additional 
@@ -180,20 +134,20 @@ export default function ReturnPolicy() {
           payment provider.
         </p>
         
-        <p>
+        <p className="text-gray-800 leading-relaxed mb-4">
           You undertake that all of the details which you provide to Us for the purposes of your Order and its delivery will be 
           correct and that the chosen method of payment is Your property and that sufficient funds or credit facilities are 
           available to cover the full cost of the Order.
         </p>
         
-        <p>
+        <p className="text-gray-800 leading-relaxed mb-4">
           If you opt to pay by invoice in Switzerland, this service is provided by CembraPay AG. By choosing this payment 
           option, you agree to abide by the terms and conditions of CembraPay AG.
         </p>
         
-        <h2>Delivery and Acceptance</h2>
+        <h2 className="text-2xl font-bold text-black mt-8 mb-4">Delivery and Acceptance</h2>
         
-        <p>
+        <p className="text-gray-800 leading-relaxed mb-4">
           The place for the delivery of your Products will be as shown on the Order and the normal method of delivery (unless 
           specifically agreed otherwise) shall be 1st class postage.
         </p>
@@ -225,7 +179,7 @@ export default function ReturnPolicy() {
         
         <p>If you wrongfully fail to take delivery of the Order then We shall be under no obligation to refund the price.</p>
         
-        <h2>Risk and Property</h2>
+        <h2 className="text-2xl font-bold text-black mt-8 mb-4">Risk and Property</h2>
         
         <p>Risk or damage or loss of Your Order will pass to You upon delivery to the agreed address.</p>
         
@@ -235,7 +189,7 @@ export default function ReturnPolicy() {
           respect of the Order or any other Order between You and Us.
         </p>
         
-        <h2>Returns, refunds and rights of cancellation</h2>
+        <h2 className="text-2xl font-bold text-black mt-8 mb-4">Returns, refunds and rights of cancellation</h2>
         
         <p>
           Dreamaze's books are made to your specifications and each product is therefore unique and non-returnable. You shall 
@@ -268,7 +222,7 @@ export default function ReturnPolicy() {
         
         <p>Notice of a wish to cancel must be made by email to <a className="text-primary" href="mailto:cancel@dreamaze.com">cancel@Dreamaze.com</a>.</p>
         
-        <h2>Disclaimers and limitation of liability</h2>
+        <h2 className="text-2xl font-bold text-black mt-8 mb-4">Disclaimers and limitation of liability</h2>
         
         <p>
           While we endeavour to ensure that the information contained on the Site ("Site Content) is correct and error-free, we 
@@ -301,7 +255,7 @@ export default function ReturnPolicy() {
           in transit, or loss of or corruption of material or data when downloaded onto any computer system.
         </p>
         
-        <h2>Liability</h2>
+        <h2 className="text-2xl font-bold text-black mt-8 mb-4">Liability</h2>
         
         <p>
           We warrant to you that any Product purchased from us via the Site is of satisfactory quality and reasonably fit for 
@@ -355,7 +309,7 @@ export default function ReturnPolicy() {
           acquisition of any such Site Content.
         </p>
         
-        <h2>Indemnity</h2>
+        <h2 className="text-2xl font-bold text-black mt-8 mb-4">Indemnity</h2>
         
         <p>
           You agree to indemnify, keep indemnified, defend and hold Us and Our parent companies, subsidiaries, affiliates and 
@@ -369,7 +323,7 @@ export default function ReturnPolicy() {
           any third party.
         </p>
         
-        <h2>Copyright</h2>
+        <h2 className="text-2xl font-bold text-black mt-8 mb-4">Copyright</h2>
         
         <p>
           All titles, books and products purchase from Us or the Site are protected by copyright. The copyright lies with US as 
@@ -378,7 +332,7 @@ export default function ReturnPolicy() {
           limits of copyright, especially for self-use and citation under certain condition are reserved.
         </p>
         
-        <h2>Termination</h2>
+        <h2 className="text-2xl font-bold text-black mt-8 mb-4">Termination</h2>
         
         <p>
           We may remove the Site or cease the provision of any of the services available through the Site at any time in our 
@@ -389,7 +343,7 @@ export default function ReturnPolicy() {
           We may terminate your access to the Site for any reason in our sole discretion at any time with or without notice.
         </p>
         
-        <h2>Entire Agreement and the Term</h2>
+        <h2 className="text-2xl font-bold text-black mt-8 mb-4">Entire Agreement and the Term</h2>
         
         <p>
           These Conditions together with Privacy Policy and any Specific Conditions govern Our relationship with You and 
