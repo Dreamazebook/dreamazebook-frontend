@@ -10,6 +10,7 @@ const footerMenus = [
       { label: 'Help Center', href: '#' },
       { label: 'Return Policy', href: '/return-policy' },
       { label: 'Privacy Policy', href: '/privacy-policy' },
+      { label: 'Terms & Conditions', href: '/terms-and-conditions' },
       { label: 'Shipping Info', href: '#' },
     ],
   },
