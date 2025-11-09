@@ -2403,7 +2403,7 @@ export default function PreviewPageWithTopNav() {
   const selectedLang = (searchParams.get('lang') || 'en').toLowerCase();
   const isZhLang = selectedLang.startsWith('zh');
   // 获取bookId用于匹配不同的寄语模板
-  const bookId = searchParams.get('bookid') || bookInfo?.id || bookInfo?.spu_code || '';
+  const bookId = searchParams.get('bookid') || (bookInfo?.id != null ? String(bookInfo.id) : '') || bookInfo?.spu_code || '';
   const buildDefaultMessage = (name: string, lang: string, bookIdParam?: string) => {
     const bookIdUpper = (bookIdParam || bookId || '').toUpperCase();
     
@@ -3304,18 +3304,6 @@ export default function PreviewPageWithTopNav() {
                         if (pendingGiverFile) {
                           URL.revokeObjectURL(pendingGiverFile);
                         }
-                      }}
-                      onDelete={() => {
-                        // 关闭弹窗并清理状态
-                        setEditField(null);
-                        setPendingGiverFile(null);
-                        if (pendingGiverFile) {
-                          URL.revokeObjectURL(pendingGiverFile);
-                        }
-                        // 关闭弹窗后触发文件选择器
-                        setTimeout(() => {
-                          giverFileInputRef.current?.click();
-                        }, 100);
                       }}
                       onDone={(url) => {
                         setGiverImageUrl(url);

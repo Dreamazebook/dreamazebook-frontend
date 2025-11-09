@@ -6,13 +6,11 @@ import type { ReactCropperElement } from 'react-cropper';
 import type { AxiosResponse } from 'axios';
 import { uploadApi } from '@/utils/api.js';
 import api from '@/utils/api';
-import { MdRotateLeft, MdRotateRight, MdFlip, MdRefresh, MdDelete } from 'react-icons/md';
+import { MdRotateLeft, MdRotateRight, MdFlip, MdRefresh } from 'react-icons/md';
 
 type Props = {
   onDone: (url: string) => void;
   onCancel: () => void;
-  // 可选：删除回调，当删除图片时调用
-  onDelete?: () => void;
   // 可选：固定裁剪比例（例如头像 1:1）。不传则自由裁剪
   aspectRatio?: number | undefined;
   // 可选：导出格式和质量
@@ -54,7 +52,7 @@ function toAbsoluteUrl(raw: string): string {
   return `${origin}/${cleanPath}`;
 }
 
-export default function GiverAvatarCropper({ onDone, onCancel, onDelete, aspectRatio, maxSize, exportMime = 'image/jpeg', exportQuality = 0.92, spu, page, batchId, initialSrc }: Props) {
+export default function GiverAvatarCropper({ onDone, onCancel, aspectRatio, maxSize, exportMime = 'image/jpeg', exportQuality = 0.92, spu, page, batchId, initialSrc }: Props) {
   // 如果提供了spu和page参数，直接使用新的接口，否则使用原有逻辑
   const useNewUploadMethod = spu && page !== undefined && page !== null;
   const [src, setSrc] = useState<string | undefined>(initialSrc);
@@ -103,21 +101,6 @@ export default function GiverAvatarCropper({ onDone, onCancel, onDelete, aspectR
   const resetAll = () => {
     cropperRef.current?.cropper.reset();
     setSx(1); setSy(1);
-  };
-
-  const handleDelete = () => {
-    if (src) {
-      URL.revokeObjectURL(src);
-    }
-    setSrc(undefined);
-    setError(null);
-    // 调用删除回调，让外部处理（关闭弹窗并触发文件选择器）
-    if (onDelete) {
-      onDelete();
-    } else {
-      // 如果没有提供 onDelete，则只关闭弹窗
-      onCancel();
-    }
   };
 
   const uploadBlob = async (blob: Blob): Promise<string> => {
@@ -311,14 +294,6 @@ export default function GiverAvatarCropper({ onDone, onCancel, onDelete, aspectR
                 aria-label="Reset"
               >
                 <MdRefresh className="w-6 h-6" />
-              </button>
-              <button 
-                onClick={handleDelete} 
-                className="p-2 rounded hover:bg-gray-100 transition-colors"
-                title="Delete"
-                aria-label="Delete"
-              >
-                <MdDelete className="w-6 h-6" />
               </button>
             </div>
           </div>

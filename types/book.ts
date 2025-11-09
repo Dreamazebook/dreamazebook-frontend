@@ -6,6 +6,7 @@ export interface BaseBook {
   pricesymbol: string;
   price: string;
   currencycode: string;
+  spu_code?: string; // 可选的产品代码
 }
 
 // 定义分页信息接口
