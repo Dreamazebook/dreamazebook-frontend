@@ -149,7 +149,9 @@ export default function GiverAvatarCropper({ onDone, onCancel, aspectRatio, maxS
       requestBody.batch_id = batchId;
     }
 
-    const resp: AxiosResponse<{ url?: string; path?: string }> = await api.post(`/admin/products/${encodeURIComponent(spu)}/pages/${encodeURIComponent(pageParam)}/upload-special-image`, requestBody);
+    const resp: AxiosResponse<{ url?: string; path?: string }> = await api.post(`/products/${encodeURIComponent(spu)}/pages/p3-4/upload-special-image`, requestBody, {
+      timeout: 120000, // 图片上传需要更长时间，设置为 120 秒
+    });
     const data = resp.data;
 
     // 假设接口返回包含 url 或 path 的响应
