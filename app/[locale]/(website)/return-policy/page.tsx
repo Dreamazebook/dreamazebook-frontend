@@ -243,7 +243,7 @@ export default function ReturnPolicy() {
         </p>
         
         <p>
-          (a) if You cancel the Order by email at cancel@Dreamaze.com before We begin printing your Order. We will notify you 
+          (a) if You cancel the Order by email at <a className="text-primary" href="mailto:cancel@dreamaze.com">cancel@Dreamaze.com</a> before We begin printing your Order. We will notify you 
           by email when your Order is being printed, however this does not constitute the time before which You may cancel the 
           Order, as printing may have begun before this notification. Upon receipt of your cancellation email, We will take all 
           reasonable steps to cancel Your Order in a timely manner before We begin printing your Order.
@@ -266,7 +266,7 @@ export default function ReturnPolicy() {
           (including initial and re-delivery charges (if any)) in respect of the Order in question.
         </p>
         
-        <p>Notice of a wish to cancel must be made by email to cancel@Dreamaze.com.</p>
+        <p>Notice of a wish to cancel must be made by email to <a className="text-primary" href="mailto:cancel@dreamaze.com">cancel@Dreamaze.com</a>.</p>
         
         <h2>Disclaimers and limitation of liability</h2>
         

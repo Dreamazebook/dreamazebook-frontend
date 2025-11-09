@@ -1,5 +1,6 @@
 import { FaFacebookF, FaTwitter, FaInstagram } from 'react-icons/fa';
 import Image from 'next/image';
+import { Link } from '@/i18n/routing';
 
 const footerMenus = [
   {
@@ -7,7 +8,8 @@ const footerMenus = [
     items: [
       { label: 'FAQ', href: '#' },
       { label: 'Help Center', href: '#' },
-      { label: 'Return Policy', href: '#' },
+      { label: 'Return Policy', href: '/return-policy' },
+      { label: 'Privacy Policy', href: '/privacy-policy' },
       { label: 'Shipping Info', href: '#' },
     ],
   },
@@ -28,9 +30,9 @@ const footerMenus = [
 ];
 
 const socialLinks = [
-  { icon: FaInstagram, label: 'Instagram', href: '#' },
-  { icon: FaFacebookF, label: 'Facebook', href: '#' },
-  { icon: FaTwitter, label: 'Twitter', href: '#' },
+  { icon: FaInstagram, label: 'Instagram', href: 'https://www.instagram.com/dreamaze.book/?hl=en' },
+  { icon: FaFacebookF, label: 'Facebook', href: 'https://www.facebook.com/dreamazebook/' },
+  // { icon: FaTwitter, label: 'Twitter', href: '#' },
 ];
 
 const Footer = () => {
@@ -40,9 +42,9 @@ const Footer = () => {
       <ul className="space-y-3 lg:space-y-4">
         {menu.items.map((item) => (
           <li key={item.label}>
-            <a href={item.href} className="text-gray-300 hover:text-white transition-colors duration-200">
+            <Link href={item.href} className="text-gray-300 hover:text-white transition-colors duration-200">
               {item.label}
-            </a>
+            </Link>
           </li>
         ))}
       </ul>
