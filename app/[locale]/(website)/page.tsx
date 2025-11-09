@@ -79,21 +79,21 @@ export default function HomePage() {
     fetchBooks();
   }, [locale]);
 
-  const faqs = [
-    {
-      tl: 'Personalize It',
-      ans: 'Add your child’s name, upload 1–3 photos, and choose a few fun details. (Tip: the better the photo quality, the more stunning the result!)',
-      show: true
-    },
-    {
-      tl: 'Preview & Confirm',
-      ans: 'Flip through sample pages to see how your story looks—then confirm with one click.'
-    },
-    {
-      tl: 'Receive & Enjoy',
-      ans: ' Your one-of-a-kind gift is on its way. Unwrap it, read it together, and get ready for smiles that last.'
-    }
-  ];
+  // const faqs = [
+  //   {
+  //     tl: 'Personalize It',
+  //     ans: 'Add your child’s name, upload 1–3 photos, and choose a few fun details. (Tip: the better the photo quality, the more stunning the result!)',
+  //     show: true
+  //   },
+  //   {
+  //     tl: 'Preview & Confirm',
+  //     ans: 'Flip through sample pages to see how your story looks—then confirm with one click.'
+  //   },
+  //   {
+  //     tl: 'Receive & Enjoy',
+  //     ans: ' Your one-of-a-kind gift is on its way. Unwrap it, read it together, and get ready for smiles that last.'
+  //   }
+  // ];
 
   return (
     <main className="min-h-screen">
@@ -126,9 +126,9 @@ export default function HomePage() {
       </AnimatedSection>
 
       {/* FAQ */}
-      <AnimatedSection delay={0.3}>
+      {/* <AnimatedSection delay={0.3}>
         <FAQ FAQs={faqs} />
-      </AnimatedSection>
+      </AnimatedSection> */}
 
       {/* Newsletter */}
       <AnimatedSection className="bg-black text-white" delay={0.3}>
