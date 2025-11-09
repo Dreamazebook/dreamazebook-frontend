@@ -289,7 +289,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
 
       {/* Hairstyle - 某些书籍隐藏（如 bookId === '5'） */}
       {bookId !== '5' && (
-        <div>
+        <div id="field-hairstyle">
           <HairstyleSelector
             bookId={bookId}
             selectedHairstyle={data.hairstyle}
@@ -306,7 +306,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
 
       {/* Hair Color - 某些书籍隐藏（如 bookId === '5'） */}
       {bookId !== '5' && (
-        <div>
+        <div id="field-hairColor">
           <HairColorSelector
             selectedHairColor={data.hairColor}
             onChange={handleHairColorSelect}

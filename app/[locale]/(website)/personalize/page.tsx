@@ -32,6 +32,7 @@ export default function PersonalizeApiDrivenPage() {
   const locale = pathname.split('/')[1] || 'en';
 
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formType, setFormType] = useState<'SINGLE1' | 'SINGLE2'>('SINGLE1');
 
   const [skinToneValues, setSkinToneValues] = useState<string[] | undefined>(undefined);
@@ -128,7 +129,35 @@ export default function PersonalizeApiDrivenPage() {
     fetchConfig();
   }, [bookId, locale, mockParam]);
 
+  // 滚动到错误字段的函数
+  const scrollToErrorField = (fieldName: string | null) => {
+    if (!fieldName) return;
+    
+    // 对于 photo 字段，使用上传区域的特殊 id
+    const elementId = fieldName === 'photo' ? 'upload-area-photo' : `field-${fieldName}`;
+    const element = document.getElementById(elementId);
+    
+    if (element) {
+      // 计算偏移量：考虑手机端吸底栏高度（76px）和顶部导航栏高度（56px）
+      const isMobile = window.innerWidth < 768; // md breakpoint
+      const stickyBarHeight = isMobile ? 76 : 0;
+      const headerHeight = 56; // h-14 = 56px
+      const offset = stickyBarHeight + headerHeight + 20; // 额外 20px 间距
+      
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   const handleContinue = async () => {
+    // 防止重复提交
+    if (isSubmitting) return;
+
     let fullName = '';
     let genderRaw: '' | 'boy' | 'girl' = '';
     let skinColorRaw = '';
@@ -137,95 +166,117 @@ export default function PersonalizeApiDrivenPage() {
     let photosData: string[] = [];
 
     if (formType === 'SINGLE1' && form1Ref.current) {
-      const isValid = form1Ref.current.validateForm();
-      if (!isValid) return;
+      const validationResult = form1Ref.current.validateForm();
+      if (!validationResult.isValid) {
+        // 滚动到第一个错误字段
+        setTimeout(() => scrollToErrorField(validationResult.firstErrorField), 100);
+        return;
+      }
       const f = form1Ref.current.getFormData();
       fullName = f.fullName; genderRaw = f.gender as any; skinColorRaw = f.skinColor; hairstyleRaw = f.hairstyle; hairColorRaw = f.hairColor; photosData = (f as any).photos || [];
     } else if (formType === 'SINGLE2' && form2Ref.current) {
-      const isValid = form2Ref.current.validateForm();
-      if (!isValid) return;
+      const validationResult = form2Ref.current.validateForm();
+      if (!validationResult.isValid) {
+        // 滚动到第一个错误字段
+        setTimeout(() => scrollToErrorField(validationResult.firstErrorField), 100);
+        return;
+      }
       const f = form2Ref.current.getFormData();
       fullName = f.fullName; genderRaw = f.gender as any; skinColorRaw = f.skinColor; hairstyleRaw = f.hairstyle; hairColorRaw = f.hairColor; photosData = [];
     } else {
       return;
     }
 
-    const FRONTEND_PREVIEW = process.env.NEXT_PUBLIC_FRONTEND_PREVIEW === 'true' || mockParam === '1';
-    if ((!photosData || photosData.length === 0) && FRONTEND_PREVIEW) {
-      photosData = ['/personalize/face.png'];
-    }
+    // 开始提交，设置 loading 状态
+    setIsSubmitting(true);
 
-    const genderCode = genderRaw === 'boy' ? 1 : genderRaw === 'girl' ? 2 : 0;
-    const skinColors = ['#FFE2CF', '#DCB593', '#665444'];
-    const idx = skinColors.findIndex(c => c === skinColorRaw);
-    const skinColorCode = idx >= 0 ? idx + 1 : 0; // 1..3
-    const hairstyleCode = hairstyleRaw ? parseInt(hairstyleRaw.replace('hair_', '')) : 1;
-    const hairColorMapping: Record<string, number> = { light: 1, brown: 2, dark: 3 };
-    const hairColorCode = hairColorMapping[hairColorRaw] || 1;
-
-    // Build backend attributes payload values
-    const mapSkinToBackend = (hex: string): string => {
-      const i = skinColors.findIndex(c => c === hex);
-      if (i === 0) return 'white';
-      if (i === 1) return 'original';
-      if (i === 2) return 'black';
-      return 'original';
-    };
-    const mapHairColorToBackend = (key: string | number): string => {
-      const v = typeof key === 'number' ? key : ({ light: 1, brown: 2, dark: 3 } as any)[key] || 1;
-      if (v === 1) return 'blonde';
-      if (v === 3) return 'dark';
-      return 'dark';
-    };
-    const mapHairstyleToBackend = (code: number | string): string => {
-      if (typeof code === 'number') return String(code);
-      const m = String(code).replace('hair_', '');
-      return m || '1';
-    };
-    if (!genderCode || !skinColorCode) return;
-
-    const userData = {
-      characters: [
-        {
-          full_name: fullName,
-          language: searchParams.get('language') || 'en',
-          gender: genderCode,
-          skincolor: skinColorCode,
-          hairstyle: hairstyleCode,
-          haircolor: hairColorCode,
-          photo: photosData[0] || '',
-          photos: photosData,
-          attributes: {
-            skin_tone: mapSkinToBackend(skinColorRaw),
-            hair_style: mapHairstyleToBackend(hairstyleCode),
-            hair_color: mapHairColorToBackend(hairColorRaw || hairColorCode),
-          },
-        },
-      ],
-    };
-    // Optionally compute SKU + price for downstream steps (not altering UI)
-    if (rawApi && productSchema) {
-      const selections: Record<string, string> = {
-        language: (searchParams.get('language') || 'en') as string,
-      };
-      const resolved = resolveSkuPrice(rawApi, selections);
-      if (resolved?.sku) localStorage.setItem('previewSkuCode', String(resolved.sku));
-      localStorage.setItem('previewPrice', String(resolved.price));
-    }
-    // 使用全局内存状态存储，避免 localStorage 配额限制
     try {
-      const { setUserData, setBookId } = usePreviewStore.getState();
-      setUserData(userData);
-      setBookId(bookId || '');
-    } catch {}
-    const qs = new URLSearchParams();
-    const selectedLanguage = (searchParams.get('language') || 'en') as string;
-    if (bookId) qs.set('bookid', bookId);
-    if (selectedLanguage) qs.set('lang', selectedLanguage);
-    if (isKs) qs.set('ks', '1');
-    if (isKs && ksPackageItemId) qs.set('package_item_id', ksPackageItemId);
-    if (isKs && ksPackageId) qs.set('package_id', ksPackageId);
-    router.push(`/preview?${qs.toString()}`);
+      const FRONTEND_PREVIEW = process.env.NEXT_PUBLIC_FRONTEND_PREVIEW === 'true' || mockParam === '1';
+      if ((!photosData || photosData.length === 0) && FRONTEND_PREVIEW) {
+        photosData = ['/personalize/face.png'];
+      }
+
+      const genderCode = genderRaw === 'boy' ? 1 : genderRaw === 'girl' ? 2 : 0;
+      const skinColors = ['#FFE2CF', '#DCB593', '#665444'];
+      const idx = skinColors.findIndex(c => c === skinColorRaw);
+      const skinColorCode = idx >= 0 ? idx + 1 : 0; // 1..3
+      const hairstyleCode = hairstyleRaw ? parseInt(hairstyleRaw.replace('hair_', '')) : 1;
+      const hairColorMapping: Record<string, number> = { light: 1, brown: 2, dark: 3 };
+      const hairColorCode = hairColorMapping[hairColorRaw] || 1;
+
+      // Build backend attributes payload values
+      const mapSkinToBackend = (hex: string): string => {
+        const i = skinColors.findIndex(c => c === hex);
+        if (i === 0) return 'white';
+        if (i === 1) return 'original';
+        if (i === 2) return 'black';
+        return 'original';
+      };
+      const mapHairColorToBackend = (key: string | number): string => {
+        const v = typeof key === 'number' ? key : ({ light: 1, brown: 2, dark: 3 } as any)[key] || 1;
+        if (v === 1) return 'blonde';
+        if (v === 3) return 'dark';
+        return 'dark';
+      };
+      const mapHairstyleToBackend = (code: number | string): string => {
+        if (typeof code === 'number') return String(code);
+        const m = String(code).replace('hair_', '');
+        return m || '1';
+      };
+      
+      if (!genderCode || !skinColorCode) {
+        setIsSubmitting(false);
+        return;
+      }
+
+      const userData = {
+        characters: [
+          {
+            full_name: fullName,
+            language: searchParams.get('language') || 'en',
+            gender: genderCode,
+            skincolor: skinColorCode,
+            hairstyle: hairstyleCode,
+            haircolor: hairColorCode,
+            photo: photosData[0] || '',
+            photos: photosData,
+            attributes: {
+              skin_tone: mapSkinToBackend(skinColorRaw),
+              hair_style: mapHairstyleToBackend(hairstyleCode),
+              hair_color: mapHairColorToBackend(hairColorRaw || hairColorCode),
+            },
+          },
+        ],
+      };
+      // Optionally compute SKU + price for downstream steps (not altering UI)
+      if (rawApi && productSchema) {
+        const selections: Record<string, string> = {
+          language: (searchParams.get('language') || 'en') as string,
+        };
+        const resolved = resolveSkuPrice(rawApi, selections);
+        if (resolved?.sku) localStorage.setItem('previewSkuCode', String(resolved.sku));
+        localStorage.setItem('previewPrice', String(resolved.price));
+      }
+      // 使用全局内存状态存储，避免 localStorage 配额限制
+      try {
+        const { setUserData, setBookId } = usePreviewStore.getState();
+        setUserData(userData);
+        setBookId(bookId || '');
+      } catch {}
+      
+      const qs = new URLSearchParams();
+      const selectedLanguage = (searchParams.get('language') || 'en') as string;
+      if (bookId) qs.set('bookid', bookId);
+      if (selectedLanguage) qs.set('lang', selectedLanguage);
+      if (isKs) qs.set('ks', '1');
+      if (isKs && ksPackageItemId) qs.set('package_item_id', ksPackageItemId);
+      if (isKs && ksPackageId) qs.set('package_id', ksPackageId);
+      router.push(`/preview?${qs.toString()}`);
+    } catch (error) {
+      console.error('Failed to continue:', error);
+      // 发生错误时重置 loading 状态，允许用户重试
+      setIsSubmitting(false);
+    }
   };
 
   if (loading) return <div>Loading...</div>;
@@ -284,10 +335,21 @@ export default function PersonalizeApiDrivenPage() {
           <button
             type="button"
             onClick={handleContinue}
+            disabled={isSubmitting}
             style={{ width: '180px' }}
-            className="bg-black text-white py-3 rounded hover:bg-gray-800 mb-16"
+            className="bg-black text-white py-3 rounded hover:bg-gray-800 mb-16 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Continue
+            {isSubmitting ? (
+              <>
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Loading...</span>
+              </>
+            ) : (
+              'Continue'
+            )}
           </button>
         </div>
       </div>
@@ -297,9 +359,20 @@ export default function PersonalizeApiDrivenPage() {
           <button
             type="button"
             onClick={handleContinue}
-            className="w-full bg-black text-[#F5E3E3] h-[44px] rounded hover:bg-gray-800 transition-colors text-[16px] leading-[24px] tracking-[0.5px]"
+            disabled={isSubmitting}
+            className="w-full bg-black text-[#F5E3E3] h-[44px] rounded hover:bg-gray-800 transition-colors text-[16px] leading-[24px] tracking-[0.5px] disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Continue
+            {isSubmitting ? (
+              <>
+                <svg className="animate-spin h-5 w-5 text-[#F5E3E3]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Loading...</span>
+              </>
+            ) : (
+              'Continue'
+            )}
           </button>
         </div>
       </div>

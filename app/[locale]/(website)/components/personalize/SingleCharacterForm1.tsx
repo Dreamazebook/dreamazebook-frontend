@@ -15,7 +15,7 @@ export interface PersonalizeFormData extends BasicInfoData {
 }
 
 export interface SingleCharacterForm1Handle {
-  validateForm: () => boolean; // Method to validate form data
+  validateForm: () => { isValid: boolean; firstErrorField: string | null }; // Method to validate form data
   formData: PersonalizeFormData;
   getFormData: () => PersonalizeFormData;
 }
@@ -109,14 +109,19 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
   }, [initialData?.photo?.path]);
 
   // 当某张图片上传成功后，自动把第一张已上传图片设置为主图（兼容 dataUrl / uploadedFilePath）
+  // 同时，如果所有图片都被删除，确保清除 formData.photo
   useEffect(() => {
-    if (!formData.photo) {
-      const firstUploaded = images.find(img => (img as any).dataUrl || (img as any).uploadedFilePath);
-      const picked = (firstUploaded as any)?.dataUrl || (firstUploaded as any)?.uploadedFilePath;
-      if (picked) {
-        handleBasicInfoChange('photo', { path: picked });
-        handleErrorChange('photo', '');
-      }
+    const firstUploaded = images.find(img => (img as any).dataUrl || (img as any).uploadedFilePath);
+    const picked = (firstUploaded as any)?.dataUrl || (firstUploaded as any)?.uploadedFilePath;
+    
+    if (picked && !formData.photo) {
+      // 如果有图片但 formData.photo 为空，设置第一张为主图
+      handleBasicInfoChange('photo', { path: picked });
+      handleErrorChange('photo', '');
+    } else if (!picked && formData.photo) {
+      // 如果所有图片都被删除，清除 formData.photo
+      handleBasicInfoChange('photo', null);
+      handleErrorChange('photo', 'Please upload a photo');
     }
   }, [images, formData.photo]);
 
@@ -153,8 +158,19 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
 
   // Handle photo deletion
   const handlePhotoDelete = (id: string) => {
+    // 先计算删除后的剩余图片（基于当前 images 状态）
+    const imageToDelete = images.find(img => img.id === id);
+    const remainingImages = images.filter(img => img.id !== id);
+    
+    // 计算剩余路径（兼容 dataUrl 和 uploadedFilePath）
+    const remainingPaths = remainingImages
+      .map(img => (img as any).dataUrl || (img as any).uploadedFilePath)
+      .filter(Boolean) as string[];
+    
+    // 删除图片
     handleImageDelete(id);
-    const remainingPaths = getUploadedPaths();
+    
+    // 更新表单数据
     if (remainingPaths.length > 0) {
       handleBasicInfoChange('photo', { path: remainingPaths[0] });
     } else {
@@ -173,7 +189,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
 
   useImperativeHandle(ref, () => ({
     validateForm() {
-      // 是否需要校验“特征”字段（仅书籍2需要）
+      // 是否需要校验"特征"字段（仅书籍2需要）
       const shouldValidateFeatures = bookId === '2';
 
       // Mark all fields as touched for validation feedback
@@ -200,7 +216,10 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       }
 
       setErrors(newErrors);
-      return Object.keys(newErrors).length === 0;
+      
+      // 返回第一个错误字段的 key，如果没有错误则返回 null
+      const firstErrorKey = Object.keys(newErrors)[0] || null;
+      return { isValid: Object.keys(newErrors).length === 0, firstErrorField: firstErrorKey };
     },
     formData,
     getFormData() {
@@ -256,7 +275,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
             />
 
             {/* Photo Upload Section - 替换为多图片上传组件 */}
-            <div>
+            <div id="field-photo">
               <MultiImageUpload
                 images={images as any}
                 isUploading={isUploading}
@@ -278,7 +297,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
 
             {/* Single Choice Section（默认隐藏于大多数书籍） */}
             {bookId === '2' && (
-            <div>
+            <div id="field-singleChoice">
               <label className="block mb-2 font-medium">
                 Features <span className="ml-2 text-gray-500">(Single choice)</span>
               </label>
@@ -320,7 +339,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
 
             {/* Multiple Choice Section（默认隐藏于大多数书籍） */}
             {bookId === '2' && (
-            <div>
+            <div id="field-multipleChoice">
               <label className="block mb-2 font-medium">
                 Features <span className="ml-2 text-gray-500">(Multiple choice)</span>
               </label>

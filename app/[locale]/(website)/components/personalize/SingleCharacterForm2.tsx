@@ -20,7 +20,7 @@ export interface PersonalizeFormData2 extends BasicInfoData {
 }
 
 export interface SingleCharacterForm2Handle {
-  validateForm: () => boolean;
+  validateForm: () => { isValid: boolean; firstErrorField: string | null };
   formData: PersonalizeFormData2;
   getFormData: () => PersonalizeFormData2;
 }
@@ -100,14 +100,19 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
   // 书籍2的品质选择移至 select-book-content 页面
 
   // 当某张图片上传成功后，自动把第一张已上传图片设置为主图（兼容 dataUrl / uploadedFilePath）
+  // 同时，如果所有图片都被删除，确保清除 formData.photo
   useEffect(() => {
-    if (!formData.photo) {
-      const firstUploaded = images.find((img: any) => img.dataUrl || img.uploadedFilePath);
-      const picked = (firstUploaded as any)?.dataUrl || (firstUploaded as any)?.uploadedFilePath;
-      if (picked) {
-        handleBasicInfoChange('photo', { path: picked });
-        handleErrorChange('photo', '');
-      }
+    const firstUploaded = images.find((img: any) => img.dataUrl || img.uploadedFilePath);
+    const picked = (firstUploaded as any)?.dataUrl || (firstUploaded as any)?.uploadedFilePath;
+    
+    if (picked && !formData.photo) {
+      // 如果有图片但 formData.photo 为空，设置第一张为主图
+      handleBasicInfoChange('photo', { path: picked });
+      handleErrorChange('photo', '');
+    } else if (!picked && formData.photo) {
+      // 如果所有图片都被删除，清除 formData.photo
+      handleBasicInfoChange('photo', null);
+      handleErrorChange('photo', 'Please upload a photo');
     }
   }, [images, formData.photo]);
 
@@ -145,8 +150,19 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
 
   // 处理删除
   const handlePhotoDelete = (id: string) => {
+    // 先计算删除后的剩余图片（基于当前 images 状态）
+    const imageToDelete = images.find(img => img.id === id);
+    const remainingImages = images.filter(img => img.id !== id);
+    
+    // 计算剩余路径（兼容 dataUrl 和 uploadedFilePath）
+    const remainingPaths = remainingImages
+      .map(img => (img as any).dataUrl || (img as any).uploadedFilePath)
+      .filter(Boolean) as string[];
+    
+    // 删除图片
     handleImageDelete(id);
-    const remainingPaths = getUploadedPaths();
+    
+    // 更新表单数据
     if (remainingPaths.length > 0) {
       handleBasicInfoChange('photo', { path: remainingPaths[0] });
     } else {
@@ -187,7 +203,10 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
       if (!formData.dob) newErrors.dob = 'Please select a date of birth';
 
       setErrors(newErrors);
-      return Object.keys(newErrors).length === 0;
+      
+      // 返回第一个错误字段的 key，如果没有错误则返回 null
+      const firstErrorKey = Object.keys(newErrors)[0] || null;
+      return { isValid: Object.keys(newErrors).length === 0, firstErrorField: firstErrorKey };
     },
     formData,
     getFormData() {
@@ -237,7 +256,7 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
             />
   
             {/* Date of Birth Section */}
-            <div>
+            <div id="field-dob">
               <label className="block mb-2 font-medium">Date of Birth</label>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DatePicker
@@ -279,7 +298,7 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
             </div>
   
             {/* Birth Season Selection */}
-            <div>
+            <div id="field-birthSeason">
               <label className="block mb-2 font-medium">Birth Season</label>
               <div
                 className="flex flex-wrap gap-2 sm:gap-3"
@@ -323,7 +342,7 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
             {/* 品质选择已迁移至 select-book-content 页面 */}
   
             {/* Photo Upload Section - 与书籍1一致，使用多图片上传组件 */}
-            <div>
+            <div id="field-photo">
               <MultiImageUpload
                 images={images as any}
                 isUploading={isUploading}

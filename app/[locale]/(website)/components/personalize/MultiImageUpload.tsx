@@ -54,6 +54,9 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
       const remainingSlots = maxImages - images.length;
       const filesToUpload = selectedFiles.slice(0, remainingSlots);
       onImageUpload(filesToUpload);
+      
+      // 处理完文件后清空 input，允许重新选择相同的文件
+      e.target.value = '';
     }
   };
 
@@ -201,6 +204,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
 
       {/* 上传区域 - 始终显示，满三张时禁用 */}
       <div
+        id="upload-area-photo"
         className={`rounded p-4 gap-1 text-center transition-colors ${error ? 'h-[148px]' : 'h-[120px]'} flex flex-col items-center justify-center relative ${
           !canUploadMore 
             ? 'bg-[#F8F8F8] cursor-not-allowed text-[#999999]' 
