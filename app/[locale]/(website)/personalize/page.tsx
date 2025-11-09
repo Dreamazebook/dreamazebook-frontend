@@ -246,7 +246,7 @@ export default function PersonalizeApiDrivenPage() {
         </Link>
       </div>
 
-      <div className="mx-auto">
+      <div className="mx-auto pb-20 md:pb-0">
         <h1 className="text-2xl text-center my-6">Please fill in the basic information</h1>
         {formType === 'SINGLE1' ? (
           <SingleCharacterForm1
@@ -279,12 +279,25 @@ export default function PersonalizeApiDrivenPage() {
             assetSpuCode={'PICBOOK_GOODNIGHT'}
           />
         )}
-        <div className="flex justify-center">
+        {/* 桌面端 Continue 按钮 */}
+        <div className="hidden md:flex justify-center">
           <button
             type="button"
             onClick={handleContinue}
             style={{ width: '180px' }}
             className="bg-black text-white py-3 rounded hover:bg-gray-800 mb-16"
+          >
+            Continue
+          </button>
+        </div>
+      </div>
+      {/* 手机端吸底 Continue 按钮 */}
+      <div className="fixed bottom-0 left-0 right-0 bg-[#F8F8F8] z-50 md:hidden">
+        <div className="flex items-center justify-center h-[76px] px-[12px] py-[16px] gap-[10px]">
+          <button
+            type="button"
+            onClick={handleContinue}
+            className="w-full bg-black text-[#F5E3E3] h-[44px] rounded hover:bg-gray-800 transition-colors text-[16px] leading-[24px] tracking-[0.5px]"
           >
             Continue
           </button>

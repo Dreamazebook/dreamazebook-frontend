@@ -54,7 +54,7 @@ export default function BookDetailStickyBar({
         <Link
           href={`${primaryButtonHref}${primaryButtonHref.includes('?') ? '&' : '?'}language=${encodeURIComponent(selectedLanguage)}`}
           onClick={(e) => onPrimaryClick?.(e, selectedLanguage)}
-          className="bg-[#222222] text-[#F5E3E3] h-[44px] px-4 py-3 rounded-[4px] hover:bg-gray-800 text-[14px] leading-[20px] tracking-[0.25px] transition-colors font-medium flex items-center justify-center whitespace-nowrap flex-shrink-0"
+          className="bg-[#222222] text-[#F5E3E3] h-[44px] px-4 py-3 rounded-[4px] hover:bg-gray-800 text-[14px] leading-[20px] tracking-[0.25px] transition-colors flex items-center justify-center whitespace-nowrap flex-shrink-0"
         >
           {primaryButtonLabel || t('personalizeButton')}
         </Link>

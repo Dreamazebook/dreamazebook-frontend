@@ -194,7 +194,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
       </p>
 
       {/* Full name */}
-      <div>
+      <div id="field-fullName">
         <label className="block mb-2 font-medium">Full name</label>
         <input
           type="text"
@@ -214,7 +214,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
       </div>
 
       {/* Gender */}
-      <div>
+      <div id="field-gender">
         <div className="flex items-center justify-between">
           <label className="font-medium">Gender</label>
           <div className="flex gap-4" onBlur={handleGenderBlur} tabIndex={0}>
@@ -262,7 +262,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
       </div>
 
       {/* Skin color */}
-      <div>
+      <div id="field-skinColor">
         <div className="flex items-center justify-between" tabIndex={0} onBlur={handleSkinColorBlur}>
           <label className="font-medium">Skin color</label>
           <div className="flex gap-2">
