@@ -12,6 +12,7 @@ import ReviewsSection from '../../components/reviews/Reviews';
 import BookDetailView from '../../components/BookDetailView';
 import BookSections from '../../components/books/BookSections';
 import BookDetailSkeleton from '../../components/books/BookDetailSkeleton';
+import BookDetailStickyBar from '../../components/books/BookDetailStickyBar';
 import useUserStore from '@/stores/userStore';
 import { useTranslations } from 'next-intl';
 
@@ -134,21 +135,31 @@ const BookDetailPage = () => {
 
   return (
     <>
-      <BookDetailView
+      <div className="pb-20 md:pb-0">
+        <BookDetailView
+          book={book}
+          pagePics={pagePics}
+          tags={tags}
+          keywords={keywords}
+          reviews={reviews}
+          primaryButtonLabel={t('personalizeButton')}
+          primaryButtonHref={`/personalize?bookid=${id}`}
+          onPrimaryClick={handlePersonalizeClick}
+          availableLanguages={availableLanguages}
+          bookId={Array.isArray(id) ? id[0] : id || ''}
+        />
+        <ReviewsSection book={book} keywords={keywords} reviews={reviews} />
+        {/* Book Sections - Dynamically rendered based on book config */}
+        <BookSections book={book} bookId={Array.isArray(id) ? id[0] : id || ''} />
+      </div>
+      {/* 手机端吸底栏 */}
+      <BookDetailStickyBar
         book={book}
-        pagePics={pagePics}
-        tags={tags}
-        keywords={keywords}
-        reviews={reviews}
         primaryButtonLabel={t('personalizeButton')}
         primaryButtonHref={`/personalize?bookid=${id}`}
         onPrimaryClick={handlePersonalizeClick}
-        availableLanguages={availableLanguages}
-        bookId={Array.isArray(id) ? id[0] : id || ''}
+        selectedLanguage={availableLanguages[0] || 'en'}
       />
-      <ReviewsSection book={book} keywords={keywords} reviews={reviews} />
-      {/* Book Sections - Dynamically rendered based on book config */}
-      <BookSections book={book} bookId={Array.isArray(id) ? id[0] : id || ''} />
     </>
   );
 }
