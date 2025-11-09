@@ -58,8 +58,19 @@ export interface AdminUser {
 
 // 购物车相关的类型定义
 export interface CartAddRequest {
-  preview_id: number;
+  // 兼容后端：现在 preview_id 等于 batch_id，这里放宽为 string | number
+  preview_id: number | string;
   quantity: number;
+  cover_style?: string;
+  customization_data?: {
+    attributes?: {
+      giftbox?: string;
+      delivery_notes?: string;
+      gift_message?: string;
+      replace?: boolean;
+      [key: string]: any;
+    }
+  };
 }
 
 export interface CartAddResponse {

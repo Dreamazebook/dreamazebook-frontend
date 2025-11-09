@@ -2267,8 +2267,8 @@ export default function PreviewPageWithTopNav() {
 
   // 各部分的完成状态判断
   const completedSections = {
-    // 仅需：寄语 + 头像（不再需要署名）
-    giverDedication: dedication.trim() !== "" && !!giverImageUrl,
+    // 仅需：寄语（giver 图片为可选）
+    giverDedication: dedication.trim() !== "",
     coverDesign: selectedBookCover !== null,
     binding: selectedBinding !== null,
     giftBox: selectedGiftBox !== null,
@@ -2309,10 +2309,13 @@ export default function PreviewPageWithTopNav() {
   // 点击 Continue 按钮处理：添加到购物车
   const handleContinue = async () => {
     try {
+      console.debug('[AddToCart] Clicked');
       // 检查是否所有必要的部分都已完成
+      // 允许未填写寄语（giverDedication）也能继续
       const incompleteSections = Object.entries(completedSections)
-        .filter(([_, completed]) => !completed)
+        .filter(([section, completed]) => section !== 'giverDedication' && !completed)
         .map(([section, _]) => section);
+      console.debug('[AddToCart] completedSections:', completedSections, 'incomplete:', incompleteSections);
 
       if (incompleteSections.length > 0) {
         // 如果有未完成的部分，跳转到第一个未完成的部分
@@ -2325,18 +2328,20 @@ export default function PreviewPageWithTopNav() {
         setTimeout(() => {
           scrollToSection(firstIncomplete);
         }, 100);
+        console.warn('[AddToCart] Blocked by incomplete section:', firstIncomplete);
         return;
       }
 
-      // 检查是否有预览数据
-      if (!previewData?.preview_id) {
+      // 检查是否有预览数据（现在 preview_id 等于 batch_id，做兼容）
+      const effectivePreviewId = previewData?.preview_id ?? (previewData as any)?.batch_id;
+      console.debug('[AddToCart] preview_id:', previewData?.preview_id, 'batch_id:', (previewData as any)?.batch_id, 'effective:', effectivePreviewId);
+      if (!effectivePreviewId) {
         toast.error('缺少预览数据');
         return;
       }
 
       setIsAddingToCart(true);
 
-      // 先更新预览选项（recipient_name、message、cover_type、binding_type、gift_box）
       const getCoverKey = (id: number | null) => {
         if (id == null) return undefined;
         const item = bookOptions?.cover_options?.find(o => o.id === id);
@@ -2353,20 +2358,21 @@ export default function PreviewPageWithTopNav() {
         return item?.option_key ?? String(id);
       };
 
-      const updateData = {
-        recipient_name: giver.trim(),
-        message: message.trim(),
-        cover_type: getCoverKey(selectedBookCover),
-        binding_type: getBindingKey(selectedBinding),
-        gift_box: getGiftBoxKey(selectedGiftBox),
-      };
-
-      await api.post(`/preview/update-options/${previewData.preview_id}`, updateData);
-
       // 构建添加到购物车的数据
+      const coverKey = getCoverKey(selectedBookCover);
+      const giftKey = getGiftBoxKey(selectedGiftBox);
       const cartData: CartAddRequest = {
-        preview_id: previewData.preview_id,
-        quantity: 1
+        preview_id: effectivePreviewId as any,
+        quantity: 1,
+        cover_style: coverKey,
+        customization_data: {
+          attributes: {
+            ...(giftKey ? { giftbox: giftKey } : {}),
+            delivery_notes: '',
+            gift_message: message.trim(),
+            replace: false,
+          },
+        },
       };
 
       // 调用添加到购物车的API
@@ -2378,7 +2384,9 @@ export default function PreviewPageWithTopNav() {
       });
       
       // 确保使用正确的HTTP方法
+      console.debug('[AddToCart] Sending request /cart/add with data:', cartData);
       const response = await api.post('/cart/add', cartData) as ApiResponse<CartAddResponse>;
+      console.debug('[AddToCart] Response:', response);
 
       if (response.success) {
         toast.success('商品已成功添加到购物车！');
@@ -2709,7 +2717,7 @@ export default function PreviewPageWithTopNav() {
                     // 第二张图：单页模式直接用 GiverDedicationCanvas 取代基础图，避免重复；双页模式叠加覆盖层
                     if (idx === 1 && viewMode === 'single') {
                       return (
-                        <div key={page.page_id} className="w-full flex flex-col items-center">
+                        <div key={page.page_id} ref={giverDedicationRef} className="w-full flex flex-col items-center">
                           <div className="w-full max-w-5xl">
                             <GiverDedicationCanvas
                               className="w-full"
@@ -2727,7 +2735,7 @@ export default function PreviewPageWithTopNav() {
                                     }}
                                     className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
                                   >
-                                    Edit Giver
+                                    Personalize with a photo
                                   </button>
                                 </div>
                               )}
@@ -2748,7 +2756,7 @@ export default function PreviewPageWithTopNav() {
                       );
                     }
                     return (
-                      <div key={page.page_id} className="w-full flex flex-col items-center">
+                      <div key={page.page_id} ref={idx === 1 ? giverDedicationRef : undefined} className="w-full flex flex-col items-center">
                         <div className="w-full max-w-5xl">
                           <PreviewPageItem
                             pageId={page.page_id}
