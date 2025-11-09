@@ -173,7 +173,7 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
       },
       {
         type: 'toddler-favorites',
-        title: 'Toddler Favorites',
+        title: 'The Perfect Sibling Gift',
         description: 'For families with one big kid and one little one',
         className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
         books: [

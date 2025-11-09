@@ -752,6 +752,23 @@ export default function PreviewPageWithTopNav() {
   // 当前展示图片的索引，用于翻页
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [activeSection, setActiveSection] = React.useState<string>("");
+  
+  // Giver图片编辑：隐藏的文件输入框
+  const giverFileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingGiverFile, setPendingGiverFile] = React.useState<string | null>(null);
+  
+  // 处理Giver图片文件选择
+  const handleGiverFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setPendingGiverFile(url);
+    setEditField('giver');
+    // 重置input，以便可以再次选择同一个文件
+    if (giverFileInputRef.current) {
+      giverFileInputRef.current.value = '';
+    }
+  }, []);
 
   // 添加 options 状态
   const [bookOptions, setBookOptions] = useState<BookOptions | null>(null);
@@ -2385,12 +2402,56 @@ export default function PreviewPageWithTopNav() {
   // 默认寄语按预览语言（来自 personalize 传入的 ?lang）选择
   const selectedLang = (searchParams.get('lang') || 'en').toLowerCase();
   const isZhLang = selectedLang.startsWith('zh');
-  const buildDefaultMessage = (name: string, lang: string) => {
-    const zh = `亲爱的${name}，\n  这个世界充满了令人惊喜与奇妙的角落等待你去探索。愿你的每一天都充满发现、冒险与喜悦！`;
-    const en = `Dear ${name},\n  The world is full of wonderful, surprising places to explore. May your days be full of discoveries, adventure and joy!`;
-    return lang.startsWith('zh') ? zh : en;
+  // 获取bookId用于匹配不同的寄语模板
+  const bookId = searchParams.get('bookid') || bookInfo?.id || bookInfo?.spu_code || '';
+  const buildDefaultMessage = (name: string, lang: string, bookIdParam?: string) => {
+    const bookIdUpper = (bookIdParam || bookId || '').toUpperCase();
+    
+    // 根据bookId判断书籍类型
+    let templateType: 'goodnight' | 'santa' | 'bravery' | 'birthday' | 'default' = 'default';
+    
+    if (bookIdUpper.includes('GOODNIGHT')) {
+      templateType = 'goodnight';
+    } else if (bookIdUpper.includes('SANTA') || bookIdUpper.includes('SANTALETTER')) {
+      templateType = 'santa';
+    } else if (bookIdUpper.includes('BRAVE') || bookIdUpper.includes('BRAVEY')) {
+      templateType = 'bravery';
+    } else if (bookIdUpper.includes('BIRTHDAY')) {
+      templateType = 'birthday';
+    }
+    
+    // 根据书籍类型和语言返回对应的模板
+    if (lang.startsWith('zh')) {
+      // 中文模板
+      switch (templateType) {
+        case 'goodnight':
+          return `亲爱的${name}，\n  愿你的梦境充满温柔的星星和快乐的思绪。睡个好觉，我的小宝贝——你是安全的，被爱着的，永远是我们心中最亮的光。`;
+        case 'santa':
+          return `亲爱的${name}，\n  这一年你如此善良，充满好奇。\n  圣诞老人和我都为你正在成为的那个人感到骄傲。\n  无论走到哪里，都要继续闪耀你温暖的心。`;
+        case 'bravery':
+          return `亲爱的${name}，\n  我为你不断尝试而感到骄傲，即使面对新事物或感到害怕时也是如此。\n  你拥有最温柔的心和最勇敢的精神——永远不要忘记你有多么了不起！`;
+        case 'birthday':
+          return `亲爱的${name}，\n  又一年充满欢笑、成长和喜悦的美好时光！\n  你让每一天都因为你的存在而变得特别。祝你生日快乐，愿未来的回忆充满魔法般的精彩。`;
+        default:
+          return `亲爱的${name}，\n  这个世界充满了令人惊喜与奇妙的角落等待你去探索。愿你的每一天都充满发现、冒险与喜悦！`;
+      }
+    } else {
+      // 英文模板
+      switch (templateType) {
+        case 'goodnight':
+          return `Dear ${name},\nMay your dreams be filled with gentle stars and happy thoughts. Sleep tight, my little one — you are safe, loved, and always the brightest light in our hearts.`;
+        case 'santa':
+          return `Dear ${name},\nYou've been so kind and full of wonder this year.\nSanta and I are so proud of the person you're growing to be.\nKeep shining your warm heart everywhere you go.`;
+        case 'bravery':
+          return `Dear ${name},\nI'm so proud of how you keep trying, even when things feel new or scary.\nYou have the gentlest heart and the bravest spirit — never forget how amazing you are!`;
+        case 'birthday':
+          return `Dear ${name},\nAnother wonderful year of laughter, growth, and joy!\nYou make every day special just by being you. Wishing you the happiest birthday and magical memories ahead.`;
+        default:
+          return `Dear ${name},\n  The world is full of wonderful, surprising places to explore. May your days be full of discoveries, adventure and joy!`;
+      }
+    }
   };
-  const defaultMessage = buildDefaultMessage(defaultName, selectedLang);
+  const defaultMessage = buildDefaultMessage(defaultName, selectedLang, bookId);
 
   const [message, setMessage] = React.useState(defaultMessage);
   // 跟踪上一次默认寄语，用于判断是否应同步更新（避免覆盖用户已编辑的内容）
@@ -2407,18 +2468,30 @@ export default function PreviewPageWithTopNav() {
     }
     prevDefaultMessageRef.current = defaultMessage;
   }, [defaultMessage, message, dedication]);
+  
+  // 当bookId或语言变化时，如果用户未编辑，则更新为新的模板
+  React.useEffect(() => {
+    const newDefaultMessage = buildDefaultMessage(defaultName, selectedLang, bookId);
+    const prev = prevDefaultMessageRef.current;
+    const userHasNotEdited = !message || message.trim() === '' || message === prev;
+    if (userHasNotEdited && newDefaultMessage !== prev) {
+      setMessage(newDefaultMessage);
+      setDedication(newDefaultMessage);
+      prevDefaultMessageRef.current = newDefaultMessage;
+    }
+  }, [bookId, selectedLang, defaultName, message]);
 
   // 当 recipient 变更时，如果当前文案仍是上一次的默认模板（仅名字不同），则同步替换为新名字
   const prevRecipientRef = React.useRef(recipient);
   React.useEffect(() => {
     const prevRecipient = prevRecipientRef.current;
     if (prevRecipient === recipient) return;
-    const prevTemplate = buildDefaultMessage((prevRecipient && prevRecipient.trim()) ? prevRecipient : 'User', selectedLang);
-    const nextTemplate = buildDefaultMessage(defaultName, selectedLang);
+    const prevTemplate = buildDefaultMessage((prevRecipient && prevRecipient.trim()) ? prevRecipient : 'User', selectedLang, bookId);
+    const nextTemplate = buildDefaultMessage(defaultName, selectedLang, bookId);
     if (!message || message.trim() === '' || message === prevTemplate) setMessage(nextTemplate);
     if (!dedication || dedication.trim() === '' || dedication === prevTemplate) setDedication(nextTemplate);
     prevRecipientRef.current = recipient;
-  }, [recipient, selectedLang, defaultName, message, dedication]);
+  }, [recipient, selectedLang, defaultName, message, dedication, bookId]);
 
   const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { value } = e.target;
@@ -2649,7 +2722,9 @@ export default function PreviewPageWithTopNav() {
                                 <div className="mt-2 w-full flex justify-center">
                                   <button
                                     type="button"
-                                    onClick={() => setEditField('giver')}
+                                    onClick={() => {
+                                      giverFileInputRef.current?.click();
+                                    }}
                                     className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
                                   >
                                     Edit Giver
@@ -2698,7 +2773,9 @@ export default function PreviewPageWithTopNav() {
                                   <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
                                     <button
                                       type="button"
-                                      onClick={() => setEditField('giver')}
+                                      onClick={() => {
+                                        giverFileInputRef.current?.click();
+                                      }}
                                       className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
                                     >
                                       Edit Giver
@@ -3187,6 +3264,15 @@ export default function PreviewPageWithTopNav() {
           </main>
         )}
 
+        {/* 隐藏的文件输入框 */}
+        <input
+          ref={giverFileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleGiverFileSelect}
+          className="hidden"
+        />
+
         {editField && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             {editField === 'giver' ? (
@@ -3211,10 +3297,33 @@ export default function PreviewPageWithTopNav() {
                       spu={bookId || undefined}
                       page={pageId || pageNumber || undefined}
                       batchId={currentBatchId}
-                      onCancel={() => setEditField(null)}
+                      initialSrc={pendingGiverFile || undefined}
+                      onCancel={() => {
+                        setEditField(null);
+                        setPendingGiverFile(null);
+                        if (pendingGiverFile) {
+                          URL.revokeObjectURL(pendingGiverFile);
+                        }
+                      }}
+                      onDelete={() => {
+                        // 关闭弹窗并清理状态
+                        setEditField(null);
+                        setPendingGiverFile(null);
+                        if (pendingGiverFile) {
+                          URL.revokeObjectURL(pendingGiverFile);
+                        }
+                        // 关闭弹窗后触发文件选择器
+                        setTimeout(() => {
+                          giverFileInputRef.current?.click();
+                        }, 100);
+                      }}
                       onDone={(url) => {
                         setGiverImageUrl(url);
                         setEditField(null);
+                        setPendingGiverFile(null);
+                        if (pendingGiverFile) {
+                          URL.revokeObjectURL(pendingGiverFile);
+                        }
                       }}
                     />
                   );

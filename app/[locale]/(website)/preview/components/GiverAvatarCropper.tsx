@@ -1,15 +1,18 @@
 'use client';
 
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Cropper } from 'react-cropper';
 import type { ReactCropperElement } from 'react-cropper';
 import type { AxiosResponse } from 'axios';
 import { uploadApi } from '@/utils/api.js';
 import api from '@/utils/api';
+import { MdRotateLeft, MdRotateRight, MdFlip, MdRefresh, MdDelete } from 'react-icons/md';
 
 type Props = {
   onDone: (url: string) => void;
   onCancel: () => void;
+  // 可选：删除回调，当删除图片时调用
+  onDelete?: () => void;
   // 可选：固定裁剪比例（例如头像 1:1）。不传则自由裁剪
   aspectRatio?: number | undefined;
   // 可选：导出格式和质量
@@ -23,6 +26,8 @@ type Props = {
   page?: string | number;
   // 可选：批次ID，用于调用特殊图片上传接口
   batchId?: string;
+  // 可选：初始图片URL，如果提供则直接使用，不触发文件选择器
+  initialSrc?: string;
 };
 
 // 复制 hooks 内部的地址规范化逻辑，便于将后端 path 转为可访问 URL
@@ -49,23 +54,39 @@ function toAbsoluteUrl(raw: string): string {
   return `${origin}/${cleanPath}`;
 }
 
-export default function GiverAvatarCropper({ onDone, onCancel, aspectRatio, maxSize, exportMime = 'image/jpeg', exportQuality = 0.92, spu, page, batchId }: Props) {
+export default function GiverAvatarCropper({ onDone, onCancel, onDelete, aspectRatio, maxSize, exportMime = 'image/jpeg', exportQuality = 0.92, spu, page, batchId, initialSrc }: Props) {
   // 如果提供了spu和page参数，直接使用新的接口，否则使用原有逻辑
   const useNewUploadMethod = spu && page !== undefined && page !== null;
-  const [src, setSrc] = useState<string | undefined>();
+  const [src, setSrc] = useState<string | undefined>(initialSrc);
   const cropperRef = useRef<ReactCropperElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [sx, setSx] = useState(1);
   const [sy, setSy] = useState(1);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 如果有initialSrc，直接使用；否则在组件挂载时自动触发文件选择器
+  useEffect(() => {
+    if (!initialSrc) {
+      // 使用setTimeout确保DOM已经渲染完成
+      const timer = setTimeout(() => {
+        fileInputRef.current?.click();
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [initialSrc]);
+
   const onFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      // 如果用户取消了选择，关闭弹窗
+      onCancel();
+      return;
+    }
     const url = URL.createObjectURL(file);
     setSrc(url);
     setError(null);
-  }, []);
+  }, [onCancel]);
 
   const rotateLeft = () => cropperRef.current?.cropper.rotate(-90);
   const rotateRight = () => cropperRef.current?.cropper.rotate(90);
@@ -82,6 +103,21 @@ export default function GiverAvatarCropper({ onDone, onCancel, aspectRatio, maxS
   const resetAll = () => {
     cropperRef.current?.cropper.reset();
     setSx(1); setSy(1);
+  };
+
+  const handleDelete = () => {
+    if (src) {
+      URL.revokeObjectURL(src);
+    }
+    setSrc(undefined);
+    setError(null);
+    // 调用删除回调，让外部处理（关闭弹窗并触发文件选择器）
+    if (onDelete) {
+      onDelete();
+    } else {
+      // 如果没有提供 onDelete，则只关闭弹窗
+      onCancel();
+    }
   };
 
   const uploadBlob = async (blob: Blob): Promise<string> => {
@@ -197,18 +233,25 @@ export default function GiverAvatarCropper({ onDone, onCancel, aspectRatio, maxS
 
   return (
     <div className="w-full max-w-[860px]">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Giver Avatar</h2>
-        <button className="text-xl text-gray-500 hover:text-gray-700" onClick={onCancel}>&#x2715;</button>
-      </div>
+      {src && (
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Add image</h2>
+          <button className="text-xl text-gray-500 hover:text-gray-700" onClick={onCancel}>&#x2715;</button>
+        </div>
+      )}
 
-      <div className="mt-4">
-        <input type="file" accept="image/*" onChange={onFile} />
+      <div className="mt-4 hidden">
+        <input 
+          ref={fileInputRef}
+          type="file" 
+          accept="image/*" 
+          onChange={onFile} 
+        />
       </div>
 
       {src && (
         <div className="mt-4">
-          <div className="h-[420px]">
+          <div className="h-[400px]">
             <Cropper
               src={src}
               style={{ height: 400, width: '100%' }}
@@ -227,20 +270,62 @@ export default function GiverAvatarCropper({ onDone, onCancel, aspectRatio, maxS
             />
           </div>
 
-          <div className="flex gap-2 justify-between mt-3">
-            <div className="flex gap-2">
-              <button onClick={rotateLeft} className="px-3 py-1 rounded border">左旋转</button>
-              <button onClick={rotateRight} className="px-3 py-1 rounded border">右旋转</button>
-              <button onClick={flipH} className="px-3 py-1 rounded border">左右翻转</button>
-              <button onClick={flipV} className="px-3 py-1 rounded border">上下翻转</button>
-              <button onClick={resetAll} className="px-3 py-1 rounded border">重置</button>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={onCancel} className="px-3 py-1 rounded border">取消</button>
-              <button onClick={onApply} disabled={isUploading} className="px-3 py-1 rounded bg-black text-white">
-                {isUploading ? '上传中...' : '应用'}
+          <div className="flex flex-col items-center gap-2 mt-3">
+            <div className="flex bg-[#F8F8F8] items-center py-[6px] px-[12px] gap-[21px]">
+              <button 
+                onClick={rotateLeft} 
+                className="p-2 rounded hover:bg-gray-100 transition-colors"
+                title="Rotate Left"
+                aria-label="Rotate Left"
+              >
+                <MdRotateLeft className="w-6 h-6" />
+              </button>
+              <button 
+                onClick={rotateRight} 
+                className="p-2 rounded hover:bg-gray-100 transition-colors"
+                title="Rotate Right"
+                aria-label="Rotate Right"
+              >
+                <MdRotateRight className="w-6 h-6" />
+              </button>
+              <button 
+                onClick={flipH} 
+                className="p-2 rounded hover:bg-gray-100 transition-colors"
+                title="Flip Horizontal"
+                aria-label="Flip Horizontal"
+              >
+                <MdFlip className="w-6 h-6" style={{ transform: 'scaleX(-1)' }} />
+              </button>
+              <button 
+                onClick={flipV} 
+                className="p-2 rounded hover:bg-gray-100 transition-colors"
+                title="Flip Vertical"
+                aria-label="Flip Vertical"
+              >
+                <MdFlip className="w-6 h-6" style={{ transform: 'rotate(90deg) scaleX(-1)' }} />
+              </button>
+              <button 
+                onClick={resetAll} 
+                className="p-2 rounded hover:bg-gray-100 transition-colors"
+                title="Reset"
+                aria-label="Reset"
+              >
+                <MdRefresh className="w-6 h-6" />
+              </button>
+              <button 
+                onClick={handleDelete} 
+                className="p-2 rounded hover:bg-gray-100 transition-colors"
+                title="Delete"
+                aria-label="Delete"
+              >
+                <MdDelete className="w-6 h-6" />
               </button>
             </div>
+          </div>
+          <div className="flex justify-end mt-3">
+            <button onClick={onApply} disabled={isUploading} className="px-3 py-1 w-[120px] h-[44px] rounded bg-black text-white">
+              {isUploading ? 'Adding...' : 'Apply'}
+            </button>
           </div>
           {error && <div className="text-red-600 mt-2">{error}</div>}
         </div>
