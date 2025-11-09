@@ -2,7 +2,7 @@ import React from 'react';
 
 // 定义书籍section的类型
 export interface BookSection {
-  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'meet-author' | 'custom'; // section类型，可以扩展
+  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'meet-author' | 'tips' | 'custom'; // section类型，可以扩展
   title?: string; // section标题
   content?: string; // section内容
   description?: string; // section描述文字
@@ -13,6 +13,8 @@ export interface BookSection {
   // Meet Author 专用字段
   authorImage?: string; // 作者图片URL
   paragraphs?: string[]; // 段落数组
+  // Tips 专用字段
+  tips?: string[]; // 提示列表数组
   // SVG 装饰元素配置
   svgDecorations?: Array<{
     svg: React.ReactNode; // SVG元素
@@ -167,6 +169,45 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
         paragraphs: [
           "As a mom, I noticed a stage when my toddler was afraid to try many things. It's a normal part of early childhood development, but telling him \"be brave\" often made him doubt himself even more.",
           "So I wrote this book — to show him that courage is already part of his everyday life, from simple daily acts to new challenges. When he saw himself in the story, he truly believed he was a little warrior.",
+        ],
+      },
+      {
+        type: 'toddler-favorites',
+        title: 'Toddler Favorites',
+        description: 'For families with one big kid and one little one',
+        className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
+        books: [
+          {
+            title: 'Your Melody',
+            subtitle: 'A heartfelt keepsake for babies (0–2)',
+            coverImage: '', // 需要添加实际图片URL
+            price: '$12.2',
+            backgroundColor: '#4A90E2', // 蓝色背景
+            backgroundImage: '', // 需要添加实际图片URL
+          },
+          {
+            title: "Little One, You're Brave in Many Ways",
+            subtitle: 'A confidence-building story',
+            coverImage: '', // 需要添加实际图片URL
+            price: '$4.2',
+            backgroundColor: '#FFD700', // 黄色背景
+            backgroundImage: '', // 需要添加实际图片URL
+          },
+        ],
+        originalPrice: '$25.0',
+        discountedPrice: '$19.9',
+        buttonText: 'add bundle to bag',
+      },
+      {
+        type: 'tips',
+        title: 'Tips to Help Your Child Build Courage',
+        tips: [
+          "Speak as if they're already brave",
+          'Validate their feelings',
+          'Celebrate effort, not just success',
+          'Offer small, safe challenges',
+          'Model courage yourself',
+          'Invite daily bravery stories',
         ],
       },
     ],
