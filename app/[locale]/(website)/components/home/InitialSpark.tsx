@@ -79,13 +79,6 @@ function InitialSpark() {
                 {images.map((img, idx) => (
                   <div key={`first-${idx}`} className="w-96 flex-shrink-0 overflow-hidden rounded-lg relative">
                     <img src={img.src} alt={img.alt} className="w-full h-60 object-cover" />
-                    {img.showStar && (
-                      <div className="absolute top-2 right-2">
-                        <svg width="28" height="28" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M30 0L37.45 18.55L60 30L37.45 41.45L30 60L22.55 41.45L0 30L22.55 18.55L30 0Z" stroke="#E5E7EB" strokeWidth="1.5" fill="white" fillOpacity="0.95" />
-                        </svg>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
@@ -95,13 +88,6 @@ function InitialSpark() {
                 {images.map((img, idx) => (
                   <div key={`second-${idx}`} className="w-96 flex-shrink-0 overflow-hidden rounded-lg relative">
                     <img src={img.src} alt={img.alt} className="w-full h-60 object-cover" />
-                    {img.showStar && (
-                      <div className="absolute top-2 right-2">
-                        <svg width="28" height="28" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M30 0L37.45 18.55L60 30L37.45 41.45L30 60L22.55 41.45L0 30L22.55 18.55L30 0Z" stroke="#E5E7EB" strokeWidth="1.5" fill="white" fillOpacity="0.95" />
-                        </svg>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
