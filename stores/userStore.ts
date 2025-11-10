@@ -24,7 +24,7 @@ interface UserState {
   fetchOrderList: (options?:any) => void
   fetchOrderDetail: (orderId:string) => Promise<ApiResponse<OrderDetail>>
 
-  countryList: []
+  countryList: {value:string,label:string}[]
   fetchCountryList: () => void
 
   isLoggedIn: boolean

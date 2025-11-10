@@ -32,6 +32,8 @@ export const API_ADDRESS_LIST = API_DOMAIN + '/user/addresses';
 export const API_ADDRESS_DETAIL = (id: string | number) => `${API_ADDRESS_LIST}/${id}`;
 export const API_COUNTRY_LIST = API_DOMAIN + '/shipping/countries';
 
+export const API_SHIPPING_ESTIMATE = API_DOMAIN + '/shipping/prices';
+
 
 export const API_CREATE_STRIPE_PAYMENT = API_DOMAIN + '/stripe/create-payment-intent'
 
