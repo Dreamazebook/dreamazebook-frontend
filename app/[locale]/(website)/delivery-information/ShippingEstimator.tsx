@@ -5,25 +5,23 @@ import api from '@/utils/api';
 import React, { useState, useEffect } from 'react';
 import { ShippingOption } from '../checkout/components/types';
 import { ApiResponse } from '@/types/api';
+import useUserStore from '@/stores/userStore';
 
 interface RateResponse {
   shipping_options: ShippingOption[] 
 };
-
-const COUNTRIES = [
-  { code: 'US', label: 'United States' },
-  { code: 'CA', label: 'Canada' },
-  { code: 'CN', label: 'China' },
-  { code: 'UK', label: 'United Kingdom' },
-  { code: 'AU', label: 'Australia' },
-  { code: 'FR', label: 'France' },
-];
 
 export default function ShippingEstimator() {
   const [country, setCountry] = useState<string>('US');
   const [loading, setLoading] = useState(false);
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  const {countryList, fetchCountryList} = useUserStore();
+
+  useEffect(() => { 
+    fetchCountryList();
+  }, [fetchCountryList]);
 
   const fetchShippingOptions = async (countryCode: string) => {
     setLoading(true);
@@ -90,8 +88,8 @@ export default function ShippingEstimator() {
               className="mt-2 block w-full px-4 py-3 border border-gray-200 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
               aria-label="Select destination country"
             >
-              {COUNTRIES.map((c) => (
-                <option key={c.code} value={c.code}>
+              {countryList.map((c,idx) => (
+                <option key={c.value+idx} value={c.value}>
                   {c.label}
                 </option>
               ))}
