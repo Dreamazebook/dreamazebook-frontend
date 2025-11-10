@@ -73,19 +73,18 @@ export default function ShippingEstimator() {
   };
 
   return (
-    <div className="bg-gradient-to-br from-white to-gray-50 p-8 rounded-2xl shadow-lg border border-gray-100">
+    <div className="p-4 rounded shadow">
       <div className="flex items-center gap-3 mb-6">
         <h3 className="text-2xl font-bold text-gray-900">Delivery Estimate</h3>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-end mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div className="lg:col-span-2">
           <label className="block mb-2">
-            <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Destination Country</span>
             <select
               value={country}
               onChange={onCountryChange}
-              className="mt-2 block w-full px-4 py-3 border border-gray-200 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              className="mt-2 block w-full px-4 py-3 border border-gray-200 rounded bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
               aria-label="Select destination country"
             >
               {countryList.map((c,idx) => (
@@ -102,7 +101,7 @@ export default function ShippingEstimator() {
             type="button"
             onClick={() => fetchShippingOptions(country)}
             disabled={loading}
-            className="bg-primary text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            className="bg-primary text-white px-6 py-3 rounded font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             {loading ? (
               <div className="flex items-center gap-2">
@@ -123,7 +122,7 @@ export default function ShippingEstimator() {
 
       <div className="mt-6">
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+          <div className="bg-red-50 border border-red-200 rounded p-4 mb-6">
             <div className="flex items-center gap-2 text-red-700">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
@@ -145,7 +144,7 @@ export default function ShippingEstimator() {
                 {shippingOptions.map((opt, index) => (
                   <div 
                     key={opt.code} 
-                    className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-200"
+                    className="bg-white p-6 rounded border border-gray-100 shadow hover:shadow-md transition-all"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
                     <div className="flex items-center justify-between gap-6">
