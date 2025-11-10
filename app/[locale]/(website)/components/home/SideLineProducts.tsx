@@ -1,112 +1,101 @@
-import { useState, useEffect } from 'react';
-import { FaArrowRight as ArrowRight } from 'react-icons/fa';
+import React from "react";
+import { FaArrowRight as ArrowRight, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
-interface Slide {
-  id: number;
-  image: string;
-  quote: string;
-  author: string;
-  date?: string;
-  rating?: number;
-  altNames?: string[];
-}
-
-const slides: Slide[] = [
-  {
-    id: 1,
-    image: 'https://images.pexels.com/photos/6942023/pexels-photo-6942023.jpeg?auto=compress&cs=tinysrgb&w=600',
-    quote: 'Already, our first families have stepped into Dreamaze stories—watching their children light up as they see themselves as the hero.',
-    author: "Mirabelle's father",
-    date: '09/04/2024',
-  }
+const navigationDots = [
+  { active: false },
+  { active: true },
+  { active: false },
+  { active: false },
 ];
 
+const testimonialData = {
+  image: "/image.svg",
+  quote:
+    "Already, our first families have stepped into Dreamaze stories—watching their children light up as they see themselves as the hero.",
+  author: "Mirabelle's father",
+  date: "09/04/2024",
+};
+
 export default function SideLineProducts() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
-
-  useEffect(() => {
-    if (!isAutoPlaying) return;
-
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [isAutoPlaying]);
-
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-    setIsAutoPlaying(false);
-  };
-
-  const currentSlideData = slides[currentSlide];
-
   return (
-    <div className="w-full bg-white py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center mb-16 lg:mb-20 text-gray-900 px-4">
-          Our First Groups of Leading Stars
-        </h1>
+    <div className="flex flex-col w-full max-w-[375px] items-center gap-6 px-3 py-16 bg-white">
+      <h1 className="w-[207px] font-roboto font-semibold text-black text-2xl text-center leading-8">
+        Our Fisrt Groups of Leading Stars
+      </h1>
 
-        {/* Mobile Layout */}
-        <div className="max-w-md mx-auto">
-          <div className="bg-[#F8F8F8] rounded-sm p-8 pb-12">
-            {/* Image Section */}
-            <div className="relative bg-white rounded-xl p-6 mb-10 flex items-center justify-center">
-              <img
-                src={currentSlideData.image}
-                alt="Testimonial"
-                className="w-48 h-auto object-contain transition-opacity duration-500"
-              />
-            </div>
+      <div className="inline-flex items-center gap-6 flex-[0_0_auto]">
+        <nav
+          className="inline-flex flex-col items-start justify-center gap-6 flex-[0_0_auto]"
+          aria-label="Carousel navigation"
+        >
+          {navigationDots.map((dot, index) => (
+            <button
+              key={index}
+              className={`w-2 h-2 rounded cursor-pointer transition-opacity hover:opacity-80 ${
+                dot.active ? "bg-[#012cce]" : "bg-neutral-200"
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+              aria-current={dot.active ? "true" : "false"}
+            />
+          ))}
+        </nav>
 
-            {/* Quote */}
-            <div className="mb-8 relative">
-              <span className="absolute -top-2 -left-1 text-6xl text-[#222] font-serif">“</span>
-              <p className="text-base text-gray-900 leading-relaxed pl-6">
-                {currentSlideData.quote}
-              </p>
-            </div>
+        <div className="inline-flex flex-col items-center justify-center gap-3 flex-[0_0_auto]">
+          <div className="w-[280px] bg-[#f8f8f8] rounded-lg border-0 shadow-none flex flex-col items-center gap-9 pt-9 pb-6 px-3">
+            <div className="flex flex-col items-center gap-3 w-full">
+              <div className="flex flex-col items-center w-full">
+                <figure className="flex flex-col w-[132px] h-[120px] items-center justify-center gap-[10.91px] m-0">
+                  <img
+                    className="w-[64.55px] h-[82.73px] object-cover"
+                    alt="Dreamaze story book"
+                    src="/image.svg"
+                  />
 
-            {/* Author Info */}
-            <div className="flex items-center justify-center gap-3 mb-8">
-              <div className="w-12 h-12 bg-gray-300 rounded-full flex-shrink-0"></div>
-              <div>
-                <p className="font-semibold text-gray-900">
-                  {currentSlideData.author}
-                </p>
-                {currentSlideData.date && (
-                  <p className="text-gray-500 text-sm">{currentSlideData.date}</p>
-                )}
+                  <div className="relative w-[53.18px] h-[7.27px]">
+                    <div className="absolute top-px -left-3.5 w-[78px] h-1.5 bg-black/[0.04] rounded-[38.86px/2.95px] blur-[2.27px]" />
+                    <div className="absolute top-[3px] left-3 w-7 h-[3px] bg-black/[0.02] rounded-[14.09px/1.36px] blur-[1.59px]" />
+                  </div>
+                </figure>
+
+                <blockquote className="flex flex-col items-center w-full">
+                  <p className="w-full mt-[-1.00px] font-roboto font-normal text-[#222222] text-4xl">
+                    <span className="tracking-[0] leading-[44px]">
+                      &quot;
+                    </span>
+                    <span className="font-medium text-sm tracking-[0.04px] leading-1">
+                      {testimonialData.quote}
+                    </span>
+                  </p>
+                </blockquote>
+              </div>
+
+              <div className="inline-flex items-center gap-3 px-2 py-1 flex-[0_0_auto] rounded-[36px]">
+                <div className="w-8 h-8 bg-[#d9d9d9] rounded-2xl flex-[0_0_auto]" />
+
+                <div className="inline-flex flex-col items-start justify-center flex-[0_0_auto]">
+                  <div className="w-fit mt-[-1.00px] font-roboto font-medium text-[#222222] text-sm tracking-[0.25px] leading-5 whitespace-nowrap">
+                    {testimonialData.author}
+                  </div>
+
+                  <time className="w-fit font-medium text-[#666666] text-xs tracking-[0.4px] leading-4 whitespace-nowrap">
+                    {testimonialData.date}
+                  </time>
+                </div>
               </div>
             </div>
 
-            {/* CTA Button */}
-            <button className="w-full text-[#222] font-medium py-3.5 px-6 rounded-full transition-all duration-200 flex items-center justify-center gap-2">
-              Buy the same
-              <ArrowRight className="w-4 h-4" />
+            <button className="inline-flex items-center justify-center gap-2.5 flex-[0_0_auto] rounded-lg h-auto p-0 bg-transparent hover:bg-transparent border-none cursor-pointer">
+              <span className="w-fit mt-[-1.00px] font-medium text-[#222222] text-base tracking-[0.5px] leading-6 whitespace-nowrap">
+                Buy the same
+              </span>
+
+              <ArrowRight className="w-[17.5px] h-[17.5px] -mr-0.75" />
             </button>
           </div>
 
-          {/* Navigation Dots */}
-          {/* <div className="flex justify-center gap-2 mt-8">
-            {slides.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToSlide(index)}
-                className={`h-2.5 rounded-full transition-all duration-300 ${
-                  index === currentSlide
-                    ? 'w-8 bg-blue-600'
-                    : 'w-2.5 bg-gray-300 hover:bg-gray-400'
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div> */}
+          <div className="w-[280px] h-4 rounded bg-gradient-to-b from-[#f8f8f8] to-[#f8f8f800]" />
         </div>
-
       </div>
     </div>
   );
-}
+};
