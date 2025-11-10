@@ -45,7 +45,8 @@ export default function ShippingEstimator() {
         height,
         currency
       });
-      console.log(data);
+
+      
 
       if (success && data) {
         setShippingOptions(data.shipping_options);
@@ -74,63 +75,120 @@ export default function ShippingEstimator() {
   };
 
   return (
-    <div className="bg-white p-6 rounded-md shadow-sm">
-      <h3 className="text-lg font-semibold mb-3">Estimate delivery time & cost</h3>
+    <div className="bg-gradient-to-br from-white to-gray-50 p-8 rounded-2xl shadow-lg border border-gray-100">
+      <div className="flex items-center gap-3 mb-6">
+        <h3 className="text-2xl font-bold text-gray-900">Delivery Estimate</h3>
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
-        <label className="block">
-          <span className="text-sm font-medium text-gray-700">Destination country</span>
-          <select
-            value={country}
-            onChange={onCountryChange}
-            className="mt-1 block w-full p-2 border rounded-md"
-            aria-label="Select destination country"
-          >
-            {COUNTRIES.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </label>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-end mb-8">
+        <div className="lg:col-span-2">
+          <label className="block mb-2">
+            <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Destination Country</span>
+            <select
+              value={country}
+              onChange={onCountryChange}
+              className="mt-2 block w-full px-4 py-3 border border-gray-200 rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              aria-label="Select destination country"
+            >
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => fetchShippingOptions(country)}
-            className="bg-gray-900 text-white px-4 py-2 rounded-md"
+            disabled={loading}
+            className="bg-primary text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
-            Refresh
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Loading
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Refresh
+              </div>
+            )}
           </button>
-          {loading && <span className="text-sm text-gray-500">Loading…</span>}
         </div>
       </div>
 
-      <div className="mt-4">
-        {error && <div className="text-red-600">{error}</div>}
+      <div className="mt-6">
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+            <div className="flex items-center gap-2 text-red-700">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <span className="font-medium">{error}</span>
+            </div>
+          </div>
+        )}
 
         {!error && !loading && (
           <div>
             {shippingOptions.length === 0 ? (
-              <div className="text-sm text-gray-600">No shipping options available for this destination.</div>
+              <div className="text-center py-12">
+                <p className="text-gray-500 font-medium">No shipping options available for this destination</p>
+                <p className="text-sm text-gray-400 mt-1">Please try selecting a different country</p>
+              </div>
             ) : (
-              <ul className="">
-                {shippingOptions.map((opt) => (
-                  <li key={opt.code} className="p-3 border rounded-md">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="font-medium text-gray-900">{opt.name || opt.code}</div>
-                        {opt.description && <div className="text-sm text-gray-600">{opt.description}</div>}
-                        <div className="text-sm text-gray-500 mt-1">Estimated: {opt.estimated_days ?? '-'} days</div>
+              <div className="grid gap-4">
+                {shippingOptions.map((opt, index) => (
+                  <div 
+                    key={opt.code} 
+                    className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-200"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="flex items-center justify-between gap-6">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                          <div className="font-semibold text-lg text-gray-900">{opt.name || opt.code}</div>
+                          {opt.is_trackable && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                              Trackable
+                            </span>
+                          )}
+                        </div>
+                        
+                        {opt.description && (
+                          <div className="text-gray-600 mb-3">{opt.description}</div>
+                        )}
+                        
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Estimated: <strong className="text-gray-700">{opt.estimated_days ?? '-'} days</strong></span>
+                          </div>
+                        </div>
                       </div>
+                      
                       <div className="text-right">
-                        <div className="font-semibold text-gray-900">{opt.currency ?? 'USD'} {opt.cost?.toFixed ? opt.cost.toFixed(2) : String(opt.cost)}</div>
-                        {opt.is_trackable && <div className="text-xs text-green-600">Trackable</div>}
+                        <div className="text-2xl font-bold text-gray-900 mb-1">
+                          {opt.currency ?? 'USD'} {opt.cost?.toFixed ? opt.cost.toFixed(2) : String(opt.cost)}
+                        </div>
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">Shipping Cost</div>
                       </div>
                     </div>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </div>
         )}
