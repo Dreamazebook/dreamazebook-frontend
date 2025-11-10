@@ -37,8 +37,14 @@ export default function ShippingEstimator() {
       const height = 2; // cm
       const currency = 'USD';
 
-      const url = `${API_SHIPPING_ESTIMATE}?country_code=${encodeURIComponent(countryCode)}&weight=${weight}&length=${length}&width=${width}&height=${height}&currency=${currency}`;
-      const {data,code,message,success} = await api.get<ApiResponse<RateResponse>>(url);
+      const {data,code,message,success} = await api.post<ApiResponse<RateResponse>>(API_SHIPPING_ESTIMATE,{
+        country_code: countryCode,
+        weight,
+        length,
+        width,
+        height,
+        currency
+      });
       console.log(data);
 
       if (success && data) {
