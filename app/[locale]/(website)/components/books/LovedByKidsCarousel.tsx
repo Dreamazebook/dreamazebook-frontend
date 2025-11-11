@@ -171,14 +171,19 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
                     }}
                   >
                     <h3
-                      className="text-[#222222] text-[20px] font-semibold"
-                      style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
+                      className="text-[#222222] text-[18px] font-medium leading-[24px] tracking-[0.15px] min-w-0"
                     >
-                      {card.title}
+                      {card.title.split(' ').slice(0, -1).join(' ')}
+                      {' '}
+                      <span className="whitespace-nowrap inline-flex items-center">
+                        {card.title.split(' ').slice(-1)[0]}
+                        <svg width="18" height="10" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg" className="ml-[10px] flex-shrink-0">
+                          <path d="M0.75 4.75H16.75M16.75 4.75L12.25 0.75M16.75 4.75L12.25 8.75" stroke="#222222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </span>
                     </h3>
                     <p
-                      className="text-[#666666] text-[16px] leading-relaxed"
-                      style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
+                      className="text-[#666666] text-[16px] leading-[24px] tracking-[0.5px]"
                     >
                       {card.description}
                     </p>
@@ -211,7 +216,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
         {/* Navigation Arrows - 仅桌面端显示 */}
         <button
           onClick={prevSlide}
-          className="hidden lg:flex absolute top-25 w-12 h-12 rounded-full bg-white border border-[#222222] items-center justify-center hover:bg-gray-50 transition-colors z-10"
+          className="hidden lg:flex absolute top-25 w-12 h-12 rounded-full bg-transparent border border-[#222222] items-center justify-center hover:bg-[#012CCE] hover:border-[#012CCE] transition-colors z-10 [&:hover_svg_path]:stroke-white"
           style={{
             left: 'calc(50% - 400px - 48px - 16px)',
           }}
@@ -223,14 +228,14 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
         </button>
         <button
           onClick={nextSlide}
-          className="hidden lg:flex absolute right-0 bottom-25 w-12 h-12 rounded-full bg-[#012CCE] items-center justify-center hover:bg-[#0119A3] transition-colors z-10"
+          className="hidden lg:flex absolute right-0 bottom-25 w-12 h-12 rounded-full bg-transparent border border-[#222222] items-center justify-center hover:bg-[#012CCE] hover:border-[#012CCE] transition-colors z-10 [&:hover_svg_path]:stroke-white"
           style={{
             left: 'calc(50% + 400px + 16px)',
           }}
           aria-label="Next slide"
         >
           <svg width="18" height="10" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0.75 4.75H16.75M16.75 4.75L12.25 0.75M16.75 4.75L12.25 8.75" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M0.75 4.75H16.75M16.75 4.75L12.25 0.75M16.75 4.75L12.25 8.75" stroke="#222222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
       </div>
