@@ -2,12 +2,15 @@
 
 import React from 'react';
 import Image from 'next/image';
+import { Link } from '@/i18n/routing';
 
 interface OccasionCard {
   id: string;
   title: string;
   description: string;
   image: string;
+  imageDesktop?: string;
+  bookId?: string;
 }
 
 interface OccasionsSectionProps {
@@ -24,31 +27,41 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
       id: '1',
       title: 'Bedtime',
       description: 'Turn every night into a moment of comfort and connection.',
-      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/bg.png',
+      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Bedtime-MOBILE.png',
+      imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Bedtime.png',
+      bookId: 'PICBOOK_GOODNIGHT',
     },
     {
       id: '2',
       title: 'Birthday',
       description: 'A keepsake gift that makes their special day unforgettable.',
-      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/bg.png',
+      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Birthday-MOBILE.png',
+      imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Birthday.png',
+      bookId: 'PICBOOK_BIRTHDAY',
     },
     {
       id: '3',
       title: 'Baby Shower',
       description: 'Welcome little ones with a personalized treasure made just for them.',
-      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/bg.png',
+      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Baby-Shower-MOBILE.png',
+      imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Baby-Shower.png',
+      bookId: 'PICBOOK_MELODY',
     },
     {
       id: '4',
       title: 'Family Time',
       description: 'Celebrate togetherness with stories that everyone can share.',
-      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/bg.png',
+      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Family-Time-MOBILE.png',
+      imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Family-Time.png',
+      bookId: 'PICBOOK_YOUAREBRAVEYINMANYWAYS',
     },
     {
       id: '5',
       title: 'Christmas Time',
       description: 'The most heartfelt gift under the tree — made for your child.',
-      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/bg.png',
+      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Christmas-Time-MOBILE.png',
+      imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Christmas-Time.png',
+      bookId: 'PICBOOK_SANTALETTER',
     },
   ],
 }) => {
@@ -78,9 +91,13 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
           <div className="flex flex-col gap-[8px] md:gap-[24px] flex-1 self-center">
             {/* Mobile: show 2 cards */}
             {cards.slice(0, 2).map((card) => (
-              <div key={`mobile-${card.id}`} className="md:hidden w-full">
+              <Link
+                key={`mobile-${card.id}`}
+                href={card.bookId ? `/books/${card.bookId}` : '#'}
+                className="md:hidden w-full"
+              >
                 <div
-                  className="relative bg-[#F5E3E3] flex flex-col overflow-hidden rounded-[8px] w-full"
+                  className="relative bg-[#F5E3E3] flex flex-col overflow-hidden rounded-[8px] w-full cursor-pointer"
                   style={{
                     aspectRatio: '331/360', // 165.5/180 = 331/360
                     padding: '24px',
@@ -90,43 +107,47 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
                   }}
                 >
                   {/* Background Image - Baby with book */}
-                  {card.image && (
-                    <div className="absolute inset-0 z-0">
-                      <Image
-                        src={card.image}
-                        alt={card.title}
-                        fill
-                        className="object-cover"
-                        style={{ objectPosition: 'center' }}
-                      />
-                    </div>
-                  )}
+                {card.image && (
+                  <div className="absolute inset-0 z-0">
+                    <Image
+                      src={card.image}
+                      alt={card.title}
+                      fill
+                      className="object-cover"
+                      style={{ objectPosition: 'center' }}
+                    />
+                  </div>
+                )}
                   
                   {/* Gradient Overlay */}
                   <div
                     className="absolute inset-0 z-[1]"
-                    style={{
-                      background: 'linear-gradient(197.76deg, rgba(249, 232, 232, 0) 33.41%, #F9E8E8 70.1%)',
-                    }}
+                    // style={{
+                    //   background: 'linear-gradient(197.76deg, rgba(249, 232, 232, 0) 33.41%, #F9E8E8 70.1%)',
+                    // }}
                   />
 
                   {/* Text Content */}
                   <div className="relative z-10 flex flex-col mt-auto gap-1 md:gap-[36px]">
-                    <h3 className="text-[#222222] font-bold text-[18px] leading-[24px] tracking-[0.15px]">
+                    <h3 className="text-[#FFFFFF] font-bold text-[18px] leading-[24px] tracking-[0.15px]">
                       {card.title}
                     </h3>
-                    <p className="text-[#666666] font-normal text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
+                    <p className="text-[#666666] font-normal text-[14px] leading-[20px] tracking-[0.25px] md:text-[#FFFFFF] md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
                       {card.description}
                     </p>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
             {/* Desktop: show only first card */}
             {cards.slice(0, 1).map((card) => (
-              <div
+              <Link
                 key={`desktop-${card.id}`}
-                className="hidden md:block relative bg-[#F5E3E3] rounded-[12px] flex flex-col overflow-hidden w-full"
+                href={card.bookId ? `/books/${card.bookId}` : '#'}
+                className="hidden md:block"
+              >
+                <div
+                  className="relative bg-[#F5E3E3] rounded-[12px] flex flex-col overflow-hidden w-full cursor-pointer"
                 style={{
                   aspectRatio: '3/4',
                   paddingTop: '31.25%', // 160/512 = 31.25%
@@ -139,10 +160,10 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
                 }}
               >
                 {/* Background Image - Baby with book */}
-                {card.image && (
+                {(card.imageDesktop || card.image) && (
                   <div className="absolute inset-0 z-0">
                     <Image
-                      src={card.image}
+                      src={card.imageDesktop || card.image}
                       alt={card.title}
                       fill
                       className="object-cover"
@@ -154,9 +175,9 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
                 {/* Gradient Overlay */}
                 <div
                   className="absolute inset-0 z-[1]"
-                  style={{
-                    background: 'linear-gradient(197.76deg, rgba(249, 232, 232, 0) 33.41%, #F9E8E8 70.1%)',
-                  }}
+                  // style={{
+                  //   background: 'linear-gradient(197.76deg, rgba(249, 232, 232, 0) 33.41%, #F9E8E8 70.1%)',
+                  // }}
                 />
                 
                 {/* Book Cover Overlay */}
@@ -190,19 +211,20 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
                   }}
                 >
                   <h3
-                    className="text-[#222222] font-bold text-[18px]"
+                    className="text-[#FFFFFF] font-bold text-[18px] leading-[24px] tracking-[0.15px]"
                     style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
                   >
                     {card.title}
                   </h3>
                   <p
-                    className="text-[#666666] font-normal text-[16px] leading-relaxed"
+                    className="text-[#FFFFFF] font-normal text-[16px] leading-[24px] tracking-[0.5px]"
                     style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
                   >
                     {card.description}
-                  </p>
+                    </p>
                 </div>
-              </div>
+                </div>
+              </Link>
             ))}
           </div>
 
@@ -210,9 +232,13 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
           <div className="flex flex-col gap-[8px] md:gap-[24px] flex-1 md:pt-22">
             {/* Mobile: show cards 2-4 (3 cards) */}
             {cards.slice(2, 5).map((card) => (
-              <div key={`mobile-col2-${card.id}`} className="md:hidden w-full">
+              <Link
+                key={`mobile-col2-${card.id}`}
+                href={card.bookId ? `/books/${card.bookId}` : '#'}
+                className="md:hidden w-full"
+              >
                 <div
-                  className="relative bg-[#F5E3E3] flex flex-col overflow-hidden rounded-[8px] w-full"
+                  className="relative bg-[#F5E3E3] flex flex-col overflow-hidden rounded-[8px] w-full cursor-pointer"
                   style={{
                     aspectRatio: '331/360', // 165.5/180 = 331/360
                     padding: '24px',
@@ -222,43 +248,47 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
                   }}
                 >
                   {/* Background Image - Baby with book */}
-                  {card.image && (
-                    <div className="absolute inset-0 z-0">
-                      <Image
-                        src={card.image}
-                        alt={card.title}
-                        fill
-                        className="object-cover"
-                        style={{ objectPosition: 'center' }}
-                      />
-                    </div>
-                  )}
+                {card.image && (
+                  <div className="absolute inset-0 z-0">
+                    <Image
+                      src={card.image}
+                      alt={card.title}
+                      fill
+                      className="object-cover"
+                      style={{ objectPosition: 'center' }}
+                    />
+                  </div>
+                )}
                   
                   {/* Gradient Overlay */}
                   <div
                     className="absolute inset-0 z-[1]"
-                    style={{
-                      background: 'linear-gradient(197.76deg, rgba(249, 232, 232, 0) 33.41%, #F9E8E8 70.1%)',
-                    }}
+                    // style={{
+                    //   background: 'linear-gradient(197.76deg, rgba(249, 232, 232, 0) 33.41%, #F9E8E8 70.1%)',
+                    // }}
                   />
 
                   {/* Text Content */}
                   <div className="relative z-10 flex flex-col mt-auto gap-1 md:gap-[36px]">
-                    <h3 className="text-[#222222] font-bold text-[18px] leading-[24px] tracking-[0.15px]">
+                    <h3 className="text-[#FFFFFF] font-bold text-[18px] leading-[24px] tracking-[0.15px]">
                       {card.title}
                     </h3>
-                    <p className="text-[#666666] font-normal text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
+                    <p className="text-[#666666] font-normal text-[14px] leading-[20px] tracking-[0.25px] md:text-[#FFFFFF] md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
                       {card.description}
                     </p>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
             {/* Desktop: show cards 1-2 (2 cards) */}
             {cards.slice(1, 3).map((card) => (
-              <div
+              <Link
                 key={`desktop-col2-${card.id}`}
-                className="hidden md:block relative bg-[#F5E3E3] rounded-[12px] flex flex-col overflow-hidden w-full"
+                href={card.bookId ? `/books/${card.bookId}` : '#'}
+                className="hidden md:block"
+              >
+                <div
+                  className="relative bg-[#F5E3E3] rounded-[12px] flex flex-col overflow-hidden w-full cursor-pointer"
                 style={{
                   aspectRatio: '3/4',
                   paddingTop: '31.25%', // 160/512 = 31.25%
@@ -271,10 +301,10 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
                 }}
               >
                 {/* Background Image - Baby with book */}
-                {card.image && (
+                {(card.imageDesktop || card.image) && (
                   <div className="absolute inset-0 z-0">
                     <Image
-                      src={card.image}
+                      src={card.imageDesktop || card.image}
                       alt={card.title}
                       fill
                       className="object-cover"
@@ -286,9 +316,9 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
                 {/* Gradient Overlay */}
                 <div
                   className="absolute inset-0 z-[1]"
-                  style={{
-                    background: 'linear-gradient(197.76deg, rgba(249, 232, 232, 0) 33.41%, #F9E8E8 70.1%)',
-                  }}
+                  // style={{
+                  //   background: 'linear-gradient(197.76deg, rgba(249, 232, 232, 0) 33.41%, #F9E8E8 70.1%)',
+                  // }}
                 />
                 
                 {/* Book Cover Overlay */}
@@ -322,28 +352,33 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
                   }}
                 >
                   <h3
-                    className="text-[#222222] font-bold text-[18px]"
+                    className="text-[#FFFFFF] font-bold text-[18px] leading-[24px] tracking-[0.15px]"
                     style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
                   >
                     {card.title}
                   </h3>
                   <p
-                    className="text-[#666666] font-normal text-[16px] leading-relaxed"
+                    className="text-[#FFFFFF] font-normal text-[16px] leading-[24px] tracking-[0.5px]"
                     style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
                   >
                     {card.description}
-                  </p>
+                    </p>
                 </div>
-              </div>
+                </div>
+              </Link>
             ))}
           </div>
 
           {/* Third Column - 3 cards - 贴顶部 (Desktop only) */}
           <div className="hidden md:flex flex-col gap-[24px] flex-1 self-start">
             {cards.slice(3, 6).map((card) => (
-              <div
+              <Link
                 key={card.id}
-                className="relative bg-[#F5E3E3] rounded-[12px] flex flex-col overflow-hidden w-full"
+                href={card.bookId ? `/books/${card.bookId}` : '#'}
+                className="w-full"
+              >
+                <div
+                  className="relative bg-[#F5E3E3] rounded-[12px] flex flex-col overflow-hidden w-full cursor-pointer"
                 style={{
                   aspectRatio: '3/4',
                   paddingTop: '31.25%', // 160/512 = 31.25%
@@ -356,10 +391,10 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
                 }}
               >
                 {/* Background Image - Baby with book */}
-                {card.image && (
+                {(card.imageDesktop || card.image) && (
                   <div className="absolute inset-0 z-0">
                     <Image
-                      src={card.image}
+                      src={card.imageDesktop || card.image}
                       alt={card.title}
                       fill
                       className="object-cover"
@@ -371,9 +406,9 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
                 {/* Gradient Overlay */}
                 <div
                   className="absolute inset-0 z-[1]"
-                  style={{
-                    background: 'linear-gradient(197.76deg, rgba(249, 232, 232, 0) 33.41%, #F9E8E8 70.1%)',
-                  }}
+                  // style={{
+                  //   background: 'linear-gradient(197.76deg, rgba(249, 232, 232, 0) 33.41%, #F9E8E8 70.1%)',
+                  // }}
                 />
                 
                 {/* Book Cover Overlay */}
@@ -407,19 +442,20 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
                   }}
                 >
                   <h3
-                    className="text-[#222222] font-bold text-[18px]"
+                    className="text-[#FFFFFF] font-bold text-[18px] leading-[24px] tracking-[0.15px]"
                     style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
                   >
                     {card.title}
                   </h3>
                   <p
-                    className="text-[#666666] font-normal text-[16px] leading-relaxed"
+                    className="text-[#FFFFFF] font-normal text-[16px] leading-[24px] tracking-[0.5px]"
                     style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
                   >
                     {card.description}
-                  </p>
+                    </p>
                 </div>
-              </div>
+                </div>
+              </Link>
             ))}
           </div>
         </div>

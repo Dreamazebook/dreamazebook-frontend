@@ -9,6 +9,7 @@ interface CarouselCard {
   title: string;
   description: string;
   image: string;
+  imageDesktop?: string;
   bookId: string; // 用于链接到书籍详情页
 }
 
@@ -146,7 +147,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
               >
                 <div className={`relative w-full h-full ${isDesktop ? 'rounded-[12px]' : 'rounded-[8px]'} overflow-hidden bg-white`}>
                   <Image
-                    src={card.image}
+                    src={isDesktop ? (card.imageDesktop || card.image) : card.image}
                     alt={card.title}
                     fill
                     className="object-top object-cover"
@@ -154,10 +155,10 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
                   />
                   <div
                     className="absolute inset-0"
-                    style={{
-                      background:
-                        'linear-gradient(206.13deg, rgba(249, 232, 232, 0) 32.16%, #F9E8E8 75.03%)',
-                    }}
+                    // style={{
+                    //   background:
+                    //     'linear-gradient(206.13deg, rgba(249, 232, 232, 0) 32.16%, #F9E8E8 75.03%)',
+                    // }}
                   />
                   {/* 文案 - 移动端三张都显示，桌面端三张都显示（受缩放影响） */}
                   <div
