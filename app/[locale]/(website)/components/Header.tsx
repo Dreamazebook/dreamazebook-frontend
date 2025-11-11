@@ -9,7 +9,7 @@ import { Link } from "@/i18n/routing";
 import { useLocale } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 
-const UnderlineIcon = () => (
+const UnderlineIcon = ({ color = "#012CCE" }: { color?: string }) => (
   <svg 
     className="absolute bottom-[-4px] left-0 w-full" 
     height="4" 
@@ -21,7 +21,7 @@ const UnderlineIcon = () => (
       y1="2" 
       x2="100" 
       y2="2" 
-      stroke="#012CCE" 
+      stroke={color} 
       strokeWidth="4"
     />
   </svg>
@@ -54,6 +54,8 @@ const Header = () => {
   const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
+  const isChristmasPage = pathname === '/christmas' || pathname?.endsWith('/christmas') || pathname?.includes('/christmas');
+  
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -84,10 +86,15 @@ const Header = () => {
           </svg>
         )}
       </button>
-      <Logo />
+      <div className="hidden md:block">
+        <Logo useWhite={isChristmasPage} />
+      </div>
+      <div className="md:hidden">
+        <Logo />
+      </div>
       
       {/* Desktop Navigation */}
-      <nav className="hidden md:flex space-x-4">
+      <nav className={`hidden md:flex space-x-4 ${isChristmasPage ? 'text-white' : ''}`}>
         {menuItems.map((item) => (
           <Link 
             key={item.href}
@@ -95,7 +102,7 @@ const Header = () => {
             href={item.href}
           >
             {item.label}
-            {item.isActive(pathname) && <UnderlineIcon />}
+            {item.isActive(pathname) && <UnderlineIcon color={isChristmasPage ? '#FFFFFF' : '#012CCE'} />}
           </Link>
         ))}
       </nav>
@@ -150,7 +157,7 @@ const Header = () => {
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         {item.label}
-                        {item.isActive(pathname) && <UnderlineIcon />}
+                        {item.isActive(pathname) && <UnderlineIcon color={isChristmasPage ? '#FFFFFF' : '#012CCE'} />}
                       </Link>
                     </motion.div>
                   ))}
@@ -204,7 +211,7 @@ const Header = () => {
           </>
         )}
       </AnimatePresence>
-      <div className="flex items-center space-x-4">
+      <div className={`flex items-center space-x-4 ${isChristmasPage ? 'md:brightness-0 md:invert' : ''}`}>
         {/* Search icon next to cart, opens books page and reveals search */}
         <div className="relative group">
           <Image src={'/header/language.svg'} alt="language" width={48} height={24} className="cursor-pointer" />

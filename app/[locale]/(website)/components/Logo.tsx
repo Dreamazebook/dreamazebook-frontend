@@ -1,11 +1,11 @@
 import { Link } from "@/i18n/routing";
 import Image from 'next/image';
 
-const Logo = () => {
+const Logo = ({ useWhite = false }: { useWhite?: boolean }) => {
   return (
     <Link href={`/`}>
       <Image
-        src="/logo.png"
+        src={useWhite ? "/logo-white.png" : "/logo.png"}
         alt="DreamAze Book"
         width={120}
         height={40}

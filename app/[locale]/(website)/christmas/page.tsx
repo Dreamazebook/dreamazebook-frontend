@@ -502,7 +502,7 @@ export default function ChristmasPage() {
             </defs>
           </svg>
         </div>
-        <div className="absolute pointer-events-none z-0" style={{ right: 'clamp(60px, 20vw, 550px)', top: 'clamp(40px, 15vh, 220px)' }}>
+        <div className="absolute pointer-events-none z-0" style={{ right: 'clamp(5px, 28vw, 500px)', top: 'clamp(40px, 16vh, 220px)' }}>
           <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: 'clamp(36px, 4.5vw, 60px)', height: 'auto' }}>
             <g clipPath="url(#clip0_5139_8350)">
             <path d="M55.3118 10.1655L34.027 5.25622C33.4249 5.10922 32.7997 5.08324 32.1875 5.17978C31.5753 5.27632 30.9884 5.49346 30.4608 5.81861C29.9332 6.14375 29.4755 6.57042 29.1141 7.07387C28.7527 7.57732 28.4948 8.14752 28.3555 8.7514C28.2162 9.35527 28.1982 9.9808 28.3025 10.5917C28.4069 11.2026 28.6315 11.7867 28.9633 12.3101C29.2952 12.8335 29.7277 13.2858 30.2357 13.6407C30.7437 13.9957 31.3171 14.2462 31.9227 14.3778L53.209 19.2882C53.808 19.4263 54.4283 19.445 55.0345 19.3434C55.6408 19.2417 56.2211 19.0216 56.7423 18.6957C57.2635 18.3698 57.7154 17.9444 58.0722 17.4438C58.4289 16.9432 58.6837 16.3773 58.8217 15.7783C58.96 15.1793 58.9789 14.5589 58.8774 13.9526C58.7758 13.3462 58.5557 12.7659 58.2298 12.2446C57.9038 11.7234 57.4783 11.2715 56.9777 10.9147C56.477 10.558 55.9109 10.3034 55.3118 10.1655Z" fill="#DAE2E5"/>
@@ -536,21 +536,35 @@ export default function ChristmasPage() {
 
         <div className="relative w-full max-w-[1012px] z-10 mx-auto px-3 h-[60px]">
           <div className="bg-[#FCE5E5] h-[60px] rounded-full p-1 md:p-2 flex items-center gap-[6px] md:gap-12">
-            {groups.map(g => (
-              <button
-                key={g.id}
-                onClick={() => {
-                  scrollToGroup(g.id as typeof activeTab)
-                }}
-                className={`flex-1 text-[14px] font-medium md:text-bold md:px-3 md:gap-[10px] h-full rounded-full text-center ${
-                  activeTab === g.id
-                    ? 'bg-white text-[#222222]'
-                    : 'text-[#222222] hover:bg-[#FADADA]'
-                }`}
-              >
-                {g.label}
-              </button>
-            ))}
+            {groups.map(g => {
+              // 检查 label 是否包含括号，如果有则拆分显示
+              const match = g.label.match(/^(.+?)\s*\((.+?)\)$/);
+              const displayLabel = match ? (
+                <>
+                  {match[1]}
+                  <br />
+                  ({match[2]})
+                </>
+              ) : (
+                g.label
+              );
+              
+              return (
+                <button
+                  key={g.id}
+                  onClick={() => {
+                    scrollToGroup(g.id as typeof activeTab)
+                  }}
+                  className={`flex-1 text-[14px] font-medium md:text-bold md:px-3 md:gap-[10px] h-full rounded-full text-center ${
+                    activeTab === g.id
+                      ? 'bg-white text-[#222222]'
+                      : 'text-[#222222] hover:bg-[#FADADA]'
+                  }`}
+                >
+                  {displayLabel}
+                </button>
+              );
+            })}
           </div>
         </div>
 
