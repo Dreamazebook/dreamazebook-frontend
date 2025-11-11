@@ -86,11 +86,13 @@ const Header = () => {
           </svg>
         )}
       </button>
-      <div className="hidden md:block">
-        <Logo useWhite={isChristmasPage} />
-      </div>
+      {/* Mobile Logo - always use normal version */}
       <div className="md:hidden">
-        <Logo />
+        <Logo useWhite={false} />
+      </div>
+      {/* Desktop Logo - use white version on Christmas page */}
+      <div className="hidden md:block">
+        <Logo useWhite={mounted ? isChristmasPage : false} />
       </div>
       
       {/* Desktop Navigation */}
