@@ -328,19 +328,19 @@ const TipsSection: React.FC<{ section: BookSection }> = ({ section }) => {
   const rightColumn = tips.slice(Math.ceil(tips.length / 2));
 
   return (
-    <div className={`w-full bg-white md:h-[504px] h-auto md:py-[88px] py-12 px-30 md:px-0 flex flex-col md:gap-[48px] gap-6 ${section.className || ''}`}>
+    <div className={`w-full bg-white md:h-[504px] h-auto md:py-[88px] py-12 px-[80px] md:px-0 flex flex-col md:gap-[48px] gap-6 ${section.className || ''}`}>
       {section.title && (
         <h2 className="md:font-medium text-[24px] font-semibold leading-[32px] md:text-[40px] md:leading-[40px] text-[#222222] text-center">
           {section.title}
         </h2>
       )}
       
-      <div className="flex flex-col md:flex-row md:gap-[48px] gap-4 max-w-[1060px] md:h-[240px] h-auto mx-auto w-full md:px-4 px-0">
+      <div className="flex flex-col md:flex-row md:gap-[48px] gap-4 max-w-[1060px] md:h-[240px] h-auto mx-auto w-full md:px-4 px-0 md:items-center items-start justify-center">
         {/* 左列 */}
         <div className="flex flex-col md:gap-12 gap-4 flex-1">
           {leftColumn.map((tip, index) => (
             <div key={index} className="flex items-center gap-3">
-              <div className="md:w-12 w-9 md:h-12 h-9 bg-gray-300"></div>
+              <div className="md:w-12 w-9 md:h-12 h-9 bg-gray-300 shrink-0"></div>
               <span className="text-[#222222] md:font-medium font-normal md:text-[18px] text-[14px] md:leading-[24px] leading-[20px] md:tracking-[0.5px] tracking-[0.25px]">• {tip}</span>
             </div>
           ))}
@@ -350,7 +350,7 @@ const TipsSection: React.FC<{ section: BookSection }> = ({ section }) => {
         <div className="flex flex-col md:gap-12 gap-4 flex-1">
           {rightColumn.map((tip, index) => (
             <div key={index} className="flex items-center gap-3">
-              <div className="md:w-12 w-9 md:h-12 h-9 bg-gray-300"></div>
+              <div className="md:w-12 w-9 md:h-12 h-9 bg-gray-300 shrink-0"></div>
               <span className="text-[#222222] md:font-medium font-normal md:text-[18px] text-[14px] md:leading-[24px] leading-[20px] md:tracking-[0.5px] tracking-[0.25px]">• {tip}</span>
             </div>
           ))}
