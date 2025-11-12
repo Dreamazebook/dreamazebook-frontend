@@ -4,6 +4,7 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { FaQuestionCircle } from 'react-icons/fa';
 import { BsCheck } from 'react-icons/bs';
+import { Link } from '@/i18n/routing';
 import BasicInfoForm, { BasicInfoData } from './BasicInfoForm';
 import MultiImageUpload from './MultiImageUpload';
 import useMultiImageUpload from '../../hooks/useMultiImageUpload';
@@ -12,6 +13,8 @@ export interface PersonalizeFormData extends BasicInfoData {
   singleChoice: string; // Single choice feature
   multipleChoice: string[]; // Multiple choice features
   photos: string[]; // 添加多图片支持
+  relationship?: string; // Relationship to the child
+  consent?: boolean; // Consent checkbox
 }
 
 export interface SingleCharacterForm1Handle {
@@ -29,6 +32,8 @@ interface FormErrors {
   photo?: string;
   singleChoice?: string;
   multipleChoice?: string;
+  relationship?: string;
+  consent?: string;
 }
 
 interface SingleCharacterForm1Props {
@@ -67,6 +72,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     singleChoice: '',
     multipleChoice: [],
     photos: [], // 新增多图片支持
+    relationship: 'Parent/Guardian', // 默认关系
+    consent: false, // 默认未同意
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
@@ -202,6 +209,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
         hairstyle: true,
         hairColor: true,
         photo: true,
+        relationship: true,
+        consent: true,
         ...(shouldValidateFeatures ? { singleChoice: true, multipleChoice: true } : {}),
       });
 
@@ -212,6 +221,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       if (!formData.hairstyle) newErrors.hairstyle = 'Please select hairstyle';
       if (!formData.hairColor) newErrors.hairColor = 'Please select hair color';
       if (!formData.photo) newErrors.photo = 'Please upload a photo';
+      if (!formData.relationship) newErrors.relationship = 'Please select your relationship to the child';
+      if (!formData.consent) newErrors.consent = 'Please confirm your consent';
       if (shouldValidateFeatures) {
         if (!formData.singleChoice) newErrors.singleChoice = 'Please select one feature';
         if (formData.multipleChoice.length === 0) newErrors.multipleChoice = 'Please select at least one feature';
@@ -306,6 +317,73 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                   {touched.photo && errors.photo && (
                     <p className="text-red-500 text-sm mt-1">{errors.photo}</p>
                   )}
+                </div>
+
+                {/* Relationship and Consent Section */}
+                <div className="space-y-4">
+                  {/* Relationship to the child */}
+                  <div id="field-relationship">
+                    <label className="block mb-2 font-medium text-[#222222] text-[16px] leading-[24px] tracking-[0.15px]">
+                      What is your relationship to the child?
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={formData.relationship || ''}
+                        onChange={(e) => {
+                          setFormData(prev => ({ ...prev, relationship: e.target.value }));
+                          setTouched(prev => ({ ...prev, relationship: true }));
+                          setErrors(prev => ({ ...prev, relationship: '' }));
+                        }}
+                        onBlur={() => setTouched(prev => ({ ...prev, relationship: true }))}
+                        className="w-full p-2 border border-[#E5E5E5] rounded appearance-none bg-white text-[#222222] pr-8 focus:outline-none focus:border-[#012CCE]"
+                      >
+                        <option value="Parent/Guardian">Parent/Guardian</option>
+                        <option value="Grandparent">Grandparent</option>
+                        <option value="Other Relative">Other Relative</option>
+                        <option value="Friend">Friend</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                        <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M1 1L6 6L11 1" stroke="#666666" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                    </div>
+                    {touched.relationship && errors.relationship && (
+                      <p className="text-red-500 text-sm mt-1">{errors.relationship}</p>
+                    )}
+                  </div>
+
+                  {/* Consent checkbox */}
+                  <div id="field-consent">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.consent || false}
+                        onChange={(e) => {
+                          setFormData(prev => ({ ...prev, consent: e.target.checked }));
+                          setTouched(prev => ({ ...prev, consent: true }));
+                          setErrors(prev => ({ ...prev, consent: '' }));
+                        }}
+                        onBlur={() => setTouched(prev => ({ ...prev, consent: true }))}
+                        className="w-5 h-5 min-w-[20px] min-h-[20px] border border-[#D9D9D9] rounded-full mt-[2px] cursor-pointer bg-transparent appearance-none flex-shrink-0 focus:ring-[#222222] focus:ring-1 checked:bg-[#012CCE] checked:border-[#012CCE]"
+                        style={{
+                          backgroundImage: formData.consent ? "url(\"data:image/svg+xml,%3Csvg width='12' height='9' viewBox='0 0 12 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 4.5L4.5 8L11 1' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")" : 'none',
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'center',
+                        }}
+                      />
+                      <span className="text-[#666666] text-[14px] leading-[20px] tracking-[0.5px]">
+                        I confirm that I am this child's parent or legal guardian, I am over 18, and I give my consent to use these details and photos to create their personalized storybook, in line with the{' '}
+                        <Link href="/privacy-policy" className="text-[#012CCE] underline">
+                          Privacy Policy.
+                        </Link>
+                      </span>
+                    </label>
+                    {touched.consent && errors.consent && (
+                      <p className="text-red-500 text-sm mt-1 ml-8">{errors.consent}</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Single Choice + Multiple Choice (仅当 bookId === '2' 时显示) */}
