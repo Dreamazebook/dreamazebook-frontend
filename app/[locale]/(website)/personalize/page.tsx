@@ -43,6 +43,7 @@ export default function PersonalizeApiDrivenPage() {
   const [productSchema, setProductSchema] = useState<any>(null);
   const [rawApi, setRawApi] = useState<any>(null);
   const [uploadOptions, setUploadOptions] = useState<{ allowedTypes?: string[]; maxFileSize?: number; maxImages?: number } | undefined>(undefined);
+  const [bookName, setBookName] = useState<string>('');
 
   const form1Ref = useRef<SingleCharacterForm1Handle>(null);
   const form2Ref = useRef<SingleCharacterForm2Handle>(null);
@@ -64,6 +65,9 @@ export default function PersonalizeApiDrivenPage() {
         const res = await api.get<any>(`/products/${encodeURIComponent(String(bookId))}`, { params: { language: requestLang } });
         setRawApi(res?.data || res);
         const product = res?.data?.data || res?.data || {};
+        // 获取书籍名称
+        const name = product?.name || product?.default_name || '';
+        setBookName(name);
         const attributes: Attribute[] = Array.isArray(product.attributes) ? product.attributes : [];
 
         const pick = (name: string) => attributes.find(a => a?.name === name);
@@ -284,13 +288,16 @@ export default function PersonalizeApiDrivenPage() {
   return (
     <div className="min-h-screen bg-[#F8F8F8]">
       <div className="h-14 bg-white flex items-center px-4 sm:px-32">
-        <div className="flex items-center justify-between w-full sm:hidden">
+        <div className="relative flex items-center justify-between w-full sm:hidden">
           <Link href={`/books/${bookId}`} className="flex items-center text-gray-700 hover:text-blue-500">
             <IoIosArrowBack size={24} />
           </Link>
-          <Link href="/" className="flex items-center justify-center flex-grow p-2">
-            <Image src="/logo.png" alt="Home" width={115} height={40} priority className="w-[114.29px] h-[40px]" />
-          </Link>
+          <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center">
+            <span className="text-[#222222] text-[16px] leading-[24px] tracking-[0.15px] font-medium text-center truncate max-w-[200px]">
+              {bookName || 'Personalize'}
+            </span>
+          </div>
+          <div className="w-6"></div>
         </div>
         <Link href={`/books/${bookId}`} className="hidden sm:flex items-center text-sm">
           <span className="mr-2">←</span> Back to the product page

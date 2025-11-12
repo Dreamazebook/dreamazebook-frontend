@@ -61,7 +61,7 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
       description: 'The most heartfelt gift under the tree — made for your child.',
       image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Christmas-Time-MOBILE.png',
       imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Christmas-Time.png',
-      bookId: 'PICBOOK_SANTALETTER',
+      bookId: 'PICBOOK_SANTA',
     },
   ],
 }) => {

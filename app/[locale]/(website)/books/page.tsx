@@ -327,7 +327,7 @@ export default function BooksPage() {
               description: "Santa really knows me! He even knows how I've been good… but how did he see all that?!",
               image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/Santa-Letter-for-You-MOBILE.png',
               imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/Santa-Letter-for-You.png',
-              bookId: 'PICBOOK_SANTALETTER',
+              bookId: 'PICBOOK_SANTA',
             },
             {
               id: '4',
