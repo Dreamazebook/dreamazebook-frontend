@@ -52,9 +52,11 @@ interface SingleCharacterForm1Props {
     maxImages?: number;
   };
   assetSpuCode?: string;
+  // 分步显示
+  currentStep?: number; // 1 或 2
 }
 
-const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharacterForm1Props>(({ initialData, bookId = '1', apiSkinToneValues, apiHairStyleValues, apiHairColorValues, uploadOptions, assetSpuCode }, ref) => {
+const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharacterForm1Props>(({ initialData, bookId = '1', apiSkinToneValues, apiHairStyleValues, apiHairColorValues, uploadOptions, assetSpuCode, currentStep = 1 }, ref) => {
   const [formData, setFormData] = useState<PersonalizeFormData>({
     fullName: initialData?.fullName ?? '',
     gender: initialData?.gender ?? '',
@@ -233,164 +235,183 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     }
   }));
 
+  // 判断是否显示第二步内容（Single Choice 和 Multiple Choice）
+  const hasStep2Content = bookId === '2';
+
   return (
-    <div className="w-full max-w-[1440px] mx-auto px-4 md:px-[120px] bg-[#F8F8F8] relative pb-8">
+    <div className="w-full max-w-[1440px] mx-auto px-4 pt-4 md:pt-0 md:px-[120px] bg-[#F8F8F8] relative pb-8">
       {/* 表单区域 */}
       <div className="w-[98%] md:w-[60%] max-w-[588px] mx-auto">
         <div className="bg-white rounded p-6 shadow-sm">
           <form className="space-y-6">
-            {/* Basic information part */}
-            <BasicInfoForm
-              data={{
-                fullName: formData.fullName,
-                gender: formData.gender,
-                skinColor: formData.skinColor,
-                hairstyle: formData.hairstyle,
-                hairColor: formData.hairColor,
-                photo: formData.photo,
-              }}
-              errors={{
-                fullName: errors.fullName,
-                gender: errors.gender,
-                skinColor: errors.skinColor,
-                hairstyle: errors.hairstyle,
-                hairColor: errors.hairColor,
-                photo: errors.photo,
-              }}
-              touched={{
-                fullName: touched.fullName,
-                gender: touched.gender,
-                skinColor: touched.skinColor,
-                hairstyle: touched.hairstyle,
-                hairColor: touched.hairColor,
-                photo: touched.photo,
-              }}
-              onChange={handleBasicInfoChange}
-              onErrorChange={handleErrorChange}
-              bookId={bookId}
-              apiSkinToneValues={apiSkinToneValues}
-              apiHairStyleValues={apiHairStyleValues}
-              apiHairColorValues={apiHairColorValues}
-              assetSpuCode={assetSpuCode}
-            />
-
-            {/* Photo Upload Section - 替换为多图片上传组件 */}
-            <div id="field-photo">
-              <MultiImageUpload
-                images={images as any}
-                isUploading={isUploading}
-                uploadProgress={uploadProgress}
-                error={uploadError}
-                isDragging={isDragging}
-                maxImages={uploadOptions?.maxImages ?? 3}
-                onImageUpload={handlePhotosUpload}
-                onImageDelete={handlePhotoDelete}
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-              />
-              {touched.photo && errors.photo && (
-                <p className="text-red-500 text-sm mt-1">{errors.photo}</p>
-              )}
-            </div>
-
-            {/* Single Choice Section（默认隐藏于大多数书籍） */}
-            {bookId === '2' && (
-            <div id="field-singleChoice">
-              <label className="block mb-2 font-medium">
-                Features <span className="ml-2 text-gray-500">(Single choice)</span>
-              </label>
-              <div
-                className="flex flex-wrap gap-2"
-                tabIndex={0}
-                onBlur={() => {
-                  if (!formData.singleChoice) {
-                    setErrors(prev => ({ ...prev, singleChoice: 'Please select one feature' }));
-                  } else {
-                    setErrors(prev => ({ ...prev, singleChoice: '' }));
-                  }
-                }}
-              >
-                {['lively', 'Quiet', 'kind hearted', 'cute', 'humor'].map((feature) => (
-                  <button
-                    key={feature}
-                    type="button"
-                    className={`px-4 py-2 rounded border ${
-                      formData.singleChoice === feature
-                        ? 'bg-red-50 border-black text-black'
-                        : 'bg-gray-100 border-transparent text-gray-800'
-                    }`}
-                    onClick={() => {
-                      setFormData(prev => ({ ...prev, singleChoice: feature }));
-                      setTouched(prev => ({ ...prev, singleChoice: true }));
-                      setErrors(prev => ({ ...prev, singleChoice: '' }));
-                    }}
-                  >
-                    {feature}
-                  </button>
-                ))}
-              </div>
-              {touched.singleChoice && errors.singleChoice && (
-                <p className="text-red-500 text-sm">{errors.singleChoice}</p>
-              )}
-            </div>
+            {/* Step 1: Basic information only */}
+            {currentStep === 1 && (
+              <>
+                {/* Basic information part */}
+                <BasicInfoForm
+                  data={{
+                    fullName: formData.fullName,
+                    gender: formData.gender,
+                    skinColor: formData.skinColor,
+                    hairstyle: formData.hairstyle,
+                    hairColor: formData.hairColor,
+                    photo: formData.photo,
+                  }}
+                  errors={{
+                    fullName: errors.fullName,
+                    gender: errors.gender,
+                    skinColor: errors.skinColor,
+                    hairstyle: errors.hairstyle,
+                    hairColor: errors.hairColor,
+                    photo: errors.photo,
+                  }}
+                  touched={{
+                    fullName: touched.fullName,
+                    gender: touched.gender,
+                    skinColor: touched.skinColor,
+                    hairstyle: touched.hairstyle,
+                    hairColor: touched.hairColor,
+                    photo: touched.photo,
+                  }}
+                  onChange={handleBasicInfoChange}
+                  onErrorChange={handleErrorChange}
+                  bookId={bookId}
+                  apiSkinToneValues={apiSkinToneValues}
+                  apiHairStyleValues={apiHairStyleValues}
+                  apiHairColorValues={apiHairColorValues}
+                  assetSpuCode={assetSpuCode}
+                />
+              </>
             )}
 
-            {/* Multiple Choice Section（默认隐藏于大多数书籍） */}
-            {bookId === '2' && (
-            <div id="field-multipleChoice">
-              <label className="block mb-2 font-medium">
-                Features <span className="ml-2 text-gray-500">(Multiple choice)</span>
-              </label>
-              <div
-                className="flex flex-wrap gap-2"
-                tabIndex={0}
-                onBlur={() => {
-                  if (formData.multipleChoice.length === 0) {
-                    setErrors(prev => ({ ...prev, multipleChoice: 'Please select at least one feature' }));
-                  } else {
-                    setErrors(prev => ({ ...prev, multipleChoice: '' }));
-                  }
-                }}
-              >
-                {['lively', 'Quiet', 'kind hearted', 'cute', 'humor'].map((feature) => (
-                  <button
-                    key={feature}
-                    type="button"
-                    className={`relative px-4 py-2 rounded border ${
-                      formData.multipleChoice.includes(feature)
-                        ? 'border-black bg-[#FCF2F2] text-black'
-                        : 'bg-gray-100 border-transparent text-gray-800'
-                    }`}
-                    onClick={() => {
-                      setFormData(prev => {
-                        const newArray = prev.multipleChoice.includes(feature)
-                          ? prev.multipleChoice.filter(item => item !== feature)
-                          : [...prev.multipleChoice, feature];
-                        return { ...prev, multipleChoice: newArray };
-                      });
-                      setTouched(prev => ({ ...prev, multipleChoice: true }));
-                      setErrors(prev => ({ ...prev, multipleChoice: '' }));
+            {/* Step 2: Photo Upload + Single Choice + Multiple Choice */}
+            {currentStep === 2 && (
+              <>
+                {/* Photo Upload Section - 替换为多图片上传组件 */}
+                <div id="field-photo">
+                  <MultiImageUpload
+                    images={images as any}
+                    isUploading={isUploading}
+                    uploadProgress={uploadProgress}
+                    error={uploadError}
+                    isDragging={isDragging}
+                    maxImages={uploadOptions?.maxImages ?? 3}
+                    onImageUpload={handlePhotosUpload}
+                    onImageDelete={handlePhotoDelete}
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                  />
+                  {touched.photo && errors.photo && (
+                    <p className="text-red-500 text-sm mt-1">{errors.photo}</p>
+                  )}
+                </div>
+
+                {/* Single Choice + Multiple Choice (仅当 bookId === '2' 时显示) */}
+                {hasStep2Content && (
+                  <>
+                    {/* Single Choice Section（默认隐藏于大多数书籍） */}
+                    {bookId === '2' && (
+                <div id="field-singleChoice">
+                  <label className="block mb-2 font-medium">
+                    Features <span className="ml-2 text-gray-500">(Single choice)</span>
+                  </label>
+                  <div
+                    className="flex flex-wrap gap-2"
+                    tabIndex={0}
+                    onBlur={() => {
+                      if (!formData.singleChoice) {
+                        setErrors(prev => ({ ...prev, singleChoice: 'Please select one feature' }));
+                      } else {
+                        setErrors(prev => ({ ...prev, singleChoice: '' }));
+                      }
                     }}
                   >
-                    {feature}
-                    {formData.multipleChoice.includes(feature) && (
-                      <span
-                        className="absolute bottom-0 right-0 bg-black text-white flex items-center justify-center text-xs"
-                        style={{ width: '18px', height: '12px', borderRadius: '4px 0 0 0' }}
+                    {['lively', 'Quiet', 'kind hearted', 'cute', 'humor'].map((feature) => (
+                      <button
+                        key={feature}
+                        type="button"
+                        className={`px-4 py-2 rounded border ${
+                          formData.singleChoice === feature
+                            ? 'bg-red-50 border-black text-black'
+                            : 'bg-gray-100 border-transparent text-gray-800'
+                        }`}
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, singleChoice: feature }));
+                          setTouched(prev => ({ ...prev, singleChoice: true }));
+                          setErrors(prev => ({ ...prev, singleChoice: '' }));
+                        }}
                       >
-                        <BsCheck className="w-4 h-4" />
-                      </span>
+                        {feature}
+                      </button>
+                    ))}
+                  </div>
+                  {touched.singleChoice && errors.singleChoice && (
+                    <p className="text-red-500 text-sm">{errors.singleChoice}</p>
+                  )}
+                </div>
+                )}
+
+                {/* Multiple Choice Section（默认隐藏于大多数书籍） */}
+                {bookId === '2' && (
+                <div id="field-multipleChoice">
+                  <label className="block mb-2 font-medium">
+                    Features <span className="ml-2 text-gray-500">(Multiple choice)</span>
+                  </label>
+                  <div
+                    className="flex flex-wrap gap-2"
+                    tabIndex={0}
+                    onBlur={() => {
+                      if (formData.multipleChoice.length === 0) {
+                        setErrors(prev => ({ ...prev, multipleChoice: 'Please select at least one feature' }));
+                      } else {
+                        setErrors(prev => ({ ...prev, multipleChoice: '' }));
+                      }
+                    }}
+                  >
+                    {['lively', 'Quiet', 'kind hearted', 'cute', 'humor'].map((feature) => (
+                      <button
+                        key={feature}
+                        type="button"
+                        className={`relative px-4 py-2 rounded border ${
+                          formData.multipleChoice.includes(feature)
+                            ? 'border-black bg-[#FCF2F2] text-black'
+                            : 'bg-gray-100 border-transparent text-gray-800'
+                        }`}
+                        onClick={() => {
+                          setFormData(prev => {
+                            const newArray = prev.multipleChoice.includes(feature)
+                              ? prev.multipleChoice.filter(item => item !== feature)
+                              : [...prev.multipleChoice, feature];
+                            return { ...prev, multipleChoice: newArray };
+                          });
+                          setTouched(prev => ({ ...prev, multipleChoice: true }));
+                          setErrors(prev => ({ ...prev, multipleChoice: '' }));
+                        }}
+                      >
+                        {feature}
+                        {formData.multipleChoice.includes(feature) && (
+                          <span
+                            className="absolute bottom-0 right-0 bg-black text-white flex items-center justify-center text-xs"
+                            style={{ width: '18px', height: '12px', borderRadius: '4px 0 0 0' }}
+                          >
+                            <BsCheck className="w-4 h-4" />
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                    {touched.multipleChoice && errors.multipleChoice && (
+                      <p className="text-red-500 text-sm">{errors.multipleChoice}</p>
                     )}
-                  </button>
-                ))}
-              </div>
-              {touched.multipleChoice && errors.multipleChoice && (
-                <p className="text-red-500 text-sm">{errors.multipleChoice}</p>
-              )}
-            </div>
+                  </div>
+                  )}
+                  </>
+                )}
+              </>
             )}
+
           </form>
         </div>
       </div>

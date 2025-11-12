@@ -34,6 +34,7 @@ export default function PersonalizeApiDrivenPage() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formType, setFormType] = useState<'SINGLE1' | 'SINGLE2'>('SINGLE1');
+  const [currentStep, setCurrentStep] = useState<number>(1); // 手机端步骤管理：1 或 2
 
   const [skinToneValues, setSkinToneValues] = useState<string[] | undefined>(undefined);
   const [hairStyleValues, setHairStyleValues] = useState<string[] | undefined>(undefined);
@@ -158,9 +159,72 @@ export default function PersonalizeApiDrivenPage() {
     }
   };
 
+  // 手机端：处理下一步按钮点击
+  const handleNextStep = () => {
+    // 验证第一步的必填字段
+    if (formType === 'SINGLE1' && form1Ref.current) {
+      // 只验证第一步的字段（不包括 photo、singleChoice 和 multipleChoice）
+      const step1Fields = ['fullName', 'gender', 'skinColor', 'hairstyle', 'hairColor'];
+      let hasError = false;
+      let firstErrorField: string | null = null;
+
+      // 手动验证第一步的字段
+      const formData = form1Ref.current.getFormData();
+      if (!formData.fullName?.trim()) {
+        hasError = true;
+        firstErrorField = 'fullName';
+      } else if (!formData.gender) {
+        hasError = true;
+        firstErrorField = 'gender';
+      } else if (!formData.skinColor) {
+        hasError = true;
+        firstErrorField = 'skinColor';
+      } else if (!formData.hairstyle) {
+        hasError = true;
+        firstErrorField = 'hairstyle';
+      } else if (!formData.hairColor) {
+        hasError = true;
+        firstErrorField = 'hairColor';
+      }
+
+      if (hasError && firstErrorField) {
+        // 触发表单验证以显示错误信息
+        const validationResult = form1Ref.current.validateForm();
+        // 滚动到错误字段
+        setTimeout(() => {
+          const elementId = firstErrorField === 'photo' ? 'upload-area-photo' : `field-${firstErrorField}`;
+          const element = document.getElementById(elementId);
+          if (element) {
+            const isMobile = window.innerWidth < 768;
+            const stickyBarHeight = isMobile ? 76 : 0;
+            const headerHeight = 56;
+            const offset = stickyBarHeight + headerHeight + 20;
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+            window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+          }
+        }, 100);
+        return;
+      }
+      setCurrentStep(2);
+      // 滚动到顶部
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (formType === 'SINGLE2' && form2Ref.current) {
+      // SINGLE2 表单的处理逻辑类似
+      setCurrentStep(2);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const handleContinue = async () => {
     // 防止重复提交
     if (isSubmitting) return;
+
+    // 如果在第一步，先进入第二步
+    if (currentStep === 1) {
+      handleNextStep();
+      return;
+    }
 
     let fullName = '';
     let genderRaw: '' | 'boy' | 'girl' = '';
@@ -305,7 +369,7 @@ export default function PersonalizeApiDrivenPage() {
       </div>
 
       <div className="mx-auto pb-20 md:pb-0">
-        <h1 className="text-2xl text-center my-6">Please fill in the basic information</h1>
+        <h1 className="text-[22px] leading-[28px] text-center pt-3 md:pt-0 md:my-6 my-0">Who are you making this book for?</h1>
         {formType === 'SINGLE1' ? (
           <SingleCharacterForm1
             ref={form1Ref}
@@ -320,6 +384,7 @@ export default function PersonalizeApiDrivenPage() {
             apiHairColorValues={hairColorValues}
             uploadOptions={uploadOptions}
             assetSpuCode={'PICBOOK_GOODNIGHT'}
+            currentStep={currentStep}
           />
         ) : (
           <SingleCharacterForm2
@@ -337,50 +402,71 @@ export default function PersonalizeApiDrivenPage() {
             assetSpuCode={'PICBOOK_GOODNIGHT'}
           />
         )}
-        {/* 桌面端 Continue 按钮 */}
+        {/* 桌面端按钮 */}
         <div className="hidden md:flex justify-center">
-          <button
-            type="button"
-            onClick={handleContinue}
-            disabled={isSubmitting}
-            style={{ width: '180px' }}
-            className="bg-black text-white py-3 rounded hover:bg-gray-800 mb-16 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? (
-              <>
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Loading...</span>
-              </>
-            ) : (
-              'Continue'
-            )}
-          </button>
+          {currentStep === 1 && formType === 'SINGLE1' ? (
+            <button
+              type="button"
+              onClick={handleNextStep}
+              style={{ width: '180px' }}
+              className="bg-black text-[#F5E3E3] py-3  text-[16px] leading-[24px] tracking-[0.5px] mb-16 rounded hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+            >
+              Next Step (1/2)
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleContinue}
+              disabled={isSubmitting}
+              style={{ width: '180px' }}
+              className="bg-black text-white py-3 rounded hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Loading...</span>
+                </>
+              ) : (
+                'Continue'
+              )}
+            </button>
+          )}
         </div>
       </div>
-      {/* 手机端吸底 Continue 按钮 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#F8F8F8] z-50 md:hidden">
+      {/* 手机端吸底按钮 */}
+      <div className="fixed bottom-0 left-0 right-0 bg-[#F8F8F8] z-50 md:hidden border-t border-gray-200">
         <div className="flex items-center justify-center h-[76px] px-[12px] py-[16px] gap-[10px]">
-          <button
-            type="button"
-            onClick={handleContinue}
-            disabled={isSubmitting}
-            className="w-full bg-black text-[#F5E3E3] h-[44px] rounded hover:bg-gray-800 transition-colors text-[16px] leading-[24px] tracking-[0.5px] disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? (
-              <>
-                <svg className="animate-spin h-5 w-5 text-[#F5E3E3]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Loading...</span>
-              </>
-            ) : (
-              'Continue'
-            )}
-          </button>
+          {currentStep === 1 && formType === 'SINGLE1' ? (
+            <button
+              type="button"
+              onClick={handleNextStep}
+              className="w-full bg-black text-[#F5E3E3] h-[44px] rounded hover:bg-gray-800 transition-colors text-[16px] leading-[24px] tracking-[0.5px] flex items-center justify-center gap-2"
+            >
+              Next Step (1/2)
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleContinue}
+              disabled={isSubmitting}
+              className="w-full bg-black text-[#F5E3E3] h-[44px] rounded hover:bg-gray-800 transition-colors text-[16px] leading-[24px] tracking-[0.5px] disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-[#F5E3E3]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Loading...</span>
+                </>
+              ) : (
+                'Continue'
+              )}
+            </button>
+          )}
         </div>
       </div>
     </div>
