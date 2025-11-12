@@ -93,9 +93,6 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                       <span className="text-sm font-medium text-gray-900">
                         Page: {image.page_code}
                       </span>
-                      <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                        Item ID: {image.item_id}
-                      </span>
                     </div>
                   </div>
                 </div>
