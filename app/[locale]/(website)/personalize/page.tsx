@@ -419,7 +419,7 @@ export default function PersonalizeApiDrivenPage() {
               onClick={handleContinue}
               disabled={isSubmitting}
               style={{ width: '180px' }}
-              className="bg-black text-white py-3 rounded hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="bg-black text-[#F5E3E3] mb-16 py-3 rounded hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
