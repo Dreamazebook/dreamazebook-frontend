@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { OrderDetail } from '../../../(website)/checkout/components/types';
 import { formatDate } from '../utils';
 import { Link } from '@/i18n/routing';
@@ -14,6 +14,37 @@ interface OrdersTableProps {
   onViewDetails: (order: OrderDetail) => void;
 }
 
+// Countdown component for orders created within 48 hours
+const CountdownTimer: FC<{ createdAt: string }> = ({ createdAt }) => {
+  const [timeLeft, setTimeLeft] = useState<string>('');
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const createdDate = new Date(createdAt);
+      const now = new Date();
+      const timeDiff = createdDate.getTime() + 48 * 60 * 60 * 1000 - now.getTime(); // 48 hours in milliseconds
+
+      if (timeDiff <= 0) {
+        setTimeLeft('已过期');
+        return;
+      }
+
+      const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+      const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+      setTimeLeft(`${hours}小时 ${minutes}分钟 ${seconds}秒`);
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(timer);
+  }, [createdAt]);
+
+  return <span className="text-red-600 font-medium">{timeLeft}</span>;
+};
+
 const OrdersTable: FC<OrdersTableProps> = ({
   orders,
   statusColors,
@@ -22,6 +53,13 @@ const OrdersTable: FC<OrdersTableProps> = ({
   paymentStatusLabels,
   onViewDetails,
 }) => {
+  // Check if order was created within the last 48 hours
+  const isWithin48Hours = (createdAt: string) => {
+    const createdDate = new Date(createdAt);
+    const now = new Date();
+    const timeDiff = now.getTime() - createdDate.getTime();
+    return timeDiff < 48 * 60 * 60 * 1000; // 48 hours in milliseconds
+  };
   if (orders.length === 0) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -108,7 +146,14 @@ const OrdersTable: FC<OrdersTableProps> = ({
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatDate(order.created_at)}
+                  {isWithin48Hours(order.created_at) ? (
+                    <div>
+                      <div className="text-xs text-gray-400 mb-1">{formatDate(order.created_at)}</div>
+                      <CountdownTimer createdAt={order.created_at} />
+                    </div>
+                  ) : (
+                    formatDate(order.created_at)
+                  )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   ${order.total_amount}
