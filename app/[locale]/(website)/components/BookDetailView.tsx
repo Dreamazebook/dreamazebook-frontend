@@ -49,6 +49,13 @@ export default function BookDetailView({
     { label: 'specifications.delivery' },
   ]
   
+  // 获取 FAQ 信息：优先使用书籍配置，否则使用默认值
+  const faqs = bookConfig?.faqs || [
+    { question: t('faq.title'), answer: t('faq.description') },
+    { question: t('faq.title'), answer: t('faq.description') },
+    { question: t('faq.title'), answer: t('faq.description') },
+  ]
+  
   // 渲染规格文本：如果是国际化 key（以 'specifications.' 开头），则使用 t()，否则直接显示
   const getSpecificationText = (spec: { label: string; value?: string }) => {
     if (spec.label.startsWith('specifications.')) {
@@ -60,7 +67,7 @@ export default function BookDetailView({
   return (
     <div className={`min-h-screen bg-white ${roboto.className}`}>
       <div className="grid grid-cols-1 md:grid-cols-2">
-        <div className="relative">
+        <div className="relative h-fit">
           <div className="grid grid-cols-1 gap-0">
             {pagePics.map((page) => {
               const src = page.pagepic
@@ -80,35 +87,36 @@ export default function BookDetailView({
         </div>
 
         <div className="sticky top-0 h-screen overflow-y-auto">
-          <div className="max-w-xl mx-auto p-12">
-            <h1 className="text-[36px] leading-tight font-normal mb-4">{(book as any)?.name ?? (book as any)?.default_name}</h1>
-            <div className="flex items-center gap-4 mb-6">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Image key={i} src="/star.svg" alt="star" width={20} height={20} />
-                ))}
-              </div>
+          <div className="max-w-xl mx-auto md:p-12 px-3 py-2 min-h-0">
+            <h1 className="md:text-[36px] text-[24px] md:leading-[44px] leading-[32px] font-normal md:mb-4 mb-2">{(book as any)?.name ?? (book as any)?.default_name}</h1>
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex gap-[6px]">
+                  {[...Array(5)].map((_, i) => (
+                    <Image key={i} src="/star.svg" alt="star" width={20} height={20} className="w-[18px] h-[18px] md:w-5 md:h-5" />
+                  ))}
+                </div>
               {tags && tags.map((tag, index) => (
                 <span key={index} className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded">{tag.tname}</span>
               ))}
             </div>
 
-            <div className="text-sm text-gray-900 bg-gray-100 px-3 py-1 mb-6 rounded-lg">
+            <div className="text-sm text-[#222222] bg-[#F8F8F8] px-3 py-1 md:mb-3 mb-2 rounded-lg">
               <p>{description}</p>
             </div>
 
-            <div className="text-sm space-y-4 mb-6">
+            <div className="text-sm space-y-3 md:mb-12 mb-0">
               {specifications.map((spec, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <div className="w-4 h-4 bg-gray-300 rounded"></div>
-                  <span className="text-gray-600">{getSpecificationText(spec)}</span>
+                <div key={index} className="flex items-center gap-[8px]">
+                  <div className="w-4 h-4 bg-[#D9D9D9] rounded"></div>
+                  <span className="text-[#666666]">{getSpecificationText(spec)}</span>
                 </div>
               ))}
             </div>
 
             {/* 语言选择已隐藏，默认使用英文 */}
 
-            <div className="flex items-center justify-between gap-8 mb-12">
+            {/* 价格和按钮 - 桌面端显示，手机端隐藏（手机端使用贴底栏） */}
+            <div className="hidden md:flex items-center justify-between gap-8 mb-12 md:mb-8">
               <div className="flex items-baseline gap-3">
                 <span className="text-[#012CCE] text-[36px] font-medium">${Number((book as any)?.default_sku?.current_price ?? (book as any)?.current_price ?? (book as any)?.price ?? 0).toFixed(2)}</span>
                 <span className="text-gray-400 line-through">${Number((book as any)?.default_sku?.market_price ?? (book as any)?.market_price ?? ((Number((book as any)?.price ?? 0) * 1.25) || 0)).toFixed(2)}</span>
@@ -122,16 +130,44 @@ export default function BookDetailView({
               </Link>
             </div>
 
-            <div className="space-y-4 border-gray-200">
-              {[1, 2, 3].map((num) => (
-                <div key={num} className="border-b border-gray-200 pb-4">
-                  <button className="w-full flex justify-between items-center" onClick={() => setOpenFaq(openFaq === num ? 0 : num)}>
-                    <h3 className="text-base font-medium">{String(num).padStart(2, '0')} {t('faq.title')}</h3>
-                    <span className="text-2xl">{openFaq === num ? '-' : '+'}</span>
-                  </button>
-                  {openFaq === num && (<p className="text-gray-600 mt-4 text-sm">{t('faq.description')}</p>)}
-                </div>
-              ))}
+            <div className="border-gray-200 md:pt-0 pt-8">
+              {faqs.map((faq, index) => {
+                const num = index + 1;
+                const isLast = index === faqs.length - 1;
+                return (
+                  <div key={index} className={isLast ? "" : "border-b-[1px] border-gray-200"}>
+                    <button 
+                      className="w-full flex justify-between items-center gap-4" 
+                      onClick={() => setOpenFaq(openFaq === num ? 0 : num)}
+                      style={{ paddingTop: '12px', paddingBottom: openFaq === num ? '0px' : '12px' }}
+                    >
+                      <h3 className="md:text-[18px] text-[16px] leading-[24px] tracking-[0.15px] font-medium text-left flex-1 min-w-0">{String(num).padStart(2, '0')} {faq.question}</h3>
+                      <span className="text-2xl flex-shrink-0">{openFaq === num ? '-' : '+'}</span>
+                    </button>
+                    {openFaq === num && (
+                      <div className="text-[#222222] mt-4 pb-4 md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[14px] leading-[20px] tracking-[0.25px]">
+                        {faq.answer.split('\n').map((line, i) => {
+                          // 如果行以 "- " 开头，渲染为 bullet point
+                          if (line.trim().startsWith('- ')) {
+                            return (
+                              <div key={i} className="flex items-start mb-2">
+                                <span className="mr-2">•</span>
+                                <span>{line.trim().substring(2)}</span>
+                              </div>
+                            );
+                          }
+                          // 普通文本行
+                          return line.trim() ? (
+                            <div key={i} className={i > 0 && !faq.answer.split('\n')[i - 1].trim().startsWith('- ') ? 'mt-2' : ''}>
+                              {line}
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

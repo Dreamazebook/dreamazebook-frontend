@@ -297,19 +297,19 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 		<div>
 			<div className="flex items-center justify-between" tabIndex={0} onBlur={onBlur}>
 				<label className="font-medium">Hairstyle</label>
-				<div className="flex flex-wrap gap-[10px] flex-1 justify-end ml-4">
+				<div className="flex flex-wrap gap-1 flex-1 justify-end ml-4">
 					{hairstylesMemo.map((hairstyle) => {
 						const isActive = selectedHairstyle === hairstyle.id;
 						return (
 							<div
 								key={hairstyle.id}
-								className={`w-16 h-16 rounded-[35px] p-1 flex items-center justify-center border ${
+								className={`w-12 h-12 md:w-14 md:h-14 rounded-[35px] p-1 flex items-center justify-center border ${
 									isActive ? 'bg-[#FCF2F2] border-[#012CCE]' : 'bg-[#F8F8F8] border-transparent'
 								}`}
 							>
             <button
 									type="button"
-									className={`relative w-14 h-14 rounded-full overflow-hidden ${
+									className={`relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden ${
 										isActive ? 'bg-white' : ''
 									}`}
 									style={{ boxShadow: '9px 31px 64px 0px #A6ABE114' }}

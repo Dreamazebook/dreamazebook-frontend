@@ -190,7 +190,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                />
              </div>
       <p className="text-center text-gray-500 mb-8">
-        We will redesign the character in your image
+        Customize a look close to your child — we’ll tailor every detail with their photo later.
       </p>
 
       {/* Full name */}
@@ -265,7 +265,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
       <div id="field-skinColor">
         <div className="flex items-center justify-between" tabIndex={0} onBlur={handleSkinColorBlur}>
           <label className="font-medium">Skin color</label>
-          <div className="flex gap-2">
+          <div className="flex gap-6">
             {skinColors.map((color) => (
               <button
                 key={color.value}

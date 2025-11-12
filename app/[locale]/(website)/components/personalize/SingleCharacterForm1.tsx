@@ -4,6 +4,7 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { FaQuestionCircle } from 'react-icons/fa';
 import { BsCheck } from 'react-icons/bs';
+import { Link } from '@/i18n/routing';
 import BasicInfoForm, { BasicInfoData } from './BasicInfoForm';
 import MultiImageUpload from './MultiImageUpload';
 import useMultiImageUpload from '../../hooks/useMultiImageUpload';
@@ -12,6 +13,8 @@ export interface PersonalizeFormData extends BasicInfoData {
   singleChoice: string; // Single choice feature
   multipleChoice: string[]; // Multiple choice features
   photos: string[]; // 添加多图片支持
+  relationship?: string; // Relationship to the child
+  consent?: boolean; // Consent checkbox
 }
 
 export interface SingleCharacterForm1Handle {
@@ -29,6 +32,8 @@ interface FormErrors {
   photo?: string;
   singleChoice?: string;
   multipleChoice?: string;
+  relationship?: string;
+  consent?: string;
 }
 
 interface SingleCharacterForm1Props {
@@ -52,9 +57,11 @@ interface SingleCharacterForm1Props {
     maxImages?: number;
   };
   assetSpuCode?: string;
+  // 分步显示
+  currentStep?: number; // 1 或 2
 }
 
-const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharacterForm1Props>(({ initialData, bookId = '1', apiSkinToneValues, apiHairStyleValues, apiHairColorValues, uploadOptions, assetSpuCode }, ref) => {
+const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharacterForm1Props>(({ initialData, bookId = '1', apiSkinToneValues, apiHairStyleValues, apiHairColorValues, uploadOptions, assetSpuCode, currentStep = 1 }, ref) => {
   const [formData, setFormData] = useState<PersonalizeFormData>({
     fullName: initialData?.fullName ?? '',
     gender: initialData?.gender ?? '',
@@ -65,6 +72,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     singleChoice: '',
     multipleChoice: [],
     photos: [], // 新增多图片支持
+    relationship: 'Parent/Guardian', // 默认关系
+    consent: false, // 默认未同意
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
@@ -200,6 +209,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
         hairstyle: true,
         hairColor: true,
         photo: true,
+        relationship: true,
+        consent: true,
         ...(shouldValidateFeatures ? { singleChoice: true, multipleChoice: true } : {}),
       });
 
@@ -210,6 +221,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       if (!formData.hairstyle) newErrors.hairstyle = 'Please select hairstyle';
       if (!formData.hairColor) newErrors.hairColor = 'Please select hair color';
       if (!formData.photo) newErrors.photo = 'Please upload a photo';
+      if (!formData.relationship) newErrors.relationship = 'Please select your relationship to the child';
+      if (!formData.consent) newErrors.consent = 'Please confirm your consent';
       if (shouldValidateFeatures) {
         if (!formData.singleChoice) newErrors.singleChoice = 'Please select one feature';
         if (formData.multipleChoice.length === 0) newErrors.multipleChoice = 'Please select at least one feature';
@@ -233,167 +246,275 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     }
   }));
 
+  // 判断是否显示第二步内容（Single Choice 和 Multiple Choice）
+  const hasStep2Content = bookId === '2';
+
+  // 根据关系返回对应的 consent 文本
+  const getConsentText = (relationship: string | undefined) => {
+    switch (relationship) {
+      case 'Parent/Guardian':
+        return "I confirm that I am this child's parent or legal guardian, I am over 18, and I give my consent to use these details and photos to create their personalized storybook, in line with the";
+      case 'Grandparent':
+      case 'Aunt/Uncle':
+      case 'Family Friend':
+        return "I confirm that I am over 18 and that the child's parent or guardian has given me permission to share these details and photos so we can create their personalized storybook, in line with the";
+      case 'Other':
+        return "I confirm that I am over 18 and that the child's parent or guardian has given me consent to share these details and photos so we can create their personalized storybook, in line with the";
+      default:
+        return "I confirm that I am this child's parent or legal guardian, I am over 18, and I give my consent to use these details and photos to create their personalized storybook, in line with the";
+    }
+  };
+
   return (
-    <div className="w-full max-w-[1440px] mx-auto px-4 md:px-[120px] bg-[#F8F8F8] relative pb-8">
+    <div className="w-full max-w-[1440px] mx-auto px-4 pt-4 md:pt-0 md:px-[120px] bg-[#F8F8F8] relative pb-8 flex flex-col gap-2 md:gap-3">
       {/* 表单区域 */}
       <div className="w-[98%] md:w-[60%] max-w-[588px] mx-auto">
         <div className="bg-white rounded p-6 shadow-sm">
           <form className="space-y-6">
-            {/* Basic information part */}
-            <BasicInfoForm
-              data={{
-                fullName: formData.fullName,
-                gender: formData.gender,
-                skinColor: formData.skinColor,
-                hairstyle: formData.hairstyle,
-                hairColor: formData.hairColor,
-                photo: formData.photo,
-              }}
-              errors={{
-                fullName: errors.fullName,
-                gender: errors.gender,
-                skinColor: errors.skinColor,
-                hairstyle: errors.hairstyle,
-                hairColor: errors.hairColor,
-                photo: errors.photo,
-              }}
-              touched={{
-                fullName: touched.fullName,
-                gender: touched.gender,
-                skinColor: touched.skinColor,
-                hairstyle: touched.hairstyle,
-                hairColor: touched.hairColor,
-                photo: touched.photo,
-              }}
-              onChange={handleBasicInfoChange}
-              onErrorChange={handleErrorChange}
-              bookId={bookId}
-              apiSkinToneValues={apiSkinToneValues}
-              apiHairStyleValues={apiHairStyleValues}
-              apiHairColorValues={apiHairColorValues}
-              assetSpuCode={assetSpuCode}
-            />
-
-            {/* Photo Upload Section - 替换为多图片上传组件 */}
-            <div id="field-photo">
-              <MultiImageUpload
-                images={images as any}
-                isUploading={isUploading}
-                uploadProgress={uploadProgress}
-                error={uploadError}
-                isDragging={isDragging}
-                maxImages={uploadOptions?.maxImages ?? 3}
-                onImageUpload={handlePhotosUpload}
-                onImageDelete={handlePhotoDelete}
-                onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-              />
-              {touched.photo && errors.photo && (
-                <p className="text-red-500 text-sm mt-1">{errors.photo}</p>
-              )}
-            </div>
-
-            {/* Single Choice Section（默认隐藏于大多数书籍） */}
-            {bookId === '2' && (
-            <div id="field-singleChoice">
-              <label className="block mb-2 font-medium">
-                Features <span className="ml-2 text-gray-500">(Single choice)</span>
-              </label>
-              <div
-                className="flex flex-wrap gap-2"
-                tabIndex={0}
-                onBlur={() => {
-                  if (!formData.singleChoice) {
-                    setErrors(prev => ({ ...prev, singleChoice: 'Please select one feature' }));
-                  } else {
-                    setErrors(prev => ({ ...prev, singleChoice: '' }));
-                  }
-                }}
-              >
-                {['lively', 'Quiet', 'kind hearted', 'cute', 'humor'].map((feature) => (
-                  <button
-                    key={feature}
-                    type="button"
-                    className={`px-4 py-2 rounded border ${
-                      formData.singleChoice === feature
-                        ? 'bg-red-50 border-black text-black'
-                        : 'bg-gray-100 border-transparent text-gray-800'
-                    }`}
-                    onClick={() => {
-                      setFormData(prev => ({ ...prev, singleChoice: feature }));
-                      setTouched(prev => ({ ...prev, singleChoice: true }));
-                      setErrors(prev => ({ ...prev, singleChoice: '' }));
-                    }}
-                  >
-                    {feature}
-                  </button>
-                ))}
-              </div>
-              {touched.singleChoice && errors.singleChoice && (
-                <p className="text-red-500 text-sm">{errors.singleChoice}</p>
-              )}
-            </div>
+            {/* Step 1: Basic information only */}
+            {currentStep === 1 && (
+              <>
+                {/* Basic information part */}
+                <BasicInfoForm
+                  data={{
+                    fullName: formData.fullName,
+                    gender: formData.gender,
+                    skinColor: formData.skinColor,
+                    hairstyle: formData.hairstyle,
+                    hairColor: formData.hairColor,
+                    photo: formData.photo,
+                  }}
+                  errors={{
+                    fullName: errors.fullName,
+                    gender: errors.gender,
+                    skinColor: errors.skinColor,
+                    hairstyle: errors.hairstyle,
+                    hairColor: errors.hairColor,
+                    photo: errors.photo,
+                  }}
+                  touched={{
+                    fullName: touched.fullName,
+                    gender: touched.gender,
+                    skinColor: touched.skinColor,
+                    hairstyle: touched.hairstyle,
+                    hairColor: touched.hairColor,
+                    photo: touched.photo,
+                  }}
+                  onChange={handleBasicInfoChange}
+                  onErrorChange={handleErrorChange}
+                  bookId={bookId}
+                  apiSkinToneValues={apiSkinToneValues}
+                  apiHairStyleValues={apiHairStyleValues}
+                  apiHairColorValues={apiHairColorValues}
+                  assetSpuCode={assetSpuCode}
+                />
+              </>
             )}
 
-            {/* Multiple Choice Section（默认隐藏于大多数书籍） */}
-            {bookId === '2' && (
-            <div id="field-multipleChoice">
-              <label className="block mb-2 font-medium">
-                Features <span className="ml-2 text-gray-500">(Multiple choice)</span>
-              </label>
-              <div
-                className="flex flex-wrap gap-2"
-                tabIndex={0}
-                onBlur={() => {
-                  if (formData.multipleChoice.length === 0) {
-                    setErrors(prev => ({ ...prev, multipleChoice: 'Please select at least one feature' }));
-                  } else {
-                    setErrors(prev => ({ ...prev, multipleChoice: '' }));
-                  }
-                }}
-              >
-                {['lively', 'Quiet', 'kind hearted', 'cute', 'humor'].map((feature) => (
-                  <button
-                    key={feature}
-                    type="button"
-                    className={`relative px-4 py-2 rounded border ${
-                      formData.multipleChoice.includes(feature)
-                        ? 'border-black bg-[#FCF2F2] text-black'
-                        : 'bg-gray-100 border-transparent text-gray-800'
-                    }`}
-                    onClick={() => {
-                      setFormData(prev => {
-                        const newArray = prev.multipleChoice.includes(feature)
-                          ? prev.multipleChoice.filter(item => item !== feature)
-                          : [...prev.multipleChoice, feature];
-                        return { ...prev, multipleChoice: newArray };
-                      });
-                      setTouched(prev => ({ ...prev, multipleChoice: true }));
-                      setErrors(prev => ({ ...prev, multipleChoice: '' }));
+            {/* Step 2: Photo Upload + Single Choice + Multiple Choice */}
+            {currentStep === 2 && (
+              <>
+                {/* Photo Upload Section - 替换为多图片上传组件 */}
+                <div id="field-photo">
+                  <MultiImageUpload
+                    images={images as any}
+                    isUploading={isUploading}
+                    uploadProgress={uploadProgress}
+                    error={uploadError}
+                    isDragging={isDragging}
+                    maxImages={uploadOptions?.maxImages ?? 3}
+                    onImageUpload={handlePhotosUpload}
+                    onImageDelete={handlePhotoDelete}
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                  />
+                  {touched.photo && errors.photo && (
+                    <p className="text-red-500 text-sm mt-1">{errors.photo}</p>
+                  )}
+                </div>
+
+                {/* Single Choice + Multiple Choice (仅当 bookId === '2' 时显示) */}
+                {hasStep2Content && (
+                  <>
+                    {/* Single Choice Section（默认隐藏于大多数书籍） */}
+                    {bookId === '2' && (
+                <div id="field-singleChoice">
+                  <label className="block mb-2 font-medium">
+                    Features <span className="ml-2 text-gray-500">(Single choice)</span>
+                  </label>
+                  <div
+                    className="flex flex-wrap gap-2"
+                    tabIndex={0}
+                    onBlur={() => {
+                      if (!formData.singleChoice) {
+                        setErrors(prev => ({ ...prev, singleChoice: 'Please select one feature' }));
+                      } else {
+                        setErrors(prev => ({ ...prev, singleChoice: '' }));
+                      }
                     }}
                   >
-                    {feature}
-                    {formData.multipleChoice.includes(feature) && (
-                      <span
-                        className="absolute bottom-0 right-0 bg-black text-white flex items-center justify-center text-xs"
-                        style={{ width: '18px', height: '12px', borderRadius: '4px 0 0 0' }}
+                    {['lively', 'Quiet', 'kind hearted', 'cute', 'humor'].map((feature) => (
+                      <button
+                        key={feature}
+                        type="button"
+                        className={`px-4 py-2 rounded border ${
+                          formData.singleChoice === feature
+                            ? 'bg-red-50 border-black text-black'
+                            : 'bg-gray-100 border-transparent text-gray-800'
+                        }`}
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, singleChoice: feature }));
+                          setTouched(prev => ({ ...prev, singleChoice: true }));
+                          setErrors(prev => ({ ...prev, singleChoice: '' }));
+                        }}
                       >
-                        <BsCheck className="w-4 h-4" />
-                      </span>
+                        {feature}
+                      </button>
+                    ))}
+                  </div>
+                  {touched.singleChoice && errors.singleChoice && (
+                    <p className="text-red-500 text-sm">{errors.singleChoice}</p>
+                  )}
+                </div>
+                )}
+
+                {/* Multiple Choice Section（默认隐藏于大多数书籍） */}
+                {bookId === '2' && (
+                <div id="field-multipleChoice">
+                  <label className="block mb-2 font-medium">
+                    Features <span className="ml-2 text-gray-500">(Multiple choice)</span>
+                  </label>
+                  <div
+                    className="flex flex-wrap gap-2"
+                    tabIndex={0}
+                    onBlur={() => {
+                      if (formData.multipleChoice.length === 0) {
+                        setErrors(prev => ({ ...prev, multipleChoice: 'Please select at least one feature' }));
+                      } else {
+                        setErrors(prev => ({ ...prev, multipleChoice: '' }));
+                      }
+                    }}
+                  >
+                    {['lively', 'Quiet', 'kind hearted', 'cute', 'humor'].map((feature) => (
+                      <button
+                        key={feature}
+                        type="button"
+                        className={`relative px-4 py-2 rounded border ${
+                          formData.multipleChoice.includes(feature)
+                            ? 'border-black bg-[#FCF2F2] text-black'
+                            : 'bg-gray-100 border-transparent text-gray-800'
+                        }`}
+                        onClick={() => {
+                          setFormData(prev => {
+                            const newArray = prev.multipleChoice.includes(feature)
+                              ? prev.multipleChoice.filter(item => item !== feature)
+                              : [...prev.multipleChoice, feature];
+                            return { ...prev, multipleChoice: newArray };
+                          });
+                          setTouched(prev => ({ ...prev, multipleChoice: true }));
+                          setErrors(prev => ({ ...prev, multipleChoice: '' }));
+                        }}
+                      >
+                        {feature}
+                        {formData.multipleChoice.includes(feature) && (
+                          <span
+                            className="absolute bottom-0 right-0 bg-black text-white flex items-center justify-center text-xs"
+                            style={{ width: '18px', height: '12px', borderRadius: '4px 0 0 0' }}
+                          >
+                            <BsCheck className="w-4 h-4" />
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                    {touched.multipleChoice && errors.multipleChoice && (
+                      <p className="text-red-500 text-sm">{errors.multipleChoice}</p>
                     )}
-                  </button>
-                ))}
-              </div>
-              {touched.multipleChoice && errors.multipleChoice && (
-                <p className="text-red-500 text-sm">{errors.multipleChoice}</p>
-              )}
-            </div>
+                  </div>
+                  )}
+                  </>
+                )}
+              </>
             )}
+
           </form>
         </div>
       </div>
+
+      {/* Relationship and Consent Section - 独立部分，在 Step 2 时显示 */}
+      {currentStep === 2 && (
+        <div className="w-[98%] md:w-[60%] max-w-[588px] mx-auto">
+          <div className="bg-white rounded p-6 shadow-sm">
+            <div className="space-y-4">
+              {/* Relationship to the child */}
+              <div id="field-relationship">
+                <label className="block mb-2 font-medium text-[#222222] text-[16px] leading-[24px] tracking-[0.15px]">
+                  What is your relationship to the child?
+                </label>
+                <div className="relative">
+                  <select
+                    value={formData.relationship || ''}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, relationship: e.target.value }));
+                      setTouched(prev => ({ ...prev, relationship: true }));
+                      setErrors(prev => ({ ...prev, relationship: '' }));
+                    }}
+                    onBlur={() => setTouched(prev => ({ ...prev, relationship: true }))}
+                    className="w-full p-2 border border-[#E5E5E5] rounded appearance-none bg-white text-[#222222] pr-8 focus:outline-none focus:border-[#012CCE]"
+                  >
+                    <option value="Parent/Guardian">Parent/Guardian</option>
+                    <option value="Grandparent">Grandparent</option>
+                    <option value="Aunt/Uncle">Aunt/Uncle</option>
+                    <option value="Family Friend">Family Friend</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                    <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1 1L6 6L11 1" stroke="#666666" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                </div>
+                {touched.relationship && errors.relationship && (
+                  <p className="text-red-500 text-sm mt-1">{errors.relationship}</p>
+                )}
+              </div>
+
+              {/* Consent checkbox */}
+              <div id="field-consent">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.consent || false}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, consent: e.target.checked }));
+                      setTouched(prev => ({ ...prev, consent: true }));
+                      setErrors(prev => ({ ...prev, consent: '' }));
+                    }}
+                    onBlur={() => setTouched(prev => ({ ...prev, consent: true }))}
+                    className="w-5 h-5 min-w-[20px] min-h-[20px] border border-[#D9D9D9] rounded-full mt-[2px] cursor-pointer bg-transparent appearance-none flex-shrink-0 focus:ring-[#222222] focus:ring-1 checked:bg-[#012CCE] checked:border-[#012CCE]"
+                    style={{
+                      backgroundImage: formData.consent ? "url(\"data:image/svg+xml,%3Csvg width='12' height='9' viewBox='0 0 12 9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 4.5L4.5 8L11 1' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")" : 'none',
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'center',
+                    }}
+                  />
+                  <span className="text-[#666666] text-[14px] leading-[20px] tracking-[0.5px]">
+                    {getConsentText(formData.relationship)}{' '}
+                    <Link href="/privacy-policy" className="text-[#012CCE] underline">
+                      Privacy Policy.
+                    </Link>
+                  </span>
+                </label>
+                {touched.consent && errors.consent && (
+                  <p className="text-red-500 text-sm mt-1 ml-8">{errors.consent}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 });

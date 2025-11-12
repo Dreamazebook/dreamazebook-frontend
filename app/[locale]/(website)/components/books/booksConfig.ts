@@ -41,6 +41,8 @@ export interface BookSection {
   originalPrice?: string; // 原价
   discountedPrice?: string; // 折后价
   buttonText?: string; // 按钮文字
+  bundleImage?: string; // Bundle 背景图（桌面端）
+  bundleImageMobile?: string; // Bundle 背景图（移动端）
   // Why Personalized 专用字段
   items?: Array<{
     title: string;
@@ -55,11 +57,18 @@ export interface BookSpecification {
   value?: string; // 规格值（如果 label 是国际化 key，则 value 会被忽略）
 }
 
+// 定义 FAQ 的类型
+export interface BookFAQ {
+  question: string; // 问题
+  answer: string; // 答案（支持多行文本，使用 \n 分隔）
+}
+
 // 定义书籍配置的类型
 export interface BookConfig {
   id: string | number; // 书籍ID或代码
   sections: BookSection[]; // 该书籍显示的sections
   specifications?: BookSpecification[]; // 该书籍的规格信息（可选，如果没有则使用默认值）
+  faqs?: BookFAQ[]; // 该书籍的 FAQ 列表（可选）
 }
 
 // 存储不同书籍的配置
@@ -73,6 +82,20 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
       { label: 'specifications.pages' },
       { label: 'specifications.delivery' },
     ],
+    faqs: [
+      {
+        question: 'How is the book personalized?',
+        answer: '- Add your child\'s name – on the cover and in every page\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication – printed on the first page\n- Choose from four cover designs\n- Preview selected pages before purchase'
+      },
+      {
+        question: 'Why children love it?',
+        answer: 'In this bedtime adventure, your little one grows magical wings and soars across the world—flying over deserts, oceans, and forests, saying goodnight to animals big and small.\nIt\'s a gentle, imaginative story that helps children drift into sweet dreams while feeling safe, loved, and ready for sleep.'
+      },
+      {
+        question: 'Reading tips for parents',
+        answer: '- Make it part of your bedtime routine – a calm, cozy way to end the day.\n- Pause and ask gentle questions, like "What dream will you have tonight?" or "Where would you like to fly?"\n- Encourage your child to talk with the book-version of themselves and to say goodnight to the animals.\n- Use a soft, soothing voice to create a sense of comfort and help your child drift off peacefully.'
+      }
+    ],
     sections: [
       {
         type: 'behind-story',
@@ -84,7 +107,7 @@ A story that makes them look forward to bedtime, with adventures waiting after t
 Turning sleep into something exciting helps reduce delays and makes nights calmer for everyone.`,
         backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-behind.jpg',
         backgroundOverlay: 'linear-gradient(0deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8))',
-        className: 'md:h-[408px] md:py-[88px] h-[500px] py-[32px] px-[12px]',
+        className: 'md:h-[408px] md:py-[88px] py-[32px] px-[12px]',
       },
       {
         type: 'toddler-favorites',
@@ -92,6 +115,8 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
         description: `Make storytime more meaningful with books toddlers love to hear again and again.
  These titles are often chosen together for ages 2–5.`,
         className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
+        bundleImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bundle.png',
+        bundleImageMobile: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bundle-mobile.png',
         books: [
           {
             title: 'Goodnight to You',
@@ -102,7 +127,7 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
             backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_1.png',
           },
           {
-            title: "You’re Brave in Many Ways",
+            title: "You're Brave in Many Ways",
             subtitle: 'Everyday courage',
             coverImage: '', // 需要添加实际图片URL
             price: '$4.2',
@@ -125,7 +150,7 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
       {
         type: 'why-personalized',
         title: 'Why you need a personalized book?',
-        className: 'px-[88px] py-[120px] mx-auto md:w-full md:px-0 md:h-[860px] md:pt-[88px] md:pb-[128px]',
+        className: 'py-[48px] mx-auto md:w-full md:px-0 md:h-[860px] md:pt-[88px] md:pb-[128px]',
         items: [
           {
             title: 'Makes bedtime easier',
@@ -176,6 +201,8 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
         title: 'The Perfect Sibling Gift',
         description: 'For families with one big kid and one little one',
         className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
+        bundleImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_YOUAREBRAVEYINMANYWAYS/bundle.png',
+        bundleImageMobile: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_YOUAREBRAVEYINMANYWAYS/bundle-mobile.png',
         books: [
           {
             title: 'Your Melody',

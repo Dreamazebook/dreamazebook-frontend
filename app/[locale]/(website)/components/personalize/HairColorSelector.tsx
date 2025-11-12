@@ -56,7 +56,7 @@ const HairColorSelector: React.FC<HairColorSelectorProps> = ({
     <div>
       <div className="flex items-center justify-between" tabIndex={0} onBlur={onBlur}>
         <label className="font-medium">Hair Color</label>
-        <div className="flex gap-2">
+        <div className="flex gap-6">
           {hairColors.map((color) => (
             <button
               key={color.value}
