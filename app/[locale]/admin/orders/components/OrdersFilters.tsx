@@ -64,6 +64,7 @@ const OrdersFilters: FC<OrdersFiltersProps> = ({
             <option value="">全部</option>
             <option value="pending">未付款</option>
             <option value="ai_processing">AI生成中</option>
+            <option value="ai_completed">AI完成</option>
             <option value="preparing">人工审核中</option>
             <option value="printing">印刷中</option>
             <option value="shipped">运输中</option>

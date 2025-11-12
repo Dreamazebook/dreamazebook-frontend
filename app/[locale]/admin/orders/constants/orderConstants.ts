@@ -25,6 +25,7 @@ export const statusLabels: Record<string, string> = {
   cancelled: '已取消',
   refunded: '已退款',
   ai_processing: 'AI生成中',
+  ai_completed: 'AI完成',
   preparing: '人工审核中',
   printing: '印刷中',
   shipped: '运输中',

@@ -51,43 +51,29 @@ const OrderDetailHeader: FC<OrderDetailHeaderProps> = ({
         </div>
 
         <div className="flex items-center space-x-4">
-          {/* Order Status Dropdown */}
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">订单状态：</span>
-            <select
-              value={order.status}
-              onChange={(e) => onStatusUpdate(e.target.value)}
-              className={`px-3 py-1 text-xs font-medium rounded-full border-0 focus:ring-2 focus:ring-blue-500 ${statusColors[order.status]}`}
-            >
-              <option value="pending">未付款</option>
-              <option value="ai_processing">AI生成中</option>
-              <option value="preparing">人工审核中</option>
-              <option value="printing">印刷中</option>
-              <option value="shipped">运输中</option>
-              <option value="delivered">已完成</option>
-              <option value="cancelled">已取消</option>
-              <option value="refunded">已退款</option>
-            </select>
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-gray-700">订单状态:</span>
+              <span 
+                className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[order.status] || 'bg-gray-100 text-gray-800'}`}
+              >
+                {statusLabels[order.status] || order.status}
+              </span>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-gray-700">支付状态:</span>
+              <span 
+                className={`px-3 py-1 rounded-full text-sm font-medium ${paymentStatusColors[order.payment_status] || 'bg-gray-100 text-gray-800'}`}
+              >
+                {paymentStatusLabels[order.payment_status] || order.payment_status}
+              </span>
+            </div>
           </div>
 
-          {/* Payment Status Dropdown */}
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">支付状态：</span>
-            <select
-              value={order.payment_status}
-              onChange={(e) => onPaymentStatusUpdate(e.target.value)}
-              className={`px-3 py-1 text-xs font-medium rounded-full border-0 focus:ring-2 focus:ring-blue-500 ${paymentStatusColors[order.payment_status]}`}
-            >
-              <option value="unpaid">支付失败</option>
-              <option value="paid">已支付</option>
-              <option value="refunded">已退款</option>
-              <option value="partial_refund">部分退款</option>
-            </select>
-          </div>
-
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
+          {/* <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
             导出订单
-          </button>
+          </button> */}
         </div>
       </div>
     </div>
