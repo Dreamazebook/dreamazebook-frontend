@@ -1,29 +1,22 @@
 'use client';
 
 import { FC } from 'react';
-import { useState } from 'react';
 import Image from 'next/image';
 import { OrderDetail } from '../../../../(website)/checkout/components/types';
 import { formatCurrency } from '../../utils';
 import ResultImagesModal from './ResultImagesModal';
 import DisplayPrice from '@/app/[locale]/(website)/components/component/DisplayPrice';
+import { useOrderDetail } from '../context/OrderDetailContext';
 
 interface OrderItemsProps {
   order: OrderDetail;
 }
 
 const OrderItems: FC<OrderItemsProps> = ({ order }) => {
-  const [selectedItem, setSelectedItem] = useState<any>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { isModalOpen, selectedItem, openModal, closeModal } = useOrderDetail();
 
   const handleViewImages = (item: any) => {
-    setSelectedItem(item);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedItem(null);
+    openModal(item);
   };
 
   return (
@@ -106,7 +99,7 @@ const OrderItems: FC<OrderItemsProps> = ({ order }) => {
           <span className="text-base font-medium text-gray-900">
             商品总计 ({order.items?.length || 0} 件)
           </span>
-          <DisplayPrice value={order.total_amount - order.shipping_cost - order.tax_amount + order.discount_amount} style='text-lg font-semibold text-gray-900' />
+          <DisplayPrice value={order.total_amount} style='text-lg font-semibold text-gray-900' />
         </div>
       </div>
       </div>
@@ -114,7 +107,7 @@ const OrderItems: FC<OrderItemsProps> = ({ order }) => {
       {/* Result Images Modal */}
       <ResultImagesModal
         isOpen={isModalOpen}
-        onClose={handleCloseModal}
+        onClose={closeModal}
         images={selectedItem?.result_images || []}
         itemName={selectedItem?.picbook_name || ''}
       />

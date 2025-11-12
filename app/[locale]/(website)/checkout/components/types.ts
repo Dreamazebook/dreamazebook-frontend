@@ -60,16 +60,20 @@ export const EMPTY_CART_ITEM = {
 }
 
 export interface ResultImage {
-  page_id: number;
-  page_number: number;
-  result: {
-    low_res_url: string;
-    high_res_url: string;
-    standard_url: string;
-  };
-  result_image_url: string;
-  reused: boolean;
-  variant_id: number;
+  // page_id: number;
+  // page_number: number;
+  // result: {
+  //   low_res_url: string;
+  //   high_res_url: string;
+  //   standard_url: string;
+  // };
+  // result_image_url: string;
+  // reused: boolean;
+  // variant_id: number;
+  final_image_path: string;
+  final_image_url: string;
+  item_id: number;
+  page_code: string;
 }
 
 export interface ShippingErrors {

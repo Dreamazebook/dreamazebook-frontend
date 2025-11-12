@@ -4,7 +4,7 @@ import { FC, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { OrderDetail } from '../../../(website)/checkout/components/types';
 import api from '@/utils/api';
-import { API_ADMIN_ORDER_DETAIL, API_ADMIN_ORDERS } from '@/constants/api';
+import { API_ADMIN_ORDER_DETAIL, API_ADMIN_ORDER_DETAIL_MANUAL_CONFIRM, API_ADMIN_ORDERS } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
@@ -23,6 +23,7 @@ import {
   statusLabels,
   paymentStatusLabels,
 } from '../constants/orderConstants';
+import { OrderDetailProvider } from './context/OrderDetailContext';
 
 const AdminOrderDetailPage: FC = () => {
   const params = useParams();
@@ -33,6 +34,8 @@ const AdminOrderDetailPage: FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
 
   useEffect(() => {
     const fetchOrderDetail = async () => {
@@ -88,6 +91,32 @@ const AdminOrderDetailPage: FC = () => {
     }
   };
 
+  const handleManualConfirm = async (itemId: string) => {
+    try {
+      const { success, data } = await api.post<ApiResponse<OrderDetail>>(API_ADMIN_ORDER_DETAIL_MANUAL_CONFIRM(orderId), {
+        item_id: itemId
+      });
+      if (success && data) {
+        setOrder(data);
+        // 确认成功后关闭模态窗口
+        setIsModalOpen(false);
+        setSelectedItem(null);
+      }
+    } catch (err) {
+      console.error('Error confirming order:', err);
+    }
+  }
+
+  const openModal = (item: any) => {
+    setSelectedItem(item);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedItem(null);
+  };
+
   const renderTabContent = () => {
     if (!order) return null;
 
@@ -114,36 +143,45 @@ const AdminOrderDetailPage: FC = () => {
   if (!order) return <ErrorState error="Order not found" />;
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <OrderDetailHeader 
-        order={order}
-        onBack={() => router.push('/admin/orders')}
-        statusColors={statusColors}
-        paymentStatusColors={paymentStatusColors}
-        statusLabels={statusLabels}
-        paymentStatusLabels={paymentStatusLabels}
-        onStatusUpdate={handleStatusUpdate}
-        onPaymentStatusUpdate={handlePaymentStatusUpdate}
-      />
+    <OrderDetailProvider 
+      order={order} 
+      handleManualConfirm={handleManualConfirm}
+      isModalOpen={isModalOpen}
+      selectedItem={selectedItem}
+      openModal={openModal}
+      closeModal={closeModal}
+    >
+      <div className="bg-gray-50 min-h-screen">
+        <OrderDetailHeader 
+          order={order}
+          onBack={() => router.push('/admin/orders')}
+          statusColors={statusColors}
+          paymentStatusColors={paymentStatusColors}
+          statusLabels={statusLabels}
+          paymentStatusLabels={paymentStatusLabels}
+          onStatusUpdate={handleStatusUpdate}
+          onPaymentStatusUpdate={handlePaymentStatusUpdate}
+        />
 
-      <div className="px-6 py-6">
-        <div className="max-w-7xl mx-auto">
-          <OrderDetailTabs 
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
-          
-          <div className="mt-6">
-            {renderTabContent()}
+        <div className="px-6 py-6">
+          <div className="max-w-7xl mx-auto">
+            <OrderDetailTabs 
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
+            
+            <div className="mt-6">
+              {renderTabContent()}
+            </div>
+
+            <OrderActions 
+              order={order}
+              onRefresh={() => window.location.reload()}
+            />
           </div>
-
-          <OrderActions 
-            order={order}
-            onRefresh={() => window.location.reload()}
-          />
         </div>
       </div>
-    </div>
+    </OrderDetailProvider>
   );
 };
 

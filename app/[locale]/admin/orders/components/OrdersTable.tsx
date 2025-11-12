@@ -95,7 +95,7 @@ const OrdersTable: FC<OrdersTableProps> = ({
                   {order.order_number}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {order.user?.id || order.user?.name || 'N/A'}
+                  {order.user?.name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full ${statusColors[order.status]}`}>
