@@ -136,13 +136,13 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
           <div className="flex items-center justify-center w-full">
             {/* 移动端图片 */}
             {section.bundleImageMobile && (
-              <div className="md:hidden flex justify-center items-center w-full">
+              <div className="md:hidden flex justify-center items-center w-full px-4">
                 <Image
                   src={section.bundleImageMobile}
                   alt={section.title || 'Bundle'}
                   width={800}
                   height={400}
-                  className="h-auto object-contain mx-auto"
+                  className="w-full h-auto object-contain"
                   style={{ maxWidth: '283.99847412109375px' }}
                 />
               </div>
@@ -519,9 +519,9 @@ const WhyPersonalizedSection: React.FC<{ section: BookSection }> = ({ section })
         </h2>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 gap-[6px] md:w-[732px] md:h-[532px] mx-auto justify-items-center md:justify-items-stretch">
+      <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 gap-[6px] md:w-[732px] md:h-[532px] mx-auto justify-items-center md:justify-items-stretch w-full px-4 md:px-0">
         {(section.items || []).map((item, idx) => (
-          <div key={idx} className="relative overflow-hidden rounded-[4px] h-[124px] w-[343px] md:h-[260px] md:w-[360px] md:pt-16 md:pr-9 md:pb-12 md:pl-9 pt-6 pr-9 pb-6 pl-9 bg-[#FBE5E5]">
+          <div key={idx} className="relative overflow-hidden rounded-[4px] h-auto w-full max-w-[343px] md:h-[260px] md:w-[360px] md:pt-16 md:pr-9 md:pb-12 md:pl-9 pt-6 pr-9 pb-6 pl-9 bg-[#FBE5E5]">
             {/* 背景图层 */}
             <div
               className="absolute inset-0 z-0 pointer-events-none"
@@ -529,11 +529,12 @@ const WhyPersonalizedSection: React.FC<{ section: BookSection }> = ({ section })
                 backgroundImage: item.backgroundImage ? `url(${item.backgroundImage})` : undefined,
                 backgroundPosition: 'right bottom',
                 backgroundRepeat: 'no-repeat',
-                backgroundSize: 'auto 100%'
+                backgroundSize: 'auto 100%',
+                minHeight: '100%'
               }}
             />
             {/* 文案 */}
-            <div className="absolute left-9 top-6 right-9 md:left-9 md:top-16 flex flex-col md:gap-6 gap-3 z-10">
+            <div className="relative z-10 flex flex-col md:absolute md:left-9 md:top-16 md:right-9 md:bottom-12 md:gap-6 gap-3">
               <h3 className="text-[#222222] text-[18px] md:text-[16px] font-medium">{item.title}</h3>
               <p className="text-[#666666] text-[14px] md:text-[16px] font-normal leading-[22px]">{item.description}</p>
             </div>

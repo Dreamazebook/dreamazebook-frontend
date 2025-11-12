@@ -107,7 +107,7 @@ A story that makes them look forward to bedtime, with adventures waiting after t
 Turning sleep into something exciting helps reduce delays and makes nights calmer for everyone.`,
         backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-behind.jpg',
         backgroundOverlay: 'linear-gradient(0deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8))',
-        className: 'md:h-[408px] md:py-[88px] h-[500px] py-[32px] px-[12px]',
+        className: 'md:h-[408px] md:py-[88px] py-[32px] px-[12px]',
       },
       {
         type: 'toddler-favorites',
@@ -150,7 +150,7 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
       {
         type: 'why-personalized',
         title: 'Why you need a personalized book?',
-        className: 'px-[88px] py-[120px] mx-auto md:w-full md:px-0 md:h-[860px] md:pt-[88px] md:pb-[128px]',
+        className: 'py-[48px] mx-auto md:w-full md:px-0 md:h-[860px] md:pt-[88px] md:pb-[128px]',
         items: [
           {
             title: 'Makes bedtime easier',
