@@ -45,6 +45,152 @@ const BehindStorySection: React.FC<{ section: BookSection }> = ({ section }) => 
 
 // Toddler Favorites Section 组件
 const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }) => {
+  // 如果提供了 bundle 背景图，使用背景图模式
+  if (section.bundleImage || section.bundleImageMobile) {
+    return (
+      <div className={`w-full h-auto bg-[#FCF2F2] relative ${section.className || ''} overflow-hidden`}>
+        {/* SVG Decorations - 位于背景和白色容器之间 */}
+        {/* Right Side SVG */}
+        <div 
+          className="absolute z-0"
+          style={{
+            width: '341.63px',
+            height: '338.11px',
+            transform: 'rotate(-20.92deg)',
+            opacity: 1,
+            top: 0,
+            right: 0,
+          }}
+        >
+          <svg width="364" height="327" viewBox="0 0 364 327" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M187.668 147.869C193.2 112.791 188.498 35.8206 125.428 8.5663C4.28071 -43.7844 -4.07018 156.444 1.12005 266.353C2.69746 299.757 28.0529 327.114 61.4927 326.85C157.241 326.093 290.896 285.51 357.855 136.223C388.355 68.223 280.476 68.6979 187.668 147.869Z" fill="#FFDFDF"/>
+            <path d="M187.668 147.869C193.2 112.791 188.498 35.8206 125.428 8.5663C4.28071 -43.7844 -4.07018 156.444 1.12005 266.353C2.69746 299.757 28.0529 327.114 61.4927 326.85C157.241 326.093 290.896 285.51 357.855 136.223C388.355 68.223 280.476 68.6979 187.668 147.869Z" fill="#E0E8FF"/>
+          </svg>
+        </div>
+        
+        {/* Left Side SVG */}
+        <div 
+          className="absolute z-0"
+          style={{
+            width: '287px',
+            height: '280px',
+            opacity: 1,
+            bottom: '40%',
+            left: 0,
+          }}
+        >
+          <svg width="287" height="280" viewBox="0 0 287 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M193.41 79.1659C189.171 59.1789 170.804 18.7815 131.245 17.0885C74.9488 14.6793 122.381 77.756 154.237 109.34C109.024 116.394 50.5384 97.4155 38.3843 119.921C19.2999 155.26 105.496 162.246 140.817 166.479C119.622 178.471 22.9319 216.264 4.4747 251.129C-13.9825 285.995 25.6678 292.043 104.787 253.951C183.907 215.858 273.487 105.594 285.03 40.8466C299.869 -42.39 227.082 17.5593 193.41 79.1659Z" fill="#FFE9D6"/>
+          </svg>
+        </div>
+        
+        {/* Additional SVG Decoration */}
+        <div 
+          className="absolute z-0"
+          style={{
+            width: '592px',
+            height: '448px',
+            opacity: 1,
+            bottom: 0,
+            right: 0
+          }}
+        >
+          <svg width="592" height="448" viewBox="0 0 592 448" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M435.616 4.35204L422.731 155.067C422.542 157.283 424.196 159.228 426.413 159.396L549.49 168.756C553.434 169.055 554.596 174.288 551.15 176.229L442.809 237.259C440.13 238.768 440.085 242.611 442.729 244.182L635.812 358.967C639.503 361.162 637.614 366.838 633.344 366.383L441.212 345.897C438.849 345.645 436.788 347.497 436.788 349.874V418.006C436.788 421.647 432.318 423.395 429.848 420.718L356.423 341.128C354.547 339.095 351.223 339.534 349.939 341.985L229.183 572.603C227.034 576.706 220.795 574.487 221.72 569.949L274.677 310.191C275.246 307.399 272.797 304.924 269.999 305.464L121.49 334.123C117.471 334.899 115.019 329.851 118.114 327.172L216.914 241.624C219.213 239.634 218.538 235.907 215.687 234.85L2.61458 155.816C-1.66946 154.227 -0.369949 147.855 4.19422 148.071L233.951 158.914C236.049 159.013 237.867 157.472 238.112 155.385L249.564 57.8456C249.997 54.1567 254.787 52.9985 256.858 56.0819L314.706 142.216C316.235 144.492 319.548 144.59 321.209 142.409L428.448 1.58793C430.874 -1.59775 435.957 0.362357 435.616 4.35204Z" fill="#FFE3E3"/>
+          </svg>
+        </div>
+        
+        {/* Title and Description Container */}
+        <div className="max-w-[815px] w-full mx-auto flex flex-col lg:gap-[48px] gap-[24px] relative z-10">
+          {/* Title Container */}
+          {section.title && (
+            <div className="max-w-[627px] w-full mx-auto flex flex-col">
+              <h2
+                className="text-center md:text-[40px] text-[24px] md:font-medium font-semibold md:leading-[64px] leading-[32px]"
+                style={{
+                  fontFamily: 'var(--font-roboto), Roboto, sans-serif',
+                  letterSpacing: '0.5px',
+                }}
+              >
+                {section.title}
+              </h2>
+            </div>
+          )}
+          
+          {/* Description Container */}
+          {section.description && (
+            <div className="max-w-[627px] w-full mx-auto flex flex-col px-4 lg:px-0">
+              <p
+                className="text-center lg:text-[16px] text-[14px] font-normal lg:leading-[24px] leading-[16px] tracking-[0.5px]"
+                style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
+              >
+                {section.description}
+              </p>
+            </div>
+          )}
+        </div>
+        
+        {/* Bundle Image Display and Price/Button Container */}
+        <div className="bg-[#FFFFFF] max-w-[1400px] w-full h-auto pt-12 lg:px-[88px] px-4 pb-12 rounded-[4px] mx-auto flex flex-col gap-[24px] relative z-10">
+          {/* Bundle Image - 移动端和桌面端使用不同的图片 */}
+          <div className="flex items-center justify-center w-full">
+            {/* 移动端图片 */}
+            {section.bundleImageMobile && (
+              <div className="md:hidden flex justify-center items-center w-full">
+                <Image
+                  src={section.bundleImageMobile}
+                  alt={section.title || 'Bundle'}
+                  width={800}
+                  height={400}
+                  className="h-auto object-contain mx-auto"
+                  style={{ maxWidth: '283.99847412109375px' }}
+                />
+              </div>
+            )}
+            {/* 桌面端图片 - 从中型屏幕开始显示 */}
+            {(section.bundleImage || section.bundleImageMobile) && (
+              <div className="hidden md:flex justify-center items-center w-full">
+                <Image
+                  src={section.bundleImage || section.bundleImageMobile || ''}
+                  alt={section.title || 'Bundle'}
+                  width={1200}
+                  height={600}
+                  className="h-auto object-contain mx-auto"
+                  style={{ maxHeight: '303.3381042480469px' }}
+                />
+              </div>
+            )}
+          </div>
+          
+          {/* Price and Button */}
+          <div className="flex flex-col items-center gap-4">
+            {/* Price Display */}
+            <div className="w-[144px] flex flex-row items-center justify-center gap-3 bg-[#FCF2F2] px-4 py-2 rounded-[24px]">
+              {section.originalPrice && (
+                <span className="text-[#012CCE] line-through text-[14px]">
+                  {section.originalPrice}
+                </span>
+              )}
+              {section.discountedPrice && (
+                <span className="text-[24px] font-semibold leading-[24px] text-[#012CCE]">
+                  {section.discountedPrice}
+                </span>
+              )}
+            </div>
+            
+            {/* Button */}
+            {section.buttonText && (
+              <button className="bg-black text-[#F5E3E3] px-8 py-3 rounded-[4px] hover:bg-gray-800 transition-colors">
+                {section.buttonText}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 原有的渲染逻辑（用于 Good Night 等书籍）
   return (
     <div className={`w-full h-auto bg-[#FCF2F2] relative ${section.className || ''} overflow-hidden`}>
       {/* SVG Decorations - 位于背景和白色容器之间 */}

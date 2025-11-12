@@ -49,6 +49,13 @@ export default function BookDetailView({
     { label: 'specifications.delivery' },
   ]
   
+  // 获取 FAQ 信息：优先使用书籍配置，否则使用默认值
+  const faqs = bookConfig?.faqs || [
+    { question: t('faq.title'), answer: t('faq.description') },
+    { question: t('faq.title'), answer: t('faq.description') },
+    { question: t('faq.title'), answer: t('faq.description') },
+  ]
+  
   // 渲染规格文本：如果是国际化 key（以 'specifications.' 开头），则使用 t()，否则直接显示
   const getSpecificationText = (spec: { label: string; value?: string }) => {
     if (spec.label.startsWith('specifications.')) {
@@ -123,15 +130,39 @@ export default function BookDetailView({
             </div>
 
             <div className="space-y-4 border-gray-200">
-              {[1, 2, 3].map((num) => (
-                <div key={num} className="border-b border-gray-200 pb-4">
-                  <button className="w-full flex justify-between items-center" onClick={() => setOpenFaq(openFaq === num ? 0 : num)}>
-                    <h3 className="text-base font-medium">{String(num).padStart(2, '0')} {t('faq.title')}</h3>
-                    <span className="text-2xl">{openFaq === num ? '-' : '+'}</span>
-                  </button>
-                  {openFaq === num && (<p className="text-gray-600 mt-4 text-sm">{t('faq.description')}</p>)}
-                </div>
-              ))}
+              {faqs.map((faq, index) => {
+                const num = index + 1;
+                const isLast = index === faqs.length - 1;
+                return (
+                  <div key={index} className={isLast ? "pb-4" : "border-b border-gray-200 pb-4"}>
+                    <button className="w-full flex justify-between items-center" onClick={() => setOpenFaq(openFaq === num ? 0 : num)}>
+                      <h3 className="md:text-[18px] text-[16px] leading-[24px] tracking-[0.15px] font-medium">{String(num).padStart(2, '0')} {faq.question}</h3>
+                      <span className="text-2xl">{openFaq === num ? '-' : '+'}</span>
+                    </button>
+                    {openFaq === num && (
+                      <div className="text-gray-600 mt-4 md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[14px] leading-[20px] tracking-[0.25px]">
+                        {faq.answer.split('\n').map((line, i) => {
+                          // 如果行以 "- " 开头，渲染为 bullet point
+                          if (line.trim().startsWith('- ')) {
+                            return (
+                              <div key={i} className="flex items-start mb-2">
+                                <span className="mr-2">•</span>
+                                <span>{line.trim().substring(2)}</span>
+                              </div>
+                            );
+                          }
+                          // 普通文本行
+                          return line.trim() ? (
+                            <div key={i} className={i > 0 && !faq.answer.split('\n')[i - 1].trim().startsWith('- ') ? 'mt-2' : ''}>
+                              {line}
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
