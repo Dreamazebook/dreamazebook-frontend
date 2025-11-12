@@ -17,6 +17,7 @@ interface OrdersTableProps {
 // Countdown component for orders created within 48 hours
 const CountdownTimer: FC<{ createdAt: string }> = ({ createdAt }) => {
   const [timeLeft, setTimeLeft] = useState<string>('');
+  const [isExpired, setIsExpired] = useState<boolean>(false);
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -25,10 +26,12 @@ const CountdownTimer: FC<{ createdAt: string }> = ({ createdAt }) => {
       const timeDiff = createdDate.getTime() + 48 * 60 * 60 * 1000 - now.getTime(); // 48 hours in milliseconds
 
       if (timeDiff <= 0) {
-        setTimeLeft('已过期');
+        setTimeLeft('处理超时');
+        setIsExpired(true);
         return;
       }
 
+      setIsExpired(false);
       const hours = Math.floor(timeDiff / (1000 * 60 * 60));
       const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
@@ -42,7 +45,11 @@ const CountdownTimer: FC<{ createdAt: string }> = ({ createdAt }) => {
     return () => clearInterval(timer);
   }, [createdAt]);
 
-  return <span className="text-red-600 font-medium">{timeLeft}</span>;
+  return (
+    <span className={`font-medium ${isExpired ? 'text-red-700 bg-red-100 px-2 py-1 rounded' : 'text-red-600'}`}>
+      {timeLeft}
+    </span>
+  );
 };
 
 const OrdersTable: FC<OrdersTableProps> = ({
@@ -152,7 +159,12 @@ const OrdersTable: FC<OrdersTableProps> = ({
                       <CountdownTimer createdAt={order.created_at} />
                     </div>
                   ) : (
-                    formatDate(order.created_at)
+                    <div>
+                      <div>{formatDate(order.created_at)}</div>
+                      <div className="text-xs text-red-700 bg-red-100 px-2 py-1 rounded mt-1 inline-block">
+                        处理超时
+                      </div>
+                    </div>
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
