@@ -216,7 +216,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
       {/* Gender */}
       <div id="field-gender">
         <div className="flex items-center justify-between">
-          <label className="font-medium">Gender</label>
+          <label className="font-medium">Choose their character</label>
           <div className="flex gap-4" onBlur={handleGenderBlur} tabIndex={0}>
             <label className="flex items-center">
               <input
