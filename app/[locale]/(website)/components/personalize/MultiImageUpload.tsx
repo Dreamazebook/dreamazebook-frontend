@@ -141,36 +141,20 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
         
         {/* 右侧：指南列表 */}
         <div className="flex-1 flex items-start">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 w-full">
-            <ul className="space-y-2 text-[#666666] text-[14px] leading-[20px] tracking-[0.5px]">
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                <span>Face clearly visible</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                <span>Frontal or slight angle</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                <span>Neutral expression</span>
-              </li>
-            </ul>
-            <ul className="space-y-2 text-[#666666] text-[14px] leading-[20px] tracking-[0.5px]">
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                <span>Well-lit and high resolution</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                <span>Centered face</span>
-              </li>
-              <li className="flex items-start">
-                <span className="mr-2">•</span>
-                <span>Avoid group photos</span>
-              </li>
-            </ul>
-          </div>
+          <ul className="space-y-2 text-[#666666] text-[14px] leading-[20px] tracking-[0.5px]">
+            <li className="flex items-start">
+              <span className="mr-2">•</span>
+              <span>Solo photo, front-facing, natural look</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-2">•</span>
+              <span>Bright & clear image</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-2">•</span>
+              <span>No pacifier, hat, or cap</span>
+            </li>
+          </ul>
         </div>
       </div>
 
