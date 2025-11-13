@@ -18,7 +18,7 @@ export interface PersonalizeFormData extends BasicInfoData {
 }
 
 export interface SingleCharacterForm1Handle {
-  validateForm: () => { isValid: boolean; firstErrorField: string | null }; // Method to validate form data
+  validateForm: (options?: { scope?: 'step1' | 'all' }) => { isValid: boolean; firstErrorField: string | null }; // Method to validate form data
   formData: PersonalizeFormData;
   getFormData: () => PersonalizeFormData;
 }
@@ -197,32 +197,43 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
   }, [getUploadedPaths]);
 
   useImperativeHandle(ref, () => ({
-    validateForm() {
+    validateForm(options?: { scope?: 'step1' | 'all' }) {
+      const scope = options?.scope ?? 'all';
+      const validateStep1 = true;
+      const validateStep2 = scope === 'all';
       // 是否需要校验"特征"字段（仅书籍2需要）
-      const shouldValidateFeatures = bookId === '2';
+      const shouldValidateFeatures = validateStep2 && bookId === '2';
 
-      // Mark all fields as touched for validation feedback
+      // Mark fields as touched for validation feedback
       setTouched({
         fullName: true,
         gender: true,
         skinColor: true,
         hairstyle: true,
         hairColor: true,
-        photo: true,
-        relationship: true,
-        consent: true,
+        ...(validateStep2
+          ? {
+              photo: true,
+              relationship: true,
+              consent: true,
+            }
+          : {}),
         ...(shouldValidateFeatures ? { singleChoice: true, multipleChoice: true } : {}),
       });
 
       const newErrors: FormErrors = {};
-      if (!formData.fullName.trim()) newErrors.fullName = 'Please enter the full name';
-      if (!formData.gender) newErrors.gender = 'Please select gender';
-      if (!formData.skinColor) newErrors.skinColor = 'Please select skin color';
-      if (!formData.hairstyle) newErrors.hairstyle = 'Please select hairstyle';
-      if (!formData.hairColor) newErrors.hairColor = 'Please select hair color';
-      if (!formData.photo) newErrors.photo = 'Please upload a photo';
-      if (!formData.relationship) newErrors.relationship = 'Please select your relationship to the child';
-      if (!formData.consent) newErrors.consent = 'Please confirm your consent';
+      if (validateStep1) {
+        if (!formData.fullName.trim()) newErrors.fullName = 'Please enter the full name';
+        if (!formData.gender) newErrors.gender = 'Please select gender';
+        if (!formData.skinColor) newErrors.skinColor = 'Please select skin color';
+        if (!formData.hairstyle) newErrors.hairstyle = 'Please select hairstyle';
+        if (!formData.hairColor) newErrors.hairColor = 'Please select hair color';
+      }
+      if (validateStep2) {
+        if (!formData.photo) newErrors.photo = 'Please upload a photo';
+        if (!formData.relationship) newErrors.relationship = 'Please select your relationship to the child';
+        if (!formData.consent) newErrors.consent = 'Please confirm your consent';
+      }
       if (shouldValidateFeatures) {
         if (!formData.singleChoice) newErrors.singleChoice = 'Please select one feature';
         if (formData.multipleChoice.length === 0) newErrors.multipleChoice = 'Please select at least one feature';

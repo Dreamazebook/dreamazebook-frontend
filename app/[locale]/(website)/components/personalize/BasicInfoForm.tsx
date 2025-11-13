@@ -263,8 +263,11 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
 
       {/* Skin color */}
       <div id="field-skinColor">
-        <div className="flex items-center justify-between" tabIndex={0} onBlur={handleSkinColorBlur}>
-          <label className="font-medium">Skin color</label>
+        <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between gap-2 md:gap-0" tabIndex={0} onBlur={handleSkinColorBlur}>
+          <div className="flex flex-col">
+            <label className="font-medium">Skin color</label>
+            <p className="text-[#999999] text-[16px] leading-[24px] tracking-[0.5px] max-w-[250px]">For reference only, the final look will reflect your child's photo.</p>
+          </div>
           <div className="flex gap-6">
             {skinColors.map((color) => (
               <button

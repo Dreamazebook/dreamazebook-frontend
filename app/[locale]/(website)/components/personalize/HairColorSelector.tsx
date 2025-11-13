@@ -54,7 +54,7 @@ const HairColorSelector: React.FC<HairColorSelectorProps> = ({
 
   return (
     <div>
-      <div className="flex items-center justify-between" tabIndex={0} onBlur={onBlur}>
+      <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between gap-2 md:gap-0" tabIndex={0} onBlur={onBlur}>
         <label className="font-medium">Hair Color</label>
         <div className="flex gap-6">
           {hairColors.map((color) => (

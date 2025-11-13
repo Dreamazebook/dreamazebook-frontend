@@ -295,9 +295,12 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 
 	return (
 		<div>
-			<div className="flex items-center justify-between" tabIndex={0} onBlur={onBlur}>
-				<label className="font-medium">Hairstyle</label>
-				<div className="flex flex-wrap gap-1 flex-1 justify-end ml-4">
+			<div className="flex flex-col md:flex-row items-start md:items-center md:justify-between gap-2 md:gap-0" tabIndex={0} onBlur={onBlur}>
+        <div className="flex flex-col">
+          <label className="font-medium">Hairstyle</label>
+          <p className="text-[#999999] text-[16px] leading-[24px] tracking-[0.5px] max-w-[250px]">Pick the closest one, the final style will come from your photo.</p>
+        </div>
+				<div className="flex flex-wrap gap-1 flex-1 justify-end md:ml-4">
 					{hairstylesMemo.map((hairstyle) => {
 						const isActive = selectedHairstyle === hairstyle.id;
 						return (

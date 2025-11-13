@@ -188,8 +188,8 @@ export default function PersonalizeApiDrivenPage() {
       }
 
       if (hasError && firstErrorField) {
-        // 触发表单验证以显示错误信息
-        const validationResult = form1Ref.current.validateForm();
+        // 触发表单验证以显示错误信息（仅第一步字段）
+        form1Ref.current.validateForm({ scope: 'step1' });
         // 滚动到错误字段
         setTimeout(() => {
           const elementId = firstErrorField === 'photo' ? 'upload-area-photo' : `field-${firstErrorField}`;
