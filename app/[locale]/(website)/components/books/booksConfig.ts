@@ -2,7 +2,7 @@ import React from 'react';
 
 // 定义书籍section的类型
 export interface BookSection {
-  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'meet-author' | 'tips' | 'custom' | 'christmas-wonder' | 'personalization-power'; // section类型，可以扩展
+  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'meet-author' | 'tips' | 'custom' | 'christmas-wonder' | 'personalization-power' | 'dreamaze-special'; // section类型，可以扩展
   title?: string; // section标题
   content?: string; // section内容
   description?: string; // section描述文字
@@ -53,6 +53,17 @@ export interface BookSection {
   illustrationImage?: string; // 左侧插图URL
   testimonials?: Array<{
     text: string;
+    avatar?: string; // 头像URL（可选）
+  }>;
+  // Dreamaze Special 专用字段
+  features?: Array<{
+    title: string;
+    description: string;
+    icon?: string; // 图标URL（可选）
+  }>;
+  specialTestimonials?: Array<{
+    text: string;
+    author: string; // 作者姓名和城市
     avatar?: string; // 头像URL（可选）
   }>;
 }
@@ -351,6 +362,58 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
           "You can personalize your story with your child's name and character details. Not only does it look extra-adorable (and it truly does), but research shows it also brings lasting benefits.",
           "Studies in early childhood education highlight that children engage more deeply when they see themselves in a story. Personalized books can boost reading motivation, strengthen self-recognition, and support healthy self-esteem.",
           "With every page, your child doesn't just read a story — they experience themselves as the hero of it.",
+        ],
+      },
+      {
+        type: 'dreamaze-special',
+        title: 'What Makes Dreamaze Truly Special',
+        features: [
+          {
+            title: 'Hand-drawn illustrations',
+            description: 'Heartfelt stories, never low-quality AI scenes',
+          },
+          {
+            title: 'Real photo personalization',
+            description: 'Instant recognition, deeper connection',
+          },
+          {
+            title: 'Supports self-recognition',
+            description: 'Reading their own story builds identity & confidence',
+          },
+          {
+            title: 'Keepsake quality',
+            description: 'Premium, non-toxic paper for little hands',
+          },
+        ],
+        specialTestimonials: [
+          {
+            text: "I've seen other personalized books, but Dreamaze is the only one where my child instantly recognized himself.",
+            author: 'Akaay, Paris',
+          },
+          {
+            text: "The hand-drawn pages feel like art. It's not just a story, it's a keepsake.",
+            author: 'Michale, Sydney',
+          },
+          {
+            text: "Most books let you add a name, but this one truly sees my child.",
+            author: 'Hadjer, London',
+          },
+          {
+            text: 'The quality is amazing — durable and precious, beautiful enough to treasure.',
+            author: 'Charlene, San Francisco',
+          },
+          {
+            text: "The moment my son saw his own face in the book, he shouted his name with the biggest smile. I've never seen him so excited to read.",
+            author: 'Julia, New York',
+          },
+          {
+            text: "Every page feels crafted with love. The colors, the details, the binding — it's not just a book, it's something we'll keep forever.",
+            author: 'Beyza, Melbourne',
+          },
+          {
+            text: "As a gift, this was unbeatable. My niece immediately recognized herself and carried the book everywhere. It made her feel so special.",
+            author: 'Claire, Los Angeles',
+          }
         ],
       },
     ],

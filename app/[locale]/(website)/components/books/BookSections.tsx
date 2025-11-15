@@ -352,7 +352,7 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
                       }}
                     />
                     {/* 右侧：文案 */}
-                    <div className="flex-1 flex flex-col justify-end pb-2 z-10">
+                    <div className=" flex flex-col justify-end pb-2 z-10">
                       <h3 className="text-white md:text-[16px] text-[14px] font-medium mb-1">{book.title}</h3>
                       <p className="text-white text-[14px] font-normal opacity-90">{book.subtitle}</p>
                     </div>
@@ -429,7 +429,7 @@ const MeetAuthorSection: React.FC<{ section: BookSection }> = ({ section }) => {
   return (
     <div className={`w-full bg-white pt-12 gap-8 md:h-[616px] md:pt-[88px] md:pr-[120px] md:pb-[88px] md:pl-[120px] flex flex-col md:flex-row md:gap-[48px] ${section.className || ''}`}>
       {/* 右侧：文字内容 - 手机端在上，桌面端在右 */}
-      <div className="flex flex-col px-4 md:px-0 gap-[24px] gap-6 order-1 md:order-2 md:flex-1">
+      <div className="flex flex-col px-4 md:px-0 gap-[24px] gap-6 order-1 md:order-2 md:">
         {/* 标题 */}
         {section.title && (
           <h2 className="font-semibold md:font-medium text-center md:text-left text-[24px] md:text-[40px] leading-[32px] md:leading-[64px] text-[#222222]">
@@ -454,7 +454,7 @@ const MeetAuthorSection: React.FC<{ section: BookSection }> = ({ section }) => {
       
       {/* 左侧：作者图片 - 手机端在下，桌面端在左 */}
       {section.authorImage && (
-        <div className="w-full order-2 md:order-1 md:flex-1">
+        <div className="w-full order-2 md:order-1 md:">
           <img 
             src={section.authorImage} 
             alt="Author" 
@@ -471,7 +471,7 @@ const PersonalizationPowerSection: React.FC<{ section: BookSection }> = ({ secti
   return (
     <div className={`tw-full bg-[#F7F2EC] pt-12 gap-8 md:min-h-[616px] md:pt-[88px] md:pr-[120px] md:pb-[88px] md:pl-[120px] flex flex-col md:flex-row md:gap-[48px] ${section.className || ''}`}>
       {/* 左侧：文字内容 - 手机端在上，桌面端在左 */}
-      <div className="justify-center flex flex-col px-4 md:px-0 gap-[24px] order-1 md:order-1 md:flex-1">
+      <div className="justify-center flex flex-col px-4 md:px-0 gap-[24px] order-1 md:order-1 md:">
         {/* 标题 */}
         {section.title && (
           <h2 className="font-semibold md:font-medium text-center md:text-left text-[24px] md:text-[40px] leading-[32px] md:leading-[64px] text-[#222222]">
@@ -496,7 +496,7 @@ const PersonalizationPowerSection: React.FC<{ section: BookSection }> = ({ secti
       
       {/* 右侧：图片 - 手机端在下，桌面端在右 */}
       {section.authorImage && (
-        <div className="w-full order-2 md:order-2 md:flex-1">
+        <div className="w-full order-2 md:order-2 md:">
           <img 
             src={section.authorImage} 
             alt="Personalization" 
@@ -504,6 +504,302 @@ const PersonalizationPowerSection: React.FC<{ section: BookSection }> = ({ secti
           />
         </div>
       )}
+    </div>
+  );
+};
+
+// Dreamaze Special Section 组件
+const DreamazeSpecialSection: React.FC<{ section: BookSection }> = ({ section }) => {
+  const features = section.features || [];
+  const testimonials = section.specialTestimonials || [];
+  // 为无缝循环弹幕效果：复制多次内容，形成足够长的轨道
+  const extendedTestimonials = [...testimonials, ...testimonials, ...testimonials, ...testimonials];
+  const row1Testimonials = extendedTestimonials.filter((_, index) => index % 2 === 0);
+  const row2Testimonials = extendedTestimonials.filter((_, index) => index % 2 === 1);
+  
+  return (
+    <div className={`w-full bg-white py-12 md:py-[88px] px-0 md:px-[120px] ${section.className || ''}`}>
+      <div className="max-w-[1440px] mx-auto flex flex-col gap-6 md:gap-[64px]">
+        {/* 标题 */}
+        {section.title && (
+          <h2 className="text-center text-[24px] md:text-[40px] font-semibold md:font-medium leading-[32px] md:leading-[60px] text-[#222222] px-6 md:px-0">
+            {section.title}
+          </h2>
+        )}
+        
+        {/* 第一部分：特性列表 */}
+        {features.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-[600px] md:max-w-[1200px] mx-auto px-14 md:px-0">
+            {features.map((feature, index) => (
+              <div key={index} className="flex items-start gap-4">
+                {/* 图标占位符 */}
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-200 rounded flex-shrink-0 flex items-center justify-center">
+                  {feature.icon ? (
+                    <img src={feature.icon} alt={feature.title} className="w-full h-full object-contain" />
+                  ) : (
+                    <div className="w-8 h-8 md:w-12 md:h-12 bg-gray-300 rounded"></div>
+                  )}
+                </div>
+                {/* 文本内容 */}
+                <div className="flex flex-col md:gap-1 gap-0 ">
+                  <h3 className="font-medium text-[16px] md:text-[18px] leading-[24px] md:leading-[24px] tracking-[0.15px] md:tracking-[0.5px] text-[#222222]">
+                    {feature.title}
+                  </h3>
+                  <p className="font-normal text-[14px] md:text-[16px] leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] text-[#222222]">
+                    {feature.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* 第二部分：评论卡片 */}
+        {testimonials.length > 0 && (
+          <>
+            {/* 桌面端：两排水平弹幕条效果 - 无缝循环（通过负外边距移除左右留白） */}
+            <div className="hidden md:block overflow-x-hidden overflow-y-visible mx-auto -mx-12 md:-mx-[120px] pb-[40px] relative">
+              {/* 左右渐变遮罩 */}
+              <div className="absolute inset-y-0 left-0 w-[107px] md:w-[214px] bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+              <div className="absolute inset-y-0 right-0 w-[107px] md:w-[214px] bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+              <div
+                className="flex flex-col gap-6 md:gap-[50px]"
+                style={{
+                  animation: 'dreamazeMarquee 60s linear infinite',
+                  width: 'fit-content',
+                }}
+              >
+                {/* 第一排：每三张一组，第一张下移 40px、第二张保持原高度、第三张下移 20px，背景 #FFF9E8，其他 #FCF2F2 */}
+                <div className="flex gap-6 md:gap-4">
+                  {row1Testimonials.map((testimonial, index) => {
+                    const isOddPosition = index % 2 === 0; // 第1、3、5...卡片
+                    const bgColor = isOddPosition ? '#FFF9E8' : '#FCF2F2';
+                    let translateY = 0;
+
+                    // 每三张为一组：第一张下移 40px，第二张保持原高度，第三张下移 20px
+                    const positionInGroup = index % 3;
+                    if (positionInGroup === 0) {
+                      translateY = 20; // 第一张下移 40px
+                    } else if (positionInGroup === 2) {
+                      translateY = 40; // 第三张下移 20px
+                    } else if (positionInGroup === 1) {
+                      translateY = 30; // 二张下移 40px
+                    }
+                    // positionInGroup === 1 时，translateY 保持为 0（第二张保持原高度）
+
+                    const style: React.CSSProperties =
+                      translateY !== 0 ? { transform: `translateY(${translateY}px)` } : {};
+
+                    return (
+                      <div
+                        key={index}
+                        className="rounded-[4px] p-6 flex flex-col gap-2 self-start h-auto md:min-h-[168px] md:max-w-[360px] flex-shrink-0"
+                        style={{ ...style, backgroundColor: bgColor }}
+                      >
+                        <p className="text-[#222222] text-[14px] md:text-[16px] font-normal leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] ">
+                          "{testimonial.text}"
+                        </p>
+                        <div className="flex items-center justify-center gap-3 flex-shrink-0">
+                          {testimonial.avatar ? (
+                            <img
+                              src={testimonial.avatar}
+                              alt={testimonial.author}
+                              className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gray-300 flex-shrink-0"></div>
+                          )}
+                          <span className="text-[#222222] text-[14px] md:text-[16px]">
+                            {testimonial.author}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* 第二排：每三张一组，第一张下移 20px、第二张下移 40px、第三张保持原高度，所有单数背景 #FFF9E8，其余 #FCF2F2；整体向右偏移 */}
+                <div className="flex gap-6 md:gap-4" style={{ marginLeft: '120px' }}>
+                  {row2Testimonials.map((testimonial, index) => {
+                    const isOddPosition = index % 2 === 0; // 第1、3、5...卡片
+                    const bgColor = isOddPosition ? '#FCF2F2' : '#FFF9E8';
+                    let translateY = 0;
+
+                    // 每三张为一组：第一张下移 20px，第二张下移 40px，第三张保持原高度
+                    const positionInGroup = index % 3;
+                    if (positionInGroup === 0) {
+                      translateY = 40; // 第一张下移 20px
+                    } else if (positionInGroup === 1) {
+                      translateY = 10; // 二张下移 40px
+                    }
+                    // positionInGroup === 2 时，translateY 保持为 0（第三张保持原高度）
+
+                    const style: React.CSSProperties =
+                      translateY !== 0 ? { transform: `translateY(${translateY}px)` } : {};
+
+                    return (
+                      <div
+                        key={index}
+                        className="rounded-[4px] p-6 flex flex-col gap-2 self-start h-auto md:min-h-[168px] md:max-w-[360px] flex-shrink-0"
+                        style={{ ...style, backgroundColor: bgColor }}
+                      >
+                        <p className="text-[#222222] text-[14px] md:text-[16px] font-normal leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] ">
+                          "{testimonial.text}"
+                        </p>
+                        <div className="flex items-center justify-center gap-3 flex-shrink-0">
+                          {testimonial.avatar ? (
+                            <img
+                              src={testimonial.avatar}
+                              alt={testimonial.author}
+                              className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gray-300 flex-shrink-0"></div>
+                          )}
+                          <span className="text-[#222222] text-[14px] md:text-[16px] leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px]">
+                            {testimonial.author}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* 移动端：两排水平弹幕条效果 - 无缝循环 */}
+            <div className="md:hidden overflow-x-hidden overflow-y-visible w-full pb-4 relative">
+              {/* 左右渐变遮罩 */}
+              <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+              <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+              <div
+                className="flex flex-col gap-4"
+                style={{
+                  animation: 'dreamazeMarqueeMobile 40s linear infinite',
+                  width: 'fit-content',
+                }}
+              >
+                {/* 第一排：单数索引卡片 */}
+                <div className="flex gap-4">
+                  {row1Testimonials.map((testimonial, index) => {
+                    const isOddPosition = index % 2 === 0; // 第1、3、5...卡片
+                    const bgColor = isOddPosition ? '#FFF9E8' : '#FCF2F2';
+                    let translateY = 0;
+
+                    // 每三张为一组：第一张下移 15px，第二张保持原高度，第三张下移 10px
+                    const positionInGroup = index % 3;
+                    if (positionInGroup === 0) {
+                      translateY = 15; // 第一张下移 15px
+                    } else if (positionInGroup === 2) {
+                      translateY = 10; // 第三张下移 10px
+                    }
+                    // positionInGroup === 1 时，translateY 保持为 0（第二张保持原高度）
+
+                    const style: React.CSSProperties =
+                      translateY !== 0 ? { transform: `translateY(${translateY}px)` } : {};
+
+                    return (
+                      <div
+                        key={`mobile-row1-${index}`}
+                        className="rounded-[4px] p-4 flex flex-col gap-2 self-start h-auto max-w-[280px] flex-shrink-0"
+                        style={{ ...style, backgroundColor: bgColor }}
+                      >
+                        <p className="text-[#222222] text-[14px] font-normal leading-[20px] tracking-[0.25px]">
+                          "{testimonial.text}"
+                        </p>
+                        <div className="flex items-center justify-center gap-3 flex-shrink-0">
+                          {testimonial.avatar ? (
+                            <img
+                              src={testimonial.avatar}
+                              alt={testimonial.author}
+                              className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+                          )}
+                          <span className="text-[#222222] text-[12px]">
+                            {testimonial.author}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* 第二排：双数索引卡片，整体右移 */}
+                <div className="flex gap-4" style={{ marginLeft: '60px' }}>
+                  {row2Testimonials.map((testimonial, index) => {
+                    const bgColor = '#FFF9E8'; // 第二排所有卡片都是 #FFF9E8
+                    let translateY = 0;
+
+                    // 每三张为一组：第一张下移 10px，第二张保持原高度，第三张下移 15px
+                    const positionInGroup = index % 3;
+                    if (positionInGroup === 0) {
+                      translateY = 10; // 第一张下移 10px
+                    } else if (positionInGroup === 2) {
+                      translateY = 15; // 第三张下移 15px
+                    }
+                    // positionInGroup === 1 时，translateY 保持为 0（第二张保持原高度）
+
+                    const style: React.CSSProperties =
+                      translateY !== 0 ? { transform: `translateY(${translateY}px)` } : {};
+
+                    return (
+                      <div
+                        key={`mobile-row2-${index}`}
+                        className="rounded-[4px] p-4 flex flex-col gap-2 self-start h-auto max-w-[280px] flex-shrink-0"
+                        style={{ ...style, backgroundColor: bgColor }}
+                      >
+                        <p className="text-[#222222] text-[14px] font-normal leading-[20px] tracking-[0.25px]">
+                          "{testimonial.text}"
+                        </p>
+                        <div className="flex items-center justify-center gap-3 flex-shrink-0">
+                          {testimonial.avatar ? (
+                            <img
+                              src={testimonial.avatar}
+                              alt={testimonial.author}
+                              className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+                          )}
+                          <span className="text-[#222222] text-[12px]">
+                            {testimonial.author}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* 水平漂浮动画定义 - 无缝循环 */}
+            <style
+              dangerouslySetInnerHTML={{
+                __html: `
+                  @keyframes dreamazeMarquee {
+                    0% {
+                      transform: translateX(0%);
+                    }
+                    100% {
+                      transform: translateX(-50%);
+                    }
+                  }
+                  @keyframes dreamazeMarqueeMobile {
+                    0% {
+                      transform: translateX(0%);
+                    }
+                    100% {
+                      transform: translateX(-50%);
+                    }
+                  }
+                `,
+              }}
+            />
+          </>
+        )}
+      </div>
     </div>
   );
 };
@@ -525,7 +821,7 @@ const TipsSection: React.FC<{ section: BookSection }> = ({ section }) => {
       
       <div className="flex flex-col md:flex-row md:gap-[48px] gap-4 max-w-[1060px] md:h-[240px] h-auto mx-auto w-full md:px-4 px-0 md:items-center items-start justify-center">
         {/* 左列 */}
-        <div className="flex flex-col md:gap-12 gap-4 flex-1">
+        <div className="flex flex-col md:gap-12 gap-4 ">
           {leftColumn.map((tip, index) => (
             <div key={index} className="flex items-center gap-3">
               <div className="md:w-12 w-9 md:h-12 h-9 bg-gray-300 shrink-0"></div>
@@ -535,7 +831,7 @@ const TipsSection: React.FC<{ section: BookSection }> = ({ section }) => {
         </div>
         
         {/* 右列 */}
-        <div className="flex flex-col md:gap-12 gap-4 flex-1">
+        <div className="flex flex-col md:gap-12 gap-4 ">
           {rightColumn.map((tip, index) => (
             <div key={index} className="flex items-center gap-3">
               <div className="md:w-12 w-9 md:h-12 h-9 bg-gray-300 shrink-0"></div>
@@ -593,7 +889,7 @@ const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section })
     <div className={`w-full bg-[#FFF5F5] py-12 md:pt-[88px] md:pb-[88px] px-4 md:px-[120px] ${section.className || ''}`}>
       <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row gap-6 md:gap-[48px] md:items-start">
         {/* 左侧：标题、副标题和插图（桌面端） */}
-        <div className="flex flex-col gap-6 md:gap-[80px] md:flex-1">
+        <div className="flex flex-col gap-6 md:gap-[80px] md:">
           {/* 标题和副标题 - 保持在顶部 */}
           <div className="flex flex-col gap-2 md:gap-3 flex-shrink-0 text-center md:text-left">
             {section.title && (
@@ -609,9 +905,9 @@ const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section })
             )}
           </div>
           
-          {/* 插图 - 桌面端：使用 flex-1 和 items-center 来垂直居中 */}
+          {/* 插图 - 桌面端：使用  和 items-center 来垂直居中 */}
           {section.illustrationImage && (
-            <div className="hidden md:flex w-full items-center justify-start md:flex-1 md:items-center md:justify-start">
+            <div className="hidden md:flex w-full items-center justify-start md: md:items-center md:justify-start">
               <img 
                 src={section.illustrationImage} 
                 alt="Christmas Wonder Illustration" 
@@ -623,7 +919,7 @@ const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section })
         
         {/* 右侧：评价列表 - 从顶部开始，独立于左侧 */}
         {section.testimonials && section.testimonials.length > 0 && (
-          <div className="flex-1 flex flex-col md:gap-12 gap-7 md:self-start">
+          <div className=" flex flex-col md:gap-12 gap-7 md:self-start">
             {section.testimonials.map((testimonial, index) => {
                 // 根据索引定义每个卡片的样式
                 const cardStyles = [
@@ -676,7 +972,7 @@ const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section })
                     )}
                     
                     {/* 评价文本 */}
-                    <p className="text-[#222222] text-[14px] md:text-[18px] font-normal md:font-medium leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] flex-1">
+                    <p className="text-[#222222] text-[14px] md:text-[18px] font-normal md:font-medium leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] ">
                       "{testimonial.text}"
                     </p>
                   </div>
@@ -735,7 +1031,7 @@ const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section })
                   )}
                   
                   {/* 评价文本 */}
-                  <p className="text-[#222222] text-[14px] md:text-[18px] font-normal md:font-medium leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] flex-1">
+                  <p className="text-[#222222] text-[14px] md:text-[18px] font-normal md:font-medium leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] ">
                     "{testimonial.text}"
                   </p>
                 </div>
@@ -776,6 +1072,8 @@ const renderSection = (section: BookSection, index: number) => {
       return <TipsSection key={index} section={section} />;
     case 'christmas-wonder':
       return <ChristmasWonderSection key={index} section={section} />;
+    case 'dreamaze-special':
+      return <DreamazeSpecialSection key={index} section={section} />;
     case 'custom':
       // 如果有自定义渲染函数，使用它
       if (section.render) {
