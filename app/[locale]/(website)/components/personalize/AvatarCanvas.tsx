@@ -8,6 +8,7 @@ interface AvatarCanvasProps {
   skinColor: string;
   hairstyle: string;
   hairColor: string;
+  gender?: '' | 'boy' | 'girl';
   width?: number;
   height?: number;
 }
@@ -36,6 +37,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
   skinColor,
   hairstyle,
   hairColor,
+  gender,
   width = 270,
   height = 203,
 }) => {
@@ -126,10 +128,19 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
     const loadBg = async () => {
       try {
         const ts = Date.now();
-        const candidates = [
-          `/products/picbooks/${bookId}/avatar/layer_background.png?ts=${ts}`,
-          `/products/picbooks/PICBOOK_GOODNIGHT/avatar/layer_background.png?ts=${ts}`,
-        ];
+        // 对于 birthday 书籍，根据性别选择不同的背景图层
+        const candidates: string[] = [];
+        if (bookId === 'PICBOOK_BIRTHDAY') {
+          // Birthday 书籍：如果选择了性别，使用性别特定背景图；否则默认使用男孩背景图
+          const genderBg = gender === 'girl' ? 'layer_background_girl.png' : 'layer_background_boy.png';
+          candidates.push(`/products/picbooks/${bookId}/avatar/${genderBg}?ts=${ts}`);
+        } else {
+          // 其他书籍：使用原有逻辑
+          candidates.push(
+            `/products/picbooks/${bookId}/avatar/layer_background.png?ts=${ts}`,
+            `/products/picbooks/PICBOOK_GOODNIGHT/avatar/layer_background.png?ts=${ts}`
+          );
+        }
         for (const src of candidates) {
           try {
             const img = new Image();
@@ -147,7 +158,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
     };
     loadBg();
     return () => { cancelled = true; };
-  }, [bookId]);
+  }, [bookId, gender]);
 
   // 标准像素级滤镜处理
   // 复用脚本中的 normalizeNumber 与 applyFilterToImageData
@@ -408,10 +419,20 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       // 0. 背景层（最底层，不应用滤镜）
       {
         const ts = Date.now();
-        await drawLayerWithFilter([
-          `/products/picbooks/${bookId}/avatar/layer_background.png?ts=${ts}`,
-          `/products/picbooks/PICBOOK_GOODNIGHT/avatar/layer_background.png?ts=${ts}`,
-        ], null, 'BACKGROUND');
+        // 对于 birthday 书籍，根据性别选择不同的背景图层
+        const candidates: string[] = [];
+        if (bookId === 'PICBOOK_BIRTHDAY') {
+          // Birthday 书籍：如果选择了性别，使用性别特定背景图；否则默认使用男孩背景图
+          const genderBg = gender === 'girl' ? 'layer_background_girl.png' : 'layer_background_boy.png';
+          candidates.push(`/products/picbooks/${bookId}/avatar/${genderBg}?ts=${ts}`);
+        } else {
+          // 其他书籍：使用原有逻辑
+          candidates.push(
+            `/products/picbooks/${bookId}/avatar/layer_background.png?ts=${ts}`,
+            `/products/picbooks/PICBOOK_GOODNIGHT/avatar/layer_background.png?ts=${ts}`
+          );
+        }
+        await drawLayerWithFilter(candidates, null, 'BACKGROUND');
       }
 
       // 1. 皮肤层（Fair 不用滤镜；Medium/Dark 使用 skinToneFilter）
@@ -482,7 +503,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
     if (hasValidParams) {
       drawAvatar();
     }
-  }, [bookId, skinColor, hairstyle, hairColor, pageProperties, isLoading, width, height]);
+  }, [bookId, skinColor, hairstyle, hairColor, gender, pageProperties, isLoading, width, height, containerWidth, bgAspect]);
 
   if (isLoading) {
     return (
