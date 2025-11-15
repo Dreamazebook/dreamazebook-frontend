@@ -134,11 +134,11 @@ export default function CartItemCard({
               </p> */}
                 
 
-                {(countdown && handleClickEditMessage) ? 
+                {/* {(countdown && handleClickEditMessage) ? 
                   <p className="text-sm text-gray-600">You can modify your message within {countdown} <a onClick={()=>handleClickEditMessage(item)} className='text-[#012CCE] cursor-pointer'>Edit</a></p>
                   :
                   <p className={`text-[#666] bg-[#f8f8f8] font-[400] ${item.message?'p-2':''} rounded`}>{item.message}</p>
-                }
+                } */}
                 
                 {/* 额外描述合并到装订信息一行展示 */}
               
