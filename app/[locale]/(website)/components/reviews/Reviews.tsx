@@ -132,8 +132,16 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
                 <div className="flex-shrink-0 md:w-[200px] flex md:flex-col flex-row items-center md:gap-3 gap-4 justify-between md:items-start items-center">
                   {/* 头像和评论者名称在同一行（小屏幕）或分开（大屏幕） */}
                   <div className="flex items-center gap-3 py-1 md:py-0">
-                    {/* 头像占位符 */}
-                    <div className="md:w-9 md:h-9 w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+                    {/* 头像 */}
+                    {review.pagepic ? (
+                      <img
+                        src={review.pagepic}
+                        alt={review.reviewer_name}
+                        className="md:w-9 md:h-9 w-8 h-8 rounded-full object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="md:w-9 md:h-9 w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+                    )}
 
                     {/* 评论者名称 */}
                     <div className="md:pt-0.5 pt-0">
@@ -166,15 +174,15 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
                     className="text-[#222222] font-normal text-[14px] leading-[20px] tracking-[0.25px] md:font-medium md:text-[16px] md:leading-[24px] md:tracking-[0.5px]"
                     style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
                   >
-                    <span
+                    {/* <span
                       className="md:text-[24px] text-[18px] font-normal md:leading-8 leading-[20px]"
                       style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
-                    >"</span>
+                    >"</span> */}
                     {review.comment}
-                    <span
+                    {/* <span
                       className="md:text-[24px] text-[18px] font-normal md:leading-8 leading-[20px]"
                       style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
-                    >"</span>
+                    >"</span> */}
                   </div>
                 </div>
               </div>

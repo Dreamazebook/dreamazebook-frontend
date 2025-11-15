@@ -2,7 +2,7 @@ import React from 'react';
 
 // 定义书籍section的类型
 export interface BookSection {
-  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'meet-author' | 'tips' | 'custom'; // section类型，可以扩展
+  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'meet-author' | 'tips' | 'custom' | 'christmas-wonder'; // section类型，可以扩展
   title?: string; // section标题
   content?: string; // section内容
   description?: string; // section描述文字
@@ -48,6 +48,12 @@ export interface BookSection {
     title: string;
     description: string;
     backgroundImage?: string; // 卡片右侧/底部背景图，稍后由你提供
+  }>;
+  // Christmas Wonder 专用字段
+  illustrationImage?: string; // 左侧插图URL
+  testimonials?: Array<{
+    text: string;
+    avatar?: string; // 头像URL（可选）
   }>;
 }
 
@@ -186,6 +192,20 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
       { label: '34 pages' }, // 直接文本
       { label: 'specifications.delivery' }, // 使用国际化 key
     ],
+    faqs: [
+      {
+        question: 'How is the book personalized?',
+        answer: '- Add your child\'s name – on the cover and in every page\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication – printed on the first page\n- Choose from four cover designs\n- Preview selected pages before purchase'
+      },
+      {
+        question: 'Recommendation',
+        answer: 'This book is more than a story — it\'s a gentle mirror of your child\'s courage.\nFrom everyday challenges to little triumphs, each page celebrates bravery in forms they already know.\nIt\'s a heartfelt way to help children recognize their own strength, build confidence, and carry a quiet reminder: I am brave in many ways.'
+      },
+      {
+        question: 'Reading tips for parents',
+        answer: 'Use the story\'s everyday scenes as a conversation starter: ask your child to share other times they\'ve been brave in real life.\nCelebrate their answers — big or small — to reinforce the message that courage comes in many forms.\nRead during quiet family time or bedtime to create a safe space for reflection and encouragement.\nRepeat the phrase "You\'re brave in many ways" often, planting the seed of self-belief that will grow with your child.'
+      }
+    ],
     sections: [
       {
         type: 'meet-author',
@@ -240,24 +260,64 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
     ],
   },
   
-  // 可以在这里添加其他书籍的配置
-  // 示例：另一本书的配置（使用自定义规格）
-  // 'PICBOOK_SANTALETTER': {
-  //   id: 'PICBOOK_SANTALETTER',
-  //   specifications: [
-  //     { label: 'Best for ages 3–8' }, // 直接文本
-  //     { label: 'Landscape format' }, // 直接文本
-  //     { label: '34 pages' }, // 直接文本
-  //     { label: 'specifications.delivery' }, // 使用国际化 key
-  //   ],
-  //   sections: [
-  //     {
-  //       type: 'custom',
-  //       title: 'Special Section',
-  //       content: 'Custom content here...',
-  //     },
-  //   ],
-  // },
+  // Santa Letter 书籍配置
+  'PICBOOK_SANTA': {
+    id: 'PICBOOK_SANTA',
+    specifications: [
+      { label: 'Best for ages 3–8' },
+      { label: '210 × 210 mm square book' },
+      { label: '42 pages' },
+      { label: 'Printed and dispatched in 2–4 working days' },
+    ],
+    faqs: [
+      {
+        question: 'How is the book personalized?',
+        answer: '- Add your child\'s name – on the cover and in every page\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication – printed on the first page\n- Choose from four cover designs\n- Preview selected pages before purchase'
+      },
+      {
+        question: 'Recommendation',
+        answer: 'This delightful book brings Santa\'s voice straight to your child.\nIt celebrates their kindness, highlights the joy they\'ve brought throughout the year, and makes their Christmas wishes feel even more special.\nIt\'s a heartwarming way to nurture wonder, strengthen traditions, and create a holiday memory your family will return to year after year.'
+      },
+      {
+        question: 'Reading tips for parents',
+        answer: 'As you read, invite your child to guess what Santa has written in his record book about their good behavior.\nTalk about what gift they hope Santa will bring this year.\nEncourage your child to write or draw a reply letter to Santa — turning reading time into a festive family activity.\nRevisit the story each December as a tradition, keeping the magic of Christmas alive.'
+      }
+    ],
+    sections: [
+      {
+        type: 'meet-author',
+        title: 'Meet the Illustrator',
+        authorImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_SANTA/bg-author.jpg',
+        paragraphs: [
+          "I feel so happy to bring this warm story to life through my drawings. As a child, I once wondered: \"How does Santa know I've been good?\" This book gives a gentle, heartwarming answer. With every page, I hope my illustrations and this story bring warmth and joy to each young reader.",
+        ],
+      },
+      {
+        type: 'christmas-wonder',
+        title: 'Our Christmas Wonder',
+        description: "See what little readers say about their very own Santa's Letter!",
+        illustrationImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_SANTA/wonder-left.png',
+        testimonials: [
+          {
+            text: "I think I can do even better next year... so Santa will send me another letter like this!",
+            avatar: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_SANTA/wonder-1.jpg',
+          },
+          {
+            text: "I told my friends that Santa wrote me a book-like letter — they were all amazed!",
+            avatar: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_SANTA/wonder-2.jpg',
+          },
+          {
+            text: "I love this letter - it has me, and Santa's words just for me.",
+            avatar: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_SANTA/wonder-3.jpg',
+          },
+          {
+            text: "I always sneak back to look at the pages — it's really me, it's really me!!!",
+            avatar: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_SANTA/wonder-4.jpg',
+          },
+        ],
+      },
+    ],
+  },
 };
 
 // 根据书籍ID获取配置

@@ -545,6 +545,178 @@ const WhyPersonalizedSection: React.FC<{ section: BookSection }> = ({ section })
   );
 };
 
+// Christmas Wonder Section 组件
+const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section }) => {
+  return (
+    <div className={`w-full bg-[#FFF5F5] py-12 md:pt-[88px] md:pb-[88px] px-4 md:px-[120px] ${section.className || ''}`}>
+      <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row gap-6 md:gap-[48px] md:items-start">
+        {/* 左侧：标题、副标题和插图（桌面端） */}
+        <div className="flex flex-col gap-6 md:gap-[80px] md:flex-1">
+          {/* 标题和副标题 - 保持在顶部 */}
+          <div className="flex flex-col gap-2 md:gap-3 flex-shrink-0 text-center md:text-left">
+            {section.title && (
+              <h2 className="text-[#222222] text-[24px] md:text-[40px] font-semibold md:font-medium leading-[32px] md:leading-[60px]">
+                {section.title}
+              </h2>
+            )}
+            
+            {section.description && (
+              <p className="text-[#222222] text-[14px] md:text-[16px] font-normal leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px]">
+                {section.description}
+              </p>
+            )}
+          </div>
+          
+          {/* 插图 - 桌面端：使用 flex-1 和 items-center 来垂直居中 */}
+          {section.illustrationImage && (
+            <div className="hidden md:flex w-full items-center justify-start md:flex-1 md:items-center md:justify-start">
+              <img 
+                src={section.illustrationImage} 
+                alt="Christmas Wonder Illustration" 
+                className="w-auto max-h-[250px] object-contain"
+              />
+            </div>
+          )}
+        </div>
+        
+        {/* 右侧：评价列表 - 从顶部开始，独立于左侧 */}
+        {section.testimonials && section.testimonials.length > 0 && (
+          <div className="flex-1 flex flex-col md:gap-12 gap-7 md:self-start">
+            {section.testimonials.map((testimonial, index) => {
+                // 根据索引定义每个卡片的样式
+                const cardStyles = [
+                  // 第1个：angle: 4deg, border-radius: 48px 120px 120px 4px
+                  {
+                    transform: 'rotate(-4deg)',
+                    borderRadius: '120px 120px 120px 4px',
+                  },
+                  // 第2个：angle: -2deg, border-radius: 48px 48px 4px 48px
+                  {
+                    transform: 'rotate(2deg)',
+                    borderRadius: '48px 48px 4px 48px',
+                  },
+                  // 第3个：angle: 0deg, border-radius: 48px 120px 120px 4px
+                  {
+                    transform: 'rotate(0deg)',
+                    borderRadius: '120px 120px 120px 4px',
+                  },
+                  // 第4个：angle: -2deg, border-radius: 48px 48px 4px 48px
+                  {
+                    transform: 'rotate(2deg)',
+                    borderRadius: '48px 48px 4px 48px',
+                  },
+                ];
+                
+                const style = cardStyles[index] || cardStyles[0];
+                // 第1和第3个（索引0和2）：头像在左侧；第2和第4个（索引1和3）：头像在右侧
+                const isAvatarRight = index === 1 || index === 3;
+                
+                return (
+                  <div 
+                    key={index}
+                    className={`bg-white flex items-center hidden md:flex gap-3 ${isAvatarRight ? 'flex-row-reverse' : ''}`}
+                    style={{
+                      padding: '24px',
+                      transform: style.transform,
+                      borderRadius: style.borderRadius,
+                      opacity: 1,
+                    }}
+                  >
+                    {/* 头像 */}
+                    {testimonial.avatar ? (
+                      <img 
+                        src={testimonial.avatar} 
+                        alt="Avatar" 
+                        className="w-10 h-10 object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-300 flex-shrink-0"></div>
+                    )}
+                    
+                    {/* 评价文本 */}
+                    <p className="text-[#222222] text-[14px] md:text-[18px] font-normal md:font-medium leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] flex-1">
+                      "{testimonial.text}"
+                    </p>
+                  </div>
+                );
+            })}
+            {/* 移动端显示 */}
+            {section.testimonials.map((testimonial, index) => {
+              // 根据索引定义每个移动端卡片的样式
+              const mobileCardStyles = [
+                // 第1个：angle: 4deg, border-radius: 36px 120px 120px 4px
+                {
+                  transform: 'rotate(-4deg)',
+                  borderRadius: '120px 120px 120px 4px',
+                },
+                // 第2个：angle: -2deg, border-radius: 48px 48px 4px 48px
+                {
+                  transform: 'rotate(2deg)',
+                  borderRadius: '48px 48px 4px 48px',
+                },
+                // 第3个：angle: 4.01deg, border-radius: 36px 120px 120px 4px
+                {
+                  transform: 'rotate(-4.01deg)',
+                  borderRadius: '120px 120px 120px 4px',
+                },
+                // 第4个：angle: -2deg, border-radius: 48px 48px 4px 48px
+                {
+                  transform: 'rotate(2deg)',
+                  borderRadius: '48px 48px 4px 48px',
+                },
+              ];
+              
+              const mobileStyle = mobileCardStyles[index] || mobileCardStyles[0];
+              // 第1和第3个（索引0和2）：头像在左侧；第2和第4个（索引1和3）：头像在右侧
+              const isAvatarRight = index === 1 || index === 3;
+              
+              return (
+                <div 
+                  key={`mobile-${index}`}
+                  className={`bg-white flex items-center md:hidden gap-[12px] ${isAvatarRight ? 'flex-row-reverse' : ''}`}
+                  style={{
+                    padding: '12px 24px',
+                    transform: mobileStyle.transform,
+                    borderRadius: mobileStyle.borderRadius,
+                    opacity: 1,
+                  }}
+                >
+                  {/* 头像 */}
+                  {testimonial.avatar ? (
+                    <img 
+                      src={testimonial.avatar} 
+                      alt="Avatar" 
+                      className="w-10 h-10 object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 bg-gray-300 flex-shrink-0"></div>
+                  )}
+                  
+                  {/* 评价文本 */}
+                  <p className="text-[#222222] text-[14px] md:text-[18px] font-normal md:font-medium leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] flex-1">
+                    "{testimonial.text}"
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        
+        {/* 移动端：插图显示在评论下方，水平居中 */}
+        {section.illustrationImage && (
+          <div className="w-full flex items-center justify-center md:hidden">
+            <img 
+              src={section.illustrationImage} 
+              alt="Christmas Wonder Illustration" 
+              className="w-auto max-h-[120px] object-contain"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Section 渲染器
 const renderSection = (section: BookSection, index: number) => {
   switch (section.type) {
@@ -558,6 +730,8 @@ const renderSection = (section: BookSection, index: number) => {
       return <MeetAuthorSection key={index} section={section} />;
     case 'tips':
       return <TipsSection key={index} section={section} />;
+    case 'christmas-wonder':
+      return <ChristmasWonderSection key={index} section={section} />;
     case 'custom':
       // 如果有自定义渲染函数，使用它
       if (section.render) {
