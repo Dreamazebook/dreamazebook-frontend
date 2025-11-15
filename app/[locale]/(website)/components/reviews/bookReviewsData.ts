@@ -152,4 +152,48 @@ export const BOOK_REVIEWS_DATA: Record<string | number, BookReviewData> = {
       },
     ],
   },
+  
+  // Birthday 书籍的评论数据
+  'PICBOOK_BIRTHDAY': {
+    title: "What parents are saying",
+    rating: 5.0, // 平均评分
+    reviewsCount: 31, // 评论总数
+    keywords: [
+      { keyword: "Forest Animals", count: 5 },
+      { keyword: "Joyful Celebration", count: 5 },
+      { keyword: "Birthday", count: 6 },
+    ],
+    reviews: [
+      {
+        reviewer_name: "Yuki S., Japan",
+        rating: 5,
+        comment: "We love that there are different seasonal covers — it makes the birthday book feel extra special.",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/yuki-japan.jpg",
+      },
+      {
+        reviewer_name: "Daniel P., Toronto",
+        rating: 5,
+        comment: "The story is so warm and sweet, it's the perfect keepsake for my child's birthday.",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/daniel-toronto.jpg",
+      },
+      {
+        reviewer_name: "Noah P., Cape Town",
+        rating: 5,
+        comment: "Such a thoughtful and personal gift. My son kept saying, 'happy birthday!' while reading.",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/noah-cape-town.jpg",
+      },
+      {
+        reviewer_name: "Rachel C., Washington",
+        rating: 5,
+        comment: "The book is beautifully made and my daughter asks for it everyday since her birthday.",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/rachel-washington.jpg",
+      },
+      {
+        reviewer_name: "Sophie M., Bathurst",
+        rating: 5,
+        comment: "My little one can't stop smiling — she loves seeing herself in the story.",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/sophie-bathurst.jpg",
+      }
+    ],
+  },
 };

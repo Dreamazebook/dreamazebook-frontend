@@ -466,6 +466,48 @@ const MeetAuthorSection: React.FC<{ section: BookSection }> = ({ section }) => {
   );
 };
 
+// Personalization Power Section 组件（图片在右侧）
+const PersonalizationPowerSection: React.FC<{ section: BookSection }> = ({ section }) => {
+  return (
+    <div className={`tw-full bg-[#F7F2EC] pt-12 gap-8 md:min-h-[616px] md:pt-[88px] md:pr-[120px] md:pb-[88px] md:pl-[120px] flex flex-col md:flex-row md:gap-[48px] ${section.className || ''}`}>
+      {/* 左侧：文字内容 - 手机端在上，桌面端在左 */}
+      <div className="justify-center flex flex-col px-4 md:px-0 gap-[24px] order-1 md:order-1 md:flex-1">
+        {/* 标题 */}
+        {section.title && (
+          <h2 className="font-semibold md:font-medium text-center md:text-left text-[24px] md:text-[40px] leading-[32px] md:leading-[64px] text-[#222222]">
+            {section.title}
+          </h2>
+        )}
+        
+        {/* 段落 */}
+        {section.paragraphs && section.paragraphs.length > 0 && (
+          <div className="flex flex-col gap-[6px]">
+            {section.paragraphs.map((paragraph, index) => (
+              <p 
+                key={index}
+                className="font-normal text-[14px] md:text-[16px] leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] text-[#222222]"
+              >
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      {/* 右侧：图片 - 手机端在下，桌面端在右 */}
+      {section.authorImage && (
+        <div className="w-full order-2 md:order-2 md:flex-1">
+          <img 
+            src={section.authorImage} 
+            alt="Personalization" 
+            className="w-full md:h-full object-cover"
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Tips Section 组件
 const TipsSection: React.FC<{ section: BookSection }> = ({ section }) => {
   const tips = section.tips || [];
@@ -728,6 +770,8 @@ const renderSection = (section: BookSection, index: number) => {
       return <WhyPersonalizedSection key={index} section={section} />;
     case 'meet-author':
       return <MeetAuthorSection key={index} section={section} />;
+    case 'personalization-power':
+      return <PersonalizationPowerSection key={index} section={section} />;
     case 'tips':
       return <TipsSection key={index} section={section} />;
     case 'christmas-wonder':

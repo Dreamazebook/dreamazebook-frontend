@@ -2,7 +2,7 @@ import React from 'react';
 
 // 定义书籍section的类型
 export interface BookSection {
-  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'meet-author' | 'tips' | 'custom' | 'christmas-wonder'; // section类型，可以扩展
+  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'meet-author' | 'tips' | 'custom' | 'christmas-wonder' | 'personalization-power'; // section类型，可以扩展
   title?: string; // section标题
   content?: string; // section内容
   description?: string; // section描述文字
@@ -314,6 +314,43 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
             text: "I always sneak back to look at the pages — it's really me, it's really me!!!",
             avatar: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_SANTA/wonder-4.jpg',
           },
+        ],
+      },
+    ],
+  },
+  
+  // Birthday 书籍配置
+  'PICBOOK_BIRTHDAY': {
+    id: 'PICBOOK_BIRTHDAY',
+    specifications: [
+      { label: 'Best for ages 3–8' },
+      { label: 'Landscape format' },
+      { label: '44 pages' },
+      { label: 'Printed and dispatched in 2–4 working days' },
+    ],
+    faqs: [
+      {
+        question: 'How is the book personalized?',
+        answer: '- Add your child\'s name – the star of the birthday story\n- Choose features (skin tone, hairstyle, hair color)\n- Upload a clear front-facing photo\n- Select your child\'s birthday date\n- Pick 4 personality traits shown as forest animals\n- Add a dedication on the first page\n- Preview selected pages before purchase'
+      },
+      {
+        question: 'Recommendation',
+        answer: 'This isn\'t just a birthday book — it\'s a one-of-a-kind keepsake.\nEvery page celebrates your child\'s name, their birthday, and their personality traits through the voices of forest friends.\nIt\'s a joyful way to mark another year, honor who they are, and make birthdays more meaningful than ever.'
+      },
+      {
+        question: 'Reading tips for parents',
+        answer: 'As you read, invite your child to spot the forest animals bringing blessings.\nAsk: Besides the animals in the book, who else is here to celebrate your birthday today? (family, friends, even toys can "join in").\nTalk about the traits chosen: Did the animals describe you well? Which one feels the most like you?\nEnd the story by making a new birthday wish together — a sweet ritual to repeat every year as they grow.'
+      }
+    ],
+    sections: [
+      {
+        type: 'personalization-power',
+        title: 'The Power of Personalization',
+        authorImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/personalization-power.png',
+        paragraphs: [
+          "You can personalize your story with your child's name and character details. Not only does it look extra-adorable (and it truly does), but research shows it also brings lasting benefits.",
+          "Studies in early childhood education highlight that children engage more deeply when they see themselves in a story. Personalized books can boost reading motivation, strengthen self-recognition, and support healthy self-esteem.",
+          "With every page, your child doesn't just read a story — they experience themselves as the hero of it.",
         ],
       },
     ],
