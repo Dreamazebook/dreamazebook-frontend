@@ -4,28 +4,26 @@ import { Link } from '@/i18n/routing';
 
 const footerMenus = [
   {
-    title: 'Get Help',
+    title: 'Help & Support',
     items: [
-      { label: 'FAQ', href: '#' },
-      { label: 'Help Center', href: '#' },
-      { label: 'Return Policy', href: '/return-policy' },
-      { label: 'Privacy Policy', href: '/privacy-policy' },
-      { label: 'Terms & Conditions', href: '/terms-and-conditions' },
+      { label: 'Contact Us', href: '/contact' },
+      { label: 'FAQ', href: '/faq' },
       { label: 'Delivery Information', href: '/delivery-information' },
     ],
   },
   {
-    title: 'Account',
+    title: 'Legal & Policies',
     items: [
-      { label: 'Log In', href: '#' },
-      { label: 'Sign Up', href: '#' },
+      { label: 'Return Policy', href: '/return-policy' },
+      { label: 'Privacy Policy', href: '/privacy-policy' },
+      { label: 'Terms & Conditions', href: '/terms-and-conditions' },
     ],
   },
   {
-    title: 'Company',
+    title: 'Dreamaze',
     items: [
-      { label: 'About us', href: '#' },
-      { label: '参与', href: '#' },
+      { label: 'About Us', href: '/about-us' },
+      { label: 'Create With Us', href: '/survey' },
     ],
   },
 ];
