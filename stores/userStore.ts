@@ -128,6 +128,7 @@ const useUserStore = create<UserState>((set,get) => ({
           });
         })
       });
+      countryList.sort((a:any,b:any) => a.label.localeCompare(b.label));
       set({'countryList': countryList});
     }
   },
