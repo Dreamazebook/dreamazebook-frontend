@@ -169,6 +169,7 @@ export default function ShoppingCartPage() {
   };
 
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [paypalCheckoutLoading, setPaypalCheckoutLoading] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmContent, setConfirmContent] = useState<React.ReactNode>(null);
   const [confirmNextUrl, setConfirmNextUrl] = useState<string | null>(null);
@@ -179,8 +180,15 @@ export default function ShoppingCartPage() {
       setError(t('noItemsSelected'));
       return;
     }
-    try {
+    
+    // 设置对应的加载状态
+    if (paymentMethod === 'paypal') {
+      setPaypalCheckoutLoading(true);
+    } else {
       setCheckoutLoading(true);
+    }
+    
+    try {
       const { success, message, code, data } = await api.post<ApiResponse>(API_ORDER_CREATE, {
         cart_item_ids: selectedItems,
         payment_method: paymentMethod,
@@ -195,7 +203,12 @@ export default function ShoppingCartPage() {
     } catch (err) {
       setError(t('checkoutFailed'));
     } finally {
-      setCheckoutLoading(false);
+      // 清除对应的加载状态
+      if (paymentMethod === 'paypal') {
+        setPaypalCheckoutLoading(false);
+      } else {
+        setCheckoutLoading(false);
+      }
     }
   };
 
@@ -401,10 +414,10 @@ export default function ShoppingCartPage() {
                   </button>
                   <button
                     onClick={() => handleCheckout('paypal')}
-                    disabled={selectedItems.length === 0 || checkoutLoading}
+                    disabled={selectedItems.length === 0 || paypalCheckoutLoading}
                     className="w-full py-3 bg-[#0070BA] text-white rounded-md hover:bg-[#003087] disabled:bg-blue-300 flex items-center justify-center gap-2"
                   >
-                    {checkoutLoading ? (
+                    {paypalCheckoutLoading ? (
                       <>
                         <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -461,10 +474,10 @@ export default function ShoppingCartPage() {
               </button>
               <button
                 onClick={() => handleCheckout('paypal')}
-                disabled={selectedItems.length === 0 || checkoutLoading}
+                disabled={selectedItems.length === 0 || paypalCheckoutLoading}
                 className="w-full py-3 bg-[#0070BA] text-white rounded-md hover:bg-[#003087] disabled:bg-blue-300 flex items-center justify-center gap-2"
               >
-                {checkoutLoading ? (
+                {paypalCheckoutLoading ? (
                   <>
                     <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -536,10 +549,10 @@ export default function ShoppingCartPage() {
                 </button>
                 <button
                   onClick={() => handleCheckout('paypal')}
-                  disabled={selectedItems.length === 0 || checkoutLoading}
+                  disabled={selectedItems.length === 0 || paypalCheckoutLoading}
                   className="w-full py-3 bg-[#0070BA] text-white rounded-md hover:bg-[#003087] disabled:bg-blue-300 flex items-center justify-center gap-2"
                 >
-                  {checkoutLoading ? (
+                  {paypalCheckoutLoading ? (
                     <>
                       <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
