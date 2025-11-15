@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { getBookConfig, BookSection } from './booksConfig';
 
@@ -131,7 +131,7 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
         </div>
         
         {/* Bundle Image Display and Price/Button Container */}
-        <div className="bg-[#FFFFFF] max-w-[1400px] w-full h-auto pt-12 lg:px-[88px] px-4 pb-12 rounded-[4px] mx-auto flex flex-col gap-[24px] relative z-10">
+        <div className="bg-[#FFFFFF] h-auto py-12 rounded-[4px] mx-auto flex flex-col gap-[24px] relative z-10">
           {/* Bundle Image - 移动端和桌面端使用不同的图片 */}
           <div className="flex items-center justify-center w-full">
             {/* 移动端图片 */}
@@ -1055,6 +1055,57 @@ const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section })
   );
 };
 
+// FAQ Section 组件
+const FAQSection: React.FC<{ section: BookSection }> = ({ section }) => {
+  const faqs = section.faqs || [];
+  const [openFaq, setOpenFaq] = useState<number>(1); // 默认展开第一个
+
+  return (
+    <div className={`w-full bg-[#F8F8F8] py-16 px-3 md:px-0 md:py-22 ${section.className || ''}`}>
+      <div className="max-w-5xl mx-auto px-4 md:px-6">
+        {section.title && (
+          <h2 className="text-center text-[22px] md:text-[40px] font-medium text-[#222222] md:mb-12 mb-6">
+            {section.title}
+          </h2>
+        )}
+        <div className="divide-y divide-[#222222]">
+          {faqs.map((faq, index) => {
+            const num = index + 1;
+            const isOpen = openFaq === num;
+            return (
+              <div key={index} className="py-4">
+                <button
+                  onClick={() => setOpenFaq(isOpen ? 0 : num)}
+                  className="w-full flex items-start justify-between text-left"
+                >
+                  <div className="flex items-start gap-2 md:gap-4">
+                    <span className="text-[#222222] font-medium text-[16px] md:text-[18px] leading-[24px]">
+                      {String(num).padStart(2, '0')}
+                    </span>
+                    <span className="text-[#222222] text-[16px] md:text-[18px] leading-[24px] tracking-[0.15px] font-medium">
+                      {faq.question}
+                    </span>
+                  </div>
+                  <span className="text-[#222222] text-[24px] font-medium flex-shrink-0 leading-[24px]">
+                    {isOpen ? '−' : '+'}
+                  </span>
+                </button>
+                <div
+                  className={`md:pl-6 pl-[28px] pr-6 md:pr-0 text-[#222222] text-[14px] md:text-[16px] leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] overflow-hidden transition-all ${
+                    isOpen ? 'max-h-[500px] mt-2' : 'max-h-0'
+                  }`}
+                >
+                  {faq.answer}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Section 渲染器
 const renderSection = (section: BookSection, index: number) => {
   switch (section.type) {
@@ -1074,6 +1125,8 @@ const renderSection = (section: BookSection, index: number) => {
       return <ChristmasWonderSection key={index} section={section} />;
     case 'dreamaze-special':
       return <DreamazeSpecialSection key={index} section={section} />;
+    case 'faq':
+      return <FAQSection key={index} section={section} />;
     case 'custom':
       // 如果有自定义渲染函数，使用它
       if (section.render) {

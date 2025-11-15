@@ -2,7 +2,7 @@ import React from 'react';
 
 // 定义书籍section的类型
 export interface BookSection {
-  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'meet-author' | 'tips' | 'custom' | 'christmas-wonder' | 'personalization-power' | 'dreamaze-special'; // section类型，可以扩展
+  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'meet-author' | 'tips' | 'custom' | 'christmas-wonder' | 'personalization-power' | 'dreamaze-special' | 'faq'; // section类型，可以扩展
   title?: string; // section标题
   content?: string; // section内容
   description?: string; // section描述文字
@@ -66,6 +66,8 @@ export interface BookSection {
     author: string; // 作者姓名和城市
     avatar?: string; // 头像URL（可选）
   }>;
+  // FAQ 专用字段
+  faqs?: BookFAQ[]; // FAQ列表
 }
 
 // 定义书籍规格的类型
@@ -414,6 +416,57 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
             text: "As a gift, this was unbeatable. My niece immediately recognized herself and carried the book everywhere. It made her feel so special.",
             author: 'Claire, Los Angeles',
           }
+        ],
+      },
+      {
+        type: 'toddler-favorites',
+        title: 'Celebrate birthdays with courage.',
+        description: 'Mark each milestone with joy and courage.',
+        className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
+        bundleImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/bundle.png',
+        bundleImageMobile: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/bundle-mobile.png',
+        books: [
+          {
+            title: 'Goodnight to You',
+            subtitle: 'Gentle bedtime routine',
+            coverImage: '',
+            price: '$12.2',
+            backgroundColor: '#4A90E2',
+            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_1.png',
+          },
+          {
+            title: "You're Brave in Many Ways",
+            subtitle: 'Everyday courage',
+            coverImage: '',
+            price: '$4.2',
+            backgroundColor: '#FFD700',
+            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_2.png',
+          },
+          {
+            title: 'Birthday Book for You',
+            subtitle: 'Special day keepsake',
+            coverImage: '',
+            price: '$8.5',
+            backgroundColor: '#FF6B6B',
+            backgroundImage: '',
+          },
+        ],
+        originalPrice: '$25.0',
+        discountedPrice: '$19.9',
+        buttonText: 'add bundle to bag',
+      },
+      {
+        type: 'faq',
+        title: 'FAQ for Birthday Book for You',
+        faqs: [
+          {
+            question: 'What can I personalize in the Birthday Book?',
+            answer: 'Your child\'s name, photo, birthday, and personality traits appear throughout the story.',
+          },
+          {
+            question: 'How can I make the book feel even more personalized?',
+            answer: 'Add a dedication on the first page, include the gift giver\'s name, or even a special photo.',
+          },
         ],
       },
     ],
