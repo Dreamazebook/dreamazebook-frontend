@@ -7,6 +7,7 @@ import AddressForm from "./AddressForm";
 import AddressCard from "../../components/address/AddressCard";
 import useUserStore from "@/stores/userStore";
 import NextStepButton from "./NextStepButton";
+import { Link } from "@/i18n/routing";
 
 interface ShippingFormProps {
   address: Address;
@@ -35,7 +36,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   showShippingForm,
   setShowShippingForm,
 }) => {
-  const { fetchCountryList } = useUserStore();
+  const { fetchCountryList, fetchAddresses } = useUserStore();
 
   // const [showBillingForm, setShowBillingForm] = useState(false);
 
@@ -70,6 +71,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
           className={`cursor-pointer text-[#012CCE]`}
           onClick={() => {
             setShowShippingForm(false);
+            fetchAddresses();
             setShowAddressListModal(true);
           }}
         >
@@ -141,7 +143,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
 
       <div className="mt-4 flex flex-col justify-center">
         <p className="mb-2 text-center text-[#666]">
-          By clicking Continue, you agree to our <a className="text-primary">terms & conditions</a> and <a className="text-primary">privacy policy</a>
+          By clicking Continue, you agree to our <Link href={'/terms-and-conditions'} className="text-primary">terms & conditions</Link> and <Link target="_blank" href='/privacy-policy' className="text-primary">privacy policy</Link>
         </p>
 
         <NextStepButton

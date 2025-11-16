@@ -84,8 +84,8 @@ const useUserStore = create<UserState>((set,get) => ({
 
   orderList: [],
   fetchOrderList: async (options?: any) => {
-    const refresh = options?.refresh;
-    if (!refresh && get().orderList.length > 0) return;
+    // const refresh = options?.refresh;
+    // if (!refresh && get().orderList.length > 0) return;
     try {
       const response = await api.get<ApiResponse<OrderDetail[]>>(API_ORDER_LIST);
       if (response.success && response.data) {

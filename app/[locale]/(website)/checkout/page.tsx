@@ -9,7 +9,6 @@ import ShippingForm from './components/ShippingForm';
 import DeliveryOptions from './components/DeliveryOptions';
 import ReviewAndPay from './components/ReviewAndPay';
 import OrderSummary from './components/OrderSummary';
-import useUserStore from '@/stores/userStore';
 import AddressCardListModal from './components/AddressCardListModal';
 import { useOrderDetail } from './hooks/useOrderDetail';
 import { useCheckoutSteps } from './hooks/useCheckoutSteps';
@@ -18,7 +17,6 @@ import { useShippingMethod } from './hooks/useShippingMethod';
 import { CheckoutProvider } from './context/CheckoutContext';
 
 function CheckoutPageContent() {
-  const { addresses, fetchAddresses } = useUserStore();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
   const paymentMethod = searchParams.get('paymentMethod') || 'card';
@@ -42,10 +40,6 @@ function CheckoutPageContent() {
   } = useShippingAddress(orderId);
   
   const { updateOrderShippingMethod, isLoading: isShippingMethodLoading } = useShippingMethod(orderId);
-
-  useEffect(() => {
-    fetchAddresses();
-  }, [fetchAddresses]);
 
   useEffect(() => {
     if (orderDetail) {
@@ -119,13 +113,13 @@ function CheckoutPageContent() {
   return (
     <div className="bg-gray-100 min-h-screen py-8">
       <Loading isLoading={isOrderLoading||isAddressLoading||isShippingMethodLoading} />
-      <div className="container mx-auto px-4">
+      <div className="max-w-5xl mx-auto px-4">
         <h1 className="text-2xl font-bold mb-8 text-center">Checkout</h1>
         {error && <div className="text-center text-red-500 py-4">{error}</div>}
 
-        {showAddressListModal && <AddressCardListModal handleClickAddress={handleClickAddress} handleEditAddress={handleEditAddress} handleCloseModal={() => setShowAddressListModal(false)} addressList={addresses} />}
+        {showAddressListModal && <AddressCardListModal handleClickAddress={handleClickAddress} handleEditAddress={handleEditAddress} handleCloseModal={() => setShowAddressListModal(false)} />}
         
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-4">
           <div className="lg:w-2/3">
             {/* Step 1: Shipping Information */}
             <CheckoutStep

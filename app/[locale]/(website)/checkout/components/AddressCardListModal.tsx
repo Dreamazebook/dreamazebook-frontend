@@ -4,20 +4,20 @@ import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Address } from '@/types/address';
 import AddressCardList from '../../components/address/AddressCardList';
+import useUserStore from '@/stores/userStore';
 
 interface AddressCardListModalProps {
-  addressList: Address[];
   handleCloseModal?: () => void;
   handleEditAddress?: (address: Address) => void;
   handleClickAddress?: (address: Address) => void;
 }
 
 const AddressCardListModal: React.FC<AddressCardListModalProps> = ({
-  addressList,
   handleCloseModal,
   handleEditAddress,
   handleClickAddress,
 }) => {
+  const {addresses} = useUserStore();
   // Prevent body scroll when modal is open
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -79,7 +79,7 @@ const AddressCardListModal: React.FC<AddressCardListModalProps> = ({
               className="flex-1 overflow-y-auto"
             >
               <AddressCardList
-                addressList={addressList}
+                addressList={addresses}
                 handleClickAddress={handleClickAddress}
                 handleEditAddress={handleEditAddress}
               />

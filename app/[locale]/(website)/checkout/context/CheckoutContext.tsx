@@ -13,9 +13,7 @@ interface CheckoutContextType {
   
   // Address suggestions
   shippingAddressSuggestions: any[];
-  billingAddressSuggestions: any[];
   setShippingAddressSuggestions: (suggestions: any[]) => void;
-  setBillingAddressSuggestions: (suggestions: any[]) => void;
   
   // Loading states
   isSubmitting: boolean;
@@ -25,7 +23,6 @@ interface CheckoutContextType {
   
   // Validation methods
   validateShippingAddress: (address: Address) => boolean;
-  validateBillingAddress: (address: Address) => boolean;
   clearAllErrors: () => void;
 }
 
@@ -42,7 +39,6 @@ export const CheckoutProvider: React.FC<CheckoutProviderProps> = ({ children }) 
   
   // Address suggestions
   const [shippingAddressSuggestions, setShippingAddressSuggestions] = useState<any[]>([]);
-  const [billingAddressSuggestions, setBillingAddressSuggestions] = useState<any[]>([]);
   
   // Loading states
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,25 +64,6 @@ export const CheckoutProvider: React.FC<CheckoutProviderProps> = ({ children }) 
     return Object.keys(newErrors).length === 0;
   };
 
-  const validateBillingAddress = (address: Address): boolean => {
-    const requiredFields = ['first_name', 'last_name', 'email', 'street', 'city', 'post_code', 'country', 'state', 'phone'];
-    const newErrors: ShippingErrors = {};
-    
-    requiredFields.forEach(field => {
-      if (!address[field as keyof Address]) {
-        newErrors[field as keyof ShippingErrors] = `${field.replace('_', ' ')} is required`;
-      }
-    });
-    
-    // Email validation
-    if (address.email && !/\S+@\S+\.\S+/.test(address.email)) {
-      newErrors.email = 'Invalid email address';
-    }
-    
-    setBillingErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const clearAllErrors = () => {
     setShippingErrors({});
     setBillingErrors({});
@@ -101,9 +78,7 @@ export const CheckoutProvider: React.FC<CheckoutProviderProps> = ({ children }) 
     
     // Address suggestions
     shippingAddressSuggestions,
-    billingAddressSuggestions,
     setShippingAddressSuggestions,
-    setBillingAddressSuggestions,
     
     // Loading states
     isSubmitting,
@@ -113,7 +88,6 @@ export const CheckoutProvider: React.FC<CheckoutProviderProps> = ({ children }) 
     
     // Validation methods
     validateShippingAddress,
-    validateBillingAddress,
     clearAllErrors,
   };
 

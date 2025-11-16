@@ -46,7 +46,7 @@ export default function FormField({
         <select
           id={id}
           required={required}
-          className={`w-full p-2 border rounded-md ${error ? 'border-red-500' : 'border-gray-300'}`}
+          className={`w-full p-2 border rounded ${error ? 'border-red-500' : 'border-gray-300'}`}
           value={String(value ?? '')}
           onChange={onChange as any}
           onBlur={onBlur}
@@ -62,7 +62,7 @@ export default function FormField({
         <textarea
           id={id}
           required={required}
-          className={`w-full p-2 border rounded-md ${error ? 'border-red-500' : 'border-gray-300'}`}
+          className={`w-full p-2 border rounded ${error ? 'border-red-500' : 'border-gray-300'}`}
           value={String(value ?? '')}
           onChange={onChange as any}
           onBlur={onBlur}
@@ -87,7 +87,7 @@ export default function FormField({
           id={id}
           type={type}
           required={required}
-          className={`w-full p-2 border rounded-md ${error ? 'border-red-500' : 'border-gray-300'}`}
+          className={`w-full p-2 border rounded ${error ? 'border-red-500' : 'border-gray-300'}`}
           value={String(value ?? '')}
           onChange={onChange as any}
           onBlur={onBlur}
