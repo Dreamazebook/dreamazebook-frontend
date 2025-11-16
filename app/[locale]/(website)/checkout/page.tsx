@@ -15,8 +15,9 @@ import { useOrderDetail } from './hooks/useOrderDetail';
 import { useCheckoutSteps } from './hooks/useCheckoutSteps';
 import { useShippingAddress } from './hooks/useShippingAddress';
 import { useShippingMethod } from './hooks/useShippingMethod';
+import { CheckoutProvider } from './context/CheckoutContext';
 
-export default function CheckoutPage() {
+function CheckoutPageContent() {
   const { addresses, fetchAddresses } = useUserStore();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
@@ -203,5 +204,13 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <CheckoutProvider>
+      <CheckoutPageContent />
+    </CheckoutProvider>
   );
 }
