@@ -93,58 +93,53 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
               <p className="text-gray-500">No result images available</p>
             </div>
           ) : (
-            <>
-              {viewMode === 'grid' ? (
-                <div className="grid grid-cols-4 gap-4">
-                  {images.map((image, index) => (
-                    <div key={index} className="bg-gray-50 rounded-lg overflow-hidden">
-                      <div className="relative aspect-[2/1]">
-                        <Image
-                          src={image.final_image_url || '/placeholder-image.png'}
-                          alt={`Page ${image.page_code}`}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      </div>
-                      <div className="p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-900">
-                            Page: {image.page_code}
-                          </span>
-                        </div>
-                      </div>
+            <div className={viewMode === 'grid' ? 'grid grid-cols-3 gap-4' : 'space-y-4'}>
+              {images.map((image, index) => (
+                <div 
+                  key={index} 
+                  className={`
+                    rounded-lg overflow-hidden
+                    ${viewMode === 'grid' 
+                      ? 'bg-gray-50' 
+                      : 'bg-white border border-gray-200'
+                    }
+                  `}
+                >
+                  <div 
+                    className={`
+                      relative
+                      ${viewMode === 'grid' 
+                        ? 'aspect-[2/1]' 
+                        : 'w-full'
+                      }
+                    `}
+                    style={viewMode === 'full' ? { paddingBottom: '56.25%' } : {}}
+                  >
+                    <Image
+                      src={image.final_image_url || '/placeholder-image.png'}
+                      alt={`Page ${image.page_code}`}
+                      fill
+                      className={viewMode === 'grid' ? 'object-cover' : 'object-contain'}
+                      unoptimized
+                    />
+                  </div>
+                  <div className={`
+                    ${viewMode === 'grid' ? 'p-3' : 'p-4 bg-gray-50 border-t border-gray-200'}
+                  `}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-900">
+                        Page: {image.page_code}
+                      </span>
+                      {viewMode === 'full' && (
+                        <span className="text-xs text-gray-500">
+                          Image {index + 1} of {images.length}
+                        </span>
+                      )}
                     </div>
-                  ))}
+                  </div>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {images.map((image, index) => (
-                    <div key={index} className="bg-white rounded-lg overflow-hidden border border-gray-200">
-                      <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                        <Image
-                          src={image.final_image_url || '/placeholder-image.png'}
-                          alt={`Page ${image.page_code}`}
-                          fill
-                          className="object-contain"
-                          unoptimized
-                        />
-                      </div>
-                      <div className="p-4 bg-gray-50 border-t border-gray-200">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-900">
-                            Page: {image.page_code}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            Image {index + 1} of {images.length}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
+              ))}
+            </div>
           )}
         </div>
       </div>
