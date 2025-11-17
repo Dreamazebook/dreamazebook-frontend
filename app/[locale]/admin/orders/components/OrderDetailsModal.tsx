@@ -7,7 +7,7 @@ import OrderAddressInfo from "./OrderDetails/OrderAddressInfo";
 import OrderShippingInfo from "./OrderDetails/OrderShippingInfo";
 import OrderPaymentInfo from "./OrderDetails/OrderPaymentInfo";
 import OrderTimeline from "./OrderDetails/OrderTimeline";
-import { OrderDetail } from '@/app/[locale]/(website)/checkout/components/types';
+import { OrderDetail } from '@/types/order';
 
 interface OrderDetailsModalProps {
   orderDetail: OrderDetail;

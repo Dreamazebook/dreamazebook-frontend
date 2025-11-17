@@ -1,4 +1,4 @@
-import { OrderDetail } from "../../checkout/components/types";
+import { OrderDetail } from "@/types/order";
 import DisplayPrice from "./DisplayPrice";
 
 interface OrderSummaryPricesProps {

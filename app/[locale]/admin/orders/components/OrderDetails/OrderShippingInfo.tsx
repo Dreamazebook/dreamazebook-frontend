@@ -1,6 +1,6 @@
 'use client';
 
-import { OrderDetail, ShippingOption } from '@/app/[locale]/(website)/checkout/components/types';
+import { OrderDetail, ShippingOption } from '@/types/order';
 import DisplayPrice from '@/app/[locale]/(website)/components/component/DisplayPrice';
 
 interface OrderShippingInfoProps {

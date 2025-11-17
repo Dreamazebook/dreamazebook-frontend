@@ -1,6 +1,6 @@
 'use client';
 
-import { OrderDetail } from '@/app/[locale]/(website)/checkout/components/types';
+import { OrderDetail } from '@/types/order';
 import { API_ADMIN_ORDERS } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
 import api from '@/utils/api';

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import api from '@/utils/api';
 import { API_ADMIN_ORDERS } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
-import { OrderDetail } from '@/app/[locale]/(website)/checkout/components/types';
+import { OrderDetail } from '@/types/order';
 
 export const useOrdersData = (filters: any) => {
   const [orders, setOrders] = useState<OrderDetail[]>([]);

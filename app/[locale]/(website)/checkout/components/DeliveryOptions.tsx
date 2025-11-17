@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import {OrderDetail, ShippingOption } from './types';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
 import { API_ORDER_SHIPPING_METHODS } from '@/constants/api';
 import DisplayPrice from '../../components/component/DisplayPrice';
 import NextStepButton from './NextStepButton';
+import { OrderDetail, ShippingOption } from '@/types/order';
 
 interface DeliveryOptionsProps {
   orderDetail: OrderDetail;

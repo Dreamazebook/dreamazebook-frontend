@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from '@/i18n/routing';
 import api from '@/utils/api';
 import { API_ORDER_DETAIL, API_ORDER_STRIPE_PAID } from '@/constants/api';
-import { OrderDetail } from '../components/types';
 import { ApiResponse } from '@/types/api';
 import { Address } from '@/types/address';
 import { ORDER_SUMMARY_URL } from '@/constants/links';
+import { OrderDetail } from '@/types/order';
 
 export const useOrderDetail = (orderId: string | null) => {
   const router = useRouter();

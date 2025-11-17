@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { BillingErrors } from './types';
 import Input from '@/app/components/common/Input';
+import { BillingErrors } from '@/types/order';
 
 interface BillingAddressFormProps {
   billingEmail: string;

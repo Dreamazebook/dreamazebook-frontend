@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { OrderDetail, ShippingErrors } from "./types";
 import { Address, EMPTY_ADDRESS } from "@/types/address";
 import AddressForm from "./AddressForm";
 import AddressCard from "../../components/address/AddressCard";
 import useUserStore from "@/stores/userStore";
 import NextStepButton from "./NextStepButton";
 import { Link } from "@/i18n/routing";
+import { OrderDetail } from '@/types/order';
 
 interface ShippingFormProps {
   address: Address;

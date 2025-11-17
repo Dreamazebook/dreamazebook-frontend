@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Address } from '@/types/address';
-import { ShippingErrors } from '../components/types';
+import { ShippingErrors } from '@/types/order';
 
 interface CheckoutContextType {
   // Address validation states

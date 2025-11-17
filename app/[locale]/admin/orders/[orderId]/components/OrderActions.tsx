@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, useState } from 'react';
-import { OrderDetail } from '../../../../(website)/checkout/components/types';
+import { OrderDetail } from '@/types/order';
 
 interface OrderActionsProps {
   order: OrderDetail;

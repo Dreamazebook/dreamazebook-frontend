@@ -1,6 +1,6 @@
 'use client';
 
-import { formatDate, OrderDetail } from '@/app/[locale]/(website)/checkout/components/types';
+import { formatDate, OrderDetail } from '@/types/order';
 
 interface OrderBasicInfoProps {
   order: OrderDetail;

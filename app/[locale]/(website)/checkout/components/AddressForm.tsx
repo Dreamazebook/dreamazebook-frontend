@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { ShippingErrors } from './types';
 import { Address } from '@/types/address';
 import FormField from './FormField';
 import useUserStore from '@/stores/userStore';
+import { ShippingErrors } from '@/types/order';
 
 const PUBLIC_MAPBOX_API_KEY = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
 

@@ -2,7 +2,7 @@
 
 import { FC } from 'react';
 import Image from 'next/image';
-import { OrderDetail } from '../../../../(website)/checkout/components/types';
+import { OrderDetail } from '@/types/order';
 import { formatCurrency } from '../../utils';
 import ResultImagesModal from './ResultImagesModal';
 import DisplayPrice from '@/app/[locale]/(website)/components/component/DisplayPrice';

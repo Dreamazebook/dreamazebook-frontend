@@ -1,5 +1,5 @@
 import { formatAddress } from "@/types/address";
-import { OrderDetail } from "../../../checkout/components/types";
+import { OrderDetail } from "@/types/order";
 import DisplayPrice from "../../../components/component/DisplayPrice";
 import { formatDate } from "@/app/[locale]/admin/orders/utils";
 import { Link } from "@/i18n/routing";

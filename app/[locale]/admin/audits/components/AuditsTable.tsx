@@ -3,7 +3,7 @@
 import { FC, useState } from 'react';
 import Image from 'next/image';
 import React from 'react';
-import { OrderDetail } from '@/app/[locale]/(website)/checkout/components/types';
+import { OrderDetail } from '@/types/order';
 import { Link } from '@/i18n/routing';
 
 interface AuditsTableProps {

@@ -2,7 +2,7 @@
 
 import { FC, useState } from 'react';
 import Image from 'next/image';
-import { ResultImage } from '../../../../(website)/checkout/components/types';
+import { ResultImage } from '@/types/order';
 import { useOrderDetail } from '../context/OrderDetailContext';
 
 interface ResultImagesModalProps {

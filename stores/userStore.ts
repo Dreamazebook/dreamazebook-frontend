@@ -3,7 +3,7 @@ import api from '@/utils/api'
 import { ApiResponse, UserResponse } from '@/types/api'
 import { create } from 'zustand'
 import { Address } from '@/types/address'
-import { OrderDetail } from '@/app/[locale]/(website)/checkout/components/types'
+import { OrderDetail } from '@/types/order'
 
 interface UserState {
   // Modal state

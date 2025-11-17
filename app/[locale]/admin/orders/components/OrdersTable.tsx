@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, useState, useEffect } from 'react';
-import { OrderDetail } from '../../../(website)/checkout/components/types';
+import { OrderDetail } from '@/types/order';
 import { formatDate } from '../utils';
 import { Link } from '@/i18n/routing';
 

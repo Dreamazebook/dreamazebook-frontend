@@ -1,4 +1,4 @@
-import { ResultImage } from "../../checkout/components/types";
+import { ResultImage } from '@/types/order';
 
 export interface LocaleString {
   en: string;

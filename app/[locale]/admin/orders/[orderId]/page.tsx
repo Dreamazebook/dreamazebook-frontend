@@ -2,7 +2,7 @@
 
 import { FC, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { OrderDetail } from '../../../(website)/checkout/components/types';
+import { OrderDetail } from '@/types/order';
 import api from '@/utils/api';
 import { API_ADMIN_ORDER_DETAIL, API_ADMIN_ORDER_DETAIL_MANUAL_CONFIRM, API_ADMIN_ORDERS } from '@/constants/api';
 import { ApiResponse } from '@/types/api';

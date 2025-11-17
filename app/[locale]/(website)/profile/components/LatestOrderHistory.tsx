@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "@/i18n/routing";
-import { OrderDetail } from "../../checkout/components/types";
+import { OrderDetail } from "@/types/order";
 import DisplayPrice from "../../components/component/DisplayPrice";
 import OrderItem from "../../components/component/OrderItem";
 import OrderStatusLabel from "../../components/component/OrderStatusLabel";
