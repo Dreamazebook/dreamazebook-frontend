@@ -193,7 +193,7 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
       });
 
       const newErrors: FormErrors = {};
-      if (!formData.fullName.trim()) newErrors.fullName = 'Please enter the full name';
+      if (!formData.fullName.trim()) newErrors.fullName = 'Please enter the first name';
       if (!formData.gender) newErrors.gender = 'Please select gender';
       if (!formData.skinColor) newErrors.skinColor = 'Please select skin color';
       if (!formData.hairstyle) newErrors.hairstyle = 'Please select hairstyle';

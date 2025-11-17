@@ -223,7 +223,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
 
       const newErrors: FormErrors = {};
       if (validateStep1) {
-        if (!formData.fullName.trim()) newErrors.fullName = 'Please enter the full name';
+        if (!formData.fullName.trim()) newErrors.fullName = 'Please enter the first name';
         if (!formData.gender) newErrors.gender = 'Please select gender';
         if (!formData.skinColor) newErrors.skinColor = 'Please select skin color';
         if (!formData.hairstyle) newErrors.hairstyle = 'Please select hairstyle';

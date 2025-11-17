@@ -317,6 +317,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
     // 为本次绘制生成版本号，如果期间参数变化会触发新的绘制，
     // 旧版本在真正落盘前会被丢弃，避免“叠影/双重头像”问题
     const currentVersion = ++drawVersionRef.current;
+    const isBirthday = bookId === 'PICBOOK_BIRTHDAY';
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -400,9 +401,15 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
         const scale = Math.min(targetW / srcW, targetH / srcH);
         const destW = Math.max(1, Math.round(srcW * scale));
         const destH = Math.max(1, Math.round(srcH * scale));
-        const dx = Math.round((targetW - destW) / 2);
-        const dy = Math.round((targetH - destH) / 2);
-
+        // 默认水平居中
+        let dx = Math.round((targetW - destW) / 2);
+        let dy = Math.round((targetH - destH) / 2);
+        // 仅针对 Birthday 书籍：整体头像向左轻微偏移，让人物更靠近画布左侧
+        if (isBirthday) {
+          dx = Math.round(dx - targetW * 0.25); // 左移约 6% 画布宽度
+          dy = Math.round(dy - targetH * 0.05);
+        }
+        
         // 离屏画布（按目标尺寸绘制，避免拉伸）
         const offscreen = document.createElement('canvas');
         offscreen.width = destW;

@@ -107,7 +107,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
     let next = sanitized;
     if (codePoints.length > 13) {
       next = codePoints.slice(0, 13).join('');
-      if (onErrorChange) onErrorChange('fullName', 'Full name cannot exceed 13 Latin characters.');
+      if (onErrorChange) onErrorChange('fullName', 'First name cannot exceed 13 Latin characters.');
     } else if (sanitized !== raw) {
       if (onErrorChange) onErrorChange('fullName', 'Only Latin letters, space, hyphen and apostrophe are allowed.');
     } else if (onErrorChange && errors.fullName) {
@@ -118,7 +118,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
 
   const handleFullNameBlur = () => {
     if (!data.fullName.trim()) {
-      if (onErrorChange) onErrorChange('fullName', 'Please enter the full name');
+      if (onErrorChange) onErrorChange('fullName', 'Please enter the first name');
     }
   };
 
@@ -194,9 +194,9 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         Customize a look close to your child — we’ll tailor every detail with their photo later.
       </p>
 
-      {/* Full name */}
+      {/* First name */}
       <div id="field-fullName">
-        <label className="block mb-2 font-medium">Full name</label>
+        <label className="block mb-2 font-medium">First name</label>
         <input
           type="text"
           placeholder="please enter..."
