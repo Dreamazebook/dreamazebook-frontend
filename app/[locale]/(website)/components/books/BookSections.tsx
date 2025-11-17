@@ -496,11 +496,11 @@ const PersonalizationPowerSection: React.FC<{ section: BookSection }> = ({ secti
       
       {/* 右侧：图片 - 手机端在下，桌面端在右 */}
       {section.authorImage && (
-        <div className="w-full order-2 md:order-2 md:">
+        <div className="w-full order-2 md:order-2 md:flex md:items-center md:justify-center">
           <img 
             src={section.authorImage} 
             alt="Personalization" 
-            className="w-full md:h-full object-cover"
+            className="w-full md:max-w-[40vw] md:max-h-[440px] md:w-auto md:object-contain"
           />
         </div>
       )}
