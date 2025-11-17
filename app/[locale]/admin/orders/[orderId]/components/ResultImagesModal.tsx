@@ -20,6 +20,7 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
 }) => {
   const [isConfirming, setIsConfirming] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'full'>('grid');
+  const [selectedPageCodes, setSelectedPageCodes] = useState<string[]>([]);
   const { handleManualConfirm } = useOrderDetail();
   
   if (!isOpen) return null;
@@ -33,14 +34,45 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
     }
   };
 
+  const handleImageSelect = (pageCode: string) => {
+    setSelectedPageCodes(prev => 
+      prev.includes(pageCode) 
+        ? prev.filter(code => code !== pageCode)
+        : [...prev, pageCode]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedPageCodes.length === images.length) {
+      setSelectedPageCodes([]);
+    } else {
+      setSelectedPageCodes(images.map(img => img.page_code));
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4">
       <div className="relative w-full h-full max-w-6xl max-h-full bg-white rounded-lg overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">
-            Result Images - {itemName}
-          </h2>
+          <div className="flex items-center space-x-4">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Result Images - {itemName}
+            </h2>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleSelectAll}
+                className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                {selectedPageCodes.length === images.length ? 'Deselect All' : 'Select All'}
+              </button>
+              {selectedPageCodes.length > 0 && (
+                <span className="text-sm text-gray-600">
+                  {selectedPageCodes.length} selected
+                </span>
+              )}
+            </div>
+          </div>
           <div className="flex items-center space-x-2">
             {/* View Mode Toggle */}
             <button
@@ -98,13 +130,23 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                 <div 
                   key={index} 
                   className={`
-                    rounded-lg overflow-hidden
+                    rounded-lg overflow-hidden relative
                     ${viewMode === 'grid' 
                       ? 'bg-gray-50' 
                       : 'bg-white border border-gray-200'
                     }
+                    ${selectedPageCodes.includes(image.page_code) ? 'ring-2 ring-blue-500' : ''}
                   `}
                 >
+                  {/* Selection Checkbox */}
+                  <div className="absolute top-2 left-2 z-10">
+                    <input
+                      type="checkbox"
+                      checked={selectedPageCodes.includes(image.page_code)}
+                      onChange={() => handleImageSelect(image.page_code)}
+                      className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                    />
+                  </div>
                   <div 
                     className={`
                       relative
