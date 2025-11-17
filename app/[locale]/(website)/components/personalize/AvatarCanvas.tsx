@@ -46,6 +46,8 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [containerWidth, setContainerWidth] = useState<number | null>(null);
   const [bgAspect, setBgAspect] = useState<number | null>(null); // width / height
+  // 用于避免异步绘制竞态：只保留最后一次 drawAvatar 的结果
+  const drawVersionRef = useRef(0);
 
   // 加载 page_properties.json，包含多路径尝试与无缓存
   useEffect(() => {
@@ -312,6 +314,10 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
 
   // 绘制avatar
   const drawAvatar = async () => {
+    // 为本次绘制生成版本号，如果期间参数变化会触发新的绘制，
+    // 旧版本在真正落盘前会被丢弃，避免“叠影/双重头像”问题
+    const currentVersion = ++drawVersionRef.current;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     // 动态确定画布尺寸（按容器宽度与背景比例）
@@ -358,6 +364,9 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
 
       // 帮助函数：将图层绘制到离屏画布并应用滤镜后再合成
       const drawLayerWithFilter = async (imgSrcs: string[], filter: any | null, layerName: string) => {
+        // 如果有更新的绘制任务，直接放弃本次图层绘制
+        if (currentVersion !== drawVersionRef.current) return;
+
         console.log(`=== DRAWING ${layerName} ===`);
         console.log('Image candidates:', imgSrcs);
         console.log('Filter to apply:', filter);
@@ -410,6 +419,9 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
         } else {
           console.log(`No filter applied to ${layerName}`);
         }
+
+        // 再次确认版本号，避免旧任务在新任务之后把旧图层画上来
+        if (currentVersion !== drawVersionRef.current) return;
 
         // 合成到主画布（居中摆放）
         ctx.drawImage(offscreen, dx, dy, destW, destH);
