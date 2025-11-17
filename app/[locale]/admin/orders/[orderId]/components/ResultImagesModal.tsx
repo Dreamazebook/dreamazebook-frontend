@@ -19,6 +19,7 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
   itemName,
 }) => {
   const [isConfirming, setIsConfirming] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'full'>('grid');
   const { handleManualConfirm } = useOrderDetail();
   
   if (!isOpen) return null;
@@ -41,6 +42,22 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
             Result Images - {itemName}
           </h2>
           <div className="flex items-center space-x-2">
+            {/* View Mode Toggle */}
+            <button
+              onClick={() => setViewMode(viewMode === 'grid' ? 'full' : 'grid')}
+              className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+              title={`Switch to ${viewMode === 'grid' ? 'full' : 'grid'} view`}
+            >
+              {viewMode === 'grid' ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+              )}
+            </button>
             <button
               onClick={handleConfirm}
               disabled={isConfirming}
@@ -76,28 +93,58 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
               <p className="text-gray-500">No result images available</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4">
-              {images.map((image, index) => (
-                <div key={index} className="bg-gray-50 rounded-lg overflow-hidden">
-                  <div className="relative aspect-[2/1]">
-                    <Image
-                      src={image.final_image_url || '/placeholder-image.png'}
-                      alt={`Page ${image.page_code}`}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  </div>
-                  <div className="p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-900">
-                        Page: {image.page_code}
-                      </span>
+            <>
+              {viewMode === 'grid' ? (
+                <div className="grid grid-cols-4 gap-4">
+                  {images.map((image, index) => (
+                    <div key={index} className="bg-gray-50 rounded-lg overflow-hidden">
+                      <div className="relative aspect-[2/1]">
+                        <Image
+                          src={image.final_image_url || '/placeholder-image.png'}
+                          alt={`Page ${image.page_code}`}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      </div>
+                      <div className="p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-gray-900">
+                            Page: {image.page_code}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              ) : (
+                <div className="space-y-4">
+                  {images.map((image, index) => (
+                    <div key={index} className="bg-white rounded-lg overflow-hidden border border-gray-200">
+                      <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                        <Image
+                          src={image.final_image_url || '/placeholder-image.png'}
+                          alt={`Page ${image.page_code}`}
+                          fill
+                          className="object-contain"
+                          unoptimized
+                        />
+                      </div>
+                      <div className="p-4 bg-gray-50 border-t border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-900">
+                            Page: {image.page_code}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            Image {index + 1} of {images.length}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
