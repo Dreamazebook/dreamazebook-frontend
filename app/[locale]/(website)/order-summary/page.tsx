@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { EMPTY_CART_ITEM, OrderDetail } from '../checkout/components/types';
+import { EMPTY_CART_ITEM, OrderDetail } from '@/types/order';
 import useUserStore from '@/stores/userStore';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';

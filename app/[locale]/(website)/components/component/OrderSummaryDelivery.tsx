@@ -1,5 +1,5 @@
 import { formatAddress } from "@/types/address";
-import { formatDate, OrderDetail } from "../../checkout/components/types";
+import { formatDate, OrderDetail } from "@/types/order";
 
 interface OrderSummaryDeliveryProps {
   orderDetail: OrderDetail;

@@ -3,7 +3,7 @@
 import { API_SHIPPING_ESTIMATE } from '@/constants/api';
 import api from '@/utils/api';
 import React, { useState, useEffect } from 'react';
-import { ShippingOption } from '../checkout/components/types';
+import { ShippingOption } from '@/types/order';
 import { ApiResponse } from '@/types/api';
 import useUserStore from '@/stores/userStore';
 

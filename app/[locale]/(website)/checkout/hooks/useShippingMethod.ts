@@ -2,8 +2,7 @@ import { useState } from 'react';
 import api from '@/utils/api';
 import { API_ORDER_UPDATE_SHIPPING } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
-import { ShippingOption } from '../components/types';
-
+import { ShippingOption } from '@/types/order';
 export const useShippingMethod = (orderId: string | null) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { OrderDetail } from '../../../../(website)/checkout/components/types';
+import { OrderDetail } from '@/types/order';
 import { formatDate } from '../../utils';
 
 interface OrderTimelineProps {

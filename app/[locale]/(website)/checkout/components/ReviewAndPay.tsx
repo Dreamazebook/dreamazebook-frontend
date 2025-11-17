@@ -8,7 +8,7 @@ import {
   useStripe,
   useElements
 } from '@stripe/react-stripe-js';
-import { OrderDetail } from './types';
+import { OrderDetail } from '@/types/order';
 import api from '@/utils/api';
 import { API_ORDER_STRIPE_PAID } from '@/constants/api';
 import { ApiResponse } from '@/types/api';

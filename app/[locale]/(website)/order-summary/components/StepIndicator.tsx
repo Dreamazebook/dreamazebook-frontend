@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import React, { useState } from 'react';
-import { OrderDetail } from '../../checkout/components/types';
+import { OrderDetail } from '@/types/order';
 
 const STATUS_TO_STEP:{[key:string]:number} = {
   "pending": 1,

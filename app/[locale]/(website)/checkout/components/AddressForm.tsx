@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { ShippingErrors } from './types';
 import { Address } from '@/types/address';
 import FormField from './FormField';
 import useUserStore from '@/stores/userStore';
+import { ShippingErrors } from '@/types/order';
 
 const PUBLIC_MAPBOX_API_KEY = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
 
@@ -20,7 +20,7 @@ const AddressSuggestions: React.FC<AddressSuggestionsProps> = ({
   if (!addressSuggestions || addressSuggestions.length === 0) return null;
 
   return (
-    <div className="mt-2 bg-white border border-gray-300 rounded-md">
+    <div className="bg-white border border-gray-300 rounded">
       {addressSuggestions.map((suggestion, index) => (
         <div
           key={index}
@@ -171,7 +171,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
         <span className='text-[16px] text-[#999]'>We will confirm the final effect of the book with you and update you on the status of your order</span>
       </FormField>
 
-      <div className="grid grid-cols-2 gap-4">
           <FormField
           id="first_name"
           label="First Name"
@@ -201,9 +200,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
           error={errors.last_name}
           placeholder="Enter your last name"
         />
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
         <FormField
           id="country"
           label="Country"
@@ -220,22 +217,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
             countryList
           }
         />
-
-        <FormField
-          id="state"
-          label="State / Province"
-          type="text"
-          required
-          value={address.state}
-          onChange={(e) => {
-            setAddress((prev) => ({ ...prev, state: e.target.value }));
-            clearError('state');
-          }}
-          onBlur={() => validateShippingInfo('state')}
-          error={errors.state}
-          placeholder="Enter your state or province"
-        />
-      </div>
 
       <FormField
         id="address"
@@ -260,7 +241,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
         />
       )}
 
-      <div className="grid grid-cols-2 gap-4">
         <FormField
           id="city"
           label="City"
@@ -290,7 +270,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
           error={errors.post_code}
           placeholder="Enter your postal code"
         />
-      </div>
 
       <FormField
         id="phone"

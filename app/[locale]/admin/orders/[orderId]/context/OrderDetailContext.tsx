@@ -1,6 +1,6 @@
 'use client';
 
-import { OrderDetail } from '@/app/[locale]/(website)/checkout/components/types';
+import { OrderDetail } from '@/types/order';
 import { createContext, useContext, ReactNode, useState } from 'react';
 
 interface OrderDetailContextType {

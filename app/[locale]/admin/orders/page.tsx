@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, useEffect, useState } from 'react';
-import { OrderDetail } from '../../(website)/checkout/components/types';
+import { OrderDetail } from '@/types/order';
 import OrderDetailsModal from './components/OrderDetailsModal';
 import OrdersHeader from './components/OrdersHeader';
 import OrdersStatistics from './components/OrdersStatistics';

@@ -1,7 +1,7 @@
 'use client';
 
 import { FC } from 'react';
-import { OrderDetail } from '../../../../(website)/checkout/components/types';
+import { OrderDetail } from '@/types/order';
 import { formatCurrency, formatDate } from '../../utils';
 import DisplayPrice from '@/app/[locale]/(website)/components/component/DisplayPrice';
 

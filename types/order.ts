@@ -1,5 +1,5 @@
 import { Address } from "@/types/address";
-import { CartItem } from "../../shopping-cart/components/types";
+import { CartItem } from "../app/[locale]/(website)/shopping-cart/components/types";
 
 export function formatDate(date: string) {
   return date.split('T')[0];
@@ -12,7 +12,7 @@ export interface OrderDetail {
     id: string,
     name: string,
     email: string
-  },
+  };
   order_number: string;
   total_amount: number;
   currency_code: string;
@@ -39,7 +39,20 @@ export interface OrderDetail {
   items:CartItem[];
   shipping_options: {
     options: ShippingOption[];
-  }  
+  };
+  logistics_data?: {
+    print_pdf?: {
+      files: Array<{
+        id: number;
+        name: string;
+        url: string;
+        size: number;
+        type: string;
+      }>;
+      status: string;
+      completed_at: string;
+    };
+  };
 }
 
 export const EMPTY_CART_ITEM = {
@@ -60,16 +73,6 @@ export const EMPTY_CART_ITEM = {
 }
 
 export interface ResultImage {
-  // page_id: number;
-  // page_number: number;
-  // result: {
-  //   low_res_url: string;
-  //   high_res_url: string;
-  //   standard_url: string;
-  // };
-  // result_image_url: string;
-  // reused: boolean;
-  // variant_id: number;
   final_image_path: string;
   final_image_url: string;
   item_id: number;

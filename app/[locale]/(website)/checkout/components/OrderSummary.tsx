@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { OrderDetail } from './types';
+import { OrderDetail } from '@/types/order';
 import DisplayPrice from '../../components/component/DisplayPrice';
 import OrderSummaryPrices from '../../components/component/OrderSummaryPrices';
 import CouponInput from '../../shopping-cart/components/CouponInput';
