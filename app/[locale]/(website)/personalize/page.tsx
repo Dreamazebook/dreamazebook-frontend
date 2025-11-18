@@ -347,8 +347,6 @@ export default function PersonalizeApiDrivenPage() {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-
   return (
     <div className="min-h-screen bg-[#F8F8F8]">
       <div className="h-14 bg-white flex items-center px-4 sm:px-32">
