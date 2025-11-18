@@ -179,7 +179,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   return (
     <div className="flex flex-col gap-3">
       {/* 预览图 */}
-      <div className="flex justify-center -mt-6 -mb-6 md:-mt-0 md:-mb-0">
+      <div className="flex justify-center -mt-6 -mb-6 md:-mt-0 md:-mb-0 w-full overflow-hidden">
         <AvatarCanvas
           bookId={bookId}
           skinColor={data.skinColor || '#FFE2CF'}
