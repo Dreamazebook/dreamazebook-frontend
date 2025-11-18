@@ -177,26 +177,26 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   // };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-3">
       {/* 预览图 */}
-                   <div className="flex justify-center mb-1">
-             <AvatarCanvas
-                 bookId={bookId}
-                 skinColor={data.skinColor || '#FFE2CF'}
-                 hairstyle={data.hairstyle || 'hair_1'}
-                 hairColor={data.hairColor || 'light'}
-                 gender={data.gender}
-                 width={900}
-                 height={375}
-               />
-             </div>
-      <p className="text-center text-gray-500 mb-8">
-        Customize a look close to your child — we’ll tailor every detail with their photo later.
+      <div className="flex justify-center -mt-6 -mb-6 md:-mt-0 md:-mb-0">
+        <AvatarCanvas
+          bookId={bookId}
+          skinColor={data.skinColor || '#FFE2CF'}
+          hairstyle={data.hairstyle || 'hair_1'}
+          hairColor={data.hairColor || 'light'}
+          gender={data.gender}
+          width={900}
+          height={375}
+        />
+      </div>
+      <p className="text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[#999999]">
+        Customize a look close to your child — we'll tailor every detail with their photo later.
       </p>
 
       {/* First name */}
       <div id="field-fullName">
-        <label className="block mb-2 font-medium">First name</label>
+        <label className="block font-medium">First name</label>
         <input
           type="text"
           placeholder="please enter..."

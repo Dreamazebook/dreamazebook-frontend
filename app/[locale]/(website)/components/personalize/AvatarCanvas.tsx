@@ -540,8 +540,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       ref={canvasRef}
       width={width}
       height={height}
-      className="rounded-lg"
-      style={{ width: 'auto', height: '200px', display: 'block' }}
+      className="rounded-lg h-[180px] md:h-[220px] w-auto block m-0"
     />
   );
 };
