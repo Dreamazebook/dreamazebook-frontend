@@ -36,8 +36,14 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 		? hairStyleValues.map(v => `hair_${v}`)
 		: ['hair_1','hair_2','hair_3','hair_4'];
 
+  // 规范化 bookId：将 PICBOOK_GOODNIGHT3 统一视为 PICBOOK_GOODNIGHT
+  const normalizeBookId = (id: string): string => {
+    return id === 'PICBOOK_GOODNIGHT3' ? 'PICBOOK_GOODNIGHT' : id;
+  };
+  
   // 优先用当前书籍 id 对应的公共资源，如不存在则回退到指定 spu 资源
-  const primaryBase = `/products/picbooks/${bookId}/avatar`;
+  const normalizedBookId = normalizeBookId(bookId);
+  const primaryBase = `/products/picbooks/${normalizedBookId}/avatar`;
   const fallbackBase = `/products/picbooks/${assetSpuCode || 'PICBOOK_GOODNIGHT'}/avatar`;
   const hairstyles = ids.map(id => {
     const number = id.replace('hair_', '');

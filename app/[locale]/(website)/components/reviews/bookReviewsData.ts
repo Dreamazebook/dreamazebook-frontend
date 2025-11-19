@@ -117,49 +117,6 @@ export const BOOK_REVIEWS_DATA: Record<string | number, BookReviewData> = {
       },
     ],
   },
-  // 向后兼容：旧版 ID 指向新版评论数据
-  'PICBOOK_YOUAREBRAVEYINMANYWAYS': {
-    title: "What parents are saying",
-    rating: 5.0,
-    reviewsCount: 23,
-    keywords: [
-      { keyword: "Personalized", count: 6 },
-      { keyword: "Confidence Building", count: 4 },
-      { keyword: "Gift Ready Packaging", count: 3 },
-    ],
-    reviews: [
-      {
-        reviewer_name: "Judith V., London",
-        rating: 5,
-        comment: "This book shows kids that bravery is in the little things.",
-        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/reviews/avatars/judith-london.jpg",
-      },
-      {
-        reviewer_name: "Jason S., New York",
-        rating: 5,
-        comment: "It really helped my four-year-old feel proud of himself.",
-        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/reviews/avatars/jason-new-york.jpg",
-      },
-      {
-        reviewer_name: "Lily I., Halifax",
-        rating: 5,
-        comment: "Perfect for bedtime talks about the brave things we did today.",
-        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/reviews/avatars/lily-halifax.jpg",
-      },
-      {
-        reviewer_name: "George M., Montreal",
-        rating: 5,
-        comment: "My son related to the story right away and felt confident.",
-        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/reviews/avatars/george-montreal.jpg",
-      },
-      {
-        reviewer_name: "Andrina T., California",
-        rating: 5,
-        comment: "A gentle way to build confidence — we love reading it together.",
-        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/reviews/avatars/andrina-california.jpg",
-      },
-    ],
-  },
   
   // Santa Letter 书籍的评论数据
   'PICBOOK_SANTA': {

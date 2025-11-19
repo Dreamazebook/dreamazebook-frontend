@@ -32,6 +32,11 @@ interface PageProperties {
   };
 }
 
+// 规范化 bookId：将 PICBOOK_GOODNIGHT3 统一视为 PICBOOK_GOODNIGHT
+const normalizeBookId = (id: string): string => {
+  return id === 'PICBOOK_GOODNIGHT3' ? 'PICBOOK_GOODNIGHT' : id;
+};
+
 const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
   bookId,
   skinColor,
@@ -42,6 +47,8 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
   height = 203,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // 规范化 bookId，用于构建资源路径
+  const normalizedBookId = normalizeBookId(bookId);
   const [pageProperties, setPageProperties] = useState<PageProperties | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [containerWidth, setContainerWidth] = useState<number | null>(null);
@@ -56,7 +63,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       setIsLoading(true);
       const cacheBuster = `ts=${Date.now()}`;
       const candidatePaths = [
-        `/products/picbooks/${bookId}/avatar/skin_properties.json?${cacheBuster}`,
+        `/products/picbooks/${normalizedBookId}/avatar/skin_properties.json?${cacheBuster}`,
         // 回退为默认 SPU 资源
         `/products/picbooks/PICBOOK_GOODNIGHT/avatar/skin_properties.json?${cacheBuster}`,
       ];
@@ -99,7 +106,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [bookId]);
+  }, [bookId, normalizedBookId]);
 
   // 监听容器宽度，做自适应
   useEffect(() => {
@@ -139,7 +146,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
         } else {
           // 其他书籍：使用原有逻辑
           candidates.push(
-            `/products/picbooks/${bookId}/avatar/layer_background.png?ts=${ts}`,
+            `/products/picbooks/${normalizedBookId}/avatar/layer_background.png?ts=${ts}`,
             `/products/picbooks/PICBOOK_GOODNIGHT/avatar/layer_background.png?ts=${ts}`
           );
         }
@@ -160,7 +167,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
     };
     loadBg();
     return () => { cancelled = true; };
-  }, [bookId, gender]);
+  }, [bookId, gender, normalizedBookId]);
 
   // 标准像素级滤镜处理
   // 复用脚本中的 normalizeNumber 与 applyFilterToImageData
@@ -447,7 +454,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
         } else {
           // 其他书籍：使用原有逻辑
           candidates.push(
-            `/products/picbooks/${bookId}/avatar/layer_background.png?ts=${ts}`,
+            `/products/picbooks/${normalizedBookId}/avatar/layer_background.png?ts=${ts}`,
             `/products/picbooks/PICBOOK_GOODNIGHT/avatar/layer_background.png?ts=${ts}`
           );
         }
@@ -458,8 +465,8 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       {
         const ts = Date.now();
         await drawLayerWithFilter([
-          `/products/picbooks/${bookId}/avatar/layer_skin.png?ts=${ts}`,
-          `/products/picbooks/1/avatar/layer_skin.png?ts=${ts}`,
+          `/products/picbooks/${normalizedBookId}/avatar/layer_skin.png?ts=${ts}`,
+          `/products/picbooks/PICBOOK_GOODNIGHT/avatar/layer_skin.png?ts=${ts}`,
         ], skinFilter, 'SKIN');
       }
 
@@ -467,8 +474,8 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       if (hairstyle) {
         const ts = Date.now();
         await drawLayerWithFilter([
-          `/products/picbooks/${bookId}/avatar/layer_${hairstyle}.png?ts=${ts}`,
-          `/products/picbooks/1/avatar/layer_${hairstyle}.png?ts=${ts}`,
+          `/products/picbooks/${normalizedBookId}/avatar/layer_${hairstyle}.png?ts=${ts}`,
+          `/products/picbooks/PICBOOK_GOODNIGHT/avatar/layer_${hairstyle}.png?ts=${ts}`,
         ], hairFilter, 'HAIR');
       }
 
@@ -476,8 +483,8 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       {
         const ts = Date.now();
         await drawLayerWithFilter([
-          `/products/picbooks/${bookId}/avatar/layer_eyes.png?ts=${ts}`,
-          `/products/picbooks/1/avatar/layer_eyes.png?ts=${ts}`,
+          `/products/picbooks/${normalizedBookId}/avatar/layer_eyes.png?ts=${ts}`,
+          `/products/picbooks/PICBOOK_GOODNIGHT/avatar/layer_eyes.png?ts=${ts}`,
         ], null, 'EYES');
       }
 
@@ -485,8 +492,8 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       {
         const ts = Date.now();
         await drawLayerWithFilter([
-          `/products/picbooks/${bookId}/avatar/layer_pupils.png?ts=${ts}`,
-          `/products/picbooks/1/avatar/layer_pupils.png?ts=${ts}`,
+          `/products/picbooks/${normalizedBookId}/avatar/layer_pupils.png?ts=${ts}`,
+          `/products/picbooks/PICBOOK_GOODNIGHT/avatar/layer_pupils.png?ts=${ts}`,
         ], skinFilter, 'PUPILS');
       }
 
@@ -522,7 +529,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
     if (hasValidParams) {
       drawAvatar();
     }
-  }, [bookId, skinColor, hairstyle, hairColor, gender, pageProperties, isLoading, width, height, containerWidth, bgAspect]);
+  }, [bookId, normalizedBookId, skinColor, hairstyle, hairColor, gender, pageProperties, isLoading, width, height, containerWidth, bgAspect]);
 
   if (isLoading) {
     return (
