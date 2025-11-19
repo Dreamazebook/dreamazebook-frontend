@@ -234,30 +234,28 @@ export default function BooksPage() {
         )}
 
         {/* Best Seller Section - Mobile Only */}
-        {bestSeller && (
+        {false && bestSeller && bestSellerImage && (
           <section className="md:hidden w-full px-4 pt-8 pb-12">
               <div className="flex flex-col items-center gap-6 pt-4">
                 {/* Book Cover Image with Badge */}
                 <div className="relative w-full max-w-[150px]">
                   {/* Book Cover Image */}
                   <div className="relative w-full aspect-[3/4] bg-[#F8F8F8] overflow-hidden">
-                    {bestSellerImage && (
-                      <Image
-                        src={bestSellerImage}
-                        alt="best seller"
-                        fill
-                        className="object-cover"
-                        unoptimized={bestSellerImage.startsWith('http')}
-                        onError={(e) => {
-                          const target = e.currentTarget as HTMLImageElement & { srcset?: string };
-                          if (!target.dataset.fallbackApplied) {
-                            target.dataset.fallbackApplied = '1';
-                            target.src = '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png';
-                            if (target.srcset) target.srcset = '';
-                          }
-                        }}
-                      />
-                    )}
+                    <Image
+                      src={bestSellerImage!}
+                      alt="best seller"
+                      fill
+                      className="object-cover"
+                      unoptimized={bestSellerImage!.startsWith('http')}
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement & { srcset?: string };
+                        if (!target.dataset.fallbackApplied) {
+                          target.dataset.fallbackApplied = '1';
+                          target.src = '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png';
+                          if (target.srcset) target.srcset = '';
+                        }
+                      }}
+                    />
                   </div>
                   {/* Best Seller Badge - positioned at top-right of book cover, outside container */}
                   <div className="absolute top-0 right-0 z-10 transform translate-x-20 -translate-y-8">

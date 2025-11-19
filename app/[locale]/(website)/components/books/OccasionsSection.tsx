@@ -80,7 +80,7 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
           <h2 className="text-[#222222] md:text-[40px] text-[24px] leading-[32px] md:leading-[40px] md:font-medium font-semibold flex-1">
             {title}
           </h2>
-          <p className="text-[#666666] text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] w-[calc((100%-44px)/2)] md:w-[calc((100%-48px)/3)]">
+          <p className="text-[#222222] text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] w-[calc((100%-44px)/2)] md:w-[calc((100%-48px)/3)]">
             {description}
           </p>
         </div>
@@ -132,7 +132,7 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
                     <h3 className="text-[#FFFFFF] font-bold text-[18px] leading-[24px] tracking-[0.15px]">
                       {card.title}
                     </h3>
-                    <p className="text-[#666666] font-normal text-[14px] leading-[20px] tracking-[0.25px] md:text-[#FFFFFF] md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
+                    <p className="text-[#FFFFFF] font-normal text-[14px] leading-[20px] tracking-[0.25px] md:text-[#FFFFFF] md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
                       {card.description}
                     </p>
                   </div>
@@ -273,7 +273,7 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
                     <h3 className="text-[#FFFFFF] font-bold text-[18px] leading-[24px] tracking-[0.15px]">
                       {card.title}
                     </h3>
-                    <p className="text-[#666666] font-normal text-[14px] leading-[20px] tracking-[0.25px] md:text-[#FFFFFF] md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
+                    <p className="text-[#FFFFFF] font-normal text-[14px] leading-[20px] tracking-[0.25px] md:text-[#FFFFFF] md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
                       {card.description}
                     </p>
                   </div>

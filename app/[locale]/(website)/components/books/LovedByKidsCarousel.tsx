@@ -76,7 +76,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
   if (!cards || cards.length === 0) return null;
 
   return (
-    <section className="w-full py-22 bg-white flex flex-col gap-12">
+    <section className="w-full md:py-22 py-16 bg-white flex flex-col md:gap-12 gap-6">
       <div className="gap-12 md:px-30 px-3">
         {/* Section Title */}
         <h2
