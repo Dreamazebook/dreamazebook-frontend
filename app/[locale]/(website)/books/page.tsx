@@ -17,6 +17,14 @@ import SignUpSection from '../components/books/SignUpSection';
 import { Product } from '@/types/product';
 import { getBooks } from '@/services/bookService';
 
+// 书籍名字覆盖配置（与详情页保持一致）
+const BOOK_NAME_OVERRIDES: Record<string, string> = {
+  PICBOOK_GOODNIGHT3: 'Good Night to You',
+  PICBOOK_BRAVEY: "Little One, You're Brave in Many Ways",
+  PICBOOK_BIRTHDAY: 'Birthday Book for You',
+  PICBOOK_SANTA: "Santa's Letter for You",
+};
+
 // 规范化图片地址：
 // - 移除以 /public/ 开头的前缀
 // - 确保本地静态资源以 / 开头
@@ -147,7 +155,9 @@ export default function BooksPage() {
   const bestSeller = sortedBooks.length > 0 ? sortedBooks[0] : null;
   const bestSellerImage: string | null = bestSeller
     ? normalizeImageUrl(
-        (bestSeller as any)?.primary_image ?? (bestSeller as any)?.default_cover ?? '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png'
+        (bestSeller as any)?.primary_image ??
+          (bestSeller as any)?.default_cover ??
+          '/products/picbooks/PICBOOK_GOODNIGHT3/thumb.png'
       )
     : null;
 
@@ -240,8 +250,11 @@ export default function BooksPage() {
                         unoptimized={bestSellerImage.startsWith('http')}
                         onError={(e) => {
                           const target = e.currentTarget as HTMLImageElement & { srcset?: string };
-                          target.src = '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png';
-                          if (target.srcset) target.srcset = '';
+                          if (!target.dataset.fallbackApplied) {
+                            target.dataset.fallbackApplied = '1';
+                            target.src = '/products/picbooks/PICBOOK_GOODNIGHT/thumb.png';
+                            if (target.srcset) target.srcset = '';
+                          }
                         }}
                       />
                     )}
@@ -257,7 +270,11 @@ export default function BooksPage() {
                   <div className="flex flex-col items-center gap-3 w-full">
                     {/* Title */}
                     <h2 className="text-[#222222] text-[24px] font-normal">
-                      {(bestSeller as any)?.name ?? (bestSeller as any)?.default_name ?? 'Bedtime story'}
+                      {(() => {
+                        const idOrCode = (bestSeller as any)?.spu_code ?? (bestSeller as any)?.id ?? (bestSeller as any)?.code ?? '';
+                        const originalName = (bestSeller as any)?.name ?? (bestSeller as any)?.default_name ?? 'Bedtime story';
+                        return BOOK_NAME_OVERRIDES[String(idOrCode)] || originalName;
+                      })()}
                     </h2>
 
                     {/* Description */}
@@ -311,7 +328,7 @@ export default function BooksPage() {
               description: "The book is really talking about me! If anyone says I'm not brave, I'll show them this book — then they'll know what being brave really means!",
               image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/Brave-MOBILE.png',
               imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/Brave.png',
-              bookId: 'PICBOOK_YouAreBraveyInManyWays',
+              bookId: 'PICBOOK_BRAVEY',
             },
             {
               id: '2',
@@ -335,7 +352,7 @@ export default function BooksPage() {
               description: "It's me!! I can fly! Goodnight bear, goodnight cat… they all sleep so well, I'll sleep nicely too.",
               image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/Good-Night-MOBILE.png',
               imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/Good-Night.png',
-              bookId: 'PICBOOK_GOODNIGHT',
+              bookId: 'PICBOOK_GOODNIGHT3',
             },
           ]}
         />

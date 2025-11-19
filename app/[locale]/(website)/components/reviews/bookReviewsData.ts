@@ -22,50 +22,60 @@ export interface BookReviewData {
   keywords?: Keyword[]; // 关键词数组（可选）
 }
 
+const GOODNIGHT_REVIEW_DATA: BookReviewData = {
+  title: "What parents are saying",
+  rating: 5.0, // 平均评分
+  reviewsCount: 137, // 评论总数
+  keywords: [
+    { keyword: "Good quality", count: 12 },
+    { keyword: "my child loves it", count: 28 },
+    { keyword: "beautiful illustration", count: 33 },
+    { keyword: "amazing gift", count: 49 },
+  ],
+  reviews: [
+    {
+      reviewer_name: "Amanda L., California",
+      rating: 5,
+      comment:
+        "My daughter couldn't stop smiling when she saw her own face in the story. She kept asking me to read it again and again—such a special bedtime routine for us now.",
+      pagepic:
+        "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/reviews/avatars/amanda-california.jpg",
+    },
+    {
+      reviewer_name: "Renee M., London",
+      rating: 5,
+      comment:
+        "The quality is amazing—thick pages, beautiful illustrations, and the personalization makes it feel like it was made just for our family. Worth every penny.",
+      pagepic:
+        "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/reviews/avatars/renee-london.jpg",
+    },
+    {
+      reviewer_name: "Amelia K., Paris",
+      rating: 5,
+      comment:
+        "My son was so excited to say goodnight to the animals in the book. He fell asleep hugging it—what more could a mom ask for?",
+      pagepic:
+        "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/reviews/avatars/amelia-paris.jpg",
+    },
+    {
+      reviewer_name: "Elena C.",
+      rating: 5,
+      comment:
+        "This book feels like a keepsake we'll treasure forever. I love that we could add a dedication on the first page—it makes it even more meaningful.",
+      pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/reviews/avatars/elena.jpg",
+    },
+  ],
+};
+
 // 统一存储不同书籍的评论数据
 // 在此文件中更新和管理不同书籍的评论数据
 export const BOOK_REVIEWS_DATA: Record<string | number, BookReviewData> = {
-  // Good Night 书籍的评论数据
-  'PICBOOK_GOODNIGHT': {
-    title: "What parents are saying",
-    rating: 5.0, // 平均评分
-    reviewsCount: 137, // 评论总数
-    keywords: [
-      { keyword: "Good quality", count: 12 },
-      { keyword: "my child loves it", count: 28 },
-      { keyword: "beautiful illustration", count: 33 },
-      { keyword: "amazing gift", count: 49 },
-    ],
-    reviews: [
-      {
-        reviewer_name: "Amanda L., California",
-        rating: 5,
-        comment: "My daughter couldn't stop smiling when she saw her own face in the story. She kept asking me to read it again and again—such a special bedtime routine for us now.",
-        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/reviews/avatars/amanda-california.jpg",
-      },
-      {
-        reviewer_name: "Renee M., London",
-        rating: 5,
-        comment: "The quality is amazing—thick pages, beautiful illustrations, and the personalization makes it feel like it was made just for our family. Worth every penny.",
-        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/reviews/avatars/renee-london.jpg",
-      },
-      {
-        reviewer_name: "Amelia K., Paris",
-        rating: 5,
-        comment: "My son was so excited to say goodnight to the animals in the book. He fell asleep hugging it—what more could a mom ask for?",
-        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/reviews/avatars/amelia-paris.jpg",
-      },
-      {
-        reviewer_name: "Elena C.",
-        rating: 5,
-        comment: "This book feels like a keepsake we'll treasure forever. I love that we could add a dedication on the first page—it makes it even more meaningful.",
-        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/reviews/avatars/elena.jpg",
-      },
-    ],
-  },
+  // Good Night 书籍的评论数据（兼容新版与旧版 ID）
+  'PICBOOK_GOODNIGHT3': GOODNIGHT_REVIEW_DATA,
+  'PICBOOK_GOODNIGHT': GOODNIGHT_REVIEW_DATA,
   
-  // You're Brave in Many Ways 书籍的评论数据
-  'PICBOOK_YOUAREBRAVEYINMANYWAYS': {
+  // You're Brave in Many Ways 书籍的评论数据（兼容新版与旧版 ID）
+  'PICBOOK_BRAVEY': {
     title: "What parents are saying",
     rating: 5.0, // 平均评分
     reviewsCount: 23, // 评论总数
@@ -79,31 +89,74 @@ export const BOOK_REVIEWS_DATA: Record<string | number, BookReviewData> = {
         reviewer_name: "Judith V., London",
         rating: 5,
         comment: "This book shows kids that bravery is in the little things.",
-        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_YOUAREBRAVEYINMANYWAYS/reviews/avatars/judith-london.jpg",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/reviews/avatars/judith-london.jpg",
       },
       {
         reviewer_name: "Jason S., New York",
         rating: 5,
         comment: "It really helped my four-year-old feel proud of himself.",
-        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_YOUAREBRAVEYINMANYWAYS/reviews/avatars/jason-new-york.jpg",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/reviews/avatars/jason-new-york.jpg",
       },
       {
         reviewer_name: "Lily I., Halifax",
         rating: 5,
         comment: "Perfect for bedtime talks about the brave things we did today.",
-        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_YOUAREBRAVEYINMANYWAYS/reviews/avatars/lily-halifax.jpg",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/reviews/avatars/lily-halifax.jpg",
       },
       {
         reviewer_name: "George M., Montreal",
         rating: 5,
         comment: "My son related to the story right away and felt confident.",
-        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_YOUAREBRAVEYINMANYWAYS/reviews/avatars/george-montreal.jpg",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/reviews/avatars/george-montreal.jpg",
       },
       {
         reviewer_name: "Andrina T., California",
         rating: 5,
         comment: "A gentle way to build confidence — we love reading it together.",
-        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_YOUAREBRAVEYINMANYWAYS/reviews/avatars/andrina-california.jpg",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/reviews/avatars/andrina-california.jpg",
+      },
+    ],
+  },
+  // 向后兼容：旧版 ID 指向新版评论数据
+  'PICBOOK_YOUAREBRAVEYINMANYWAYS': {
+    title: "What parents are saying",
+    rating: 5.0,
+    reviewsCount: 23,
+    keywords: [
+      { keyword: "Personalized", count: 6 },
+      { keyword: "Confidence Building", count: 4 },
+      { keyword: "Gift Ready Packaging", count: 3 },
+    ],
+    reviews: [
+      {
+        reviewer_name: "Judith V., London",
+        rating: 5,
+        comment: "This book shows kids that bravery is in the little things.",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/reviews/avatars/judith-london.jpg",
+      },
+      {
+        reviewer_name: "Jason S., New York",
+        rating: 5,
+        comment: "It really helped my four-year-old feel proud of himself.",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/reviews/avatars/jason-new-york.jpg",
+      },
+      {
+        reviewer_name: "Lily I., Halifax",
+        rating: 5,
+        comment: "Perfect for bedtime talks about the brave things we did today.",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/reviews/avatars/lily-halifax.jpg",
+      },
+      {
+        reviewer_name: "George M., Montreal",
+        rating: 5,
+        comment: "My son related to the story right away and felt confident.",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/reviews/avatars/george-montreal.jpg",
+      },
+      {
+        reviewer_name: "Andrina T., California",
+        rating: 5,
+        comment: "A gentle way to build confidence — we love reading it together.",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/reviews/avatars/andrina-california.jpg",
       },
     ],
   },

@@ -90,11 +90,7 @@ export interface BookConfig {
   faqs?: BookFAQ[]; // 该书籍的 FAQ 列表（可选）
 }
 
-// 存储不同书籍的配置
-export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
-  // Good Night 书籍配置
-  'PICBOOK_GOODNIGHT': {
-    id: 'PICBOOK_GOODNIGHT',
+const GOODNIGHT_BASE_CONFIG: Omit<BookConfig, 'id'> = {
     // 如果没有指定 specifications，将使用默认值（从国际化文件读取）
     specifications: [
       { label: 'specifications.size' },
@@ -104,16 +100,19 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
     faqs: [
       {
         question: 'How is the book personalized?',
-        answer: '- Add your child\'s name – on the cover and in every page\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication – printed on the first page\n- Choose from four cover designs\n- Preview selected pages before purchase'
+      answer:
+        "- Add your child's name – on the cover and in every page\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication – printed on the first page\n- Choose from four cover designs\n- Preview selected pages before purchase",
       },
       {
         question: 'Why children love it?',
-        answer: 'In this bedtime adventure, your little one grows magical wings and soars across the world—flying over deserts, oceans, and forests, saying goodnight to animals big and small.\nIt\'s a gentle, imaginative story that helps children drift into sweet dreams while feeling safe, loved, and ready for sleep.'
+      answer:
+        "In this bedtime adventure, your little one grows magical wings and soars across the world—flying over deserts, oceans, and forests, saying goodnight to animals big and small.\nIt's a gentle, imaginative story that helps children drift into sweet dreams while feeling safe, loved, and ready for sleep.",
       },
       {
         question: 'Reading tips for parents',
-        answer: '- Make it part of your bedtime routine – a calm, cozy way to end the day.\n- Pause and ask gentle questions, like "What dream will you have tonight?" or "Where would you like to fly?"\n- Encourage your child to talk with the book-version of themselves and to say goodnight to the animals.\n- Use a soft, soothing voice to create a sense of comfort and help your child drift off peacefully.'
-      }
+      answer:
+        '- Make it part of your bedtime routine – a calm, cozy way to end the day.\n- Pause and ask gentle questions, like "What dream will you have tonight?" or "Where would you like to fly?"\n- Encourage your child to talk with the book-version of themselves and to say goodnight to the animals.\n- Use a soft, soothing voice to create a sense of comfort and help your child drift off peacefully.',
+    },
     ],
     sections: [
       {
@@ -124,7 +123,8 @@ But sometimes, the stories made her too excited to fall asleep.
 I wanted to create a story that gently guides children into dreamland.
 A story that makes them look forward to bedtime, with adventures waiting after they close their eyes.
 Turning sleep into something exciting helps reduce delays and makes nights calmer for everyone.`,
-        backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-behind.jpg',
+      backgroundImage:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-behind.jpg',
         backgroundOverlay: 'linear-gradient(0deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8))',
         className: 'md:h-[408px] md:py-[88px] py-[32px] px-[12px]',
       },
@@ -134,8 +134,10 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
         description: `Make storytime more meaningful with books toddlers love to hear again and again.
  These titles are often chosen together for ages 2–5.`,
         className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
-        bundleImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bundle.png',
-        bundleImageMobile: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bundle-mobile.png',
+      bundleImage:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bundle.png',
+      bundleImageMobile:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bundle-mobile.png',
         books: [
           {
             title: 'Goodnight to You',
@@ -143,7 +145,8 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
             coverImage: '', // 需要添加实际图片URL
             price: '$12.2',
             backgroundColor: '#4A90E2', // 蓝色背景
-            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_1.png',
+          backgroundImage:
+            'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_1.png',
           },
           {
             title: "You're Brave in Many Ways",
@@ -151,7 +154,8 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
             coverImage: '', // 需要添加实际图片URL
             price: '$4.2',
             backgroundColor: '#FFD700', // 黄色背景
-            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_2.png',
+          backgroundImage:
+            'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_2.png',
           },
           {
             title: 'Birthday Book for You',
@@ -159,7 +163,8 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
             coverImage: '', // 需要添加实际图片URL
             price: '$8.5',
             backgroundColor: '#FF6B6B', // 红色背景
-            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_3.png',
+          backgroundImage:
+            'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_3.png',
           },
         ],
         originalPrice: '$25.0',
@@ -174,31 +179,47 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
           {
             title: 'Makes bedtime easier',
             description: 'Kids calm down faster when they see themselves in the story.',
-            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png'
+          backgroundImage:
+            'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png',
           },
           {
             title: 'Builds self-recognition',
             description: 'Like a mirror in story form, helping children feel seen and valued.',
-            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png'
+          backgroundImage:
+            'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png',
           },
           {
             title: 'Strengthens bonding',
             description: 'Creates meaningful parent–child moments you’ll both remember.',
-            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png'
+          backgroundImage:
+            'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png',
           },
           {
             title: 'A keepsake for life',
             description: 'More than a book, it’s a treasure you’ll want to keep forever.',
-            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png'
-          }
-        ]
-      },
-    ],
+          backgroundImage:
+            'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png',
+        },
+      ],
+    },
+  ],
+};
+
+// 存储不同书籍的配置
+export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
+  // Good Night 书籍配置
+  'PICBOOK_GOODNIGHT3': {
+    id: 'PICBOOK_GOODNIGHT3',
+    ...GOODNIGHT_BASE_CONFIG,
+  },
+  'PICBOOK_GOODNIGHT': {
+    id: 'PICBOOK_GOODNIGHT',
+    ...GOODNIGHT_BASE_CONFIG,
   },
   
-  // You're Brave in Many Ways 书籍配置
-  'PICBOOK_YOUAREBRAVEYINMANYWAYS': {
-    id: 'PICBOOK_YOUAREBRAVEYINMANYWAYS',
+  // You're Brave in Many Ways 书籍配置（兼容新版与旧版 ID）
+  'PICBOOK_BRAVEY': {
+    id: 'PICBOOK_BRAVEY',
     specifications: [
       { label: 'Best for ages 3–8' }, // 直接文本
       { label: 'Landscape format' }, // 直接文本
@@ -223,7 +244,7 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
       {
         type: 'meet-author',
         title: 'Meet the Author',
-        authorImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_YOUAREBRAVEYINMANYWAYS/bg-author.jpg',
+        authorImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bg-author.jpg',
         paragraphs: [
           "As a mom, I noticed a stage when my toddler was afraid to try many things. It's a normal part of early childhood development, but telling him \"be brave\" often made him doubt himself even more.",
           "So I wrote this book — to show him that courage is already part of his everyday life, from simple daily acts to new challenges. When he saw himself in the story, he truly believed he was a little warrior.",
@@ -234,8 +255,8 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
         title: 'The Perfect Sibling Gift',
         description: 'For families with one big kid and one little one',
         className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
-        bundleImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_YOUAREBRAVEYINMANYWAYS/bundle.png',
-        bundleImageMobile: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_YOUAREBRAVEYINMANYWAYS/bundle-mobile.png',
+        bundleImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bundle.png',
+        bundleImageMobile: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bundle-mobile.png',
         books: [
           {
             title: 'Your Melody',
@@ -252,6 +273,82 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
             price: '$4.2',
             backgroundColor: '#FFD700', // 黄色背景
             backgroundImage: '', // 需要添加实际图片URL
+          },
+        ],
+        originalPrice: '$25.0',
+        discountedPrice: '$19.9',
+        buttonText: 'add bundle to bag',
+      },
+      {
+        type: 'tips',
+        title: 'Tips to Help Your Child Build Courage',
+        tips: [
+          "Speak as if they're already brave",
+          'Validate their feelings',
+          'Celebrate effort, not just success',
+          'Offer small, safe challenges',
+          'Model courage yourself',
+          'Invite daily bravery stories',
+        ],
+      },
+    ],
+  },
+  // 向后兼容：旧版 ID 指向新版配置
+  'PICBOOK_YOUAREBRAVEYINMANYWAYS': {
+    id: 'PICBOOK_BRAVEY',
+    specifications: [
+      { label: 'Best for ages 3–8' },
+      { label: 'Landscape format' },
+      { label: '34 pages' },
+      { label: 'specifications.delivery' },
+    ],
+    faqs: [
+      {
+        question: 'How is the book personalized?',
+        answer: '- Add your child\'s name – on the cover and in every page\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication – printed on the first page\n- Choose from four cover designs\n- Preview selected pages before purchase'
+      },
+      {
+        question: 'Recommendation',
+        answer: 'This book is more than a story — it\'s a gentle mirror of your child\'s courage.\nFrom everyday challenges to little triumphs, each page celebrates bravery in forms they already know.\nIt\'s a heartfelt way to help children recognize their own strength, build confidence, and carry a quiet reminder: I am brave in many ways.'
+      },
+      {
+        question: 'Reading tips for parents',
+        answer: 'Use the story\'s everyday scenes as a conversation starter: ask your child to share other times they\'ve been brave in real life.\nCelebrate their answers — big or small — to reinforce the message that courage comes in many forms.\nRead during quiet family time or bedtime to create a safe space for reflection and encouragement.\nRepeat the phrase "You\'re brave in many ways" often, planting the seed of self-belief that will grow with your child.'
+      }
+    ],
+    sections: [
+      {
+        type: 'meet-author',
+        title: 'Meet the Author',
+        authorImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bg-author.jpg',
+        paragraphs: [
+          "As a mom, I noticed a stage when my toddler was afraid to try many things. It's a normal part of early childhood development, but telling him \"be brave\" often made him doubt himself even more.",
+          "So I wrote this book — to show him that courage is already part of his everyday life, from simple daily acts to new challenges. When he saw himself in the story, he truly believed he was a little warrior.",
+        ],
+      },
+      {
+        type: 'toddler-favorites',
+        title: 'The Perfect Sibling Gift',
+        description: 'For families with one big kid and one little one',
+        className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
+        bundleImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bundle.png',
+        bundleImageMobile: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bundle-mobile.png',
+        books: [
+          {
+            title: 'Your Melody',
+            subtitle: 'A heartfelt keepsake for babies (0–2)',
+            coverImage: '',
+            price: '$12.2',
+            backgroundColor: '#4A90E2',
+            backgroundImage: '',
+          },
+          {
+            title: "Little One, You're Brave in Many Ways",
+            subtitle: 'A confidence-building story',
+            coverImage: '',
+            price: '$4.2',
+            backgroundColor: '#FFD700',
+            backgroundImage: '',
           },
         ],
         originalPrice: '$25.0',

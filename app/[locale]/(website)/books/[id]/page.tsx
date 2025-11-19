@@ -42,6 +42,58 @@ interface Tag {
   tname: string;
 }
 
+const BOOK_DETAIL_OVERRIDES: Record<
+  string,
+  {
+    name?: string;
+    description?: string;
+    tags?: Tag[];
+  }
+> = {
+  PICBOOK_GOODNIGHT3: {
+    name: 'Good Night to You',
+    description:
+      'Introduce your little one to a world of peaceful dreams with Good Night to You. As they embark on a magical journey after falling asleep, each animal they encounter serves as a gentle reminder of the beauty and calmness of bedtime. This personalized story sparks imagination while creating the perfect, soothing atmosphere for sleep, making it a cherished part of any bedtime routine.',
+    tags: [{ tname: 'Bedtime Story' }, { tname: 'Imaginative Journey' }],
+  },
+  PICBOOK_BRAVEY: {
+    name: "Little One, You're Brave in Many Ways",
+    description:
+      "Even the smallest acts of bravery make a big difference.<br/>From trying new foods, to speaking up in class, to facing a fear of the dark — your child will see themselves reflected in a story that celebrates courage in all its forms.<br/>A keepsake that nurtures confidence and reminds little ones: they are braver than they think.",
+    tags: [{ tname: 'Everyday Courage' }, { tname: 'Confidence Builder' }],
+  },
+  PICBOOK_BIRTHDAY: {
+    name: 'Birthday Book for You',
+    description:
+      'Every birthday is magical when the forest gathers to celebrate your child.<br/>From playful animals bringing gifts, to special blessings that reflect their unique traits, this story makes their big day unforgettable.<br/>A personalized treasure that turns each birthday into a memory to cherish, year after year.',
+    tags: [{ tname: 'Joyful Celebration' }, { tname: 'Birthday Keepsake' }],
+  },
+  PICBOOK_SANTA: {
+    name: "Santa's Letter for You",
+    description:
+      "Imagine the joy on your child's face when they receive their very own letter from Santa Claus.<br/>In this personalized story, Santa shares what he's noticed about your child's good deeds, their wishes, and the magic of the season.<br/>A festive keepsake that makes Christmas sparkle with wonder, warmth, and love.",
+    tags: [{ tname: 'Christmas Magic' }, { tname: 'Festive Keepsake' }],
+  },
+};
+
+const applyBookOverride = (bookData: any, override?: { name?: string; description?: string }) => {
+  if (!override) return bookData;
+  const patched = { ...(bookData || {}) };
+  if (override.name) {
+    patched.name = override.name;
+    patched.default_name = override.name;
+  }
+  if (override.description) {
+    patched.description = override.description;
+  }
+  if (patched.data && typeof patched.data === 'object') {
+    patched.data = { ...patched.data };
+    if (override.name) patched.data.name = override.name;
+    if (override.description) patched.data.description = override.description;
+  }
+  return patched;
+};
+
 const BookDetailPage = () => {
   const t = useTranslations('BookDetail');
   const params = useParams();
@@ -60,6 +112,8 @@ const BookDetailPage = () => {
   const [loadingGallery, setLoadingGallery] = useState(true);
   const [availableLanguages, setAvailableLanguages] = useState<string[]>(['en', 'zh']);
 
+  const normalizedId = Array.isArray(id) ? id[0] : String(id || '');
+
   useEffect(() => {
     const fetchBookDetails = async () => {
       setLoading(true);
@@ -68,8 +122,8 @@ const BookDetailPage = () => {
         // 优先获取产品信息，让用户先看到页面内容
         // 使用缓存，书籍详情缓存 10 分钟
         const productResponse = await apiCache.request<any>(
-          () => api.get<any>(`/products/${id}`, { params: { language: locale } }),
-          `/products/${id}`,
+          () => api.get<any>(`/products/${normalizedId}`, { params: { language: locale } }),
+          `/products/${normalizedId}`,
           { language: locale },
           {
             ttl: 10 * 60 * 1000, // 10分钟缓存
@@ -78,7 +132,9 @@ const BookDetailPage = () => {
           }
         );
         const data = productResponse?.data || productResponse;
-        setBook(data);
+        const override = BOOK_DETAIL_OVERRIDES[normalizedId];
+        const patchedData = applyBookOverride(data, override);
+        setBook(patchedData);
         setLoading(false); // 产品信息加载完成，可以先显示页面
         
         try {
@@ -90,7 +146,7 @@ const BookDetailPage = () => {
           }
         } catch {}
         
-        setTags([]);
+        setTags(override?.tags ?? []);
         setReviews([]);
         setKeywords([]);
       } catch (error) {
@@ -100,7 +156,7 @@ const BookDetailPage = () => {
       
       // 异步加载 gallery 图片，不阻塞页面显示
       try {
-        const galleryBase = `/products/picbooks/${encodeURIComponent(String(id))}/gallery`;
+        const galleryBase = `/products/picbooks/${encodeURIComponent(String(normalizedId))}/gallery`;
         const resp = await fetch(`/api/local-gallery${galleryBase}`);
         const json = await resp.json();
         const files: string[] = Array.isArray(json?.files) ? json.files : [];
@@ -113,10 +169,10 @@ const BookDetailPage = () => {
       }
     };
 
-    if (id) {
+    if (normalizedId) {
       fetchBookDetails();
     }
-  }, [id, locale]);
+  }, [normalizedId, locale]);
 
   if (loading) return <BookDetailSkeleton />;
   if (!book) return <div className="min-h-screen flex items-center justify-center">{t('noBookFound')}</div>;
@@ -126,7 +182,7 @@ const BookDetailPage = () => {
   const handlePersonalizeClick = (e: React.MouseEvent, lang: string) => {
     if (!isLoggedIn) {
       e.preventDefault();
-      const redirectTo = `/personalize?bookid=${id}&language=${encodeURIComponent(lang || 'en')}`;
+      const redirectTo = `/personalize?bookid=${normalizedId}&language=${encodeURIComponent(lang || 'en')}`;
       router.push(`/login?redirect=${encodeURIComponent(redirectTo)}`);
       return;
     }
@@ -143,20 +199,20 @@ const BookDetailPage = () => {
           keywords={keywords}
           reviews={reviews}
           primaryButtonLabel={t('personalizeButton')}
-          primaryButtonHref={`/personalize?bookid=${id}`}
+          primaryButtonHref={`/personalize?bookid=${normalizedId}`}
           onPrimaryClick={handlePersonalizeClick}
           availableLanguages={availableLanguages}
-          bookId={Array.isArray(id) ? id[0] : id || ''}
+          bookId={normalizedId}
         />
         <ReviewsSection book={book} keywords={keywords} reviews={reviews} />
         {/* Book Sections - Dynamically rendered based on book config */}
-        <BookSections book={book} bookId={Array.isArray(id) ? id[0] : id || ''} />
+        <BookSections book={book} bookId={normalizedId} />
       </div>
       {/* 手机端吸底栏 */}
       <BookDetailStickyBar
         book={book}
         primaryButtonLabel={t('personalizeButton')}
-        primaryButtonHref={`/personalize?bookid=${id}`}
+        primaryButtonHref={`/personalize?bookid=${normalizedId}`}
         onPrimaryClick={handlePersonalizeClick}
         selectedLanguage={availableLanguages[0] || 'en'}
       />

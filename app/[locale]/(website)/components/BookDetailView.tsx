@@ -88,36 +88,41 @@ export default function BookDetailView({
         </div>
 
         <div className="sticky top-0 h-screen overflow-y-auto">
-          <div className="max-w-xl mx-auto md:p-12 px-3 py-2 min-h-0">
-            <h1 className="md:text-[36px] text-[24px] md:leading-[44px] leading-[32px] font-normal md:mb-4 mb-2">{(book as any)?.name ?? (book as any)?.default_name}</h1>
-              <div className="flex items-center gap-4 mb-6">
+          <div className="max-w-xl mx-auto md:p-12 px-3 py-2 min-h-0 flex flex-col gap-6">
+            <div className="flex flex-col md:gap-3 gap-2">
+              <h1 className="md:text-[36px] text-[24px] md:leading-[44px] leading-[32px] font-normal">{(book as any)?.name ?? (book as any)?.default_name}</h1>
+              <div className="flex items-center gap-4">
                 <div className="flex gap-[6px]">
                   {[...Array(5)].map((_, i) => (
                     <Image key={i} src="/star.svg" alt="star" width={20} height={20} className="w-[18px] h-[18px] md:w-5 md:h-5" />
                   ))}
                 </div>
-              {tags && tags.map((tag, index) => (
-                <span key={index} className="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded">{tag.tname}</span>
-              ))}
+                {tags && tags.map((tag, index) => (
+                  <span key={index} className="text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[#666666] bg-[#F2F2F2] px-2 rounded">{tag.tname}</span>
+                ))}
+              </div>
             </div>
 
-            <div className="text-sm text-[#222222] bg-[#F8F8F8] px-3 py-1 md:mb-3 mb-2 rounded-lg">
-              <p>{description}</p>
-            </div>
+            <div className="flex flex-col md:gap-3 gap-2">
+              <div className="text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[#222222] bg-[#F8F8F8] p-3 rounded-[12px]">
+                <p dangerouslySetInnerHTML={{ __html: description.replace(/\n/g, '<br/>') }} />
+              </div>
 
-            <div className="text-sm space-y-3 md:mb-12 mb-0">
-              {specifications.map((spec, index) => (
-                <div key={index} className="flex items-center gap-[8px]">
-                  <div className="w-4 h-4 bg-[#D9D9D9] rounded"></div>
-                  <span className="text-[#666666]">{getSpecificationText(spec)}</span>
-                </div>
-              ))}
+              <div className="text-sm space-y-3">
+                {specifications.map((spec, index) => (
+                  <div key={index} className="flex items-center gap-[8px]">
+                    <div className="w-4 h-4 bg-[#D9D9D9] rounded"></div>
+                    <span className="text-[#666666]">{getSpecificationText(spec)}</span>
+                  </div>
+                ))}
+              </div>
             </div>
+            
 
             {/* 语言选择已隐藏，默认使用英文 */}
 
             {/* 价格和按钮 - 桌面端显示，手机端隐藏（手机端使用贴底栏） */}
-            <div className="hidden md:flex items-center justify-between gap-8 mb-12 md:mb-8">
+            <div className="hidden md:flex items-center justify-between gap-8">
               <div className="flex items-baseline gap-3">
                 <span className="text-[#012CCE] text-[36px] font-medium">${Number((book as any)?.default_sku?.current_price ?? (book as any)?.current_price ?? (book as any)?.price ?? 0).toFixed(2)}</span>
                 <span className="text-gray-400 line-through">${Number((book as any)?.default_sku?.market_price ?? (book as any)?.market_price ?? ((Number((book as any)?.price ?? 0) * 1.25) || 0)).toFixed(2)}</span>

@@ -29,7 +29,7 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
       description: 'Turn every night into a moment of comfort and connection.',
       image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Bedtime-MOBILE.png',
       imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Bedtime.png',
-      bookId: 'PICBOOK_GOODNIGHT',
+      bookId: 'PICBOOK_GOODNIGHT3',
     },
     {
       id: '2',
@@ -53,7 +53,7 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
       description: 'Celebrate togetherness with stories that everyone can share.',
       image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Family-Time-MOBILE.png',
       imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Family-Time.png',
-      bookId: 'PICBOOK_YOUAREBRAVEYINMANYWAYS',
+      bookId: 'PICBOOK_BRAVEY',
     },
     {
       id: '5',

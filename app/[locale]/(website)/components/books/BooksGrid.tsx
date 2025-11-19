@@ -3,6 +3,14 @@ import Image from 'next/image';
 import { Link } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 
+// 书籍名字覆盖配置（与详情页保持一致）
+const BOOK_NAME_OVERRIDES: Record<string, string> = {
+  PICBOOK_GOODNIGHT3: 'Good Night to You',
+  PICBOOK_BRAVEY: "Little One, You're Brave in Many Ways",
+  PICBOOK_BIRTHDAY: 'Birthday Book for You',
+  PICBOOK_SANTA: "Santa's Letter for You",
+};
+
 interface BooksGridProps {
   books: any[];
 }
@@ -12,9 +20,10 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
   if (!books || books.length === 0) return null;
 
   const getCoverUrl = (id: string, isHover: boolean = false) => {
+    const normalizedId = id === 'PICBOOK_GOODNIGHT3' ? 'PICBOOK_GOODNIGHT' : id;
     const baseUrl = 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/catalog';
     const coverType = isHover ? 'cover-hover.png' : 'cover-default.png';
-    return `${baseUrl}/${id}/${coverType}`;
+    return `${baseUrl}/${normalizedId}/${coverType}`;
   };
 
   // 在书籍列表末尾添加 "new book coming soon" 卡片
@@ -32,7 +41,8 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 place-items-center">
       {booksWithComingSoon.map((book, idx) => {
         const idOrCode = (book as any)?.spu_code ?? (book as any)?.id ?? (book as any)?.code ?? `idx-${idx}`;
-        const name = (book as any)?.name ?? (book as any)?.default_name ?? 'Product';
+        const originalName = (book as any)?.name ?? (book as any)?.default_name ?? 'Product';
+        const name = BOOK_NAME_OVERRIDES[String(idOrCode)] || originalName;
         const defaultCoverUrl = getCoverUrl(String(idOrCode), false);
         const hoverCoverUrl = getCoverUrl(String(idOrCode), true);
         const priceVal = (book as any)?.current_price ?? (book as any)?.price ?? 0;

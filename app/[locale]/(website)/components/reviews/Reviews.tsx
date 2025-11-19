@@ -31,11 +31,12 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
     }
     
     // 如果都没有匹配，使用传入的reviews或默认值
+    const defaultFallback = BOOK_REVIEWS_DATA['PICBOOK_GOODNIGHT3'] || BOOK_REVIEWS_DATA['PICBOOK_GOODNIGHT'];
     return {
       title: "See what customers are saying",
       rating: parseFloat(String(book?.rating || 4.8)),
-      reviewsCount: reviews?.length || BOOK_REVIEWS_DATA['PICBOOK_GOODNIGHT']?.reviewsCount || 18,
-      reviews: reviews?.length ? reviews : (BOOK_REVIEWS_DATA['PICBOOK_GOODNIGHT']?.reviews || []),
+      reviewsCount: reviews?.length || defaultFallback?.reviewsCount || 18,
+      reviews: reviews?.length ? reviews : (defaultFallback?.reviews || []),
     };
   };
 
