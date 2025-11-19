@@ -14,7 +14,7 @@ import OrderSummaryDelivery from '../components/component/OrderSummaryDelivery';
 import CartItemCard from '../shopping-cart/components/CartItemCard';
 import MessageModal from './components/MessageModal';
 import Image from 'next/image';
-import { CartItem } from '../shopping-cart/components/types';
+import { CartItem } from '@/types/cart';
 
 const OrderSummary: React.FC = () => {
   const t = useTranslations('orderSummary');

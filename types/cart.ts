@@ -1,4 +1,4 @@
-import { ResultImage } from '@/types/order';
+import { ResultImage } from './order';
 
 export interface LocaleString {
   en: string;

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from "@/i18n/routing";
 import useUserStore from '@/stores/userStore';
-import DisplayPrice from '../../components/component/DisplayPrice';
+import DisplayPrice from '../../../components/component/DisplayPrice';
 import { formatAddress } from '@/types/address';
 import OrderHistoryCard from './components/OrderHistoryCard';
 
