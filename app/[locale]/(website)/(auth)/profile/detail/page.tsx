@@ -4,8 +4,8 @@ import useUserStore from '@/stores/userStore';
 import { ApiResponse } from '@/types/api';
 import api from '@/utils/api';
 import React, { useEffect, useState } from 'react';
-import AddressCard from '../../components/address/AddressCard';
-import AddressCardList from '../../components/address/AddressCardList';
+import AddressCard from '../../../components/address/AddressCard';
+import AddressCardList from '../../../components/address/AddressCardList';
 export default function AccountDetails() {
   const {user, fetchAddresses, addresses} = useUserStore();
   const [isEditing, setIsEditing] = useState(false);

@@ -1,9 +1,9 @@
 import { formatAddress } from "@/types/address";
 import { OrderDetail } from "@/types/order";
-import DisplayPrice from "../../../components/component/DisplayPrice";
+import DisplayPrice from "../../../../components/component/DisplayPrice";
 import { formatDate } from "@/app/[locale]/admin/orders/utils";
 import { Link } from "@/i18n/routing";
-import OrderStatusLabel from "../../../components/component/OrderStatusLabel";
+import OrderStatusLabel from "../../../../components/component/OrderStatusLabel";
 import { ORDER_CHECKOUT_URL, ORDER_SUMMARY_URL } from "@/constants/links";
 
 const OrderHistoryCard = ({orderDetail}:{orderDetail:OrderDetail}) => {
