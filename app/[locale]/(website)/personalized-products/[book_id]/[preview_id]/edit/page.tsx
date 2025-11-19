@@ -8,7 +8,7 @@ import { Link } from "@/i18n/routing";
 import Image from 'next/image';
 import api from '@/utils/api';
 import { API_CART_LIST } from '@/constants/api';
-import { CartItems } from '@/app/[locale]/(website)/shopping-cart/components/types';
+import { CartItems } from '@/types/cart';
 import SingleCharacterForm1, { SingleCharacterForm1Handle } from '@/app/[locale]/(website)/components/personalize/SingleCharacterForm1';
 import SingleCharacterForm2, { SingleCharacterForm2Handle } from '@/app/[locale]/(website)/components/personalize/SingleCharacterForm2';
 

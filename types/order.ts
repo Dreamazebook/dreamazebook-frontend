@@ -1,5 +1,5 @@
 import { Address } from "@/types/address";
-import { CartItem } from "../app/[locale]/(website)/shopping-cart/components/types";
+import { CartItem } from "./cart";
 
 export function formatDate(date: string) {
   return date.split('T')[0];

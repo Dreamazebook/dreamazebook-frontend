@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
 import { API_CART_LIST, API_CART_REMOVE, API_CART_UPDATE, API_ORDER_CREATE, API_KS_PACKAGE_STATUS } from '@/constants/api';
-import { CartItem, CartItems } from './components/types';
+import { CartItem, CartItems } from '@/types/cart';
 
 // 导入组件
 import CartHeader from './components/CartHeader';

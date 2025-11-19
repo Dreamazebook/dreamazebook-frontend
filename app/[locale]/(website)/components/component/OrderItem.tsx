@@ -1,6 +1,6 @@
 import Image from "next/image";
 import DisplayPrice from "./DisplayPrice";
-import { CartItem } from "../../shopping-cart/components/types";
+import { CartItem } from "@/types/cart";
 
 interface OrderItemProps {
   orderItem: CartItem
