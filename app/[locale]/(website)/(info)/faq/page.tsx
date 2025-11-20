@@ -1,5 +1,6 @@
 'use client'
 
+import { Link } from '@/i18n/routing'
 import React from 'react'
 import { useState } from 'react'
 
@@ -150,7 +151,7 @@ export default function FAQPage() {
               If you don't see the answer you're looking for, don't hesitate to reach out.
             </p>
             <p className="leading-relaxed">
-              Click <span className="font-semibold">Contact Us</span> or email{' '}
+              Click <Link href="/contact-us" className="text-primary font-semibold">Contact Us</Link> or email{' '}
               <a 
                 href="mailto:hello@dreamazebook.com" 
                 className="text-blue-600 hover:text-blue-800 underline font-medium"

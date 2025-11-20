@@ -6,7 +6,7 @@ const footerMenus = [
   {
     title: 'Help & Support',
     items: [
-      { label: 'Contact Us', href: '/contact' },
+      { label: 'Contact Us', href: '/contact-us' },
       { label: 'FAQ', href: '/faq' },
       { label: 'Delivery Information', href: '/delivery-information' },
     ],
