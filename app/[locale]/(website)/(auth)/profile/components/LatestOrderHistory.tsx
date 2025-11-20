@@ -6,7 +6,7 @@ import DisplayPrice from "../../../components/component/DisplayPrice";
 import OrderItem from "../../../components/component/OrderItem";
 import OrderStatusLabel from "../../../components/component/OrderStatusLabel";
 import OrderSummaryDelivery from "../../../components/component/OrderSummaryDelivery";
-import CartItemCard from "../../../shopping-cart/components/CartItemCard";
+import CartItemCard from "../../../(orders)/shopping-cart/components/CartItemCard";
 
 export default function LatestOrderHistory({ orderDetail }:{orderDetail:OrderDetail}) {
   const {order_number,status,shipping_address,total_amount,items,updated_at} = orderDetail;
