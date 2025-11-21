@@ -63,29 +63,47 @@ export default function ContactUsPage() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
-    console.log('Form submitted:', formData)
-    console.log('Attachments:', attachments)
-
-    setSubmitSuccess(true)
-    setIsSubmitting(false)
-
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setFormData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        issueType: '',
-        orderNumber: '',
-        subject: '',
-        message: ''
+    try {
+      // Send email via API
+      const response = await fetch('/api/send-mail', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
       })
-      setAttachments([])
-      setSubmitSuccess(false)
-    }, 3000)
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send email')
+      }
+
+      console.log('Form submitted:', formData)
+      console.log('API Response:', result)
+
+      setSubmitSuccess(true)
+
+      // Reset form after 3 seconds
+      setTimeout(() => {
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          issueType: '',
+          orderNumber: '',
+          subject: '',
+          message: ''
+        })
+        setAttachments([])
+        setSubmitSuccess(false)
+      }, 3000)
+    } catch (error) {
+      console.error('Error submitting form:', error)
+      alert('Failed to send your message. Please try again or email us at hello@dreamazebook.com')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
