@@ -143,13 +143,7 @@ export default function ContactUsPage() {
 
         {/* Contact Form */}
         <div className="bg-white rounded shadow p-8 md:p-10">
-          {submitSuccess && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded">
-              <p className="text-green-800 font-medium text-center">
-                ✓ Thank you! Your message has been sent successfully. We'll get back to you within 1-2 business days.
-              </p>
-            </div>
-          )}
+          
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name Fields */}
@@ -418,6 +412,14 @@ export default function ContactUsPage() {
                 )}
               </button>
             </div>
+
+            {submitSuccess && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded">
+              <p className="text-green-800 font-medium text-center">
+                ✓ Thank you! Your message has been sent successfully. We'll get back to you within 1-2 business days.
+              </p>
+            </div>
+          )}
           </form>
         </div>
 
