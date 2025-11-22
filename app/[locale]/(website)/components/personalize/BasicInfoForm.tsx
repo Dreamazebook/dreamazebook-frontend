@@ -1,7 +1,7 @@
 /** @jsxImportSource react */
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { FaCheck } from 'react-icons/fa';
 import HairstyleSelector from './HairstyleSelector';
@@ -48,6 +48,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   apiHairColorValues,
   assetSpuCode,
 }) => {
+  const [showSkinColorTooltip, setShowSkinColorTooltip] = useState(false);
   // 图片上传相关的变量和函数已移至父组件 SingleCharacterForm1 和 SingleCharacterForm2
   /* 
   const {
@@ -266,8 +267,24 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
       <div id="field-skinColor">
         <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between gap-2 md:gap-0" tabIndex={0} onBlur={handleSkinColorBlur}>
           <div className="flex flex-col">
-            <label className="font-medium">Skin color</label>
-            <p className="text-[#999999] text-[16px] leading-[24px] tracking-[0.5px] max-w-[250px]">For reference only, the final look will reflect your child's photo.</p>
+            <div className="flex items-center">
+              <label className="font-medium">Skin color</label>
+              <span className="text-gray-400 inline-flex items-center group relative font-normal ml-2">
+                <div 
+                  className="w-4 h-4 rounded-full border border-[#666666] flex items-center justify-center cursor-pointer"
+                  onClick={() => setShowSkinColorTooltip(!showSkinColorTooltip)}
+                >
+                  <span className="text-[#666666] text-[10px] leading-none font-medium">?</span>
+                </div>
+                <div className={`${showSkinColorTooltip ? 'block' : 'hidden'} md:group-hover:block absolute left-1/2 transform -translate-x-1/2 bottom-6 w-64 p-2 bg-white text-gray-800 text-sm rounded shadow-lg z-10 backdrop-blur`}>
+                  <p>
+                    For reference only, the final look will reflect your child's photo.
+                  </p>
+                  {/* 箭头 */}
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white"></div>
+                </div>
+              </span>
+            </div>
           </div>
           <div className="flex gap-6">
             {skinColors.map((color) => (

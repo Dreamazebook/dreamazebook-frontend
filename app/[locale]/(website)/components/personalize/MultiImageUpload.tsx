@@ -35,6 +35,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showToast, setShowToast] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
 
   const showToastMessage = () => {
     setShowToast(true);
@@ -106,10 +107,13 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
             Upload 1-3 Clear Photos
           </label>
           <span className="text-gray-400 inline-flex items-center group relative font-normal ml-2">
-            <div className="w-4 h-4 rounded-full border border-[#666666] flex items-center justify-center cursor-pointer">
+            <div 
+              className="w-4 h-4 rounded-full border border-[#666666] flex items-center justify-center cursor-pointer"
+              onClick={() => setShowTooltip(!showTooltip)}
+            >
               <span className="text-[#666666] text-[10px] leading-none font-medium">?</span>
             </div>
-            <div className="hidden group-hover:block absolute left-1/2 transform -translate-x-1/2 bottom-6 w-64 p-2 bg-white text-gray-800 text-sm rounded shadow-lg z-10 backdrop-blur">
+            <div className={`${showTooltip ? 'block' : 'hidden'} md:group-hover:block absolute left-1/2 transform -translate-x-1/2 bottom-6 w-64 p-2 bg-white text-gray-800 text-sm rounded shadow-lg z-10 backdrop-blur`}>
               <p>
                 Upload a photo so we can create a unique image of you.
                 Photos are only generated from user images. We have an independent database to ensure that your privacy will not be leaked.
@@ -128,7 +132,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
       <div className="flex flex-row gap-4 mb-6 bg-[#F8F8F8] py-3 px-4 rounded-[4px]">
         {/* 左侧：示例图片 */}
         <div className="flex-shrink-0">
-          <div className="w-[102px] md:w-[80px] aspect-square rounded-lg overflow-hidden bg-gray-100">
+          <div className="w-[102px] md:w-[80px] aspect-square rounded-[4px] overflow-hidden bg-gray-100">
             <Image
               src="/personalize/face.png"
               alt="Example photo"

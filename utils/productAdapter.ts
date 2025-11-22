@@ -74,8 +74,7 @@ function getSkuKeys(api: any): Set<string> {
 }
 
 function normalizeHairColorSpelling(value: string): string {
-  const v = (value || '').toLowerCase();
-  if (v === 'blone') return 'blonde';
+  // 不再进行转换，直接返回原值（统一使用 blone）
   return value;
 }
 

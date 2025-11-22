@@ -412,30 +412,37 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
           {
             text: "I've seen other personalized books, but Dreamaze is the only one where my child instantly recognized himself.",
             author: 'Akaay, Paris',
+            avatar: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/akaay-paris.jpg',
           },
           {
             text: "The hand-drawn pages feel like art. It's not just a story, it's a keepsake.",
             author: 'Michale, Sydney',
+            avatar: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/michale-sydney.jpg',
           },
           {
             text: "Most books let you add a name, but this one truly sees my child.",
             author: 'Hadjer, London',
+            avatar: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/hadjer-london.jpg',
           },
           {
             text: 'The quality is amazing — durable and precious, beautiful enough to treasure.',
             author: 'Charlene, San Francisco',
+            avatar: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/charlene-san-francisco.jpg',
           },
           {
             text: "The moment my son saw his own face in the book, he shouted his name with the biggest smile. I've never seen him so excited to read.",
             author: 'Julia, New York',
+            avatar: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/julia-new-york.jpg',
           },
           {
             text: "Every page feels crafted with love. The colors, the details, the binding — it's not just a book, it's something we'll keep forever.",
             author: 'Beyza, Melbourne',
+            avatar: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/beyza-melbourne.jpg',
           },
           {
             text: "As a gift, this was unbeatable. My niece immediately recognized herself and carried the book everywhere. It made her feel so special.",
             author: 'Claire, Los Angeles',
+            avatar: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/claire-los-angeles.jpg',
           }
         ],
       },

@@ -282,7 +282,7 @@ export default function PersonalizeApiDrivenPage() {
       };
       const mapHairColorToBackend = (key: string | number): string => {
         const v = typeof key === 'number' ? key : ({ light: 1, brown: 2, dark: 3 } as any)[key] || 1;
-        if (v === 1) return 'blonde';
+        if (v === 1) return 'blone';
         if (v === 3) return 'dark';
         return 'dark';
       };

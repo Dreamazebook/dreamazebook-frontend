@@ -139,7 +139,7 @@ export default function TopNavBarWithTabs({
             onClick={() => onTabChange('Book preview')}
             className="relative z-10 text-sm font-medium text-black bg-transparent"
           >
-            Book preview
+            Make it Personal
           </button>
           {activeTab === 'Book preview' && <UnderlineIcon />}
         </div>
@@ -151,7 +151,7 @@ export default function TopNavBarWithTabs({
               onClick={() => onTabChange('Others')}
               className="relative z-10 text-sm font-medium text-black bg-transparent"
             >
-              Others
+              Gift Options
             </button>
             {activeTab === 'Others' && <UnderlineIcon />}
           </div>

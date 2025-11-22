@@ -230,7 +230,8 @@ export default function GiverDedicationCanvas({
         const leftTotalHeight = leftLines.length * leftLineHeight;
         let leftY = canvas.height / 2 - leftTotalHeight / 2;
         for (const line of leftLines) {
-          ctx.fillText(line, halfW / 2, leftY + leftLineHeight / 2, leftMaxWidth);
+          // 不传递 maxWidth 参数，因为文本已经通过 wrapText 换行了
+          ctx.fillText(line, halfW / 2, leftY + leftLineHeight / 2);
           leftY += leftLineHeight;
         }
       }
@@ -249,7 +250,8 @@ export default function GiverDedicationCanvas({
       const rightTotalHeight = rightLines.length * rightLineHeight;
       let rightY = canvas.height / 2 - rightTotalHeight / 2;
       for (const line of rightLines) {
-        ctx.fillText(line, rightCenterX, rightY + rightLineHeight / 2, rightMaxWidth);
+        // 不传递 maxWidth 参数，因为文本已经通过 wrapText 换行了
+        ctx.fillText(line, rightCenterX, rightY + rightLineHeight / 2);
         rightY += rightLineHeight;
       }
       ctx.restore();
@@ -328,7 +330,8 @@ export default function GiverDedicationCanvas({
       const rTotalH = rLines.length * rLH;
       let rY = fullH / 2 - rTotalH / 2;
       for (const line of rLines) {
-        rctx.fillText(line, halfW / 2, rY + rLH / 2, rMaxW);
+        // 不传递 maxWidth 参数，因为文本已经通过 wrapText 换行了
+        rctx.fillText(line, halfW / 2, rY + rLH / 2);
         rY += rLH;
       }
       rctx.restore();
