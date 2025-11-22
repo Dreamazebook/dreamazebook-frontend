@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Address } from '@/types/address';
-import AddressCardList from '../../components/address/AddressCardList';
+import AddressCardList from '../../../components/address/AddressCardList';
 import useUserStore from '@/stores/userStore';
 
 interface AddressCardListModalProps {

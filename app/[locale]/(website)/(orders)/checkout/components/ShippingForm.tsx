@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Address, EMPTY_ADDRESS } from "@/types/address";
 import AddressForm from "./AddressForm";
-import AddressCard from "../../components/address/AddressCard";
+import AddressCard from "../../../components/address/AddressCard";
 import useUserStore from "@/stores/userStore";
 import NextStepButton from "./NextStepButton";
 import { Link } from "@/i18n/routing";

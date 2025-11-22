@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { CartItem as CartItemType } from '@/types/cart';
-import DisplayPrice from '../../components/component/DisplayPrice';
+import DisplayPrice from '../../../components/component/DisplayPrice';
 import { Link, useRouter } from '@/i18n/routing';
 import { useEffect, useState } from 'react';
 import KickstarterInlineCard from './KickstarterInlineCard';

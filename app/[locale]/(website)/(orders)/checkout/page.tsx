@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import Loading from '../components/Loading';
+import Loading from '../../components/Loading';
 import { Address } from '@/types/address';
 import CheckoutStep from './components/CheckoutStep';
 import ShippingForm from './components/ShippingForm';

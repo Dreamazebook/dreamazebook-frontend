@@ -13,7 +13,7 @@ import api from '@/utils/api';
 import { API_ORDER_STRIPE_PAID } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
 import { useRouter } from '@/i18n/routing';
-import DisplayPrice from '../../components/component/DisplayPrice';
+import DisplayPrice from '../../../components/component/DisplayPrice';
 import NextStepButton from './NextStepButton';
 import { ORDER_SUMMARY_URL } from '@/constants/links';
 

@@ -13,8 +13,8 @@ import { CartItem, CartItems } from '@/types/cart';
 import CartHeader from './components/CartHeader';
 import CouponInput from './components/CouponInput';
 import CartItemList from './components/CartItemList';
-import Loading from '../components/Loading';
-import ConfirmModal from '../components/component/ConfirmModal';
+import Loading from '../../components/Loading';
+import ConfirmModal from '../../components/component/ConfirmModal';
 import useUserStore from '@/stores/userStore';
 import { ORDER_CHECKOUT_URL } from '@/constants/links';
 
