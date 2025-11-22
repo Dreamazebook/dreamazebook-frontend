@@ -142,9 +142,9 @@ export default function ContactUsPage() {
         </div>
 
         {/* Contact Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10">
+        <div className="bg-white rounded shadow p-8 md:p-10">
           {submitSuccess && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded">
               <p className="text-green-800 font-medium text-center">
                 ✓ Thank you! Your message has been sent successfully. We'll get back to you within 1-2 business days.
               </p>
@@ -165,7 +165,7 @@ export default function ContactUsPage() {
                   value={formData.firstName}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Enter your first name"
                   data-testid="contact-first-name"
                 />
@@ -182,7 +182,7 @@ export default function ContactUsPage() {
                   value={formData.lastName}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   placeholder="Enter your last name"
                   data-testid="contact-last-name"
                 />
@@ -201,7 +201,7 @@ export default function ContactUsPage() {
                 value={formData.email}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="your.email@example.com"
                 data-testid="contact-email"
               />
@@ -218,7 +218,7 @@ export default function ContactUsPage() {
                 value={formData.issueType}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
+                className="w-full px-4 py-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
                 data-testid="contact-issue-type"
               >
                 <option value="">Please select...</option>
@@ -241,7 +241,7 @@ export default function ContactUsPage() {
                 name="orderNumber"
                 value={formData.orderNumber}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="e.g., #12345"
                 data-testid="contact-order-number"
               />
@@ -262,7 +262,7 @@ export default function ContactUsPage() {
                 value={formData.subject}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="Brief summary of your request"
                 data-testid="contact-subject"
               />
@@ -280,7 +280,7 @@ export default function ContactUsPage() {
                 onChange={handleInputChange}
                 required
                 rows={6}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                className="w-full px-4 py-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
                 placeholder="Please provide as much detail as possible so we can help you better..."
                 data-testid="contact-message"
               />
@@ -291,7 +291,7 @@ export default function ContactUsPage() {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Attachments <span className="text-gray-500 text-xs">(Optional)</span>
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+              <div className="border-2 border-dashed border-gray-300 rounded p-6 text-center hover:border-blue-400 transition-colors">
                 <input
                   type="file"
                   id="fileUpload"
@@ -332,7 +332,7 @@ export default function ContactUsPage() {
                   {attachments.map((file, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded"
                     >
                       <div className="flex items-center space-x-2">
                         <svg
