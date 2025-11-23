@@ -87,8 +87,9 @@ export const EMPTY_CART_ITEM = {
 }
 
 export interface ResultImage {
-  final_image_path: string;
+  base_image_path: string;
   final_image_url: string;
+  face_swap_mask_url: string;
   item_id: number;
   page_code: string;
 }

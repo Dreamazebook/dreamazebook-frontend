@@ -125,60 +125,108 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
               <p className="text-gray-500">No result images available</p>
             </div>
           ) : (
-            <div className={viewMode === 'grid' ? 'grid grid-cols-3 gap-4' : 'space-y-4'}>
+            <div className={viewMode === 'grid' ? 'space-y-3' : 'space-y-4'}>
               {images.map((image, index) => (
                 <div 
                   key={index} 
                   className={`
                     rounded-lg overflow-hidden relative
                     ${viewMode === 'grid' 
-                      ? 'bg-gray-50' 
+                      ? 'bg-white border border-gray-200 p-4' 
                       : 'bg-white border border-gray-200'
                     }
                     ${selectedPageCodes.includes(image.page_code) ? 'ring-2 ring-blue-500' : ''}
                   `}
                 >
-                  {/* Selection Checkbox */}
-                  <div className="absolute top-2 left-2 z-10">
-                    <input
-                      type="checkbox"
-                      checked={selectedPageCodes.includes(image.page_code)}
-                      onChange={() => handleImageSelect(image.page_code)}
-                      className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
-                    />
-                  </div>
-                  <div 
-                    className={`
-                      relative
-                      ${viewMode === 'grid' 
-                        ? 'aspect-[2/1]' 
-                        : 'w-full'
-                      }
-                    `}
-                    style={viewMode === 'full' ? { paddingBottom: '56.25%' } : {}}
-                  >
-                    <Image
-                      src={image.final_image_url || '/placeholder-image.png'}
-                      alt={`Page ${image.page_code}`}
-                      fill
-                      className={viewMode === 'grid' ? 'object-cover' : 'object-contain'}
-                      unoptimized
-                    />
-                  </div>
-                  <div className={`
-                    ${viewMode === 'grid' ? 'p-3' : 'p-4 bg-gray-50 border-t border-gray-200'}
-                  `}>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-900">
-                        Page: {image.page_code}
-                      </span>
-                      {viewMode === 'full' && (
-                        <span className="text-xs text-gray-500">
-                          Image {index + 1} of {images.length}
+                  {viewMode === 'grid' ? (
+                    /* Grid Mode: One line layout with all info */
+                    <div className="flex items-center space-x-4">
+                      {/* Selection Checkbox */}
+                      <div className="flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={selectedPageCodes.includes(image.page_code)}
+                          onChange={() => handleImageSelect(image.page_code)}
+                          className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                        />
+                      </div>
+                      
+                      {/* Page Code */}
+                      <div className="flex-shrink-0 w-30">
+                        <span className="text-sm font-medium text-gray-900">
+                          Page: {image.page_code}
                         </span>
-                      )}
+                      </div>
+                      
+                      {/* Base Image */}
+                      <div className="flex-shrink-0 w-100">
+                        <div className="relative aspect-[2/1]">
+                          <Image
+                            src={image.base_image_path || '/placeholder-image.png'}
+                            alt={`Base Page ${image.page_code}`}
+                            fill
+                            className="object-cover rounded"
+                            unoptimized
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Final Image */}
+                      <div className="flex-shrink-0 w-100">
+                        <div className="relative aspect-[2/1]">
+                          <Image
+                            src={image.final_image_url || '/placeholder-image.png'}
+                            alt={`Final Page ${image.page_code}`}
+                            fill
+                            className="object-cover rounded"
+                            unoptimized
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Index */}
+                      <div className="flex-shrink-0 text-xs text-gray-500">
+                        #{index + 1}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    /* Full Mode: Original layout */
+                    <>
+                      {/* Selection Checkbox */}
+                      <div className="absolute top-2 left-2 z-10">
+                        <input
+                          type="checkbox"
+                          checked={selectedPageCodes.includes(image.page_code)}
+                          onChange={() => handleImageSelect(image.page_code)}
+                          className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                        />
+                      </div>
+                      <div 
+                        className="relative w-full"
+                        style={{ paddingBottom: '56.25%' }}
+                      >
+                        <Image
+                          src={image.final_image_url || '/placeholder-image.png'}
+                          alt={`Page ${image.page_code}`}
+                          fill
+                          className="object-contain"
+                          unoptimized
+                        />
+                      </div>
+                      <div className="p-4 bg-gray-50 border-t border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-900">
+                            Page: {image.page_code}
+                          </span>
+                          {viewMode === 'full' && (
+                            <span className="text-xs text-gray-500">
+                              Image {index + 1} of {images.length}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
