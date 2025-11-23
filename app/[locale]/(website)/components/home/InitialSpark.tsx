@@ -53,11 +53,11 @@ function InitialSpark() {
         {/* Hero Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-normal text-gray-900 mb-6">
-            The Dream Behind Dreamaze
+            The Heart Behind Dreamaze
           </h1>
           
           <div className="max-w-lg mx-auto space-y-1 text-sm text-gray-600 leading-relaxed">
-            <p>Children find kindness, courage, and wonder in stories. With <span className='text-white bg-primary px-1.5 py-0.5 rounded font-medium'>Dreamaze</span>, they also find themselves. Engaging deeper, connecting closer…… in a one-of-a-kind story, just like they are.</p>
+            <p>When children see themselves in the story, reading becomes real bonding.</p>
           </div>
         </div>
 
@@ -98,24 +98,6 @@ function InitialSpark() {
           </div>
         </div>
 
-        {/* Main Headline Section */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center text-primary leading-tight">
-            Dreamaze: See Yourself In Amazing Dreams
-          </h2>
-          
-          <div className="max-w-md mx-auto space-y-1 text-sm text-gray-600">
-            <p>A whole collection to celebrate your child's milestones.</p>
-            <p>Heartfelt editions for grown-ups.</p>
-            <p className="">More language options</p>
-          </div>
-        </div>
-
-        {/* Bottom indicator */}
-        <div className="text-center">
-          <div className="w-px h-12 bg-gray-300 mx-auto mb-3" />
-          <div className="w-2 h-2 border border-gray-400 rounded-full mx-auto" />
-        </div>
       </div>
     </div>
   );
