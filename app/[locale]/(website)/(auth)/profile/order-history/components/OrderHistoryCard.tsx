@@ -41,7 +41,7 @@ const OrderHistoryCard = ({orderDetail}:{orderDetail:OrderDetail}) => {
       <div className="flex-1">
         <div className="flex justify-between items-start mb-2 flex-wrap">
           <div className="flex items-center gap-2">
-            <Link href={orderDetailLink} className="text-gray-900 font-medium text-base">#{orderDetail.order_number}</Link>
+            <Link href={orderDetailLink} className="text-primary font-medium text-base">#{orderDetail.order_number}</Link>
             <OrderStatusLabel status={orderDetail.status} />
           </div>
           <DisplayPrice value={orderDetail.total_amount} style='text-lg font-semibold text-gray-900' />

@@ -7,14 +7,15 @@ import OrderItem from "../../../components/component/OrderItem";
 import OrderStatusLabel from "../../../components/component/OrderStatusLabel";
 import OrderSummaryDelivery from "../../../components/component/OrderSummaryDelivery";
 import CartItemCard from "../../../(orders)/shopping-cart/components/CartItemCard";
+import { ORDER_CHECKOUT_URL, ORDER_SUMMARY_URL } from "@/constants/links";
 
 export default function LatestOrderHistory({ orderDetail }:{orderDetail:OrderDetail}) {
-  const {order_number,status,shipping_address,total_amount,items,updated_at} = orderDetail;
+  const {order_number,status,shipping_address,total_amount,items,updated_at, id} = orderDetail;
 
   return (
     <div key={order_number} className="border rounded-lg p-3 md:p-4">
       <div className="flex flex-col sm:flex-row sm:items-center mb-5 gap-2">
-        <Link href={`/${orderDetail.payment_status === 'paid' ? 'order-summary' : 'checkout'}?orderId=${orderDetail.id}`} className="text-base md:text-lg font-medium text-gray-900">#{order_number}</Link>
+        <Link href={`/${orderDetail.payment_status === 'paid' ? ORDER_SUMMARY_URL(id) : ORDER_CHECKOUT_URL(id)}`} className="text-base md:text-lg font-medium text-primary">#{order_number}</Link>
         <OrderStatusLabel status={status} />
       </div>
       
