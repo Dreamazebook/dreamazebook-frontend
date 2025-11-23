@@ -7,6 +7,7 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
+  serverExternalPackages: ['mailgun.js'],
   images: {
     remotePatterns: [
       {

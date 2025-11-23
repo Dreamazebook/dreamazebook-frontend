@@ -19,7 +19,7 @@ import usePreviewStore from '@/stores/previewStore';
 import toast from 'react-hot-toast';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
 import { BaseBook, DetailedBook } from '@/types/book';
-import { API_CART_CREATE, API_CART_LIST } from '@/constants/api';
+import { API_CART_CREATE, API_CART_LIST, API_CART_UPDATE } from '@/constants/api';
 
 // 自定义图片组件，支持Next.js Image和原生img的回退
 const OptimizedImage = ({ src, alt, width, height, className, style, onError, onLoad, onLoadingComplete, fallbackSrc, ...props }: {
@@ -637,83 +637,88 @@ export default function PreviewPageWithTopNav() {
       }
     } catch {}
     (async () => {
+      // 1. 尝试直接通过 previewId (batchId) 获取预览数据，这是最准确的方式
+      if (previewIdParam && bookIdParam) {
+        try {
+          const base = (process.env.NEXT_PUBLIC_PREVIEW_API_URL || '').replace(/\/$/, '');
+          const path = `/products/${bookIdParam}/preview/batches/${previewIdParam}`;
+          const url = base ? `${base}${path}` : path;
+          console.log('[Preview] Fetching batch directly:', url);
+          
+          const res = await api.get(url) as ApiResponse<any>;
+          const batch = res?.data?.batch;
+          
+          if (batch?.pages) {
+             console.log('[Preview] Loaded batch directly:', batch);
+             
+             // 构造 previewData
+             const initialData = {
+                preview_id: undefined as any,
+                preview_data: batch.pages.map((bp: any, idx: number) => ({
+                  page_id: idx + 1,
+                  page_code: bp.page_code,
+                  page_number: bp.sort_order ?? idx + 1,
+                  image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
+                  has_face_swap: !!bp.has_face_elements,
+                  status: bp.status,
+                  base_image_url: bp.base_image_url,
+                  final_image_url: bp.final_image_url,
+                  base_only: bp.base_only,
+                  queue_position: bp.queue_position,
+                  queue_total: bp.queue_total,
+                })),
+                status: batch.status || 'processing',
+                batch_id: batch.batch_id,
+                queue_info: batch.queue,
+              } as any;
+
+             setPreviewData(initialData);
+             setIsProcessing(batch.status === 'pending' || batch.status === 'processing');
+             
+             // 如果未完成，启动轮询
+             if (batch.status === 'pending' || batch.status === 'processing') {
+                currentBatchIdRef.current = batch.batch_id;
+                setCurrentBatchId(batch.batch_id);
+                startBatchPolling(bookIdParam, batch.batch_id);
+                subscribeToPreviewChannel(bookIdParam, batch.batch_id);
+             }
+          }
+        } catch (e) {
+          console.warn('[Preview] Failed to fetch batch directly:', e);
+        }
+      }
+
       try {
-        // 先从购物车拿到 face_image 和基础参数
+        // 先从购物车拿到 face_image 和基础参数（用于回显 recipient 等信息）
         const cartRes = await api.get(API_CART_LIST) as any;
-        const items = cartRes?.data?.cart_items || [];
+        // 修正：优先尝试 data.items，兼容旧的 data.cart_items
+        const items = cartRes?.data?.items || cartRes?.data?.cart_items || cartRes?.cart_items || [];
         const match = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
         const pv = match?.preview;
-        if (!pv) return;
-        const faceImageRaw = pv?.face_image;
-        let faceImages: string[] = [];
-        try {
-          if (typeof faceImageRaw === 'string' && faceImageRaw.trim().startsWith('[')) {
-            const arr = JSON.parse(faceImageRaw);
-            if (Array.isArray(arr)) faceImages = arr;
-          } else if (typeof faceImageRaw === 'string' && faceImageRaw) {
-            faceImages = [faceImageRaw];
-          } else if (Array.isArray(faceImageRaw)) {
-            faceImages = faceImageRaw;
-          }
-        } catch {}
-        const apiRequestData = {
-          picbook_id: bookIdParam,
-          face_image: faceImages.map((p: string) => ensureFaceImageUrl(p)),
-          full_name: pv?.recipient_name,
-          language: pv?.language || 'en',
-          gender: parseInt(pv?.gender || '1'),
-          skincolor: Array.isArray(pv?.skin_color) ? (pv.skin_color[0] || 1) : 1,
-        };
-        // 仅使用 GET 预览接口
-        const resp = await api.get(`/products/${bookIdParam}/preview`) as ApiResponse<any>;
-        if (resp?.success && resp?.data) {
-          const status = resp.data?.status;
-          // 新接口：没有 face_swap_info，直接使用 preview_pages
-          const mergedSource = (Array.isArray(resp.data?.preview_pages) ? normalizePreviewApi(resp.data) : resp.data);
-          if (Array.isArray((mergedSource as any)?.preview_data) || Array.isArray((mergedSource as any)?.result_images)) {
-            const merged = applyResultImagesToPreviewData(mergedSource as any);
-            setPreviewData(merged);
-            setIsProcessing(false);
-            try {
-              const bid = (merged as any)?.batch_id || (resp.data as any)?.batch_id;
-              if (bid) {
-                currentBatchIdRef.current = bid;
-                setCurrentBatchId(bid);
-                const spu = String(searchParams.get('bookid') || bookIdParam || '');
-                if (spu && bid) {
-                  startBatchPolling(spu, bid);
-                  subscribeToPreviewChannel(spu, bid);
-                }
-              }
-            } catch {}
-            // 标记完成页，更新进度
-            const completedIds = new Set<number>();
-            (merged?.preview_data || []).forEach((p: any) => {
-              if (p?.has_face_swap) completedIds.add(Number(p.page_id));
-            });
-            setSwappedPageIds(completedIds);
-            const progressMap: Record<number, number> = {};
-            completedIds.forEach((id) => { progressMap[id] = 100; });
-            setPageProgress(progressMap);
-            return; // 不走 WS
-          }
-          // 未完成：保持现有 WS 流程
-          try {
-            const bid = (resp.data as any)?.batch_id;
-            if (bid) {
-              currentBatchIdRef.current = bid;
-              setCurrentBatchId(bid);
-              const spu = String(searchParams.get('bookid') || bookIdParam || '');
-              if (spu && bid) {
-                startBatchPolling(spu, bid);
-                subscribeToPreviewChannel(spu, bid);
-              }
+        
+        if (match) {
+            // 尝试回填 recipient 和 message
+            const rname = match?.preview?.recipient_name || match?.full_name;
+            if (rname) setRecipient(rname);
+            const msg = match?.preview?.message || match?.preview?.dedication || match?.message;
+            if (msg) {
+               setMessage(msg);
+               setDedication(msg);
             }
-          } catch {}
-          setIsProcessing(true);
+        }
+
+        if (!pv) return;
+        // 下面的重新生成逻辑仅在无法直接获取 batch 时才需要（作为兜底），
+        // 或者如果我们需要 pv 里的参数来重新发起请求。
+        // 既然上面已经尝试直接获取 Batch，这里主要用于兜底。
+        
+        if (!previewData && match) {
+             // ... 原有的兜底逻辑，只有在 previewData 还没被上面的逻辑设置时才执行 ...
+             // (保持原有逻辑，但在开头加判断)
+             // const faceImageRaw = ...
         }
       } catch (e) {
-        console.warn('编辑流程状态检查失败，回退到 WS 流程:', e);
+        console.warn('编辑流程状态检查失败:', e);
       }
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -785,16 +790,19 @@ export default function PreviewPageWithTopNav() {
     (async () => {
       try {
         const res = await api.get(API_CART_LIST) as any;
-        const items = res?.data?.cart_items || res?.cart_items || [];
+        const items = res?.data?.items || res?.data?.cart_items || res?.cart_items || [];
         if (!Array.isArray(items) || items.length === 0) return;
         const match = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
         const pv = match?.preview;
-        if (!pv) return;
+        if (!pv && !match) return;
+
+        console.log('Preview Page: Found cart match for prefill:', match);
 
         // 服务器存储的是 option_key（或回退为 id/name），尝试多种键名以兼容历史数据
-        const coverKey = pv?.cover_type || pv?.cover || pv?.cover_option || pv?.cover_key;
-        const bindingKey = pv?.binding_type || pv?.binding || pv?.binding_option || pv?.binding_key;
-        const giftKey = pv?.gift_box || pv?.wrap || pv?.wrap_option || pv?.gift_box_key;
+        // 优先从 preview 对象读取，如果没有则从 item.attributes 读取
+        const coverKey = pv?.cover_type || pv?.cover || pv?.cover_option || pv?.cover_key || match?.attributes?.cover_style;
+        const bindingKey = pv?.binding_type || pv?.binding || pv?.binding_option || pv?.binding_key || (match as any)?.attributes?.binding_type;
+        const giftKey = pv?.gift_box || pv?.wrap || pv?.wrap_option || pv?.gift_box_key || match?.attributes?.giftbox;
 
         let changed = false;
 
@@ -1407,6 +1415,21 @@ export default function PreviewPageWithTopNav() {
   const coverDesignRef = useRef<HTMLDivElement>(null);
   const bindingRef = useRef<HTMLDivElement>(null);
   const giftBoxRef = useRef<HTMLDivElement>(null);
+
+  // 监听 URL tab 参数，跳转到指定部分
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'giftBox' || tabParam === 'addons') {
+      setActiveTab('Others');
+      // 延迟滚动以确保 DOM 渲染
+      setTimeout(() => {
+        if (giftBoxRef.current) {
+          giftBoxRef.current.scrollIntoView({ behavior: "smooth" });
+          setActiveSection('giftBox');
+        }
+      }, 300);
+    }
+  }, [searchParams, setActiveTab, setActiveSection]);
   
   // 构建图片URL的辅助函数（移除 public/ 前缀，优先使用站内相对路径）
   const buildImageUrl = (imagePath: string) => {
@@ -2368,40 +2391,89 @@ export default function PreviewPageWithTopNav() {
 
       // 构建添加到购物车的数据
       const coverKey = getCoverKey(selectedBookCover);
+      const bindingKey = getBindingKey(selectedBinding);
       const giftKey = getGiftBoxKey(selectedGiftBox);
-      const cartData: CartAddRequest = {
-        preview_id: effectivePreviewId as any,
-        quantity: 1,
-        cover_style: coverKey,
-        customization_data: {
-          attributes: {
-            ...(giftKey ? { giftbox: giftKey } : {}),
-            delivery_notes: '',
-            gift_message: message.trim(),
-            replace: false,
-          },
-        },
-      };
-
-      // 调用添加到购物车的API
-      const fullUrl = 'https://api.dreamazebook.com/api/cart/add';
-      console.log('调用购物车API:', {
-        url: fullUrl,
-        method: 'POST',
-        data: cartData
-      });
       
-      // 确保使用正确的HTTP方法
-      console.debug('[AddToCart] Sending request /cart/add with data:', cartData);
-      const response = await api.post('/cart/add', cartData) as ApiResponse<CartAddResponse>;
-      console.debug('[AddToCart] Response:', response);
+      // 检查是否是更新现有购物车项（从购物车跳转过来）
+      // 通过 URL 参数 previewid 和 API_CART_LIST 匹配
+      let existingCartItemId: number | null = null;
+      try {
+        const res = await api.get(API_CART_LIST) as any;
+        const items = res?.data?.items || res?.data?.cart_items || res?.cart_items || [];
+        const match = items.find((ci: any) => String(ci.preview_id) === String(effectivePreviewId));
+        if (match) {
+          existingCartItemId = match.id;
+        }
+      } catch (e) {
+        console.warn('Failed to check existing cart item:', e);
+      }
 
-      if (response.success) {
-        toast.success('商品已成功添加到购物车！');
-        // 跳转到购物车页面
-        router.push('/shopping-cart');
+      if (existingCartItemId) {
+        // 更新现有购物车项
+        // 注意：更新格式应与添加时保持一致，使用 customization_data.attributes
+        const updateData = {
+          cover_style: coverKey,
+          customization_data: {
+            attributes: {
+              ...(bindingKey ? { binding_type: bindingKey } : {}),
+              ...(giftKey ? { giftbox: giftKey } : {}),
+              delivery_notes: '',
+              gift_message: message.trim(),
+              replace: false,
+            }
+          }
+        };
+        
+        console.log('Updating existing cart item:', {
+          id: existingCartItemId,
+          data: updateData
+        });
+
+        const response = await api.put(API_CART_UPDATE(existingCartItemId), updateData) as ApiResponse;
+        
+        if (response.success) {
+          toast.success('购物车已更新！');
+          router.push('/shopping-cart');
+        } else {
+          toast.error(response.message || '更新购物车失败');
+        }
       } else {
-        toast.error(response.message || '添加到购物车失败');
+        // 创建新购物车项
+        const cartData: CartAddRequest = {
+          preview_id: effectivePreviewId as any,
+          quantity: 1,
+          cover_style: coverKey,
+          customization_data: {
+            attributes: {
+              ...(bindingKey ? { binding_type: bindingKey } : {}),
+              ...(giftKey ? { giftbox: giftKey } : {}),
+              delivery_notes: '',
+              gift_message: message.trim(),
+              replace: false,
+            },
+          },
+        };
+
+        // 调用添加到购物车的API
+        const fullUrl = 'https://api.dreamazebook.com/api/cart/add';
+        console.log('调用购物车API:', {
+          url: fullUrl,
+          method: 'POST',
+          data: cartData
+        });
+        
+        // 确保使用正确的HTTP方法
+        console.debug('[AddToCart] Sending request /cart/add with data:', cartData);
+        const response = await api.post('/cart/add', cartData) as ApiResponse<CartAddResponse>;
+        console.debug('[AddToCart] Response:', response);
+  
+        if (response.success) {
+          toast.success('商品已成功添加到购物车！');
+          // 跳转到购物车页面
+          router.push('/shopping-cart');
+        } else {
+          toast.error(response.message || '添加到购物车失败');
+        }
       }
     } catch (error: any) {
       console.error('添加到购物车失败:', error);
@@ -2702,8 +2774,10 @@ export default function PreviewPageWithTopNav() {
                     // 在预览页面显示：仅普通页（封面移至 Others 处理）
                     const displayedPages = previewData.preview_data.filter((p: any) => !(p as any).is_cover);
                     console.log('[Preview] Rendering', displayedPages.length, 'pages (previewPagesCount:', previewPagesCount, ', isQueued:', isQueued, ', isGenerating:', isGenerating, ')');
-                    const hasAnyBase = displayedPages.some((p: any) => !!p.base_image_url || (p.base_only === true && !!p.image_url));
-                    if (!hasAnyBase) {
+                    
+                    // 修改判定逻辑：只要有页面数据就渲染，不强制要求 base_image
+                    // 因为非换脸页可能没有 base_image_url，只有 image_url
+                    if (displayedPages.length === 0) {
                       // 无任何 base 页：此处不再重复提示，统一在寄语页下方展示队列提示
                       return null;
                     }

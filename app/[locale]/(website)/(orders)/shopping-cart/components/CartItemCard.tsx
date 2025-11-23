@@ -15,7 +15,7 @@ interface CartItemProps {
   onQuantityChange?: (id: number, delta: number) => void;
   onRemoveItem?: (id: number) => void;
   onToggleSelect?: (id: number) => void;
-  handleClickEditMessage?: (orderItem:any) => void;
+  handleClickEditMessage?: (orderItem:any) => Promise<void> | void;
   isSubItem?: boolean;
 }
 
@@ -33,6 +33,8 @@ export default function CartItemCard({
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isEditLoading, setIsEditLoading] = useState(false);
+  const [isAddonLoading, setIsAddonLoading] = useState(false);
   const [countdown, setCountdown] = useState<string | null>(null);
   const isPackage = item.item_type === 'package';
 
@@ -148,18 +150,25 @@ export default function CartItemCard({
                   {showEditBook && (
                     item.preview_id ? (
                       <a
-                        className={`text-sm text-blue-600 hover:underline cursor-pointer ${isPackage ? 'mt-2' : ''}`}
-                        onClick={(e) => {
+                        className={`text-sm text-blue-600 hover:underline cursor-pointer ${isPackage ? 'mt-2' : ''} ${isEditLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onClick={async (e) => {
                           e.preventDefault();
+                          if (isEditLoading) return;
+
                           if (handleClickEditMessage) {
-                            handleClickEditMessage(item);
+                            setIsEditLoading(true);
+                            try {
+                              await handleClickEditMessage(item);
+                            } finally {
+                              setIsEditLoading(false);
+                            }
                           } else {
                             const url = `/personalized-products/${item.spu_code}/${item.preview_id}/edit`;
                             router.push(url);
                           }
                         }}
                       >
-                        {t('editBook')}
+                        {isEditLoading ? 'Loading...' : t('editBook')}
                       </a>
                     ) : (
                       <a
@@ -187,20 +196,26 @@ export default function CartItemCard({
 
                   {/* 添加附加产品链接：进入编辑页的附加项标签 */}
                   <a
-                    className="text-sm text-blue-600 hover:underline cursor-pointer truncate max-w-[180px] md:max-w-[260px]"
-                    onClick={(e) => {
+                    className={`text-sm text-blue-600 hover:underline cursor-pointer truncate max-w-[180px] md:max-w-[260px] ${isAddonLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    onClick={async (e) => {
                       e.preventDefault();
+                      if (isAddonLoading) return;
+                      setIsAddonLoading(true);
+                      try {
                       const bookId = (item as any)?.spu_code || (item as any)?.picbook_id || (item as any)?.picbook?.id;
                       if (item.preview_id) {
-                        router.push(`/personalized-products/${item.spu_code}/${item.preview_id}/edit?tab=addons`);
+                          await router.push(`/preview?bookid=${item.spu_code}&previewid=${item.preview_id}&tab=giftBox`);
                       } else if (bookId) {
-                        router.push(`/personalize?bookid=${bookId}&step=addons`);
+                          await router.push(`/personalize?bookid=${bookId}&step=addons`);
                       } else {
-                        router.push('/shopping-cart');
+                          await router.push('/shopping-cart');
+                        }
+                      } catch (e) {
+                        setIsAddonLoading(false);
                       }
                     }}
                   >
-                    {t('addAdditionalProducts')}
+                    {isAddonLoading ? 'Loading...' : t('addAdditionalProducts')}
                   </a>
                 </div>                
               </div>

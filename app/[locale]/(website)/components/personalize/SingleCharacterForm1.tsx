@@ -44,6 +44,7 @@ interface SingleCharacterForm1Props {
     hairstyle?: string;
     hairColor?: string;
     photo?: { path: string } | null;
+    photos?: string[]; // 支持多张图片初始化
   };
   bookId?: string;
   // Optional backend-driven values
@@ -105,17 +106,25 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     }
   }, [images]);
 
-  // 初始化：如果传入了 initialData.photo.path，则作为已有图片显示
+  // 初始化：如果传入了 initialData.photo.path 或 photos 数组，则作为已有图片显示
   useEffect(() => {
-    const url = initialData?.photo?.path;
-    if (url) {
-      initializeWithUrls([url]);
-      handleBasicInfoChange('photo', { path: url });
-      handleErrorChange('photo', '');
+    // 优先使用 photos 数组，如果没有则使用 photo.path
+    const photosToInit = initialData?.photos && initialData.photos.length > 0 
+      ? initialData.photos 
+      : (initialData?.photo?.path ? [initialData.photo.path] : []);
+    
+    if (photosToInit.length > 0) {
+      initializeWithUrls(photosToInit);
+      // 设置第一张为主图
+      const firstPhoto = photosToInit[0];
+      if (firstPhoto) {
+        handleBasicInfoChange('photo', { path: firstPhoto });
+        handleErrorChange('photo', '');
+      }
     }
   // 仅在初次挂载或 initialData 变化时运行
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialData?.photo?.path]);
+  }, [initialData?.photo?.path, initialData?.photos]);
 
   // 当某张图片上传成功后，自动把第一张已上传图片设置为主图（兼容 dataUrl / uploadedFilePath）
   // 同时，如果所有图片都被删除，确保清除 formData.photo

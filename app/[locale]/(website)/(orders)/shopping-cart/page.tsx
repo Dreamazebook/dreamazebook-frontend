@@ -151,11 +151,16 @@ export default function ShoppingCartPage() {
     const item = cartItems.find(ci => ci.id === id);
     if (!item || !item.preview_id) {
       // 回退：跳原有创建页
-      router.push(`/personalize?bookid=${id}`);
+      const fallbackBookId = item?.spu_code || (item as any)?.picbook_id || (item as any)?.picbook?.id;
+      if (fallbackBookId) {
+        router.push(`/personalize?bookid=${fallbackBookId}`);
+      } else {
+        router.push('/shopping-cart');
+      }
       return;
     }
 
-    const bookId = item.sku_code;
+    const spuCode = item.spu_code;
     const previewId = item.preview_id;
     const query = new URLSearchParams({
       // recipient_name: item.preview.recipient_name ?? '',
@@ -165,7 +170,7 @@ export default function ShoppingCartPage() {
       // 以上字段如需携带，可解注释
     });
 
-    router.push(`/personalized-products/${bookId}/${previewId}/edit?${query.toString()}`);
+    router.push(`/personalized-products/${spuCode}/${previewId}/edit?${query.toString()}`);
   };
 
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -311,7 +316,7 @@ export default function ShoppingCartPage() {
                       const list = (data as any)?.items || [];
                       const current = list.find((it: any) => it.id === ci.id);
                       const remaining = current?.remaining_previews;
-                      const url = `/personalized-products/${ci.sku_code}/${ci.preview_id}/edit`;
+                      const url = `/personalized-products/${ci.spu_code}/${ci.preview_id}/edit`;
 
                       if (remaining && typeof remaining.remaining_previews === 'number') {
                         const desc = (
@@ -329,7 +334,7 @@ export default function ShoppingCartPage() {
                         router.push(url);
                       }
                     } catch (e) {
-                      const url = `/personalized-products/${ci.sku_code}/${ci.preview_id}/edit`;
+                      const url = `/personalized-products/${ci.spu_code}/${ci.preview_id}/edit`;
                       router.push(url);
                     }
                   }}

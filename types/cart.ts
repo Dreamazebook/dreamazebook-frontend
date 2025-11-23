@@ -72,6 +72,10 @@ export interface CartItem {
   result_images?: ResultImage[]
   subItems?: CartItem[];
   status: string;
+  remaining_previews?: {
+    used_previews_today: number;
+    remaining_previews: number;
+  };
 }
 
 export interface CartItems {

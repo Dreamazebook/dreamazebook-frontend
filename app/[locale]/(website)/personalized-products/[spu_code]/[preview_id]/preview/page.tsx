@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 
 export default function PreviewPersonalizedProductPage() {
   const params = useParams();
-  const bookId = params.book_id as string;
+  const bookId = params.spu_code as string;
   const previewId = params.preview_id as string;
 
   return (
