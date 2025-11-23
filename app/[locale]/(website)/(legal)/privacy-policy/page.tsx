@@ -1,4 +1,6 @@
 
+import { HELLO_EMAIL } from '@/constants/text';
+
 export default function PrivacyPolicy() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -108,7 +110,7 @@ export default function PrivacyPolicy() {
         </ul>
         <p className="text-gray-800 leading-relaxed mb-4">
           You can exercise your rights by emailing{' '}
-          <a href="mailto:hello@dreamazebook.com" className="text-blue-600 underline hover:text-blue-800">hello@dreamazebook.com</a>.
+          <a href={`mailto:${HELLO_EMAIL}`} className="text-blue-600 underline hover:text-blue-800">{HELLO_EMAIL}</a>.
         </p>
         
         <hr className="border-t-2 border-gray-200 my-8" />
@@ -144,7 +146,7 @@ export default function PrivacyPolicy() {
           If you have any questions or requests regarding this Privacy Policy, please contact us at:
         </p>
         <p className="text-gray-800 leading-relaxed mb-4">
-          <strong className="font-semibold">Email:</strong> <a href="mailto:hello@dreamazebook.com" className="text-blue-600 underline hover:text-blue-800">hello@dreamazebook.com</a>
+          <strong className="font-semibold">Email:</strong> <a href={`mailto:${HELLO_EMAIL}`} className="text-blue-600 underline hover:text-blue-800">{HELLO_EMAIL}</a>
           <br />
           <strong className="font-semibold">Address:</strong> 32 rue de Paris, 92100, Boulogne-Billancourt
         </p>

@@ -1,4 +1,5 @@
 import ShippingEstimator from './ShippingEstimator';
+import { HELLO_EMAIL } from '@/constants/text';
 
 export default function DeliveryInformation() {
   return (
@@ -21,7 +22,7 @@ export default function DeliveryInformation() {
         
         <p className="mb-4 leading-relaxed text-gray-800">
           If you've already placed an order and have questions about shipping, feel free to reach us at{' '}
-          <a href="mailto:hello@dreamazebook.com" className="text-blue-600 underline hover:text-blue-800">hello@dreamazebook.com</a> – we're here to help.
+          <a href={`mailto:${HELLO_EMAIL}`} className="text-blue-600 underline hover:text-blue-800">{HELLO_EMAIL}</a> – we're here to help.
         </p>
 
         <div className="mt-8">

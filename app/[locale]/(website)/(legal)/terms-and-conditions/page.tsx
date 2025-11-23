@@ -1,3 +1,5 @@
+import { HELLO_EMAIL } from '@/constants/text';
+
 export default function TermsAndConditions() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -37,7 +39,7 @@ export default function TermsAndConditions() {
         <h2 className="text-2xl font-bold text-black mt-8 mb-4">5. Removal</h2>
         <p className="text-gray-800 leading-relaxed mb-4">
           If at any time you want us to stop using your content, email{' '}
-          <a href="mailto:hello@dreamazebook.com" className="text-blue-600 underline hover:text-blue-800">hello@dreamazebook.com</a> and we'll remove it from our active 
+          <a href={`mailto:${HELLO_EMAIL}`} className="text-blue-600 underline hover:text-blue-800">{HELLO_EMAIL}</a> and we'll remove it from our active 
           marketing channels where reasonably possible.
         </p>
         

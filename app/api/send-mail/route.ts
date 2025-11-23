@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import FormData from 'form-data'
 import Mailgun from 'mailgun.js'
+import { HELLO_EMAIL } from '@/constants/text'
 
 interface ContactFormData {
   firstName: string
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
     // Compose email
     const messageData = {
       from: `noreply@${mailgunDomain}`,
-      to: 'hello@dreamazebook.com',
+      to: HELLO_EMAIL,
       //to: 'weisen.li@hotmail.com',
       'h:Reply-To': email,
       subject: `New Contact Request: ${subject}`,

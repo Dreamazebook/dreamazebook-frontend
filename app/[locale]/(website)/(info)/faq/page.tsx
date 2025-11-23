@@ -3,6 +3,7 @@
 import { Link } from '@/i18n/routing'
 import React from 'react'
 import { useState } from 'react'
+import { HELLO_EMAIL } from '@/constants/text'
 
 interface FAQItem {
   question: string
@@ -153,10 +154,10 @@ export default function FAQPage() {
             <p className="leading-relaxed">
               Click <Link href="/contact-us" className="text-primary font-semibold">Contact Us</Link> or email{' '}
               <a 
-                href="mailto:hello@dreamazebook.com" 
+                href={`mailto:${HELLO_EMAIL}`} 
                 className="text-blue-600 hover:text-blue-800 underline font-medium"
               >
-                hello@dreamazebook.com
+                {HELLO_EMAIL}
               </a>
             </p>
             <p className="leading-relaxed">
