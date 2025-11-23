@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { ResultImage } from '@/types/order';
 import { useOrderDetail } from '../context/OrderDetailContext';
 import { CartItem, FaceImage } from '@/types/cart';
+import JSZip from 'jszip';
 
 interface ResultImagesModalProps {
   isOpen: boolean;
@@ -54,47 +55,57 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
     }
   };
 
-  const downloadImage = async (url: string, filename: string) => {
+
+
+  const handleDownloadSelected = async () => {
+    if (selectedPageCodes.length === 0) return;
+
     try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
+      // Create a new zip file
+      const zip = new JSZip();
+
+      // Add face images to zip
+      for (let i = 0; i < faceImages.length; i++) {
+        const faceImage = faceImages[i];
+        const filename = `face_${i + 1}.${faceImage.mime?.split('/')[1] || 'jpg'}`;
+        const response = await fetch(faceImage.url);
+        const blob = await response.blob();
+        zip.file(filename, blob);
+      }
+
+      // Add selected base and final images to zip
+      const selectedImages = images.filter(img => selectedPageCodes.includes(img.page_code));
+      
+      for (const image of selectedImages) {
+        // Add base image
+        if (image.base_image_path) {
+          const baseFilename = `${image.page_code}_base.${image.base_image_path.split('.').pop() || 'jpg'}`;
+          const baseResponse = await fetch(image.base_image_path);
+          const baseBlob = await baseResponse.blob();
+          zip.file(baseFilename, baseBlob);
+        }
+        
+        // Add final image
+        if (image.final_image_url) {
+          const finalFilename = `${image.page_code}_final.${image.final_image_url.split('.').pop() || 'jpg'}`;
+          const finalResponse = await fetch(image.final_image_url);
+          const finalBlob = await finalResponse.blob();
+          zip.file(finalFilename, finalBlob);
+        }
+      }
+
+      // Generate the zip file and trigger download
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const downloadUrl = window.URL.createObjectURL(zipBlob);
       const link = document.createElement('a');
       link.href = downloadUrl;
-      link.download = filename;
+      link.download = `${itemName.replace(/[^a-zA-Z0-9]/g, '_')}_images.zip`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
-      console.error('Download failed:', error);
-    }
-  };
-
-  const handleDownloadSelected = async () => {
-    if (selectedPageCodes.length === 0) return;
-
-    // Download face images
-    faceImages.forEach((faceImage, index) => {
-      const filename = `face_${index + 1}.${faceImage.mime?.split('/')[1] || 'jpg'}`;
-      downloadImage(faceImage.url, filename);
-    });
-
-    // Download selected base and final images
-    const selectedImages = images.filter(img => selectedPageCodes.includes(img.page_code));
-    
-    for (const image of selectedImages) {
-      // Download base image
-      if (image.base_image_path) {
-        const baseFilename = `${image.page_code}_base.${image.base_image_path.split('.').pop() || 'jpg'}`;
-        await downloadImage(image.base_image_path, baseFilename);
-      }
-      
-      // Download final image
-      if (image.final_image_url) {
-        const finalFilename = `${image.page_code}_final.${image.final_image_url.split('.').pop() || 'jpg'}`;
-        await downloadImage(image.final_image_url, finalFilename);
-      }
+      console.error('Failed to create zip file:', error);
     }
   };
 
@@ -126,7 +137,7 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span>Download</span>
+                    <span>Download ZIP</span>
                   </button>
                 </>
               )}
