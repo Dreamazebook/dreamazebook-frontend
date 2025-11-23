@@ -97,7 +97,6 @@ const AdminOrderDetailPage: FC = () => {
         item_id: itemId
       });
       if (success && data) {
-        setOrder(data);
         // 确认成功后关闭模态窗口
         setIsModalOpen(false);
         setSelectedItem(null);

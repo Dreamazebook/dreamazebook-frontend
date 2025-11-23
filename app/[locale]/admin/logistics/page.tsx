@@ -4,25 +4,17 @@ import { FC, useEffect, useState } from 'react';
 import api from '@/utils/api';
 import { API_ADMIN_LOGSTICS } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
-
-interface LogisticsData {
-  id: number;
-  type: string;
-  status: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
-}
+import { LogisticsOrder } from '@/types/logistics';
 
 const LogisticsPage: FC = () => {
-  const [logisticsData, setLogisticsData] = useState<LogisticsData[]>([]);
+  const [logisticsData, setLogisticsData] = useState<LogisticsOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchLogisticsData = async () => {
       try {
-        const { data, success, message } = await api.get<ApiResponse<LogisticsData[]>>(API_ADMIN_LOGSTICS);
+        const { data, success, message } = await api.get<ApiResponse<LogisticsOrder[]>>(API_ADMIN_LOGSTICS);
         if (success && data) {
           setLogisticsData(data);
         } else {
@@ -97,16 +89,22 @@ const LogisticsPage: FC = () => {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ID
+                    Order Number
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Type
+                    Customer
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Description
+                    Payment Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Total Amount
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Logistics Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Created At
@@ -117,24 +115,37 @@ const LogisticsPage: FC = () => {
                 {logisticsData.map((item) => (
                   <tr key={item.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {item.id}
+                      {item.order_number}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {item.type}
+                      <div className="font-medium">{item.user.name}</div>
+                      <div className="text-gray-500">{item.user.email}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full ${
                         item.status === 'completed' 
                           ? 'bg-green-100 text-green-800' 
-                          : item.status === 'pending' 
-                            ? 'bg-yellow-100 text-yellow-800' 
-                            : 'bg-red-100 text-red-800'
+                          : item.status === 'confirmed' 
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-yellow-100 text-yellow-800'
                       }`}>
                         {item.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {item.description}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-medium rounded-full ${
+                        item.payment_status === 'paid' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {item.payment_status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {item.currency_code} {item.total_amount}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {item.logistics_status || 'Not created'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(item.created_at).toLocaleString()}

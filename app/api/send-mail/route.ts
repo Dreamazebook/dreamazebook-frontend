@@ -45,6 +45,7 @@ export async function POST(request: NextRequest) {
     const messageData = {
       from: `noreply@${mailgunDomain}`,
       to: 'hello@dreamazebook.com',
+      //to: 'weisen.li@hotmail.com',
       'h:Reply-To': email,
       subject: `New Contact Request: ${subject}`,
       html: `

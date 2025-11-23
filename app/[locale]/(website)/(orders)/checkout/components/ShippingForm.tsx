@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Address, EMPTY_ADDRESS } from "@/types/address";
 import AddressForm from "./AddressForm";
 import AddressCard from "../../../components/address/AddressCard";
@@ -21,6 +21,8 @@ interface ShippingFormProps {
   setShowAddressListModal: (value: boolean) => void;
   showShippingForm: boolean;
   setShowShippingForm: (value: boolean) => void;
+  shippingAddressRef?: React.RefObject<any>;
+  billingAddressRef?: React.RefObject<any>;
 }
 
 const ShippingForm: React.FC<ShippingFormProps> = ({
@@ -35,6 +37,8 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   setShowAddressListModal,
   showShippingForm,
   setShowShippingForm,
+  shippingAddressRef,
+  billingAddressRef,
 }) => {
   const { fetchCountryList, fetchAddresses } = useUserStore();
 
@@ -91,6 +95,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
 
       {showShippingForm && (
         <AddressForm
+          ref={shippingAddressRef}
           address={address}
           setAddress={setAddress}
         />
@@ -136,6 +141,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
 
       {needsBillingAddress && (
         <AddressForm
+          ref={billingAddressRef}
           address={billingAddress}
           setAddress={setBillingAddress}
         />
@@ -147,7 +153,8 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
         </p>
 
         <NextStepButton
-          disabled={!isAddressValidated()}
+          // disabled={!isAddressVal
+          // idated()}
           handleOnClick={handleNextFromShipping}
         >Continue to Delivery</NextStepButton>
 
