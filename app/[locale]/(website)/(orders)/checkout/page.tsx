@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Loading from '../../components/Loading';
 import { Address } from '@/types/address';
@@ -40,6 +40,10 @@ function CheckoutPageContent() {
   } = useShippingAddress(orderId);
   
   const { updateOrderShippingMethod, isLoading: isShippingMethodLoading } = useShippingMethod(orderId);
+  
+  // Refs for address form validation
+  const shippingAddressRef = useRef<any>(null);
+  const billingAddressRef = useRef<any>(null);
 
   useEffect(() => {
     if (orderDetail) {
@@ -85,6 +89,22 @@ function CheckoutPageContent() {
   }
 
   const handleNextFromShipping = async () => {
+    // Always validate shipping address if form is shown
+    if (showShippingForm && shippingAddressRef.current) {
+      const isShippingValid = shippingAddressRef.current.validateShippingAddress();
+      if (!isShippingValid) {
+        return; // Stop if shipping address validation fails
+      }
+    }
+
+    // Always validate billing address if needed and form is shown
+    if (needsBillingAddress && billingAddressRef.current) {
+      const isBillingValid = billingAddressRef.current.validateShippingAddress();
+      if (!isBillingValid) {
+        return; // Stop if billing address validation fails
+      }
+    }
+
     let skipUpdateShippingAddress = false;
     if (orderDetail?.shipping_address) {
       skipUpdateShippingAddress = isSameAddress(orderDetail?.shipping_address, shippingAddress);
@@ -143,6 +163,8 @@ function CheckoutPageContent() {
                 setShowAddressListModal={setShowAddressListModal}
                 showShippingForm={showShippingForm}
                 setShowShippingForm={setShowShippingForm}
+                shippingAddressRef={shippingAddressRef}
+                billingAddressRef={billingAddressRef}
               />
               }
             </CheckoutStep>

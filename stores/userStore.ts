@@ -120,15 +120,21 @@ const useUserStore = create<UserState>((set,get) => ({
     if (get().countryList.length == 0) {
       const {data} = await api.get<ApiResponse>(API_COUNTRY_LIST);
       if (data.length == 0) return;
-      const countryList:any = [{ value: '', label: 'Select Country' },];
+      const countryMap = new Map<string, string>();
+      countryMap.set('', 'Select Country');
+      
       data.forEach(({country}: any) => {
         country.forEach(({countrys}: any) => {
           countrys.forEach((c: any) => {
-            countryList.push({value: c.code, label: c.ename});
+            if (c.code && c.ename && !countryMap.has(c.code)) {
+              countryMap.set(c.code, c.ename);
+            }
           });
         })
       });
-      countryList.sort((a:any,b:any) => a.label.localeCompare(b.label));
+      
+      const countryList = Array.from(countryMap.entries()).map(([value, label]) => ({ value, label }));
+      countryList.sort((a, b) => a.label.localeCompare(b.label));
       set({'countryList': countryList});
     }
   },

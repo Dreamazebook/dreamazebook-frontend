@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useImperativeHandle, forwardRef } from 'react';
 import { Address } from '@/types/address';
 import FormField from './FormField';
 import useUserStore from '@/stores/userStore';
@@ -37,29 +37,48 @@ const AddressSuggestions: React.FC<AddressSuggestionsProps> = ({
 interface AddressFormProps {
   address: Address;
   setAddress: (value: React.SetStateAction<Address>) => void;
+  validateShippingAddress?: () => boolean;
 }
 
-const AddressForm: React.FC<AddressFormProps> = ({
+const AddressForm = forwardRef<{
+  validateShippingAddress: () => boolean;
+}, AddressFormProps>(({
   address,
   setAddress,
-}) => {
+  validateShippingAddress,
+}, ref) => {
 
   const { countryList } = useUserStore();
   const [errors, setErrors] = useState<ShippingErrors>({});
 
   const clearError = (field: keyof ShippingErrors) => {
     if (errors[field]) {
-      setErrors({ ...errors, [field]: undefined });
+      const newErrors = { ...errors };
+      delete newErrors[field];
+      setErrors(newErrors);
     }
   };
 
+  // Expose validation method via ref
+  useImperativeHandle(ref, () => ({
+    validateShippingAddress: () => validateShippingInfo()
+  }));
+
   // Validate shipping information. If `field` is provided, validate only that field.
-  const validateShippingInfo = (field?: keyof ShippingErrors) => {
-    const newErrors: ShippingErrors = { ...errors } as ShippingErrors;
+  const validateShippingInfo = (field?: keyof ShippingErrors): boolean => {
+    let newErrors: ShippingErrors;
+
+    if (field) {
+      // Start with existing errors, then update the specific field
+      newErrors = { ...errors };
+    } else {
+      // Start with empty errors for full validation
+      newErrors = {} as ShippingErrors;
+    }
 
     const setOrClear = (key: keyof ShippingErrors, message?: string) => {
       if (message) newErrors[key] = message;
-      else newErrors[key] = undefined;
+      else delete newErrors[key];
     };
 
     const checkEmail = () => {
@@ -92,6 +111,10 @@ const AddressForm: React.FC<AddressFormProps> = ({
     }
 
     setErrors(newErrors);
+    
+    // Check if there are any errors
+    const hasErrors = Object.values(newErrors).some(error => error !== undefined);
+    return !hasErrors;
   };
 
   const [addressSuggestions, setAddressSuggestions] = useState([]);
@@ -137,6 +160,17 @@ const AddressForm: React.FC<AddressFormProps> = ({
       if (item.id.includes('country')) country = item.short_code.toUpperCase();
     });
 
+    // Clear errors immediately for the fields that will be auto-filled
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors.city;
+      delete newErrors.state;
+      delete newErrors.post_code;
+      delete newErrors.country;
+      delete newErrors.address;
+      return newErrors;
+    });
+
     setAddress((prev) => ({
       ...prev,
       street: street.trim(),
@@ -145,10 +179,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
       post_code: post_code.trim(),
       country: country.trim(),
     }));
-    validateShippingInfo('city');
-    validateShippingInfo('state');
-    validateShippingInfo('post_code');
-    validateShippingInfo('country');
+    
     setAddressSuggestions([]);
   };
   
@@ -302,6 +333,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
       </div>
     </>
   );
-};
+});
 
 export default AddressForm;

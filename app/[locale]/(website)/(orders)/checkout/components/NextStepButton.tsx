@@ -1,5 +1,5 @@
 interface NextStepButtonProps {
-  disabled: boolean;
+  disabled?: boolean;
   handleOnClick: () => void;
   children: React.ReactNode;
   type?: 'button' | 'submit' | 'reset';
