@@ -88,14 +88,83 @@ export default function EditPersonalizedProductPage() {
     return () => { ignore = true };
   }, [bookId]);
 
-  // 从购物车列表中查找 previewId 获取初始数据
+  // 从 preview/batches/{previewId} 或购物车中查找初始数据，用于回填个性化表单
   useEffect(() => {
     (async () => {
+      // 1) 优先尝试从 /products/{spu_code}/preview/batches/{previewId} 获取 options
+      try {
+        const base = (process.env.NEXT_PUBLIC_PREVIEW_API_URL || '').replace(/\/$/, '');
+        const path = `/products/${bookId}/preview/batches/${previewId}`;
+        const url = base ? `${base}${path}` : path;
+
+        const res = await api.get(url) as any;
+        const batch = res?.data?.batch || res?.batch || {};
+        const options = batch?.options || {};
+
+        if (options && (options.full_name || options.face_images || options.attributes)) {
+          const fullName = options.full_name || batch.recipient_name || '';
+          const attrs = options.attributes || {};
+
+          // skin_tone: 'white' | 'original' | 'black' → hex
+          let skinColor = '';
+          const tone = String(attrs.skin_tone || '').toLowerCase();
+          if (tone === 'white') skinColor = skinColors[0];
+          else if (tone === 'original') skinColor = skinColors[1];
+          else if (tone === 'black') skinColor = skinColors[2];
+
+          // hair_style: 后端返回数字 id (如 "1")，需要转换为 "hair_1" 格式以匹配 HairstyleSelector
+          const hairstyleRaw = attrs.hair_style || attrs.hairstyle || '';
+          const hairstyle = hairstyleRaw 
+            ? (hairstyleRaw.startsWith('hair_') ? hairstyleRaw : `hair_${hairstyleRaw}`)
+            : '';
+          let hairColor = '';
+          const hairColorRaw = String(attrs.hair_color || '').toLowerCase();
+          if (hairColorRaw === 'blone' || hairColorRaw === 'blonde' || hairColorRaw === 'light') {
+            hairColor = 'light';
+          } else if (hairColorRaw) {
+            hairColor = 'dark';
+          }
+
+          // face_images: 取 url/path 作为照片路径
+          let faceImages: string[] = [];
+          if (Array.isArray(options.face_images)) {
+            faceImages = options.face_images
+              .map((f: any) => f?.url || f?.path)
+              .filter((v: any) => typeof v === 'string' && v);
+          }
+
+          setInitialData({
+            fullName,
+            // 性别后端当前未在 options 中返回，这里留空交给用户选择
+            gender: '',
+            skinColor,
+            photo: faceImages.length > 0 ? { path: faceImages[0] } : null,
+            photos: faceImages,
+            ...(hairstyle ? { hairstyle } : {}),
+            ...(hairColor ? { hairColor } : {}),
+          });
+
+          const lang = batch.language;
+          if (lang) {
+            setBookLanguage(String(lang));
+          }
+
+          setIsLoading(false);
+          return; // 成功从 batch 获取后，不再走购物车兜底
+        }
+      } catch (e) {
+        console.warn('从 preview/batches 获取初始个性化数据失败，尝试从购物车兜底:', e);
+      }
+
+      // 2) 兜底：从购物车列表中查找 previewId 获取初始数据（旧逻辑）
       try {
         const { data } = await api.get<ApiResponse<CartItems>>(`${API_CART_LIST}`);
         const item = data.items.find(ci => String(ci.preview_id) === String(previewId));
         const p = item?.preview;
-        if (!p && !item) return;
+        if (!p && !item) {
+          setIsLoading(false);
+          return;
+        }
         
         // 兼容 face_image 为 JSON 数组字符串或单值
         let faceImages: string[] = [];
@@ -113,7 +182,11 @@ export default function EditPersonalizedProductPage() {
         } catch {}
         
         // 获取hairstyle和hairColor
-        const hairstyle = (p as any)?.hairstyle || (p as any)?.hair_style || (item as any)?.hairstyle || (item as any)?.hair_style || '';
+        // hair_style: 后端返回数字 id (如 "1")，需要转换为 "hair_1" 格式以匹配 HairstyleSelector
+        const hairstyleRaw = (p as any)?.hairstyle || (p as any)?.hair_style || (item as any)?.hairstyle || (item as any)?.hair_style || '';
+        const hairstyle = hairstyleRaw 
+          ? (hairstyleRaw.startsWith('hair_') ? hairstyleRaw : `hair_${hairstyleRaw}`)
+          : '';
         const hairColor = (p as any)?.hairColor || (p as any)?.hair_color || (item as any)?.hairColor || (item as any)?.hair_color || '';
         
         // 获取性别和肤色 (处理数字字符串或数字)
@@ -126,12 +199,12 @@ export default function EditPersonalizedProductPage() {
         // 如果 skinVal 是数字 1-3，映射到索引 0-2
         let skinColor = '';
         if (skinVal) {
-           const skinNum = Number(skinVal);
-           if (!isNaN(skinNum) && skinNum >= 1 && skinNum <= 3) {
-             skinColor = skinColors[skinNum - 1];
-           } else if (typeof skinVal === 'string' && skinVal.startsWith('#')) {
-             skinColor = skinVal;
-           }
+          const skinNum = Number(skinVal);
+          if (!isNaN(skinNum) && skinNum >= 1 && skinNum <= 3) {
+            skinColor = skinColors[skinNum - 1];
+          } else if (typeof skinVal === 'string' && skinVal.startsWith('#')) {
+            skinColor = skinVal;
+          }
         }
 
         setInitialData({
@@ -157,7 +230,7 @@ export default function EditPersonalizedProductPage() {
         setIsLoading(false);
       }
     })();
-  }, [previewId]);
+  }, [bookId, previewId, currentLang]);
 
   const renderForm = () => {
     if (isLoading) return <SkeletonLoader />;

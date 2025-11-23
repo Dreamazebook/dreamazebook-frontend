@@ -473,9 +473,15 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       // 2. 发型层（Light 不用滤镜；Brown/Dark 使用 hairColorFilter）
       if (hairstyle) {
         const ts = Date.now();
+        // 兼容后端/表单传入的发型值：可能是 '1' / '2' / 'hair_1' 这种
+        const hairKey =
+          hairstyle.startsWith('hair_')
+            ? hairstyle
+            : `hair_${hairstyle}`;
+
         await drawLayerWithFilter([
-          `/products/picbooks/${normalizedBookId}/avatar/layer_${hairstyle}.png?ts=${ts}`,
-          `/products/picbooks/PICBOOK_GOODNIGHT/avatar/layer_${hairstyle}.png?ts=${ts}`,
+          `/products/picbooks/${normalizedBookId}/avatar/layer_${hairKey}.png?ts=${ts}`,
+          `/products/picbooks/PICBOOK_GOODNIGHT/avatar/layer_${hairKey}.png?ts=${ts}`,
         ], hairFilter, 'HAIR');
       }
 

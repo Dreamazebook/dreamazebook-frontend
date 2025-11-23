@@ -202,12 +202,12 @@ export default function CartItemCard({
                       if (isAddonLoading) return;
                       setIsAddonLoading(true);
                       try {
-                      const bookId = (item as any)?.spu_code || (item as any)?.picbook_id || (item as any)?.picbook?.id;
-                      if (item.preview_id) {
-                          await router.push(`/preview?bookid=${item.spu_code}&previewid=${item.preview_id}&tab=giftBox`);
-                      } else if (bookId) {
+                        const bookId = (item as any)?.spu_code || (item as any)?.picbook_id || (item as any)?.picbook?.id;
+                        if (item.preview_id) {
+                          await router.push(`/preview?bookid=${item.spu_code}&previewid=${item.preview_id}&fromCartItemId=${item.id}&tab=giftBox`);
+                        } else if (bookId) {
                           await router.push(`/personalize?bookid=${bookId}&step=addons`);
-                      } else {
+                        } else {
                           await router.push('/shopping-cart');
                         }
                       } catch (e) {
