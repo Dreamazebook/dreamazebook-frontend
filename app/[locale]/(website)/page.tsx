@@ -1,19 +1,14 @@
 'use client';
 
-import Button from '@/app/components/Button';
-import { useLocale, useTranslations } from 'next-intl';
-import Image from 'next/image';
-import { FaStar, FaRegStar, FaQuoteLeft } from 'react-icons/fa';
+import { useLocale } from 'next-intl';
 import React, { useEffect } from 'react';
 import { motion, useAnimation, useInView } from 'framer-motion';
 import InitialSpark from './components/home/InitialSpark';
-import OurBook from './components/home/OurBook';
 import SideLineProducts from './components/home/SideLineProducts';
 import LastingMemorial from './components/home/LastingMemorial';
 import Slideshow from './components/home/SlideShow';
 import PicBooksShow from './components/home/PicBooksShow';
 // import TestimonialCards from './components/home/TestimonialCards';
-import FAQ from '../(marketing)/components/FAQ';
 import ReserveSection from '../(marketing)/components/ReserveSection';
 import GiftPackage from './components/home/GiftPackage';
 import { Product } from '@/types/product';
@@ -62,7 +57,6 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({ children, className =
 };
 
 export default function HomePage() {
-  const t = useTranslations('HomePage');
   const locale = useLocale();
 
   const [books, setBooks] = React.useState<Product[]>([]);
@@ -78,22 +72,6 @@ export default function HomePage() {
 
     fetchBooks();
   }, [locale]);
-
-  // const faqs = [
-  //   {
-  //     tl: 'Personalize It',
-  //     ans: 'Add your child’s name, upload 1–3 photos, and choose a few fun details. (Tip: the better the photo quality, the more stunning the result!)',
-  //     show: true
-  //   },
-  //   {
-  //     tl: 'Preview & Confirm',
-  //     ans: 'Flip through sample pages to see how your story looks—then confirm with one click.'
-  //   },
-  //   {
-  //     tl: 'Receive & Enjoy',
-  //     ans: ' Your one-of-a-kind gift is on its way. Unwrap it, read it together, and get ready for smiles that last.'
-  //   }
-  // ];
 
   return (
     <main className="min-h-screen">
