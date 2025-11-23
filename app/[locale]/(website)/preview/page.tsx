@@ -2290,12 +2290,12 @@ export default function PreviewPageWithTopNav() {
             const mapHairColor = (v: any) => {
               if (typeof v === 'string') {
                 const s = v.toLowerCase();
-                if (s === 'light') return 'blonde';
+                if (s === 'light') return 'blone';
                 if (s === 'dark' || s === 'black') return 'dark';
                 return 'dark';
               }
               const n = Number(v) || 1;
-              if (n === 1) return 'blonde';
+              if (n === 1) return 'blone';
               if (n === 3) return 'dark';
               return 'dark';
             };

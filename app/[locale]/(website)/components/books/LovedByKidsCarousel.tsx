@@ -76,7 +76,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
   if (!cards || cards.length === 0) return null;
 
   return (
-    <section className="w-full md:py-22 py-16 bg-white flex flex-col md:gap-12 gap-6">
+    <section className="w-full md:py-22 py-16 bg-white flex flex-col md:gap-12 gap-6 overflow-x-hidden">
       <div className="gap-12 md:px-30 px-3">
         {/* Section Title */}
         <h2
@@ -88,7 +88,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
       </div>
 
       {/* Carousel Container - 突破容器限制，延伸到边缘 */}
-      <div className="relative w-full">
+      <div className="relative w-full overflow-x-hidden">
         {/* 左-中-右 */}
         {(() => {
           if (!cards || cards.length === 0) return null;
@@ -145,62 +145,89 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
                   opacity,
                 }}
               >
-                <div className={`relative w-full h-full ${isDesktop ? 'rounded-[12px]' : 'rounded-[8px]'} overflow-hidden bg-white`}>
-                  <Image
-                    src={isDesktop ? (card.imageDesktop || card.image) : card.image}
-                    alt={card.title}
-                    fill
-                    className="object-top object-cover"
-                    sizes="(max-width: 768px) 90vw, 33vw"
-                  />
+                <div className="relative w-full h-full bg-white">
+                  {/* 图片容器：负责圆角和裁剪 */}
                   <div
-                    className="absolute inset-0"
-                    // style={{
-                    //   background:
-                    //     'linear-gradient(206.13deg, rgba(249, 232, 232, 0) 32.16%, #F9E8E8 75.03%)',
-                    // }}
-                  />
-                  {/* 文案 - 移动端三张都显示，桌面端三张都显示（受缩放影响） */}
-                  <div
-                    className={`absolute inset-0 flex flex-col justify-end ${isDesktop ? '' : 'items-start'}`}
-                    style={{
-                      paddingTop: isDesktop ? '88px' : '0',
-                      paddingRight: isDesktop ? '48px' : '24px',
-                      paddingBottom: isDesktop ? '48px' : '24px',
-                      paddingLeft: isDesktop ? '48px' : '24px',
-                      gap: '4px',
-                    }}
+                    className={`absolute inset-0 ${isDesktop ? 'rounded-[12px]' : 'rounded-[8px]'} overflow-hidden`}
                   >
-                    <h3
-                      className="text-[#222222] text-[18px] font-medium leading-[24px] tracking-[0.15px] min-w-0"
-                    >
-                      {card.title.split(' ').slice(0, -1).join(' ')}
-                      {' '}
-                      <span className="whitespace-nowrap inline-flex items-center">
-                        {card.title.split(' ').slice(-1)[0]}
-                        <svg width="18" height="10" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg" className="ml-[10px] flex-shrink-0">
-                          <path d="M0.75 4.75H16.75M16.75 4.75L12.25 0.75M16.75 4.75L12.25 8.75" stroke="#222222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </span>
-                    </h3>
-                    <p
-                      className="text-[#666666] text-[16px] leading-[24px] tracking-[0.5px]"
-                    >
-                      {card.description}
-                    </p>
+                    <Image
+                      src={isDesktop ? (card.imageDesktop || card.image) : card.image}
+                      alt={card.title}
+                      fill
+                      className="object-top object-cover"
+                      sizes="(max-width: 768px) 90vw, 33vw"
+                    />
+                    <div
+                      className="absolute inset-0"
+                      // style={{
+                      //   background:
+                      //     'linear-gradient(206.13deg, rgba(249, 232, 232, 0) 32.16%, #F9E8E8 75.03%)',
+                      // }}
+                    />
                   </div>
+
+                  {/* 文案容器：只在中间卡片显示，固定相对卡片底部的距离，可以超出卡片边界 */}
+                  {position === 'center' && (
+                    <div
+                      className={`absolute flex flex-col z-30 text-white gap-1 rounded bg-[#2A9F82] ${
+                        isDesktop ? 'w-[613px] px-8 py-6' : 'w-[260px] p-6'
+                      }`}
+                      style={{
+                        right: isDesktop ? -12 : -16, // 固定与卡片右侧的水平距离
+                        bottom: isDesktop ? -12 : -8, // 固定与卡片底部的垂直距离
+                      }}
+                    >
+                      <h3
+                        className="text-[18px] font-medium leading-[24px] tracking-[0.15px] min-w-0"
+                      >
+                        {card.title.split(' ').slice(0, -1).join(' ')}
+                        {' '}
+                        <span className="whitespace-nowrap inline-flex items-center text-white">
+                          {card.title.split(' ').slice(-1)[0]}
+                          <svg
+                            width="18"
+                            height="10"
+                            viewBox="0 0 18 10"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="ml-[10px] flex-shrink-0"
+                          >
+                            <path
+                              d="M0.75 4.75H16.75M16.75 4.75L12.25 0.75M16.75 4.75L12.25 8.75"
+                              stroke="#222222"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </span>
+                      </h3>
+                      <p
+                        className="md:text-[16px] text-[14px] md:leading-[24px] leading-[20px] md:tracking-[0.5px] tracking-[0.25px]"
+                      >
+                        {card.description}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </Link>
             );
           };
 
+          const isDesktop = isDesktopRef.current;
+          const baseH = isDesktop ? 450 : 361;
+          // 文本气泡相对于卡片底部有一个固定的向下偏移量
+          const extraBottom = isDesktop ? 24 : 8;
+          // 统一容器高度需要把这段偏移也包含进去，否则内容会在容器内产生垂直滚动
+          const containerH = baseH + extraBottom;
+
           return (
             <>
               {/* 统一容器：固定高度，避免滑动时高度抖动 */}
               <div
-                className="relative w-full overflow-hidden"
+                className="relative w-full overflow-x-hidden overflow-y-visible"
                 style={{
-                  height: isDesktopRef.current ? 450 : 361, // 对应中间卡片高度
+                  height: containerH,
                 }}
                 onTouchStart={onTouchStart}
                 onTouchMove={onTouchMove}
