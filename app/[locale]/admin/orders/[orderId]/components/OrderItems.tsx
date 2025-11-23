@@ -108,7 +108,7 @@ const OrderItems: FC<OrderItemsProps> = ({ order }) => {
       <ResultImagesModal
         isOpen={isModalOpen}
         onClose={closeModal}
-        images={selectedItem?.result_images || []}
+        orderItem={selectedItem}
         itemName={selectedItem?.picbook_name || ''}
       />
     </>

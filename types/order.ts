@@ -5,19 +5,6 @@ export function formatDate(date: string) {
   return date.split('T')[0];
 }
 
-export interface FaceImage {
-  disk: string;
-  mime: string;
-  original_name: string;
-  path: string;
-  uploaded_at: string;
-  url: string;
-}
-
-export interface CustomizationData {
-  face_images: FaceImage[];
-}
-
 export interface OrderDetail {
   id: number;
   user_id: number;
@@ -66,7 +53,6 @@ export interface OrderDetail {
       completed_at: string;
     };
   };
-  customization_data?: CustomizationData;
 }
 
 export const EMPTY_CART_ITEM = {

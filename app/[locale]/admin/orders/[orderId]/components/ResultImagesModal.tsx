@@ -4,18 +4,19 @@ import { FC, useState } from 'react';
 import Image from 'next/image';
 import { ResultImage } from '@/types/order';
 import { useOrderDetail } from '../context/OrderDetailContext';
+import { CartItem, FaceImage } from '@/types/cart';
 
 interface ResultImagesModalProps {
   isOpen: boolean;
   onClose: () => void;
-  images: ResultImage[];
+  orderItem: CartItem;
   itemName: string;
 }
 
 const ResultImagesModal: FC<ResultImagesModalProps> = ({
   isOpen,
   onClose,
-  images,
+  orderItem,
   itemName,
 }) => {
   const [isConfirming, setIsConfirming] = useState(false);
@@ -25,10 +26,13 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
   
   if (!isOpen) return null;
 
+  const images: ResultImage[] = orderItem.result_images || [];
+  const faceImages: FaceImage[] = orderItem?.customization_data?.face_images || [];
+
   const handleConfirm = async () => {
     setIsConfirming(true);
     try {
-      await handleManualConfirm(images[0]?.item_id?.toString());
+      await handleManualConfirm(orderItem.id.toString());
     } finally {
       setIsConfirming(false);
     }
@@ -120,6 +124,36 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
 
         {/* Content */}
         <div className="p-4 h-full overflow-y-auto">
+          {/* Face Images Section */}
+          {faceImages.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Face Images</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {faceImages.map((faceImage: FaceImage, index: number) => (
+                  <div key={index} className="relative group">
+                    <div className="relative aspect-square rounded-lg overflow-hidden border border-gray-200">
+                      <Image
+                        src={faceImage.url || '/placeholder-image.png'}
+                        alt={`Face Image ${index + 1}`}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
+                    <div className="mt-2">
+                      <p className="text-xs text-gray-600 truncate">
+                        {faceImage.original_name || `Face ${index + 1}`}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {faceImage.mime} • {(faceImage.path?.length || 0) > 0 ? 'Uploaded' : 'No path'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {images.length === 0 ? (
             <div className="flex items-center justify-center h-64">
               <p className="text-gray-500">No result images available</p>
