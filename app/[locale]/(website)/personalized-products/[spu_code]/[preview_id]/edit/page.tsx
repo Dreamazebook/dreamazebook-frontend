@@ -11,6 +11,7 @@ import { API_CART_LIST } from '@/constants/api';
 import { CartItems } from '@/types/cart';
 import SingleCharacterForm1, { SingleCharacterForm1Handle } from '@/app/[locale]/(website)/components/personalize/SingleCharacterForm1';
 import SingleCharacterForm2, { SingleCharacterForm2Handle } from '@/app/[locale]/(website)/components/personalize/SingleCharacterForm2';
+import usePreviewStore from '@/stores/previewStore';
 
 interface ApiResponse<T=any> { success: boolean; code: number; message: string; data: T }
 interface DetailedBook { character_count: number }
@@ -314,9 +315,7 @@ export default function EditPersonalizedProductPage() {
       targetLang = currentLang || 'en';
     }
 
-    // 由预览页负责创建任务：此处仅写入本地并跳转
-    
-    // 维持与原流程一致：保存到 localStorage 并进入预览页
+    // 由预览页负责创建任务：使用 Zustand store 存储用户数据
     const userData = {
       characters: [
         {
@@ -329,8 +328,10 @@ export default function EditPersonalizedProductPage() {
         },
       ],
     };
-    localStorage.setItem('previewUserData', JSON.stringify(userData));
-    localStorage.setItem('previewBookId', String(bookId));
+    
+    usePreviewStore.getState().setUserData(userData);
+    usePreviewStore.getState().setBookId(bookId);
+    
     router.push(`/preview?bookid=${bookId}&previewid=${previewId}`);
   };
 

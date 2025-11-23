@@ -60,6 +60,7 @@ export interface AdminUser {
 export interface CartAddRequest {
   // 兼容后端：现在 preview_id 等于 batch_id，这里放宽为 string | number
   preview_id: number | string;
+  old_preview_id?: number | string; // 新增：用于标记该 cart item 基于哪个旧 preview
   quantity: number;
   cover_style?: string;
   customization_data?: {
