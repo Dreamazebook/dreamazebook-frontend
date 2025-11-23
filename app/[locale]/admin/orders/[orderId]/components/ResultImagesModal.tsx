@@ -54,6 +54,50 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
     }
   };
 
+  const downloadImage = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
+  };
+
+  const handleDownloadSelected = async () => {
+    if (selectedPageCodes.length === 0) return;
+
+    // Download face images
+    faceImages.forEach((faceImage, index) => {
+      const filename = `face_${index + 1}.${faceImage.mime?.split('/')[1] || 'jpg'}`;
+      downloadImage(faceImage.url, filename);
+    });
+
+    // Download selected base and final images
+    const selectedImages = images.filter(img => selectedPageCodes.includes(img.page_code));
+    
+    for (const image of selectedImages) {
+      // Download base image
+      if (image.base_image_path) {
+        const baseFilename = `${image.page_code}_base.${image.base_image_path.split('.').pop() || 'jpg'}`;
+        await downloadImage(image.base_image_path, baseFilename);
+      }
+      
+      // Download final image
+      if (image.final_image_url) {
+        const finalFilename = `${image.page_code}_final.${image.final_image_url.split('.').pop() || 'jpg'}`;
+        await downloadImage(image.final_image_url, finalFilename);
+      }
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4">
       <div className="relative w-full h-full max-w-6xl max-h-full bg-white rounded-lg overflow-hidden">
@@ -71,9 +115,20 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                 {selectedPageCodes.length === images.length ? 'Deselect All' : 'Select All'}
               </button>
               {selectedPageCodes.length > 0 && (
-                <span className="text-sm text-gray-600">
-                  {selectedPageCodes.length} selected
-                </span>
+                <>
+                  <span className="text-sm text-gray-600">
+                    {selectedPageCodes.length} selected
+                  </span>
+                  <button
+                    onClick={handleDownloadSelected}
+                    className="px-3 py-1 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center space-x-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>Download</span>
+                  </button>
+                </>
               )}
             </div>
           </div>
