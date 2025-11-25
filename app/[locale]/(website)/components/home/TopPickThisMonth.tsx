@@ -11,7 +11,12 @@ const TopPickThisMonth = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const timeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     // 清除之前的定时器
@@ -75,7 +80,7 @@ const TopPickThisMonth = () => {
                 >
                   <div
                     className={`w-full h-full bg-white rounded-lg shadow-2xl p-3 md:p-4 ${
-                      window.innerWidth >= 768 ? (
+                      isClient && window.innerWidth >= 768 ? (
                         isPrev && isAnimating
                           ? 'animate-image-exit'
                           : isActive && !isPrev
