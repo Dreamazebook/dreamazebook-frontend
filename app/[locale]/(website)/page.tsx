@@ -14,6 +14,7 @@ import GiftPackage from './components/home/GiftPackage';
 import { Product } from '@/types/product';
 import { getBooks } from '@/services/bookService';
 import BooksGrid from './components/books/BooksGrid';
+import WhatMakesDreamazeDifferent from './components/home/WhatMakesDreamazeDifferent';
 
 interface AnimatedSectionProps {
   children: React.ReactNode;
@@ -80,6 +81,10 @@ export default function HomePage() {
 
       <AnimatedSection>
         <InitialSpark />
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <WhatMakesDreamazeDifferent />
       </AnimatedSection>
 
       <AnimatedSection delay={0.2}>
