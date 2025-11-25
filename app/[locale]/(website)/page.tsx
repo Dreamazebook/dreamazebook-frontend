@@ -77,13 +77,15 @@ export default function HomePage() {
   return (
     <main className="min-h-screen">
       {/* Slideshow doesn't need animation as it's already animated */}
-      <Slideshow />
+      <AnimatedSection delay={0.0}>
+        <Slideshow />
+      </AnimatedSection>
 
-      <AnimatedSection>
+      <AnimatedSection delay={0.1}>
         <InitialSpark />
       </AnimatedSection>
 
-      <AnimatedSection>
+      <AnimatedSection delay={0.1}>
         <WhatMakesDreamazeDifferent />
       </AnimatedSection>
 
@@ -93,15 +95,15 @@ export default function HomePage() {
       </AnimatedSection>
 
       <AnimatedSection delay={0.2}>
+        <GiftPackage />
+      </AnimatedSection>
+
+      <AnimatedSection delay={0.2}>
         <PicBooksShow />
       </AnimatedSection>
 
       <AnimatedSection delay={0.2}>
         <SideLineProducts />
-      </AnimatedSection>
-
-      <AnimatedSection delay={0.2}>
-        <GiftPackage />
       </AnimatedSection>
 
       <AnimatedSection delay={0.2}>
