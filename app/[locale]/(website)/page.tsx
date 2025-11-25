@@ -15,6 +15,7 @@ import { Product } from '@/types/product';
 import { getBooks } from '@/services/bookService';
 import BooksGrid from './components/books/BooksGrid';
 import WhatMakesDreamazeDifferent from './components/home/WhatMakesDreamazeDifferent';
+import TopPickThisMonth from './components/home/TopPickThisMonth';
 
 interface AnimatedSectionProps {
   children: React.ReactNode;
@@ -99,7 +100,7 @@ export default function HomePage() {
       </AnimatedSection>
 
       <AnimatedSection delay={0.2}>
-        <PicBooksShow />
+        <TopPickThisMonth />
       </AnimatedSection>
 
       <AnimatedSection delay={0.2}>
