@@ -1,3 +1,7 @@
+import DreamzeImage from "@/app/components/DreamzeImage";
+import { HOME_PACKAGES } from "@/constants/cdn";
+import Image from "next/image";
+
 function GiftPackages() {
   const packages = [
     {
@@ -7,7 +11,7 @@ function GiftPackages() {
       description: 'Perfect for siblings or friends',
       discount: '10%',
       extras: 'holiday extras',
-      image: 'https://images.pexels.com/photos/8923897/pexels-photo-8923897.jpeg?auto=compress&cs=tinysrgb&w=400'
+      image: HOME_PACKAGES('pic_1.webp')
     },
     {
       id: 2,
@@ -16,7 +20,7 @@ function GiftPackages() {
       description: 'One story for each child to feel seen',
       discount: '15%',
       extras: 'free personalized cover',
-      image: 'https://images.pexels.com/photos/8923897/pexels-photo-8923897.jpeg?auto=compress&cs=tinysrgb&w=400'
+      image: HOME_PACKAGES('pic_2.webp')
     },
     {
       id: 3,
@@ -25,7 +29,7 @@ function GiftPackages() {
       description: 'A joyful gift for holiday gatherings.',
       discount: '20%',
       extras: 'premium festive wrapping',
-      image: 'https://images.pexels.com/photos/8923897/pexels-photo-8923897.jpeg?auto=compress&cs=tinysrgb&w=400'
+      image: HOME_PACKAGES('pic_3.webp')
     }
   ];
 
@@ -63,18 +67,8 @@ function GiftPackages() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 max-w-7xl mx-auto">
           {packages.map((pkg) => (
             <div key={pkg.id} className="flex flex-col items-center text-center">
-              <div className="relative mb-6 md:mb-8">
-                <div className="relative">
-                  <img
-                    src={pkg.image}
-                    alt={pkg.title}
-                    className="w-48 h-56 md:w-56 md:h-64 object-cover rounded-lg shadow-xl"
-                  />
-
-                  <div className="absolute -top-3 -right-3 bg-blue-600 text-white rounded-full w-12 h-12 md:w-14 md:h-14 flex items-center justify-center font-bold text-lg md:text-xl shadow-lg">
-                    {pkg.quantity}
-                  </div>
-                </div>
+              <div className="relative w-full aspect-[74/65] mb-6 md:mb-8">
+                <DreamzeImage src={pkg.image} alt={pkg.title} />
               </div>
 
               <div className="space-y-3 md:space-y-4 mb-6 md:mb-8">

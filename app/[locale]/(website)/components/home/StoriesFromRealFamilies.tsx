@@ -1,3 +1,4 @@
+import { HOME_STORIES } from '@/constants/cdn';
 import { FaQuoteRight as Quote } from 'react-icons/fa';
 
 interface Testimonial {
@@ -63,9 +64,11 @@ export default function StoriesFromRealFamilies() {
 
           <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 lg:p-10 relative lg:row-span-2">
             <div className="aspect-[4/3] lg:aspect-auto lg:h-[400px] xl:h-[480px] rounded-xl bg-gray-200 mb-6 lg:mb-8 overflow-hidden">
-              <img
-                src="https://images.pexels.com/photos/8613089/pexels-photo-8613089.jpeg?auto=compress&cs=tinysrgb&w=1200"
-                alt="Child reading personalized book"
+              <video
+                src={HOME_STORIES('video.mp4')}
+                autoPlay
+                loop
+                muted
                 className="w-full h-full object-cover"
               />
             </div>
@@ -88,7 +91,7 @@ export default function StoriesFromRealFamilies() {
           <div className="bg-white rounded-2xl shadow-sm p-6 sm:p-8 lg:p-10 relative">
             <div className="aspect-[3/2] sm:aspect-[4/3] lg:h-48 rounded-xl bg-gray-200 mb-6 overflow-hidden flex items-center justify-center">
               <img
-                src="https://images.pexels.com/photos/8613314/pexels-photo-8613314.jpeg?auto=compress&cs=tinysrgb&w=800"
+                src={HOME_STORIES('book_pic.webp')}
                 alt="Personalized children's book"
                 className="w-full h-full object-cover"
               />

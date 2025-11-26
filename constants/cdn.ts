@@ -114,3 +114,6 @@ export const WEBSITE_CDN_URL = 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.
 export const HOME_IMAGE = (file:string) => `${WEBSITE_CDN_URL}home/${file}`;
 export const HOME_BOOKS = (file:string) => `${WEBSITE_CDN_URL}home/books/${file}`;
 export const HOME_SPARKS = (file:string) => `${WEBSITE_CDN_URL}home/dream_behind/${file}`;
+export const HOME_DIFFERENT = (file:string) => `${WEBSITE_CDN_URL}home/what_makes_dreamaze_different/${file}`;
+export const HOME_PACKAGES = (file:string) => `${WEBSITE_CDN_URL}home/ready_to_gift_packages/${file}`;
+export const HOME_STORIES = (file:string) => `${WEBSITE_CDN_URL}home/Stories_from_Real_Families/${file}`;
