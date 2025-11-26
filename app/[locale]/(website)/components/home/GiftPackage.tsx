@@ -1,5 +1,5 @@
 import DreamzeImage from "@/app/components/DreamzeImage";
-import { HOME_PACKAGES } from "@/constants/cdn";
+import { HOME_PACKAGES, HOME_TOP_PICKS } from "@/constants/cdn";
 import Image from "next/image";
 
 function GiftPackages() {
@@ -34,11 +34,11 @@ function GiftPackages() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#FFF7F9]">
       <div
         className="relative h-[400px] md:h-[500px] bg-cover bg-center flex items-center justify-center"
         style={{
-          backgroundImage: 'url(https://images.pexels.com/photos/264985/pexels-photo-264985.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750)',
+          backgroundImage: `url(${HOME_TOP_PICKS('banner.webp')})`,
           backgroundPosition: 'center 40%'
         }}
       >
@@ -56,11 +56,7 @@ function GiftPackages() {
           </p>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 h-16 md:h-20 bg-white"
-          style={{
-            clipPath: 'ellipse(100% 100% at 50% 100%)'
-          }}
-        ></div>
+        <img src={HOME_TOP_PICKS('wave_2.webp')} className="absolute bottom-0 left-0 right-0 h-16 md:h-20 w-full" />
       </div>
 
       <div className="container mx-auto px-4 py-12 md:py-16 lg:py-20">

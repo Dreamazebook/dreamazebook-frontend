@@ -1,11 +1,12 @@
+import { HOME_TOP_PICKS } from '@/constants/cdn';
 import { useState, useEffect, useRef } from 'react';
 import { FaStar as Star, FaArrowRight as ArrowRight } from 'react-icons/fa';
 
 const TopPickThisMonth = () => {
   const images = [
-    'https://images.pexels.com/photos/1261422/pexels-photo-1261422.jpeg?auto=compress&cs=tinysrgb&w=800',
-    'https://images.pexels.com/photos/1620653/pexels-photo-1620653.jpeg?auto=compress&cs=tinysrgb&w=800',
-    'https://images.pexels.com/photos/1680140/pexels-photo-1680140.jpeg?auto=compress&cs=tinysrgb&w=800',
+    HOME_TOP_PICKS('card_1.webp'),
+    HOME_TOP_PICKS('card_2.webp'),
+    HOME_TOP_PICKS('card_3.webp'),
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -56,7 +57,7 @@ const TopPickThisMonth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center px-4 py-8 md:py-12">
+    <div className="min-h-screen bg-[#FFF7F9] flex items-center justify-center px-4 py-8 md:py-12">
       <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
         <div
           className="relative w-full max-w-md mx-auto lg:mx-0"

@@ -1,33 +1,17 @@
-import { HOME_IMAGE } from '@/constants/cdn';
+import { HOME_HERO } from '@/constants/cdn';
 import { useState, useEffect, useCallback } from 'react';
 import { FaArrowRight as ArrowRight, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 const slides = [
   {
     id: 1,
-    title: ['Where every child', 'is seen, celebrated,', 'and made the hero'],
-    color: 'text-white',
-    buttonText: 'View more',
-    image: HOME_IMAGE('slide1.png'),
-    image_desktop: HOME_IMAGE('slide1_desktop.png'),
-    alt: 'Children reading together',
+    title: ['A Storybook Where', 'Your Child Is the Hero'],
+    color: 'text-primary',
+    buttonText: 'Create Yours',
+    image: HOME_HERO('hero_mobile.webp'),
+    image_desktop: HOME_HERO('hero.webp'),
+    alt: 'Be seen. Be loved. Be celebrated',
   },
-  // {
-  //   id: 2,
-  //   title: ['Every child deserves', 'to be the hero of', 'their own story.'],
-  //   color: 'text-primary',
-  //   buttonText: 'view more',
-  //   image: HOME_IMAGE('slide2.png'),
-  //   image_desktop: HOME_IMAGE('slide2_desktop.png'),
-  //   alt: 'Mother reading with child',
-  // },
-  // {
-  //   id: 3,
-  //   title: ['Creating magical', 'moments through', 'personalized stories'],
-  //   buttonText: 'Discover more',
-  //   image: HOME_IMAGE('slide3.png'),
-  //   alt: 'Child enjoying storytime',
-  // },
 ];
 
 export default function SlideShow() {
@@ -114,7 +98,7 @@ export default function SlideShow() {
                     </span>
                   ))}
                 </h1>
-                <button className={`mt-8 lg:mt-12 flex items-center gap-2 text-lg font-medium hover:gap-4 transition-all duration-300 group`}>
+                <button className={`mt-8 lg:mt-12 inline-flex items-center bg-[#222222] gap-2 text-lg text-white p-4 rounded font-medium hover:gap-4 transition-all duration-300 group`}>
                   {slide.buttonText}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
