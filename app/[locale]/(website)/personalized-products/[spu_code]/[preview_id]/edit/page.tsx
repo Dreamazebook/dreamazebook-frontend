@@ -321,7 +321,9 @@ export default function EditPersonalizedProductPage() {
         {
           full_name: fullName,
           language: targetLang,
-          gender: genderCode,
+          // 与个性化页保持一致：gender 为字符串，gender_code 保留数值
+          gender: genderRaw || '',
+          gender_code: genderCode,
           skincolor: skinColorCode,
           photo: photoData.path,
           photos: photosData.length > 0 ? photosData : (photoData?.path ? [photoData.path] : []),
