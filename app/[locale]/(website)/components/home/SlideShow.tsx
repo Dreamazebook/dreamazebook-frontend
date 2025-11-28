@@ -10,7 +10,7 @@ const slides = [
     buttonText: 'Create Yours',
     image: HOME_HERO('hero_mobile.webp'),
     image_desktop: HOME_HERO('hero.webp'),
-    alt: 'Be seen. Be loved. Be celebrated',
+    description: 'Be seen. Be loved. Be celebrated',
   },
 ];
 
@@ -90,7 +90,7 @@ export default function SlideShow() {
             
             <div className="absolute inset-0 flex z-10 w-full">
               <div className={`slide-content flex flex-col justify-start md:justify-center p-6 ${slide.color}`}>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
+                <h1 className="text-[36px] md:text-[64px] font-bold leading-tight">
                   {slide.title.map((line, i) => (
                     <span key={i}>
                       <span className={`inline-block`}>{line}</span>
@@ -98,7 +98,8 @@ export default function SlideShow() {
                     </span>
                   ))}
                 </h1>
-                <button className={`mt-8 lg:mt-12 inline-flex items-center bg-[#222222] gap-2 text-lg text-white p-4 rounded font-medium hover:gap-4 transition-all duration-300 group`}>
+                <p className="text-[16px] text-[#333333]">{slide.description}</p>
+                <button className={`mt-10 md:mt-30 w-[155px] inline-flex items-center bg-[#222222] gap-2 text-[16px] text-white px-4   py-3 rounded hover:gap-4 transition-all duration-300 group`}>
                   {slide.buttonText}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>

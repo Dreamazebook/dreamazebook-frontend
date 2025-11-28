@@ -16,6 +16,7 @@ import { getBooks } from '@/services/bookService';
 import BooksGrid from './components/books/BooksGrid';
 import WhatMakesDreamazeDifferent from './components/home/WhatMakesDreamazeDifferent';
 import TopPickThisMonth from './components/home/TopPickThisMonth';
+import InfiniteScrollLogo from './components/home/InfiniteScrollLogo';
 import StoriesFromRealFamilies from './components/home/StoriesFromRealFamilies';
 
 interface AnimatedSectionProps {
@@ -106,6 +107,10 @@ export default function HomePage() {
 
       <AnimatedSection delay={0.2}>
         <StoriesFromRealFamilies />
+      </AnimatedSection>
+
+      <AnimatedSection delay={0.2}>
+        <InfiniteScrollLogo />
       </AnimatedSection>
 
       <AnimatedSection delay={0.2}>

@@ -58,13 +58,13 @@ const TopPickThisMonth = () => {
 
   return (
     <div className="min-h-screen bg-[#FFF7F9] flex items-center justify-center px-4 py-8 md:py-12">
-      <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         <div
-          className="relative w-full max-w-md mx-auto lg:mx-0"
+          className="relative w-[237px] md:w-[420px] mx-auto lg:mx-0"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          <div className="relative aspect-[4/5] w-full">
+          <div className="relative aspect-square w-full">
             {images.map((image, index) => {
               const isActive = index === currentIndex;
               const isPrev = index === (currentIndex - 1 + images.length) % images.length;
@@ -125,23 +125,21 @@ const TopPickThisMonth = () => {
           </div>
         </div>
 
-        <div className="text-center lg:text-left space-y-6 mt-12 lg:mt-0">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+        <div className="text-center lg:text-left space-y-6 mt-12 lg:mt-0 bg-white p-6 rounded">
+          <h1 className="text-[24px] md:text-[40px] font-medium text-[#222] leading-tight">
             Top Picks This Month
           </h1>
 
           <div className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">
+            <h2 className="text-[18px] font-semibold text-[#222222]">
               Santa's Letter For You
             </h2>
 
-            <p className="text-base md:text-lg text-gray-600 leading-relaxed">
+            <p className="text-[14px] text-[#222222] md:text-[16px] text-[#666666] leading-relaxed">
               Watch your child's eyes light up as Santa writes directly to them.
               This story reveals the good deeds, hopes, and holiday magic Santa has
               seen in your little one.
-            </p>
-
-            <p className="text-base md:text-lg text-gray-600 leading-relaxed">
+              <br/>
               A heartfelt keepsake that turns Christmas into a memory they'll cherish.
             </p>
 
@@ -152,7 +150,7 @@ const TopPickThisMonth = () => {
             </div>
           </div>
 
-          <button className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-lg font-medium text-lg hover:bg-gray-800 transition-colors duration-200 shadow-lg hover:shadow-xl mt-4">
+          <button className="text-[16px] text-[#222222] font-medium flex items-center mx-auto md:ml-0 gap-2 cursor-pointer hover:text-primary transition-colors duration-200 mt-4 md:mt-20">
             Personalize This Book
             <ArrowRight className="w-5 h-5" />
           </button>
