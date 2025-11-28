@@ -12,7 +12,7 @@ import toast from 'react-hot-toast'
 
 interface PagePic { id: number; pagenum: number; pagepic: string }
 
-const AutoLoopVideo: React.FC<{ src: string }> = ({ src }) => {
+const AutoLoopVideo: React.FC<{ src: string; className?: string }> = ({ src, className }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const visibleRef = useRef(false);
 
@@ -74,7 +74,7 @@ const AutoLoopVideo: React.FC<{ src: string }> = ({ src }) => {
     <video
       ref={videoRef}
       src={src}
-      className="w-full h-auto"
+      className={className ?? "w-full h-auto"}
       playsInline
       muted
       loop
@@ -112,6 +112,8 @@ export default function BookDetailView({
   const t = useTranslations('BookDetail')
   const selectedLanguage = 'en'
   const [openFaq, setOpenFaq] = useState<number>(1)
+  const [currentPageIndex, setCurrentPageIndex] = useState(0)
+  const sliderRef = useRef<HTMLDivElement | null>(null)
 
   const description = (book as any)?.description || (book as any)?.variant?.description || 'No description available.'
   
@@ -139,11 +141,113 @@ export default function BookDetailView({
     return spec.label
   }
 
+  const handleMobileScroll = () => {
+    if (!sliderRef.current) return
+    const { scrollLeft, clientWidth } = sliderRef.current
+    if (!clientWidth) return
+    const index = Math.round(scrollLeft / clientWidth)
+    const clamped = Math.max(0, Math.min(pagePics.length - 1, index))
+    if (clamped !== currentPageIndex) {
+      setCurrentPageIndex(clamped)
+    }
+  }
+
+  const scrollToPage = (index: number) => {
+    if (!sliderRef.current || pagePics.length === 0) return
+    const clamped = Math.max(0, Math.min(pagePics.length - 1, index))
+    const container = sliderRef.current
+    const width = container.clientWidth
+    container.scrollTo({
+      left: clamped * width,
+      behavior: 'smooth',
+    })
+    setCurrentPageIndex(clamped)
+  }
+
+  const handlePrevPage = () => {
+    scrollToPage(currentPageIndex - 1)
+  }
+
+  const handleNextPage = () => {
+    scrollToPage(currentPageIndex + 1)
+  }
+
   return (
     <div className={`min-h-screen bg-white ${roboto.className}`}>
       <div className="grid grid-cols-1 md:grid-cols-2">
         <div className="relative h-fit">
-          <div className="grid grid-cols-1 gap-0">
+          {/* 手机端：左右滑动查看图片，高度固定为 300px */}
+          <div className="block md:hidden w-full">
+            <div className="relative w-full h-[300px]">
+              <div
+                ref={sliderRef}
+                onScroll={handleMobileScroll}
+                className="flex w-full h-full overflow-x-auto snap-x snap-mandatory gap-3"
+              >
+                {pagePics.map((page) => {
+                  const src = page.pagepic;
+                  const lower = src.toLowerCase();
+                  const isVideo = lower.endsWith('.mp4') || lower.endsWith('.webm');
+
+                  return (
+                    <div
+                      key={page.id}
+                      className="flex-shrink-0 w-full snap-center flex items-center justify-center bg-[#F8F8F8]"
+                    >
+                      {isVideo ? (
+                        <AutoLoopVideo src={src} className="h-full w-auto" />
+                      ) : (
+                        <img
+                          src={src}
+                          alt={`Page ${page.pagenum}`}
+                          className="h-full w-auto object-contain"
+                          loading={page.pagenum === 1 ? 'eager' : 'lazy'}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 翻页箭头 */}
+              {pagePics.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handlePrevPage}
+                    disabled={currentPageIndex === 0}
+                    className={`absolute left-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#222222] shadow ${
+                      currentPageIndex === 0 ? 'opacity-40 cursor-not-allowed' : 'opacity-100'
+                    }`}
+                    aria-label="Previous page"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNextPage}
+                    disabled={currentPageIndex === pagePics.length - 1}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#222222] shadow ${
+                      currentPageIndex === pagePics.length - 1 ? 'opacity-40 cursor-not-allowed' : 'opacity-100'
+                    }`}
+                    aria-label="Next page"
+                  >
+                    ›
+                  </button>
+                </>
+              )}
+
+              {/* 页码指示器 */}
+              {pagePics.length > 0 && (
+                <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-[#222222]/70 px-3 py-1 text-xs text-white">
+                  {currentPageIndex + 1} / {pagePics.length}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 桌面端：保持原有的纵向展示方式 */}
+          <div className="hidden md:grid grid-cols-1 gap-0">
             {pagePics.map((page) => {
               const src = page.pagepic;
               const lower = src.toLowerCase();
