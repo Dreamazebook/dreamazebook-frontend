@@ -183,7 +183,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
                   {/* 文案容器：只在中间卡片显示，固定相对卡片底部的距离，可以超出卡片边界 */}
                   {position === 'center' && (
                     <div
-                      className={`absolute flex flex-col z-30 text-white gap-1 rounded ${
+                      className={`absolute flex flex-col z-30 text-white gap-3 rounded ${
                         isDesktop ? 'w-[613px] px-8 py-6' : 'w-[260px] p-6'
                       }`}
                       style={{
@@ -192,8 +192,13 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
                         backgroundColor: getTextAreaBottomColor(card.bookId), // 根据书籍类型设置底部颜色
                       }}
                     >
+                      <p
+                        className="md:text-[16px] text-[14px] md:leading-[24px] leading-[20px] md:tracking-[0.5px] tracking-[0.25px]"
+                      >
+                        {card.description}
+                      </p>
                       <h3
-                        className="text-[18px] font-medium leading-[24px] tracking-[0.15px] min-w-0"
+                        className="text-[16px] leading-[24px] tracking-[0.15px] min-w-0"
                       >
                         {card.title.split(' ').slice(0, -1).join(' ')}
                         {' '}
@@ -217,11 +222,6 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
                           </svg>
                         </span>
                       </h3>
-                      <p
-                        className="md:text-[16px] text-[14px] md:leading-[24px] leading-[20px] md:tracking-[0.5px] tracking-[0.25px]"
-                      >
-                        {card.description}
-                      </p>
                     </div>
                   )}
                 </div>
