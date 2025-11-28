@@ -93,15 +93,16 @@ export interface BookConfig {
 const GOODNIGHT_BASE_CONFIG: Omit<BookConfig, 'id'> = {
     // 如果没有指定 specifications，将使用默认值（从国际化文件读取）
     specifications: [
-      { label: 'specifications.size' },
-      { label: 'specifications.pages' },
-      { label: 'specifications.delivery' },
+      { label: 'Best for ages 3–6' },
+      { label: '20 × 20 cm hardcover' },
+      { label: '36 pages' },
+      { label: 'Printed and dispatched in 2–4 working days' },
     ],
     faqs: [
       {
         question: 'How is the book personalized?',
       answer:
-        "- Add your child's name — on the cover and in every page\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication — printed on the first page\n- Choose from four cover designs\n- Preview selected pages before purchase",
+        "- Add your child's name — the star of this story\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication — printed on the first page\n- Choose your cover and gift options\n- Place your order — preview before printing",
       },
       {
         question: 'Why children love it?',
@@ -229,7 +230,7 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
     faqs: [
       {
         question: 'How is the book personalized?',
-        answer: '- Add your child\'s name — on the cover and in every page\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication — printed on the first page\n- Choose from four cover designs\n- Preview selected pages before purchase'
+        answer: '- Add your child\'s name — the star of this story\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication — printed on the first page\n- Choose your cover and gift options\n- Place your order — preview before printing'
       },
       {
         question: 'Recommendation',
