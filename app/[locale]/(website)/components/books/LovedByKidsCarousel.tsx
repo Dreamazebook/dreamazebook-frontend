@@ -94,7 +94,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
       <div className="gap-12 md:px-30 px-3">
         {/* Section Title */}
         <h2
-          className="md:text-[40px] text-[24px] md:font-medium font-semibold text-[#222222] leading-[40px]"
+          className="md:text-[40px] text-[24px] md:font-medium font-semibold text-[#222222] leading-[40px] text-center md:text-left"
           style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
         >
           Loved by kids, chosen by kids
