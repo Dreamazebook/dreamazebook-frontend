@@ -144,6 +144,7 @@ export default function BookDetailView({
   const [openFaq, setOpenFaq] = useState<number>(1)
   const [currentPageIndex, setCurrentPageIndex] = useState(0)
   const sliderRef = useRef<HTMLDivElement | null>(null)
+  const scrollTimeoutRef = useRef<number | null>(null)
 
   const description = (book as any)?.description || (book as any)?.variant?.description || 'No description available.'
   
@@ -175,11 +176,20 @@ export default function BookDetailView({
     if (!sliderRef.current) return
     const { scrollLeft, clientWidth } = sliderRef.current
     if (!clientWidth) return
-    const index = Math.round(scrollLeft / clientWidth)
-    const clamped = Math.max(0, Math.min(pagePics.length - 1, index))
-    if (clamped !== currentPageIndex) {
-      setCurrentPageIndex(clamped)
+
+    // 防抖，避免在滚动过程中高频 setState 导致数字闪烁
+    if (scrollTimeoutRef.current) {
+      window.clearTimeout(scrollTimeoutRef.current)
     }
+
+    scrollTimeoutRef.current = window.setTimeout(() => {
+      if (!sliderRef.current) return
+      const { scrollLeft: latestScrollLeft, clientWidth: latestWidth } = sliderRef.current
+      if (!latestWidth) return
+      const index = Math.round(latestScrollLeft / latestWidth)
+      const clamped = Math.max(0, Math.min(pagePics.length - 1, index))
+      setCurrentPageIndex((prev) => (prev === clamped ? prev : clamped))
+    }, 80)
   }
 
   const scrollToPage = (index: number) => {
@@ -307,19 +317,22 @@ export default function BookDetailView({
           </div>
         </div>
 
-        <div className="sticky top-0 h-screen overflow-y-auto">
+        {/* 右侧：桌面端固定（sticky），手机端正常跟随页面滚动，避免出现双滚动条 */}
+        <div className="md:sticky md:top-0 md:h-screen md:overflow-y-auto">
           <div className="max-w-xl mx-auto md:p-12 px-3 py-2 min-h-0 flex flex-col gap-6">
             <div className="flex flex-col md:gap-3 gap-2">
               <h1 className="md:text-[36px] text-[24px] md:leading-[44px] leading-[32px] font-normal">{(book as any)?.name ?? (book as any)?.default_name}</h1>
               <div className="flex items-center gap-4">
                 <div className="flex gap-[6px]">
                   {[...Array(5)].map((_, i) => (
-                    <Image key={i} src="/star.svg" alt="star" width={20} height={20} className="w-[18px] h-[18px] md:w-5 md:h-5" />
+                    <Image key={i} src="/star.svg" alt="star" width={15} height={15} className="w-[15px] h-[15px] md:w-5 md:h-5" />
                   ))}
                 </div>
-                {tags && tags.map((tag, index) => (
-                  <span key={index} className="text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[#666666] bg-[#F2F2F2] px-2 rounded">{tag.tname}</span>
-                ))}
+                <div className="flex flex-row gap-2">
+                  {tags && tags.map((tag, index) => (
+                    <span key={index} className="text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[#666666] bg-[#F2F2F2] px-2 rounded">{tag.tname}</span>
+                  ))}
+                </div>
               </div>
             </div>
 
