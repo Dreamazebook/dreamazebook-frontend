@@ -42,7 +42,7 @@ const WhyFamiliesChooseSection: React.FC<WhyFamiliesChooseSectionProps> = ({
   if (!features || features.length === 0) return null;
 
   return (
-    <section className="w-full bg-[#FFFCF7] flex flex-col items-center py-[64px] px-[18px] gap-[24px] md:h-[440px] md:py-[88px] md:gap-[48px]">
+    <section className="w-full flex flex-col items-center py-[64px] px-[18px] gap-[24px] md:h-[440px] md:py-[88px] md:gap-[48px]">
       {/* 标题和4个标签的容器 */}
       <div className="flex flex-col items-center gap-[24px] md:gap-[48px] w-full">
         {/* 主标题 */}
