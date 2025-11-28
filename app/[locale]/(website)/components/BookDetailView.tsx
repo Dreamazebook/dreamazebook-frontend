@@ -71,19 +71,37 @@ export default function BookDetailView({
         <div className="relative h-fit">
           <div className="grid grid-cols-1 gap-0">
             {pagePics.map((page) => {
-              const src = page.pagepic
+              const src = page.pagepic;
+              const lower = src.toLowerCase();
+              const isVideo = lower.endsWith('.mp4') || lower.endsWith('.webm');
+
               return (
-              <div key={page.id} className="w-full">
-                <div className="relative w-full">
-                  <img 
-                    src={src} 
-                    alt={`Page ${page.pagenum}`} 
-                    className="w-full h-auto" 
-                    loading={page.pagenum === 1 ? 'eager' : 'lazy'}
-                  />
+                <div key={page.id} className="w-full">
+                  <div className="relative w-full">
+                    {isVideo ? (
+                      <video
+                        src={src}
+                        className="w-full h-auto"
+                        controls
+                        playsInline
+                        muted
+                        loop
+                        autoPlay
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    ) : (
+                      <img
+                        src={src}
+                        alt={`Page ${page.pagenum}`}
+                        className="w-full h-auto"
+                        loading={page.pagenum === 1 ? 'eager' : 'lazy'}
+                      />
+                    )}
+                  </div>
                 </div>
-              </div>
-            )})}
+              );
+            })}
           </div>
         </div>
 

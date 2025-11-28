@@ -154,16 +154,57 @@ const BookDetailPage = () => {
         setLoading(false);
       }
       
-      // 异步加载 gallery 图片，不阻塞页面显示
+      // 异步加载 gallery 资源（通过 API 中转 Cloudflare index.json），不阻塞页面显示
       try {
-        const galleryBase = `/products/picbooks/${encodeURIComponent(String(normalizedId))}/gallery`;
+        // Good Night 系列的静态资源实际存放在 PICBOOK_GOODNIGHT 目录下，
+        // 这里做一次规范化，其他书籍依旧使用原有 ID。
+        const galleryId =
+          String(normalizedId) === 'PICBOOK_GOODNIGHT3'
+            ? 'PICBOOK_GOODNIGHT'
+            : String(normalizedId);
+
+        const galleryBase = `/products/picbooks/${encodeURIComponent(
+          galleryId
+        )}/gallery`;
+
         const resp = await fetch(`/api/local-gallery${galleryBase}`);
+        if (!resp.ok) {
+          throw new Error(`Failed to load gallery index: ${resp.status}`);
+        }
+
         const json = await resp.json();
-        const files: string[] = Array.isArray(json?.files) ? json.files : [];
-        // 映射为页面结构（简单按文件名排序后顺序当作页码）
-        setPagePics(files.map((src, idx) => ({ id: idx, pagenum: idx + 1, pagepic: src })));
+        const items = Array.isArray(json?.items)
+          ? json.items
+          : Array.isArray(json?.files)
+          ? json.files.map((src: string, idx: number) => ({
+              id: `legacy-${idx}`,
+              order: idx + 1,
+              src,
+            }))
+          : [];
+
+        const sortedItems = items
+          .map((item: any, idx: number) => ({
+            id: item.id ?? `item-${idx}`,
+            order:
+              typeof item.order === 'number'
+                ? item.order
+                : parseInt(String(item.order ?? idx + 1), 10) || idx + 1,
+            src: item.src,
+          }))
+          .filter((item: any) => typeof item.src === 'string' && item.src.length > 0)
+          .sort((a: any, b: any) => a.order - b.order);
+
+        const pages = sortedItems.map((item: any, index: number) => ({
+          id: item.id ?? index,
+          pagenum: item.order ?? index + 1,
+          pagepic: item.src,
+        }));
+
+        setPagePics(pages);
       } catch (error) {
-        console.error('Failed to fetch gallery:', error);
+        console.error('Failed to fetch gallery from API:', error);
+        setPagePics([]);
       } finally {
         setLoadingGallery(false);
       }
