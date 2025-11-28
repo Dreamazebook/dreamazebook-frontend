@@ -6,6 +6,7 @@ import Footer from "./components/Footer";
 import useUserStore from '@/stores/userStore';
 import { useEffect } from 'react';
 import KickstarterWelcomeModal from './components/KickstarterWelcomeModal';
+import { Toaster } from 'react-hot-toast';
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const segments = useSelectedLayoutSegments();
@@ -37,6 +38,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
       {children}
       <KickstarterWelcomeModal />
       {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isKickstarterConfigPage) && <Footer />}
+      <Toaster position="top-center" />
     </>
   );
 } 
