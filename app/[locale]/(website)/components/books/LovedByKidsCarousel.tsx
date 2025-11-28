@@ -24,6 +24,20 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
   const touchEndX = useRef<number | null>(null);
   const isDesktopRef = useRef<boolean>(false);
 
+  // 根据 bookId 获取文本区域底部颜色
+  const getTextAreaBottomColor = (bookId: string): string => {
+    if (bookId.includes('GOODNIGHT')) {
+      return '#012CCE'; // Good-night
+    } else if (bookId.includes('BIRTHDAY')) {
+      return '#FFA336'; // Birthday
+    } else if (bookId.includes('SANTA')) {
+      return '#FF6544'; // Santa
+    } else if (bookId.includes('BRAVEY')) {
+      return '#2A9F82'; // Brave
+    }
+    return '#2A9F82'; // 默认颜色
+  };
+
   // 响应式调整显示的卡片数量
   React.useEffect(() => {
     const updateCardsToShow = () => {
@@ -169,12 +183,13 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
                   {/* 文案容器：只在中间卡片显示，固定相对卡片底部的距离，可以超出卡片边界 */}
                   {position === 'center' && (
                     <div
-                      className={`absolute flex flex-col z-30 text-white gap-1 rounded bg-[#2A9F82] ${
+                      className={`absolute flex flex-col z-30 text-white gap-1 rounded ${
                         isDesktop ? 'w-[613px] px-8 py-6' : 'w-[260px] p-6'
                       }`}
                       style={{
                         right: isDesktop ? -12 : -16, // 固定与卡片右侧的水平距离
                         bottom: isDesktop ? -12 : -8, // 固定与卡片底部的垂直距离
+                        backgroundColor: getTextAreaBottomColor(card.bookId), // 根据书籍类型设置底部颜色
                       }}
                     >
                       <h3
@@ -194,7 +209,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
                           >
                             <path
                               d="M0.75 4.75H16.75M16.75 4.75L12.25 0.75M16.75 4.75L12.25 8.75"
-                              stroke="#222222"
+                              stroke="white"
                               strokeWidth="1.5"
                               strokeLinecap="round"
                               strokeLinejoin="round"
@@ -244,7 +259,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
         {/* Navigation Arrows - 仅桌面端显示 */}
         <button
           onClick={prevSlide}
-          className="hidden lg:flex absolute top-25 w-12 h-12 rounded-full bg-transparent border border-[#222222] items-center justify-center hover:bg-[#012CCE] hover:border-[#012CCE] transition-colors z-10 [&:hover_svg_path]:stroke-white"
+          className="hidden lg:flex absolute top-25 w-12 h-12 rounded-full bg-transparent border border-[#222222] items-center justify-center hover:bg-[#F9E8E8] transition-colors z-10"
           style={{
             left: 'calc(50% - 400px - 48px - 16px)',
           }}
@@ -256,7 +271,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
         </button>
         <button
           onClick={nextSlide}
-          className="hidden lg:flex absolute right-0 bottom-25 w-12 h-12 rounded-full bg-transparent border border-[#222222] items-center justify-center hover:bg-[#012CCE] hover:border-[#012CCE] transition-colors z-10 [&:hover_svg_path]:stroke-white"
+          className="hidden lg:flex absolute right-0 bottom-25 w-12 h-12 rounded-full bg-transparent border border-[#222222] items-center justify-center hover:bg-[#F9E8E8] transition-colors z-10"
           style={{
             left: 'calc(50% + 400px + 16px)',
           }}
