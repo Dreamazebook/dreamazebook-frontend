@@ -362,7 +362,7 @@ export default function BooksPage() {
         <WhyFamiliesChooseSection />
 
         {/* Sign Up Section */}
-        <SignUpSection />
+        {/* <SignUpSection /> */}
 
         {/* Featured + Newsletter container with consistent padding */}
         <div className="w-full">
