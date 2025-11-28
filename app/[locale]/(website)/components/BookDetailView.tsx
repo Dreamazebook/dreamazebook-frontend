@@ -12,7 +12,7 @@ import toast from 'react-hot-toast'
 
 interface PagePic { id: number; pagenum: number; pagepic: string }
 
-const AutoLoopVideo: React.FC<{ src: string; className?: string }> = ({ src, className }) => {
+const AutoLoopVideo: React.FC<{ src: string; className?: string; isActive?: boolean }> = ({ src, className, isActive = true }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const visibleRef = useRef(false);
 
@@ -29,7 +29,7 @@ const AutoLoopVideo: React.FC<{ src: string; className?: string }> = ({ src, cla
             entry.isIntersecting && entry.intersectionRatio >= 0.4;
           visibleRef.current = isVisible;
 
-          if (isVisible) {
+          if (isVisible && isActive) {
             // 仅在视口内时播放
             video
               .play()
@@ -37,7 +37,7 @@ const AutoLoopVideo: React.FC<{ src: string; className?: string }> = ({ src, cla
                 // 某些浏览器可能仍然阻止自动播放，忽略错误
               });
           } else {
-            // 离开视口时暂停并回到开头
+            // 离开视口或非激活时暂停并回到开头
             video.pause();
             try {
               video.currentTime = 0;
@@ -55,7 +55,19 @@ const AutoLoopVideo: React.FC<{ src: string; className?: string }> = ({ src, cla
     return () => {
       observer.disconnect();
     };
-  }, [src]);
+  }, [src, isActive]);
+
+  // 当轮播 active 状态变化时，立即控制播放/暂停
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (!isActive) {
+      video.pause();
+      try {
+        video.currentTime = 0;
+      } catch {}
+    }
+  }, [isActive]);
 
   const handleEnded = () => {
     const video = videoRef.current;
@@ -73,13 +85,31 @@ const AutoLoopVideo: React.FC<{ src: string; className?: string }> = ({ src, cla
   return (
     <video
       ref={videoRef}
-      src={src}
       className={className ?? "w-full h-auto"}
       playsInline
       muted
       loop
       onEnded={handleEnded}
     >
+      {(() => {
+        const lower = src.toLowerCase();
+        const hasExt = lower.endsWith('.mp4') || lower.endsWith('.webm');
+        if (hasExt) {
+          const base = src.replace(/\.(mp4|webm)$/i, '');
+          const mp4Src = `${base}.mp4`;
+          const webmSrc = `${base}.webm`;
+          return (
+            <>
+              {/* iOS / 大部分浏览器优先使用 mp4 */}
+              <source src={mp4Src} type="video/mp4" />
+              {/* Chrome 等支持 webm 的浏览器可用 webm */}
+              {webmSrc !== mp4Src && <source src={webmSrc} type="video/webm" />}
+            </>
+          );
+        }
+        // 兜底：使用原始 src
+        return <source src={src} />;
+      })()}
       Your browser does not support the video tag.
     </video>
   );
@@ -184,7 +214,7 @@ export default function BookDetailView({
                 onScroll={handleMobileScroll}
                 className="flex w-full h-full overflow-x-auto snap-x snap-mandatory gap-3"
               >
-                {pagePics.map((page) => {
+                {pagePics.map((page, index) => {
                   const src = page.pagepic;
                   const lower = src.toLowerCase();
                   const isVideo = lower.endsWith('.mp4') || lower.endsWith('.webm');
@@ -195,7 +225,11 @@ export default function BookDetailView({
                       className="flex-shrink-0 w-full snap-center flex items-center justify-center bg-[#F8F8F8]"
                     >
                       {isVideo ? (
-                        <AutoLoopVideo src={src} className="h-full w-auto" />
+                        <AutoLoopVideo
+                          src={src}
+                          className="h-full w-auto"
+                          isActive={index === currentPageIndex}
+                        />
                       ) : (
                         <img
                           src={src}
