@@ -168,7 +168,8 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
             {/* 桌面端：正常显示 */}
             <span className="hidden md:inline">{title}</span>
           </p>
-          <p className="text-[#666666] mx-auto max-w-[480px] text-[14px] leading-[20px] tracking-[0.25px] text-[#222222] md:mx-0 md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
+          {/* 副标题：只在PC端显示 */}
+          <p className="hidden text-[#666666] mx-auto max-w-[480px] text-[14px] leading-[20px] tracking-[0.25px] text-[#222222] md:block md:mx-0 md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
             {description}
           </p>
         </div>
