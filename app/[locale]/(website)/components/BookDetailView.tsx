@@ -4,12 +4,85 @@
 import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 import { useTranslations } from 'next-intl'
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { roboto } from '@/app/fonts'
 import useUserStore from '@/stores/userStore'
 import { getBookConfig } from './books/booksConfig'
 
 interface PagePic { id: number; pagenum: number; pagepic: string }
+
+const AutoLoopVideo: React.FC<{ src: string }> = ({ src }) => {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const visibleRef = useRef(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.target !== video) return;
+
+          const isVisible =
+            entry.isIntersecting && entry.intersectionRatio >= 0.4;
+          visibleRef.current = isVisible;
+
+          if (isVisible) {
+            // 仅在视口内时播放
+            video
+              .play()
+              .catch(() => {
+                // 某些浏览器可能仍然阻止自动播放，忽略错误
+              });
+          } else {
+            // 离开视口时暂停并回到开头
+            video.pause();
+            try {
+              video.currentTime = 0;
+            } catch {}
+          }
+        });
+      },
+      {
+        threshold: [0.1, 0.4, 0.75],
+      }
+    );
+
+    observer.observe(video);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [src]);
+
+  const handleEnded = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // 某些浏览器在循环数次后可能忽略 loop，这里在仍可见时手动重播
+    if (visibleRef.current) {
+      try {
+        video.currentTime = 0;
+        video.play().catch(() => {});
+      } catch {}
+    }
+  };
+
+  return (
+    <video
+      ref={videoRef}
+      src={src}
+      className="w-full h-auto"
+      playsInline
+      muted
+      loop
+      onEnded={handleEnded}
+    >
+      Your browser does not support the video tag.
+    </video>
+  );
+};
 
 export default function BookDetailView({
   book,
@@ -79,17 +152,7 @@ export default function BookDetailView({
                 <div key={page.id} className="w-full">
                   <div className="relative w-full">
                     {isVideo ? (
-                      <video
-                        src={src}
-                        className="w-full h-auto"
-                        controls
-                        playsInline
-                        muted
-                        loop
-                        autoPlay
-                      >
-                        Your browser does not support the video tag.
-                      </video>
+                      <AutoLoopVideo src={src} />
                     ) : (
                       <img
                         src={src}
