@@ -1,24 +1,22 @@
 'use client';
 
-import Button from '@/app/components/Button';
-import { useLocale, useTranslations } from 'next-intl';
-import Image from 'next/image';
-import { FaStar, FaRegStar, FaQuoteLeft } from 'react-icons/fa';
+import { useLocale } from 'next-intl';
 import React, { useEffect } from 'react';
 import { motion, useAnimation, useInView } from 'framer-motion';
 import InitialSpark from './components/home/InitialSpark';
-import OurBook from './components/home/OurBook';
 import SideLineProducts from './components/home/SideLineProducts';
 import LastingMemorial from './components/home/LastingMemorial';
 import Slideshow from './components/home/SlideShow';
 import PicBooksShow from './components/home/PicBooksShow';
 // import TestimonialCards from './components/home/TestimonialCards';
-import FAQ from '../(marketing)/components/FAQ';
 import ReserveSection from '../(marketing)/components/ReserveSection';
 import GiftPackage from './components/home/GiftPackage';
 import { Product } from '@/types/product';
 import { getBooks } from '@/services/bookService';
 import BooksGrid from './components/books/BooksGrid';
+import WhatMakesDreamazeDifferent from './components/home/WhatMakesDreamazeDifferent';
+import TopPickThisMonth from './components/home/TopPickThisMonth';
+import StoriesFromRealFamilies from './components/home/StoriesFromRealFamilies';
 
 interface AnimatedSectionProps {
   children: React.ReactNode;
@@ -62,7 +60,6 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({ children, className =
 };
 
 export default function HomePage() {
-  const t = useTranslations('HomePage');
   const locale = useLocale();
 
   const [books, setBooks] = React.useState<Product[]>([]);
@@ -79,29 +76,19 @@ export default function HomePage() {
     fetchBooks();
   }, [locale]);
 
-  // const faqs = [
-  //   {
-  //     tl: 'Personalize It',
-  //     ans: 'Add your child’s name, upload 1–3 photos, and choose a few fun details. (Tip: the better the photo quality, the more stunning the result!)',
-  //     show: true
-  //   },
-  //   {
-  //     tl: 'Preview & Confirm',
-  //     ans: 'Flip through sample pages to see how your story looks—then confirm with one click.'
-  //   },
-  //   {
-  //     tl: 'Receive & Enjoy',
-  //     ans: ' Your one-of-a-kind gift is on its way. Unwrap it, read it together, and get ready for smiles that last.'
-  //   }
-  // ];
-
   return (
     <main className="min-h-screen">
       {/* Slideshow doesn't need animation as it's already animated */}
-      <Slideshow />
+      <AnimatedSection delay={0.0}>
+        <Slideshow />
+      </AnimatedSection>
 
-      <AnimatedSection>
+      <AnimatedSection delay={0.1}>
         <InitialSpark />
+      </AnimatedSection>
+
+      <AnimatedSection delay={0.1}>
+        <WhatMakesDreamazeDifferent />
       </AnimatedSection>
 
       <AnimatedSection delay={0.2}>
@@ -110,15 +97,15 @@ export default function HomePage() {
       </AnimatedSection>
 
       <AnimatedSection delay={0.2}>
-        <PicBooksShow />
-      </AnimatedSection>
-
-      <AnimatedSection delay={0.2}>
-        <SideLineProducts />
-      </AnimatedSection>
-
-      <AnimatedSection delay={0.2}>
         <GiftPackage />
+      </AnimatedSection>
+
+      <AnimatedSection delay={0.2}>
+        <TopPickThisMonth />
+      </AnimatedSection>
+
+      <AnimatedSection delay={0.2}>
+        <StoriesFromRealFamilies />
       </AnimatedSection>
 
       <AnimatedSection delay={0.2}>

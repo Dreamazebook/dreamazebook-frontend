@@ -1,4 +1,5 @@
 import FAQ from "./FAQ";
+import { HELLO_EMAIL } from '@/constants/text';
 
 const FAQs = [
   {
@@ -12,11 +13,11 @@ const FAQs = [
   },
   {
     tl:'How can I claim a refund? ',
-    ans: 'Claiming a refund is easy. Just email hello@dreamazebook.com from the email you used to reserve the discount. Remember to mention which product you’d like to get a refund for. We’ll process it on the same day, no questions asked!'
+    ans: 'Claiming a refund is easy. Just email ' + HELLO_EMAIL + ' from the email you used to reserve the discount. Remember to mention which product you’d like to get a refund for. We’ll process it on the same day, no questions asked!'
   },
   {
     tl:'Where can I get more information about this product?',
-    ans: 'For any questions regarding Dreamaze Book, feel free to email us at hello@dreamazebook.com. You can also search for Dreamaze Book on our Kickstarter page for more details.'
+    ans: 'For any questions regarding Dreamaze Book, feel free to email us at ' + HELLO_EMAIL + '. You can also search for Dreamaze Book on our Kickstarter page for more details.'
   },
 ];
 

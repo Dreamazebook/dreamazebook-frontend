@@ -112,5 +112,10 @@ export const VIP_PERK_FIRST_PICK = `${CLOUDFLARE_CDN_URL}vip-perk-first-pick.png
 
 export const WEBSITE_CDN_URL = 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/';
 export const HOME_IMAGE = (file:string) => `${WEBSITE_CDN_URL}home/${file}`;
+export const HOME_HERO = (file:string) => `${WEBSITE_CDN_URL}home/hero/${file}`;
 export const HOME_BOOKS = (file:string) => `${WEBSITE_CDN_URL}home/books/${file}`;
 export const HOME_SPARKS = (file:string) => `${WEBSITE_CDN_URL}home/dream_behind/${file}`;
+export const HOME_DIFFERENT = (file:string) => `${WEBSITE_CDN_URL}home/what_makes_dreamaze_different/${file}`;
+export const HOME_PACKAGES = (file:string) => `${WEBSITE_CDN_URL}home/ready_to_gift_packages/${file}`;
+export const HOME_STORIES = (file:string) => `${WEBSITE_CDN_URL}home/Stories_from_Real_Families/${file}`;
+export const HOME_TOP_PICKS = (file:string) => `${WEBSITE_CDN_URL}home/top_picks_this_month/${file}`;

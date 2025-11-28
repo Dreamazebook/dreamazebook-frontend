@@ -1,12 +1,13 @@
 import { FaFacebookF, FaTwitter, FaInstagram } from 'react-icons/fa';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
+import { CONTACT_US_URL } from '@/constants/links';
 
 const footerMenus = [
   {
     title: 'Help & Support',
     items: [
-      { label: 'Contact Us', href: '/contact-us' },
+      { label: 'Contact Us', href: CONTACT_US_URL },
       { label: 'FAQ', href: '/faq' },
       { label: 'Delivery Information', href: '/delivery-information' },
     ],

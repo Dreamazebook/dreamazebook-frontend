@@ -1,49 +1,80 @@
-import React from 'react';
-
+import React, { StrictMode } from "react";
 const steps = [
   {
-    number: '01',
-    title: 'Personalize It',
-    description: 'Add your child’s name, upload a photo, and choose a few fun details—it’s quick and joyful!',
+    number: "01",
+    icon: "/home-page/lasting-memorial/01.svg",
+    title: "Personalize It",
+    description:
+      "Add your child's name, upload 1–3 photos, and choose a few fun details.",
   },
   {
-    number: '02',
-    title: 'Preview & Confirm',
-    description: ' Flip through sample pages to see how your story looks—then confirm with one click.',
+    number: "02",
+    icon: "/home-page/lasting-memorial/02.svg",
+    title: "Preview & Confirm",
+    description:
+      "Flip through sample pages to see how your story looks—then confirm with one click.",
   },
   {
-    number: '03',
-    title: 'Receive & Enjoy',
-    description: ' Your one-of-a-kind gift is on its way. Unwrap it, read it together, and get ready for smiles that last.',
+    number: "03",
+    icon: "/home-page/lasting-memorial/03.svg",
+    title: "Receive & Enjoy",
+    description:
+      "Your one-of-a-kind gift is on its way. Unwrap it, read it together, and get ready for smiles that last.",
   },
 ];
 
 export default function LastingMemorial() {
+  const m3Styles = {
+    titleMedium: {
+      fontFamily: "Roboto, Helvetica",
+      fontSize: "16px",
+      fontWeight: 500,
+      letterSpacing: "0.15000000596046448px",
+      lineHeight: "24px",
+    },
+    bodyMedium: {
+      fontFamily: "Roboto, Helvetica",
+      fontSize: "14px",
+      fontWeight: 400,
+      letterSpacing: "0.25px",
+      lineHeight: "20px",
+    },
+  };
+
   return (
-    <div className="bg-black text-[#FCF2F2] flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-      {/* Main Title */}
-      <h1 className="text-3xl lg:text-5xl font-light text-center mb-8 sm:mb-12 lg:mb-16 max-w-xs sm:max-w-2xl lg:max-w-4xl xl:max-w-6xl">
-         Easy 3 Steps to Create a Lasting Memory
-      </h1>
-      
-      {/* Steps Container */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-10 lg:gap-12 max-w-sm sm:max-w-4xl lg:max-w-6xl w-full mb-8 sm:mb-12 lg:mb-16">
-        {steps.map((step) => (
-          <div key={step.number} className="text-left flex gap-6 md:flex-col">
-            <div className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-thin text-gray-600 mb-4 sm:mb-6">
-              {step.number}
-            </div>
-            <div>
-              <h2 className="text-xl font-medium mb-3">
-                {step.title}
-              </h2>
-              <p className="text-[rgba(255, 255, 255, 0.6)] text-sm sm:text-base leading-relaxed">
-                {step.description}
-              </p>
-            </div>
-          </div>
-        ))}
+    <section className="flex flex-col items-center px-4 py-16 bg-cover bg-center bg-white">
+      <header className="flex items-center justify-center gap-2.5 pb-6 w-full">
+        <h1 className="flex-1 font-semibold text-[#222222] text-2xl md:text-4xl text-center tracking-[0] leading-8" style={{ fontFamily: "Roboto, Helvetica" }}>
+          Easy 3 Steps to Create a Lasting Memory
+        </h1>
+      </header>
+
+      <div className="flex flex-col items-center w-full max-w-[375px] md:max-w-6xl">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-start gap-12 pt-9">
+          {steps.map((step, index) => (
+            <article
+              key={index}
+              className="flex md:flex-col items-start gap-6 pl-6 pr-0 w-full border-l border-solid border-[#22222233] md:border-0"
+            >
+              <img
+                className="w-12 h-11 flex-shrink-0"
+                alt={`Step ${step.number} icon`}
+                src={step.icon}
+              />
+
+              <div className="flex flex-col items-start gap-1 pr-3 flex-1">
+                <h2 className="w-fit text-[#222222] whitespace-nowrap" style={m3Styles.titleMedium}>
+                  {step.title}
+                </h2>
+
+                <p className="text-[#666666]" style={m3Styles.bodyMedium}>
+                  {step.description}
+                </p>
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
-    </div>
+    </section>
   );
-}
+};

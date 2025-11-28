@@ -4,18 +4,20 @@ import { FC, useState } from 'react';
 import Image from 'next/image';
 import { ResultImage } from '@/types/order';
 import { useOrderDetail } from '../context/OrderDetailContext';
+import { CartItem, FaceImage } from '@/types/cart';
+import JSZip from 'jszip';
 
 interface ResultImagesModalProps {
   isOpen: boolean;
   onClose: () => void;
-  images: ResultImage[];
+  orderItem: CartItem;
   itemName: string;
 }
 
 const ResultImagesModal: FC<ResultImagesModalProps> = ({
   isOpen,
   onClose,
-  images,
+  orderItem,
   itemName,
 }) => {
   const [isConfirming, setIsConfirming] = useState(false);
@@ -25,10 +27,13 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
   
   if (!isOpen) return null;
 
+  const images: ResultImage[] = orderItem.result_images || [];
+  const faceImages: FaceImage[] = orderItem?.customization_data?.face_images || [];
+
   const handleConfirm = async () => {
     setIsConfirming(true);
     try {
-      await handleManualConfirm(images[0]?.item_id?.toString());
+      await handleManualConfirm(orderItem.id.toString());
     } finally {
       setIsConfirming(false);
     }
@@ -50,6 +55,60 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
     }
   };
 
+
+
+  const handleDownloadSelected = async () => {
+    if (selectedPageCodes.length === 0) return;
+
+    try {
+      // Create a new zip file
+      const zip = new JSZip();
+
+      // Add face images to zip
+      for (let i = 0; i < faceImages.length; i++) {
+        const faceImage = faceImages[i];
+        const filename = `face_${i + 1}.${faceImage.mime?.split('/')[1] || 'jpg'}`;
+        const response = await fetch(faceImage.url);
+        const blob = await response.blob();
+        zip.file(filename, blob);
+      }
+
+      // Add selected base and final images to zip
+      const selectedImages = images.filter(img => selectedPageCodes.includes(img.page_code));
+      
+      for (const image of selectedImages) {
+        // Add base image
+        if (image.base_image_path) {
+          const baseFilename = `${image.page_code}_base.${image.base_image_path.split('.').pop() || 'jpg'}`;
+          const baseResponse = await fetch(image.base_image_path);
+          const baseBlob = await baseResponse.blob();
+          zip.file(baseFilename, baseBlob);
+        }
+        
+        // Add final image
+        if (image.final_image_url) {
+          const finalFilename = `${image.page_code}_final.${image.final_image_url.split('.').pop() || 'jpg'}`;
+          const finalResponse = await fetch(image.final_image_url);
+          const finalBlob = await finalResponse.blob();
+          zip.file(finalFilename, finalBlob);
+        }
+      }
+
+      // Generate the zip file and trigger download
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const downloadUrl = window.URL.createObjectURL(zipBlob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `${itemName.replace(/[^a-zA-Z0-9]/g, '_')}_images.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Failed to create zip file:', error);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4">
       <div className="relative w-full h-full max-w-6xl max-h-full bg-white rounded-lg overflow-hidden">
@@ -67,9 +126,20 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                 {selectedPageCodes.length === images.length ? 'Deselect All' : 'Select All'}
               </button>
               {selectedPageCodes.length > 0 && (
-                <span className="text-sm text-gray-600">
-                  {selectedPageCodes.length} selected
-                </span>
+                <>
+                  <span className="text-sm text-gray-600">
+                    {selectedPageCodes.length} selected
+                  </span>
+                  <button
+                    onClick={handleDownloadSelected}
+                    className="px-3 py-1 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center space-x-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>Download ZIP</span>
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -120,65 +190,143 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
 
         {/* Content */}
         <div className="p-4 h-full overflow-y-auto">
+          {/* Face Images Section */}
+          {faceImages.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Face Images</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {faceImages.map((faceImage: FaceImage, index: number) => (
+                  <div key={index} className="relative group">
+                    <div className="relative aspect-square rounded-lg overflow-hidden border border-gray-200">
+                      <Image
+                        src={faceImage.url || '/placeholder-image.png'}
+                        alt={`Face Image ${index + 1}`}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
+                    <div className="mt-2">
+                      <p className="text-xs text-gray-600 truncate">
+                        {faceImage.original_name || `Face ${index + 1}`}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {faceImage.mime} • {(faceImage.path?.length || 0) > 0 ? 'Uploaded' : 'No path'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {images.length === 0 ? (
             <div className="flex items-center justify-center h-64">
               <p className="text-gray-500">No result images available</p>
             </div>
           ) : (
-            <div className={viewMode === 'grid' ? 'grid grid-cols-3 gap-4' : 'space-y-4'}>
+            <div className={viewMode === 'grid' ? 'space-y-3' : 'space-y-4'}>
               {images.map((image, index) => (
                 <div 
                   key={index} 
                   className={`
                     rounded-lg overflow-hidden relative
                     ${viewMode === 'grid' 
-                      ? 'bg-gray-50' 
+                      ? 'bg-white border border-gray-200 p-4' 
                       : 'bg-white border border-gray-200'
                     }
                     ${selectedPageCodes.includes(image.page_code) ? 'ring-2 ring-blue-500' : ''}
                   `}
                 >
-                  {/* Selection Checkbox */}
-                  <div className="absolute top-2 left-2 z-10">
-                    <input
-                      type="checkbox"
-                      checked={selectedPageCodes.includes(image.page_code)}
-                      onChange={() => handleImageSelect(image.page_code)}
-                      className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
-                    />
-                  </div>
-                  <div 
-                    className={`
-                      relative
-                      ${viewMode === 'grid' 
-                        ? 'aspect-[2/1]' 
-                        : 'w-full'
-                      }
-                    `}
-                    style={viewMode === 'full' ? { paddingBottom: '56.25%' } : {}}
-                  >
-                    <Image
-                      src={image.final_image_url || '/placeholder-image.png'}
-                      alt={`Page ${image.page_code}`}
-                      fill
-                      className={viewMode === 'grid' ? 'object-cover' : 'object-contain'}
-                      unoptimized
-                    />
-                  </div>
-                  <div className={`
-                    ${viewMode === 'grid' ? 'p-3' : 'p-4 bg-gray-50 border-t border-gray-200'}
-                  `}>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-900">
-                        Page: {image.page_code}
-                      </span>
-                      {viewMode === 'full' && (
-                        <span className="text-xs text-gray-500">
-                          Image {index + 1} of {images.length}
+                  {viewMode === 'grid' ? (
+                    /* Grid Mode: One line layout with all info */
+                    <div className="flex items-center space-x-4">
+                      {/* Selection Checkbox */}
+                      <div className="flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={selectedPageCodes.includes(image.page_code)}
+                          onChange={() => handleImageSelect(image.page_code)}
+                          className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                        />
+                      </div>
+                      
+                      {/* Page Code */}
+                      <div className="flex-shrink-0 w-30">
+                        <span className="text-sm font-medium text-gray-900">
+                          Page: {image.page_code}
                         </span>
-                      )}
+                      </div>
+                      
+                      {/* Base Image */}
+                      <div className="flex-shrink-0 w-100">
+                        <div className="relative aspect-[2/1]">
+                          <Image
+                            src={image.base_image_path || '/placeholder-image.png'}
+                            alt={`Base Page ${image.page_code}`}
+                            fill
+                            className="object-cover rounded"
+                            unoptimized
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Final Image */}
+                      <div className="flex-shrink-0 w-100">
+                        <div className="relative aspect-[2/1]">
+                          <Image
+                            src={image.final_image_url || '/placeholder-image.png'}
+                            alt={`Final Page ${image.page_code}`}
+                            fill
+                            className="object-cover rounded"
+                            unoptimized
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Index */}
+                      <div className="flex-shrink-0 text-xs text-gray-500">
+                        #{index + 1}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    /* Full Mode: Original layout */
+                    <>
+                      {/* Selection Checkbox */}
+                      <div className="absolute top-2 left-2 z-10">
+                        <input
+                          type="checkbox"
+                          checked={selectedPageCodes.includes(image.page_code)}
+                          onChange={() => handleImageSelect(image.page_code)}
+                          className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                        />
+                      </div>
+                      <div 
+                        className="relative w-full"
+                        style={{ paddingBottom: '56.25%' }}
+                      >
+                        <Image
+                          src={image.final_image_url || '/placeholder-image.png'}
+                          alt={`Page ${image.page_code}`}
+                          fill
+                          className="object-contain"
+                          unoptimized
+                        />
+                      </div>
+                      <div className="p-4 bg-gray-50 border-t border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-900">
+                            Page: {image.page_code}
+                          </span>
+                          {viewMode === 'full' && (
+                            <span className="text-xs text-gray-500">
+                              Image {index + 1} of {images.length}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>

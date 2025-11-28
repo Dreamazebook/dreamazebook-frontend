@@ -3,6 +3,8 @@
 import { Link } from '@/i18n/routing'
 import React from 'react'
 import { useState } from 'react'
+import { HELLO_EMAIL } from '@/constants/text'
+import { CONTACT_US_URL } from '@/constants/links'
 
 interface FAQItem {
   question: string
@@ -151,12 +153,12 @@ export default function FAQPage() {
               If you don't see the answer you're looking for, don't hesitate to reach out.
             </p>
             <p className="leading-relaxed">
-              Click <Link href="/contact-us" className="text-primary font-semibold">Contact Us</Link> or email{' '}
+              Click <Link href={CONTACT_US_URL} className="text-primary font-semibold">Contact Us</Link> or email{' '}
               <a 
-                href="mailto:hello@dreamazebook.com" 
+                href={`mailto:${HELLO_EMAIL}`} 
                 className="text-blue-600 hover:text-blue-800 underline font-medium"
               >
-                hello@dreamazebook.com
+                {HELLO_EMAIL}
               </a>
             </p>
             <p className="leading-relaxed">

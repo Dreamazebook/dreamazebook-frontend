@@ -1,5 +1,6 @@
 'use client'
 
+import { HELLO_EMAIL } from '@/constants/text'
 import { useState, FormEvent } from 'react'
 
 interface FormData {
@@ -100,7 +101,7 @@ export default function ContactUsPage() {
       }, 3000)
     } catch (error) {
       console.error('Error submitting form:', error)
-      alert('Failed to send your message. Please try again or email us at hello@dreamazebook.com')
+      alert(`Failed to send your message. Please try again or email us at ${HELLO_EMAIL}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -428,10 +429,10 @@ export default function ContactUsPage() {
           <p className="text-sm">
             You can also reach us directly at{' '}
             <a
-              href="mailto:hello@dreamazebook.com"
+              href={`mailto:${HELLO_EMAIL}`}
               className="text-blue-600 hover:text-blue-800 underline font-medium"
             >
-              hello@dreamazebook.com
+              {HELLO_EMAIL}
             </a>
           </p>
         </div>

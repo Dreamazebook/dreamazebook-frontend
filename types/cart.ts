@@ -38,6 +38,19 @@ export interface CartAttributes {
   cover_style: string;
 }
 
+export interface FaceImage {
+  disk: string;
+  mime: string;
+  original_name: string;
+  path: string;
+  uploaded_at: string;
+  url: string;
+}
+
+export interface CustomizationData {
+  face_images: FaceImage[];
+}
+
 export interface CartItem {
   id: number;
   item_type: string;
@@ -76,6 +89,7 @@ export interface CartItem {
     used_previews_today: number;
     remaining_previews: number;
   };
+  customization_data?: CustomizationData;
 }
 
 export interface CartItems {

@@ -28,20 +28,8 @@ export default function ShippingEstimator() {
     setError(null);
     setShippingOptions([]);
     try {
-      // example package dimensions/weight and currency
-      const weight = 600; // grams
-      const length = 20; // cm
-      const width = 15; // cm
-      const height = 2; // cm
-      const currency = 'USD';
-
       const {data,code,message,success} = await api.post<ApiResponse<RateResponse>>(API_SHIPPING_ESTIMATE,{
         country_code: countryCode,
-        weight,
-        length,
-        width,
-        height,
-        currency
       });
 
       
