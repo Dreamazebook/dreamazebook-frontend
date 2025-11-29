@@ -1,8 +1,57 @@
 import { HOME_SPARKS } from '@/constants/cdn';
 import React from 'react';
 
+interface MediaItem {
+  src: string;
+  alt: string;
+  showStar: boolean;
+  type: 'image' | 'video';
+}
+
+interface MediaItemProps {
+  item: MediaItem;
+  keyPrefix: string;
+  index: number;
+}
+
+// Reusable component to render individual media items
+function MediaItemComponent({ item, keyPrefix, index }: MediaItemProps) {
+  return (
+    <div key={`${keyPrefix}-${index}`} className="w-96 flex-shrink-0 overflow-hidden rounded relative">
+      {item.type === 'video' ? (
+        <video
+          src={item.src}
+          className="w-full h-60 object-cover"
+          autoPlay
+          loop
+          muted
+          playsInline
+        />
+      ) : (
+        <img src={item.src} alt={item.alt} className="w-full h-60 object-cover" />
+      )}
+    </div>
+  );
+}
+
+// Reusable component to render media items list
+function MediaItemsList({ items, keyPrefix }: { items: MediaItem[]; keyPrefix: string }) {
+  return (
+    <div className="flex gap-4">
+      {items.map((item, idx) => (
+        <MediaItemComponent
+          key={`${keyPrefix}-${idx}`}
+          item={item}
+          keyPrefix={keyPrefix}
+          index={idx}
+        />
+      ))}
+    </div>
+  );
+}
+
 function TheHeartBehindDreamaze() {
-  const mediaItems = [
+  const mediaItems: MediaItem[] = [
     {
       src: HOME_SPARKS('video_1.mp4'),
       alt: 'Child reading books video',
@@ -92,44 +141,10 @@ function TheHeartBehindDreamaze() {
               }}
             >
               {/** First mapped copy **/}
-              <div className="flex gap-4">
-                {mediaItems.map((item, idx) => (
-                  <div key={`first-${idx}`} className="w-96 flex-shrink-0 overflow-hidden rounded-lg relative">
-                    {item.type == 'video' ? (
-                      <video
-                        src={item.src}
-                        className="w-full h-60 object-cover"
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                      />
-                    ) : (
-                      <img src={item.src} alt={item.alt} className="w-full h-60 object-cover" />
-                    )}
-                  </div>
-                ))}
-              </div>
+              <MediaItemsList items={mediaItems} keyPrefix="first" />
 
               {/** Second mapped copy (duplicate) **/}
-              <div className="flex gap-4">
-                {mediaItems.map((item, idx) => (
-                  <div key={`second-${idx}`} className="w-96 flex-shrink-0 overflow-hidden rounded-lg relative">
-                    {item.type == 'video' ? (
-                      <video
-                        src={item.src}
-                        className="w-full h-60 object-cover"
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                      />
-                    ) : (
-                      <img src={item.src} alt={item.alt} className="w-full h-60 object-cover" />
-                    )}
-                  </div>
-                ))}
-              </div>
+              <MediaItemsList items={mediaItems} keyPrefix="second" />
             </div>
 
             {/* Pause on hover overlay */}
