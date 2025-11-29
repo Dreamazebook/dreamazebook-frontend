@@ -228,16 +228,25 @@ export default function BookDetailView({
                   const src = page.pagepic;
                   const lower = src.toLowerCase();
                   const isVideo = lower.endsWith('.mp4') || lower.endsWith('.webm');
+                  const isG2Video = lower.includes('g-2.mp4') || lower.includes('g-2.webm');
+                  const isG3Video = lower.includes('g-3.mp4') || lower.includes('g-3.webm');
+
+                  let videoClassName = "w-full h-full object-cover object-center";
+                  if (isG2Video) {
+                    videoClassName = "w-full h-full object-cover object-bottom";
+                  } else if (isG3Video) {
+                    videoClassName = "w-full h-full object-cover object-right";
+                  }
 
                   return (
                     <div
                       key={page.id}
-                      className="flex-shrink-0 w-full snap-center flex items-center justify-center bg-[#F8F8F8] aspect-square"
+                      className="flex-shrink-0 w-full snap-center flex items-center justify-center bg-[#F8F8F8] aspect-square overflow-hidden"
                     >
                       {isVideo ? (
                         <AutoLoopVideo
                           src={src}
-                          className="w-full h-full object-cover object-center"
+                          className={videoClassName}
                           isActive={index === currentPageIndex}
                         />
                       ) : (
@@ -296,12 +305,24 @@ export default function BookDetailView({
               const src = page.pagepic;
               const lower = src.toLowerCase();
               const isVideo = lower.endsWith('.mp4') || lower.endsWith('.webm');
+              const isG2Video = lower.includes('g-2.mp4') || lower.includes('g-2.webm');
+              const isG3Video = lower.includes('g-3.mp4') || lower.includes('g-3.webm');
+
+              let videoClassName = "w-full h-auto";
+              if (isG2Video) {
+                videoClassName = "w-full h-auto object-cover object-bottom";
+              } else if (isG3Video) {
+                videoClassName = "w-full h-auto object-cover object-right";
+              }
 
               return (
                 <div key={page.id} className="w-full">
-                  <div className="relative w-full">
+                  <div className="relative w-full overflow-hidden">
                     {isVideo ? (
-                      <AutoLoopVideo src={src} />
+                      <AutoLoopVideo 
+                        src={src} 
+                        className={videoClassName}
+                      />
                     ) : (
                       <img
                         src={src}
