@@ -28,7 +28,7 @@ export default function ShippingEstimator() {
     setError(null);
     setShippingOptions([]);
     try {
-      const {data,code,message,success} = await api.post<ApiResponse<RateResponse>>(API_SHIPPING_ESTIMATE,{
+      const {data,message,success} = await api.post<ApiResponse<RateResponse>>(API_SHIPPING_ESTIMATE,{
         country_code: countryCode,
       });
 
@@ -49,8 +49,31 @@ export default function ShippingEstimator() {
   };
 
   useEffect(() => {
-    // fetch on mount for default country
-    fetchShippingOptions(country);
+    // fetch user's country from our backend API on mount
+    const fetchUserCountry = async () => {
+      try {
+        const response = await fetch('/api/country');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data?.country) {
+            setCountry(result.data.country);
+            fetchShippingOptions(result.data.country);
+          } else {
+            // fallback to default country if API doesn't return country
+            fetchShippingOptions(country);
+          }
+        } else {
+          // fallback to default country if API call fails
+          fetchShippingOptions(country);
+        }
+      } catch (err) {
+        console.error('Error fetching user country:', err);
+        // fallback to default country if API call fails
+        fetchShippingOptions(country);
+      }
+    };
+
+    fetchUserCountry();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
