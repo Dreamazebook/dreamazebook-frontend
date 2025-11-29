@@ -159,9 +159,13 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
         return (
           <div className="w-full" key={String(idOrCode)}>
             {isComingSoon ? (
-              <div className="group relative flex flex-col items-center text-center w-full cursor-default">
+              <Link 
+                href="/survey" 
+                className="group relative flex flex-col items-center text-center w-full"
+                prefetch={true}
+              >
                 {cardContent}
-              </div>
+              </Link>
             ) : (
               <Link 
                 href={`/books/${idOrCode}`} 
