@@ -3,12 +3,9 @@
 import { useLocale } from 'next-intl';
 import React, { useEffect } from 'react';
 import { motion, useAnimation, useInView } from 'framer-motion';
-import InitialSpark from './components/home/InitialSpark';
-import SideLineProducts from './components/home/SideLineProducts';
+import TheHeartBehindDreamaze from './components/home/TheHeartBehindDreamaze';
 import LastingMemorial from './components/home/LastingMemorial';
 import Slideshow from './components/home/SlideShow';
-import PicBooksShow from './components/home/PicBooksShow';
-// import TestimonialCards from './components/home/TestimonialCards';
 import ReserveSection from '../(marketing)/components/ReserveSection';
 import GiftPackage from './components/home/GiftPackage';
 import { Product } from '@/types/product';
@@ -85,7 +82,7 @@ export default function HomePage() {
       </AnimatedSection>
 
       <AnimatedSection delay={0.1}>
-        <InitialSpark />
+        <TheHeartBehindDreamaze />
       </AnimatedSection>
 
       <AnimatedSection delay={0.1}>

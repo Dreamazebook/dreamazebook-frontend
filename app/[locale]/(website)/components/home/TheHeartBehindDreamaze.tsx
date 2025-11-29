@@ -1,32 +1,49 @@
 import { HOME_SPARKS } from '@/constants/cdn';
 import React from 'react';
 
-function InitialSpark() {
-  const images = [
+function TheHeartBehindDreamaze() {
+  const mediaItems = [
+    {
+      src: HOME_SPARKS('video_1.mp4'),
+      alt: 'Child reading books video',
+      showStar: false,
+      type: 'video',
+    },
     {
       src: HOME_SPARKS('1.png'),
       alt: 'Child reading books',
       showStar: false,
+      type: 'image',
     },
     {
       src: HOME_SPARKS('2.png'),
       alt: 'Young person reading magazine',
       showStar: true,
+      type: 'image',
     },
     {
       src: HOME_SPARKS('3.png'),
       alt: 'Person reading with coffee',
       showStar: false,
+      type: 'image',
     },
     {
       src: HOME_SPARKS('4.png'),
       alt: 'Child reading with parent',
       showStar: true,
+      type: 'image',
+    },
+    {
+      src: HOME_SPARKS('video_2.mp4'),
+      alt: 'Family reading together video',
+      showStar: false,
+      type: 'video',
     },
     {
       src: HOME_SPARKS('5.png'),
       alt: 'Child reading book outdoors',
       showStar: false,
+      type: 'image',
     }
   ];
 
@@ -76,18 +93,40 @@ function InitialSpark() {
             >
               {/** First mapped copy **/}
               <div className="flex gap-4">
-                {images.map((img, idx) => (
+                {mediaItems.map((item, idx) => (
                   <div key={`first-${idx}`} className="w-96 flex-shrink-0 overflow-hidden rounded-lg relative">
-                    <img src={img.src} alt={img.alt} className="w-full h-60 object-cover" />
+                    {item.type == 'video' ? (
+                      <video
+                        src={item.src}
+                        className="w-full h-60 object-cover"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                      />
+                    ) : (
+                      <img src={item.src} alt={item.alt} className="w-full h-60 object-cover" />
+                    )}
                   </div>
                 ))}
               </div>
 
               {/** Second mapped copy (duplicate) **/}
               <div className="flex gap-4">
-                {images.map((img, idx) => (
+                {mediaItems.map((item, idx) => (
                   <div key={`second-${idx}`} className="w-96 flex-shrink-0 overflow-hidden rounded-lg relative">
-                    <img src={img.src} alt={img.alt} className="w-full h-60 object-cover" />
+                    {item.type == 'video' ? (
+                      <video
+                        src={item.src}
+                        className="w-full h-60 object-cover"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                      />
+                    ) : (
+                      <img src={item.src} alt={item.alt} className="w-full h-60 object-cover" />
+                    )}
                   </div>
                 ))}
               </div>
@@ -103,4 +142,4 @@ function InitialSpark() {
   );
 }
 
-export default InitialSpark;
+export default TheHeartBehindDreamaze;
