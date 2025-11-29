@@ -73,7 +73,7 @@ function BundleCard({ bundle }: { bundle: Bundle }) {
           </div>
         </div>
 
-        <ul className="mx-auto max-w-[397px] h-[312px] md:h-auto bg-white space-y-3 md:space-y-4 text-[14px] md:text-[16px] lg:text-[18px] text-gray-800 list-disc pl-5">
+        <ul className="mx-auto max-w-[397px] h-[185px] md:h-auto bg-white space-y-3 md:space-y-4 text-[14px] md:text-[16px] lg:text-[18px] text-gray-800 list-disc pl-5">
           {bundle.features.map((f, i) => (
             <li key={i} className={f === '' ? 'list-none' : ''}>{f === '' ? '\u00A0' : f}</li>
           ))}
@@ -568,13 +568,14 @@ export default function ChristmasPage() {
           </div>
         </div>
 
-        {/* Bundles */}
-        <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-6 pb-12">
+      {/* Bundles */}
+      <div className="relative z-10 max-w-6xl mx-auto px-0 md:px-6 pb-12">
           <div
             ref={scrollContainerRef}
-            className="flex md:grid md:grid-cols-2 gap-3 md:gap-12 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 md:pb-0 scrollbar-hide w-full max-w-[100svw]"
+          className="flex md:grid md:grid-cols-2 gap-3 md:gap-12 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 md:pb-0 scrollbar-hide w-screen md:w-full md:max-w-[100svw]"
             style={{
-              ['--card' as any]: '20rem',
+            // 移动端卡片宽度稍微小于整屏，保证左右都有留白（约 24px），避免第一张贴边
+            ['--card' as any]: 'min(20rem, calc(100svw - 48px))',
               ['scrollPaddingInline' as any]: 'calc((100svw - var(--card))/2)',
             }}
           >
@@ -588,7 +589,11 @@ export default function ChristmasPage() {
                 <div 
                   key={bundle.id} 
                   ref={setBundleRef(bundle.id)} 
-                  className={`snap-center shrink-0 basis-[var(--card)] md:shrink md:basis-auto ${!isActiveGroup ? 'md:hidden' : ''}`}
+                  className={`snap-center shrink-0 basis-[var(--card)] md:shrink md:basis-auto ${
+                    index === 0 ? 'ml-4 md:ml-0' : ''
+                  } ${
+                    index === allBundles.length - 1 ? 'mr-4 md:mr-0' : ''
+                  } ${!isActiveGroup ? 'md:hidden' : ''}`}
                   style={{
                     scrollSnapAlign: 'center',
                     scrollSnapStop: 'always'
