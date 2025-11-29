@@ -22,3 +22,9 @@ export const notoSansSC = localFont({
   display: 'swap',
   variable: '--font-noto-sans-sc',
 });
+
+export const aLittleMonster = localFont({
+  src: '../public/fonts/ALittleMonster.ttf',
+  display: 'swap',
+  variable: '--font-a-little-monster',
+});

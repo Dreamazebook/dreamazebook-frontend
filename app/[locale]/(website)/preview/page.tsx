@@ -2075,6 +2075,18 @@ export default function PreviewPageWithTopNav() {
         return { skin_tone, hair_style, hair_color };
       };
 
+      // gender: 后端期望字符串 boy/girl
+      const mapGenderToString = (g: any): string | null => {
+        if (g === 'boy' || g === 'girl') return g;
+        if (g === 1 || g === '1') return 'boy';
+        if (g === 2 || g === '2') return 'girl';
+        const code = (character as any)?.gender_code;
+        if (code === 1 || code === '1') return 'boy';
+        if (code === 2 || code === '2') return 'girl';
+        return null;
+      };
+      const genderStr = mapGenderToString(character?.gender);
+
       const apiRequestData = {
         picbook_id: bookId,
         // 新接口：face_images 为对象数组，包含 filename/mime/data（data URL）
@@ -2085,7 +2097,7 @@ export default function PreviewPageWithTopNav() {
         })),
         full_name: character?.full_name,
         language: character?.language || 'en', // 默认英语
-        gender: character?.gender || 1, // 默认值
+        gender: genderStr,
         skincolor: character?.skincolor || 1, // 默认值
         attributes: toBackendAttrs(character)
       };
@@ -2303,6 +2315,18 @@ export default function PreviewPageWithTopNav() {
             return { skin_tone, hair_style, hair_color };
           };
 
+          // gender & relationship: 后端期望字符串
+          const mapGenderToString = (g: any, genderCode?: any): string | null => {
+            if (g === 'boy' || g === 'girl') return g;
+            if (g === 1 || g === '1') return 'boy';
+            if (g === 2 || g === '2') return 'girl';
+            if (genderCode === 1 || genderCode === '1') return 'boy';
+            if (genderCode === 2 || genderCode === '2') return 'girl';
+            return null;
+          };
+          const genderStr = mapGenderToString(character?.gender, (character as any)?.gender_code);
+          const relationshipStr = character?.relationship || null;
+
           const apiRequestData = {
             picbook_id: bookId,
             // 新接口：face_images（data URL 列表转对象）
@@ -2313,7 +2337,8 @@ export default function PreviewPageWithTopNav() {
             })),
             full_name: character?.full_name,
             language: character?.language,
-            gender: character?.gender,
+            gender: genderStr,
+            relationship: relationshipStr,
             skincolor: character?.skincolor,
             attributes: toBackendAttrs2(character)
           };

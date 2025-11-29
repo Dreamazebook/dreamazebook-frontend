@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
 
@@ -20,444 +20,207 @@ interface OccasionsSectionProps {
 }
 
 const OccasionsSection: React.FC<OccasionsSectionProps> = ({
-  title = "From birthdays to bedtime, every moment is a chance to plant the seed of self-recognition",
-  description = "Discover how our books fit into every occasion — as gifts, as bonding moments, and as keepsakes for families.",
+  title = 'Little Moments, Lasting Recognition',
+  description = 'See how our books brighten every occasion.',
   cards = [
     {
       id: '1',
       title: 'Bedtime',
-      description: 'Turn every night into a moment of comfort and connection.',
-      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Bedtime-MOBILE.png',
-      imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Bedtime.png',
+      description: 'Bring calm, comfort, and connection before sleep.',
+      image:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Bedtime-MOBILE.png',
+      imageDesktop:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Bedtime.png',
       bookId: 'PICBOOK_GOODNIGHT3',
     },
     {
       id: '2',
-      title: 'Birthday',
-      description: 'A keepsake gift that makes their special day unforgettable.',
-      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Birthday-MOBILE.png',
-      imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Birthday.png',
-      bookId: 'PICBOOK_BIRTHDAY',
-    },
-    {
-      id: '3',
-      title: 'Baby Shower',
-      description: 'Welcome little ones with a personalized treasure made just for them.',
-      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Baby-Shower-MOBILE.png',
-      imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Baby-Shower.png',
-      bookId: 'PICBOOK_MELODY',
-    },
-    {
-      id: '4',
-      title: 'Family Time',
-      description: 'Celebrate togetherness with stories that everyone can share.',
-      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Family-Time-MOBILE.png',
-      imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Family-Time.png',
+      title: 'Everyday',
+      description: 'Discover the little acts of bravery in everyday moments.',
+      image:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Everyday-MOBILE.png',
+      imageDesktop:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Everyday.png',
       bookId: 'PICBOOK_BRAVEY',
     },
     {
-      id: '5',
-      title: 'Christmas Time',
-      description: 'The most heartfelt gift under the tree — made for your child.',
-      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Christmas-Time-MOBILE.png',
-      imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Christmas-Time.png',
+      id: '3',
+      title: 'Christmas',
+      description: 'The most heartfelt gift under the tree.',
+      image:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Christmas-Time-MOBILE.png',
+      imageDesktop:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/from-birthdays-to-bedtime/Christmas-Time.png',
       bookId: 'PICBOOK_SANTA',
     },
   ],
 }) => {
   if (!cards || cards.length === 0) return null;
 
+  const displayedCards = cards.slice(0, 3);
+  const textAreaRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [maxTextHeight, setMaxTextHeight] = useState<number | null>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  // 检测是否是桌面端
+  useEffect(() => {
+    const checkDesktop = () => {
+      setIsDesktop(window.innerWidth >= 768);
+    };
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
+
+  // 计算并设置所有文案区域的高度为最高值
+  useEffect(() => {
+    if (!isDesktop) {
+      setMaxTextHeight(null);
+      return;
+    }
+
+    const updateTextHeights = () => {
+      const refs = textAreaRefs.current.filter((ref) => ref !== null) as HTMLDivElement[];
+      
+      if (refs.length === 0) return;
+
+      // 先临时移除所有固定高度，让内容自然渲染
+      const originalHeights = refs.map((ref) => {
+        const height = ref.style.height;
+        const minHeight = ref.style.minHeight;
+        ref.style.height = 'auto';
+        ref.style.minHeight = 'auto';
+        return { height, minHeight };
+      });
+
+      // 使用双重 requestAnimationFrame 确保浏览器完成布局重排
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          // 再次延迟确保内容完全渲染
+          setTimeout(() => {
+            // 获取所有元素的实际内容高度（使用 scrollHeight 获取内容高度）
+            const heights = refs.map((ref) => ref.scrollHeight);
+
+            // 恢复原始样式
+            refs.forEach((ref, index) => {
+              if (originalHeights[index].height) {
+                ref.style.height = originalHeights[index].height;
+              }
+              if (originalHeights[index].minHeight) {
+                ref.style.minHeight = originalHeights[index].minHeight;
+              }
+            });
+
+            if (heights.length > 0) {
+              const maxHeight = Math.max(...heights);
+              setMaxTextHeight(maxHeight);
+            }
+          }, 50);
+        });
+      });
+    };
+
+    // 使用 requestAnimationFrame 确保在浏览器重绘后计算
+    const rafId = requestAnimationFrame(() => {
+      // 再次延迟以确保所有内容都已渲染
+      setTimeout(updateTextHeights, 100);
+    });
+
+    // 监听窗口大小变化，使用防抖避免频繁计算
+    let resizeTimer: NodeJS.Timeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(updateTextHeights, 150);
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(resizeTimer);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [displayedCards, isDesktop]);
+
   return (
-    <section 
-      className="w-full bg-[#FFFCF7] pt-[64px] pr-[18px] pb-[64px] pl-[18px] md:pt-[88px] md:pr-[120px] md:pb-[88px] md:pl-[120px]"
-      style={{
-        opacity: 1,
-      }}
+    <section
+      className="w-full pt-[64px] pr-[24px] pb-[64px] pl-[24px] md:h-[792px] md:pt-[88px] md:pr-[120px] md:pb-[88px] md:pl-[120px]"
+      style={{ opacity: 1 }}
     >
-      <div className="flex flex-col gap-[24px] md:gap-[48px]">
-        {/* Title and Description */}
-        <div className="flex flex-col md:flex-row gap-[12px] md:gap-[24px] items-start">
-          <h2 className="text-[#222222] md:text-[40px] text-[24px] leading-[32px] md:leading-[40px] md:font-medium font-semibold flex-1">
-            {title}
-          </h2>
-          <p className="text-[#222222] text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] w-[calc((100%-44px)/2)] md:w-[calc((100%-48px)/3)]">
+      <div className="flex h-full flex-col gap-[24px] md:gap-[48px]">
+        {/* 标题区：手机端居中，gap 12，桌面端 gap 24 */}
+        <div className="flex h-auto flex-col gap-[12px] text-center md:text-left md:h-[88px] md:gap-[24px]">
+          <p
+            className="text-center text-[24px] font-semibold leading-[32px] text-[#222222] md:text-left md:text-[40px] md:font-medium md:leading-[40px]"
+            style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
+          >
+            {/* 手机端：在第一个逗号后换行 */}
+            <span className="md:hidden">
+              {title.includes(',') ? (
+                <>
+                  {title.substring(0, title.indexOf(',') + 1)}
+                  <br />
+                  {title.substring(title.indexOf(',') + 1).trim()}
+                </>
+              ) : (
+                title
+              )}
+            </span>
+            {/* 桌面端：正常显示 */}
+            <span className="hidden md:inline">{title}</span>
+          </p>
+          {/* 副标题：只在PC端显示 */}
+          <p className="hidden text-[#666666] mx-auto max-w-[480px] text-[14px] leading-[20px] tracking-[0.25px] text-[#222222] md:block md:mx-0 md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
             {description}
           </p>
         </div>
 
-        {/* Cards Grid Container */}
-        <div className="flex flex-row gap-[8px] md:gap-[24px] items-start md:justify-start -mt-[72px] md:mt-0">
-          {/* Mobile: First Column - 2 cards, Desktop: First Column - 1 card - 垂直居中 */}
-          <div className="flex flex-col gap-[8px] md:gap-[24px] flex-1 self-center">
-            {/* Mobile: show 2 cards */}
-            {cards.slice(0, 2).map((card) => (
-              <Link
-                key={`mobile-${card.id}`}
-                href={card.bookId ? `/books/${card.bookId}` : '#'}
-                className="md:hidden w-full"
-              >
-                <div
-                  className="relative bg-[#F5E3E3] flex flex-col overflow-hidden rounded-[8px] w-full cursor-pointer"
-                  style={{
-                    aspectRatio: '331/360', // 165.5/180 = 331/360
-                    padding: '24px',
-                    gap: '36px',
-                    opacity: 1,
-                    borderRadius: '8px',
-                  }}
-                >
-                  {/* Background Image - Baby with book */}
-                {card.image && (
-                  <div className="absolute inset-0 z-0">
-                    <Image
-                      src={card.image}
-                      alt={card.title}
-                      fill
-                      className="object-cover"
-                      style={{ objectPosition: 'center' }}
-                    />
-                  </div>
-                )}
-                  
-                  {/* Gradient Overlay */}
-                  <div
-                    className="absolute inset-0 z-[1]"
-                    // style={{
-                    //   background: 'linear-gradient(197.76deg, rgba(249, 232, 232, 0) 33.41%, #F9E8E8 70.1%)',
-                    // }}
+        {/* 三张图片卡片容器：手机端 gap 12，桌面端 gap 24 */}
+        <div className="flex flex-col gap-[12px] md:min-h-[480px] md:flex-row md:gap-[24px]">
+          {displayedCards.map((card, index) => (
+            <Link
+              key={card.id}
+              href={card.bookId ? `/books/${card.bookId}` : '#'}
+              className="flex-1"
+            >
+              <div className="flex h-auto flex-col gap-1 overflow-hidden rounded-[4px] bg-[#F8F0EC] md:h-[480px] md:gap-1">
+                {/* 图片区域 - 手机端固定高度，桌面端自适应剩余空间 */}
+                <div className="relative h-[240px] w-full flex-shrink-0 overflow-hidden md:h-auto md:flex-1 md:min-h-0">
+                  <Image
+                    src={isDesktop && card.imageDesktop ? card.imageDesktop : card.image}
+                    alt={card.title}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    priority={false}
                   />
-
-                  {/* Text Content */}
-                  <div className="relative z-10 flex flex-col mt-auto gap-1 md:gap-[36px]">
-                    <h3 className="text-[#FFFFFF] font-bold text-[18px] leading-[24px] tracking-[0.15px]">
-                      {card.title}
-                    </h3>
-                    <p className="text-[#FFFFFF] font-normal text-[14px] leading-[20px] tracking-[0.25px] md:text-[#FFFFFF] md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
-                      {card.description}
-                    </p>
-                  </div>
                 </div>
-              </Link>
-            ))}
-            {/* Desktop: show only first card */}
-            {cards.slice(0, 1).map((card) => (
-              <Link
-                key={`desktop-${card.id}`}
-                href={card.bookId ? `/books/${card.bookId}` : '#'}
-                className="hidden md:block"
-              >
+            
+                {/* 文案区域 - 手机端固定高度，桌面端统一高度且自适应 */}
                 <div
-                  className="relative bg-[#F5E3E3] rounded-[12px] flex flex-col overflow-hidden w-full cursor-pointer"
-                style={{
-                  aspectRatio: '3/4',
-                  paddingTop: '31.25%', // 160/512 = 31.25%
-                  paddingRight: '12.5%', // 48/384 = 12.5%
-                  paddingBottom: '9.375%', // 48/512 = 9.375%
-                  paddingLeft: '12.5%', // 48/384 = 12.5%
-                  gap: '4px',
-                  opacity: 1,
-                  borderRadius: '12px',
-                }}
-              >
-                {/* Background Image - Baby with book */}
-                {(card.imageDesktop || card.image) && (
-                  <div className="absolute inset-0 z-0">
-                    <Image
-                      src={card.imageDesktop || card.image}
-                      alt={card.title}
-                      fill
-                      className="object-cover"
-                      style={{ objectPosition: 'center' }}
-                    />
-                  </div>
-                )}
-                
-                {/* Gradient Overlay */}
-                <div
-                  className="absolute inset-0 z-[1]"
-                  // style={{
-                  //   background: 'linear-gradient(197.76deg, rgba(249, 232, 232, 0) 33.41%, #F9E8E8 70.1%)',
-                  // }}
-                />
-                
-                {/* Book Cover Overlay */}
-                {/* {card.bookImage && (
-                  <div 
-                    className="absolute left-1/2 transform -translate-x-1/2 z-10"
-                    style={{
-                      top: '9.375%', // 48/512 = 9.375%
-                      width: '52.08%', // 200/384 ≈ 52.08%
-                      aspectRatio: '4/3', // 200:150 = 4:3
-                    }}
-                  >
-                    <div className="relative w-full h-full">
-                      <Image
-                        src={card.bookImage}
-                        alt="Book cover"
-                        fill
-                        className="object-contain"
-                      />
-                    </div>
-                  </div>
-                )} */}
-
-                {/* Text Content */}
-                <div 
-                  className="absolute z-10 flex flex-col gap-[4px]"
-                  style={{
-                    bottom: '9.375%', // paddingBottom
-                    left: '12.5%', // paddingLeft
-                    right: '12.5%', // paddingRight
+                  ref={(el) => {
+                    textAreaRefs.current[index] = el;
                   }}
-                >
-                  <h3
-                    className="text-[#FFFFFF] font-bold text-[18px] leading-[24px] tracking-[0.15px]"
-                    style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
-                  >
-                    {card.title}
-                  </h3>
-                  <p
-                    className="text-[#FFFFFF] font-normal text-[16px] leading-[24px] tracking-[0.5px]"
-                    style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
-                  >
-                    {card.description}
-                    </p>
-                </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {/* Mobile: Second Column - 3 cards, Desktop: Second Column - 2 cards - 贴底部 */}
-          <div className="flex flex-col gap-[8px] md:gap-[24px] flex-1 md:pt-22">
-            {/* Mobile: show cards 2-4 (3 cards) */}
-            {cards.slice(2, 5).map((card) => (
-              <Link
-                key={`mobile-col2-${card.id}`}
-                href={card.bookId ? `/books/${card.bookId}` : '#'}
-                className="md:hidden w-full"
-              >
-                <div
-                  className="relative bg-[#F5E3E3] flex flex-col overflow-hidden rounded-[8px] w-full cursor-pointer"
+                  className="flex flex-shrink-0 flex-col gap-1 bg-[#FCF2F2] max-h-[116px] p-[24px] md:max-h-none md:px-[24px] md:py-[24px]"
                   style={{
-                    aspectRatio: '331/360', // 165.5/180 = 331/360
-                    padding: '24px',
-                    gap: '36px',
                     opacity: 1,
-                    borderRadius: '8px',
+                    ...(maxTextHeight && isDesktop
+                      ? { height: `${maxTextHeight}px` }
+                      : {}),
                   }}
                 >
-                  {/* Background Image - Baby with book */}
-                {card.image && (
-                  <div className="absolute inset-0 z-0">
-                    <Image
-                      src={card.image}
-                      alt={card.title}
-                      fill
-                      className="object-cover"
-                      style={{ objectPosition: 'center' }}
-                    />
-                  </div>
-                )}
-                  
-                  {/* Gradient Overlay */}
-                  <div
-                    className="absolute inset-0 z-[1]"
-                    // style={{
-                    //   background: 'linear-gradient(197.76deg, rgba(249, 232, 232, 0) 33.41%, #F9E8E8 70.1%)',
-                    // }}
-                  />
-
-                  {/* Text Content */}
-                  <div className="relative z-10 flex flex-col mt-auto gap-1 md:gap-[36px]">
-                    <h3 className="text-[#FFFFFF] font-bold text-[18px] leading-[24px] tracking-[0.15px]">
-                      {card.title}
-                    </h3>
-                    <p className="text-[#FFFFFF] font-normal text-[14px] leading-[20px] tracking-[0.25px] md:text-[#FFFFFF] md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
-                      {card.description}
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-            {/* Desktop: show cards 1-2 (2 cards) */}
-            {cards.slice(1, 3).map((card) => (
-              <Link
-                key={`desktop-col2-${card.id}`}
-                href={card.bookId ? `/books/${card.bookId}` : '#'}
-                className="hidden md:block"
-              >
-                <div
-                  className="relative bg-[#F5E3E3] rounded-[12px] flex flex-col overflow-hidden w-full cursor-pointer"
-                style={{
-                  aspectRatio: '3/4',
-                  paddingTop: '31.25%', // 160/512 = 31.25%
-                  paddingRight: '12.5%', // 48/384 = 12.5%
-                  paddingBottom: '9.375%', // 48/512 = 9.375%
-                  paddingLeft: '12.5%', // 48/384 = 12.5%
-                  gap: '4px',
-                  opacity: 1,
-                  borderRadius: '12px',
-                }}
-              >
-                {/* Background Image - Baby with book */}
-                {(card.imageDesktop || card.image) && (
-                  <div className="absolute inset-0 z-0">
-                    <Image
-                      src={card.imageDesktop || card.image}
-                      alt={card.title}
-                      fill
-                      className="object-cover"
-                      style={{ objectPosition: 'center' }}
-                    />
-                  </div>
-                )}
-                
-                {/* Gradient Overlay */}
-                <div
-                  className="absolute inset-0 z-[1]"
-                  // style={{
-                  //   background: 'linear-gradient(197.76deg, rgba(249, 232, 232, 0) 33.41%, #F9E8E8 70.1%)',
-                  // }}
-                />
-                
-                {/* Book Cover Overlay */}
-                {/* {card.bookImage && (
-                  <div 
-                    className="absolute left-1/2 transform -translate-x-1/2 z-10"
-                    style={{
-                      top: '9.375%', // 48/512 = 9.375%
-                      width: '52.08%', // 200/384 ≈ 52.08%
-                      aspectRatio: '4/3', // 200:150 = 4:3
-                    }}
-                  >
-                    <div className="relative w-full h-full">
-                      <Image
-                        src={card.bookImage}
-                        alt="Book cover"
-                        fill
-                        className="object-contain"
-                      />
-                    </div>
-                  </div>
-                )} */}
-
-                {/* Text Content */}
-                <div 
-                  className="absolute z-10 flex flex-col gap-[4px]"
-                  style={{
-                    bottom: '9.375%', // paddingBottom
-                    left: '12.5%', // paddingLeft
-                    right: '12.5%', // paddingRight
-                  }}
-                >
-                  <h3
-                    className="text-[#FFFFFF] font-bold text-[18px] leading-[24px] tracking-[0.15px]"
+                  <p
+                    className="text-[18px] font-medium leading-[24px] tracking-[0.15px] text-[#222222]"
                     style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
                   >
                     {card.title}
-                  </h3>
-                  <p
-                    className="text-[#FFFFFF] font-normal text-[16px] leading-[24px] tracking-[0.5px]"
-                    style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
-                  >
+                  </p>
+                  <p className="text-[14px] leading-[20px] tracking-[0.25px] text-[#666666] md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
                     {card.description}
-                    </p>
+                  </p>
                 </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {/* Third Column - 3 cards - 贴顶部 (Desktop only) */}
-          <div className="hidden md:flex flex-col gap-[24px] flex-1 self-start">
-            {cards.slice(3, 6).map((card) => (
-              <Link
-                key={card.id}
-                href={card.bookId ? `/books/${card.bookId}` : '#'}
-                className="w-full"
-              >
-                <div
-                  className="relative bg-[#F5E3E3] rounded-[12px] flex flex-col overflow-hidden w-full cursor-pointer"
-                style={{
-                  aspectRatio: '3/4',
-                  paddingTop: '31.25%', // 160/512 = 31.25%
-                  paddingRight: '12.5%', // 48/384 = 12.5%
-                  paddingBottom: '9.375%', // 48/512 = 9.375%
-                  paddingLeft: '12.5%', // 48/384 = 12.5%
-                  gap: '4px',
-                  opacity: 1,
-                  borderRadius: '12px',
-                }}
-              >
-                {/* Background Image - Baby with book */}
-                {(card.imageDesktop || card.image) && (
-                  <div className="absolute inset-0 z-0">
-                    <Image
-                      src={card.imageDesktop || card.image}
-                      alt={card.title}
-                      fill
-                      className="object-cover"
-                      style={{ objectPosition: 'center' }}
-                    />
-                  </div>
-                )}
-                
-                {/* Gradient Overlay */}
-                <div
-                  className="absolute inset-0 z-[1]"
-                  // style={{
-                  //   background: 'linear-gradient(197.76deg, rgba(249, 232, 232, 0) 33.41%, #F9E8E8 70.1%)',
-                  // }}
-                />
-                
-                {/* Book Cover Overlay */}
-                {/* {card.bookImage && (
-                  <div 
-                    className="absolute left-1/2 transform -translate-x-1/2 z-10"
-                    style={{
-                      top: '9.375%', // 48/512 = 9.375%
-                      width: '52.08%', // 200/384 ≈ 52.08%
-                      aspectRatio: '4/3', // 200:150 = 4:3
-                    }}
-                  >
-                    <div className="relative w-full h-full">
-                      <Image
-                        src={card.bookImage}
-                        alt="Book cover"
-                        fill
-                        className="object-contain"
-                      />
-                    </div>
-                  </div>
-                )} */}
-
-                {/* Text Content */}
-                <div 
-                  className="absolute z-10 flex flex-col gap-[4px]"
-                  style={{
-                    bottom: '9.375%', // paddingBottom
-                    left: '12.5%', // paddingLeft
-                    right: '12.5%', // paddingRight
-                  }}
-                >
-                  <h3
-                    className="text-[#FFFFFF] font-bold text-[18px] leading-[24px] tracking-[0.15px]"
-                    style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
-                  >
-                    {card.title}
-                  </h3>
-                  <p
-                    className="text-[#FFFFFF] font-normal text-[16px] leading-[24px] tracking-[0.5px]"
-                    style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
-                  >
-                    {card.description}
-                    </p>
-                </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     </section>

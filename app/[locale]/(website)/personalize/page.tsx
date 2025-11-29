@@ -231,6 +231,7 @@ export default function PersonalizeApiDrivenPage() {
     let skinColorRaw = '';
     let hairstyleRaw = '';
     let hairColorRaw = '';
+    let relationshipRaw: string | undefined;
     let photosData: string[] = [];
 
     if (formType === 'SINGLE1' && form1Ref.current) {
@@ -241,7 +242,13 @@ export default function PersonalizeApiDrivenPage() {
         return;
       }
       const f = form1Ref.current.getFormData();
-      fullName = f.fullName; genderRaw = f.gender as any; skinColorRaw = f.skinColor; hairstyleRaw = f.hairstyle; hairColorRaw = f.hairColor; photosData = (f as any).photos || [];
+      fullName = f.fullName;
+      genderRaw = f.gender as any;
+      skinColorRaw = f.skinColor;
+      hairstyleRaw = f.hairstyle;
+      hairColorRaw = f.hairColor;
+      relationshipRaw = (f as any).relationship;
+      photosData = (f as any).photos || [];
     } else if (formType === 'SINGLE2' && form2Ref.current) {
       const validationResult = form2Ref.current.validateForm();
       if (!validationResult.isValid) {
@@ -250,7 +257,13 @@ export default function PersonalizeApiDrivenPage() {
         return;
       }
       const f = form2Ref.current.getFormData();
-      fullName = f.fullName; genderRaw = f.gender as any; skinColorRaw = f.skinColor; hairstyleRaw = f.hairstyle; hairColorRaw = f.hairColor; photosData = [];
+      fullName = f.fullName;
+      genderRaw = f.gender as any;
+      skinColorRaw = f.skinColor;
+      hairstyleRaw = f.hairstyle;
+      hairColorRaw = f.hairColor;
+      relationshipRaw = (f as any).relationship;
+      photosData = [];
     } else {
       return;
     }
@@ -302,7 +315,11 @@ export default function PersonalizeApiDrivenPage() {
           {
             full_name: fullName,
             language: searchParams.get('language') || 'en',
-            gender: genderCode,
+            // 为了兼容新后端校验，gender 使用 boy/girl 字符串，
+            // gender_code 仅用于内部逻辑（如数值枚举）
+            gender: genderRaw || '',
+            gender_code: genderCode,
+            relationship: relationshipRaw || undefined,
             skincolor: skinColorCode,
             hairstyle: hairstyleCode,
             haircolor: hairColorCode,

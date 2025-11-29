@@ -74,11 +74,11 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
               {/* 手机端：左侧文字区域 */}
               <div className="flex flex-col flex-1 md:hidden gap-1">
                 <span className="text-[16px] font-medium text-[#222222] leading-[24px] tracking-[0.25px]">Average Rating</span>
-                <div className="flex items-center text-[14px] leading-[20px] tracking-[0.25px]">
+                {/* <div className="flex items-center text-[14px] leading-[20px] tracking-[0.25px]">
                   <span className="text-[#666666]">Excellent</span>
                   <span className="mx-2 text-[#E5E5E5]">|</span>
                   <span className="text-[#666666]">{reviewsCount} reviews</span>
-                </div>
+                </div> */}
               </div>
 
               {/* 手机端：右侧数字和星星区域 */}
@@ -101,19 +101,19 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
               </div>
 
               {/* 宽屏幕：评分描述和评论数量 */}
-              <div className="hidden md:flex items-center justify-center mt-4 text-[16px]">
+              {/* <div className="hidden md:flex items-center justify-center mt-4 text-[16px]">
                 <span className="text-[#666666]">Excellent</span>
                 <span className="mx-7 text-[#E5E5E5]">|</span>
                 <span className="text-[#666666]">{reviewsCount} reviews</span>
-              </div>
+              </div> */}
             </div>
 
             {/* 关键词区域 */}
-            <div className="md:w-auto grid grid-cols-2 md:gap-4 gap-2 self-start md:self-auto">
+            <div className="md:w-auto grid grid-cols-2 md:gap-3 gap-2 self-start md:self-auto">
               {defaultKeywords.map((keyword, i) => (
                 <span
                   key={i}
-                  className="md:text-[18px] text-[14px] md:leading-[24px] leading-[20px] bg-[#F8F8F8] py-2 px-3 md:p-4 rounded-[4px] text-gray-800 text-center gap-[10px]"
+                  className="md:text-[18px] text-[14px] md:tracking-[0.5px] tracking-[0.25px] md:leading-[24px] leading-[20px] bg-[#F8F8F8] py-2 px-3 md:py-3 md:px-4 rounded-[4px] text-[#222222] text-center gap-[10px]"
                 >
                   {`${keyword.keyword} ${keyword.count}`}
                 </span>

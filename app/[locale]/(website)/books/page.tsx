@@ -323,7 +323,7 @@ export default function BooksPage() {
             {
               id: '1',
               title: "Little One, You're Brave in Many Ways",
-              description: "The book is really talking about me! If anyone says I'm not brave, I'll show them this book — then they'll know what being brave really means!",
+              description: "It's really me in the book! See? I'm super brave!",
               image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/Brave-MOBILE.png',
               imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/Brave.png',
               bookId: 'PICBOOK_BRAVEY',
@@ -331,7 +331,7 @@ export default function BooksPage() {
             {
               id: '2',
               title: 'Birthday Book for You',
-              description: "I saw some pigeons on the way to school… maybe they'll fly back to the forest and tell the animals my message!",
+              description: "Best birthday gift ever!",
               image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/Birthday-Book-for-You-MOBILE.png',
               imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/Birthday-Book-for-You.png',
               bookId: 'PICBOOK_BIRTHDAY',
@@ -339,7 +339,7 @@ export default function BooksPage() {
             {
               id: '3',
               title: "Santa's Letter for You",
-              description: "Santa really knows me! He even knows how I've been good… but how did he see all that?!",
+              description: "Santa really knows me! I'm really on the nice list!",
               image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/Santa-Letter-for-You-MOBILE.png',
               imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/Santa-Letter-for-You.png',
               bookId: 'PICBOOK_SANTA',
@@ -347,7 +347,7 @@ export default function BooksPage() {
             {
               id: '4',
               title: 'Goodnight to You',
-              description: "It's me!! I can fly! Goodnight bear, goodnight cat… they all sleep so well, I'll sleep nicely too.",
+              description: "Goodnight bear, goodnight cat, see, I can fly!",
               image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/Good-Night-MOBILE.png',
               imageDesktop: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/loved-by-kids/Good-Night.png',
               bookId: 'PICBOOK_GOODNIGHT3',
@@ -362,7 +362,7 @@ export default function BooksPage() {
         <WhyFamiliesChooseSection />
 
         {/* Sign Up Section */}
-        <SignUpSection />
+        {/* <SignUpSection /> */}
 
         {/* Featured + Newsletter container with consistent padding */}
         <div className="w-full">

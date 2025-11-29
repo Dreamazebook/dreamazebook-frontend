@@ -93,15 +93,16 @@ export interface BookConfig {
 const GOODNIGHT_BASE_CONFIG: Omit<BookConfig, 'id'> = {
     // 如果没有指定 specifications，将使用默认值（从国际化文件读取）
     specifications: [
-      { label: 'specifications.size' },
-      { label: 'specifications.pages' },
-      { label: 'specifications.delivery' },
+      { label: 'Best for ages 3–6' },
+      { label: '20 × 20 cm hardcover' },
+      { label: '36 pages' },
+      { label: 'Printed and dispatched in 2–4 working days' },
     ],
     faqs: [
       {
         question: 'How is the book personalized?',
       answer:
-        "- Add your child's name – on the cover and in every page\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication – printed on the first page\n- Choose from four cover designs\n- Preview selected pages before purchase",
+        "- Add your child's name — the star of this story\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication — printed on the first page\n- Choose your cover and gift options\n- Place your order — preview before printing",
       },
       {
         question: 'Why children love it?',
@@ -111,7 +112,7 @@ const GOODNIGHT_BASE_CONFIG: Omit<BookConfig, 'id'> = {
       {
         question: 'Reading tips for parents',
       answer:
-        '- Make it part of your bedtime routine – a calm, cozy way to end the day.\n- Pause and ask gentle questions, like "What dream will you have tonight?" or "Where would you like to fly?"\n- Encourage your child to talk with the book-version of themselves and to say goodnight to the animals.\n- Use a soft, soothing voice to create a sense of comfort and help your child drift off peacefully.',
+        '- Make it part of your bedtime routine — a calm, cozy way to end the day.\n- Pause and ask gentle questions, like "What dream will you have tonight?" or "Where would you like to fly?"\n- Encourage your child to talk with the book-version of themselves and to say goodnight to the animals.\n- Use a soft, soothing voice to create a sense of comfort and help your child drift off peacefully.',
     },
     ],
     sections: [
@@ -229,7 +230,7 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
     faqs: [
       {
         question: 'How is the book personalized?',
-        answer: '- Add your child\'s name – on the cover and in every page\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication – printed on the first page\n- Choose from four cover designs\n- Preview selected pages before purchase'
+        answer: '- Add your child\'s name — the star of this story\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication — printed on the first page\n- Choose your cover and gift options\n- Place your order — preview before printing'
       },
       {
         question: 'Recommendation',
@@ -306,7 +307,7 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
     faqs: [
       {
         question: 'How is the book personalized?',
-        answer: '- Add your child\'s name – on the cover and in every page\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication – printed on the first page\n- Choose from four cover designs\n- Preview selected pages before purchase'
+        answer: '- Add your child\'s name — on the cover and in every page\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication — printed on the first page\n- Choose from four cover designs\n- Preview selected pages before purchase'
       },
       {
         question: 'Recommendation',
@@ -365,7 +366,7 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
     faqs: [
       {
         question: 'How is the book personalized?',
-        answer: '- Add your child\'s name – the star of the birthday story\n- Choose features (skin tone, hairstyle, hair color)\n- Upload a clear front-facing photo\n- Select your child\'s birthday date\n- Pick 4 personality traits shown as forest animals\n- Add a dedication on the first page\n- Preview selected pages before purchase'
+        answer: '- Add your child\'s name — the star of the birthday story\n- Choose features (skin tone, hairstyle, hair color)\n- Upload a clear front-facing photo\n- Select your child\'s birthday date\n- Pick 4 personality traits shown as forest animals\n- Add a dedication on the first page\n- Place your order — preview before printing'
       },
       {
         question: 'Recommendation',

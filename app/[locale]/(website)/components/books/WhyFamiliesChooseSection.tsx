@@ -1,18 +1,21 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 
 interface FeatureItem {
   id: string;
   title: string;
   description: string;
-  icon?: string; // 可选，如果将来需要图标
+  icon?: string;
 }
 
 interface WhyFamiliesChooseSectionProps {
   title?: string;
   features?: FeatureItem[];
 }
+
+const BASE_ICON_URL = 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/why-families-choose';
 
 const WhyFamiliesChooseSection: React.FC<WhyFamiliesChooseSectionProps> = ({
   title = 'Why Families Choose Dreamaze',
@@ -21,28 +24,32 @@ const WhyFamiliesChooseSection: React.FC<WhyFamiliesChooseSectionProps> = ({
       id: '1',
       title: 'Hand-drawn illustrations',
       description: 'Heartfelt stories, never low-quality AI scenes',
+      icon: `${BASE_ICON_URL}/illustrations.webp`,
     },
     {
       id: '2',
       title: 'Real photo personalization',
       description: 'Instant recognition, deeper connection',
+      icon: `${BASE_ICON_URL}/photo.webp`,
     },
     {
       id: '3',
       title: 'Supports self-recognition',
       description: 'Reading their own story builds identity & confidence',
+      icon: `${BASE_ICON_URL}/self-recognition.webp`,
     },
     {
       id: '4',
       title: 'Keepsake quality',
       description: 'Premium, non-toxic paper for little hands',
+      icon: `${BASE_ICON_URL}/keepsake.webp`,
     },
   ],
 }) => {
   if (!features || features.length === 0) return null;
 
   return (
-    <section className="w-full bg-[#FFFCF7] flex flex-col items-center py-[64px] px-[18px] gap-[24px] md:h-[440px] md:py-[88px] md:gap-[48px]">
+    <section className="w-full flex flex-col items-center py-[64px] px-[18px] gap-[24px] md:h-[440px] md:py-[88px] md:gap-[48px]">
       {/* 标题和4个标签的容器 */}
       <div className="flex flex-col items-center gap-[24px] md:gap-[48px] w-full">
         {/* 主标题 */}
@@ -55,10 +62,23 @@ const WhyFamiliesChooseSection: React.FC<WhyFamiliesChooseSectionProps> = ({
           {features.map((feature) => (
             <div
               key={feature.id}
-              className="flex flex-row items-start gap-[12px] md:gap-[16px] md:max-w-[460px]"
+              className="flex flex-row items-center gap-[12px] md:gap-[16px] md:max-w-[460px]"
             >
-              {/* 左侧：浅灰色正方形占位符 */}
-              <div className="w-[40px] h-[40px] bg-[#E0E0E0] self-center flex-shrink-0 rounded-[4px]" />
+              {/* 左侧：图标 */}
+              {feature.icon ? (
+                <div className="w-[64px] h-[64px] flex-shrink-0 self-center rounded-[4px] overflow-hidden">
+                  <Image
+                    src={feature.icon}
+                    alt={feature.title}
+                    width={64}
+                    height={64}
+                    className="w-full h-full object-cover scale-100"
+                    unoptimized={true}
+                  />
+                </div>
+              ) : (
+                <div className="w-[40px] h-[40px] bg-[#E0E0E0] self-center flex-shrink-0 rounded-[4px]" />
+              )}
 
               {/* 右侧：标题和描述文本 */}
               <div className="flex flex-col md:gap-1 flex-1">
