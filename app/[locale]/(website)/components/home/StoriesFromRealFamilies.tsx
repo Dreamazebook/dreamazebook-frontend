@@ -1,5 +1,6 @@
 import { HOME_STORIES } from '@/constants/cdn';
 import { FaQuoteRight as Quote } from 'react-icons/fa';
+import { useEffect, useRef, useState } from 'react';
 
 interface Testimonial {
   id: number;
@@ -29,6 +30,73 @@ const testimonials: Testimonial[] = [
 ];
 
 export default function StoriesFromRealFamilies() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    const container = containerRef.current;
+    
+    if (!video || !container) return;
+
+    // Intersection Observer to detect when video is in viewport
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        
+        if (entry.isIntersecting) {
+          // Video is in view, start playing
+          video.play().catch(err => {
+            console.log('Autoplay failed:', err);
+          });
+          setIsPlaying(true);
+        } else {
+          // Video is out of view, pause
+          video.pause();
+          setIsPlaying(false);
+        }
+      },
+      {
+        threshold: 0.5 // Play when 50% of video is visible
+      }
+    );
+
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  const handleVideoClick = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (video.requestFullscreen) {
+      video.requestFullscreen();
+    } else if ((video as any).webkitRequestFullscreen) {
+      (video as any).webkitRequestFullscreen();
+    } else if ((video as any).msRequestFullscreen) {
+      (video as any).msRequestFullscreen();
+    }
+  };
+
+  const togglePlayPause = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isPlaying) {
+      video.pause();
+      setIsPlaying(false);
+    } else {
+      video.play().catch(err => {
+        console.log('Play failed:', err);
+      });
+      setIsPlaying(true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
@@ -63,14 +131,42 @@ export default function StoriesFromRealFamilies() {
           </div>
 
           <div className="bg-[#F8F8F8] rounded p-6 relative lg:row-span-2">
-            <div className="aspect-[4/3] lg:aspect-auto lg:h-[400px] xl:h-[480px] rounded-xl bg-gray-200 mb-6 lg:mb-8 overflow-hidden">
+            <div 
+              ref={containerRef}
+              className="aspect-[4/3] lg:aspect-auto lg:h-[400px] xl:h-[480px] rounded-xl bg-gray-200 mb-6 lg:mb-8 overflow-hidden relative cursor-pointer group"
+              onClick={handleVideoClick}
+            >
               <video
+                ref={videoRef}
                 src={HOME_STORIES('video.mp4')}
-                autoPlay
                 loop
-                muted
+                playsInline
                 className="w-full h-full object-cover"
               />
+              
+              {/* Play/Pause overlay button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering fullscreen
+                  togglePlayPause();
+                }}
+                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white rounded-full p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              >
+                {isPlaying ? (
+                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </button>
+              
+              {/* Fullscreen hint */}
+              <div className="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                Click for fullscreen
+              </div>
             </div>
             <p className="text-[#222] text-[16px] md:text-[18px] leading-relaxed mb-6 lg:mb-8">
               My daughter instantly recognized herself on the first page. She literally gasped and said, 'That's ME!' We've read it every night since. It's more than a book — it made her feel seen.
