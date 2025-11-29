@@ -36,7 +36,7 @@ function GiftPackages() {
   return (
     <div className="min-h-screen bg-[#FFF7F9]">
       <div
-        className="relative h-[400px] md:h-[500px] bg-cover bg-center flex items-center justify-center"
+        className="relative h-[256px] md:h-[381px] bg-cover bg-center flex items-center justify-center"
         style={{
           backgroundImage: `url(${HOME_TOP_PICKS('banner.webp')})`,
           backgroundPosition: 'center 40%'
@@ -59,29 +59,29 @@ function GiftPackages() {
         <img src={HOME_TOP_PICKS('wave_2.webp')} className="absolute bottom-0 left-0 right-0 h-16 md:h-20 w-full" />
       </div>
 
-      <div className="container mx-auto px-4 py-12 md:py-16 lg:py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 max-w-7xl mx-auto">
+      <div className="max-w-4xl mx-auto px-4 py-12 md:py-16 lg:py-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 max-w-7xl mx-auto">
           {packages.map((pkg) => (
             <div key={pkg.id} className="flex flex-col items-center text-center">
               <div className="relative w-full aspect-[74/65] mb-6 md:mb-8">
                 <DreamzeImage src={pkg.image} alt={pkg.title} />
               </div>
 
-              <div className="space-y-3 md:space-y-4 mb-6 md:mb-8">
-                <h2 className="text-xl md:text-2xl font-semibold text-gray-900">
+              <div className="space-y-2 mb-6 md:mb-8">
+                <h2 className="text-[18px] font-medium text-[#222222]">
                   {pkg.title}
                 </h2>
 
-                <p className="text-sm md:text-base text-gray-600 max-w-xs mx-auto leading-relaxed">
+                <p className="text-[14px] text-[#22222299] max-w-xs mx-auto leading-relaxed">
                   {pkg.description}
                 </p>
 
-                <p className="text-sm md:text-base text-gray-700">
-                  save <span className="font-bold text-blue-600">{pkg.discount}</span> + {pkg.extras}
+                <p className="text-[14px] text-[#22222299]">
+                  save <span className="font-semibold text-[#012CCE]">{pkg.discount}</span> + {pkg.extras}
                 </p>
               </div>
 
-              <button className="inline-flex items-center gap-2 text-gray-900 font-medium hover:text-blue-600 transition-colors group text-sm md:text-base">
+              <button className="inline-flex cursor-pointer items-center gap-2 text-[#222222] hover:text-primary transition-colors group text-[16px]">
                 <span>Choose Books</span>
                 <span className="transform group-hover:translate-x-1 transition-transform">→</span>
               </button>

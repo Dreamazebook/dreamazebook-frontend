@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { ResultImage } from '@/types/order';
 import { useOrderDetail } from '../context/OrderDetailContext';
 import { CartItem, FaceImage } from '@/types/cart';
-import JSZip from 'jszip';
+import { API_ADMIN_ORDER_DOWNLOAD_IMAGES } from '@/constants/api';
 
 interface ResultImagesModalProps {
   isOpen: boolean;
@@ -61,51 +61,37 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
     if (selectedPageCodes.length === 0) return;
 
     try {
-      // Create a new zip file
-      const zip = new JSZip();
+      const response = await fetch(API_ADMIN_ORDER_DOWNLOAD_IMAGES, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          selectedPageCodes,
+          images,
+          faceImages,
+          itemName,
+        }),
+      });
 
-      // Add face images to zip
-      for (let i = 0; i < faceImages.length; i++) {
-        const faceImage = faceImages[i];
-        const filename = `face_${i + 1}.${faceImage.mime?.split('/')[1] || 'jpg'}`;
-        const response = await fetch(faceImage.url);
-        const blob = await response.blob();
-        zip.file(filename, blob);
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to create zip file');
       }
 
-      // Add selected base and final images to zip
-      const selectedImages = images.filter(img => selectedPageCodes.includes(img.page_code));
-      
-      for (const image of selectedImages) {
-        // Add base image
-        if (image.base_image_path) {
-          const baseFilename = `${image.page_code}_base.${image.base_image_path.split('.').pop() || 'jpg'}`;
-          const baseResponse = await fetch(image.base_image_path);
-          const baseBlob = await baseResponse.blob();
-          zip.file(baseFilename, baseBlob);
-        }
-        
-        // Add final image
-        if (image.final_image_url) {
-          const finalFilename = `${image.page_code}_final.${image.final_image_url.split('.').pop() || 'jpg'}`;
-          const finalResponse = await fetch(image.final_image_url);
-          const finalBlob = await finalResponse.blob();
-          zip.file(finalFilename, finalBlob);
-        }
-      }
-
-      // Generate the zip file and trigger download
-      const zipBlob = await zip.generateAsync({ type: 'blob' });
-      const downloadUrl = window.URL.createObjectURL(zipBlob);
+      // Create download link from base64 data
       const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = `${itemName.replace(/[^a-zA-Z0-9]/g, '_')}_images.zip`;
+      link.href = result.data;
+      link.download = result.filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
+
     } catch (error) {
-      console.error('Failed to create zip file:', error);
+      console.error('Failed to download images:', error);
+      // You could add user notification here
+      alert('Failed to download images. Please try again.');
     }
   };
 
