@@ -216,9 +216,9 @@ export default function BookDetailView({
     <div className={`min-h-screen bg-white ${roboto.className}`}>
       <div className="grid grid-cols-1 md:grid-cols-2">
         <div className="relative h-fit">
-          {/* 手机端：左右滑动查看图片，高度固定为 300px */}
+          {/* 手机端：左右滑动查看图片，宽度自适应 + 1:1 正方形比例 */}
           <div className="block md:hidden w-full">
-            <div className="relative w-full h-[300px]">
+            <div className="relative w-full max-w-[480px] mx-auto aspect-square">
               <div
                 ref={sliderRef}
                 onScroll={handleMobileScroll}
@@ -232,19 +232,19 @@ export default function BookDetailView({
                   return (
                     <div
                       key={page.id}
-                      className="flex-shrink-0 w-full snap-center flex items-center justify-center bg-[#F8F8F8]"
+                      className="flex-shrink-0 w-full snap-center flex items-center justify-center bg-[#F8F8F8] aspect-square"
                     >
                       {isVideo ? (
                         <AutoLoopVideo
                           src={src}
-                          className="h-full w-auto"
+                          className="w-full h-full object-cover object-center"
                           isActive={index === currentPageIndex}
                         />
                       ) : (
                         <img
                           src={src}
                           alt={`Page ${page.pagenum}`}
-                          className="h-full w-auto object-contain"
+                          className="w-full h-full object-cover object-center"
                           loading={page.pagenum === 1 ? 'eager' : 'lazy'}
                         />
                       )}
