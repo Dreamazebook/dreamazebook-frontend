@@ -1201,7 +1201,7 @@ export default function PreviewPageWithTopNav() {
       }
       setIsProcessing(false);
       const msg = e?.error_message || e?.message || '任务失败';
-      toast.error('生成失败: ' + msg);
+
     };
 
     const onBatchCompleted = (e: any) => {
@@ -1214,7 +1214,6 @@ export default function PreviewPageWithTopNav() {
       }
       setIsProcessing(false);
       setQueueStatus(null); // 清除排队状态
-      toast.success('图片生成完成！');
       try {
         const evt = normalizeWsEvent(e);
         const results = evt?.results || evt?.data?.results || [];
@@ -1513,6 +1512,55 @@ export default function PreviewPageWithTopNav() {
     }
     if (!normalized.startsWith('/')) normalized = '/' + normalized;
     return normalized;
+  };
+
+  const buildCoverR2Urls = (rawBookId: string | null, option: CoverOption) => {
+    const baseDomain = 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks';
+    if (!rawBookId) {
+      return null;
+    }
+    let normalizedBookId = String(rawBookId).trim();
+    // 与其他页面保持一致，PICBOOK_GOODNIGHT3 资源使用 PICBOOK_GOODNIGHT 目录
+    if (normalizedBookId === 'PICBOOK_GOODNIGHT3') {
+      normalizedBookId = 'PICBOOK_GOODNIGHT';
+    }
+
+    const rawCoverKey = option.option_key || String(option.id);
+    const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(option.id);
+
+    const folder = `${baseDomain}/${encodeURIComponent(normalizedBookId)}/covers/cover_${encodeURIComponent(coverId)}`;
+    const cropRightHalf = ['1', '2', '3', '4'].includes(coverId);
+
+    return {
+      key: `${normalizedBookId}_${coverId}`,
+      base: `${folder}/base.webp`,
+      cropRightHalf,
+    };
+  };
+
+  // 为装订方式构建 Cloudflare R2 图片 URL（hardcover / softcover / premium）
+  const buildBindingImageUrl = (option: BindingOption) => {
+    const baseDomain = 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/product-options/covers';
+    const rawKey = String(option.option_key || option.option_type || option.name || '').toLowerCase();
+
+    if (rawKey.includes('hard')) {
+      // 精装
+      return `${baseDomain}/hardcover.webp`;
+    }
+    if (rawKey.includes('soft') || rawKey.includes('paper')) {
+      // 软封 / 平装
+      return `${baseDomain}/softcover.webp`;
+    }
+    if (rawKey.includes('premium')) {
+      // 高级版
+      return `${baseDomain}/premium.webp`;
+    }
+
+    // 兜底：保持之前行为
+    if (option.image_url && option.image_url.startsWith('http')) {
+      return option.image_url;
+    }
+    return '/format.png';
   };
 
   // 确保人脸图片为绝对可访问地址（优先 S3 全路径），并移除 public/ 前缀
@@ -1938,7 +1986,6 @@ export default function PreviewPageWithTopNav() {
       }
       case 'error':
         setIsProcessing(false);
-        toast.error(data?.message || '生成预览失败');
         break;
       default:
         break;
@@ -2008,7 +2055,6 @@ export default function PreviewPageWithTopNav() {
       }
     } catch (e: any) {
       console.error('预览渲染流式请求失败:', e);
-      toast.error(e?.message || '预览渲染失败');
     }
   };
 
@@ -2361,9 +2407,6 @@ export default function PreviewPageWithTopNav() {
           setSwappedPageIds(new Set());
           // 不再预拉基础预览，直接启动 NDJSON 渲染
           startNdjsonRender(String(bookId), apiRequestData);
-          
-        
-          toast.success('处理已开始');
           setIsProcessing(true);
           
           try {
@@ -2397,7 +2440,7 @@ export default function PreviewPageWithTopNav() {
             errorMessage = error.message;
           }
           
-          toast.error(errorMessage);
+          //toast.error(errorMessage);
         } finally {
           hasPostedCreateRef.current = true;
           isPostingCreateRef.current = false;
@@ -2408,7 +2451,6 @@ export default function PreviewPageWithTopNav() {
       } catch (error) {
         console.error('处理用户数据时出错:', error);
         setIsProcessing(false);
-        toast.error('处理失败，请重试');
       }
     };
 
@@ -2503,7 +2545,6 @@ export default function PreviewPageWithTopNav() {
       const effectivePreviewId = previewData?.preview_id ?? (previewData as any)?.batch_id;
       console.debug('[AddToCart] preview_id:', previewData?.preview_id, 'batch_id:', (previewData as any)?.batch_id, 'effective:', effectivePreviewId);
       if (!effectivePreviewId) {
-        toast.error('缺少预览数据');
         return;
       }
 
@@ -2564,19 +2605,19 @@ export default function PreviewPageWithTopNav() {
 
       if (response.success) {
         // 根据是否有 old_preview_id 显示不同的成功消息
-        if (oldPreviewId) {
-          toast.success('购物车已更新！');
-        } else {
-          toast.success('商品已成功添加到购物车！');
-        }
+        // if (oldPreviewId) {
+        //   toast.success('购物车已更新！');
+        // } else {
+        //   toast.success('商品已成功添加到购物车！');
+        // }
         // 跳转到购物车页面
         router.push('/shopping-cart');
       } else {
-        toast.error(response.message || (oldPreviewId ? '更新购物车失败' : '添加到购物车失败'));
+        //toast.error(response.message || (oldPreviewId ? '更新购物车失败' : '添加到购物车失败'));
       }
     } catch (error: any) {
       console.error('添加到购物车失败:', error);
-      toast.error(error.response?.data?.message || '添加到购物车失败，请重试');
+      //toast.error(error.response?.data?.message || '添加到购物车失败，请重试');
     } finally {
       setIsAddingToCart(false);
     }
@@ -2743,7 +2784,7 @@ export default function PreviewPageWithTopNav() {
 
   return (
     <div className="flex min-h-screen bg-[#F8F8F8]">
-      <div className="w-full pt-[12px] px-4 md:mr-[280px] flex flex-col items-center">
+      <div className="w-full pt-[12px] px-4 md:mr-[280px] flex flex-col items-center pb-24 md:pb-0">
         {/* 固定的导航栏 */}
         <div className="fixed top-0 left-0 pt-[12px] px-4 z-50 w-full md:w-[calc(100%-280px)] flex flex-col items-center">
           <div className="w-[95%] mx-auto">
@@ -2767,50 +2808,86 @@ export default function PreviewPageWithTopNav() {
             {/* 书籍封面 */}
             <div className="flex flex-col items-center w-full max-w-3xl">
               <div className="w-full flex justify-center mb-8">
-                {bookInfo?.default_cover ? (
-                  <div className="relative w-[400px] h-[392px]">
-                    {isCoverLoading && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-lg z-10">
-                        <MirageLoader size="60" speed="2.5" color="blue" />
-                        <p className="text-gray-600 mt-2">loading...</p>
+                {(() => {
+                  // 尝试获取当前选中的封面，或者默认使用 cover 3
+                  let activeOption = null;
+                  if (bookOptions?.cover_options) {
+                    if (selectedBookCover) {
+                      activeOption = bookOptions.cover_options.find((o) => o.id === selectedBookCover);
+                    }
+                    if (!activeOption) {
+                      activeOption = bookOptions.cover_options.find((o) => String(o.id) === '3' || o.option_key === '3');
+                    }
+                    // 如果还没有 cover 3 (比如 ID 不匹配)，且没有选中项，则兜底取第一个
+                    if (!activeOption && !selectedBookCover && bookOptions.cover_options.length > 0) {
+                      activeOption = bookOptions.cover_options[0];
+                    }
+                  }
+
+                  const coverUrls = activeOption ? buildCoverR2Urls(searchParams.get('bookid'), activeOption) : null;
+
+                  if (coverUrls) {
+                    const { base, cropRightHalf } = coverUrls;
+                    return (
+                      <div className="relative w-full max-w-[400px] shadow-md rounded-lg overflow-hidden">
+                        <Image
+                          src={base}
+                          alt="Book Cover"
+                          width={400}
+                          height={400}
+                          priority
+                          className={`w-full h-auto object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
+                        />
                       </div>
-                    )}
-                    <OptimizedImage
-                      src={buildImageUrl(bookInfo.default_cover)}
-                      fallbackSrc={'/imgs/picbook/goodnight/封面1.jpg'}
-                      alt="Book Cover"
-                      width={400}
-                      height={392}
-                      priority
-                      className={`max-w-sm rounded-lg shadow-md w-[400px] h-[392px] ${isCoverLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
-                      style={{ objectFit: 'cover' }}
-                      onError={(e) => {
-                        console.error(`封面图片加载失败: ${buildImageUrl(bookInfo.default_cover)} (raw: ${bookInfo.default_cover})`);
-                        setIsCoverLoading(false);
-                      }}
-                      onLoadingComplete={() => {
-                        setIsCoverLoading(false);
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <div className="relative w-[400px] h-[392px]">
-                    {isLoadingBookInfo && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-lg z-10">
-                        <MirageLoader size="60" speed="2.5" color="blue" />
-                        <p className="text-gray-600 mt-2">loading...</p>
-                      </div>
-                    )}
-                    <Image
-                      src="/cover.png"
-                      alt="Book Cover"
-                      width={400}
-                      height={392}
-                      className="max-w-sm rounded-lg shadow-md w-[400px] h-[392px]"
-                      style={{ objectFit: 'cover' }}
-                    />
-                  </div>
-                )}
+                    );
+                  }
+
+                  // 回退到原有逻辑（非 Cloudflare 场景）
+                  return bookInfo?.default_cover ? (
+                    <div className="relative w-full max-w-[400px]">
+                      {isCoverLoading && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-lg z-10">
+                          <MirageLoader size="60" speed="2.5" color="blue" />
+                          <p className="text-gray-600 mt-2">loading...</p>
+                        </div>
+                      )}
+                      <OptimizedImage
+                        src={buildImageUrl(bookInfo.default_cover)}
+                        fallbackSrc={'/imgs/picbook/goodnight/封面1.jpg'}
+                        alt="Book Cover"
+                        width={400}
+                        height={392}
+                        priority
+                        className={`max-w-sm rounded-lg shadow-md w-full h-auto ${isCoverLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
+                        style={{ objectFit: 'cover' }}
+                        onError={(e) => {
+                          console.error(`封面图片加载失败: ${buildImageUrl(bookInfo.default_cover)} (raw: ${bookInfo.default_cover})`);
+                          setIsCoverLoading(false);
+                        }}
+                        onLoadingComplete={() => {
+                          setIsCoverLoading(false);
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="relative w-full max-w-[400px]">
+                      {isLoadingBookInfo && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-lg z-10">
+                          <MirageLoader size="60" speed="2.5" color="blue" />
+                          <p className="text-gray-600 mt-2">loading...</p>
+                        </div>
+                      )}
+                      <Image
+                        src="/cover.png"
+                        alt="Book Cover"
+                        width={400}
+                        height={392}
+                        className="max-w-sm rounded-lg shadow-md w-full h-auto"
+                        style={{ objectFit: 'cover' }}
+                      />
+                    </div>
+                  );
+                })()}
               </div>
             </div>
             {/* 寄语页已移除：改为叠加至第二张预览图 */}
@@ -3046,13 +3123,35 @@ export default function PreviewPageWithTopNav() {
                           : 'border-2 border-transparent'
                       }`}
                     >
-                      <Image
-                        src={'/imgs/picbook/goodnight/封面1.jpg'}
-                        alt={`Cover ${option.id} - ${option.name}`}
-                        width={200}
-                        height={200}
-                        className="w-full h-auto mb-2"
-                      />
+                      {(() => {
+                        const coverUrls = buildCoverR2Urls(searchParams.get('bookid'), option);
+                        // 如果缺少 bookid，则回退到本地占位图
+                        if (!coverUrls) {
+                          return (
+                            <Image
+                              src={'/imgs/picbook/goodnight/封面1.jpg'}
+                              alt={`Cover ${option.id} - ${option.name}`}
+                              width={200}
+                              height={200}
+                              className="w-full h-auto mb-2"
+                            />
+                          );
+                        }
+
+                        const { base, cropRightHalf } = coverUrls;
+
+                        return (
+                          <div className={`relative w-full mb-2 ${cropRightHalf ? 'aspect-square overflow-hidden' : ''}`}>
+                            <Image
+                              src={base}
+                              alt={`Cover ${option.id} - ${option.name}`}
+                              width={cropRightHalf ? 400 : 200}
+                              height={200}
+                              className={`w-full ${cropRightHalf ? 'h-full object-cover object-right' : 'h-auto'}`}
+                            />
+                          </div>
+                        );
+                      })()}
                       <div className="flex items-center justify-center space-x-2 w-full py-2">
                         <span
                           className={`inline-flex items-center justify-center w-5 h-5 border rounded-full ${
@@ -3180,7 +3279,7 @@ export default function PreviewPageWithTopNav() {
                     }`}
                   >
                     <Image
-                      src={(option.image_url && option.image_url.startsWith('http')) ? option.image_url : '/format.png'}
+                      src={buildBindingImageUrl(option)}
                       alt={option.name}
                       width={300}
                       height={200}
@@ -3637,6 +3736,138 @@ export default function PreviewPageWithTopNav() {
           </div>
         </div>
       </aside>
+
+      {/* 手机端吸底进度条和 Continue 按钮 */}
+      <div className="fixed bottom-0 left-0 right-0 md:hidden z-50 bg-white border-t border-gray-200 shadow-lg">
+        {/* 进度指示器 */}
+        <div className="flex items-center justify-center gap-2 px-4 pt-4 pb-2">
+          {(() => {
+            // 排除 giver（personalize photo 是可选的）
+            const steps = [
+              { id: 'dedication', completed: completedSections.dedication },
+              { id: 'coverDesign', completed: completedSections.coverDesign },
+              { id: 'binding', completed: completedSections.binding },
+              { id: 'giftBox', completed: completedSections.giftBox },
+            ];
+            
+            return (
+              <>
+                {steps.map((step, index) => (
+                  <React.Fragment key={step.id}>
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        step.completed ? 'bg-[#012CCE]' : 'bg-gray-300'
+                      }`}
+                    />
+                    {index < steps.length - 1 && (
+                      <div
+                        className={`h-0.5 w-4 ${
+                          step.completed ? 'bg-[#012CCE]' : 'bg-gray-300'
+                        }`}
+                      />
+                    )}
+                  </React.Fragment>
+                ))}
+                {/* 向下箭头指示器 */}
+                <div className="ml-2 text-gray-400">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 9L2 5H10L6 9Z" fill="currentColor"/>
+                  </svg>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+
+        {/* Continue / Add to cart 按钮 */}
+        <div className="px-4 pb-4">
+          {(() => {
+            // 检查所有必填项是否完成（排除 giver）
+            const requiredSteps = [
+              { id: 'dedication', completed: completedSections.dedication },
+              { id: 'coverDesign', completed: completedSections.coverDesign },
+              { id: 'binding', completed: completedSections.binding },
+              { id: 'giftBox', completed: completedSections.giftBox },
+            ];
+            const allRequiredCompleted = requiredSteps.every(step => step.completed);
+            
+            if (allRequiredCompleted) {
+              // 所有必填项都完成了，显示 Add to cart 按钮
+              return (
+                <button
+                  onClick={handleContinue}
+                  disabled={isAddingToCart}
+                  className={`w-full py-3 rounded-lg font-medium text-base ${
+                    isAddingToCart
+                      ? 'bg-gray-400 cursor-not-allowed text-white'
+                      : 'bg-gray-900 text-white'
+                  }`}
+                >
+                  {isAddingToCart ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
+                      Adding to cart...
+                    </>
+                  ) : (
+                    'Add to cart'
+                  )}
+                </button>
+              );
+            } else {
+              // 还有未完成的必填项，显示 Continue 按钮
+              return (
+                <button
+                  onClick={() => {
+                    // 找到第一个未完成的必填步骤（排除 giver）
+                    const requiredSteps = [
+                      { id: 'dedication', ref: dedicationRef, completed: completedSections.dedication },
+                      { id: 'coverDesign', ref: coverDesignRef, completed: completedSections.coverDesign },
+                      { id: 'binding', ref: bindingRef, completed: completedSections.binding },
+                      { id: 'giftBox', ref: giftBoxRef, completed: completedSections.giftBox },
+                    ];
+                    
+                    const firstIncomplete = requiredSteps.find((step) => !step.completed);
+                    
+                    if (firstIncomplete) {
+                      // 如果是 coverDesign, binding, giftBox，需要切换到 Others tab
+                      if (['coverDesign', 'binding', 'giftBox'].includes(firstIncomplete.id)) {
+                        if (activeTab !== 'Others') {
+                          setActiveTab('Others');
+                          // 等待 tab 切换后再滚动
+                          setTimeout(() => {
+                            if (firstIncomplete.ref?.current) {
+                              firstIncomplete.ref.current.scrollIntoView({ behavior: 'smooth' });
+                              setActiveSection(firstIncomplete.id);
+                            }
+                          }, 100);
+                        } else {
+                          scrollToSection(firstIncomplete.id);
+                        }
+                      } else {
+                        // dedication 在 Book preview tab
+                        if (activeTab !== 'Book preview') {
+                          setActiveTab('Book preview');
+                          setTimeout(() => {
+                            if (firstIncomplete.ref?.current) {
+                              firstIncomplete.ref.current.scrollIntoView({ behavior: 'smooth' });
+                              setActiveSection(firstIncomplete.id);
+                            }
+                          }, 100);
+                        } else {
+                          scrollToSection(firstIncomplete.id);
+                        }
+                      }
+                    }
+                  }}
+                  className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium text-base"
+                >
+                  Continue
+                </button>
+              );
+            }
+          })()}
+        </div>
+      </div>
     </div>
   );
 }
