@@ -57,8 +57,8 @@ const TopPickThisMonth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF7F9] flex items-center justify-center px-4 py-8 md:py-12">
-      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+    <div className="bg-[#FFF7F9] flex items-center justify-center px-4 py-8 md:py-30">
+      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center rounded bg-white p-6">
         <div
           className="relative w-[237px] md:w-[420px] mx-auto lg:mx-0"
           onMouseEnter={handleMouseEnter}
@@ -125,7 +125,7 @@ const TopPickThisMonth = () => {
           </div>
         </div>
 
-        <div className="text-center lg:text-left space-y-6 mt-12 lg:mt-0 bg-white p-6 rounded">
+        <div className="text-center lg:text-left space-y-6 mt-12 lg:mt-0 rounded">
           <h1 className="text-[24px] md:text-[40px] font-medium text-[#222] leading-tight">
             Top Picks This Month
           </h1>
