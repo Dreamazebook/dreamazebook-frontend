@@ -1,5 +1,7 @@
 import DreamzeImage from "@/app/components/DreamzeImage";
 import { HOME_PACKAGES, HOME_TOP_PICKS } from "@/constants/cdn";
+import { BOOKS_URL } from "@/constants/links";
+import { Link } from "@/i18n/routing";
 
 function GiftPackages() {
   const packages = [
@@ -80,10 +82,10 @@ function GiftPackages() {
                 </p>
               </div>
 
-              <button className="inline-flex cursor-pointer items-center gap-2 text-[#222222] hover:text-primary transition-colors group text-[16px]">
+              <Link href={BOOKS_URL} className="inline-flex cursor-pointer items-center gap-2 text-[#222222] hover:text-primary transition-colors group text-[16px]">
                 <span>Choose Books</span>
                 <span className="transform group-hover:translate-x-1 transition-transform">→</span>
-              </button>
+              </Link>
             </div>
           ))}
         </div>

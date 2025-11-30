@@ -6,5 +6,6 @@ export const ORDER_SUMMARY_URL = (orderId: number) => `/order-summary?orderId=${
 export const ORDER_CHECKOUT_URL = (orderId: number) => `/checkout?orderId=${orderId}`;
 
 export const BOOKS_URL = '/books';
+export const BOOK_DETAIL_URL = (bookId: string) => `${BOOKS_URL}/${bookId}`;
 
 export const CONTACT_US_URL = '/contact-us';

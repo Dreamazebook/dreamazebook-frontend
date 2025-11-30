@@ -1,4 +1,6 @@
 import { HOME_HERO } from '@/constants/cdn';
+import { BOOKS_URL } from '@/constants/links';
+import { Link } from '@/i18n/routing';
 import { useState, useEffect, useCallback } from 'react';
 import { FaArrowRight as ArrowRight, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
@@ -99,10 +101,10 @@ export default function SlideShow() {
                   ))}
                 </h1>
                 <p className="text-[16px] text-[#333333]">{slide.description}</p>
-                <button className={`mt-10 md:mt-30 w-[155px] inline-flex items-center bg-[#222222] gap-2 text-[16px] text-white px-4   py-3 rounded hover:gap-4 transition-all duration-300 group`}>
+                <Link href={BOOKS_URL} className={`mt-10 md:mt-30 w-[180px] inline-flex justify-between items-center bg-[#222222] gap-2 text-[16px] text-white px-4   py-3 rounded hover:gap-4 transition-all duration-300 group`}>
                   {slide.buttonText}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </button>
+                </Link>
               </div>
             </div>
           </div>
