@@ -123,7 +123,7 @@ function TheHeartBehindDreamaze() {
           </h1>
           
           <div className="max-w-lg mx-auto space-y-1 text-sm text-gray-600 leading-relaxed">
-            <p>When children see themselves in the story, reading becomes real bonding.</p>
+            <p>When children see themselves in the story,<br/>reading becomes real bonding.</p>
           </div>
         </div>
 

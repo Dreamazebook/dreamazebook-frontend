@@ -91,6 +91,11 @@ export default function HomePage() {
 
       <AnimatedSection delay={0.2}>
         {/* <OurBook /> */}
+        <h2 className='text-[#222] text-[24px] md:text-[40px] font-medium text-center'>Our Favorite Personalized Stories</h2>
+        <p className='text-[#222] text-[14px] md:text-[16px] text-center mb-10 md:mb-20'>
+          <span className='md:hidden'>Create the story that brings out their biggest smile.</span>
+          <span className='hidden md:block'>Find the story where they become the hero.</span>
+        </p>
         <BooksGrid books={books} />
       </AnimatedSection>
 

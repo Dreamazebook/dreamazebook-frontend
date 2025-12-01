@@ -139,10 +139,9 @@ const TopPickThisMonth = () => {
             </h2>
 
             <p className="text-[14px] text-[#222222] md:text-[16px] text-[#666666] leading-relaxed">
-              Watch your child's eyes light up as Santa writes directly to them.
+              Watch your child's eyes light up as Santa writes directly to them.<br/>
               This story reveals the good deeds, hopes, and holiday magic Santa has
-              seen in your little one.
-              <br/>
+              seen in your little one.<br/>
               A heartfelt keepsake that turns Christmas into a memory they'll cherish.
             </p>
 

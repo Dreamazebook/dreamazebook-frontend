@@ -5,21 +5,21 @@ const steps = [
     icon: "/home-page/lasting-memorial/01.svg",
     title: "Personalize It",
     description:
-      "Add your child's name, upload 1–3 photos, and choose a few fun details.",
+      "Add their name & photo to make the story truly theirs.",
   },
   {
     number: "02",
     icon: "/home-page/lasting-memorial/02.svg",
-    title: "Preview & Confirm",
+    title: "Place the Order & Preview",
     description:
-      "Flip through sample pages to see how your story looks—then confirm with one click.",
+      "In 48 hours, a handcrafted preview arrives before printing — thoughtfully checked with care.",
   },
   {
     number: "03",
     icon: "/home-page/lasting-memorial/03.svg",
     title: "Receive & Enjoy",
     description:
-      "Your one-of-a-kind gift is on its way. Unwrap it, read it together, and get ready for smiles that last.",
+      "Unwrap together and watch their face light up.",
   },
 ];
 

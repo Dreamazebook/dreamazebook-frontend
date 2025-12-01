@@ -14,9 +14,9 @@ interface Testimonial {
 const testimonials: Testimonial[] = [
   {
     id: 1,
-    quote: "My daughter instantly recognized herself on the first page. She literally gasped and said, 'That's ME!' We've read it every night since. It's more than a book — it made her feel seen.",
-    author: "Emily Carter",
-    role: "Mom of a 3-year-old girl",
+    quote: "Children are more expressive when they see themselves in a book. This helps support language development and confidence. I highly recommend it for parents and educators alike.",
+    author: "Anna Peterson",
+    role: "Early Childhood Speech Therapist",
     image: "/avatar1.jpg"
   },
   {
@@ -169,16 +169,16 @@ export default function StoriesFromRealFamilies() {
               </div>
             </div>
             <p className="text-[#222] text-[16px] md:text-[18px] leading-relaxed mb-6 lg:mb-8">
-              My daughter instantly recognized herself on the first page. She literally gasped and said, 'That's ME!' We've read it every night since. It's more than a book — it made her feel seen.
+              As a mom, I've read lots of books my kids, but nothing has ever made my son light up quite like this when he saw his own face in the story. He disrupts and then he started acting out. It was seriously the sweetest thing I had ever seen. I almost cried. It just made him feel so seen. And as a mom, that just meant everything to me.
             </p>
             <div className="flex items-center gap-3 lg:gap-4">
               <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-gradient-to-br from-pink-400 to-orange-500 flex-shrink-0" />
               <div>
                 <p className="font-semibold text-[#222] text-[14px] md:text-[18px]">
-                  Emily Carter
+                  McKynlee.M
                 </p>
                 <p className="text-[#999] text-[14px] md:text-[18px]">
-                  Mom of a 3-year-old girl
+                  Mom of a 3-year-old boy
                 </p>
               </div>
             </div>
