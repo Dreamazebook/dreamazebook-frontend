@@ -9,3 +9,4 @@ export const BOOKS_URL = '/books';
 export const BOOK_DETAIL_URL = (bookId: string) => `${BOOKS_URL}/${bookId}`;
 
 export const CONTACT_US_URL = '/contact-us';
+export const SURVEY_URL = '/survey';
