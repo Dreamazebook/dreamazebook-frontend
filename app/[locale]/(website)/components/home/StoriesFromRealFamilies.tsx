@@ -171,7 +171,7 @@ export default function StoriesFromRealFamilies() {
               As a mom, I've read lots of books my kids, but nothing has ever made my son light up quite like this when he saw his own face in the story. He disrupts and then he started acting out. It was seriously the sweetest thing I had ever seen. I almost cried. It just made him feel so seen. And as a mom, that just meant everything to me.
             </p>
             <div className="flex items-center gap-3 lg:gap-4">
-              <img src={HOME_STORIES('mckynlee.png')} alt="McKynlee.M" className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover flex-shrink-0" />
+              <img src={HOME_STORIES('mckynlee.webp')} alt="McKynlee.M" className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover flex-shrink-0" />
               <div>
                 <p className="font-semibold text-[#222] text-[14px] md:text-[18px]">
                   McKynlee.M
@@ -184,7 +184,7 @@ export default function StoriesFromRealFamilies() {
           </div>
 
           <div className="bg-[#F8F8F8] rounded p-6 sm:p-8 lg:p-10 relative">
-            <div className="aspect-[3/2] sm:aspect-[4/3] lg:h-48 rounded-xl bg-gray-200 mb-6 overflow-hidden flex items-center justify-center">
+            <div className="aspect-[3/2] sm:aspect-[4/3] mx-auto lg:h-48 rounded-xl bg-gray-200 mb-6 overflow-hidden flex items-center justify-center">
               <img
                 src={HOME_STORIES('book_pic.webp')}
                 alt="Personalized children's book"
@@ -195,7 +195,7 @@ export default function StoriesFromRealFamilies() {
               {testimonials[1].quote}
             </p>
             <div className="flex items-center gap-3 lg:gap-4">
-              <img src={testimonials[1].image} alt={testimonials[1].author} className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover flex-shrink-0" />
+              <img src={testimonials[1].image} alt={testimonials[1].author} className="w-12 mx-auto h-12 lg:w-14 lg:h-14 rounded-full object-cover flex-shrink-0" />
               <div>
                 <p className="font-semibold text-[#222] text-[14px] md:text-[18px]">
                   {testimonials[1].author}
