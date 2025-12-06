@@ -428,7 +428,7 @@ const MeetAuthorSection: React.FC<{ section: BookSection }> = ({ section }) => {
   return (
     <div className={`w-full bg-white pt-12 gap-8 md:h-[616px] md:pt-[88px] md:pr-[120px] md:pb-[88px] md:pl-[120px] flex flex-col md:flex-row md:gap-[48px] ${section.className || ''}`}>
       {/* 右侧：文字内容 - 手机端在上，桌面端在右 */}
-      <div className="flex flex-col px-4 md:px-0 gap-[24px] gap-6 order-1 md:order-2 md:">
+      <div className="flex flex-col px-4 md:px-0 gap-[24px] gap-6 order-1 md:order-2 md:justify-center md:w-1/2">
         {/* 标题 */}
         {section.title && (
           <h2 className="font-semibold md:font-medium text-center md:text-left text-[24px] md:text-[40px] leading-[32px] md:leading-[64px] text-[#222222]">
@@ -453,7 +453,7 @@ const MeetAuthorSection: React.FC<{ section: BookSection }> = ({ section }) => {
       
       {/* 左侧：作者图片 - 手机端在下，桌面端在左 */}
       {section.authorImage && (
-        <div className="w-full order-2 md:order-1 md:">
+        <div className="w-full md:w-1/2 order-2 md:order-1">
           <img 
             src={section.authorImage} 
             alt="Author" 
