@@ -11,7 +11,6 @@ interface GiftPackagesSectionProps {
 const GiftPackagesSection: React.FC<GiftPackagesSectionProps> = ({ 
   section,
 }) => {
-  console.log(section)
   const packages = section.giftPackages || [];
   const bannerImage = section.bannerImage;
   const bannerTitle = section.bannerTitle || 'Ready-to-Gift Packages';
