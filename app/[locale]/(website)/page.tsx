@@ -15,6 +15,8 @@ import WhatMakesDreamazeDifferent from './components/home/WhatMakesDreamazeDiffe
 import TopPickThisMonth from './components/home/TopPickThisMonth';
 import InfiniteScrollLogo from './components/home/InfiniteScrollLogo';
 import StoriesFromRealFamilies from './components/home/StoriesFromRealFamilies';
+import { DEFAULT_GIFT_PACKAGES_CONFIG } from './components/books/giftPackagesData';
+import GiftPackagesSection from './components/books/GiftPackagesSection';
 
 interface AnimatedSectionProps {
   children: React.ReactNode;
@@ -100,7 +102,7 @@ export default function HomePage() {
       </AnimatedSection>
 
       <AnimatedSection delay={0.2}>
-        <GiftPackage />
+        <GiftPackagesSection section={DEFAULT_GIFT_PACKAGES_CONFIG} />
       </AnimatedSection>
 
       <AnimatedSection delay={0.2}>
