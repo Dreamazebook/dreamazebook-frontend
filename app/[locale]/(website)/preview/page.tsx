@@ -3270,7 +3270,7 @@ export default function PreviewPageWithTopNav() {
             </section>
             
             {/* Book Format Section */}
-            <section  ref={bindingRef} className="w-full mt-2 max-w-3xl mx-auto">
+            <section  ref={bindingRef} className="w-full mt-2 max-w-4xl mx-auto">
               <h1 className="text-[28px] text-center mb-2">Choose your book format</h1>
               <p className="text-center text-gray-600 mb-4">
                 Pick the format that best fits how you'll treasure or gift it.
