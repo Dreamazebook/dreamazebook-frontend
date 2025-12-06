@@ -1,5 +1,8 @@
 import { HOME_TOP_PICKS } from '@/constants/cdn';
+import { BOOK_DETAIL_URL } from '@/constants/links';
+import { Link } from '@/i18n/routing';
 import { useState, useEffect, useRef } from 'react';
+
 import { FaStar as Star, FaArrowRight as ArrowRight } from 'react-icons/fa';
 
 const TopPickThisMonth = () => {
@@ -57,8 +60,8 @@ const TopPickThisMonth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF7F9] flex items-center justify-center px-4 py-8 md:py-12">
-      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+    <div className="bg-[#FFF7F9] flex items-center justify-center px-4 py-8 md:py-30">
+      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center rounded bg-white p-6">
         <div
           className="relative w-[237px] md:w-[420px] mx-auto lg:mx-0"
           onMouseEnter={handleMouseEnter}
@@ -125,7 +128,7 @@ const TopPickThisMonth = () => {
           </div>
         </div>
 
-        <div className="text-center lg:text-left space-y-6 mt-12 lg:mt-0 bg-white p-6 rounded">
+        <div className="text-center lg:text-left space-y-6 mt-12 lg:mt-0 rounded">
           <h1 className="text-[24px] md:text-[40px] font-medium text-[#222] leading-tight">
             Top Picks This Month
           </h1>
@@ -136,10 +139,9 @@ const TopPickThisMonth = () => {
             </h2>
 
             <p className="text-[14px] text-[#222222] md:text-[16px] text-[#666666] leading-relaxed">
-              Watch your child's eyes light up as Santa writes directly to them.
+              Watch your child's eyes light up as Santa writes directly to them.<br/>
               This story reveals the good deeds, hopes, and holiday magic Santa has
-              seen in your little one.
-              <br/>
+              seen in your little one.<br/>
               A heartfelt keepsake that turns Christmas into a memory they'll cherish.
             </p>
 
@@ -150,10 +152,10 @@ const TopPickThisMonth = () => {
             </div>
           </div>
 
-          <button className="text-[16px] text-[#222222] font-medium flex items-center mx-auto md:ml-0 gap-2 cursor-pointer hover:text-primary transition-colors duration-200 mt-4 md:mt-20">
+          <Link href={BOOK_DETAIL_URL('PICBOOK_SANTA')} className="text-[16px] text-[#222222] font-medium flex items-center mx-auto md:ml-0 gap-2 cursor-pointer hover:text-primary transition-colors duration-200 mt-4 md:mt-20">
             Personalize This Book
             <ArrowRight className="w-5 h-5" />
-          </button>
+          </Link>
         </div>
       </div>
 

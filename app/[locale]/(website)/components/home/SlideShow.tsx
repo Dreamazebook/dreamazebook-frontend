@@ -1,4 +1,6 @@
 import { HOME_HERO } from '@/constants/cdn';
+import { BOOKS_URL } from '@/constants/links';
+import { Link } from '@/i18n/routing';
 import { useState, useEffect, useCallback } from 'react';
 import { FaArrowRight as ArrowRight, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
@@ -8,7 +10,7 @@ const slides = [
     title: ['A Storybook Where', 'Your Child Is the Hero'],
     color: 'text-primary',
     buttonText: 'Create Yours',
-    image: HOME_HERO('hero_mobile.webp'),
+    image: HOME_HERO('hero_mobile.png'),
     image_desktop: HOME_HERO('hero.webp'),
     description: 'Be seen. Be loved. Be celebrated',
   },
@@ -89,7 +91,7 @@ export default function SlideShow() {
             />
             
             <div className="absolute inset-0 flex z-10 w-full">
-              <div className={`slide-content flex flex-col justify-start md:justify-center p-6 ${slide.color}`}>
+              <div className={`slide-content flex flex-col justify-end md:justify-center p-6 ${slide.color}`}>
                 <h1 className="text-[36px] md:text-[64px] font-bold leading-tight">
                   {slide.title.map((line, i) => (
                     <span key={i}>
@@ -99,20 +101,17 @@ export default function SlideShow() {
                   ))}
                 </h1>
                 <p className="text-[16px] text-[#333333]">{slide.description}</p>
-                <button className={`mt-10 md:mt-30 w-[155px] inline-flex items-center bg-[#222222] gap-2 text-[16px] text-white px-4   py-3 rounded hover:gap-4 transition-all duration-300 group`}>
+                <Link href={BOOKS_URL} className={`mt-5 md:mt-30 w-full md:w-[180px] inline-flex justify-center md:justify-between items-center bg-[#222222] gap-2 text-[16px] text-white px-4   py-3 rounded hover:gap-4 transition-all duration-300 group`}>
                   {slide.buttonText}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </button>
+                </Link>
               </div>
             </div>
           </div>
         ))}
 
         {/* Indicators */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center gap-2 lg:gap-3 z-20">
-          {/* <span className="text-sm font-medium text-white bg-gray-800/70 px-2 lg:px-3 py-1 rounded-full">
-            {currentIndex + 1} / {slides.length}
-          </span> */}
+        {/* <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center gap-2 lg:gap-3 z-20">
           {slides.map((_, index) => (
             <button
               key={index}
@@ -125,7 +124,7 @@ export default function SlideShow() {
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}
-        </div>
+        </div> */}
 
 
 

@@ -1,6 +1,7 @@
 import DreamzeImage from "@/app/components/DreamzeImage";
 import { HOME_PACKAGES, HOME_TOP_PICKS } from "@/constants/cdn";
-import Image from "next/image";
+import { BOOKS_URL } from "@/constants/links";
+import { Link } from "@/i18n/routing";
 
 function GiftPackages() {
   const packages = [
@@ -63,7 +64,7 @@ function GiftPackages() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 max-w-7xl mx-auto">
           {packages.map((pkg) => (
             <div key={pkg.id} className="flex flex-col items-center text-center">
-              <div className="relative w-full aspect-[74/65] mb-6 md:mb-8">
+              <div className="relative w-3/4 sm:w-2/3 md:w-full aspect-[74/65] mb-6 md:mb-8 mx-auto">
                 <DreamzeImage src={pkg.image} alt={pkg.title} />
               </div>
 
@@ -81,10 +82,10 @@ function GiftPackages() {
                 </p>
               </div>
 
-              <button className="inline-flex cursor-pointer items-center gap-2 text-[#222222] hover:text-primary transition-colors group text-[16px]">
+              <Link href={BOOKS_URL} className="inline-flex cursor-pointer items-center gap-2 text-[#222222] hover:text-primary transition-colors group text-[16px]">
                 <span>Choose Books</span>
                 <span className="transform group-hover:translate-x-1 transition-transform">→</span>
-              </button>
+              </Link>
             </div>
           ))}
         </div>

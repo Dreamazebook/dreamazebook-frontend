@@ -1,8 +1,9 @@
 'use client';
 
 import { FC, useEffect, useState } from 'react';
+import Head from 'next/head';
 import api from '@/utils/api';
-import { API_ADMIN_LOGSTICS, API_ADMIN_LOGSTIC_COMFIRM, API_ADMIN_LOGSTIC_PRINT } from '@/constants/api';
+import { API_ADMIN_LOGSTICS, API_ADMIN_LOGSTIC_COMFIRM, API_ADMIN_LOGSTIC_PRINT, API_ADMIN_LOGSTIC_DETAIL_PRINT_LABEL } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
 import { LogisticsOrder } from '@/types/logistics';
 
@@ -13,6 +14,7 @@ const LogisticsPage: FC = () => {
   const [creatingOrderId, setCreatingOrderId] = useState<number | null>(null);
   const [confirmingOrderIds, setConfirmingOrderIds] = useState<number[]>([]);
   const [printingOrderIds, setPrintingOrderIds] = useState<number[]>([]);
+  const [printingLabelOrderId, setPrintingLabelOrderId] = useState<number | null>(null);
   const [selectedOrderIds, setSelectedOrderIds] = useState<number[]>([]);
 
   const handleCreate4PXOrder = async (orderId: number) => {
@@ -101,6 +103,32 @@ const LogisticsPage: FC = () => {
     }
   };
 
+  const handlePrintLabel = async (orderId: number) => {
+    setPrintingLabelOrderId(orderId);
+    try {
+      const response = await api.get<ApiResponse>(API_ADMIN_LOGSTIC_DETAIL_PRINT_LABEL(orderId));
+      if (response.success && response.data) {
+        // Open the label URL in a new window
+        const labelUrl = response.data.label_url;
+        if (labelUrl) {
+          window.open(labelUrl, '_blank');
+        }
+        // Refresh the logistics data to update the status
+        const { data, success } = await api.get<ApiResponse<LogisticsOrder[]>>(API_ADMIN_LOGSTICS);
+        if (success && data) {
+          setLogisticsData(data);
+        }
+      } else {
+        setError((response as any).message || 'Failed to print label');
+      }
+    } catch (err) {
+      console.error('Error printing label:', err);
+      setError('Failed to print label');
+    } finally {
+      setPrintingLabelOrderId(null);
+    }
+  };
+
   const handleSelectOrder = (orderId: number) => {
     setSelectedOrderIds(prev => 
       prev.includes(orderId) 
@@ -117,29 +145,34 @@ const LogisticsPage: FC = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchLogisticsData = async () => {
-      try {
-        const { data, success, message } = await api.get<ApiResponse<LogisticsOrder[]>>(API_ADMIN_LOGSTICS);
-        if (success && data) {
-          setLogisticsData(data);
-        } else {
-          setError(message || 'Failed to fetch logistics data');
-        }
-      } catch (err) {
-        console.error('Error fetching logistics data:', err);
-        setError('Failed to load logistics data');
-      } finally {
-        setLoading(false);
+  const fetchLogisticsData = async () => {
+    try {
+      const { data, success, message } = await api.get<ApiResponse<LogisticsOrder[]>>(API_ADMIN_LOGSTICS);
+      if (success && data) {
+        setLogisticsData(data);
+      } else {
+        setError(message || 'Failed to fetch logistics data');
       }
-    };
+    } catch (err) {
+      console.error('Error fetching logistics data:', err);
+      setError('Failed to load logistics data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchLogisticsData();
   }, []);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Logistics Management</h1>
+    <>
+      <Head>
+        <title>Logistics Management - Admin</title>
+        <meta name="description" content="Manage logistics orders, create 4PX shipments, confirm orders, and print shipping labels" />
+      </Head>
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Logistics Management</h1>
       
       <div className="mt-8 bg-gray-50 p-6 rounded-lg">
         <div className="flex justify-between items-center mb-4">
@@ -234,15 +267,26 @@ const LogisticsPage: FC = () => {
                       {item.logistics_status || 'Not created'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {item.can_create_logistics && (
-                        <button
-                          onClick={() => handleCreate4PXOrder(item.id)}
-                          disabled={creatingOrderId === item.id}
-                          className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
-                        >
-                          {creatingOrderId === item.id ? 'Creating...' : 'Create 4PX Order'}
-                        </button>
-                      )}
+                      <div className="flex gap-2">
+                        {item.can_create_logistics && (
+                          <button
+                            onClick={() => handleCreate4PXOrder(item.id)}
+                            disabled={creatingOrderId === item.id}
+                            className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {creatingOrderId === item.id ? 'Creating...' : 'Create 4PX Order'}
+                          </button>
+                        )}
+                        {item.logistics_request_no && (
+                          <button
+                            onClick={() => handlePrintLabel(item.id)}
+                            disabled={printingLabelOrderId === item.id}
+                            className="px-3 py-1 bg-orange-600 text-white text-xs font-medium rounded hover:bg-orange-700 disabled:bg-orange-300 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {printingLabelOrderId === item.id ? 'Printing...' : 'Print Label'}
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(item.created_at).toLocaleString()}
@@ -255,6 +299,7 @@ const LogisticsPage: FC = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

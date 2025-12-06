@@ -53,6 +53,7 @@ export const API_ADMIN_ORDER_DOWNLOAD_IMAGES = '/api/admin/orders/download-image
 
 export const API_ADMIN_LOGSTICS = API_DOMAIN + '/admin/logistics'
 export const API_ADMIN_LOGSTIC_DETAIL = (id: string | number) => `${API_ADMIN_LOGSTICS}/${id}`
+export const API_ADMIN_LOGSTIC_DETAIL_PRINT_LABEL = (id: string | number) =>`${API_ADMIN_LOGSTIC_DETAIL(id)}/print-label`
 export const API_ADMIN_LOGSTIC_COMFIRM = `${API_ADMIN_LOGSTICS}/confirm`;
 export const API_ADMIN_LOGSTIC_PRINT = `${API_ADMIN_LOGSTICS}/print-pickup-order`;
 

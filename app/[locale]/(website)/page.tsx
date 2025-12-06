@@ -3,12 +3,9 @@
 import { useLocale } from 'next-intl';
 import React, { useEffect } from 'react';
 import { motion, useAnimation, useInView } from 'framer-motion';
-import InitialSpark from './components/home/InitialSpark';
-import SideLineProducts from './components/home/SideLineProducts';
+import TheHeartBehindDreamaze from './components/home/TheHeartBehindDreamaze';
 import LastingMemorial from './components/home/LastingMemorial';
 import Slideshow from './components/home/SlideShow';
-import PicBooksShow from './components/home/PicBooksShow';
-// import TestimonialCards from './components/home/TestimonialCards';
 import ReserveSection from '../(marketing)/components/ReserveSection';
 import GiftPackage from './components/home/GiftPackage';
 import { Product } from '@/types/product';
@@ -85,7 +82,7 @@ export default function HomePage() {
       </AnimatedSection>
 
       <AnimatedSection delay={0.1}>
-        <InitialSpark />
+        <TheHeartBehindDreamaze />
       </AnimatedSection>
 
       <AnimatedSection delay={0.1}>
@@ -94,6 +91,11 @@ export default function HomePage() {
 
       <AnimatedSection delay={0.2}>
         {/* <OurBook /> */}
+        <h2 className='text-[#222] text-[24px] md:text-[40px] font-medium text-center'>Our Favorite Personalized Stories</h2>
+        <p className='text-[#222] text-[14px] md:text-[16px] text-center mb-10 md:mb-20'>
+          <span className='md:hidden'>Create the story that brings out their biggest smile.</span>
+          <span className='hidden md:block'>Find the story where they become the hero.</span>
+        </p>
         <BooksGrid books={books} />
       </AnimatedSection>
 

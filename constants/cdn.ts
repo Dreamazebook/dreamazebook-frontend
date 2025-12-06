@@ -119,3 +119,5 @@ export const HOME_DIFFERENT = (file:string) => `${WEBSITE_CDN_URL}home/what_make
 export const HOME_PACKAGES = (file:string) => `${WEBSITE_CDN_URL}home/ready_to_gift_packages/${file}`;
 export const HOME_STORIES = (file:string) => `${WEBSITE_CDN_URL}home/Stories_from_Real_Families/${file}`;
 export const HOME_TOP_PICKS = (file:string) => `${WEBSITE_CDN_URL}home/top_picks_this_month/${file}`;
+
+export const ABOUT_IMAGE = (file:string) => `${WEBSITE_CDN_URL}about-us/${file}`;

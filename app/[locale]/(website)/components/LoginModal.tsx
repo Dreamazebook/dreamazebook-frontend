@@ -86,7 +86,7 @@ export default function LoginModal() {
         if (redirectUrl) {
           router.push(redirectUrl);
         }
-        return;
+        return router.push('/');
       } else {
         setErrorMessage('Registration failed. Please try again.');
         setLoading(false);
