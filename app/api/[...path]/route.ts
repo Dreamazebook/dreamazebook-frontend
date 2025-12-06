@@ -4,33 +4,33 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.dreamazeboo
 
 export async function GET(
   request: NextRequest,
-  context: { params: Promise<{ path: string[] }> | { path: string[] } }
+  context: any
 ) {
-  const params = await Promise.resolve(context.params);
+  const params = await Promise.resolve(context?.params as { path: string[] });
   return handleRequest(request, params, 'GET');
 }
 
 export async function POST(
   request: NextRequest,
-  context: { params: Promise<{ path: string[] }> | { path: string[] } }
+  context: any
 ) {
-  const params = await Promise.resolve(context.params);
+  const params = await Promise.resolve(context?.params as { path: string[] });
   return handleRequest(request, params, 'POST');
 }
 
 export async function PUT(
   request: NextRequest,
-  context: { params: Promise<{ path: string[] }> | { path: string[] } }
+  context: any
 ) {
-  const params = await Promise.resolve(context.params);
+  const params = await Promise.resolve(context?.params as { path: string[] });
   return handleRequest(request, params, 'PUT');
 }
 
 export async function DELETE(
   request: NextRequest,
-  context: { params: Promise<{ path: string[] }> | { path: string[] } }
+  context: any
 ) {
-  const params = await Promise.resolve(context.params);
+  const params = await Promise.resolve(context?.params as { path: string[] });
   return handleRequest(request, params, 'DELETE');
 }
 

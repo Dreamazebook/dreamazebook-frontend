@@ -43,8 +43,8 @@ const HairColorSelector: React.FC<HairColorSelectorProps> = ({
   const hairColors = (hairColorValues && hairColorValues.length > 0)
     ? (() => {
         // 先映射到内部值，再用固定顺序 light -> brown -> dark 排序
-        const internalSet = new Set(hairColorValues.map(mapBackendToInternal));
-        const orderedInternal = ['light', 'brown', 'dark'].filter((v) =>
+        const internalSet = new Set<string>(hairColorValues.map(mapBackendToInternal));
+        const orderedInternal = (['light', 'brown', 'dark'] as const).filter((v) =>
           internalSet.has(v)
         );
         return orderedInternal.map((value) => ({ value, color: palette[value] }));
