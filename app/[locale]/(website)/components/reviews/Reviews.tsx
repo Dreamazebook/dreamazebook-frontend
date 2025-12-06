@@ -123,7 +123,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
         </>
       )}
       
-      <div className="w-full max-w-[1440px] md:px-[120px] flex flex-col md:gap-6 gap-4">
+      <div className="w-full max-w-[1440px] md:px-[300px] flex flex-col md:gap-6 gap-4">
         {/* 评论列表 */}
         {defaultReviews.map((review: Review, index: number) => (
             <React.Fragment key={index}>

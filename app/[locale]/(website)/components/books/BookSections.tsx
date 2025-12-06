@@ -153,7 +153,7 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
                 <Image
                   src={section.bundleImage || section.bundleImageMobile || ''}
                   alt={section.title || 'Bundle'}
-                  className="h-[350px] w-auto object-contain mx-auto"
+                  className="h-[328px] w-auto object-contain mx-auto"
                   width={600}
                   height={328}
                 />
