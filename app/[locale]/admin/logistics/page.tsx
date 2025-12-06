@@ -107,10 +107,17 @@ const LogisticsPage: FC = () => {
     setPrintingLabelOrderId(orderId);
     try {
       const response = await api.get<ApiResponse>(API_ADMIN_LOGSTIC_DETAIL_PRINT_LABEL(orderId));
-      if (response.success) {
-        // Handle successful print label response - could be a PDF download or print preview
+      if (response.success && response.data) {
+        // Open the label URL in a new window
+        const labelUrl = response.data.label_url;
+        if (labelUrl) {
+          window.open(labelUrl, '_blank');
+        }
         // Refresh the logistics data to update the status
-        
+        const { data, success } = await api.get<ApiResponse<LogisticsOrder[]>>(API_ADMIN_LOGSTICS);
+        if (success && data) {
+          setLogisticsData(data);
+        }
       } else {
         setError((response as any).message || 'Failed to print label');
       }
