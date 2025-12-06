@@ -3,7 +3,7 @@
 import { FC, useEffect, useState } from 'react';
 import Head from 'next/head';
 import api from '@/utils/api';
-import { API_ADMIN_LOGSTICS, API_ADMIN_LOGSTIC_COMFIRM, API_ADMIN_LOGSTIC_PRINT, API_ADMIN_LOGSTIC_DETAIL_PRINT_LABEL } from '@/constants/api';
+import { API_ADMIN_LOGSTICS, API_ADMIN_LOGSTIC_COMFIRM, API_ADMIN_LOGSTIC_PRINT_PICKUP_ORDER, API_ADMIN_LOGSTIC_DETAIL_PRINT_LABEL } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
 import { LogisticsOrder } from '@/types/logistics';
 
@@ -12,10 +12,9 @@ const LogisticsPage: FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creatingOrderId, setCreatingOrderId] = useState<number | null>(null);
-  const [confirmingOrderIds, setConfirmingOrderIds] = useState<number[]>([]);
   const [confirmingOrderId, setConfirmingOrderId] = useState<number | null>(null);
-  const [printingOrderIds, setPrintingOrderIds] = useState<number[]>([]);
   const [printingLabelOrderId, setPrintingLabelOrderId] = useState<number | null>(null);
+  const [printingBookletOrderId, setPrintingBookletOrderId] = useState<number | null>(null);
   const [selectedOrderIds, setSelectedOrderIds] = useState<number[]>([]);
 
   const handleCreate4PXOrder = async (orderId: number) => {
@@ -60,45 +59,6 @@ const LogisticsPage: FC = () => {
     }
   };
 
-  const handlePrintOrders = async () => {
-    if (selectedOrderIds.length === 0) {
-      setError('Please select at least one order to print');
-      return;
-    }
-
-    // Get logistics request numbers for selected orders
-    const selectedOrders = logisticsData.filter(item => selectedOrderIds.includes(item.id));
-    const requestNos = selectedOrders
-      .map(item => item.logistics_request_no)
-      .filter(no => no !== null) as string[];
-
-    if (requestNos.length === 0) {
-      setError('No logistics request numbers found for selected orders');
-      return;
-    }
-
-    setPrintingOrderIds(selectedOrderIds);
-    try {
-      const response = await api.post<ApiResponse<any>>(API_ADMIN_LOGSTIC_PRINT, { request_nos: requestNos });
-      if (response.success) {
-        // Handle successful print response - could be a PDF download or print preview
-        // For now, just show success message
-        const { data, success } = await api.get<ApiResponse<LogisticsOrder[]>>(API_ADMIN_LOGSTICS);
-        if (success && data) {
-          setLogisticsData(data);
-        }
-        setSelectedOrderIds([]);
-      } else {
-        setError((response as any).message || 'Failed to print orders');
-      }
-    } catch (err) {
-      console.error('Error printing orders:', err);
-      setError('Failed to print orders');
-    } finally {
-      setPrintingOrderIds([]);
-    }
-  };
-
   const handlePrintLabel = async (orderId: number) => {
     setPrintingLabelOrderId(orderId);
     try {
@@ -119,19 +79,25 @@ const LogisticsPage: FC = () => {
     }
   };
 
-  const handleSelectOrder = (orderId: number) => {
-    setSelectedOrderIds(prev => 
-      prev.includes(orderId) 
-        ? prev.filter(id => id !== orderId)
-        : [...prev, orderId]
-    );
-  };
-
-  const handleSelectAll = () => {
-    if (selectedOrderIds.length === logisticsData.length) {
-      setSelectedOrderIds([]);
-    } else {
-      setSelectedOrderIds(logisticsData.map(item => item.id));
+  const handlePrintBooklet = async (orderId: number, logisticsRequestNo: string) => {
+    setPrintingBookletOrderId(orderId);
+    try {
+      const response = await api.post<ApiResponse<any>>(API_ADMIN_LOGSTIC_PRINT_PICKUP_ORDER, {
+        request_nos: [logisticsRequestNo]
+      });
+      if (response.success) {
+        // Refresh the logistics data to update the status
+        const { data, success } = await api.get<ApiResponse<LogisticsOrder[]>>(API_ADMIN_LOGSTICS);
+        if (success && data) {
+          setLogisticsData(data);
+        }
+      } else {
+        setError((response as any).message || 'Failed to print booklet');
+      }
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Failed to print booklet');
+    } finally {
+      setPrintingBookletOrderId(null);
     }
   };
 
@@ -162,12 +128,7 @@ const LogisticsPage: FC = () => {
         <meta name="description" content="Manage logistics orders, create 4PX shipments, confirm orders, and print shipping labels" />
       </Head>
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Logistics Management</h1>
-      
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Recent Logistics Activity</h2>
-          
-        </div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">物流管理</h1>
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
             <p className="text-red-600 text-sm">{error}</p>
@@ -175,11 +136,11 @@ const LogisticsPage: FC = () => {
         )}
         {loading ? (
           <div className="bg-white p-4 rounded border border-gray-200">
-            <p className="text-gray-500 text-center py-8">Loading logistics data...</p>
+            <p className="text-gray-500 text-center py-8">正在加载物流数据...</p>
           </div>
         ) : logisticsData.length === 0 ? (
           <div className="bg-white p-4 rounded border border-gray-200">
-            <p className="text-gray-500 text-center py-8">No recent activity to display.</p>
+            <p className="text-gray-500 text-center py-8">暂无物流数据。</p>
           </div>
         ) : (
           <div className="bg-white rounded border border-gray-200 overflow-hidden">
@@ -187,16 +148,13 @@ const LogisticsPage: FC = () => {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Order Number
+                    订单号
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Logistics Actions
+                    物流操作
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Created At
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    状态
                   </th>
                 </tr>
               </thead>
@@ -218,7 +176,7 @@ const LogisticsPage: FC = () => {
                   const isConfirming = confirmingOrderId === id;
                   const isCreating = creatingOrderId === id;
                   const isPrintingLabel = printingLabelOrderId === id;
-                  const isSelected = selectedOrderIds.includes(id);
+                  const isPrintingBooklet = printingBookletOrderId === id;
 
                   const statusBadgeColor = 
                     status === 'completed' ? 'bg-green-100 text-green-800' :
@@ -228,21 +186,35 @@ const LogisticsPage: FC = () => {
                   return (
                     <tr key={id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        <div className="flex items-center gap-3">
-                          <span>{order_number}</span>
-                          {!isConfirmed && (
-                            <button
-                              onClick={() => handleConfirmOrder(id)}
-                              disabled={isConfirming || hasLogisticsRequest}
-                              className="px-3 py-1 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed transition-colors"
-                            >
-                              {isConfirming ? '确认中...' : !has_logistics ? '确认订单' : '已确认'}
-                            </button>
-                          )}
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-3">
+                            <span>{order_number}</span>
+                            {!isConfirmed && (
+                              <button
+                                onClick={() => handleConfirmOrder(id)}
+                                disabled={isConfirming || hasLogisticsRequest}
+                                className="px-3 py-1 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed transition-colors"
+                              >
+                                {isConfirming ? '确认中...' : !has_logistics ? '确认订单' : '已确认'}
+                              </button>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(created_at).toLocaleString()}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex gap-2">
+                          {logistics_request_no && (
+                            <button
+                              onClick={() => handlePrintBooklet(id, logistics_request_no)}
+                              disabled={isPrintingBooklet}
+                              className="px-3 py-1 bg-purple-600 text-white text-xs font-medium rounded hover:bg-purple-700 disabled:bg-purple-300 disabled:cursor-not-allowed transition-colors"
+                            >
+                              {isPrintingBooklet ? '打印中...' : '打印绘本'}
+                            </button>
+                          )}
                           {logistics_request_no && (
                             <button
                               onClick={() => handlePrintLabel(id)}
@@ -258,13 +230,10 @@ const LogisticsPage: FC = () => {
                               disabled={isCreating}
                               className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
                             >
-                              {isCreating ? 'Creating...' : 'Create 4PX Order'}
+                              {isCreating ? '创建中...' : '创建揽件时间'}
                             </button>
                           )}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(created_at).toLocaleString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="space-y-1">
@@ -274,7 +243,7 @@ const LogisticsPage: FC = () => {
                             </span>
                           </div>
                           <div className="text-xs text-gray-600">
-                            {logistics_status || 'Not created'}
+                            {logistics_status || '未创建'}
                           </div>
                         </div>
                       </td>
