@@ -26,7 +26,8 @@ const HairColorSelector: React.FC<HairColorSelectorProps> = ({
   const mapBackendToInternal = (val: string) => {
     const s = (val || '').toLowerCase();
     if (s === 'blone' || s === 'blonde' || s === 'light' || s === 'fair' || s === 'light_brown') return 'light';
-    if (s === 'brown' || s === 'dark_brown') return 'brown';
+    // original 视为 brown
+    if (s === 'brown' || s === 'dark_brown' || s === 'original') return 'brown';
     if (s === 'dark' || s === 'black') return 'dark';
     return 'light';
   };
@@ -40,8 +41,14 @@ const HairColorSelector: React.FC<HairColorSelectorProps> = ({
 
   // Build hair colors either from provided backend-driven values or defaults
   const hairColors = (hairColorValues && hairColorValues.length > 0)
-    ? Array.from(new Set(hairColorValues.map(mapBackendToInternal)))
-        .map((value) => ({ value, color: palette[value] }))
+    ? (() => {
+        // 先映射到内部值，再用固定顺序 light -> brown -> dark 排序
+        const internalSet = new Set(hairColorValues.map(mapBackendToInternal));
+        const orderedInternal = ['light', 'brown', 'dark'].filter((v) =>
+          internalSet.has(v)
+        );
+        return orderedInternal.map((value) => ({ value, color: palette[value] }));
+      })()
     : [
         { value: 'light', color: palette.light },
         { value: 'brown', color: palette.brown },

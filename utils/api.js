@@ -1,6 +1,17 @@
 import axios from 'axios';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.dreamazebook.com/api';
+// 在客户端使用 /api 代理，在服务器端使用完整 API URL
+const getBaseURL = () => {
+    if (typeof window !== 'undefined') {
+        // 客户端环境：使用 Next.js API 路由代理，避免 CORS 问题
+        return '/api';
+    } else {
+        // 服务器端环境：直接使用完整 API URL
+        return process.env.NEXT_PUBLIC_API_URL || 'https://api.dreamazebook.com/api';
+    }
+};
+
+const BASE_URL = getBaseURL();
 
 const api= axios.create({
     baseURL: BASE_URL,
@@ -13,7 +24,7 @@ const api= axios.create({
 
 // 创建一个专门用于文件上传的axios实例
 const uploadApi = axios.create({
-    baseURL: BASE_URL,
+    baseURL: getBaseURL(),
     withCredentials: true,
     timeout: 10000, // 恢复默认超时时间
     // 移除默认的 Content-Type，让浏览器自动设置正确的 boundary

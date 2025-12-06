@@ -98,6 +98,7 @@ export default function PersonalizeApiDrivenPage() {
           const v = (s || '').toLowerCase();
           if (v === 'blone' || v === 'blonde' || v === 'light') return 'light';
           if (v === 'dark' || v === 'black') return 'dark';
+          // 其余（包括 original/brown）统一视为 brown
           return 'brown';
         };
 
@@ -296,6 +297,8 @@ export default function PersonalizeApiDrivenPage() {
       const mapHairColorToBackend = (key: string | number): string => {
         const v = typeof key === 'number' ? key : ({ light: 1, brown: 2, dark: 3 } as any)[key] || 1;
         if (v === 1) return 'blone';
+        // UI 中的 brown（v === 2）应回传 original
+        if (v === 2) return 'original';
         if (v === 3) return 'dark';
         return 'dark';
       };

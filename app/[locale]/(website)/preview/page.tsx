@@ -1995,7 +1995,10 @@ export default function PreviewPageWithTopNav() {
   // 启动渲染：POST /products/{spu}/preview/render 并解析 NDJSON 流
   const startNdjsonRender = async (spuCode: string, payload: any) => {
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.dreamazebook.com/api';
+      // 客户端使用 /api 代理，服务器端使用完整 URL
+      const apiBase = typeof window !== 'undefined' 
+        ? '/api' 
+        : (process.env.NEXT_PUBLIC_API_URL || 'https://api.dreamazebook.com/api');
       const url = `${apiBase}/products/${encodeURIComponent(spuCode)}/preview/render`;
       let authHeader: string | undefined = undefined;
       try {
@@ -2109,11 +2112,13 @@ export default function PreviewPageWithTopNav() {
           if (typeof v === 'string') {
             const s = v.toLowerCase();
             if (s === 'light') return 'blone';
+            if (s === 'brown' || s === 'original') return 'original';
             if (s === 'dark' || s === 'black') return 'dark';
             return 'dark';
           }
           const n = Number(v) || 1;
           if (n === 1) return 'blone';
+          if (n === 2) return 'original';
           if (n === 3) return 'dark';
           return 'dark';
         };
@@ -2349,11 +2354,13 @@ export default function PreviewPageWithTopNav() {
               if (typeof v === 'string') {
                 const s = v.toLowerCase();
                 if (s === 'light') return 'blone';
+                if (s === 'brown' || s === 'original') return 'original';
                 if (s === 'dark' || s === 'black') return 'dark';
                 return 'dark';
               }
               const n = Number(v) || 1;
               if (n === 1) return 'blone';
+              if (n === 2) return 'original';
               if (n === 3) return 'dark';
               return 'dark';
             };

@@ -122,6 +122,9 @@ export default function EditPersonalizedProductPage() {
           const hairColorRaw = String(attrs.hair_color || '').toLowerCase();
           if (hairColorRaw === 'blone' || hairColorRaw === 'blonde' || hairColorRaw === 'light') {
             hairColor = 'light';
+          } else if (hairColorRaw === 'original' || hairColorRaw === 'brown' || hairColorRaw === 'dark_brown') {
+            // original 视为 brown
+            hairColor = 'brown';
           } else if (hairColorRaw) {
             hairColor = 'dark';
           }
