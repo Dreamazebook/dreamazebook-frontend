@@ -2,7 +2,7 @@ import React from 'react';
 
 // 定义书籍section的类型
 export interface BookSection {
-  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'meet-author' | 'tips' | 'custom' | 'christmas-wonder' | 'personalization-power' | 'dreamaze-special' | 'faq'; // section类型，可以扩展
+  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'meet-author' | 'tips' | 'custom' | 'christmas-wonder' | 'personalization-power' | 'dreamaze-special' | 'faq' | 'gift-packages'; // section类型，可以扩展
   title?: string; // section标题
   content?: string; // section内容
   description?: string; // section描述文字
@@ -68,6 +68,20 @@ export interface BookSection {
   }>;
   // FAQ 专用字段
   faqs?: BookFAQ[]; // FAQ列表
+  // Gift Packages 专用字段
+  giftPackages?: Array<{
+    id: number;
+    quantity: string;
+    title: string;
+    description: string;
+    discount: string;
+    extras: string;
+    image: string;
+  }>;
+  bannerImage?: string; // 顶部横幅背景图
+  bannerTitle?: string; // 横幅标题
+  bannerDescription?: string[]; // 横幅描述（数组）
+  waveImage?: string; // 波浪装饰图
 }
 
 // 定义书籍规格的类型
@@ -330,6 +344,7 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
         type: 'christmas-wonder',
         title: 'Our Christmas Wonder',
         description: "See what little readers say about their very own Santa's Letter!",
+        backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_SANTA/wonder-bg.webp',
         illustrationImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_SANTA/wonder-left.png',
         testimonials: [
           {
@@ -348,6 +363,45 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
             text: "I always sneak back to look at the pages — it's really me, it's really me!!!",
             avatar: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_SANTA/wonder-4.jpg',
           },
+        ],
+      },
+      {
+        type: 'gift-packages',
+        bannerImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/top_picks_this_month/banner.webp',
+        bannerTitle: 'Ready-to-Gift Packages',
+        bannerDescription: [
+          'Handpicked bundles with books + keepsakes - beautifully wrapped for effortless gifting.',
+          'Create your own perfect gift set'
+        ],
+        waveImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/top_picks_this_month/wave_2.webp',
+        giftPackages: [
+          {
+            id: 1,
+            quantity: 'x2',
+            title: 'Side by Side Set',
+            description: 'Perfect for siblings or friends',
+            discount: '10%',
+            extras: 'holiday extras',
+            image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/ready_to_gift_packages/pic_1.webp'
+          },
+          {
+            id: 2,
+            quantity: 'x3',
+            title: 'Growing Together Set',
+            description: 'One story for each child to feel seen',
+            discount: '15%',
+            extras: 'free personalized cover',
+            image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/ready_to_gift_packages/pic_2.webp'
+          },
+          {
+            id: 3,
+            quantity: 'x4',
+            title: 'Holiday Sharing Set',
+            description: 'A joyful gift for holiday gatherings.',
+            discount: '20%',
+            extras: 'premium festive wrapping',
+            image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/ready_to_gift_packages/pic_3.webp'
+          }
         ],
       },
     ],
