@@ -9,35 +9,47 @@ interface BookSectionsProps {
 
 // Behind the Story Section 组件
 const BehindStorySection: React.FC<{ section: BookSection }> = ({ section }) => {
-  const backgroundStyle = section.backgroundImage
-    ? {
-        backgroundImage: section.backgroundOverlay
-          ? `${section.backgroundOverlay}, url(${section.backgroundImage})`
-          : `url(${section.backgroundImage})`,
-      }
-    : {};
+  // 处理段落：优先使用 paragraphs，如果没有则从 content 按换行符分割
+  const paragraphs = section.paragraphs || (section.content ? section.content.split('\n').filter(p => p.trim()) : []);
+  
+  // 优先使用 authorImage，如果没有则使用 backgroundImage
+  const imageUrl = section.authorImage || section.backgroundImage;
 
   return (
-    <div
-      className={`items-center justify-center mx-auto flex flex-col gap-12 bg-cover bg-center bg-no-repeat ${section.className || ''}`}
-      style={backgroundStyle}
-    >
-      {section.title && (
-        <h2
-          className="text-center text-[24px] md:text-[40px] font-semibold md:font-medium leading-[32px] md:leading-[64px]"
-          style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
-        >
-          {section.title}
-        </h2>
-      )}
+    <div className={`w-full bg-white pt-12 gap-8 md:h-[616px] md:pt-[88px] md:pr-[120px] md:pb-[88px] md:pl-[120px] flex flex-col md:flex-row md:gap-[48px] ${section.className || ''}`}>
+      {/* 右侧：文字内容 - 手机端在上，桌面端在右 */}
+      <div className="flex flex-col px-4 md:px-0 gap-[24px] gap-6 order-1 md:order-2 md:justify-center md:w-1/2">
+        {/* 标题 */}
+        {section.title && (
+          <h2 className="font-semibold md:font-medium text-center md:text-left text-[24px] md:text-[40px] leading-[32px] md:leading-[64px] text-[#222222]">
+            {section.title}
+          </h2>
+        )}
+        
+        {/* 段落 */}
+        {paragraphs.length > 0 && (
+          <div className="flex flex-col gap-[6px]">
+            {paragraphs.map((paragraph, index) => (
+              <p 
+                key={index}
+                className="font-normal text-[14px] md:text-[16px] leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] text-[#222222]"
+              >
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        )}
+      </div>
       
-      {section.content && (
-        <p
-          className="px-12 max-w-[1200px] h-auto mx-auto text-center text-base font-normal leading-6 tracking-[0.5px]"
-          style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
-        >
-          {section.content}
-        </p>
+      {/* 左侧：图片 - 手机端在下，桌面端在左 */}
+      {imageUrl && (
+        <div className="w-full md:w-1/2 order-2 md:order-1">
+          <img 
+            src={imageUrl} 
+            alt={section.title || 'Behind the Story'} 
+            className="w-full md:h-full object-cover"
+          />
+        </div>
       )}
     </div>
   );
@@ -865,7 +877,7 @@ const WhyPersonalizedSection: React.FC<{ section: BookSection }> = ({ section })
 
       <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 gap-[6px] md:w-[732px] md:h-[532px] mx-auto justify-items-center md:justify-items-stretch w-full px-4 md:px-0">
         {(section.items || []).map((item, idx) => (
-          <div key={idx} className="relative overflow-hidden rounded-[4px] h-auto w-full max-w-[343px] md:h-[260px] md:w-[360px] md:pt-16 md:pr-9 md:pb-12 md:pl-9 pt-6 pr-9 pb-6 pl-9 bg-[#FBE5E5]">
+          <div key={idx} className="relative overflow-hidden rounded-[4px] h-auto w-full max-w-[343px] md:h-[260px] md:w-[360px] md:pt-16 md:pr-9 md:pb-12 md:pl-9 pt-6 pr-9 pb-6 pl-9 bg-[#FCF2F2]">
             {/* 背景图层 */}
             <div
               className="absolute inset-0 z-0 pointer-events-none"
@@ -894,8 +906,8 @@ const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section })
   return (
     <div className={`w-full bg-[#FFF5F5] py-12 md:pt-[88px] md:pb-[88px] px-4 md:px-[120px] ${section.className || ''}`}>
       <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row gap-6 md:gap-[48px] md:items-start">
-        {/* 左侧：标题、副标题和插图（桌面端） */}
-        <div className="flex flex-col gap-6 md:gap-[80px] md:">
+        {/* 左侧：标题、副标题和评价列表（桌面端） */}
+        <div className="flex flex-col gap-6 md:gap-[48px] md:flex-1 md:min-w-0">
           {/* 标题和副标题 - 保持在顶部 */}
           <div className="flex flex-col gap-2 md:gap-3 flex-shrink-0 text-center md:text-left">
             {section.title && (
@@ -911,9 +923,9 @@ const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section })
             )}
           </div>
           
-          {/* 插图 - 桌面端：使用  和 items-center 来垂直居中 */}
+          {/* 移动端：插图显示在标题和描述下方，评价列表上方 */}
           {section.illustrationImage && (
-            <div className="hidden md:flex w-full items-center justify-start md: md:items-center md:justify-start">
+            <div className="w-full flex items-center justify-center md:hidden">
               <img 
                 src={section.illustrationImage} 
                 alt="Christmas Wonder Illustration" 
@@ -921,12 +933,11 @@ const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section })
               />
             </div>
           )}
-        </div>
-        
-        {/* 右侧：评价列表 - 从顶部开始，独立于左侧 */}
-        {section.testimonials && section.testimonials.length > 0 && (
-          <div className=" flex flex-col md:gap-12 gap-7 md:self-start">
-            {section.testimonials.map((testimonial, index) => {
+          
+          {/* 评价列表 - 桌面端：移到左侧 */}
+          {section.testimonials && section.testimonials.length > 0 && (
+            <div className="hidden md:flex flex-col gap-12 md:max-w-[546px]">
+              {section.testimonials.map((testimonial, index) => {
                 // 根据索引定义每个卡片的样式
                 const cardStyles = [
                   // 第1个：angle: 4deg, border-radius: 48px 120px 120px 4px
@@ -958,7 +969,7 @@ const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section })
                 return (
                   <div 
                     key={index}
-                    className={`bg-white flex items-center hidden md:flex gap-3 ${isAvatarRight ? 'flex-row-reverse' : ''}`}
+                    className={`bg-white flex items-center gap-3 ${isAvatarRight ? 'flex-row-reverse' : ''}`}
                     style={{
                       padding: '24px',
                       transform: style.transform,
@@ -978,14 +989,19 @@ const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section })
                     )}
                     
                     {/* 评价文本 */}
-                    <p className="text-[#222222] text-[14px] md:text-[18px] font-normal md:font-medium leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] ">
+                    <p className="text-[#222222] text-[14px] md:text-[18px] font-normal md:font-medium leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] flex-1">
                       "{testimonial.text}"
                     </p>
                   </div>
                 );
-            })}
-            {/* 移动端显示 */}
-            {section.testimonials.map((testimonial, index) => {
+              })}
+            </div>
+          )}
+          
+          {/* 移动端：评价列表显示 */}
+          {section.testimonials && section.testimonials.length > 0 && (
+            <div className="md:hidden flex flex-col gap-7">
+              {section.testimonials.map((testimonial, index) => {
               // 根据索引定义每个移动端卡片的样式
               const mobileCardStyles = [
                 // 第1个：angle: 4deg, border-radius: 36px 120px 120px 4px
@@ -1014,45 +1030,46 @@ const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section })
               // 第1和第3个（索引0和2）：头像在左侧；第2和第4个（索引1和3）：头像在右侧
               const isAvatarRight = index === 1 || index === 3;
               
-              return (
-                <div 
-                  key={`mobile-${index}`}
-                  className={`bg-white flex items-center md:hidden gap-[12px] ${isAvatarRight ? 'flex-row-reverse' : ''}`}
-                  style={{
-                    padding: '12px 24px',
-                    transform: mobileStyle.transform,
-                    borderRadius: mobileStyle.borderRadius,
-                    opacity: 1,
-                  }}
-                >
-                  {/* 头像 */}
-                  {testimonial.avatar ? (
-                    <img 
-                      src={testimonial.avatar} 
-                      alt="Avatar" 
-                      className="w-10 h-10 object-cover flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 bg-gray-300 flex-shrink-0"></div>
-                  )}
-                  
-                  {/* 评价文本 */}
-                  <p className="text-[#222222] text-[14px] md:text-[18px] font-normal md:font-medium leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] ">
-                    "{testimonial.text}"
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                return (
+                  <div 
+                    key={`mobile-${index}`}
+                    className={`bg-white flex items-center gap-[12px] ${isAvatarRight ? 'flex-row-reverse' : ''}`}
+                    style={{
+                      padding: '12px 24px',
+                      transform: mobileStyle.transform,
+                      borderRadius: mobileStyle.borderRadius,
+                      opacity: 1,
+                    }}
+                  >
+                    {/* 头像 */}
+                    {testimonial.avatar ? (
+                      <img 
+                        src={testimonial.avatar} 
+                        alt="Avatar" 
+                        className="w-10 h-10 object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-300 flex-shrink-0"></div>
+                    )}
+                    
+                    {/* 评价文本 */}
+                    <p className="text-[#222222] text-[14px] md:text-[18px] font-normal md:font-medium leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] ">
+                      "{testimonial.text}"
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
         
-        {/* 移动端：插图显示在评论下方，水平居中 */}
+        {/* 右侧：插图（桌面端） */}
         {section.illustrationImage && (
-          <div className="w-full flex items-center justify-center md:hidden">
+          <div className="hidden md:flex items-start justify-center md:flex-1 md:min-w-0 md:-mt-[70px]">
             <img 
               src={section.illustrationImage} 
               alt="Christmas Wonder Illustration" 
-              className="w-auto max-h-[120px] object-contain"
+              className="w-full max-h-[546px] object-contain"
             />
           </div>
         )}

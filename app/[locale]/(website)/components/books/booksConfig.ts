@@ -119,15 +119,14 @@ const GOODNIGHT_BASE_CONFIG: Omit<BookConfig, 'id'> = {
       {
         type: 'behind-story',
         title: 'Behind the Story',
-        content: `Bedtime stories have always been part of my daughter's routine.
-But sometimes, the stories made her too excited to fall asleep.
-I wanted to create a story that gently guides children into dreamland.
-A story that makes them look forward to bedtime, with adventures waiting after they close their eyes.
-Turning sleep into something exciting helps reduce delays and makes nights calmer for everyone.`,
-      backgroundImage:
-        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-behind.jpg',
-        backgroundOverlay: 'linear-gradient(0deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8))',
-        className: 'md:h-[408px] md:py-[88px] py-[32px] px-[12px]',
+        paragraphs: [
+          "Bedtime stories have always been part of my daughter's routine.",
+          "But sometimes, the stories made her too excited to fall asleep.",
+          "I wanted to create a story that gently guides children into dreamland.",
+          "A story that makes them look forward to bedtime, with adventures waiting after they close their eyes.",
+          "Turning sleep into something exciting helps reduce delays and makes nights calmer for everyone.",
+        ],
+        authorImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-behind.jpg',
       },
       {
         type: 'toddler-favorites',
@@ -180,28 +179,28 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
           {
             title: 'Makes bedtime easier',
             description: 'Kids calm down faster when they see themselves in the story.',
-          backgroundImage:
-            'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-1.png',
           },
           {
             title: 'Builds self-recognition',
             description: 'Like a mirror in story form, helping children feel seen and valued.',
-          backgroundImage:
-            'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-2.png',
           },
           {
             title: 'Strengthens bonding',
             description: 'Creates meaningful parent–child moments you’ll both remember.',
-          backgroundImage:
-            'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-3.png',
           },
           {
             title: 'A keepsake for life',
             description: 'More than a book, it’s a treasure you’ll want to keep forever.',
-          backgroundImage:
-            'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png',
-        },
-      ],
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-4.png',
+          },
+        ],
     },
   ],
 };
