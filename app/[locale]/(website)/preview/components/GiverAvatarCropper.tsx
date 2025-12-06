@@ -137,9 +137,14 @@ export default function GiverAvatarCropper({ onDone, onCancel, aspectRatio, maxS
     const resp: any = await api.post(`/products/${encodeURIComponent(spu)}/pages/p3-4/upload-special-image`, requestBody, {
       timeout: 120000, // 图片上传需要更长时间，设置为 120 秒
     });
-    // 后端不返回任何字段，仅以状态码表示成功；这里直接返回空字符串，交由父组件决定是否更新
-    console.log('Special image uploaded successfully (no payload required)');
-    return '';
+    // 后端返回 data.image_url，需要返回给父组件使用
+    const imageUrl = resp?.data?.image_url || resp?.image_url || '';
+    if (imageUrl) {
+      console.log('Special image uploaded successfully, image_url:', imageUrl);
+    } else {
+      console.warn('Special image uploaded but no image_url in response:', resp);
+    }
+    return imageUrl;
   };
 
   const onApply = async () => {

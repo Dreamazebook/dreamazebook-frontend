@@ -2,7 +2,7 @@ import React from 'react';
 
 // 定义书籍section的类型
 export interface BookSection {
-  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'meet-author' | 'tips' | 'custom' | 'christmas-wonder' | 'personalization-power' | 'dreamaze-special' | 'faq'; // section类型，可以扩展
+  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'meet-author' | 'tips' | 'custom' | 'christmas-wonder' | 'personalization-power' | 'dreamaze-special' | 'faq' | 'gift-packages'; // section类型，可以扩展
   title?: string; // section标题
   content?: string; // section内容
   description?: string; // section描述文字
@@ -15,6 +15,8 @@ export interface BookSection {
   paragraphs?: string[]; // 段落数组
   // Tips 专用字段
   tips?: string[]; // 提示列表数组
+  bulletImage?: string; // Bullet point 图片URL（已废弃，使用 bulletImages）
+  bulletImages?: string[]; // Bullet point 图片URL数组，与 tips 一一对应
   // SVG 装饰元素配置
   svgDecorations?: Array<{
     svg: React.ReactNode; // SVG元素
@@ -68,6 +70,20 @@ export interface BookSection {
   }>;
   // FAQ 专用字段
   faqs?: BookFAQ[]; // FAQ列表
+  // Gift Packages 专用字段
+  giftPackages?: Array<{
+    id: number;
+    quantity: string;
+    title: string;
+    description: string;
+    discount: string;
+    extras: string;
+    image: string;
+  }>;
+  bannerImage?: string; // 顶部横幅背景图
+  bannerTitle?: string; // 横幅标题
+  bannerDescription?: string[]; // 横幅描述（数组）
+  waveImage?: string; // 波浪装饰图
 }
 
 // 定义书籍规格的类型
@@ -119,15 +135,14 @@ const GOODNIGHT_BASE_CONFIG: Omit<BookConfig, 'id'> = {
       {
         type: 'behind-story',
         title: 'Behind the Story',
-        content: `Bedtime stories have always been part of my daughter's routine.
-But sometimes, the stories made her too excited to fall asleep.
-I wanted to create a story that gently guides children into dreamland.
-A story that makes them look forward to bedtime, with adventures waiting after they close their eyes.
-Turning sleep into something exciting helps reduce delays and makes nights calmer for everyone.`,
-      backgroundImage:
-        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-behind.jpg',
-        backgroundOverlay: 'linear-gradient(0deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8))',
-        className: 'md:h-[408px] md:py-[88px] py-[32px] px-[12px]',
+        paragraphs: [
+          "Bedtime stories have always been part of my daughter's routine.",
+          "But sometimes, the stories made her too excited to fall asleep.",
+          "I wanted to create a story that gently guides children into dreamland.",
+          "A story that makes them look forward to bedtime, with adventures waiting after they close their eyes.",
+          "Turning sleep into something exciting helps reduce delays and makes nights calmer for everyone.",
+        ],
+        authorImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-behind.jpg',
       },
       {
         type: 'toddler-favorites',
@@ -180,28 +195,28 @@ Turning sleep into something exciting helps reduce delays and makes nights calme
           {
             title: 'Makes bedtime easier',
             description: 'Kids calm down faster when they see themselves in the story.',
-          backgroundImage:
-            'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-1.png',
           },
           {
             title: 'Builds self-recognition',
             description: 'Like a mirror in story form, helping children feel seen and valued.',
-          backgroundImage:
-            'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-2.png',
           },
           {
             title: 'Strengthens bonding',
             description: 'Creates meaningful parent–child moments you’ll both remember.',
-          backgroundImage:
-            'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-3.png',
           },
           {
             title: 'A keepsake for life',
             description: 'More than a book, it’s a treasure you’ll want to keep forever.',
-          backgroundImage:
-            'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card.png',
-        },
-      ],
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-4.png',
+          },
+        ],
     },
   ],
 };
@@ -283,6 +298,14 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
       {
         type: 'tips',
         title: 'Tips to Help Your Child Build Courage',
+        bulletImages: [
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bullet-1.png',
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bullet-2.png',
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bullet-3.png',
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bullet-4.png',
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bullet-5.png',
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bullet-6.png',
+        ],
         tips: [
           "Speak as if they're already brave",
           'Validate their feelings',
@@ -331,6 +354,7 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
         type: 'christmas-wonder',
         title: 'Our Christmas Wonder',
         description: "See what little readers say about their very own Santa's Letter!",
+        backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_SANTA/wonder-bg.webp',
         illustrationImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_SANTA/wonder-left.png',
         testimonials: [
           {
@@ -349,6 +373,45 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
             text: "I always sneak back to look at the pages — it's really me, it's really me!!!",
             avatar: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_SANTA/wonder-4.jpg',
           },
+        ],
+      },
+      {
+        type: 'gift-packages',
+        bannerImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/top_picks_this_month/banner.webp',
+        bannerTitle: 'Ready-to-Gift Packages',
+        bannerDescription: [
+          'Handpicked bundles with books + keepsakes - beautifully wrapped for effortless gifting.',
+          'Create your own perfect gift set'
+        ],
+        waveImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/top_picks_this_month/wave_2.webp',
+        giftPackages: [
+          {
+            id: 1,
+            quantity: 'x2',
+            title: 'Side by Side Set',
+            description: 'Perfect for siblings or friends',
+            discount: '10%',
+            extras: 'holiday extras',
+            image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/ready_to_gift_packages/pic_1.webp'
+          },
+          {
+            id: 2,
+            quantity: 'x3',
+            title: 'Growing Together Set',
+            description: 'One story for each child to feel seen',
+            discount: '15%',
+            extras: 'free personalized cover',
+            image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/ready_to_gift_packages/pic_2.webp'
+          },
+          {
+            id: 3,
+            quantity: 'x4',
+            title: 'Holiday Sharing Set',
+            description: 'A joyful gift for holiday gatherings.',
+            discount: '20%',
+            extras: 'premium festive wrapping',
+            image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/ready_to_gift_packages/pic_3.webp'
+          }
         ],
       },
     ],
@@ -395,18 +458,22 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
           {
             title: 'Hand-drawn illustrations',
             description: 'Heartfelt stories, never low-quality AI scenes',
+            icon: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/why-families-choose/illustrations.webp',
           },
           {
             title: 'Real photo personalization',
             description: 'Instant recognition, deeper connection',
+            icon: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/why-families-choose/photo.webp',
           },
           {
             title: 'Supports self-recognition',
             description: 'Reading their own story builds identity & confidence',
+            icon: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/why-families-choose/self-recognition.webp',
           },
           {
             title: 'Keepsake quality',
             description: 'Premium, non-toxic paper for little hands',
+            icon: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/why-families-choose/keepsake.webp',
           },
         ],
         specialTestimonials: [

@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { Link } from '@/i18n/routing';
+import { BOOKS_URL } from '@/constants/links';
+import DreamzeImage from '@/app/components/DreamzeImage';
 import { getBookConfig, BookSection } from './booksConfig';
 
 interface BookSectionsProps {
@@ -9,35 +12,47 @@ interface BookSectionsProps {
 
 // Behind the Story Section 组件
 const BehindStorySection: React.FC<{ section: BookSection }> = ({ section }) => {
-  const backgroundStyle = section.backgroundImage
-    ? {
-        backgroundImage: section.backgroundOverlay
-          ? `${section.backgroundOverlay}, url(${section.backgroundImage})`
-          : `url(${section.backgroundImage})`,
-      }
-    : {};
+  // 处理段落：优先使用 paragraphs，如果没有则从 content 按换行符分割
+  const paragraphs = section.paragraphs || (section.content ? section.content.split('\n').filter(p => p.trim()) : []);
+  
+  // 优先使用 authorImage，如果没有则使用 backgroundImage
+  const imageUrl = section.authorImage || section.backgroundImage;
 
   return (
-    <div
-      className={`items-center justify-center mx-auto flex flex-col gap-12 bg-cover bg-center bg-no-repeat ${section.className || ''}`}
-      style={backgroundStyle}
-    >
-      {section.title && (
-        <h2
-          className="text-center text-[24px] md:text-[40px] font-semibold md:font-medium leading-[32px] md:leading-[64px]"
-          style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
-        >
-          {section.title}
-        </h2>
-      )}
+    <div className={`w-full bg-white pt-12 gap-8 md:h-[616px] md:pt-[88px] md:pr-[120px] md:pb-[88px] md:pl-[120px] flex flex-col md:flex-row md:gap-[48px] ${section.className || ''}`}>
+      {/* 右侧：文字内容 - 手机端在上，桌面端在右 */}
+      <div className="flex flex-col px-4 md:px-0 gap-[24px] gap-6 order-1 md:order-2 md:justify-center md:w-1/2">
+        {/* 标题 */}
+        {section.title && (
+          <h2 className="font-semibold md:font-medium text-center md:text-left text-[24px] md:text-[40px] leading-[32px] md:leading-[64px] text-[#222222]">
+            {section.title}
+          </h2>
+        )}
+        
+        {/* 段落 */}
+        {paragraphs.length > 0 && (
+          <div className="flex flex-col gap-[6px]">
+            {paragraphs.map((paragraph, index) => (
+              <p 
+                key={index}
+                className="font-normal text-[14px] md:text-[16px] leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] text-[#222222]"
+              >
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        )}
+      </div>
       
-      {section.content && (
-        <p
-          className="px-12 max-w-[1200px] h-auto mx-auto text-center text-base font-normal leading-6 tracking-[0.5px]"
-          style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
-        >
-          {section.content}
-        </p>
+      {/* 左侧：图片 - 手机端在下，桌面端在左 */}
+      {imageUrl && (
+        <div className="w-full md:w-1/2 order-2 md:order-1">
+          <img 
+            src={imageUrl} 
+            alt={section.title || 'Behind the Story'} 
+            className="w-full md:h-full object-cover"
+          />
+        </div>
       )}
     </div>
   );
@@ -51,7 +66,7 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
       <div className={`w-full h-auto bg-[#FCF2F2] relative ${section.className || ''} overflow-hidden`}>
         {/* SVG Decorations - 位于背景和白色容器之间 */}
         {/* Right Side SVG */}
-        <div 
+        {/* <div 
           className="absolute z-0"
           style={{
             width: '341.63px',
@@ -66,10 +81,10 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
             <path d="M187.668 147.869C193.2 112.791 188.498 35.8206 125.428 8.5663C4.28071 -43.7844 -4.07018 156.444 1.12005 266.353C2.69746 299.757 28.0529 327.114 61.4927 326.85C157.241 326.093 290.896 285.51 357.855 136.223C388.355 68.223 280.476 68.6979 187.668 147.869Z" fill="#FFDFDF"/>
             <path d="M187.668 147.869C193.2 112.791 188.498 35.8206 125.428 8.5663C4.28071 -43.7844 -4.07018 156.444 1.12005 266.353C2.69746 299.757 28.0529 327.114 61.4927 326.85C157.241 326.093 290.896 285.51 357.855 136.223C388.355 68.223 280.476 68.6979 187.668 147.869Z" fill="#E0E8FF"/>
           </svg>
-        </div>
+        </div> */}
         
         {/* Left Side SVG */}
-        <div 
+        {/* <div 
           className="absolute z-0"
           style={{
             width: '287px',
@@ -82,10 +97,10 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
           <svg width="287" height="280" viewBox="0 0 287 280" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M193.41 79.1659C189.171 59.1789 170.804 18.7815 131.245 17.0885C74.9488 14.6793 122.381 77.756 154.237 109.34C109.024 116.394 50.5384 97.4155 38.3843 119.921C19.2999 155.26 105.496 162.246 140.817 166.479C119.622 178.471 22.9319 216.264 4.4747 251.129C-13.9825 285.995 25.6678 292.043 104.787 253.951C183.907 215.858 273.487 105.594 285.03 40.8466C299.869 -42.39 227.082 17.5593 193.41 79.1659Z" fill="#FFE9D6"/>
           </svg>
-        </div>
+        </div> */}
         
         {/* Additional SVG Decoration */}
-        <div 
+        {/* <div 
           className="absolute z-0"
           style={{
             width: '592px',
@@ -98,10 +113,10 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
           <svg width="592" height="448" viewBox="0 0 592 448" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M435.616 4.35204L422.731 155.067C422.542 157.283 424.196 159.228 426.413 159.396L549.49 168.756C553.434 169.055 554.596 174.288 551.15 176.229L442.809 237.259C440.13 238.768 440.085 242.611 442.729 244.182L635.812 358.967C639.503 361.162 637.614 366.838 633.344 366.383L441.212 345.897C438.849 345.645 436.788 347.497 436.788 349.874V418.006C436.788 421.647 432.318 423.395 429.848 420.718L356.423 341.128C354.547 339.095 351.223 339.534 349.939 341.985L229.183 572.603C227.034 576.706 220.795 574.487 221.72 569.949L274.677 310.191C275.246 307.399 272.797 304.924 269.999 305.464L121.49 334.123C117.471 334.899 115.019 329.851 118.114 327.172L216.914 241.624C219.213 239.634 218.538 235.907 215.687 234.85L2.61458 155.816C-1.66946 154.227 -0.369949 147.855 4.19422 148.071L233.951 158.914C236.049 159.013 237.867 157.472 238.112 155.385L249.564 57.8456C249.997 54.1567 254.787 52.9985 256.858 56.0819L314.706 142.216C316.235 144.492 319.548 144.59 321.209 142.409L428.448 1.58793C430.874 -1.59775 435.957 0.362357 435.616 4.35204Z" fill="#FFE3E3"/>
           </svg>
-        </div>
+        </div> */}
         
         {/* Title and Description Container */}
-        <div className="max-w-[815px] w-full mx-auto flex flex-col lg:gap-[48px] gap-[24px] relative z-10">
+        <div className="max-w-[815px] w-full mx-auto flex flex-col gap-[24px] relative z-10">
           {/* Title Container */}
           {section.title && (
             <div className="max-w-[627px] w-full mx-auto flex flex-col">
@@ -131,7 +146,7 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
         </div>
         
         {/* Bundle Image Display and Price/Button Container */}
-        <div className="bg-[#FFFFFF] h-auto py-12 rounded-[4px] mx-auto flex flex-col gap-[24px] relative z-10">
+        <div className="bg-[#FFFFFF] h-auto pb-12 rounded-[4px] mx-auto flex flex-col relative z-10">
           {/* Bundle Image - 移动端和桌面端使用不同的图片 */}
           <div className="flex items-center justify-center w-full">
             {/* 移动端图片 */}
@@ -153,10 +168,9 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
                 <Image
                   src={section.bundleImage || section.bundleImageMobile || ''}
                   alt={section.title || 'Bundle'}
-                  width={1200}
-                  height={600}
-                  className="h-auto object-contain mx-auto"
-                  style={{ maxHeight: '303.3381042480469px' }}
+                  className="h-[328px] w-auto object-contain mx-auto"
+                  width={600}
+                  height={328}
                 />
               </div>
             )}
@@ -429,7 +443,7 @@ const MeetAuthorSection: React.FC<{ section: BookSection }> = ({ section }) => {
   return (
     <div className={`w-full bg-white pt-12 gap-8 md:h-[616px] md:pt-[88px] md:pr-[120px] md:pb-[88px] md:pl-[120px] flex flex-col md:flex-row md:gap-[48px] ${section.className || ''}`}>
       {/* 右侧：文字内容 - 手机端在上，桌面端在右 */}
-      <div className="flex flex-col px-4 md:px-0 gap-[24px] gap-6 order-1 md:order-2 md:">
+      <div className="flex flex-col px-4 md:px-0 gap-[24px] gap-6 order-1 md:order-2 md:justify-center md:w-1/2">
         {/* 标题 */}
         {section.title && (
           <h2 className="font-semibold md:font-medium text-center md:text-left text-[24px] md:text-[40px] leading-[32px] md:leading-[64px] text-[#222222]">
@@ -454,7 +468,7 @@ const MeetAuthorSection: React.FC<{ section: BookSection }> = ({ section }) => {
       
       {/* 左侧：作者图片 - 手机端在下，桌面端在左 */}
       {section.authorImage && (
-        <div className="w-full order-2 md:order-1 md:">
+        <div className="w-full md:w-1/2 order-2 md:order-1">
           <img 
             src={section.authorImage} 
             alt="Author" 
@@ -532,14 +546,21 @@ const DreamazeSpecialSection: React.FC<{ section: BookSection }> = ({ section })
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-[600px] md:max-w-[1200px] mx-auto px-14 md:px-0">
             {features.map((feature, index) => (
               <div key={index} className="flex items-start gap-4">
-                {/* 图标占位符 */}
-                <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-200 rounded flex-shrink-0 flex items-center justify-center">
-                  {feature.icon ? (
-                    <img src={feature.icon} alt={feature.title} className="w-full h-full object-contain" />
-                  ) : (
-                    <div className="w-8 h-8 md:w-12 md:h-12 bg-gray-300 rounded"></div>
-                  )}
-                </div>
+                {/* 图标 */}
+                {feature.icon ? (
+                  <div className="w-[64px] h-[64px] flex-shrink-0 self-center rounded-[4px] overflow-hidden">
+                    <Image
+                      src={feature.icon}
+                      alt={feature.title}
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-cover scale-100"
+                      unoptimized={true}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-[64px] h-[64px] bg-[#E0E0E0] self-center flex-shrink-0 rounded-[4px]" />
+                )}
                 {/* 文本内容 */}
                 <div className="flex flex-col md:gap-1 gap-0 ">
                   <h3 className="font-medium text-[16px] md:text-[18px] leading-[24px] md:leading-[24px] tracking-[0.15px] md:tracking-[0.5px] text-[#222222]">
@@ -807,37 +828,93 @@ const DreamazeSpecialSection: React.FC<{ section: BookSection }> = ({ section })
 // Tips Section 组件
 const TipsSection: React.FC<{ section: BookSection }> = ({ section }) => {
   const tips = section.tips || [];
-  // 将提示列表分成两列
-  const leftColumn = tips.slice(0, Math.ceil(tips.length / 2));
-  const rightColumn = tips.slice(Math.ceil(tips.length / 2));
+  const bulletImages = section.bulletImages || [];
+  const bulletImage = section.bulletImage; // 向后兼容：如果只有单个图片，所有bullet使用同一张
+  
+  // 获取指定索引的bullet图片
+  const getBulletImage = (index: number) => {
+    if (bulletImages.length > index) {
+      return bulletImages[index];
+    }
+    // 向后兼容：如果没有对应的图片，使用单个bulletImage
+    return bulletImage;
+  };
+  
+  // 将提示列表分成两列，同时保留原始索引
+  const leftColumn = tips.slice(0, Math.ceil(tips.length / 2)).map((tip, localIndex) => ({
+    tip,
+    originalIndex: localIndex
+  }));
+  const rightColumn = tips.slice(Math.ceil(tips.length / 2)).map((tip, localIndex) => ({
+    tip,
+    originalIndex: Math.ceil(tips.length / 2) + localIndex
+  }));
 
   return (
-    <div className={`w-full bg-white md:h-[504px] h-auto md:py-[88px] py-12 px-[80px] md:px-0 flex flex-col md:gap-[48px] gap-6 ${section.className || ''}`}>
+    <div className={`w-full bg-white h-auto md:py-[88px] py-12 px-[80px] md:px-0 flex flex-col md:gap-[48px] gap-6 ${section.className || ''}`}>
       {section.title && (
         <h2 className="md:font-medium text-[24px] font-semibold leading-[32px] md:text-[40px] md:leading-[40px] text-[#222222] text-center">
           {section.title}
         </h2>
       )}
       
-      <div className="flex flex-col md:flex-row md:gap-[48px] gap-4 max-w-[1060px] md:h-[240px] h-auto mx-auto w-full md:px-4 px-0 md:items-center items-start justify-center">
+      <div className="flex flex-col md:flex-row md:gap-[48px] gap-4 max-w-[1060px] h-auto mx-auto w-full md:px-4 px-0 md:items-center items-start justify-center">
         {/* 左列 */}
         <div className="flex flex-col md:gap-12 gap-4 ">
-          {leftColumn.map((tip, index) => (
-            <div key={index} className="flex items-center gap-3">
-              <div className="md:w-12 w-9 md:h-12 h-9 bg-gray-300 shrink-0"></div>
-              <span className="text-[#222222] md:font-medium font-normal md:text-[18px] text-[14px] md:leading-[24px] leading-[20px] md:tracking-[0.5px] tracking-[0.25px]">• {tip}</span>
-            </div>
-          ))}
+          {leftColumn.map(({ tip, originalIndex }) => {
+            const imageUrl = getBulletImage(originalIndex);
+            return (
+              <div key={originalIndex} className="flex items-center gap-3">
+                {imageUrl ? (
+                  <div className="md:w-16 w-9 md:h-16 h-9 shrink-0 flex items-center justify-center">
+                    <Image
+                      src={imageUrl}
+                      alt=""
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-contain"
+                      unoptimized={true}
+                    />
+                  </div>
+                ) : (
+                  <div className="md:w-12 w-9 md:h-12 h-9 bg-gray-300 shrink-0"></div>
+                )}
+                <span className="text-[#222222] md:font-medium font-normal md:text-[18px] text-[14px] md:leading-[24px] leading-[20px] md:tracking-[0.5px] tracking-[0.25px]">
+                  <span className="mr-2 md:mr-3 md:ml-1">•</span>
+                  {tip}
+                </span>
+              </div>
+            );
+          })}
         </div>
         
         {/* 右列 */}
         <div className="flex flex-col md:gap-12 gap-4 ">
-          {rightColumn.map((tip, index) => (
-            <div key={index} className="flex items-center gap-3">
-              <div className="md:w-12 w-9 md:h-12 h-9 bg-gray-300 shrink-0"></div>
-              <span className="text-[#222222] md:font-medium font-normal md:text-[18px] text-[14px] md:leading-[24px] leading-[20px] md:tracking-[0.5px] tracking-[0.25px]">• {tip}</span>
-            </div>
-          ))}
+          {rightColumn.map(({ tip, originalIndex }) => {
+            const imageUrl = getBulletImage(originalIndex);
+            return (
+              <div key={originalIndex} className="flex items-center gap-3">
+                {imageUrl ? (
+                  <div className="md:w-16 w-9 md:h-16 h-9 shrink-0 flex items-center justify-center">
+                    <Image
+                      src={imageUrl}
+                      alt=""
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-contain"
+                      unoptimized={true}
+                    />
+                  </div>
+                ) : (
+                  <div className="md:w-12 w-9 md:h-12 h-9 bg-gray-300 shrink-0"></div>
+                )}
+                <span className="text-[#222222] md:font-medium font-normal md:text-[18px] text-[14px] md:leading-[24px] leading-[20px] md:tracking-[0.5px] tracking-[0.25px]">
+                  <span className="mr-2 md:mr-3 md:ml-1">•</span>
+                  {tip}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -859,7 +936,7 @@ const WhyPersonalizedSection: React.FC<{ section: BookSection }> = ({ section })
 
       <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 gap-[6px] md:w-[732px] md:h-[532px] mx-auto justify-items-center md:justify-items-stretch w-full px-4 md:px-0">
         {(section.items || []).map((item, idx) => (
-          <div key={idx} className="relative overflow-hidden rounded-[4px] h-auto w-full max-w-[343px] md:h-[260px] md:w-[360px] md:pt-16 md:pr-9 md:pb-12 md:pl-9 pt-6 pr-9 pb-6 pl-9 bg-[#FBE5E5]">
+          <div key={idx} className="relative overflow-hidden rounded-[4px] h-auto w-full max-w-[343px] md:h-[260px] md:w-[360px] md:pt-16 md:pr-9 md:pb-12 md:pl-9 pt-6 pr-9 pb-6 pl-9 bg-[#FCF2F2]">
             {/* 背景图层 */}
             <div
               className="absolute inset-0 z-0 pointer-events-none"
@@ -885,11 +962,31 @@ const WhyPersonalizedSection: React.FC<{ section: BookSection }> = ({ section })
 
 // Christmas Wonder Section 组件
 const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section }) => {
+  const backgroundImageStyle = section.backgroundImage
+    ? {
+        backgroundImage: section.backgroundOverlay
+          ? `${section.backgroundOverlay}, url(${section.backgroundImage})`
+          : `url(${section.backgroundImage})`,
+        backgroundSize: '100% auto',
+        backgroundPosition: 'center bottom',
+        backgroundRepeat: 'no-repeat',
+      }
+    : {};
+
   return (
-    <div className={`w-full bg-[#FFF5F5] py-12 md:pt-[88px] md:pb-[88px] px-4 md:px-[120px] ${section.className || ''}`}>
-      <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row gap-6 md:gap-[48px] md:items-start">
-        {/* 左侧：标题、副标题和插图（桌面端） */}
-        <div className="flex flex-col gap-6 md:gap-[80px] md:">
+    <div 
+      className={`w-full py-12 md:pt-[88px] md:pb-[88px] px-4 md:px-[120px] relative bg-[#FFF5F5] ${section.className || ''}`}
+    >
+      {/* 背景图层 - 叠加在背景色上面 */}
+      {section.backgroundImage && (
+        <div 
+          className="absolute inset-0 z-0 pointer-events-none"
+          style={backgroundImageStyle}
+        />
+      )}
+      <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row gap-6 md:gap-[48px] md:items-start relative z-10">
+        {/* 左侧：标题、副标题和评价列表（桌面端） */}
+        <div className="flex flex-col gap-6 md:gap-[48px] md:flex-1 md:min-w-0">
           {/* 标题和副标题 - 保持在顶部 */}
           <div className="flex flex-col gap-2 md:gap-3 flex-shrink-0 text-center md:text-left">
             {section.title && (
@@ -905,9 +1002,9 @@ const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section })
             )}
           </div>
           
-          {/* 插图 - 桌面端：使用  和 items-center 来垂直居中 */}
+          {/* 移动端：插图显示在标题和描述下方，评价列表上方 */}
           {section.illustrationImage && (
-            <div className="hidden md:flex w-full items-center justify-start md: md:items-center md:justify-start">
+            <div className="w-full flex items-center justify-center md:hidden">
               <img 
                 src={section.illustrationImage} 
                 alt="Christmas Wonder Illustration" 
@@ -915,12 +1012,11 @@ const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section })
               />
             </div>
           )}
-        </div>
-        
-        {/* 右侧：评价列表 - 从顶部开始，独立于左侧 */}
-        {section.testimonials && section.testimonials.length > 0 && (
-          <div className=" flex flex-col md:gap-12 gap-7 md:self-start">
-            {section.testimonials.map((testimonial, index) => {
+          
+          {/* 评价列表 - 桌面端：移到左侧 */}
+          {section.testimonials && section.testimonials.length > 0 && (
+            <div className="hidden md:flex flex-col gap-12 md:max-w-[546px]">
+              {section.testimonials.map((testimonial, index) => {
                 // 根据索引定义每个卡片的样式
                 const cardStyles = [
                   // 第1个：angle: 4deg, border-radius: 48px 120px 120px 4px
@@ -952,7 +1048,7 @@ const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section })
                 return (
                   <div 
                     key={index}
-                    className={`bg-white flex items-center hidden md:flex gap-3 ${isAvatarRight ? 'flex-row-reverse' : ''}`}
+                    className={`bg-white flex items-center gap-3 ${isAvatarRight ? 'flex-row-reverse' : ''}`}
                     style={{
                       padding: '24px',
                       transform: style.transform,
@@ -972,14 +1068,19 @@ const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section })
                     )}
                     
                     {/* 评价文本 */}
-                    <p className="text-[#222222] text-[14px] md:text-[18px] font-normal md:font-medium leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] ">
+                    <p className="text-[#222222] text-[14px] md:text-[18px] font-normal md:font-medium leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] flex-1">
                       "{testimonial.text}"
                     </p>
                   </div>
                 );
-            })}
-            {/* 移动端显示 */}
-            {section.testimonials.map((testimonial, index) => {
+              })}
+            </div>
+          )}
+          
+          {/* 移动端：评价列表显示 */}
+          {section.testimonials && section.testimonials.length > 0 && (
+            <div className="md:hidden flex flex-col gap-7">
+              {section.testimonials.map((testimonial, index) => {
               // 根据索引定义每个移动端卡片的样式
               const mobileCardStyles = [
                 // 第1个：angle: 4deg, border-radius: 36px 120px 120px 4px
@@ -1008,48 +1109,138 @@ const ChristmasWonderSection: React.FC<{ section: BookSection }> = ({ section })
               // 第1和第3个（索引0和2）：头像在左侧；第2和第4个（索引1和3）：头像在右侧
               const isAvatarRight = index === 1 || index === 3;
               
-              return (
-                <div 
-                  key={`mobile-${index}`}
-                  className={`bg-white flex items-center md:hidden gap-[12px] ${isAvatarRight ? 'flex-row-reverse' : ''}`}
-                  style={{
-                    padding: '12px 24px',
-                    transform: mobileStyle.transform,
-                    borderRadius: mobileStyle.borderRadius,
-                    opacity: 1,
-                  }}
-                >
-                  {/* 头像 */}
-                  {testimonial.avatar ? (
-                    <img 
-                      src={testimonial.avatar} 
-                      alt="Avatar" 
-                      className="w-10 h-10 object-cover flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 bg-gray-300 flex-shrink-0"></div>
-                  )}
-                  
-                  {/* 评价文本 */}
-                  <p className="text-[#222222] text-[14px] md:text-[18px] font-normal md:font-medium leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] ">
-                    "{testimonial.text}"
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                return (
+                  <div 
+                    key={`mobile-${index}`}
+                    className={`bg-white flex items-center gap-[12px] ${isAvatarRight ? 'flex-row-reverse' : ''}`}
+                    style={{
+                      padding: '12px 24px',
+                      transform: mobileStyle.transform,
+                      borderRadius: mobileStyle.borderRadius,
+                      opacity: 1,
+                    }}
+                  >
+                    {/* 头像 */}
+                    {testimonial.avatar ? (
+                      <img 
+                        src={testimonial.avatar} 
+                        alt="Avatar" 
+                        className="w-10 h-10 object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-300 flex-shrink-0"></div>
+                    )}
+                    
+                    {/* 评价文本 */}
+                    <p className="text-[#222222] text-[14px] md:text-[18px] font-normal md:font-medium leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.5px] ">
+                      "{testimonial.text}"
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
         
-        {/* 移动端：插图显示在评论下方，水平居中 */}
+        {/* 右侧：插图（桌面端） */}
         {section.illustrationImage && (
-          <div className="w-full flex items-center justify-center md:hidden">
+          <div className="hidden md:flex items-start justify-center md:flex-1 md:min-w-0 md:-mt-[70px]">
             <img 
               src={section.illustrationImage} 
               alt="Christmas Wonder Illustration" 
-              className="w-auto max-h-[120px] object-contain"
+              className="w-full max-h-[546px] object-contain"
             />
           </div>
         )}
+      </div>
+    </div>
+  );
+};
+
+// Gift Packages Section 组件
+const GiftPackagesSection: React.FC<{ section: BookSection }> = ({ section }) => {
+  const packages = section.giftPackages || [];
+  const bannerImage = section.bannerImage;
+  const bannerTitle = section.bannerTitle || 'Ready-to-Gift Packages';
+  const bannerDescription = section.bannerDescription || [
+    'Handpicked bundles with books + keepsakes - beautifully wrapped for effortless gifting.',
+    'Create your own perfect gift set'
+  ];
+  const waveImage = section.waveImage;
+
+  return (
+    <div className={`bg-[#FFF7F9] ${section.className || ''}`}>
+      {bannerImage && (
+        <div
+          className="relative h-[256px] md:h-[381px] bg-cover bg-center flex items-center justify-center overflow-hidden"
+          style={{
+            backgroundImage: `url(${bannerImage})`,
+            backgroundPosition: 'center 40%'
+          }}
+        >
+          <div className="absolute inset-0 bg-black/30"></div>
+
+          <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto -mt-4 md:-mt-12">
+            <h1 className="text-4xl md:text-[40px] md:leading-[60px] font-medium mb-6">
+              {bannerTitle}
+            </h1>
+            {bannerDescription.map((desc, index) => (
+              <p key={index} className={`text-base md:text-[18px] leading-[28px] ${index === 0 ? '' : ''} leading-relaxed`}>
+                {desc}
+              </p>
+            ))}
+          </div>
+
+          {waveImage && (
+            <img src={waveImage} className="absolute lg:-bottom-15 md:-bottom-10 -bottom-5 md:-left-5 left-0 scale-105 right-0 w-full h-auto" alt="" />
+          )}
+        </div>
+      )}
+
+      <div className="mx-auto px-4 py-12 md:pt-0 md:pb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-[48px] mx-auto max-w-[900px] justify-items-center">
+          {packages.map((pkg) => (
+            <div 
+              key={pkg.id} 
+              className="flex flex-col items-center text-center md:w-[280px] md:h-[306px]"
+              style={{
+                opacity: 1,
+                transform: 'rotate(0deg)',
+              }}
+            >
+              <div 
+                className="relative mb-6 md:mb-8 mx-auto"
+                style={{
+                  width: '148px',
+                  height: '130px',
+                  opacity: 1,
+                  transform: 'rotate(0deg)',
+                }}
+              >
+                <DreamzeImage src={pkg.image} alt={pkg.title} />
+              </div>
+
+              <div className="space-y-2 mb-6 md:mb-8">
+                <h2 className="text-[18px] font-medium text-[#222222]">
+                  {pkg.title}
+                </h2>
+
+                <p className="text-[14px] text-[#22222299] max-w-xs mx-auto leading-relaxed">
+                  {pkg.description}
+                </p>
+
+                <p className="text-[14px] text-[#22222299]">
+                  save <span className="font-semibold text-[#012CCE]">{pkg.discount}</span> + {pkg.extras}
+                </p>
+              </div>
+
+              <Link href={BOOKS_URL} className="inline-flex cursor-pointer items-center gap-2 text-[#222222] hover:text-primary transition-colors group text-[16px]">
+                <span>Choose Books</span>
+                <span className="transform group-hover:translate-x-1 transition-transform flex items-center">→</span>
+              </Link>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -1127,6 +1318,8 @@ const renderSection = (section: BookSection, index: number) => {
       return <DreamazeSpecialSection key={index} section={section} />;
     case 'faq':
       return <FAQSection key={index} section={section} />;
+    case 'gift-packages':
+      return <GiftPackagesSection key={index} section={section} />;
     case 'custom':
       // 如果有自定义渲染函数，使用它
       if (section.render) {

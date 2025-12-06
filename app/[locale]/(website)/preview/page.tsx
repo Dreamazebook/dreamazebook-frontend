@@ -117,7 +117,7 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
       height={height}
       className={className}
       style={style}
-      unoptimized={src.includes('s3-pro-dre001') || src.includes('.r2.dev')}
+      unoptimized={src.includes('s3-pro-dre001') || src.includes('s3-pro-dre002') || src.includes('.r2.dev')}
       onError={handleNextImageError}
       onLoad={onLoad}
       onLoadingComplete={onLoadingComplete}
@@ -1995,7 +1995,10 @@ export default function PreviewPageWithTopNav() {
   // 启动渲染：POST /products/{spu}/preview/render 并解析 NDJSON 流
   const startNdjsonRender = async (spuCode: string, payload: any) => {
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.dreamazebook.com/api';
+      // 客户端使用 /api 代理，服务器端使用完整 URL
+      const apiBase = typeof window !== 'undefined' 
+        ? '/api' 
+        : (process.env.NEXT_PUBLIC_API_URL || 'https://api.dreamazebook.com/api');
       const url = `${apiBase}/products/${encodeURIComponent(spuCode)}/preview/render`;
       let authHeader: string | undefined = undefined;
       try {
@@ -2109,11 +2112,13 @@ export default function PreviewPageWithTopNav() {
           if (typeof v === 'string') {
             const s = v.toLowerCase();
             if (s === 'light') return 'blone';
+            if (s === 'brown' || s === 'original') return 'original';
             if (s === 'dark' || s === 'black') return 'dark';
             return 'dark';
           }
           const n = Number(v) || 1;
           if (n === 1) return 'blone';
+          if (n === 2) return 'original';
           if (n === 3) return 'dark';
           return 'dark';
         };
@@ -2349,11 +2354,13 @@ export default function PreviewPageWithTopNav() {
               if (typeof v === 'string') {
                 const s = v.toLowerCase();
                 if (s === 'light') return 'blone';
+                if (s === 'brown' || s === 'original') return 'original';
                 if (s === 'dark' || s === 'black') return 'dark';
                 return 'dark';
               }
               const n = Number(v) || 1;
               if (n === 1) return 'blone';
+              if (n === 2) return 'original';
               if (n === 3) return 'dark';
               return 'dark';
             };
@@ -3112,7 +3119,7 @@ export default function PreviewPageWithTopNav() {
 
               {/* 封面选项 */}
               {!isLoadingOptions && !optionsError && bookOptions && bookOptions.cover_options && bookOptions.cover_options.length > 0 && (
-                <div className="grid grid-cols-2 gap-4 w-[80%] mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-[80%] mx-auto">
                   {bookOptions.cover_options.map((option) => (
                     <div
                       key={option.id}
@@ -3140,14 +3147,15 @@ export default function PreviewPageWithTopNav() {
 
                         const { base, cropRightHalf } = coverUrls;
 
+                        // 封面缩略图：固定宽度，高度自适应，不再强制 1:1
                         return (
-                          <div className={`relative w-full mb-2 ${cropRightHalf ? 'aspect-square overflow-hidden' : ''}`}>
+                          <div className="relative w-full mb-2 overflow-hidden">
                             <Image
                               src={base}
                               alt={`Cover ${option.id} - ${option.name}`}
                               width={cropRightHalf ? 400 : 200}
                               height={200}
-                              className={`w-full ${cropRightHalf ? 'h-full object-cover object-right' : 'h-auto'}`}
+                              className={`w-full h-auto object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
                             />
                           </div>
                         );
@@ -3262,12 +3270,13 @@ export default function PreviewPageWithTopNav() {
             </section>
             
             {/* Book Format Section */}
-            <section  ref={bindingRef} className="w-full mt-2 max-w-3xl mx-auto">
+            <section  ref={bindingRef} className="w-full mt-2 max-w-4xl mx-auto">
               <h1 className="text-[28px] text-center mb-2">Choose your book format</h1>
               <p className="text-center text-gray-600 mb-4">
                 Pick the format that best fits how you'll treasure or gift it.
               </p>
-              <div className="grid grid-cols-2 gap-4 w-[80%] mx-auto">
+              {/* 一排横向排列，尺寸与 Gift Box 相同，仅排列方式不同 */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto w-[80%] md:w-full overflow-x-auto pb-2">
                 {bookOptions?.binding_options?.map((option) => (
                   <div
                     key={option.id}
@@ -3333,7 +3342,7 @@ export default function PreviewPageWithTopNav() {
               <p className="text-center text-gray-600 mb-4">
                 A lovely gift box makes the surprise truly unforgettable.
               </p>
-              <div className="grid grid-cols-2 gap-4 w-[80%] mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-[80%] mx-auto">
                 {bookOptions?.gift_box_options?.map((option) => (
                   <div
                     key={option.id}
@@ -3596,7 +3605,20 @@ export default function PreviewPageWithTopNav() {
                         }
                       }}
                       onDone={(url) => {
-                        if (url) setGiverImageUrl(url);
+                        if (url) {
+                          // 后端返回的 image_url 是更新后的页面预览图片，需要更新预览数据中 p3-4 页面的 image_url
+                          setPreviewData((prev) => {
+                            if (!prev || !prev.preview_data) return prev;
+                            return {
+                              ...prev,
+                              preview_data: prev.preview_data.map((p: any) =>
+                                String((p as any).page_code || '') === 'p3-4'
+                                  ? { ...p, image_url: url }
+                                  : p
+                              ),
+                            } as any;
+                          });
+                        }
                         setEditField(null);
                         setPendingGiverFile(null);
                         if (pendingGiverFile) {

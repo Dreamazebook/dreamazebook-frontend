@@ -139,13 +139,13 @@ export default function GiverDedicationCanvas({
       const shouldBypassCors = (() => {
         try {
           const u = new URL(src, window.location.href);
-          return u.hostname.endsWith('.r2.dev');
+          return u.hostname.endsWith('.r2.dev') || u.hostname.includes('s3-pro-dre001') || u.hostname.includes('s3-pro-dre002');
         } catch {
-          return src.includes('.r2.dev');
+          return src.includes('.r2.dev') || src.includes('s3-pro-dre001') || src.includes('s3-pro-dre002');
         }
       })();
       return new Promise((resolve, reject) => {
-        // 对于已知未开启 CORS 的源（如 r2.dev），直接跳过 crossOrigin 以避免控制台报错噪音
+        // 对于已知未开启 CORS 的源（如 r2.dev 和 s3-pro-dre001/dre002），直接跳过 crossOrigin 以避免控制台报错噪音
         if (shouldBypassCors) {
           const img = new Image();
           img.onload = () => resolve(img);

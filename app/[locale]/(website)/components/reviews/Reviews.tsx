@@ -123,38 +123,35 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
         </>
       )}
       
-      <div className="w-full max-w-[1440px] md:px-[120px] flex flex-col md:gap-6 gap-4">
+      <div className="w-full max-w-[1440px] md:px-[120px] lg:px-[300px] flex flex-col md:gap-6 gap-4">
         {/* 评论列表 */}
         {defaultReviews.map((review: Review, index: number) => (
             <React.Fragment key={index}>
               {/* 单个评论 */}
-              <div className="w-full md:max-w-[1200px] flex flex-col md:flex-row md:h-[88px] gap-4 md:gap-[36px]">
-                {/* 第一排/左侧：头像、评论者名称和评分 */}
-                <div className="flex-shrink-0 md:w-[200px] flex md:flex-col flex-row items-center md:gap-3 gap-4 justify-between md:items-start items-center">
-                  {/* 头像和评论者名称在同一行（小屏幕）或分开（大屏幕） */}
-                  <div className="flex items-center gap-3 py-1 md:py-0">
-                    {/* 头像 */}
-                    {review.pagepic ? (
-                      <img
-                        src={review.pagepic}
-                        alt={review.reviewer_name}
-                        className="md:w-9 md:h-9 w-8 h-8 rounded-full object-cover flex-shrink-0"
-                      />
-                    ) : (
-                      <div className="md:w-9 md:h-9 w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
-                    )}
+              <div className="w-full md:max-w-[1200px] flex flex-col md:flex-row gap-4">
+                {/* 移动端：头像、名字和星星在同一行 */}
+                <div className="flex md:hidden flex-row items-center gap-3">
+                  {/* 头像 */}
+                  {review.pagepic ? (
+                    <img
+                      src={review.pagepic}
+                      alt={review.reviewer_name}
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0"></div>
+                  )}
 
-                    {/* 评论者名称 */}
-                    <div className="md:pt-0.5 pt-0">
-                      <span className="font-medium text-[14px] md:text-[16px] leading-[20px] md:leading-[24px] tracking-[0.25px] md:tracking-[0.15px] text-gray-900">
-                        {review.reviewer_name}
-                      </span>
-                    </div>
+                  {/* 评论者名称 */}
+                  <div className="flex-1">
+                    <span className="font-medium text-[14px] leading-[20px] tracking-[0.25px] text-gray-900">
+                      {review.reviewer_name}
+                    </span>
                   </div>
 
-                  {/* 星星评分 - 在小屏幕下和头像/名字同行，在大屏幕下在下面 */}
+                  {/* 星星评分 */}
                   <div className="flex items-center">
-                    <div className="flex md:gap-3 gap-[6px]">
+                    <div className="flex gap-[6px]">
                       {[...Array(5)].map((_, i) => (
                         <img
                           key={i}
@@ -162,28 +159,62 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ book, keywords, reviews
                           alt="star"
                           width={18}
                           height={18}
-                          className="w-[18px] h-[18px] md:w-6 md:h-6"
+                          className="w-[18px] h-[18px]"
                         />
                       ))}
                     </div>
                   </div>
                 </div>
 
-                {/* 第二排/右侧：评论文本 */}
-                <div className="flex-1">
-                  <div
-                    className="text-[#222222] font-normal text-[14px] leading-[20px] tracking-[0.25px] md:font-medium md:text-[16px] md:leading-[24px] md:tracking-[0.5px]"
-                    style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
-                  >
-                    {/* <span
-                      className="md:text-[24px] text-[18px] font-normal md:leading-8 leading-[20px]"
+                {/* PC端：左侧头像 */}
+                <div className="hidden md:flex flex-shrink-0">
+                  {review.pagepic ? (
+                    <img
+                      src={review.pagepic}
+                      alt={review.reviewer_name}
+                      className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-gray-300 flex-shrink-0"></div>
+                  )}
+                </div>
+
+                {/* PC端和移动端：右侧内容区域 */}
+                <div className="flex-1 flex flex-col gap-2 md:gap-3">
+                  {/* PC端：右侧上方 - 星星和名字 */}
+                  <div className="hidden md:flex items-center gap-3">
+                    {/* 星星评分 */}
+                    <div className="flex items-center">
+                      <div className="flex gap-3">
+                        {[...Array(5)].map((_, i) => (
+                          <img
+                            key={i}
+                            src="/star.svg"
+                            alt="star"
+                            width={24}
+                            height={24}
+                            className="w-6 h-6"
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 评论者名称 */}
+                    <div>
+                      <span className="font-medium text-[16px] leading-[24px] tracking-[0.15px] text-gray-900">
+                        {review.reviewer_name}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 评论文本 */}
+                  <div>
+                    <div
+                      className="text-[#222222] font-normal text-[14px] leading-[20px] tracking-[0.25px] md:font-normal md:text-[14px] md:leading-[20px] md:tracking-[0.25px]"
                       style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
-                    >"</span> */}
-                    {review.comment}
-                    {/* <span
-                      className="md:text-[24px] text-[18px] font-normal md:leading-8 leading-[20px]"
-                      style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
-                    >"</span> */}
+                    >
+                      {review.comment}
+                    </div>
                   </div>
                 </div>
               </div>
