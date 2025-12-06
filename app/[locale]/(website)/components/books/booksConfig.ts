@@ -395,18 +395,22 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
           {
             title: 'Hand-drawn illustrations',
             description: 'Heartfelt stories, never low-quality AI scenes',
+            icon: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/why-families-choose/illustrations.webp',
           },
           {
             title: 'Real photo personalization',
             description: 'Instant recognition, deeper connection',
+            icon: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/why-families-choose/photo.webp',
           },
           {
             title: 'Supports self-recognition',
             description: 'Reading their own story builds identity & confidence',
+            icon: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/why-families-choose/self-recognition.webp',
           },
           {
             title: 'Keepsake quality',
             description: 'Premium, non-toxic paper for little hands',
+            icon: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/our-books/why-families-choose/keepsake.webp',
           },
         ],
         specialTestimonials: [

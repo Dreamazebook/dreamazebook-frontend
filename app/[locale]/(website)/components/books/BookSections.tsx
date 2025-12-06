@@ -531,14 +531,21 @@ const DreamazeSpecialSection: React.FC<{ section: BookSection }> = ({ section })
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-[600px] md:max-w-[1200px] mx-auto px-14 md:px-0">
             {features.map((feature, index) => (
               <div key={index} className="flex items-start gap-4">
-                {/* 图标占位符 */}
-                <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-200 rounded flex-shrink-0 flex items-center justify-center">
-                  {feature.icon ? (
-                    <img src={feature.icon} alt={feature.title} className="w-full h-full object-contain" />
-                  ) : (
-                    <div className="w-8 h-8 md:w-12 md:h-12 bg-gray-300 rounded"></div>
-                  )}
-                </div>
+                {/* 图标 */}
+                {feature.icon ? (
+                  <div className="w-[64px] h-[64px] flex-shrink-0 self-center rounded-[4px] overflow-hidden">
+                    <Image
+                      src={feature.icon}
+                      alt={feature.title}
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-cover scale-100"
+                      unoptimized={true}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-[64px] h-[64px] bg-[#E0E0E0] self-center flex-shrink-0 rounded-[4px]" />
+                )}
                 {/* 文本内容 */}
                 <div className="flex flex-col md:gap-1 gap-0 ">
                   <h3 className="font-medium text-[16px] md:text-[18px] leading-[24px] md:leading-[24px] tracking-[0.15px] md:tracking-[0.5px] text-[#222222]">
