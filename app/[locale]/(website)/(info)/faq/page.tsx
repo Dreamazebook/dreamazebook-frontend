@@ -43,7 +43,7 @@ const faqData: FAQItem[] = [
     answer: (
       <div className="space-y-3">
         <p>At checkout, you'll see the estimated delivery time for your address based on the shipping option you choose. Some locations receive their books in as fast as 3–5 days.</p>
-        <p>You can also visit our Delivery Information page for more details.</p>
+        <p>You can also visit our <Link className='text-primary' href="/delivery-information">Delivery Information</Link> page for more details.</p>
       </div>
     )
   },
