@@ -18,10 +18,11 @@ const OrderHistory = () => {
 
   const tabs = [
     { id: 'all', label: 'All Order', count: orderList.length },
-    { id: 'pending', label: 'Pending', count: orderList.filter(order => order.status === 'pending').length },
-    { id: 'preparing', label: 'Preparing', count: orderList.filter(order => order.status === 'preparing').length },
-    { id: 'completed', label: 'Completed', count: orderList.filter(order => order.status === 'completed').length },
-    { id: 'cancelled', label: 'Cancelled', count: orderList.filter(order => order.status === 'cancelled').length },
+    { id: 'paid', label: 'Paid', count: orderList.filter(order => order.status === 'paid').length },
+    { id: 'preparing', label: 'Digital Production', count: orderList.filter(order => order.status === 'preparing').length },
+    { id: 'logistics_confirmed', label: 'Print Production', count: orderList.filter(order => order.status === 'logistics_confirmed').length },
+    { id: 'logistics_shipped', label: 'In Transit', count: orderList.filter(order => order.status === 'logistics_shipped').length },
+    { id: 'logistics_delivered', label: 'Delivered', count: orderList.filter(order => order.status === 'logistics_delivered').length },
   ];
 
   useEffect(() => {
