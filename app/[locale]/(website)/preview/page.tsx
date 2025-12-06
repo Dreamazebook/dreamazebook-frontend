@@ -3119,7 +3119,7 @@ export default function PreviewPageWithTopNav() {
 
               {/* 封面选项 */}
               {!isLoadingOptions && !optionsError && bookOptions && bookOptions.cover_options && bookOptions.cover_options.length > 0 && (
-                <div className="grid grid-cols-2 gap-4 w-[80%] mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-[80%] mx-auto">
                   {bookOptions.cover_options.map((option) => (
                     <div
                       key={option.id}
@@ -3147,14 +3147,15 @@ export default function PreviewPageWithTopNav() {
 
                         const { base, cropRightHalf } = coverUrls;
 
+                        // 封面缩略图：固定宽度，高度自适应，不再强制 1:1
                         return (
-                          <div className={`relative w-full mb-2 ${cropRightHalf ? 'aspect-square overflow-hidden' : ''}`}>
+                          <div className="relative w-full mb-2 overflow-hidden">
                             <Image
                               src={base}
                               alt={`Cover ${option.id} - ${option.name}`}
                               width={cropRightHalf ? 400 : 200}
                               height={200}
-                              className={`w-full ${cropRightHalf ? 'h-full object-cover object-right' : 'h-auto'}`}
+                              className={`w-full h-auto object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
                             />
                           </div>
                         );
@@ -3274,7 +3275,8 @@ export default function PreviewPageWithTopNav() {
               <p className="text-center text-gray-600 mb-4">
                 Pick the format that best fits how you'll treasure or gift it.
               </p>
-              <div className="grid grid-cols-2 gap-4 w-[80%] mx-auto">
+              {/* 一排横向排列，尺寸与 Gift Box 相同，仅排列方式不同 */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto w-[80%] md:w-full overflow-x-auto pb-2">
                 {bookOptions?.binding_options?.map((option) => (
                   <div
                     key={option.id}
@@ -3340,7 +3342,7 @@ export default function PreviewPageWithTopNav() {
               <p className="text-center text-gray-600 mb-4">
                 A lovely gift box makes the surprise truly unforgettable.
               </p>
-              <div className="grid grid-cols-2 gap-4 w-[80%] mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-[80%] mx-auto">
                 {bookOptions?.gift_box_options?.map((option) => (
                   <div
                     key={option.id}
