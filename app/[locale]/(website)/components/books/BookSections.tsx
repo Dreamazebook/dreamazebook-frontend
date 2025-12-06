@@ -828,37 +828,93 @@ const DreamazeSpecialSection: React.FC<{ section: BookSection }> = ({ section })
 // Tips Section 组件
 const TipsSection: React.FC<{ section: BookSection }> = ({ section }) => {
   const tips = section.tips || [];
-  // 将提示列表分成两列
-  const leftColumn = tips.slice(0, Math.ceil(tips.length / 2));
-  const rightColumn = tips.slice(Math.ceil(tips.length / 2));
+  const bulletImages = section.bulletImages || [];
+  const bulletImage = section.bulletImage; // 向后兼容：如果只有单个图片，所有bullet使用同一张
+  
+  // 获取指定索引的bullet图片
+  const getBulletImage = (index: number) => {
+    if (bulletImages.length > index) {
+      return bulletImages[index];
+    }
+    // 向后兼容：如果没有对应的图片，使用单个bulletImage
+    return bulletImage;
+  };
+  
+  // 将提示列表分成两列，同时保留原始索引
+  const leftColumn = tips.slice(0, Math.ceil(tips.length / 2)).map((tip, localIndex) => ({
+    tip,
+    originalIndex: localIndex
+  }));
+  const rightColumn = tips.slice(Math.ceil(tips.length / 2)).map((tip, localIndex) => ({
+    tip,
+    originalIndex: Math.ceil(tips.length / 2) + localIndex
+  }));
 
   return (
-    <div className={`w-full bg-white md:h-[504px] h-auto md:py-[88px] py-12 px-[80px] md:px-0 flex flex-col md:gap-[48px] gap-6 ${section.className || ''}`}>
+    <div className={`w-full bg-white h-auto md:py-[88px] py-12 px-[80px] md:px-0 flex flex-col md:gap-[48px] gap-6 ${section.className || ''}`}>
       {section.title && (
         <h2 className="md:font-medium text-[24px] font-semibold leading-[32px] md:text-[40px] md:leading-[40px] text-[#222222] text-center">
           {section.title}
         </h2>
       )}
       
-      <div className="flex flex-col md:flex-row md:gap-[48px] gap-4 max-w-[1060px] md:h-[240px] h-auto mx-auto w-full md:px-4 px-0 md:items-center items-start justify-center">
+      <div className="flex flex-col md:flex-row md:gap-[48px] gap-4 max-w-[1060px] h-auto mx-auto w-full md:px-4 px-0 md:items-center items-start justify-center">
         {/* 左列 */}
         <div className="flex flex-col md:gap-12 gap-4 ">
-          {leftColumn.map((tip, index) => (
-            <div key={index} className="flex items-center gap-3">
-              <div className="md:w-12 w-9 md:h-12 h-9 bg-gray-300 shrink-0"></div>
-              <span className="text-[#222222] md:font-medium font-normal md:text-[18px] text-[14px] md:leading-[24px] leading-[20px] md:tracking-[0.5px] tracking-[0.25px]">• {tip}</span>
-            </div>
-          ))}
+          {leftColumn.map(({ tip, originalIndex }) => {
+            const imageUrl = getBulletImage(originalIndex);
+            return (
+              <div key={originalIndex} className="flex items-center gap-3">
+                {imageUrl ? (
+                  <div className="md:w-16 w-9 md:h-16 h-9 shrink-0 flex items-center justify-center">
+                    <Image
+                      src={imageUrl}
+                      alt=""
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-contain"
+                      unoptimized={true}
+                    />
+                  </div>
+                ) : (
+                  <div className="md:w-12 w-9 md:h-12 h-9 bg-gray-300 shrink-0"></div>
+                )}
+                <span className="text-[#222222] md:font-medium font-normal md:text-[18px] text-[14px] md:leading-[24px] leading-[20px] md:tracking-[0.5px] tracking-[0.25px]">
+                  <span className="mr-2 md:mr-3 md:ml-1">•</span>
+                  {tip}
+                </span>
+              </div>
+            );
+          })}
         </div>
         
         {/* 右列 */}
         <div className="flex flex-col md:gap-12 gap-4 ">
-          {rightColumn.map((tip, index) => (
-            <div key={index} className="flex items-center gap-3">
-              <div className="md:w-12 w-9 md:h-12 h-9 bg-gray-300 shrink-0"></div>
-              <span className="text-[#222222] md:font-medium font-normal md:text-[18px] text-[14px] md:leading-[24px] leading-[20px] md:tracking-[0.5px] tracking-[0.25px]">• {tip}</span>
-            </div>
-          ))}
+          {rightColumn.map(({ tip, originalIndex }) => {
+            const imageUrl = getBulletImage(originalIndex);
+            return (
+              <div key={originalIndex} className="flex items-center gap-3">
+                {imageUrl ? (
+                  <div className="md:w-16 w-9 md:h-16 h-9 shrink-0 flex items-center justify-center">
+                    <Image
+                      src={imageUrl}
+                      alt=""
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-contain"
+                      unoptimized={true}
+                    />
+                  </div>
+                ) : (
+                  <div className="md:w-12 w-9 md:h-12 h-9 bg-gray-300 shrink-0"></div>
+                )}
+                <span className="text-[#222222] md:font-medium font-normal md:text-[18px] text-[14px] md:leading-[24px] leading-[20px] md:tracking-[0.5px] tracking-[0.25px]">
+                  <span className="mr-2 md:mr-3 md:ml-1">•</span>
+                  {tip}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

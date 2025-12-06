@@ -15,6 +15,8 @@ export interface BookSection {
   paragraphs?: string[]; // 段落数组
   // Tips 专用字段
   tips?: string[]; // 提示列表数组
+  bulletImage?: string; // Bullet point 图片URL（已废弃，使用 bulletImages）
+  bulletImages?: string[]; // Bullet point 图片URL数组，与 tips 一一对应
   // SVG 装饰元素配置
   svgDecorations?: Array<{
     svg: React.ReactNode; // SVG元素
@@ -296,6 +298,14 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
       {
         type: 'tips',
         title: 'Tips to Help Your Child Build Courage',
+        bulletImages: [
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bullet-1.png',
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bullet-2.png',
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bullet-3.png',
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bullet-4.png',
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bullet-5.png',
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bullet-6.png',
+        ],
         tips: [
           "Speak as if they're already brave",
           'Validate their feelings',
