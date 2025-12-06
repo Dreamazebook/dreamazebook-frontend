@@ -117,7 +117,7 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
       height={height}
       className={className}
       style={style}
-      unoptimized={src.includes('s3-pro-dre001') || src.includes('.r2.dev')}
+      unoptimized={src.includes('s3-pro-dre001') || src.includes('s3-pro-dre002') || src.includes('.r2.dev')}
       onError={handleNextImageError}
       onLoad={onLoad}
       onLoadingComplete={onLoadingComplete}
@@ -3596,7 +3596,20 @@ export default function PreviewPageWithTopNav() {
                         }
                       }}
                       onDone={(url) => {
-                        if (url) setGiverImageUrl(url);
+                        if (url) {
+                          // 后端返回的 image_url 是更新后的页面预览图片，需要更新预览数据中 p3-4 页面的 image_url
+                          setPreviewData((prev) => {
+                            if (!prev || !prev.preview_data) return prev;
+                            return {
+                              ...prev,
+                              preview_data: prev.preview_data.map((p: any) =>
+                                String((p as any).page_code || '') === 'p3-4'
+                                  ? { ...p, image_url: url }
+                                  : p
+                              ),
+                            } as any;
+                          });
+                        }
                         setEditField(null);
                         setPendingGiverFile(null);
                         if (pendingGiverFile) {
