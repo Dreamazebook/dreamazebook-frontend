@@ -388,8 +388,11 @@ export default function BookDetailView({
               {(() => {
                 const isBirthday =
                   bookId === 'PICBOOK_BIRTHDAY' ||
+                  bookId === 'PICBOOK_MELODY' ||
                   (book as any)?.id === 'PICBOOK_BIRTHDAY' ||
-                  (book as any)?.spu_code === 'PICBOOK_BIRTHDAY';
+                  (book as any)?.id === 'PICBOOK_MELODY' ||
+                  (book as any)?.spu_code === 'PICBOOK_BIRTHDAY' ||
+                  (book as any)?.spu_code === 'PICBOOK_MELODY';
                 const buttonLabel = isBirthday ? 'Notify Me for Next Release' : primaryButtonLabel;
 
                 const handleButtonClick = (e: React.MouseEvent) => {

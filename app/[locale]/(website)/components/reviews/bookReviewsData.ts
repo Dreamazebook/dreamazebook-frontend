@@ -206,4 +206,54 @@ export const BOOK_REVIEWS_DATA: Record<string | number, BookReviewData> = {
       }
     ],
   },
+  
+  // Your Melody 书籍的评论数据
+  'PICBOOK_MELODY': {
+    title: "Loved by Parents",
+    rating: 5.0,
+    reviewsCount: 24,
+    keywords: [
+      { keyword: "Heartfelt personalization", count: 22 },
+      { keyword: "Thoughtful storyline", count: 18 },
+      { keyword: "Meaningful keepsake", count: 26 },
+      { keyword: "amazing gift", count: 49 },
+    ],
+    reviews: [
+      {
+        reviewer_name: "Elowen S., Portland",
+        rating: 5,
+        comment:
+          "An amazing gift for my new cousin — everyone at the party wanted to read it with him and see his reaction!",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_MELODY/reviews/avatars/elowen-portland.jpg",
+      },
+      {
+        reviewer_name: "Hannah R., Sydney",
+        rating: 5,
+        comment:
+          "The moment my grandchild saw it, he reached out to touch the page and giggled. It was so precious to watch!",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_MELODY/reviews/avatars/hannah-sydney.jpg",
+      },
+      {
+        reviewer_name: "Rachel B., California",
+        rating: 5,
+        comment:
+          "My little one can't speak yet, but when she saw her own face in the book, she called out 'dada, dada!' — that's her way of showing excitement. We're big fans of this book now.",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_MELODY/reviews/avatars/rachel-california.jpg",
+      },
+      {
+        reviewer_name: "James D., Toronto",
+        rating: 5,
+        comment:
+          "The print quality is beautiful, and the character really looks like my son — it feels so personal.",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_MELODY/reviews/avatars/james-toronto.jpg",
+      },
+      {
+        reviewer_name: "Maria L., Berlin",
+        rating: 5,
+        comment:
+          "It's the best gift I've ever given. They truly love it and now call it a precious keepsake!",
+        pagepic: "https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_MELODY/reviews/avatars/maria-berlin.jpg",
+      },
+    ],
+  },
 };

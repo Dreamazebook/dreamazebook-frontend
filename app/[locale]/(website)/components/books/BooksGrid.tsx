@@ -8,6 +8,7 @@ const BOOK_NAME_OVERRIDES: Record<string, string> = {
   PICBOOK_GOODNIGHT3: 'Good Night to You',
   PICBOOK_BRAVEY: "Little One, You're Brave in Many Ways",
   PICBOOK_BIRTHDAY: 'Birthday Book for You',
+  PICBOOK_MELODY: 'Your Melody',
   PICBOOK_SANTA: "Santa's Letter for You",
 };
 

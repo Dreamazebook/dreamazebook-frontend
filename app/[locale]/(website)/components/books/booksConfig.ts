@@ -530,6 +530,62 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
       },
     ],
   },
+  
+  // Your Melody 书籍配置
+  'PICBOOK_MELODY': {
+    id: 'PICBOOK_MELODY',
+    specifications: [
+      { label: 'Best for ages 0–2' },
+      { label: '20 × 20 cm board book' },
+      { label: 'Page count varies (depending on your baby’s name)' },
+      { label: 'Printed and dispatched in 2–4 working days' },
+    ],
+    faqs: [
+      {
+        question: 'How is the book personalized?',
+        answer:
+          "- Add your child's name — the star of this story\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication — printed on the first page\n- Choose your cover and gift options\n- Place your order — preview before printing",
+      },
+      {
+        question: 'Recommendation',
+        answer:
+          "This unique story transforms your child’s name into music.\nEvery letter becomes a beautiful instrument, carrying a special blessing. One by one, these instruments join together to create a melody that belongs only to your child.\nIt’s a heartwarming way to celebrate their arrival, their name, and the joy they bring to your family.",
+      },
+      {
+        question: 'Reading tips for parents',
+        answer:
+          'Enjoy the book during any bonding moment — snuggle time, playtime, or bedtime.\nGently repeat your baby’s name as you read, inviting them to move like the child in the story — crawling, sitting, or reaching.\nTry reading with a sing-song rhythm, turning the words into a little melody.\nRepeat often — babies love hearing their name, and it helps them form a lasting connection with both the story and themselves.',
+      },
+    ],
+    sections: [
+      {
+        type: 'meet-author',
+        title: 'Meet the Illustrator',
+        paragraphs: [
+          "This book is a very special piece for me.",
+          "So far, I’ve drawn over 200 pages, and along the way I even learned new musical instruments myself.",
+          'When I draw, I imagine how adorable it will be to see young readers interact with the instruments on each page.',
+          'My hope is that this blessing book will bring joy, wonder, and a sense of music into every child’s heart.',
+        ],
+      },
+      {
+        type: 'faq',
+        title: 'FAQ for Your Melody',
+        faqs: [
+          {
+            question: 'Why is Your Melody the best gift for a baby?',
+            answer:
+              'Every letter of your baby’s name carries a blessing and becomes part of the story. It’s a unique way to welcome new life — just as special and one-of-a-kind as your little one.',
+          },
+          {
+            question: 'Can long names be used?',
+            answer:
+              'We recommend using your baby’s first name. The maximum length is 13 letters to ensure the story flows beautifully.',
+          },
+        ],
+      },
+    ],
+  },
 };
 
 // 根据书籍ID获取配置

@@ -40,7 +40,9 @@ export default function BookDetailStickyBar({
 
   const isBirthday =
     (book as any)?.id === 'PICBOOK_BIRTHDAY' ||
-    (book as any)?.spu_code === 'PICBOOK_BIRTHDAY';
+    (book as any)?.spu_code === 'PICBOOK_BIRTHDAY' ||
+    (book as any)?.id === 'PICBOOK_MELODY' ||
+    (book as any)?.spu_code === 'PICBOOK_MELODY';
 
   const buttonLabel = isBirthday ? 'Notify Me for Next Release' : (primaryButtonLabel || t('personalizeButton'));
 
