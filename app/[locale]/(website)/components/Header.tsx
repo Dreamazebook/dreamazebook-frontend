@@ -54,8 +54,6 @@ const Header = () => {
   const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  const isChristmasPage = pathname === '/christmas' || pathname?.endsWith('/christmas') || pathname?.includes('/christmas');
-  
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -90,13 +88,13 @@ const Header = () => {
       <div className="md:hidden">
         <Logo useWhite={false} />
       </div>
-      {/* Desktop Logo - use white version on Christmas page */}
+      {/* Desktop Logo */}
       <div className="hidden md:block">
-        <Logo useWhite={mounted ? isChristmasPage : false} />
+        <Logo useWhite={false} />
       </div>
       
       {/* Desktop Navigation */}
-      <nav className={`hidden md:flex space-x-4 ${isChristmasPage ? 'text-white' : ''}`}>
+      <nav className="hidden md:flex space-x-4">
         {menuItems.map((item) => (
           <Link 
             key={item.href}
@@ -104,7 +102,7 @@ const Header = () => {
             href={item.href}
           >
             {item.label}
-            {item.isActive(pathname) && <UnderlineIcon color={isChristmasPage ? '#FFFFFF' : '#012CCE'} />}
+            {item.isActive(pathname) && <UnderlineIcon color="#012CCE" />}
           </Link>
         ))}
       </nav>
@@ -159,7 +157,7 @@ const Header = () => {
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         {item.label}
-                        {item.isActive(pathname) && <UnderlineIcon color={isChristmasPage ? '#FFFFFF' : '#012CCE'} />}
+                        {item.isActive(pathname) && <UnderlineIcon color="#012CCE" />}
                       </Link>
                     </motion.div>
                   ))}
@@ -213,7 +211,7 @@ const Header = () => {
           </>
         )}
       </AnimatePresence>
-      <div className={`flex items-center space-x-4 ${isChristmasPage ? 'md:brightness-0 md:invert' : ''}`}>
+      <div className="flex items-center space-x-4">
         {/* Search icon next to cart, opens books page and reveals search */}
         <div className="relative group">
           <Image src={'/header/language.svg'} alt="language" width={48} height={24} className="cursor-pointer" />
