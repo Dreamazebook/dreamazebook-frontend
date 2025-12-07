@@ -561,11 +561,13 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
       {
         type: 'meet-author',
         title: 'Meet the Illustrator',
+        authorImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_MELODY/bg-author.jpg',
+        className: 'bg-[#FCF2F2]',
         paragraphs: [
           "This book is a very special piece for me.",
-          "So far, I’ve drawn over 200 pages, and along the way I even learned new musical instruments myself.",
+          "So far, I've drawn over 200 pages, and along the way I even learned new musical instruments myself.",
           'When I draw, I imagine how adorable it will be to see young readers interact with the instruments on each page.',
-          'My hope is that this blessing book will bring joy, wonder, and a sense of music into every child’s heart.',
+          "My hope is that this blessing book will bring joy, wonder, and a sense of music into every child's heart.",
         ],
       },
       {
