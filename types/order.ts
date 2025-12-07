@@ -40,19 +40,103 @@ export interface OrderDetail {
   shipping_options: {
     options: ShippingOption[];
   };
-  logistics_data?: {
-    print_pdf?: {
-      files: Array<{
-        id: number;
-        name: string;
-        url: string;
-        size: number;
-        type: string;
-      }>;
-      status: string;
-      completed_at: string;
-    };
+  logistics_data?: LogisticsData;
+}
+
+export interface LogisticsData {
+  ref_no: string;
+  sender: AddressInfo;
+  duty_type: string;
+  is_insure: string;
+  parcel_list: Parcel[];
+  return_info: ReturnInfo;
+  business_type: string;
+  label_barcode: string;
+  recipient_info: AddressInfo;
+  "4px_tracking_no": string;
+  oda_result_sign: string;
+  deliver_type_info: DeliverTypeInfo;
+  ds_consignment_no: string;
+  logistics_channel_no: string;
+  logistics_service_info: LogisticsServiceInfo;
+  deliver_to_recipient_info: DeliverToRecipientInfo;
+  print_pdf?: {
+    files: Array<{
+      id: number;
+      name: string;
+      url: string;
+      size: number;
+      type: string;
+    }>;
+    status: string;
+    completed_at: string;
   };
+}
+
+export interface AddressInfo {
+  city: string;
+  phone: string;
+  state: string;
+  street: string;
+  country: string;
+  district: string;
+  last_name: string;
+  post_code: string;
+  first_name: string;
+  email?: string;
+  company?: string;
+  house_number?: string;
+}
+
+export interface Parcel {
+  weight: number;
+  currency: string;
+  parcel_value: number;
+  product_list: Product[];
+  include_battery: string;
+  declare_product_info: DeclareProductInfo[];
+}
+
+export interface Product {
+  qty: number;
+  currency: string;
+  sku_code: string;
+  product_name: string;
+  product_unit_price: number;
+  product_description: string;
+  standard_product_barcode: string;
+}
+
+export interface DeclareProductInfo {
+  sales_url: string;
+  brand_export: string;
+  brand_import: string;
+  currency_export: string;
+  currency_import: string;
+  package_remarks: string;
+  unit_declare_product: string;
+  declare_product_name_cn: string;
+  declare_product_name_en: string;
+  declare_product_code_qty: number;
+  declare_unit_price_export: number;
+  declare_unit_price_import: number;
+}
+
+export interface ReturnInfo {
+  is_return_on_oversea: string;
+  is_return_on_domestic: string;
+}
+
+export interface DeliverTypeInfo {
+  deliver_type: string;
+}
+
+export interface LogisticsServiceInfo {
+  logistics_product_code: string;
+}
+
+export interface DeliverToRecipientInfo {
+  deliver_type: string;
 }
 
 export const EMPTY_CART_ITEM = {
