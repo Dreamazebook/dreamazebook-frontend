@@ -52,8 +52,9 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 items-start justify-items-center">
-      {booksWithComingSoon.map((book, idx) => {
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 items-start justify-items-center">
+        {booksWithComingSoon.map((book, idx) => {
         const idOrCode = (book as any)?.spu_code ?? (book as any)?.id ?? (book as any)?.code ?? `idx-${idx}`;
         const originalName = (book as any)?.name ?? (book as any)?.default_name ?? 'Product';
         const name = BOOK_NAME_OVERRIDES[String(idOrCode)] || originalName;
@@ -65,7 +66,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
         const isComingSoon = priceVal === 0 && idOrCode === 'new-books-coming';
         
         const cardContent = (
-          <div className={`flex flex-col md:relative w-full min-h-[355px] md:h-[680px] overflow-hidden mx-auto bg-[#F3F3F3] transition-colors duration-300 ${
+          <div className={`flex flex-col md:relative w-full min-h-[355px] book-card-height overflow-hidden mx-auto bg-[#F3F3F3] transition-colors duration-300 ${
             isComingSoon ? '' : 'group-hover:bg-[#E0E4EF]'
           }`}>
             {/* 图片容器 */}
@@ -178,7 +179,19 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
           </div>
         );
       })}
-    </div>
+      </div>
+      <style jsx>{`
+        .book-card-height {
+          height: 680px;
+        }
+
+        @media (min-width: 1800px) {
+          .book-card-height {
+            height: 770px;
+          }
+        }
+      `}</style>
+    </>
   );
 };
 

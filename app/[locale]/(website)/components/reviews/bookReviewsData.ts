@@ -23,7 +23,7 @@ export interface BookReviewData {
 }
 
 const GOODNIGHT_REVIEW_DATA: BookReviewData = {
-  title: "What parents are saying",
+  title: "What Parents Are Saying",
   rating: 5.0, // 平均评分
   reviewsCount: 137, // 评论总数
   keywords: [
@@ -76,7 +76,7 @@ export const BOOK_REVIEWS_DATA: Record<string | number, BookReviewData> = {
   
   // You're Brave in Many Ways 书籍的评论数据（兼容新版与旧版 ID）
   'PICBOOK_BRAVEY': {
-    title: "What parents are saying",
+    title: "What Parents Are Saying",
     rating: 5.0, // 平均评分
     reviewsCount: 23, // 评论总数
     keywords: [
@@ -120,7 +120,7 @@ export const BOOK_REVIEWS_DATA: Record<string | number, BookReviewData> = {
   
   // Santa Letter 书籍的评论数据
   'PICBOOK_SANTA': {
-    title: "What parents are saying",
+    title: "What Parents Are Saying",
     rating: 5.0, // 平均评分
     reviewsCount: 28, // 评论总数
     keywords: [
@@ -165,7 +165,7 @@ export const BOOK_REVIEWS_DATA: Record<string | number, BookReviewData> = {
   
   // Birthday 书籍的评论数据
   'PICBOOK_BIRTHDAY': {
-    title: "What parents are saying",
+    title: "What Parents Are Saying",
     rating: 5.0, // 平均评分
     reviewsCount: 31, // 评论总数
     keywords: [

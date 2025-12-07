@@ -189,7 +189,7 @@ const GOODNIGHT_BASE_CONFIG: Omit<BookConfig, 'id'> = {
       },
       {
         type: 'why-personalized',
-        title: 'Why you need a personalized book?',
+        title: 'Why You Need a Personalized Book?',
         className: 'py-[48px] mx-auto md:w-full md:px-0 md:h-[860px] md:pt-[88px] md:pb-[128px]',
         items: [
           {
