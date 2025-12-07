@@ -47,6 +47,7 @@ export const API_ADMIN_PERMISSIONS = '/admin/permissions';
 
 export const API_ADMIN_ORDERS = '/admin/orders'
 export const API_ADMIN_ORDER_DETAIL = (id: string | number) => `${API_ADMIN_ORDERS}/${id}`
+export const API_ADMIN_ORDER_ITEM_UPLOAD_FINAL_IMAGE = (orderId:string|number, itemId:string|number) => `${API_ADMIN_ORDERS}/${orderId}/items/${itemId}/upload-final-images`;
 export const API_ADMIN_ORDER_DETAIL_MANUAL_CONFIRM = (id: string | number) => `${API_ADMIN_ORDER_DETAIL(id)}/manual-confirm`
 export const API_ADMIN_ORDER_DOWNLOAD_IMAGES = '/api/admin/orders/download-images'
 

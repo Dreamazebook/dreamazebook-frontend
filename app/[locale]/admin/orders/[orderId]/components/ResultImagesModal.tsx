@@ -1,20 +1,24 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useState, useRef } from 'react';
 import Image from 'next/image';
 import { ResultImage } from '@/types/order';
 import { useOrderDetail } from '../context/OrderDetailContext';
 import { CartItem, FaceImage } from '@/types/cart';
-import { API_ADMIN_ORDER_DOWNLOAD_IMAGES } from '@/constants/api';
+import api from '@/utils/api';
+import { API_ADMIN_ORDER_DOWNLOAD_IMAGES, API_ADMIN_ORDER_ITEM_UPLOAD_FINAL_IMAGE } from '@/constants/api';
+import { ApiResponse } from '@/types/api';
 
 interface ResultImagesModalProps {
   isOpen: boolean;
   onClose: () => void;
   orderItem: CartItem;
   itemName: string;
+  orderId: number;
 }
 
 const ResultImagesModal: FC<ResultImagesModalProps> = ({
+  orderId,
   isOpen,
   onClose,
   orderItem,
@@ -25,6 +29,8 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
   const [selectedPageCodes, setSelectedPageCodes] = useState<string[]>([]);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [uploadingPageCode, setUploadingPageCode] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { handleManualConfirm } = useOrderDetail();
   
   if (!isOpen) return null;
@@ -113,6 +119,52 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
       setDownloadProgress(0);
       alert('Failed to download images. Please try again.');
     }
+  };
+
+  const handleUploadFinalImage = async (pageCode: string, file: File) => {
+    setUploadingPageCode(pageCode);
+    try {
+      const formData = new FormData();
+      formData.append('images', JSON.stringify([
+        {
+          page_code: pageCode,
+          file: file
+        }
+      ]));
+      formData.append('file', file);
+
+      const { success, message } = await api.post<ApiResponse>(
+        API_ADMIN_ORDER_ITEM_UPLOAD_FINAL_IMAGE(orderId, orderItem.id),
+        formData
+      );
+
+      if (success) {
+        alert('Image uploaded successfully!');
+        // Refresh the page to see the updated image
+        window.location.reload();
+      } else {
+        alert(message || 'Failed to upload image');
+        setUploadingPageCode(null);
+      }
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      alert('Failed to upload image. Please try again.');
+      setUploadingPageCode(null);
+    }
+  };
+
+  const handleImageUploadClick = (pageCode: string) => {
+    // Create a file input and trigger click
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        await handleUploadFinalImage(pageCode, file);
+      }
+    };
+    input.click();
   };
 
   return (
@@ -284,7 +336,7 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                       </div>
                       
                       {/* Final Image */}
-                      <div className="flex-shrink-0 w-100">
+                      <div className="flex-shrink-0 w-100 relative group">
                         <div className="relative aspect-[2/1]">
                           <Image
                             src={image.final_image_url || '/placeholder-image.png'}
@@ -293,6 +345,23 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                             className="object-cover rounded"
                             unoptimized
                           />
+                          {/* Upload Button Overlay */}
+                          <button
+                            onClick={() => handleImageUploadClick(image.page_code)}
+                            disabled={uploadingPageCode === image.page_code}
+                            className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                          >
+                            {uploadingPageCode === image.page_code ? (
+                              <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                            ) : (
+                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
+                            )}
+                          </button>
                         </div>
                       </div>
                       
@@ -314,7 +383,7 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                         />
                       </div>
                       <div 
-                        className="relative w-full"
+                        className="relative w-full group"
                         style={{ paddingBottom: '56.25%' }}
                       >
                         <Image
@@ -324,6 +393,23 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                           className="object-contain"
                           unoptimized
                         />
+                        {/* Upload Button Overlay */}
+                        <button
+                          onClick={() => handleImageUploadClick(image.page_code)}
+                          disabled={uploadingPageCode === image.page_code}
+                          className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                        >
+                          {uploadingPageCode === image.page_code ? (
+                            <svg className="animate-spin h-8 w-8 text-white" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          ) : (
+                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                          )}
+                        </button>
                       </div>
                       <div className="p-4 bg-gray-50 border-t border-gray-200">
                         <div className="flex items-center justify-between">
