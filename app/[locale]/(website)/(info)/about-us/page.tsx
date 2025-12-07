@@ -62,11 +62,19 @@ export default function AboutUsPage() {
               But as we kept reading, her excitement slowly faded.<br />
               The avatar wasn't truly her—and she felt it.<br />
               In that moment, I realized something deeply true about children:<br />
-              <span className="font-medium">they know when something really reflects them… and when it doesn't.</span>
+              <span className="font-medium">they know when something really reflects them… and when it doesn't.</span><br/><br/>
+              
+              <span className="hidden md:block">
+              As a teacher for more than 10 years, I had seen the same longing in countless children
+              to be understood, to feel noticed, to make sense of big emotions and brave little moments.
+              Stories can be their safe place for all of that.
+              Children needed one more kind of book: not just a book with their name, not an avatar that's "close enough," but a story where they can truly see themselves— and share that journey with the people they love.<br />
+              <span className="font-medium">And so, Dreamaze was born.</span>
+              </span>
             </p>
             <img src={ABOUT_IMAGE('where-it-all-began.png')} className="w-full" alt="Where it all began" />
           </div>
-          <p className='mt-4 '>
+          <p className='mt-4 md:hidden'>
             As a teacher for more than 10 years, I had seen the same longing in countless children
             to be understood, to feel noticed, to make sense of big emotions and brave little moments.
             Stories can be their safe place for all of that.
@@ -79,19 +87,19 @@ export default function AboutUsPage() {
 
       <AnimatedSection>
         <section className="max-w-5xl mx-auto p-4 md:p-0">
-          <h2 className='text-center text-[36px] md:text-[60px] text-primary font-semibold mb-20'>Made by Educators & Artists,Crafted for Your Child</h2>
+          <h2 className='text-center text-[36px] md:text-[60px] text-primary font-semibold mb-20'>Made by Educators & Artists,<br className="hidden md:block"/>Crafted for Your Child</h2>
 
           <div className="flex flex-col md:flex-row items-center gap-4 md:gap-10">
             <img src={ABOUT_IMAGE('dreamaze-stories.png')} alt="Dreamaze Stories" className="w-full md:w-1/2" />
             <div className="w-full md:w-1/2 space-y-4">
-              <h3 className="text-[28px] md:text-[40px] text-center md:text-left">Dreamaze Stories:
+              <h3 className="text-[28px] md:text-[40px] text-center font-semibold md:text-left">Dreamaze Stories:
                 From Sketch to Life</h3>
               <p className=''>
                 Every Dreamaze story begins with a simple question—<br />
-                <span className="font-semibold" >how can we help a child feel seen, encouraged, and celebrated?</span><br />
+                <span className="font-semibold" >how can we help a child feel seen, encouraged, and celebrated?</span><br /><br/>
 
                 Our stories are shaped with educator-led insights and brought to life by award-winning illustrators—
-                each page blending learning, emotion, and artistry.<br />So your child doesn't just read the story…
+                each page blending learning, emotion, and artistry.<br />So your child doesn't just read the story…<br/>
                 <span className='font-semibold'>they step into it</span><br />
                 and see themselves as the hero.
               </p>
@@ -107,24 +115,24 @@ export default function AboutUsPage() {
         <section className="max-w-xl mx-auto p-4 md:p-0 flex flex-col justify-center">
           <div className='text-center'>
             <h2 className="font-semibold text-[24px] md:text-[40px] md:font-bold mb-8">Co-creating With Our Families</h2>
-            <p className='md:text-center'>Dreamaze is still young, but we've already heard so much inspiring feedback.<br />
+            <p className='text-left md:text-center'>Dreamaze is still young, but we've already heard so much inspiring feedback.<br />
               To make our books even more personal, we'd love you to co-create with us.<br /> <br />
               <span className="font-semibold">Your ideas help us understand what matters most to real families—<br />
                 Together, we can create stories every child truly sees themselves in..</span>
             </p>
-            <Link className="bg-[#222] mt-5 block text-[16px] p-2 rounded text-[#FCF2F2]" href={SURVEY_URL}>Submit Your Idea</Link>
+            <Link className="bg-[#222] mx-auto md:w-[360px] mt-5 block text-[16px] p-2 rounded text-[#FCF2F2]" href={SURVEY_URL}>Submit Your Idea</Link>
           </div>
         </section>
       </AnimatedSection>
 
       <AnimatedSection>
         <section className="bg-[#FCF2F2] p-4 pb-20">
-          <div className="max-w-xl mx-auto">
-            <h2 className="text-[24px] md:text-[40px] font-semibold">Safe and Friendly for Little Hands</h2>
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-[24px] md:text-[40px] font-semibold text-center my-10">Safe and Friendly for Little Hands</h2>
             <p className="md:text-center">
               At Dreamaze, your child's safety always comes first.<br/>
 We use non-toxic inks and gentle paper designed for young eyes,<br/>
- every page is vibrant, soft, and safe.<br/>
+ every page is vibrant, soft, and safe.<br/><br/>
 Our books come in three durable formats, each tested to withstand eager hands and everyday use.  Sturdy, lasting, and designed with care— <br/>
 <span className="font-semibold">ready for little hands to explore, again and again.</span>
             </p>
@@ -136,7 +144,7 @@ Our books come in three durable formats, each tested to withstand eager hands an
               </li>
               )}
             </ul>
-            <Link className="bg-[#222] text-center mt-5 block text-[16px] p-2 rounded text-[#FCF2F2]" href={BOOKS_URL}>Explore Our Books</Link>
+            <Link className="bg-[#222] md:w-[360px] mx-auto text-center mt-5 block text-[16px] p-2 rounded text-[#FCF2F2]" href={BOOKS_URL}>Explore Our Books</Link>
           </div>
         </section>
       </AnimatedSection>
