@@ -23,6 +23,8 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
   const [isConfirming, setIsConfirming] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'full'>('grid');
   const [selectedPageCodes, setSelectedPageCodes] = useState<string[]>([]);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
   const { handleManualConfirm } = useOrderDetail();
   
   if (!isOpen) return null;
@@ -60,7 +62,12 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
   const handleDownloadSelected = async () => {
     if (selectedPageCodes.length === 0) return;
 
+    setIsDownloading(true);
+    setDownloadProgress(0);
+
     try {
+      setDownloadProgress(20);
+
       const response = await fetch(API_ADMIN_ORDER_DOWNLOAD_IMAGES, {
         method: 'POST',
         headers: {
@@ -74,11 +81,15 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
         }),
       });
 
+      setDownloadProgress(50);
+
       const result = await response.json();
 
       if (!response.ok || !result.success) {
         throw new Error(result.error || 'Failed to create zip file');
       }
+
+      setDownloadProgress(80);
 
       // Create download link from base64 data
       const link = document.createElement('a');
@@ -88,9 +99,18 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
       link.click();
       document.body.removeChild(link);
 
+      setDownloadProgress(100);
+
+      // Reset after a short delay
+      setTimeout(() => {
+        setIsDownloading(false);
+        setDownloadProgress(0);
+      }, 1000);
+
     } catch (error) {
       console.error('Failed to download images:', error);
-      // You could add user notification here
+      setIsDownloading(false);
+      setDownloadProgress(0);
       alert('Failed to download images. Please try again.');
     }
   };
@@ -118,12 +138,18 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                   </span>
                   <button
                     onClick={handleDownloadSelected}
-                    className="px-3 py-1 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center space-x-1"
+                    disabled={isDownloading}
+                    className="px-3 py-1 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center space-x-1 disabled:bg-green-400 disabled:cursor-not-allowed relative"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {isDownloading && (
+                      <div className="absolute inset-0 bg-green-700 rounded-md" style={{ width: `${downloadProgress}%`, transition: 'width 0.3s ease' }}></div>
+                    )}
+                    <svg className="w-4 h-4 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <span>Download ZIP</span>
+                    <span className="relative z-10">
+                      {isDownloading ? `Download ZIP (${downloadProgress}%)` : 'Download ZIP'}
+                    </span>
                   </button>
                 </>
               )}
