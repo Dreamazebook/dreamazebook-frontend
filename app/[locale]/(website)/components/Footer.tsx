@@ -1,6 +1,8 @@
+'use client';
+
 import { FaFacebookF, FaTwitter, FaInstagram } from 'react-icons/fa';
 import Image from 'next/image';
-import { Link } from '@/i18n/routing';
+import { Link, usePathname } from '@/i18n/routing';
 import { CONTACT_US_URL } from '@/constants/links';
 
 const footerMenus = [
@@ -36,6 +38,10 @@ const socialLinks = [
 ];
 
 const Footer = () => {
+  const pathname = usePathname();
+  const isChristmasPage = pathname === '/christmas' || pathname?.endsWith('/christmas') || pathname?.includes('/christmas');
+  const bgColor = isChristmasPage ? '#2F491F' : undefined;
+  
   const renderMenuSection = (menu: typeof footerMenus[0]) => (
     <div key={menu.title}>
       <h3 className="text-xl font-semibold mb-4 lg:mb-6">{menu.title}</h3>
@@ -67,7 +73,7 @@ const Footer = () => {
   );
 
   return (
-    <footer className="bg-neutral-800 text-white py-12 px-6">
+    <footer className={`${isChristmasPage ? '' : 'bg-neutral-800'} text-white py-12 px-6`} style={bgColor ? { backgroundColor: bgColor } : undefined}>
       <div className="max-w-7xl mx-auto">
         {/* Mobile Layout */}
         <div className="block lg:hidden">

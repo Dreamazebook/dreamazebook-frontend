@@ -74,6 +74,12 @@ const BOOK_DETAIL_OVERRIDES: Record<
       "Imagine the joy on your child's face when they receive their very own letter from Santa Claus.<br/>In this personalized story, Santa shares what he's noticed about your child's good deeds, their wishes, and the magic of the season.<br/>A festive keepsake that makes Christmas sparkle with wonder, warmth, and love.",
     tags: [{ tname: 'Christmas Magic' }, { tname: 'Festive Keepsake' }],
   },
+  PICBOOK_MELODY: {
+    name: 'Your Melody',
+    description:
+      "Your Melody celebrates your baby's name in the sweetest way. Each letter turns into a gentle instrument carrying a blessing, and together they create a unique song just for them. A precious keepsake to welcome little ones and treasure their earliest years.",
+    tags: [{ tname: 'Name-to-Melody' }, { tname: 'Keepsake Blessing' }],
+  },
 };
 
 const applyBookOverride = (bookData: any, override?: { name?: string; description?: string }) => {

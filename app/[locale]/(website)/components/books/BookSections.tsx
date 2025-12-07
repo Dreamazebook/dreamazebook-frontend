@@ -438,8 +438,12 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
 
 // Meet the Author Section 组件
 const MeetAuthorSection: React.FC<{ section: BookSection }> = ({ section }) => {
+  // 检查 className 中是否包含背景色相关的类
+  const hasBgClass = section.className?.includes('bg-');
+  const defaultBgClass = hasBgClass ? '' : 'bg-white';
+  
   return (
-    <div className={`w-full bg-white pt-12 gap-8 md:h-[616px] md:pt-[88px] md:pr-[120px] md:pb-[88px] md:pl-[120px] flex flex-col md:flex-row md:gap-[48px] ${section.className || ''}`}>
+    <div className={`w-full ${defaultBgClass} pt-12 gap-8 md:h-[616px] md:pt-[88px] md:pr-[120px] md:pb-[88px] md:pl-[120px] flex flex-col md:flex-row md:gap-[48px] ${section.className || ''}`}>
       {/* 右侧：文字内容 - 手机端在上，桌面端在右 */}
       <div className="flex flex-col px-4 md:px-0 gap-[24px] gap-6 order-1 md:order-2 md:justify-center md:w-1/2">
         {/* 标题 */}
