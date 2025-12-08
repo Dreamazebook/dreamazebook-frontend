@@ -42,3 +42,10 @@ body {
     opacity: 1;
   }
 }
+
+/* 详情页 Meet Author 区域在超大屏下拉高高度 */
+@media (min-width: 1800px) {
+  .meet-author-section {
+    height: 800px;
+  }
+}

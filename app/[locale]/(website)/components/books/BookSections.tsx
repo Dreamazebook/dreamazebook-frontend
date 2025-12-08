@@ -443,7 +443,7 @@ const MeetAuthorSection: React.FC<{ section: BookSection }> = ({ section }) => {
   const defaultBgClass = hasBgClass ? '' : 'bg-white';
   
   return (
-    <div className={`w-full ${defaultBgClass} pt-12 gap-8 md:h-[616px] md:pt-[88px] md:pr-[120px] md:pb-[88px] md:pl-[120px] flex flex-col md:flex-row md:gap-[48px] ${section.className || ''}`}>
+    <div className={`w-full ${defaultBgClass} meet-author-section pt-12 gap-8 md:h-[616px] md:pt-[88px] md:pr-[120px] md:pb-[88px] md:pl-[120px] flex flex-col md:flex-row md:gap-[48px] ${section.className || ''}`}>
       {/* 右侧：文字内容 - 手机端在上，桌面端在右 */}
       <div className="flex flex-col px-4 md:px-0 gap-[24px] gap-6 order-1 md:order-2 md:justify-center md:w-1/2">
         {/* 标题 */}
@@ -470,11 +470,11 @@ const MeetAuthorSection: React.FC<{ section: BookSection }> = ({ section }) => {
       
       {/* 左侧：作者图片 - 手机端在下，桌面端在左 */}
       {section.authorImage && (
-        <div className="w-full md:w-1/2 order-2 md:order-1">
+        <div className="w-full md:w-1/2 md:h-full order-2 md:order-1">
           <img 
             src={section.authorImage} 
             alt="Author" 
-            className="w-full md:h-full object-cover"
+            className="w-full h-full object-cover"
           />
         </div>
       )}
