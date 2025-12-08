@@ -242,9 +242,11 @@ export default function ShoppingCartPage() {
 
         if (success && data) {
           setCalculatedCost(data);
+        } else {
+          alert(message);
         }
-      } catch (err) {
-        console.error('Failed to calculate cost:', err);
+      } catch (err:any) {
+        alert(err.toString());
         setCalculatedCost(null);
       }
     };
