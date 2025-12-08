@@ -124,18 +124,37 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
   const handleUploadFinalImage = async (pageCode: string, file: File) => {
     setUploadingPageCode(pageCode);
     try {
-      const formData = new FormData();
-      formData.append('images', JSON.stringify([
-        {
-          page_code: pageCode,
-          file: file
-        }
-      ]));
-      formData.append('file', file);
+      // Convert file to base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          // Remove data URL prefix to get only the base64 string
+          const base64String = result.split(',')[1];
+          resolve(base64String);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      // Prepare the request body as JSON
+      const requestBody = {
+        images: [
+          {
+            page_code: pageCode,
+            base64: base64
+          }
+        ]
+      };
 
       const { success, message } = await api.post<ApiResponse>(
         API_ADMIN_ORDER_ITEM_UPLOAD_FINAL_IMAGE(orderId, orderItem.id),
-        formData
+        requestBody,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       );
 
       if (success) {
