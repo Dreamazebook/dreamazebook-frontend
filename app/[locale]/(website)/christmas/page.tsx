@@ -135,7 +135,7 @@ export default function ChristmasPage() {
     },
     {
       id: 'four',
-      label: 'The Storytime Set',
+      label: 'Storytime Set',
       bundles: [
         {
           id: 'four-classic',
@@ -171,7 +171,7 @@ export default function ChristmasPage() {
     },
     {
       id: 'classics',
-      label: 'The Celebration Set',
+      label: 'Celebration Set',
       bundles: [
         {
           id: 'christmas-classic',

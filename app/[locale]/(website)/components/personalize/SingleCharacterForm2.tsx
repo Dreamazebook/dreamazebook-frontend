@@ -13,6 +13,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 //import { ConfigProvider, DatePicker } from 'antd';
+import GiverAvatarCropper from '../../preview/components/GiverAvatarCropper';
 
 export interface PersonalizeFormData2 extends BasicInfoData {
   birthSeason: '' | 'spring' | 'summer' | 'autumn' | 'winter';
@@ -72,6 +73,11 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof PersonalizeFormData2, boolean>>>({});
+  // 裁剪相关状态
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [currentCropIndex, setCurrentCropIndex] = useState(0);
+  const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
 
   // Define season options (each with a label and image source)
   const seasons: { label: string; value: "" | "spring" | "summer" | "autumn" | "winter"; src: string }[] = [
@@ -139,12 +145,57 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
     setErrors(prev => ({ ...prev, [field]: errorMsg }));
   };
 
-  // Handle multiple photos upload（与书籍1一致）
+  // Handle multiple photos upload（与书籍1一致，增加裁剪逻辑）
   const handlePhotosUpload = async (files: File[]) => {
-    const newlyUploadedPaths = await handleImageUpload(files);
+    if (!files || files.length === 0) return;
+    const maxImages = uploadOptions?.maxImages ?? 3;
+    const remainingSlots = maxImages - images.length;
+    if (remainingSlots <= 0) return;
+
+    const filesToProcess = files.slice(0, remainingSlots);
+    setPendingFiles(filesToProcess);
+    setCurrentCropIndex(0);
+
+    if (pendingPreviewUrl) {
+      URL.revokeObjectURL(pendingPreviewUrl);
+    }
+    const firstUrl = URL.createObjectURL(filesToProcess[0]);
+    setPendingPreviewUrl(firstUrl);
+    setIsCropperOpen(true);
+  };
+
+  const handleCroppedFile = async (file: File) => {
+    const newlyUploadedPaths = await handleImageUpload([file]);
     if (newlyUploadedPaths.length > 0 && !formData.photo) {
       handleBasicInfoChange('photo', { path: newlyUploadedPaths[0] });
       handleErrorChange('photo', '');
+    }
+
+    const nextIndex = currentCropIndex + 1;
+    if (nextIndex < pendingFiles.length) {
+      setCurrentCropIndex(nextIndex);
+      if (pendingPreviewUrl) {
+        URL.revokeObjectURL(pendingPreviewUrl);
+      }
+      const nextUrl = URL.createObjectURL(pendingFiles[nextIndex]);
+      setPendingPreviewUrl(nextUrl);
+      setIsCropperOpen(true);
+    } else {
+      setIsCropperOpen(false);
+      setPendingFiles([]);
+      if (pendingPreviewUrl) {
+        URL.revokeObjectURL(pendingPreviewUrl);
+        setPendingPreviewUrl(null);
+      }
+    }
+  };
+
+  const handleCropperCancel = () => {
+    setIsCropperOpen(false);
+    setPendingFiles([]);
+    if (pendingPreviewUrl) {
+      URL.revokeObjectURL(pendingPreviewUrl);
+      setPendingPreviewUrl(null);
     }
   };
 
@@ -355,7 +406,7 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
                 onDragEnter={handleDragEnter}
                 onDragLeave={handleDragLeave}
                 onDragOver={handleDragOver}
-                onDrop={handleDrop}
+              onDrop={handleDrop}
               />
               {touched.photo && errors.photo && (
                 <p className="text-red-500 text-sm mt-1">{errors.photo}</p>
@@ -364,6 +415,28 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
           </form>
         </div>
       </div>
+
+      {/* 裁剪弹窗：复用 Preview 页 Giver 的裁剪组件，但改为返回裁剪后的 File */}
+      {isCropperOpen && pendingPreviewUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white w-[860px] max-w-[95vw] rounded-sm pt-6 pr-6 pb-4 pl-6 flex flex-col gap-4">
+            <GiverAvatarCropper
+              resultMode="file"
+              initialSrc={pendingPreviewUrl}
+              aspectRatio={1}
+              maxSize={1024}
+              exportMime="image/jpeg"
+              exportQuality={0.92}
+              spu={undefined}
+              page={undefined}
+              batchId={undefined}
+              onCancel={handleCropperCancel}
+              onDone={() => {}}
+              onDoneFile={handleCroppedFile}
+            />
+          </div>
+        </div>
+      )}
 
       {/* 侧边栏 */}
       <div className="hidden md:block absolute top-0 right-0 mr-14">

@@ -179,6 +179,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
         onDragLeave={handleDragEvents.onDragLeave}
         onDragOver={handleDragEvents.onDragOver}
         onDrop={handleDragEvents.onDrop}
+        onClick={handleUploadAreaClick}
       >
           {isUploading ? (
             <div className="text-center w-full max-w-md mx-auto">
@@ -205,7 +206,10 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
                       Drag your file(s) here or{' '}
                       <button
                           type="button"
-                          onClick={handleUploadAreaClick}
+                          onClick={(e) => {
+                            e.stopPropagation(); // 阻止事件冒泡，避免触发父元素的点击
+                            handleUploadAreaClick();
+                          }}
                           className={`${canUploadMore ? 'text-[#012CCE]' : 'text-[#999999] cursor-not-allowed'}`}
                         >
                         Browse
@@ -254,7 +258,11 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
                 )}
                 
                 <button
-                  onClick={() => onImageDelete(image.id)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // 阻止事件冒泡
+                    onImageDelete(image.id);
+                  }}
+                  type="button"
                   className="absolute top-0 right-0 bg-white shadow-md flex items-center justify-center"
                   style={{
                     width: '24px',

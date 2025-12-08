@@ -8,6 +8,7 @@ import { Link } from '@/i18n/routing';
 import BasicInfoForm, { BasicInfoData } from './BasicInfoForm';
 import MultiImageUpload from './MultiImageUpload';
 import useMultiImageUpload from '../../hooks/useMultiImageUpload';
+import GiverAvatarCropper from '../../preview/components/GiverAvatarCropper';
 
 export interface PersonalizeFormData extends BasicInfoData {
   singleChoice: string; // Single choice feature
@@ -79,6 +80,11 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
   const [errors, setErrors] = useState<FormErrors>({});
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [touched, setTouched] = useState<{ [K in keyof PersonalizeFormData]?: boolean }>({});
+  // 裁剪相关状态
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [currentCropIndex, setCurrentCropIndex] = useState(0);
+  const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
 
   const {
     images,
@@ -154,24 +160,68 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     setErrors(prev => ({ ...prev, [field]: errorMsg }));
   };
 
-  // Handle multiple photos upload
+  // 触发裁剪弹窗：先缓存待处理文件，再逐个进入裁剪
   const handlePhotosUpload = async (files: File[]) => {
-    // 使用 hook 返回的新上传成功路径，避免依赖异步 state 造成的时序问题
-    const newlyUploadedPaths = await handleImageUpload(files);
+    if (!files || files.length === 0) return;
+    const maxImages = uploadOptions?.maxImages ?? 3;
+    const remainingSlots = maxImages - images.length;
+    if (remainingSlots <= 0) return;
 
-    // 如果不存在 photo，则把第一张新上传图设为主图；否则保持已有主图
+    const filesToProcess = files.slice(0, remainingSlots);
+    setPendingFiles(filesToProcess);
+    setCurrentCropIndex(0);
+
+    if (pendingPreviewUrl) {
+      URL.revokeObjectURL(pendingPreviewUrl);
+    }
+    const firstUrl = URL.createObjectURL(filesToProcess[0]);
+    setPendingPreviewUrl(firstUrl);
+    setIsCropperOpen(true);
+  };
+
+  // 裁剪完成后，调用原有上传逻辑，将裁剪结果作为新文件上传
+  const handleCroppedFile = async (file: File) => {
+    const newlyUploadedPaths = await handleImageUpload([file]);
+
     if (newlyUploadedPaths.length > 0 && !formData.photo) {
       handleBasicInfoChange('photo', { path: newlyUploadedPaths[0] });
       handleErrorChange('photo', '');
     }
 
-    // 组合已有路径与新路径，作为 photos 字段（去重）
     const existing = new Set(getUploadedPaths());
     newlyUploadedPaths.forEach(p => existing.add(p));
     const allPaths = Array.from(existing);
-
     setFormData(prev => ({ ...prev, photos: allPaths }));
     setTouched(prev => ({ ...prev, photo: true }));
+
+    // 处理队列中的下一张
+    const nextIndex = currentCropIndex + 1;
+    if (nextIndex < pendingFiles.length) {
+      setCurrentCropIndex(nextIndex);
+      if (pendingPreviewUrl) {
+        URL.revokeObjectURL(pendingPreviewUrl);
+      }
+      const nextUrl = URL.createObjectURL(pendingFiles[nextIndex]);
+      setPendingPreviewUrl(nextUrl);
+      setIsCropperOpen(true);
+    } else {
+      // 队列结束，关闭裁剪弹窗并清理
+      setIsCropperOpen(false);
+      setPendingFiles([]);
+      if (pendingPreviewUrl) {
+        URL.revokeObjectURL(pendingPreviewUrl);
+        setPendingPreviewUrl(null);
+      }
+    }
+  };
+
+  const handleCropperCancel = () => {
+    setIsCropperOpen(false);
+    setPendingFiles([]);
+    if (pendingPreviewUrl) {
+      URL.revokeObjectURL(pendingPreviewUrl);
+      setPendingPreviewUrl(null);
+    }
   };
 
   // Handle photo deletion
@@ -532,6 +582,30 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 裁剪弹窗：复用 Preview 页 Giver 的裁剪组件，但改为返回裁剪后的 File */}
+      {isCropperOpen && pendingPreviewUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white w-[860px] max-w-[95vw] rounded-sm pt-6 pr-6 pb-4 pl-6 flex flex-col gap-4">
+            <GiverAvatarCropper
+              // 个性化页：不走特殊上传接口，仅返回裁剪后的文件
+              resultMode="file"
+              initialSrc={pendingPreviewUrl}
+              aspectRatio={1}
+              maxSize={1024}
+              exportMime="image/jpeg"
+              exportQuality={0.92}
+              spu={undefined}
+              page={undefined}
+              batchId={undefined}
+              onCancel={handleCropperCancel}
+              // 预览页使用 onDone(url)，这里仅使用 onDoneFile
+              onDone={() => {}}
+              onDoneFile={handleCroppedFile}
+            />
           </div>
         </div>
       )}

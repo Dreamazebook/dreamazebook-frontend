@@ -33,10 +33,17 @@ const UploadArea: React.FC<UploadAreaProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleDelete = () => {
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 阻止事件冒泡
     handleDeleteImage();
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const handleAreaClick = () => {
+    if (!imageUrl && !isUploading) {
+      fileInputRef.current?.click();
     }
   };
 
@@ -44,11 +51,12 @@ const UploadArea: React.FC<UploadAreaProps> = ({
     <div
       className={`rounded p-4 text-center transition-colors min-h-[200px] flex flex-col items-center justify-center relative ${
         isDragging ? 'border-2 border-[#012CCE]' : 'bg-[#F8F8F8]'
-      }`}
+      } ${!imageUrl && !isUploading ? 'cursor-pointer' : ''}`}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
+      onClick={handleAreaClick}
     >
       {imageUrl ? (
         <>
@@ -73,6 +81,7 @@ const UploadArea: React.FC<UploadAreaProps> = ({
             />
             <button
               onClick={handleDelete}
+              type="button"
               className="absolute top-0 right-0 bg-white shadow-md flex items-center justify-center"
               style={{
                 width: '24px',
