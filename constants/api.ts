@@ -11,6 +11,7 @@ export const API_USER_CURRENT = '/user/profile';
 export const API_USER_PROFILE = '/user/profile';
 
 export const API_CART_LIST = '/cart';
+export const API_CART_CALCULATE_COST = '/checkout/calculate-cost';
 export const API_CART_CREATE = '/cart/create';
 export const API_CART_REMOVE = '/cart/remove';
 export const API_CART_UPDATE = (id:number) => `${API_CART_LIST}/${id}`;
@@ -48,7 +49,7 @@ export const API_ADMIN_PERMISSIONS = '/admin/permissions';
 export const API_ADMIN_ORDERS = '/admin/orders'
 export const API_ADMIN_ORDER_DETAIL = (id: string | number) => `${API_ADMIN_ORDERS}/${id}`
 export const API_ADMIN_ORDER_ITEM_UPLOAD_FINAL_IMAGE = (orderId:string|number, itemId:string|number) => `${API_ADMIN_ORDERS}/${orderId}/items/${itemId}/upload-final-images`;
-export const API_ADMIN_ORDER_DETAIL_MANUAL_CONFIRM = (id: string | number) => `${API_ADMIN_ORDER_DETAIL(id)}/manual-confirm`
+export const API_ADMIN_ORDER_DETAIL_MANUAL_CONFIRM = (orderId: string | number, itemId: string|number) => `${API_ADMIN_ORDER_DETAIL(orderId)}/items/${itemId}/confirm`
 export const API_ADMIN_ORDER_DOWNLOAD_IMAGES = '/api/admin/orders/download-images'
 
 

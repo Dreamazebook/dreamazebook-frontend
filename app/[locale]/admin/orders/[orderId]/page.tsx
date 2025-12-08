@@ -103,13 +103,14 @@ const AdminOrderDetailPage: FC = () => {
 
   const handleManualConfirm = async (itemId: string) => {
     try {
-      const { success, data } = await api.post<ApiResponse<OrderDetail>>(API_ADMIN_ORDER_DETAIL_MANUAL_CONFIRM(orderId), {
+      const { success, data } = await api.post<ApiResponse<OrderDetail>>(API_ADMIN_ORDER_DETAIL_MANUAL_CONFIRM(orderId, itemId), {
         item_id: itemId
       });
       if (success && data) {
         // 确认成功后关闭模态窗口
         setIsModalOpen(false);
         setSelectedItem(null);
+        window.location.reload();
       }
     } catch (err) {
       console.error('Error confirming order:', err);

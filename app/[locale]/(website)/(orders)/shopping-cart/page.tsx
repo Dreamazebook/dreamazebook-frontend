@@ -6,7 +6,7 @@ import { useRouter, usePathname } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
-import { API_CART_LIST, API_CART_REMOVE, API_CART_UPDATE, API_ORDER_CREATE, API_KS_PACKAGE_STATUS } from '@/constants/api';
+import { API_CART_LIST, API_CART_REMOVE, API_CART_UPDATE, API_ORDER_CREATE, API_KS_PACKAGE_STATUS, API_CART_CALCULATE_COST } from '@/constants/api';
 import { CartItem, CartItems } from '@/types/cart';
 
 // 导入组件
@@ -217,22 +217,41 @@ export default function ShoppingCartPage() {
     }
   };
 
-  // 示例计算价格：仅计算选中的书（含其子项目）
-  const subtotal = cartItems.reduce((acc, item) => {
-    if (!selectedItems.includes(item.id)) return acc; // 未选中则跳过
-    let sum = 0;
-    if (item.subItems) {
-      sum += item.subItems.reduce((subAcc, sub) => subAcc + (sub.total_price), 0);
-    } else {
-      sum += item.total_price * (item.quantity || 1)
-    }
-    return acc + sum;
-  }, 0);
-
-  const shipping = 0;
-  const total = subtotal + shipping - discount;
-
   const [appliedCoupon, setAppliedCoupon] = useState('');
+  const [calculatedCost, setCalculatedCost] = useState<any>(null);
+
+  // Calculate cost based on API response or fallback to local calculation
+  const subtotal = calculatedCost?.subtotal || 0;
+  const shipping = calculatedCost?.shipping ?? 0;
+  const discountInfo = calculatedCost?.discount;
+  const discountAmount = discountInfo?.applicable ? (discountInfo.amount || 0) : 0;
+  const total = calculatedCost?.total_amount || 0;
+
+  // Call API_CART_CALCULATE_COST whenever selectedItems changes
+  useEffect(() => {
+    const calculateCost = async () => {
+      if (selectedItems.length === 0) {
+        setCalculatedCost(null);
+        return;
+      }
+
+      try {
+        const { data, success, message } = await api.post<ApiResponse>(API_CART_CALCULATE_COST, {
+          cart_item_ids: selectedItems
+        });
+
+        if (success && data) {
+          setCalculatedCost(data);
+        }
+      } catch (err) {
+        console.error('Failed to calculate cost:', err);
+        setCalculatedCost(null);
+      }
+    };
+
+    calculateCost();
+  }, [selectedItems]);
+
   const handleApplyCoupon = (code: string) => {
     // 这里应该是调用API验证优惠码并获取折扣金额
     // 为了演示，我们假设"BLACKFRIDAY"优惠码会给25%的折扣
@@ -370,10 +389,22 @@ export default function ShoppingCartPage() {
                   <p className="text-gray-600">{t('shipping')}</p>
                   <p>${shipping.toFixed(2)}</p>
                 </div>
-                {discount > 0 && (
-                  <div className="flex justify-between text-green-600">
-                    <p>{t('discount')}</p>
-                    <p>-${discount.toFixed(2)}</p>
+                {discountInfo?.applicable && discountAmount > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-green-600">
+                      <div>
+                        <p>{t('discount')}</p>
+                        {discountInfo.description && (
+                          <p className="text-xs text-green-500">{discountInfo.description}</p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p>-${discountAmount.toFixed(2)}</p>
+                        {discountInfo.percentage && (
+                          <p className="text-xs text-green-500">-{discountInfo.percentage}%</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
                 <div className="border-t border-gray-200 pt-3 flex justify-between">
