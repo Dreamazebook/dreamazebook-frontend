@@ -9,6 +9,8 @@ import api from '@/utils/api';
 import { MdRotateLeft, MdRotateRight, MdFlip, MdRefresh } from 'react-icons/md';
 
 type Props = {
+  // 预览页：返回已上传到后端的图片 URL
+  // 个性化页：也可以仅使用裁剪后的本地文件（见 onDoneFile）
   onDone: (url: string) => void;
   onCancel: () => void;
   // 可选：固定裁剪比例（例如头像 1:1）。不传则自由裁剪
@@ -26,6 +28,17 @@ type Props = {
   batchId?: string;
   // 可选：初始图片URL，如果提供则直接使用，不触发文件选择器
   initialSrc?: string;
+  /**
+   * 可选：如果希望拿到裁剪后的 File，由外部决定如何处理/上传，
+   * 则传入该回调。常用于个性化页面本地 base64 上传场景。
+   */
+  onDoneFile?: (file: File) => void;
+  /**
+   * 结果模式：
+   * - 'specialUpload'（默认）：走特殊上传接口，返回后端 image_url（Preview Giver 使用）
+   * - 'file'：不调用后端上传，仅返回裁剪后的 File（Personalize 使用）
+   */
+  resultMode?: 'specialUpload' | 'file';
 };
 
 // 复制 hooks 内部的地址规范化逻辑，便于将后端 path 转为可访问 URL
@@ -52,7 +65,20 @@ function toAbsoluteUrl(raw: string): string {
   return `${origin}/${cleanPath}`;
 }
 
-export default function GiverAvatarCropper({ onDone, onCancel, aspectRatio, maxSize, exportMime = 'image/jpeg', exportQuality = 0.92, spu, page, batchId, initialSrc }: Props) {
+export default function GiverAvatarCropper({
+  onDone,
+  onCancel,
+  aspectRatio,
+  maxSize,
+  exportMime = 'image/jpeg',
+  exportQuality = 0.92,
+  spu,
+  page,
+  batchId,
+  initialSrc,
+  onDoneFile,
+  resultMode = 'specialUpload',
+}: Props) {
   const [src, setSrc] = useState<string | undefined>(initialSrc);
   const cropperRef = useRef<ReactCropperElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -174,13 +200,23 @@ export default function GiverAvatarCropper({ onDone, onCancel, aspectRatio, maxS
       canvas.toBlob(async (blob) => {
         if (!blob) return;
         try {
-          // 统一使用特殊图片上传接口（需要 spu + page）
-          if (!spu || page === undefined || page === null) {
-            throw new Error('Missing required parameters: spu or page');
+          if (resultMode === 'file') {
+            // 个性化页面：直接返回裁剪后的 File，由外部自行上传/转 dataURL
+            const file = new File([blob], 'cropped-image.' + (exportMime === 'image/png' ? 'png' : exportMime === 'image/webp' ? 'webp' : 'jpg'), {
+              type: exportMime,
+            });
+            if (onDoneFile) {
+              onDoneFile(file);
+            }
+          } else {
+            // 预览页面：统一使用特殊图片上传接口（需要 spu + page）
+            if (!spu || page === undefined || page === null) {
+              throw new Error('Missing required parameters: spu or page');
+            }
+            const base64Data = await blobToBase64(blob);
+            const url = await uploadSpecialImage(base64Data);
+            onDone(url);
           }
-          const base64Data = await blobToBase64(blob);
-          const url = await uploadSpecialImage(base64Data);
-          onDone(url);
         } catch (e: unknown) {
           setError(e instanceof Error ? e.message : 'Upload failed');
         } finally {
@@ -277,8 +313,21 @@ export default function GiverAvatarCropper({ onDone, onCancel, aspectRatio, maxS
               </button>
             </div>
           </div>
-          <div className="flex justify-end mt-3">
-            <button onClick={onApply} disabled={isUploading} className="px-3 py-1 w-[120px] h-[44px] rounded bg-black text-white">
+          <div className="flex justify-end mt-3 gap-2">
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={isUploading}
+              className="px-3 py-1 w-[120px] h-[44px] rounded border border-[#222222] text-[#222222] bg-white hover:bg-[#F5F5F5]"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={onApply}
+              disabled={isUploading}
+              className="px-3 py-1 w-[120px] h-[44px] rounded bg-black text-[#F5E3E3] disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
               {isUploading ? 'Adding...' : 'Apply'}
             </button>
           </div>
