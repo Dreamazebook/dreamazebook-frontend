@@ -37,6 +37,14 @@ const BUNDLE_COVER_IMAGES: Record<string, string> = {
   PICBOOK_MELODY: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_MELODY.png',
 }
 const normalizeSpu = (spu: string) => (spu === 'PICBOOK_GOODNIGHT3' ? 'PICBOOK_GOODNIGHT' : spu)
+const BOOK_NAME_MAP: Record<string, string> = {
+  PICBOOK_SANTA: "Santa's Letter For You",
+  PICBOOK_GOODNIGHT: 'Good Night to You',
+  PICBOOK_GOODNIGHT3: 'Good Night to You',
+  PICBOOK_BRAVEY: "You're Brave in Many Ways",
+  PICBOOK_BIRTHDAY: 'Birthday Book for You',
+  PICBOOK_MELODY: 'Your Melody',
+}
 const IMAGE_FALLBACK_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="280" height="360" viewBox="0 0 280 360" fill="none"><rect width="280" height="360" rx="16" fill="%23F2F2F2"/><path d="M80 170C80 142.386 102.386 120 130 120H150C177.614 120 200 142.386 200 170V230C200 257.614 177.614 280 150 280H130C102.386 280 80 257.614 80 230V170Z" fill="%23E0E0E0"/><circle cx="140" cy="182" r="28" fill="%23CCCCCC"/><path d="M102 246C104.667 222 118.4 210 143.2 210C167.6 210 180.667 222 182.4 246" stroke="%23CCCCCC" stroke-width="10" stroke-linecap="round"/></svg>'
 
 function formatPrice(price: number) {
@@ -272,9 +280,10 @@ export default function ChristmasPage() {
       const key = normalizeSpu(p.spu_code)
       const mappedCover = BUNDLE_COVER_IMAGES[key]
       const image = mappedCover || (Array.isArray(p.images) ? p.images[0] : undefined) || p.primary_image || IMAGE_FALLBACK_SVG
+      const displayName = BOOK_NAME_MAP[key] || p.name
       return {
         spu: p.spu_code,
-        name: p.name,
+        name: displayName,
         image,
         href: `/books/${p.spu_code}`,
         disabled: DISABLED_BOOKS.has(p.spu_code) || /birthday/i.test(p.name) || /melody/i.test(p.name),

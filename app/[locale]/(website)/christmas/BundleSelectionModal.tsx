@@ -186,10 +186,10 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
                       )}
                     </div>
                     <div className="w-full flex flex-col items-center gap-2 px-2">
-                      <p className="text-[20px] md:text-[22px] text-[#222222] leading-[28px]">{book.name}</p>
+                      <p className="text-[20px] md:font-medium md:text-[18px] text-[#222222] leading-[24px] tracking-[0.15px]">{book.name}</p>
                       <Link
                         href={book.href}
-                        className="text-[16px] font-medium text-[#012CCE] hover:underline flex items-center gap-1"
+                        className="text-[16px] leading-[24px] tracking-[0.5px] text-[#012CCE] hover:underline flex items-center gap-1"
                         onClick={(e) => e.stopPropagation()}
                       >
                         more details <span aria-hidden>→</span>
@@ -206,7 +206,7 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
               type="button"
               onClick={canSubmit ? onClose : undefined}
               disabled={!canSubmit}
-              className={`w-full md:w-auto min-w-[240px] px-6 py-3 rounded-md text-sm font-medium ${
+              className={`w-full md:w-auto min-w-[240px] px-6 py-3 rounded-[4px] text-[16px] leading-[24px] tracking-[0.5px] ${
                 canSubmit ? 'bg-[#012CCE] text-white hover:bg-[#001E99]' : 'bg-[#C4C4C4] text-white cursor-not-allowed'
               }`}
             >
