@@ -311,7 +311,7 @@ function CoverNameCanvas({
           }
         }
       } catch (e) {
-        console.error(`Failed to draw ${upperBookId} cover canvas:`, e);
+        console.error('Failed to draw cover canvas:', e);
       }
     };
 
@@ -355,13 +355,6 @@ function CoverOptionImageWithName({
     position?: { x: number; y: number };
     alignment?: string;
   }> | null>(null);
-
-  // 调试日志
-  console.log(`[CoverOptionImageWithName] ${upperBookId} cover_${coverId}:`, {
-    recipient,
-    trimmedName: (recipient || '').trim(),
-    cacheKey: `${upperBookId}_${coverId}`
-  });
   const [composedUrl, setComposedUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -373,6 +366,13 @@ function CoverOptionImageWithName({
     }
     const rawCoverKey = option.option_key || String(option.id);
     const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(option.id);
+
+    // 调试日志
+    console.log(`[CoverOptionImageWithName] ${upperBookId} cover_${coverId}:`, {
+      recipient,
+      trimmedName: (recipient || '').trim(),
+      cacheKey: `${upperBookId}_${coverId}`
+    });
 
     const cacheKey = `${upperBookId}_${coverId}`;
     // 先尝试使用全局缓存的文字配置
@@ -427,7 +427,7 @@ function CoverOptionImageWithName({
   const trimmedName = (recipient || '').trim();
   const canDrawName = !!trimmedName && texts && texts.length > 0;
 
-  console.log(`[CoverOptionImageWithName] Render check for ${upperBookId} cover_${coverId}:`, {
+  console.log(`[CoverOptionImageWithName] Render check:`, {
     recipient,
     trimmedName,
     texts: texts ? texts.length : 'null',
