@@ -16,7 +16,7 @@ const BASE_URL = getBaseURL();
 const api= axios.create({
     baseURL: BASE_URL,
     withCredentials: true,
-    timeout: 100000, // 请求超时时间设置为 100 秒
+    timeout: 10000, // 请求超时时间设置为 10 秒
     headers: {
         'Content-Type': 'application/json',
     },

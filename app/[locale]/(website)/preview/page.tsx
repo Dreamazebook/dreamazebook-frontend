@@ -2264,7 +2264,15 @@ export default function PreviewPageWithTopNav() {
   };
 
   // 启动渲染：POST /products/{spu}/preview/render 并解析 NDJSON 流
+  // 增加客户端超时时间到约 90 秒，避免连接过早中断
   const startNdjsonRender = async (spuCode: string, payload: any) => {
+    // 使用 AbortController 实现超时控制
+    const controller = new AbortController();
+    const timeoutMs = 90_000; // 1 分半
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, timeoutMs);
+
     try {
       // 客户端使用 /api 代理，服务器端使用完整 URL
       const apiBase = typeof window !== 'undefined' 
@@ -2288,6 +2296,7 @@ export default function PreviewPageWithTopNav() {
           ...(authHeader ? { Authorization: authHeader } : {}),
         },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
       if (!resp.ok) {
         const text = await resp.text();
@@ -2328,7 +2337,13 @@ export default function PreviewPageWithTopNav() {
         } catch (_e) {}
       }
     } catch (e: any) {
-      console.error('预览渲染流式请求失败:', e);
+      if (e?.name === 'AbortError') {
+        console.error(`预览渲染流式请求超时（>${timeoutMs}ms）`, e);
+      } else {
+        console.error('预览渲染流式请求失败:', e);
+      }
+    } finally {
+      clearTimeout(timeoutId);
     }
   };
 
