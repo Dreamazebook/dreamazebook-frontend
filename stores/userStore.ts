@@ -31,6 +31,9 @@ interface UserState {
   login: (userData: LoginData) => Promise<ApiResponse<UserResponse> | null>
   loginAdmin: (userData: LoginData) => Promise<ApiResponse<UserResponse> | null>
   register: (userData: RegisterData) => Promise<ApiResponse<UserResponse> | null>
+  loginWithGoogle: () => void
+  loginWithGoogleToken: (userData: GoogleLoginData) => Promise<ApiResponse<UserResponse> | null>
+  loginWithFacebookToken: (userData: FacebookLoginData) => Promise<ApiResponse<UserResponse> | null>
   logout: () => void
   fetchCurrentUser: () => void
   sendResetPasswordLink: (email: string) => Promise<boolean>
@@ -59,6 +62,24 @@ type RegisterData = {
   email: string
   password: string
   password_confirmation: string
+}
+
+type GoogleLoginData = {
+  googleId: string
+  email: string
+  name: string
+  picture?: string
+  emailVerified?: boolean
+  idToken: string
+  accessToken: string
+}
+
+type FacebookLoginData = {
+  facebookId: string
+  email: string
+  name: string
+  picture?: string
+  accessToken: string
 }
 
 type KickstarterUserSummary = {
@@ -261,6 +282,53 @@ const useUserStore = create<UserState>((set,get) => ({
       // 如果获取用户信息失败（例如token过期），清除登录状态
       localStorage.removeItem('token');
       set({ user: null, isLoggedIn: false });
+    }
+  },
+  loginWithGoogle: () => {
+    // This is handled client-side in LoginModal
+    // The actual OAuth flow is initiated directly from the component
+  },
+  loginWithGoogleToken: async (userData: GoogleLoginData): Promise<ApiResponse<UserResponse> | null> => {
+    try {
+      // Send Google token and user data to backend for authentication
+      const response = await api.post<ApiResponse<UserResponse>>('/auth/google/login', {
+        google_id: userData.googleId,
+        email: userData.email,
+        name: userData.name,
+        picture: userData.picture,
+        email_verified: userData.emailVerified,
+        id_token: userData.idToken,
+      });
+
+      if (response.success && response.data?.token) {
+        localStorage.setItem('token', response.data.token);
+        set({ isLoggedIn: true, user: response.data?.user || null });
+      }
+      return response;
+    } catch (error) {
+      console.error('Google login error:', error);
+      return null;
+    }
+  },
+  loginWithFacebookToken: async (userData: FacebookLoginData): Promise<ApiResponse<UserResponse> | null> => {
+    try {
+      // Send Facebook token and user data to backend for authentication
+      const response = await api.post<ApiResponse<UserResponse>>('/auth/facebook/login', {
+        facebook_id: userData.facebookId,
+        email: userData.email,
+        name: userData.name,
+        picture: userData.picture,
+        access_token: userData.accessToken,
+      });
+
+      if (response.success && response.data?.token) {
+        localStorage.setItem('token', response.data.token);
+        set({ isLoggedIn: true, user: response.data?.user || null });
+      }
+      return response;
+    } catch (error) {
+      console.error('Facebook login error:', error);
+      return null;
     }
   },
 }))
