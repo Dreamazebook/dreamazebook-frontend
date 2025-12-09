@@ -37,16 +37,16 @@ export const useUsersData = (filters:any) => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await api.get<ApiResponse<AdminUser[]>>(getAdminUsersAPI());
+        const response = await api.get<ApiResponse>(getAdminUsersAPI());
         if (response.success && response.data) {
-          setUsers(response.data);
+          setUsers(response.data?.data);
         } else {
           setError('Failed to fetch users');
         }
 
-        const {success, data} = await api.get<ApiResponse<Role[]>>(API_ADMIN_ROLES);
+        const {success, data} = await api.get<ApiResponse>(API_ADMIN_ROLES);
         if (success && data) {
-          setRoles(data);
+          setRoles(data?.data);
         }
 
       } catch (err) {

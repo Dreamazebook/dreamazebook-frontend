@@ -44,7 +44,7 @@ export interface AdminUser {
   phone: string | null;
   birthday: string | null;
   gender: string | null;
-  email_verified_at: string;
+  email_verified_at: string | null;
   status: number;
   user_type: string;
   last_login_at: string | null;
@@ -53,7 +53,6 @@ export interface AdminUser {
   updated_at: string;
   roles: Array<Role>;
   permissions: Permission[];
-
 }
 
 // 购物车相关的类型定义

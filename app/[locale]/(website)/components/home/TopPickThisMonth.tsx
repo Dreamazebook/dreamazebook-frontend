@@ -83,7 +83,7 @@ const TopPickThisMonth = () => {
                   }}
                 >
                   <div
-                    className={`w-full h-full bg-white rounded-lg shadow-2xl p-3 md:p-4 ${
+                    className={`w-full h-full bg-white rounded shadow ${
                       isClient && window.innerWidth >= 768 ? (
                         isPrev && isAnimating
                           ? 'animate-image-exit'
@@ -108,7 +108,7 @@ const TopPickThisMonth = () => {
             })}
           </div>
 
-          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+          {/* <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
             {images.map((_, index) => (
               <button
                 key={index}
@@ -125,7 +125,7 @@ const TopPickThisMonth = () => {
                 aria-label={`Go to slide ${index + 1}`}
               />
             ))}
-          </div>
+          </div> */}
         </div>
 
         <div className="text-center lg:text-left space-y-6 mt-12 lg:mt-0 rounded">
@@ -152,7 +152,7 @@ const TopPickThisMonth = () => {
             </div>
           </div>
 
-          <Link href={BOOK_DETAIL_URL('PICBOOK_SANTA')} className="text-[16px] text-[#222222] font-medium flex items-center mx-auto md:ml-0 gap-2 cursor-pointer hover:text-primary transition-colors duration-200 mt-4 md:mt-20">
+          <Link href={BOOK_DETAIL_URL('PICBOOK_SANTA')} className="text-[16px] text-[#222222] justify-center md:justify-start font-medium flex items-center mx-auto md:ml-0 gap-2 cursor-pointer hover:text-primary transition-colors duration-200 mt-4 md:mt-20">
             Personalize This Book
             <ArrowRight className="w-5 h-5" />
           </Link>

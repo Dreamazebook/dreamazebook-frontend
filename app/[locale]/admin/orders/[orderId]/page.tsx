@@ -1,7 +1,7 @@
 'use client';
 
 import { FC, useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { OrderDetail } from '@/types/order';
 import api from '@/utils/api';
 import { API_ADMIN_ORDER_DETAIL, API_ADMIN_ORDER_DETAIL_MANUAL_CONFIRM, API_ADMIN_ORDERS } from '@/constants/api';
@@ -15,6 +15,7 @@ import OrderItems from './components/OrderItems';
 import OrderCustomer from './components/OrderCustomer';
 import OrderShipping from './components/OrderShipping';
 import OrderPayment from './components/OrderPayment';
+import OrderLogistics from './components/OrderLogistics';
 import OrderTimeline from './components/OrderTimeline';
 import OrderActions from './components/OrderActions';
 import {
@@ -28,6 +29,7 @@ import { OrderDetailProvider } from './context/OrderDetailContext';
 const AdminOrderDetailPage: FC = () => {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const orderId = params.orderId as string;
   
   const [order, setOrder] = useState<OrderDetail | null>(null);
@@ -36,6 +38,14 @@ const AdminOrderDetailPage: FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+
+  // Initialize active tab from URL search params
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchOrderDetail = async () => {
@@ -93,13 +103,14 @@ const AdminOrderDetailPage: FC = () => {
 
   const handleManualConfirm = async (itemId: string) => {
     try {
-      const { success, data } = await api.post<ApiResponse<OrderDetail>>(API_ADMIN_ORDER_DETAIL_MANUAL_CONFIRM(orderId), {
+      const { success, data } = await api.post<ApiResponse<OrderDetail>>(API_ADMIN_ORDER_DETAIL_MANUAL_CONFIRM(orderId, itemId), {
         item_id: itemId
       });
       if (success && data) {
         // 确认成功后关闭模态窗口
         setIsModalOpen(false);
         setSelectedItem(null);
+        window.location.reload();
       }
     } catch (err) {
       console.error('Error confirming order:', err);
@@ -116,6 +127,11 @@ const AdminOrderDetailPage: FC = () => {
     setSelectedItem(null);
   };
 
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    router.push(`?tab=${tab}`);
+  };
+
   const renderTabContent = () => {
     if (!order) return null;
 
@@ -130,6 +146,8 @@ const AdminOrderDetailPage: FC = () => {
         return <OrderShipping order={order} />;
       case 'payment':
         return <OrderPayment order={order} />;
+      case 'logistics':
+        return <OrderLogistics order={order} />;
       case 'timeline':
         return <OrderTimeline order={order} />;
       default:
@@ -166,7 +184,7 @@ const AdminOrderDetailPage: FC = () => {
           <div className="max-w-7xl mx-auto">
             <OrderDetailTabs 
               activeTab={activeTab}
-              onTabChange={setActiveTab}
+              onTabChange={handleTabChange}
             />
             
             <div className="mt-6">

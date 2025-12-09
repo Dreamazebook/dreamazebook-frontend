@@ -29,7 +29,7 @@ const SAFT_AND_FRIENDLY = [
 
 export default function AboutUsPage() {
   return (
-    <main className="text-[#222222] space-y-20 text-[14px] md:text-[16px]">
+    <main className="text-[#222222] space-y-15 text-[14px] md:text-[16px]">
 
       <AnimatedSection>
         <section
@@ -54,7 +54,7 @@ export default function AboutUsPage() {
       <AnimatedSection>
         <section className="max-w-5xl mx-auto p-4 md:p-0">
           <h2 className="text-[28px] md:text-[40px] font-medium text-center mb-10">Where It All Began</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-4 md:gap-8">
             <p className=''>
               <span className="font-medium">The idea began with my daughter.</span><br />
               I once gave her a personalized book with a character that almost looked like her, and our family photo printed on the first page. <br />
@@ -62,7 +62,7 @@ export default function AboutUsPage() {
               But as we kept reading, her excitement slowly faded.<br />
               The avatar wasn't truly her—and she felt it.<br />
               In that moment, I realized something deeply true about children:<br />
-              <span className="font-medium">they know when something really reflects them… and when it doesn't.</span><br/><br/>
+              <span className="font-medium">they know when something really reflects them… and when it doesn't.</span><br/><br className='hidden md:block'/>
               
               <span className="hidden md:block">
               As a teacher for more than 10 years, I had seen the same longing in countless children

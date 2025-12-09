@@ -109,7 +109,8 @@ const OrderItems: FC<OrderItemsProps> = ({ order }) => {
         isOpen={isModalOpen}
         onClose={closeModal}
         orderItem={selectedItem}
-        itemName={selectedItem?.picbook_name || ''}
+        orderId={order.id}
+        itemName={selectedItem?.sku_code || ''}
       />
     </>
   );
