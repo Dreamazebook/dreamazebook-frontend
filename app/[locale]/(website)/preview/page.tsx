@@ -231,42 +231,25 @@ function CoverNameCanvas({
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        console.log(`[Canvas] Loading image from: ${src}`);
         const img = await loadImageWithCorsFallback(src);
         if (cancelled) return;
 
         const w = img.naturalWidth || (img as any).width;
         const h = img.naturalHeight || (img as any).height;
-        console.log(`[Canvas] Image dimensions: ${w}x${h}`);
-        if (!w || !h) {
-          console.warn('[Canvas] Invalid image dimensions');
-          return;
-        }
+        if (!w || !h) return;
 
         canvas.width = w;
         canvas.height = h;
 
         ctx.clearRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0, w, h);
-        console.log('[Canvas] Image drawn to canvas');
 
-        console.log(`[Canvas] Drawing name: "${name}", texts:`, texts);
-        if (!name.trim()) {
-          console.warn('[Canvas] Name is empty, skipping draw');
-          return;
-        }
-        if (!Array.isArray(texts) || texts.length === 0) {
-          console.warn('[Canvas] Texts array is empty, skipping draw');
-          return;
-        }
+        if (!name.trim()) return;
+        if (!Array.isArray(texts) || texts.length === 0) return;
 
         // 只处理 type === 'dynamic' 的配置
-        texts.forEach((t, index) => {
-          console.log(`[Canvas] Processing text config ${index}:`, t);
-          if (!t || t.type !== 'dynamic') {
-            console.log(`[Canvas] Skipping text config ${index}: not dynamic type`);
-            return;
-          }
+        texts.forEach((t) => {
+          if (!t || t.type !== 'dynamic') return;
           const pos = t.position || { x: 0, y: 0 };
           const x = pos.x || 0;
           const y = pos.y || 0;
@@ -285,8 +268,6 @@ function CoverNameCanvas({
           const fontWeight = t.fontWeight === 'bold' ? 'bold' : 'normal';
           ctx.font = `${fontWeight} ${fontSizePx}px ${fontFamily}`;
 
-          console.log(`[Canvas] Drawing text: "${name}" at (${x}, ${y}) with font: ${ctx.font}, color: ${ctx.fillStyle}`);
-
           const alignment = (t.alignment || 'left').toLowerCase();
           if (alignment === 'center') {
             ctx.textAlign = 'center';
@@ -298,7 +279,6 @@ function CoverNameCanvas({
           ctx.textBaseline = 'alphabetic';
 
           ctx.fillText(name, x, y);
-          console.log(`[Canvas] Text drawn successfully`);
         });
 
         // 通知外部：当前封面已完成合成，返回 DataURL 以便缓存（避免重复绘制）
@@ -311,7 +291,7 @@ function CoverNameCanvas({
           }
         }
       } catch (e) {
-        console.error('Failed to draw cover canvas:', e);
+        console.warn('Failed to draw Bravey cover canvas:', e);
       }
     };
 
@@ -367,13 +347,6 @@ function CoverOptionImageWithName({
     const rawCoverKey = option.option_key || String(option.id);
     const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(option.id);
 
-    // 调试日志
-    console.log(`[CoverOptionImageWithName] ${upperBookId} cover_${coverId}:`, {
-      recipient,
-      trimmedName: (recipient || '').trim(),
-      cacheKey: `${upperBookId}_${coverId}`
-    });
-
     const cacheKey = `${upperBookId}_${coverId}`;
     // 先尝试使用全局缓存的文字配置
     if (cacheKey in coverTextsCache) {
@@ -388,13 +361,10 @@ function CoverOptionImageWithName({
           bookId: upperBookId,
           coverId,
         });
-        console.log(`[API] Fetching cover-page-properties for ${upperBookId} cover_${coverId}`);
         const res = await fetch(`/api/cover-page-properties?${qs.toString()}`, {
           cache: 'no-store',
         });
-        console.log(`[API] Response status: ${res.status}`);
         if (!res.ok) {
-          console.error(`[API] Failed to fetch cover-page-properties: ${res.status}`);
           if (!cancelled) {
             coverTextsCache[cacheKey] = null;
             setTexts(null);
@@ -402,12 +372,9 @@ function CoverOptionImageWithName({
           return;
         }
         const json = await res.json();
-        console.log(`[API] Response JSON:`, json);
         const arr: Array<any> = Array.isArray(json?.text) ? json.text : [];
-        console.log(`[API] Parsed texts array:`, arr);
         if (!cancelled) {
           const next = arr.length ? arr : null;
-          console.log(`[API] Setting texts to:`, next);
           coverTextsCache[cacheKey] = next;
           setTexts(next);
         }
@@ -427,20 +394,11 @@ function CoverOptionImageWithName({
   const trimmedName = (recipient || '').trim();
   const canDrawName = !!trimmedName && texts && texts.length > 0;
 
-  console.log(`[CoverOptionImageWithName] Render check:`, {
-    recipient,
-    trimmedName,
-    texts: texts ? texts.length : 'null',
-    canDrawName
-  });
-
   // 如果已经有缓存的合成图片，直接使用，避免再次 Canvas 绘制
   const upperBookId = (bookId || '').toUpperCase();
   const rawCoverKey = option.option_key || String(option.id);
   const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(option.id);
   const composedKey = `${upperBookId}_${coverId}_${trimmedName}`;
-
-  console.log(`[CoverOptionImageWithName] Composed key: ${composedKey}`);
 
   useEffect(() => {
     if (!trimmedName) {
