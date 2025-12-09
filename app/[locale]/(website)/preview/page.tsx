@@ -10,6 +10,7 @@ import TopNavBarWithTabs from '../components/TopNavBarWithTabs';
 import Image from 'next/image';
 import GiverDedicationCanvas from './components/GiverDedicationCanvas';
 import GiverAvatarCropper from './components/GiverAvatarCropper';
+import CoverNameCanvas from './components/CoverNameCanvas';
 import api from '@/utils/api';
 import echo from '@/app/config/echo';
 import { useTranslations, useLocale } from 'next-intl';
@@ -20,6 +21,20 @@ import toast from 'react-hot-toast';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
 import { BaseBook, DetailedBook } from '@/types/book';
 import { API_CART_LIST } from '@/constants/api';
+
+// 封面文字配置缓存：避免在同一会话内反复请求 R2
+const coverTextsCache: Record<string, Array<{
+  type?: string;
+  font?: string;
+  fontWeight?: string;
+  fontSize?: number;
+  color?: string;
+  position?: { x: number; y: number };
+  alignment?: string;
+}> | null> = {};
+
+// 叠字后封面的 DataURL 缓存：避免每次进入 Tab 都重新用 Canvas 合成
+const coverComposedImageCache: Record<string, string> = {};
 
 // 自定义图片组件，支持Next.js Image和原生img的回退
 const OptimizedImage = ({ src, alt, width, height, className, style, onError, onLoad, onLoadingComplete, fallbackSrc, ...props }: {
@@ -165,6 +180,144 @@ const MirageLoader = ({ size = "60", speed = "2.5", color = "blue", style = {} }
     />
   );
 };
+
+// Others 标签页中封面选项用的图片组件：
+// 如果当前封面在 R2 上存在 page_properties.json，则使用 Canvas 叠加名字；否则回退为普通图片
+function CoverOptionImageWithName({
+  bookId,
+  option,
+  baseSrc,
+  cropRightHalf,
+  recipient,
+}: {
+  bookId: string | null;
+  option: CoverOption;
+  baseSrc: string;
+  cropRightHalf: boolean;
+  recipient: string;
+}) {
+  const [texts, setTexts] = useState<Array<{
+    type?: string;
+    font?: string;
+    fontWeight?: string;
+    fontSize?: number;
+    color?: string;
+    position?: { x: number; y: number };
+    alignment?: string;
+  }> | null>(null);
+  const [composedUrl, setComposedUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const upperBookId = (bookId || '').toUpperCase();
+    if (!upperBookId) {
+      setTexts(null);
+      setComposedUrl(null);
+      return;
+    }
+    const rawCoverKey = option.option_key || String(option.id);
+    const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(option.id);
+
+    const cacheKey = `${upperBookId}_${coverId}`;
+    // 先尝试使用全局缓存的文字配置
+    if (cacheKey in coverTextsCache) {
+      setTexts(coverTextsCache[cacheKey] || null);
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const qs = new URLSearchParams({
+          bookId: upperBookId,
+          coverId,
+        });
+        const res = await fetch(`/api/cover-page-properties?${qs.toString()}`, {
+          cache: 'no-store',
+        });
+        if (!res.ok) {
+          if (!cancelled) {
+            coverTextsCache[cacheKey] = null;
+            setTexts(null);
+          }
+          return;
+        }
+        const json = await res.json();
+        const arr: Array<any> = Array.isArray(json?.text) ? json.text : [];
+        if (!cancelled) {
+          const next = arr.length ? arr : null;
+          coverTextsCache[cacheKey] = next;
+          setTexts(next);
+        }
+      } catch {
+        if (!cancelled) {
+          coverTextsCache[cacheKey] = null;
+          setTexts(null);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [bookId, option.id, option.option_key]);
+
+  const trimmedName = (recipient || '').trim();
+  const canDrawName = !!trimmedName && texts && texts.length > 0;
+
+  // 如果已经有缓存的合成图片，直接使用，避免再次 Canvas 绘制
+  const upperBookId = (bookId || '').toUpperCase();
+  const rawCoverKey = option.option_key || String(option.id);
+  const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(option.id);
+  const composedKey = `${upperBookId}_${coverId}_${trimmedName}`;
+
+  useEffect(() => {
+    if (!trimmedName) {
+      setComposedUrl(null);
+      return;
+    }
+    if (coverComposedImageCache[composedKey]) {
+      setComposedUrl(coverComposedImageCache[composedKey]);
+    }
+  }, [composedKey, trimmedName]);
+
+  if (composedUrl) {
+    return (
+      <Image
+        src={composedUrl}
+        alt={`Cover ${option.id} - ${option.name}`}
+        width={cropRightHalf ? 400 : 200}
+        height={200}
+        className={`w-full h-auto object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
+      />
+    );
+  }
+
+  if (canDrawName) {
+    return (
+      <CoverNameCanvas
+        src={baseSrc}
+        name={trimmedName}
+        texts={texts as any}
+        className="w-full h-auto block"
+        onRendered={(dataUrl) => {
+          coverComposedImageCache[composedKey] = dataUrl;
+          setComposedUrl(dataUrl);
+        }}
+      />
+    );
+  }
+
+  // 无文本配置或没有名字时，回退为普通封面图片
+  return (
+    <Image
+      src={baseSrc}
+      alt={`Cover ${option.id} - ${option.name}`}
+      width={cropRightHalf ? 400 : 200}
+      height={200}
+      className={`w-full h-auto object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
+    />
+  );
+}
 
 const useStore = create<{
   activeStep: number;
@@ -840,6 +993,19 @@ export default function PreviewPageWithTopNav() {
   const [bookOptions, setBookOptions] = useState<BookOptions | null>(null);
   const [isLoadingOptions, setIsLoadingOptions] = useState(false);
   const [optionsError, setOptionsError] = useState<string | null>(null);
+  // Bravey 封面文案配置（根据 page_properties.json 绘制名字）
+  const [coverTextConfig, setCoverTextConfig] = useState<{
+    key: string;
+    texts: Array<{
+      type?: string;
+      font?: string;
+      fontWeight?: string;
+      fontSize?: number;
+      color?: string;
+      position?: { x: number; y: number };
+      alignment?: string;
+    }>;
+  } | null>(null);
 
   // 仅预填一次个性化产品的封面/装订/礼盒选项
   const hasPrefilledOptionsRef = useRef(false);
@@ -905,6 +1071,92 @@ export default function PreviewPageWithTopNav() {
       }
     })();
   }, [bookOptions, searchParams, selectedBookCover, selectedBinding, selectedGiftBox]);
+
+  // 为当前书籍的当前封面（如果 R2 上存在 page_properties.json）加载文字配置，用于在封面上绘制名字
+  useEffect(() => {
+    const bookIdParam = searchParams.get('bookid');
+    const upperBookId = (bookIdParam || '').toUpperCase();
+    if (!upperBookId) {
+      if (coverTextConfig) setCoverTextConfig(null);
+      return;
+    }
+    if (!bookOptions?.cover_options || bookOptions.cover_options.length === 0) {
+      if (coverTextConfig) setCoverTextConfig(null);
+      return;
+    }
+
+    // 复用封面区域的 activeOption 选择逻辑：
+    // - 如果用户已选择封面，则使用选中的封面；
+    // - 否则：所有书籍统一优先使用 cover_1 作为默认封面；
+    // - 如果不存在 cover_1，则回退到 cover_3，再兜底第一个。
+    let activeOption: CoverOption | null = null;
+    if (selectedBookCover != null) {
+      activeOption = bookOptions.cover_options.find((o) => o.id === selectedBookCover) || null;
+    }
+    if (!activeOption) {
+      // 1）优先：cover_1
+      activeOption =
+        bookOptions.cover_options.find(
+          (o) =>
+            String(o.id) === '1' ||
+            o.option_key === '1' ||
+            (typeof o.option_key === 'string' &&
+              o.option_key.toLowerCase().includes('cover_1')),
+        ) || null;
+      // 2）其次：cover_3（兼容老数据）
+      if (!activeOption) {
+        activeOption =
+          bookOptions.cover_options.find(
+            (o) =>
+              String(o.id) === '3' ||
+              o.option_key === '3' ||
+              (typeof o.option_key === 'string' &&
+                o.option_key.toLowerCase().includes('cover_3')),
+          ) || null;
+      }
+      // 3）兜底：第一个
+      if (!activeOption && bookOptions.cover_options.length > 0) {
+        activeOption = bookOptions.cover_options[0];
+      }
+    }
+    if (!activeOption) return;
+
+    const rawCoverKey = activeOption.option_key || String(activeOption.id);
+    const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(activeOption.id);
+
+    // 尝试通过本地 API 代理获取 R2 上的 page_properties.json
+    (async () => {
+      try {
+        const qs = new URLSearchParams({
+          bookId: upperBookId,
+          coverId,
+        });
+        const res = await fetch(`/api/cover-page-properties?${qs.toString()}`, {
+          cache: 'no-store',
+        });
+        if (!res.ok) {
+          // 不抛错，只是当前封面没有配置文本
+          setCoverTextConfig(null);
+          return;
+        }
+        const json = await res.json();
+        const texts: Array<any> = Array.isArray(json?.text) ? json.text : [];
+        if (!texts.length) {
+          setCoverTextConfig(null);
+          return;
+        }
+        setCoverTextConfig({
+          key: `${upperBookId}_${coverId}`,
+          texts,
+        });
+      } catch (err) {
+        console.warn('Failed to load cover page_properties via API:', err);
+        setCoverTextConfig(null);
+      }
+    })();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, bookOptions, selectedBookCover]);
 
   // 添加到购物车的状态
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -1056,7 +1308,17 @@ export default function PreviewPageWithTopNav() {
       const attributes: any[] = Array.isArray(product.attributes) ? product.attributes : [];
       const pages: any[] = Array.isArray(product.pages) ? product.pages : [];
 
-      const coverAttr = attributes.find((a: any) => a?.name === 'cover_style');
+      // 不同书籍在后台可能使用了不同的属性名来表示封面选项，这里做兼容处理
+      let coverAttr =
+        attributes.find((a: any) => a?.name === 'cover_style') ||
+        attributes.find((a: any) => a?.name === 'cover') ||
+        attributes.find((a: any) => a?.name === 'cover_type') ||
+        attributes.find((a: any) => a?.name === 'cover_option') ||
+        attributes.find(
+          (a: any) =>
+            typeof a?.name === 'string' &&
+            a.name.toLowerCase().includes('cover'),
+        );
       const giftAttr = attributes.find((a: any) => a?.name === 'giftbox');
       const bindingAttr = attributes.find((a: any) => a?.name === 'binding_type');
 
@@ -1531,9 +1793,18 @@ export default function PreviewPageWithTopNav() {
     const folder = `${baseDomain}/${encodeURIComponent(normalizedBookId)}/covers/cover_${encodeURIComponent(coverId)}`;
     const cropRightHalf = ['1', '2', '3', '4'].includes(coverId);
 
+    const key = `${normalizedBookId}_${coverId}`;
+    // 直连 R2 的封面图（用于普通 Image 显示）
+    const base = `${folder}/base.webp`;
+    // 通过本地 API 代理的封面图（用于 Canvas 叠加名字，避免 CORS 污染）
+    const canvasBase = `/api/cover-base-image?bookId=${encodeURIComponent(
+      normalizedBookId,
+    )}&coverId=${encodeURIComponent(coverId)}`;
+
     return {
-      key: `${normalizedBookId}_${coverId}`,
-      base: `${folder}/base.webp`,
+      key,
+      base,
+      canvasBase,
       cropRightHalf,
     };
   };
@@ -1993,7 +2264,15 @@ export default function PreviewPageWithTopNav() {
   };
 
   // 启动渲染：POST /products/{spu}/preview/render 并解析 NDJSON 流
+  // 增加客户端超时时间到约 90 秒，避免连接过早中断
   const startNdjsonRender = async (spuCode: string, payload: any) => {
+    // 使用 AbortController 实现超时控制
+    const controller = new AbortController();
+    const timeoutMs = 90_000; // 1 分半
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, timeoutMs);
+
     try {
       // 客户端使用 /api 代理，服务器端使用完整 URL
       const apiBase = typeof window !== 'undefined' 
@@ -2017,6 +2296,7 @@ export default function PreviewPageWithTopNav() {
           ...(authHeader ? { Authorization: authHeader } : {}),
         },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
       if (!resp.ok) {
         const text = await resp.text();
@@ -2057,7 +2337,13 @@ export default function PreviewPageWithTopNav() {
         } catch (_e) {}
       }
     } catch (e: any) {
-      console.error('预览渲染流式请求失败:', e);
+      if (e?.name === 'AbortError') {
+        console.error(`预览渲染流式请求超时（>${timeoutMs}ms）`, e);
+      } else {
+        console.error('预览渲染流式请求失败:', e);
+      }
+    } finally {
+      clearTimeout(timeoutId);
     }
   };
 
@@ -2816,25 +3102,73 @@ export default function PreviewPageWithTopNav() {
             <div className="flex flex-col items-center w-full max-w-3xl">
               <div className="w-full flex justify-center mb-8">
                 {(() => {
-                  // 尝试获取当前选中的封面，或者默认使用 cover 3
-                  let activeOption = null;
+                  // 尝试获取当前选中的封面：
+                  // - 如果用户已选择封面，则使用选中的封面；
+                  // - 否则：所有书籍统一优先使用 cover_1 作为默认封面；
+                  // - 如果不存在 cover_1，则回退到 cover_3，再兜底第一个。
+                  let activeOption: CoverOption | null = null;
+
                   if (bookOptions?.cover_options) {
                     if (selectedBookCover) {
-                      activeOption = bookOptions.cover_options.find((o) => o.id === selectedBookCover);
+                      activeOption = bookOptions.cover_options.find((o) => o.id === selectedBookCover) || null;
                     }
                     if (!activeOption) {
-                      activeOption = bookOptions.cover_options.find((o) => String(o.id) === '3' || o.option_key === '3');
-                    }
-                    // 如果还没有 cover 3 (比如 ID 不匹配)，且没有选中项，则兜底取第一个
-                    if (!activeOption && !selectedBookCover && bookOptions.cover_options.length > 0) {
-                      activeOption = bookOptions.cover_options[0];
+                      // 1）优先：cover_1
+                      activeOption =
+                        bookOptions.cover_options.find(
+                          (o) =>
+                            String(o.id) === '1' ||
+                            o.option_key === '1' ||
+                            (typeof o.option_key === 'string' &&
+                              o.option_key.toLowerCase().includes('cover_1')),
+                        ) || null;
+                      // 2）其次：cover_3（兼容老数据）
+                      if (!activeOption) {
+                        activeOption =
+                          bookOptions.cover_options.find(
+                            (o) =>
+                              String(o.id) === '3' ||
+                              o.option_key === '3' ||
+                              (typeof o.option_key === 'string' &&
+                                o.option_key.toLowerCase().includes('cover_3')),
+                          ) || null;
+                      }
+                      // 3）兜底：第一个
+                      if (!activeOption && !selectedBookCover && bookOptions.cover_options.length > 0) {
+                        activeOption = bookOptions.cover_options[0];
+                      }
                     }
                   }
 
                   const coverUrls = activeOption ? buildCoverR2Urls(searchParams.get('bookid'), activeOption) : null;
 
                   if (coverUrls) {
-                    const { base, cropRightHalf } = coverUrls;
+                    const { base, canvasBase, cropRightHalf } = coverUrls;
+
+                    // 通用：如果当前封面在 R2 上有 page_properties.json，使用 Canvas 在封面图上绘制用户名
+                    if (activeOption && coverTextConfig && recipient && recipient.trim()) {
+                      const rawCoverKeyInner = activeOption.option_key || String(activeOption.id);
+                      const coverIdInner = /^\d+$/.test(rawCoverKeyInner)
+                        ? rawCoverKeyInner
+                        : String(activeOption.id);
+                      // 仅当配置对应当前封面时启用
+                      const expectedKey = `${(searchParams.get('bookid') || '').toUpperCase()}_${coverIdInner}`;
+                      if (coverTextConfig.key === expectedKey) {
+                        return (
+                          <div className="relative w-full max-w-[400px] shadow-md rounded-lg overflow-hidden">
+                            <CoverNameCanvas
+                              // 使用本地域名代理过的图片地址，避免 Canvas CORS 污染
+                              src={canvasBase}
+                              name={recipient.trim()}
+                              texts={coverTextConfig.texts}
+                              className="w-full h-auto block"
+                            />
+                          </div>
+                        );
+                      }
+                    }
+
+                    // 无 page_properties.json 的封面保持原有展示逻辑
                     return (
                       <div className="relative w-full max-w-[400px] shadow-md rounded-lg overflow-hidden">
                         <Image
@@ -3145,9 +3479,28 @@ export default function PreviewPageWithTopNav() {
                           );
                         }
 
-                        const { base, cropRightHalf } = coverUrls;
+                        const { base, canvasBase, cropRightHalf } = coverUrls;
 
-                        // 封面缩略图：固定宽度，高度自适应，不再强制 1:1
+                        // 仅对 cover 1 / 2 在按钮缩略图中叠加名字，其余封面保持原图
+                        const rawCoverKey = option.option_key || String(option.id);
+                        const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(option.id);
+
+                        if (coverId === '1' || coverId === '2') {
+                          return (
+                            <div className="relative w-full mb-2 overflow-hidden">
+                              <CoverOptionImageWithName
+                                bookId={searchParams.get('bookid')}
+                                option={option}
+                                // 同样使用本地域名代理地址，保证缩略图 Canvas 也能正常叠加名字
+                                baseSrc={canvasBase}
+                                cropRightHalf={cropRightHalf}
+                                recipient={recipient}
+                              />
+                            </div>
+                          );
+                        }
+
+                        // 其他封面缩略图：固定宽度，高度自适应，不叠加名字
                         return (
                           <div className="relative w-full mb-2 overflow-hidden">
                             <Image

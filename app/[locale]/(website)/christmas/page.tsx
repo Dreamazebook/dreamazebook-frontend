@@ -2,7 +2,11 @@
 
 import React, { useMemo, useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import { Link } from '@/i18n/routing'
+import api from '@/utils/api'
+import { API_PRODUCTS } from '@/constants/api'
+import { ApiResponse } from '@/types/api'
+import { Product } from '@/types/product'
+import { BundleSelectionModal, BookOption } from './BundleSelectionModal'
 
 type Bundle = {
   id: string
@@ -12,6 +16,7 @@ type Bundle = {
   price: number
   ctaHref?: string
   imageUrl: string
+  bookCount: number
 }
 
 type BundleGroup = {
@@ -21,12 +26,32 @@ type BundleGroup = {
 }
 
 const CURRENCY = '$'
+const PRODUCT_PRIORITY = ['PICBOOK_SANTA', 'PICBOOK_GOODNIGHT3', 'PICBOOK_BRAVEY', 'PICBOOK_BIRTHDAY', 'PICBOOK_MELODY']
+const DISABLED_BOOKS = new Set(['PICBOOK_BIRTHDAY', 'PICBOOK_MELODY'])
+const BUNDLE_COVER_IMAGES: Record<string, string> = {
+  PICBOOK_SANTA: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_SANTA.png',
+  PICBOOK_GOODNIGHT: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_GOODNIGHT.png',
+  PICBOOK_GOODNIGHT3: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_GOODNIGHT.png',
+  PICBOOK_BRAVEY: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_BRAVEY.png',
+  PICBOOK_BIRTHDAY: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_BIRTHDAY.png',
+  PICBOOK_MELODY: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_MELODY.png',
+}
+const normalizeSpu = (spu: string) => (spu === 'PICBOOK_GOODNIGHT3' ? 'PICBOOK_GOODNIGHT' : spu)
+const BOOK_NAME_MAP: Record<string, string> = {
+  PICBOOK_SANTA: "Santa's Letter For You",
+  PICBOOK_GOODNIGHT: 'Good Night to You',
+  PICBOOK_GOODNIGHT3: 'Good Night to You',
+  PICBOOK_BRAVEY: "You're Brave in Many Ways",
+  PICBOOK_BIRTHDAY: 'Birthday Book for You',
+  PICBOOK_MELODY: 'Your Melody',
+}
+const IMAGE_FALLBACK_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="280" height="360" viewBox="0 0 280 360" fill="none"><rect width="280" height="360" rx="16" fill="%23F2F2F2"/><path d="M80 170C80 142.386 102.386 120 130 120H150C177.614 120 200 142.386 200 170V230C200 257.614 177.614 280 150 280H130C102.386 280 80 257.614 80 230V170Z" fill="%23E0E0E0"/><circle cx="140" cy="182" r="28" fill="%23CCCCCC"/><path d="M102 246C104.667 222 118.4 210 143.2 210C167.6 210 180.667 222 182.4 246" stroke="%23CCCCCC" stroke-width="10" stroke-linecap="round"/></svg>'
 
 function formatPrice(price: number) {
   return `${CURRENCY}${price}`
 }
 
-function BundleCard({ bundle }: { bundle: Bundle }) {
+function BundleCard({ bundle, onGetBundle }: { bundle: Bundle; onGetBundle: (bundle: Bundle) => void }) {
   return (
     <div className="bg-white rounded-[12px] p-6 md:p-8 lg:w-[528px] lg:pt-6 lg:pr-6 lg:pb-12 lg:pl-6 lg:rounded-[4px] lg:space-y-12">
       <div className="lg:flex lg:flex-col lg:w-[480px] lg:gap-6">
@@ -85,12 +110,13 @@ function BundleCard({ bundle }: { bundle: Bundle }) {
             <span className="text-[#999999] text-[18px] line-through">{formatPrice(Math.round(bundle.price * 1.0))}</span>
             <span className="text-[#222222] font-semibold text-[24px]">{formatPrice(bundle.price)}</span>
           </div>
-          <Link
-            href={bundle.ctaHref || '#'}
+          <button
+            type="button"
+            onClick={() => onGetBundle(bundle)}
             className="px-6 py-3 rounded-[8px] bg-[#222222] text-[#F5E3E3] md:mt-3 text-sm md:text-base hover:bg-black"
           >
             Get This Bundle
-          </Link>
+          </button>
         </div>
       </div>
     </div>
@@ -99,6 +125,10 @@ function BundleCard({ bundle }: { bundle: Bundle }) {
 
 export default function ChristmasPage() {
   const [activeTab, setActiveTab] = useState<'trio' | 'four' | 'classics'>('trio')
+  const [showBundleModal, setShowBundleModal] = useState(false)
+  const [activeBundle, setActiveBundle] = useState<Bundle | null>(null)
+  const [products, setProducts] = useState<Product[]>([])
+  const [loadingProducts, setLoadingProducts] = useState(false)
 
   const groups: BundleGroup[] = useMemo(() => [
     {
@@ -117,6 +147,7 @@ export default function ChristmasPage() {
           price: 224,
           ctaHref: '#',
           imageUrl: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/bundle-sibling-classic.png',
+          bookCount: 2,
         },
         {
           id: 'trio-premium',
@@ -130,6 +161,7 @@ export default function ChristmasPage() {
           price: 224,
           ctaHref: '#',
           imageUrl: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/bundle-sibling-premium.png',
+          bookCount: 2,
         },
       ],
     },
@@ -151,6 +183,7 @@ export default function ChristmasPage() {
           price: 239,
           ctaHref: '#',
           imageUrl: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/bundle-storytime-classic.png',
+          bookCount: 3,
         },
         {
           id: 'four-premium',
@@ -166,6 +199,7 @@ export default function ChristmasPage() {
           price: 289,
           ctaHref: '#',
           imageUrl: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/bundle-storytime-premium.png',
+          bookCount: 3,
         },
       ],
     },
@@ -188,6 +222,7 @@ export default function ChristmasPage() {
           price: 129,
           ctaHref: '#',
           imageUrl: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/bundle-celebration-classic.png',
+          bookCount: 4,
         },
         {
           id: 'christmas-premium',
@@ -204,12 +239,11 @@ export default function ChristmasPage() {
           price: 169,
           ctaHref: '#',
           imageUrl: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/bundle-celebration-premium.png',
+          bookCount: 4,
         },
       ],
     },
   ], [])
-
-  const activeGroup = groups.find(g => g.id === activeTab) || groups[0]
 
   // Flatten all bundles from all groups for continuous scrolling (mobile only)
   const allBundles = groups.flatMap(group => group.bundles)
@@ -224,6 +258,47 @@ export default function ChristmasPage() {
     })
     return map
   }, [groups])
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoadingProducts(true)
+      try {
+        const res = await api.get<ApiResponse<Product[]>>(API_PRODUCTS)
+        setProducts(res?.data || [])
+      } catch (error) {
+        console.error('Failed to load products', error)
+      } finally {
+        setLoadingProducts(false)
+      }
+    }
+
+    fetchProducts()
+  }, [])
+
+  const bookOptions: BookOption[] = useMemo(() => {
+    const normalized = products.map(p => {
+      const key = normalizeSpu(p.spu_code)
+      const mappedCover = BUNDLE_COVER_IMAGES[key]
+      const image = mappedCover || (Array.isArray(p.images) ? p.images[0] : undefined) || p.primary_image || IMAGE_FALLBACK_SVG
+      const displayName = BOOK_NAME_MAP[key] || p.name
+      return {
+        spu: p.spu_code,
+        name: displayName,
+        image,
+        href: `/books/${p.spu_code}`,
+        disabled: DISABLED_BOOKS.has(p.spu_code) || /birthday/i.test(p.name) || /melody/i.test(p.name),
+      }
+    })
+
+    const prioritized = PRODUCT_PRIORITY.map(spu => normalized.find(p => p.spu === spu)).filter(Boolean) as BookOption[]
+    const remaining = normalized.filter(p => !PRODUCT_PRIORITY.includes(p.spu))
+    return [...prioritized, ...remaining]
+  }, [products])
+
+  const handleBundleClick = (bundle: Bundle) => {
+    setActiveBundle(bundle)
+    setShowBundleModal(true)
+  }
 
   // Refs for scroll container and bundle cards
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -603,7 +678,7 @@ export default function ChristmasPage() {
                     scrollSnapStop: 'always'
                   } as React.CSSProperties}
                 >
-                  <BundleCard bundle={bundle} />
+                  <BundleCard bundle={bundle} onGetBundle={handleBundleClick} />
                 </div>
               )
             })}
@@ -622,6 +697,15 @@ export default function ChristmasPage() {
           </div>
         </div>
       </section>
+
+      {showBundleModal && activeBundle && (
+        <BundleSelectionModal
+          bundle={activeBundle}
+          books={bookOptions}
+          loading={loadingProducts}
+          onClose={() => setShowBundleModal(false)}
+        />
+      )}
     </div>
   )
 }

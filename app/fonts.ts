@@ -28,3 +28,16 @@ export const aLittleMonster = localFont({
   display: 'swap',
   variable: '--font-a-little-monster',
 });
+
+// Picbook 封面用的 Batamy 字体
+export const batamy = localFont({
+  src: '../public/fonts/Batamy-Regular.ttf',
+  display: 'swap',
+  variable: '--font-batamy',
+});
+
+export const caslonAntique = localFont({
+  src: '../public/fonts/CaslonAntique-Regular.ttf',
+  display: 'swap',
+  variable: '--font-caslon-antique',
+});

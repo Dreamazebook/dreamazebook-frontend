@@ -1,4 +1,23 @@
 @import "tailwindcss";
+
+/* 自定义字体：Batamy（用于部分封面名字） */
+@font-face {
+  font-family: 'Batamy';
+  src: url('/fonts/Batamy-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 自定义字体：Caslon Antique（用于 Santa 封面名字） */
+@font-face {
+  font-family: 'Caslon Antique';
+  src: url('/fonts/CaslonAntique-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* :root {
   --background: #ffffff;
   --foreground: #171717;
