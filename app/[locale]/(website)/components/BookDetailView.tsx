@@ -126,6 +126,7 @@ export default function BookDetailView({
   onPrimaryClick,
   availableLanguages = ['en', 'zh'],
   bookId,
+  hidePriceAndButton = false,
 }: {
   book: any,
   pagePics: PagePic[],
@@ -137,6 +138,7 @@ export default function BookDetailView({
   onPrimaryClick?: (e: React.MouseEvent, selectedLanguage: string) => void,
   availableLanguages?: string[],
   bookId?: string | number,
+  hidePriceAndButton?: boolean,
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const t = useTranslations('BookDetail')
@@ -362,6 +364,7 @@ export default function BookDetailView({
                 <p dangerouslySetInnerHTML={{ __html: description.replace(/\n/g, '<br/>') }} />
               </div>
 
+              {!hidePriceAndButton && (
               <div className="text-sm space-y-3">
                 {specifications.map((spec, index) => (
                   <div key={index} className="flex items-center gap-[8px]">
@@ -370,12 +373,14 @@ export default function BookDetailView({
                   </div>
                 ))}
               </div>
+              )}
             </div>
             
 
             {/* 语言选择已隐藏，默认使用英文 */}
 
             {/* 价格和按钮 - 桌面端显示，手机端隐藏（手机端使用贴底栏） */}
+            {!hidePriceAndButton && (
             <div className="hidden md:flex items-end justify-between gap-8">
               <div className="flex items-baseline gap-3">
                 <span className="text-[#012CCE] text-[36px] leading-[44px] font-medium">
@@ -475,7 +480,9 @@ export default function BookDetailView({
                 );
               })()}
             </div>
+            )}
 
+            {!hidePriceAndButton && (
             <div className="border-gray-200 md:pt-0 pt-8">
               {faqs.map((faq, index) => {
                 const num = index + 1;
@@ -515,6 +522,7 @@ export default function BookDetailView({
                 );
               })}
             </div>
+            )}
           </div>
         </div>
       </div>

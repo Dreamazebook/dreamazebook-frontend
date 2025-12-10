@@ -14,6 +14,10 @@ if (typeof window !== 'undefined') {
   window.Pusher = Pusher;
   
   try {
+    const appKey = process.env.NEXT_PUBLIC_REVERB_APP_KEY || process.env.NEXT_PUBLIC_PUSHER_APP_KEY;
+    if (!appKey) {
+      throw new Error('缺少 WebSocket app key：请设置 NEXT_PUBLIC_REVERB_APP_KEY 或 NEXT_PUBLIC_PUSHER_APP_KEY');
+    }
     const token = localStorage.getItem('token') || process.env.NEXT_PUBLIC_BROADCAST_TOKEN || '';
     const wsHost = process.env.NEXT_PUBLIC_WS_HOST || '127.0.0.1';
     const wsPort = process.env.NEXT_PUBLIC_WS_PORT ? Number(process.env.NEXT_PUBLIC_WS_PORT) : undefined;
@@ -32,7 +36,7 @@ if (typeof window !== 'undefined') {
 
     echo = new Echo({
       broadcaster: 'reverb',
-      key: process.env.NEXT_PUBLIC_REVERB_APP_KEY!,
+      key: appKey,
       wsHost,
       wsPort,
       wssPort,
@@ -48,6 +52,7 @@ if (typeof window !== 'undefined') {
     });
 
         console.log('WebSocket 配置:', {
+          appKey: appKey ? appKey.slice(0, 6) + '***' : '未设置',
           wsHost,
           wsPort: wsPort || '未设置',
           wssPort: wssPort || '未设置',

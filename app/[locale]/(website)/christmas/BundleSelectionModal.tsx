@@ -8,6 +8,7 @@ export type BookOption = {
   image: string
   href: string
   disabled?: boolean
+  description?: string
 }
 
 type BundleLike = {
@@ -30,6 +31,8 @@ function formatPrice(price: number) {
 
 export function BundleSelectionModal({ bundle, books, loading, onClose }: Props) {
   const [selected, setSelected] = useState<string[]>(() => Array(bundle.bookCount).fill(''))
+  const [detailBook, setDetailBook] = useState<BookOption | null>(null)
+  const [iframeLoading, setIframeLoading] = useState(true)
 
   useEffect(() => {
     setSelected(Array(bundle.bookCount).fill(''))
@@ -66,6 +69,26 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
   }
 
   const canSubmit = selected.filter(Boolean).length === bundle.bookCount
+
+  const handleMoreDetails = (book: BookOption, e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDetailBook(book)
+    setIframeLoading(true)
+  }
+
+  useEffect(() => {
+    if (!detailBook) {
+      setIframeLoading(false)
+    }
+  }, [detailBook])
+
+  const handleIframeLoad = () => {
+    // 延迟隐藏骨架屏，确保 iframe 内容完全渲染
+    setTimeout(() => {
+      setIframeLoading(false)
+    }, 300)
+  }
 
   return (
     <div className="fixed inset-0 z-50">
@@ -190,7 +213,7 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
                       <Link
                         href={book.href}
                         className="text-[16px] leading-[24px] tracking-[0.5px] text-[#012CCE] hover:underline flex items-center gap-1"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => handleMoreDetails(book, e)}
                       >
                         more details <span aria-hidden>→</span>
                       </Link>
@@ -207,7 +230,7 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
               onClick={canSubmit ? onClose : undefined}
               disabled={!canSubmit}
               className={`w-full md:w-auto min-w-[240px] px-6 py-3 rounded-[4px] text-[16px] leading-[24px] tracking-[0.5px] ${
-                canSubmit ? 'bg-[#012CCE] text-white hover:bg-[#001E99]' : 'bg-[#C4C4C4] text-white cursor-not-allowed'
+                canSubmit ? 'bg-[#222222] text-[#F5E3E3] hover:bg-[#001E99]' : 'bg-[#C4C4C4] text-white cursor-not-allowed'
               }`}
             >
               I&apos;ve finished choosing
@@ -215,6 +238,43 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
           </div>
         </div>
       </div>
+
+      {detailBook && (
+        <div className="fixed inset-0 z-[60] pointer-events-none">
+          <div className="absolute inset-0 bg-black/10 pointer-events-auto" onClick={() => setDetailBook(null)} />
+          <div className="absolute right-0 top-0 h-full w-full md:w-[360px] bg-[#F8F8F8] shadow-2xl border-l border-black/10 pointer-events-auto overflow-hidden">
+            {iframeLoading && (
+              <div className="absolute inset-0 bg-[#F8F8F8] overflow-y-auto z-10">
+                <div className="animate-pulse">
+                  {/* 骨架屏：图片区域 */}
+                  <div className="w-full aspect-[3/4] bg-gray-300" />
+                  
+                  {/* 骨架屏：标题区域 */}
+                  <div className="px-4 pt-6 pb-4 space-y-3 bg-white">
+                    <div className="h-6 bg-gray-300 rounded w-3/4" />
+                    <div className="h-4 bg-gray-300 rounded w-1/2" />
+                  </div>
+                  
+                  {/* 骨架屏：描述区域 */}
+                  <div className="px-4 pb-6 pt-4 space-y-2 bg-white">
+                    <div className="h-4 bg-gray-300 rounded w-full" />
+                    <div className="h-4 bg-gray-300 rounded w-full" />
+                    <div className="h-4 bg-gray-300 rounded w-5/6" />
+                    <div className="h-4 bg-gray-300 rounded w-full" />
+                    <div className="h-4 bg-gray-300 rounded w-4/5" />
+                  </div>
+                </div>
+              </div>
+            )}
+            <iframe
+              src={`${detailBook.href}${detailBook.href.includes('?') ? '&' : '?'}embed=true`}
+              title={detailBook.name}
+              className={`absolute inset-0 w-full h-full border-0 bg-[#F8F8F8] ${iframeLoading ? 'opacity-0 pointer-events-none' : 'opacity-100'} transition-opacity duration-500`}
+              onLoad={handleIframeLoad}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

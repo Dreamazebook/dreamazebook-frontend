@@ -1,6 +1,6 @@
 'use client';
 
-import { useSelectedLayoutSegments, usePathname } from 'next/navigation';
+import { useSelectedLayoutSegments, usePathname, useSearchParams } from 'next/navigation';
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ScrollToTopButton from './components/ScrollToTopButton';
@@ -13,11 +13,15 @@ import { Toaster } from 'react-hot-toast';
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const segments = useSelectedLayoutSegments();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isPersonalizePage = segments.includes("personalize");
   const isPersonalizedProductsPage = segments.includes("personalized-products");
   const isPreviewPage = segments.includes("preview");
   const isSelectBookContentPage = segments.includes("select-book-content");
   const isKickstarterConfigPage = segments.includes("kickstarter-config");
+  
+  // 检查是否在嵌入模式（用于抽屉显示）
+  const isEmbedMode = searchParams.get('embed') === 'true';
 
   // 在组件中
   const { fetchCurrentUser, isLoggedIn, checkKickstarterStatus } = useUserStore();
@@ -40,10 +44,10 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
   return (
     <>
-      {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage) && <Header />}
+      {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isEmbedMode) && <Header />}
       {children}
       <KickstarterWelcomeModal />
-      {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isKickstarterConfigPage) && <Footer />}
+      {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isKickstarterConfigPage || isEmbedMode) && <Footer />}
       {scrollToTopConfig.enabled && (
         <ScrollToTopButton
           threshold={scrollToTopConfig.threshold}
