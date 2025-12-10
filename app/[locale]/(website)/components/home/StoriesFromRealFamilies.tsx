@@ -39,9 +39,8 @@ export default function StoriesFromRealFamilies() {
 
   useEffect(() => {
     const video = videoRef.current;
-    const container = containerRef.current;
     
-    if (!video || !container) return;
+    if (!video) return;
 
     // Intersection Observer to detect when video is in viewport
     const observer = new IntersectionObserver(
@@ -49,11 +48,17 @@ export default function StoriesFromRealFamilies() {
         const entry = entries[0];
         
         if (entry.isIntersecting) {
-          // Video is in view, start playing
-          video.play().catch(err => {
-            console.log('Autoplay failed:', err);
-          });
-          setIsPlaying(true);
+          // Check if it's mobile view and video slide is visible
+          const isMobile = window.innerWidth < 768;
+          const isVideoSlide = isMobile ? currentIndex === 1 : true;
+          
+          if (isVideoSlide) {
+            // Video is in view, start playing
+            video.play().catch(err => {
+              console.log('Autoplay failed:', err);
+            });
+            setIsPlaying(true);
+          }
         } else {
           // Video is out of view, pause
           video.pause();
@@ -65,12 +70,129 @@ export default function StoriesFromRealFamilies() {
       }
     );
 
-    observer.observe(container);
+    // Observe the video element itself for better mobile support
+    observer.observe(video);
 
     return () => {
       observer.disconnect();
     };
-  }, []);
+  }, [currentIndex]);
+
+  // Effect to handle mobile video playback specifically
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const isMobile = window.innerWidth < 768;
+    
+    if (isMobile && currentIndex === 1) {
+      // For mobile, we need to be more aggressive with autoplay
+      const attemptPlay = async () => {
+        try {
+          // Set video properties for mobile autoplay
+          video.muted = true;
+          video.playsInline = true;
+          video.setAttribute('muted', '');
+          video.setAttribute('playsinline', '');
+          video.setAttribute('webkit-playsinline', 'true');
+          (video as any).webkitPlaysInline = true;
+          
+          // Try multiple approaches to start playback
+          await video.play();
+          setIsPlaying(true);
+        } catch (err) {
+          console.log('Mobile autoplay attempt failed:', err);
+          
+          // Fallback: try after a short delay
+          setTimeout(() => {
+            video.play().catch(e => console.log('Delayed autoplay failed:', e));
+          }, 100);
+          
+          // Another fallback: try with user interaction hint
+          setTimeout(() => {
+            video.play().catch(e => console.log('Second delayed autoplay failed:', e));
+          }, 500);
+        }
+      };
+
+      attemptPlay();
+    } else if (isMobile && currentIndex !== 1) {
+      video.pause();
+      setIsPlaying(false);
+    }
+  }, [currentIndex]);
+
+  // Effect to handle resize events
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleResize = () => {
+      const isMobile = window.innerWidth < 768;
+      
+      if (isMobile) {
+        // In mobile view, only play if video slide is active
+        if (currentIndex === 1) {
+          video.muted = true;
+          video.playsInline = true;
+          video.setAttribute('muted', '');
+          video.setAttribute('playsinline', '');
+          video.play().catch(err => {
+            console.log('Resize autoplay failed:', err);
+          });
+          setIsPlaying(true);
+        } else {
+          video.pause();
+          setIsPlaying(false);
+        }
+      } else {
+        // In desktop view, use intersection observer logic
+        const rect = video.getBoundingClientRect();
+        const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+        
+        if (isInViewport) {
+          video.play().catch(err => {
+            console.log('Autoplay failed:', err);
+          });
+          setIsPlaying(true);
+        } else {
+          video.pause();
+          setIsPlaying(false);
+        }
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Initial check
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [currentIndex]);
+
+  // Additional effect to ensure mobile video starts when user swipes to it
+  useEffect(() => {
+    const handleTouchStart = () => {
+      const video = videoRef.current;
+      const isMobile = window.innerWidth < 768;
+      
+      if (isMobile && currentIndex === 1 && video && video.paused) {
+        // User is interacting, try to play the video
+        video.play().then(() => {
+          setIsPlaying(true);
+        }).catch(err => {
+          console.log('Touch-triggered play failed:', err);
+        });
+      }
+    };
+
+    // Add touch listener to document for user interaction
+    document.addEventListener('touchstart', handleTouchStart, { once: true });
+    
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+    };
+  }, [currentIndex]);
 
   const handleVideoClick = () => {
     const video = videoRef.current;
@@ -187,6 +309,10 @@ export default function StoriesFromRealFamilies() {
                       src={HOME_STORIES('video.mp4')}
                       loop
                       playsInline
+                      muted
+                      autoPlay
+                      disablePictureInPicture
+                      x-webkit-airplay="deny"
                       className="w-full h-full object-cover"
                     />
                     
@@ -304,6 +430,10 @@ export default function StoriesFromRealFamilies() {
                 src={HOME_STORIES('video.mp4')}
                 loop
                 playsInline
+                muted
+                autoPlay
+                disablePictureInPicture
+                x-webkit-airplay="deny"
                 className="w-full h-full object-cover"
               />
               
