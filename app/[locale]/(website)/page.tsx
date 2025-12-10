@@ -93,7 +93,7 @@ export default function HomePage() {
 
       <AnimatedSection delay={0.2}>
         {/* <OurBook /> */}
-        <h2 className='text-[#222] text-[24px] md:text-[40px] font-medium text-center'>Our Favorite Personalized Stories</h2>
+        <h2 className='text-[#222] text-[24px] md:text-[40px] font-medium text-center'>Our Favorite<br className="md:hidden"/> Personalized Stories</h2>
         <p className='text-[#222] text-[14px] md:text-[16px] text-center mb-10 md:mb-20'>
           <span className='md:hidden'>Create the story that brings out their biggest smile.</span>
           <span className='hidden md:block'>Find the story where they become the hero.</span>
@@ -128,7 +128,7 @@ export default function HomePage() {
 
       {/* Newsletter */}
       <AnimatedSection className="bg-black text-white" delay={0.3}>
-        <ReserveSection btnId="email_submit_mid" redirectUrl={'/en/welcome/success'} title={"Every child deserves to be the hero."} desc={'Sign up to Dreamaze community to receive free printables, coloring pages, and story samples.'} btnText="Sign up Now" />
+        <ReserveSection cssClass='bg-white text-[#222222]' btnId="email_submit_mid" redirectUrl={'/en/welcome/success'} title={"Every child deserves to be the hero."} desc={'Join the Dreamaze circle to get free printables, story samples, and early access gifts.'} btnText="Join Now" />
       </AnimatedSection>
 
     </main>

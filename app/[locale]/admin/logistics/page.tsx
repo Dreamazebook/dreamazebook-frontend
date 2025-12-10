@@ -79,24 +79,20 @@ const LogisticsPage: FC = () => {
     }
   };
 
-  const handlePrintBooklet = async (orderId: number, logisticsRequestNo: string) => {
+  const handlePrintBooklet = async (orderId: number, order: LogisticsOrder) => {
     setPrintingBookletOrderId(orderId);
     try {
-      const response = await api.post<ApiResponse<any>>(API_ADMIN_LOGSTIC_PRINT_PICKUP_ORDER, {
-        request_nos: [logisticsRequestNo]
-      });
-      if (response.success) {
-        // Refresh the logistics data to update the status
-        const { data, success } = await api.get<ApiResponse<LogisticsOrder[]>>(API_ADMIN_LOGSTICS);
-        if (success && data) {
-          setLogisticsData(data);
-        }
+      // Get the PDF URL from print_data if available
+      const pdfUrl = order.print_data?.print_pdf?.files?.[0]?.url;
+      if (pdfUrl) {
+        // Open the PDF directly
+        window.open(pdfUrl, '_blank');
+        setPrintingBookletOrderId(null);
       } else {
-        setError((response as any).message || 'Failed to print booklet');
+        setPrintingBookletOrderId(null);
       }
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Failed to print booklet');
-    } finally {
       setPrintingBookletOrderId(null);
     }
   };
@@ -208,7 +204,7 @@ const LogisticsPage: FC = () => {
                         <div className="flex gap-2">
                           {logistics_request_no && (
                             <button
-                              onClick={() => handlePrintBooklet(id, logistics_request_no)}
+                              onClick={() => handlePrintBooklet(id, item)}
                               disabled={isPrintingBooklet}
                               className="px-3 py-1 bg-purple-600 text-white text-xs font-medium rounded hover:bg-purple-700 disabled:bg-purple-300 disabled:cursor-not-allowed transition-colors"
                             >

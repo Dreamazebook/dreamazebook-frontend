@@ -18,29 +18,43 @@ export interface LogisticsOrder {
     email: string;
   };
   shipping_address: {
-    id: number;
+    id?: number;
     city: string;
-    type: number;
+    type?: number;
     email: string;
     phone: string;
     state: string;
-    phone2: string;
+    phone2: string | null;
     street: string;
-    company: string;
+    company: string | null;
     country: string;
-    user_id: number;
-    district: string;
+    user_id?: number;
+    district: string | null;
     last_name: string;
     post_code: string;
-    created_at: string;
+    created_at?: string;
     first_name: string;
-    is_default: boolean;
-    updated_at: string;
-    second_name: string;
-    house_number: string;
+    is_default?: boolean;
+    updated_at?: string;
+    second_name: string | null;
+    house_number: string | null;
   };
   completed_items_count: number;
   total_items_count: number;
+  print_data?: {
+    print_pdf: {
+      files: Array<{
+        url: string;
+        path: string;
+        spu_id: number;
+        item_id: number;
+      }>;
+      status: string;
+      completed_at: string;
+    };
+  };
+  pickup_collect_no?: string;
+  pickup_reserve_time?: string;
 }
 
 export type LogisticsOrderList = LogisticsOrder[];

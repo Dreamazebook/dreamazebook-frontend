@@ -26,13 +26,13 @@ function WhatMakesDreamazeDifferent() {
   ];
 
   return (
-    <div className="min-h-screen bg-white px-6 pb-16 lg:px-24">
+    <div className="bg-white px-6 pb-16 lg:px-24 mb-20">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-[24px] md:text-[40px] font-medium text-center mb-10 leading-tight text-gray-900">
           What Makes Dreamaze Different
         </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-10">
           {features.map((feature, index) => {
             return (
               <div key={index} className="flex md:flex-col items-center gap-3 md:text-center md:bg-[#F8F8F8] p-1 md:p-8 rounded">

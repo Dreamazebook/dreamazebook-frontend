@@ -109,7 +109,7 @@ export default function StoriesFromRealFamilies() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 relative">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 relative">
 
           <div className="bg-[#F8F8F8] rounded p-6 sm:p-8 lg:p-10 relative">
             <img src={HOME_STORIES('top-quote.png')} className="w-10 h-10 lg:w-12 lg:h-12" />
@@ -132,7 +132,7 @@ export default function StoriesFromRealFamilies() {
           <div className="bg-[#F8F8F8] rounded p-6 relative lg:row-span-2">
             <div 
               ref={containerRef}
-              className="aspect-[4/3] lg:aspect-auto lg:h-[400px] xl:h-[480px] rounded-xl bg-gray-200 mb-6 lg:mb-8 overflow-hidden relative cursor-pointer group"
+              className="aspect-[4/3] lg:aspect-auto lg:h-[400px] xl:h-[480px] rounded bg-gray-200 mb-6 lg:mb-8 overflow-hidden relative cursor-pointer group"
               onClick={handleVideoClick}
             >
               <video
@@ -184,7 +184,7 @@ export default function StoriesFromRealFamilies() {
           </div>
 
           <div className="bg-[#F8F8F8] rounded p-6 sm:p-8 lg:p-10 relative">
-            <div className="aspect-[3/2] sm:aspect-[4/3] mx-auto lg:h-48 rounded-xl bg-gray-200 mb-6 overflow-hidden flex items-center justify-center">
+            <div className="aspect-[3/2] sm:aspect-[4/3] mx-auto lg:h-48 rounded bg-gray-200 mb-6 overflow-hidden flex items-center justify-center">
               <img
                 src={HOME_STORIES('book_pic.webp')}
                 alt="Personalized children's book"
