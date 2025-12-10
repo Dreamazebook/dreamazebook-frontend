@@ -243,10 +243,11 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                 </svg>
               )}
             </button>
+            {orderItem.status === 'ai_completed' && 
             <button
               onClick={handleConfirm}
               disabled={isConfirming}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium text-sm disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center space-x-2"
+              className="px-4 py-2 cursor-pointer bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium text-sm disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center space-x-2"
             >
               {isConfirming ? (
                 <>
@@ -260,9 +261,10 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                 <span>Confirm</span>
               )}
             </button>
+            }
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+              className="p-2 cursor-pointer text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

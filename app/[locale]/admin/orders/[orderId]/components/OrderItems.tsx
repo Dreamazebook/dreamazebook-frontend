@@ -35,7 +35,7 @@ const OrderItems: FC<OrderItemsProps> = ({ order }) => {
                 <div className="w-20 h-24 bg-gray-100 rounded-lg overflow-hidden">
                   <Image
                     src={item.product_image || '/placeholder-book.png'}
-                    alt={item.product_name}
+                    alt={item.sku_code || 'Product Image'}
                     width={80}
                     height={96}
                     className="w-full h-full object-cover"
