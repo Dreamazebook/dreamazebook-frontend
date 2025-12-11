@@ -132,7 +132,7 @@ export default function ShoppingCartPage() {
 
   const handleRemoveItem = async (id: number) => {
     try {
-      const { code, success, message, data } = await api.delete<ApiResponse>(`${API_CART_REMOVE}/${id}`);
+      const { code, success, message, data } = await api.delete<ApiResponse>(`${API_CART_UPDATE(id)}`);
       if (success) {
         // 移除主商品
         setCartItems(prev => prev.filter(item => item.id !== id));
