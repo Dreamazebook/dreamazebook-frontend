@@ -23,7 +23,13 @@
     "addAdditionalProducts": "Ajouter des produits supplémentaires",
     "deselectAll": "Tout désélectionner",
     "selectAll": "Tout sélectionner",
-    "checkoutFailed": "Échec du paiement"
+    "checkoutFailed": "Échec du paiement",
+    "processing": "Traitement en cours...",
+    "blackFridayCoupon": "25% de réduction avec le code : BLACKFRIDAY",
+    "multiBookDiscount": "Remise multi-livres :",
+    "importantTips": "Conseils importants",
+    "editLimitText": "Un produit ne peut être modifié que cinq fois par jour.",
+    "editUsageText": "Vous l'avez modifié {count} fois et il vous reste {remaining} chances."
   },
   "profileSidebar": {
     "home": "Accueil",
@@ -32,7 +38,63 @@
     "loyalty": "Fidélité",
     "logout": "Se déconnecter",
     "goodMorning": "Bonjour,",
-    "menu": "Menu"
+    "menu": "Menu",
+    "more": "Plus"
+  },
+  "profilePage": {
+    "more": "Plus",
+    "orderHistory": "📋 Historique des commandes",
+    "noRecentOrders": "Aucune commande récente",
+    "startJourney": "Commencez votre voyage en explorant notre amazing collection de livres.",
+    "browseBooks": "Parcourir les livres"
+  },
+  "orderHistory": {
+    "title": "Historique des commandes",
+    "allOrder": "Toutes les commandes",
+    "paid": "Payé",
+    "digitalProduction": "Production numérique",
+    "printProduction": "Production d'impression",
+    "inTransit": "En transit",
+    "delivered": "Livré",
+    "closed": "Fermé",
+    "loadingOrders": "Chargement des commandes...",
+    "failedToLoadOrders": "Échec du chargement des commandes. Veuillez réessayer plus tard.",
+    "noOrdersFound": "Aucune commande trouvée",
+    "showInvoice": "Afficher la facture",
+    "buyNow": "Acheter maintenant"
+  },
+  "orderHistoryCard": {
+    "shipTo": "Expédier à :",
+    "orderDate": "Date de commande :",
+    "deliveryDate": "Date de livraison :",
+    "qty": "Qté :",
+    "downloadInvoice": "Télécharger la facture",
+    "buySame": "Acheter le même",
+    "moreDetails": "Plus de détails"
+  },
+  "latestOrderHistory": {
+    "total": "Total",
+    "downloadInvoice": "Télécharger la facture",
+    "buySame": "Acheter le même"
+  },
+  "orderSummaryDelivery": {
+    "shipTo": "Expédier à",
+    "orderDate": "Date de commande",
+    "deliveryDate": "Date de livraison",
+    "qty": "Qté"
+  },
+  "accountDetails": {
+    "title": "Détails du compte",
+    "aboutYou": "À propos de vous",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "emailAddress": "Adresse e-mail",
+    "edit": "Modifier",
+    "cancel": "Annuler",
+    "saveChanges": "Enregistrer les modifications",
+    "receiptInformation": "Informations de reçu",
+    "addNewAddress": "Ajouter une nouvelle adresse",
+    "failedToUpdateProfile": "Échec de la mise à jour du profil"
   },
   "HomePage": {
     "empower": "Permettre à chacun de devenir la star de sa propre histoire",
@@ -151,5 +213,35 @@
     "queueTip": "L'aperçu du livre est actuellement dans la file d'attente pour la génération. Vous êtes actuellement à la position {pos}/{tot}. Vous pouvez passer à l'onglet Others.",
     "queueTipNoPos": "L'aperçu du livre est actuellement dans la file d'attente pour la génération. Vous pouvez passer à l'onglet Others.",
     "selectOptions": "Vous pouvez d'abord sélectionner {options}"
+  },
+  "LoginModal": {
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "forgotPassword": "Mot de passe oublié",
+    "name": "Nom",
+    "email": "Email",
+    "password": "Mot de passe",
+    "namePlaceholder": "Entrez votre nom",
+    "emailPlaceholder": "Entrez votre adresse email",
+    "passwordPlaceholder": "Entrez votre mot de passe",
+    "loginFailed": "Échec de la connexion. Veuillez vérifier votre email et votre mot de passe.",
+    "registrationFailed": "Échec de l'inscription. Veuillez réessayer.",
+    "resetPasswordFailed": "Échec de l'envoi du lien de réinitialisation du mot de passe. Veuillez réessayer.",
+    "resetPasswordSent": "Le lien de réinitialisation du mot de passe a été envoyé à votre adresse email.",
+    "returnToLogin": "Retour à la connexion",
+    "noAccount": "Pas de compte ?",
+    "createOne": "Créer un compte",
+    "forgotPasswordQuestion": "Mot de passe oublié ?",
+    "haveAccount": "Vous avez un compte ?",
+    "backToLogin": "Retour à la connexion",
+    "sendResetLink": "Envoyer le lien de réinitialisation",
+    "orContinueWith": "Ou continuer avec",
+    "google": "Google",
+    "facebook": "Facebook",
+    "loading": "Chargement...",
+    "googleOAuthError": "Échec de l'obtention de l'URL de redirection Google OAuth",
+    "facebookOAuthError": "Échec de l'obtention de l'URL de redirection Facebook OAuth",
+    "googleLoginError": "Échec de l'initialisation de la connexion Google",
+    "facebookLoginError": "Échec de l'initialisation de la connexion Facebook"
   }
 }

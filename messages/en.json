@@ -23,7 +23,13 @@
     "addAdditionalProducts": "Add additional products",
     "deselectAll": "Deselect All",
     "selectAll": "Select All",
-    "checkoutFailed": "Checkout failed"
+    "checkoutFailed": "Checkout failed",
+    "processing": "Processing...",
+    "blackFridayCoupon": "25% off with code: BLACKFRIDAY",
+    "multiBookDiscount": "Multi-book discount:",
+    "importantTips": "Important tips",
+    "editLimitText": "A product can only be edited five times a day.",
+    "editUsageText": "You have edited it {count} times and you have {remaining} more chances."
   },
   "profileSidebar": {
     "home": "Home",
@@ -32,7 +38,63 @@
     "loyalty": "Loyalty",
     "logout": "Log out",
     "goodMorning": "Good Morning,",
-    "menu": "Menu"
+    "menu": "Menu",
+    "more": "More"
+  },
+  "profilePage": {
+    "more": "More",
+    "orderHistory": "Order History",
+    "noRecentOrders": "No Recent Orders",
+    "startJourney": "Start your journey by exploring our amazing collection of books.",
+    "browseBooks": "Browse Books"
+  },
+  "orderHistory": {
+    "title": "Order History",
+    "allOrder": "All Order",
+    "paid": "Paid",
+    "digitalProduction": "Digital Production",
+    "printProduction": "Print Production",
+    "inTransit": "In Transit",
+    "delivered": "Delivered",
+    "closed": "Closed",
+    "loadingOrders": "Loading orders...",
+    "failedToLoadOrders": "Failed to load orders. Please try again later.",
+    "noOrdersFound": "No orders found",
+    "showInvoice": "Show Invoice",
+    "buyNow": "Buy now"
+  },
+  "orderHistoryCard": {
+    "shipTo": "Ship to:",
+    "orderDate": "Order date:",
+    "deliveryDate": "Delivery date:",
+    "qty": "Qty:",
+    "downloadInvoice": "Download Invoice",
+    "buySame": "Buy the Same",
+    "moreDetails": "More Details"
+  },
+  "latestOrderHistory": {
+    "total": "Total",
+    "downloadInvoice": "Download Invoice",
+    "buySame": "Buy the Same"
+  },
+  "orderSummaryDelivery": {
+    "shipTo": "Ship to",
+    "orderDate": "Order date",
+    "deliveryDate": "Delivery date",
+    "qty": "Qty"
+  },
+  "accountDetails": {
+    "title": "Account Details",
+    "aboutYou": "About you",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "emailAddress": "Email Address",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "receiptInformation": "Receipt information",
+    "addNewAddress": "Add New Address",
+    "failedToUpdateProfile": "Failed to update profile"
   },
   "HomePage": {
     "empower": "empower everyone to become the star of their own story",
@@ -151,5 +213,35 @@
     "queueTip": "Book preview is currently in the queue for generation. You are currently at position {pos}/{tot}. You can proceed to select Others tab.",
     "queueTipNoPos": "Book preview is currently in the queue for generation. You can proceed to select Others tab.",
     "selectOptions": "You can proceed to select {options}"
+  },
+  "LoginModal": {
+    "login": "Login",
+    "register": "Register",
+    "forgotPassword": "Forgot Password",
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "namePlaceholder": "Enter your name",
+    "emailPlaceholder": "Enter your email address",
+    "passwordPlaceholder": "Enter your password",
+    "loginFailed": "Login failed. Please check your email and password.",
+    "registrationFailed": "Registration failed. Please try again.",
+    "resetPasswordFailed": "Failed to send reset password email. Please try again.",
+    "resetPasswordSent": "Password reset link has been sent to your email address.",
+    "returnToLogin": "Return to login",
+    "noAccount": "No account?",
+    "createOne": "Create one",
+    "forgotPasswordQuestion": "Forgot password?",
+    "haveAccount": "Have an account?",
+    "backToLogin": "Back to login",
+    "sendResetLink": "Send Reset Link",
+    "orContinueWith": "Or continue with",
+    "google": "Google",
+    "facebook": "Facebook",
+    "loading": "Loading...",
+    "googleOAuthError": "Failed to get Google OAuth redirect URL",
+    "facebookOAuthError": "Failed to get Facebook OAuth redirect URL",
+    "googleLoginError": "Failed to initiate Google login",
+    "facebookLoginError": "Failed to initiate Facebook login"
   }
 }

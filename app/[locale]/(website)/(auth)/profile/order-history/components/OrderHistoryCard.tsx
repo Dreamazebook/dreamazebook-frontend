@@ -5,9 +5,11 @@ import { formatDate } from "@/app/[locale]/admin/orders/utils";
 import { Link } from "@/i18n/routing";
 import OrderStatusLabel from "../../../../components/component/OrderStatusLabel";
 import { ORDER_CHECKOUT_URL, ORDER_SUMMARY_URL } from "@/constants/links";
+import { useTranslations } from 'next-intl';
 
 const OrderHistoryCard = ({orderDetail}:{orderDetail:OrderDetail}) => {
   const orderDetailLink = orderDetail.payment_status === 'paid' ? ORDER_SUMMARY_URL(orderDetail.id) : ORDER_CHECKOUT_URL(orderDetail.id);
+  const t = useTranslations('orderHistoryCard');
   return (
     <div className="flex gap-4 py-4">
       {/* Product Images */}
@@ -48,29 +50,29 @@ const OrderHistoryCard = ({orderDetail}:{orderDetail:OrderDetail}) => {
         </div>
 
         <div className="text-sm text-gray-600 mb-1">
-          <span className="text-gray-900">Ship to:</span> {formatAddress(orderDetail.shipping_address)}
+          <span className="text-gray-900">{t("shipTo")}</span> {formatAddress(orderDetail.shipping_address)}
         </div>
 
         <div className="flex gap-8 text-sm text-gray-600 mb-1">
-          <span><span className="text-gray-900">Order date:</span> {formatDate(orderDetail.created_at)}</span>
+          <span><span className="text-gray-900">{t("orderDate")}</span> {formatDate(orderDetail.created_at)}</span>
           {orderDetail.updated_at && (
-            <span><span className="text-gray-900">Delivery date:</span> {formatDate(orderDetail.updated_at)}</span>
+            <span><span className="text-gray-900">{t("deliveryDate")}</span> {formatDate(orderDetail.updated_at)}</span>
           )}
         </div>
 
         <div className="text-sm text-gray-600 mb-4">
-          <span className="text-gray-900">Qty:</span> {orderDetail.items?.reduce((sum, item) => sum + item.quantity, 0)}
+          <span className="text-gray-900">{t("qty")}</span> {orderDetail.items?.reduce((sum, item) => sum + item.quantity, 0)}
         </div>
 
         <div className="flex gap-6">
           <button className="text-blue-600 hover:underline text-sm">
-            Download Invoice
+            {t("downloadInvoice")}
           </button>
           <button className="text-blue-600 hover:underline text-sm">
-            Buy the Same
+            {t("buySame")}
           </button>
           <Link href={orderDetailLink} className="text-blue-600 hover:underline text-sm flex items-center gap-1">
-            More Details
+            {t("moreDetails")}
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>

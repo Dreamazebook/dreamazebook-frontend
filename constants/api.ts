@@ -1,5 +1,8 @@
 // 使用相对路径，让 axios baseURL 生效
 // 客户端会通过 /api 代理，服务器端会使用完整的 API URL
+export const OAUTH_REDIRECT = (provider: string) => `/api/auth/${provider}/redirect`;
+export const OAUTH_CALLBACK = (provider: string) => `/api/auth/${provider}/callback`;
+
 export const API_USER_REGISTER = '/register';
 
 export const API_USER_LOGIN = '/login';

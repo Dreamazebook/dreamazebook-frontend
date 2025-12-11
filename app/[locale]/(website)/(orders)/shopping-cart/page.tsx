@@ -2,18 +2,17 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter, usePathname } from '@/i18n/routing';
+import { useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
-import { API_CART_LIST, API_CART_REMOVE, API_CART_UPDATE, API_ORDER_CREATE, API_KS_PACKAGE_STATUS, API_CART_CALCULATE_COST } from '@/constants/api';
+import { API_CART_LIST, API_CART_UPDATE, API_ORDER_CREATE, API_KS_PACKAGE_STATUS, API_CART_CALCULATE_COST } from '@/constants/api';
 import { CartItem, CartItems } from '@/types/cart';
 
 // 导入组件
 import CartHeader from './components/CartHeader';
 import CouponInput from './components/CouponInput';
 import CartItemList from './components/CartItemList';
-import Loading from '../../components/Loading';
 import ConfirmModal from '../../components/component/ConfirmModal';
 import useUserStore from '@/stores/userStore';
 import { ORDER_CHECKOUT_URL } from '@/constants/links';
@@ -25,8 +24,6 @@ export default function ShoppingCartPage() {
   const [discount, setDiscount] = useState(0);
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(true);
   const router = useRouter();
-  const pathname = usePathname();
-  const locale = pathname.split('/')[1];
   const { checkKickstarterStatus } = useUserStore();
 
   // 记录被选中的书本 ID，只有被选中的书才会结账
@@ -34,7 +31,10 @@ export default function ShoppingCartPage() {
 
   const fetchCartList = async () => {
     try {
-      const { data, message, success, code } = await api.get<ApiResponse<CartItems>>(API_CART_LIST);
+      const { data, success, message } = await api.get<ApiResponse<CartItems>>(API_CART_LIST);
+      if (!success) {
+        console.error(message);
+      }
       if (data?.items) {
         // 为每个 package 拉取其 items 作为子项，便于显示 Create/Edit Book
         const augmented = await Promise.all(
@@ -112,7 +112,7 @@ export default function ShoppingCartPage() {
       ));
 
       // 调用API更新服务器
-      const { success, code, message, data } = await api.put<ApiResponse>(API_CART_UPDATE(id), {
+      const { success, message, data } = await api.put<ApiResponse>(API_CART_UPDATE(id), {
         quantity: Math.max(1, (cartItems.find(item => item.id === id)?.quantity || 1) + delta)
       });
 
@@ -120,9 +120,8 @@ export default function ShoppingCartPage() {
         // 如果API失败，回滚本地状态
         setCartItems(data.items || data.cart_item);
         setError(message);
-      } else {
-        fetchCartList();
       }
+      // Remove the else block with fetchCartList() since we already updated local state optimistically
     } catch (err) {
       console.error('Failed to update quantity:', err);
     }
@@ -132,7 +131,7 @@ export default function ShoppingCartPage() {
 
   const handleRemoveItem = async (id: number) => {
     try {
-      const { code, success, message, data } = await api.delete<ApiResponse>(`${API_CART_UPDATE(id)}`);
+      const { success, message } = await api.delete<ApiResponse>(`${API_CART_UPDATE(id)}`);
       if (success) {
         // 移除主商品
         setCartItems(prev => prev.filter(item => item.id !== id));
@@ -147,31 +146,7 @@ export default function ShoppingCartPage() {
     }
   };
 
-  const handleEditBook = (id: number) => {
-    const item = cartItems.find(ci => ci.id === id);
-    if (!item || !item.preview_id) {
-      // 回退：跳原有创建页
-      const fallbackBookId = item?.spu_code || (item as any)?.picbook_id || (item as any)?.picbook?.id;
-      if (fallbackBookId) {
-        router.push(`/personalize?bookid=${fallbackBookId}`);
-      } else {
-        router.push('/shopping-cart');
-      }
-      return;
-    }
 
-    const spuCode = item.spu_code;
-    const previewId = item.preview_id;
-    const query = new URLSearchParams({
-      // recipient_name: item.preview.recipient_name ?? '',
-      // gender: item.preview.gender,
-      // skin_color: (item.preview.skin_color?.[0] ?? '').toString(),
-      // photo_url: item.preview.face_image || ''
-      // 以上字段如需携带，可解注释
-    });
-
-    router.push(`/personalized-products/${spuCode}/${previewId}/edit?${query.toString()}`);
-  };
 
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [paypalCheckoutLoading, setPaypalCheckoutLoading] = useState(false);
@@ -194,7 +169,7 @@ export default function ShoppingCartPage() {
     }
     
     try {
-      const { success, message, code, data } = await api.post<ApiResponse>(API_ORDER_CREATE, {
+      const { success, message, data } = await api.post<ApiResponse>(API_ORDER_CREATE, {
         cart_item_ids: selectedItems,
         payment_method: paymentMethod,
         coupon_code: appliedCoupon
@@ -333,18 +308,17 @@ export default function ShoppingCartPage() {
                   onToggleSelect={handleToggleSelectItem}
                   onClickEditBook={async (ci) => {
                     try {
-                      const { data } = await api.get<ApiResponse<CartItems>>(API_CART_LIST);
-                      const list = (data as any)?.items || [];
-                      const current = list.find((it: any) => it.id === ci.id);
+                      // Use existing cart items state instead of fetching entire cart
+                      const current = cartItems.find((it: any) => it.id === ci.id);
                       const remaining = current?.remaining_previews;
                       const url = `/personalized-products/${ci.spu_code}/${ci.preview_id}/edit`;
 
                       if (remaining && typeof remaining.remaining_previews === 'number') {
                         const desc = (
                           <div>
-                            <p>A product can only be edited five times a day.</p>
+                            <p>{t('editLimitText')}</p>
                             <p>
-                              You have edited it {remaining.used_previews_today} times and you have {remaining.remaining_previews} more chances.
+                              {t('editUsageText', { count: remaining.used_previews_today, remaining: remaining.remaining_previews })}
                             </p>
                           </div>
                         );
@@ -371,7 +345,7 @@ export default function ShoppingCartPage() {
               <div className="">
                 <p className="text-md font-medium">{t('haveCouponCode')}</p>
                 <p className="text-[#666666] text-md">
-                  25% off with code: BLACKFRIDAY
+                  t('blackFridayCoupon')
                 </p>
                 <CouponInput onApply={handleApplyCoupon} />
               </div>
@@ -395,7 +369,7 @@ export default function ShoppingCartPage() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-[#abd29b]">
                       <div>
-                        <p>Multi-book discount:</p>
+                        <p>{t('multiBookDiscount')}</p>
                         {/* {discountInfo.description && (
                           <p className="text-xs text-[#abd29b]">{discountInfo.description}</p>
                         )} */}
@@ -447,7 +421,7 @@ export default function ShoppingCartPage() {
                         {t('processing')}
                       </>
                     ) : (
-                      'Checkout'
+                      t('checkout')
                     )}
                   </button>
                   <button
@@ -464,7 +438,7 @@ export default function ShoppingCartPage() {
                         {t('processing')}
                       </>
                     ) : (
-                      'Checkout with PayPal'
+                      t('checkoutWithPayPal')
                     )}
                   </button>
                 </div>
@@ -507,7 +481,7 @@ export default function ShoppingCartPage() {
                     {t('processing')}
                   </>
                 ) : (
-                  'Checkout'
+                  t('checkout')
                 )}
               </button>
               <button
@@ -524,7 +498,7 @@ export default function ShoppingCartPage() {
                     {t('processing')}
                   </>
                 ) : (
-                  'Checkout with PayPal'
+                  t('checkoutWithPayPal')
                 )}
               </button>
             </div>
@@ -534,7 +508,7 @@ export default function ShoppingCartPage() {
               <div className="border-b border-[#E5E5E5] pb-4">
                 <h2 className="text-3xl font-normal mb-4">{t('orderSummary')}</h2>
                 <p className="text-md font-medium">{t('haveCouponCode')}</p>
-                <p className="text-[#666666] text-md">25% off with code: BLACKFRIDAY</p>
+                <p className="text-[#666666] text-md">t('blackFridayCoupon')</p>
                 <CouponInput onApply={handleApplyCoupon} />
               </div>
 
@@ -582,7 +556,7 @@ export default function ShoppingCartPage() {
                       {t('processing')}
                     </>
                   ) : (
-                    'Checkout'
+                    t('checkout')
                   )}
                 </button>
                 <button
@@ -599,7 +573,7 @@ export default function ShoppingCartPage() {
                       {t('processing')}
                     </>
                   ) : (
-                    'Checkout with PayPal'
+                    t('checkoutWithPayPal')
                   )}
                 </button>
               </div>
@@ -609,7 +583,7 @@ export default function ShoppingCartPage() {
       </div>
       <ConfirmModal
         open={confirmOpen}
-        title="Important tips"
+        title={t('importantTips')}
         description={confirmContent}
         onCancel={() => setConfirmOpen(false)}
         onConfirm={() => {
