@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Address, EMPTY_ADDRESS } from "@/types/address";
 import AddressForm from "./AddressForm";
 import AddressCard from "../../../components/address/AddressCard";
@@ -40,6 +41,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   shippingAddressRef,
   billingAddressRef,
 }) => {
+  const t = useTranslations('checkoutPage');
   const { fetchCountryList, fetchAddresses } = useUserStore();
 
   // const [showBillingForm, setShowBillingForm] = useState(false);
@@ -79,7 +81,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
             setShowAddressListModal(true);
           }}
         >
-          Change Address
+          {t("changeAddress")}
         </div>
         {(orderDetail?.shipping_address || !showShippingForm) &&
         <div
@@ -89,7 +91,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
             setAddress(EMPTY_ADDRESS);
           }}
         >
-          Add New Address
+          {t("addNewAddress")}
         </div>}
       </div>
 
@@ -105,7 +107,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
           <label
             className="ml-2 block text-[#222] font-bold"
           >
-            Bills need to be sent to a new address？
+            {t("billingAddressQuestion")}
           </label>
           <div className="flex items-center gap-10">
             <div className="flex items-center gap-2">
@@ -119,7 +121,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
               <label
                 className="block text-sm text-gray-700"
               >
-                Yes
+                {t("yes")}
               </label>
             </div>
             <div className="flex items-center gap-2">
@@ -133,7 +135,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
               <label
                 className="block text-sm text-gray-700"
               >
-                No need
+                {t("noNeed")}
               </label>
             </div>
           </div>
@@ -149,14 +151,14 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
 
       <div className="mt-4 flex flex-col justify-center">
         <p className="mb-2 text-center text-[#666]">
-          By clicking Continue, you agree to our <Link href={'/terms-and-conditions'} className="text-primary">terms & conditions</Link> and <Link target="_blank" href='/privacy-policy' className="text-primary">privacy policy</Link>
+          By clicking Continue, you agree to our <Link href={'/terms-and-conditions'} className="text-primary">{t("termsAndConditions")}</Link> and <Link target="_blank" href='/privacy-policy' className="text-primary">{t("privacyPolicy")}</Link>
         </p>
 
         <NextStepButton
           // disabled={!isAddressVal
           // idated()}
           handleOnClick={handleNextFromShipping}
-        >Continue to Delivery</NextStepButton>
+        >{t("continueToDelivery")}</NextStepButton>
 
       </div>
     </div>

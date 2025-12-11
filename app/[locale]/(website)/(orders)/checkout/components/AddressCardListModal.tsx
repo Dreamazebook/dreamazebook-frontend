@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Address } from '@/types/address';
 import AddressCardList from '../../../components/address/AddressCardList';
@@ -17,6 +18,7 @@ const AddressCardListModal: React.FC<AddressCardListModalProps> = ({
   handleEditAddress,
   handleClickAddress,
 }) => {
+  const t = useTranslations('checkoutPage');
   const {addresses} = useUserStore();
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -59,7 +61,7 @@ const AddressCardListModal: React.FC<AddressCardListModalProps> = ({
         >
           <div className="relative h-full flex flex-col">
             <div className="border-b px-5 py-4 flex justify-between items-center">
-              <h3 className="text-xl font-semibold">Addresses</h3>
+              <h3 className="text-xl font-semibold">{t("addresses")}</h3>
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}

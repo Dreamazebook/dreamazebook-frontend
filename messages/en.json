@@ -243,5 +243,33 @@
     "facebookOAuthError": "Failed to get Facebook OAuth redirect URL",
     "googleLoginError": "Failed to initiate Google login",
     "facebookLoginError": "Failed to initiate Facebook login"
+  },
+  "checkoutPage": {
+    "title": "Checkout",
+    "errorLoadingOrder": "Error loading order",
+    "shipping": "Shipping",
+    "deliveryOptions": "Delivery Options",
+    "reviewAndPay": "Review and Pay",
+    "changeAddress": "Change Address",
+    "addNewAddress": "Add New Address",
+    "billingAddressQuestion": "Bills need to be sent to a new address？",
+    "yes": "Yes",
+    "noNeed": "No need",
+    "termsAndConditions": "terms & conditions",
+    "privacyPolicy": "privacy policy",
+    "continueToDelivery": "Continue to Delivery",
+    "estimatedDelivery": "Estimated delivery: {days} business days",
+    "continueToPayment": "Continue to Payment",
+    "cardInformation": "Card Information",
+    "completePayment": "Complete Payment",
+    "processing": "Processing...",
+    "paymentSuccess": "Payment succeeded!",
+    "paymentProcessing": "Payment processing. We will update you when payment is received.",
+    "paymentFailed": "Payment failed. Please try another payment method.",
+    "paymentStatusUnknown": "Payment status unknown. Please contact support.",
+    "completePaymentSecure": "Complete your payment with one of our secure checkout methods.",
+    "summary": "Summary",
+    "couponCode": "Coupon Code: {code}",
+    "addresses": "Addresses"
   }
 }

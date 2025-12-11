@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
@@ -33,6 +34,7 @@ const CheckoutForm: React.FC<{
   paymentMethod?: string;
   onError?: (error: string) => void;
 }> = ({ orderDetail, paymentMethod, onError }) => {
+  const t = useTranslations('checkoutPage');
   const order = orderDetail;
   const {shipping_address,total_amount} = order;
   const clientSecret = orderDetail.stripe_client_secret;
@@ -43,11 +45,11 @@ const CheckoutForm: React.FC<{
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string>('');
 
-  if (!clientSecret) {
-    setMessage('Payment data is incomplete');
-    onError?.('Payment data is incomplete');
-    return;
-  }
+    if (!clientSecret) {
+      setMessage(t("errorLoadingOrder"));
+      onError?.(t("errorLoadingOrder"));
+      return;
+    }
 
   const router = useRouter();
 
@@ -65,7 +67,7 @@ const CheckoutForm: React.FC<{
     const paymentElement = elements.getElement(PaymentElement);
 
     if (!paymentElement) {
-      setMessage('Card element not found');
+      setMessage(t("cardInformation"));
       setIsLoading(false);
       return;
     }
@@ -80,14 +82,14 @@ const CheckoutForm: React.FC<{
     });
 
     if (error) {
-      setMessage(error.message || 'An unexpected error occurred.');
-      onError?.(error.message || 'Payment failed');
+      setMessage(error.message || t("paymentStatusUnknown"));
+      onError?.(error.message || t("paymentFailed"));
       return;
     }
 
     switch (paymentIntent?.status) {
       case 'succeeded':
-        setMessage('Payment succeeded!');
+        setMessage(t("paymentSuccess"));
         try {
           const { success } = await api.post<ApiResponse>(API_ORDER_STRIPE_PAID, {
             order_id: orderDetail.id,
@@ -96,21 +98,21 @@ const CheckoutForm: React.FC<{
           if (success) {
             router.push(ORDER_SUMMARY_URL(orderDetail.id));
           } else {
-            setMessage('Failed to update order status');
+            setMessage(t("errorLoadingOrder"));
           }
         } catch (error) {
-          setMessage('Failed to process payment');
-          onError?.('Failed to process payment');
+          setMessage(t("paymentFailed"));
+          onError?.(t("paymentFailed"));
         }
         break;
       case 'processing':
-        setMessage('Payment processing. We will update you when payment is received.');
+        setMessage(t("paymentProcessing"));
         break;
       case 'requires_payment_method':
-        setMessage('Payment failed. Please try another payment method.');
+        setMessage(t("paymentFailed"));
         break;
       default:
-        setMessage('Payment status unknown. Please contact support.');
+        setMessage(t("paymentStatusUnknown"));
     }
 
     setIsLoading(false);
@@ -148,7 +150,7 @@ const CheckoutForm: React.FC<{
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Card Information
+            {t("cardInformation")}
           </label>
           <div className="border border-gray-300 rounded-md p-4 bg-white w-full">
             <PaymentElement options={paymentElementOptions} />
@@ -156,7 +158,7 @@ const CheckoutForm: React.FC<{
         </div>
 
         <div className='flex flex-col justify-center gap-3 mt-4'>
-          <p className='text-center text-gray-500'>Complete your payment with one of our secure checkout methods.</p>
+          <p className='text-center text-gray-500'>{t("completePaymentSecure")}</p>
           <NextStepButton
             type='submit'
             disabled={!stripe || isLoading}
@@ -165,10 +167,10 @@ const CheckoutForm: React.FC<{
             {isLoading ? (
               <div className="flex items-center justify-center">
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                Processing...
+                {t("processing")}
               </div>
             ) : (
-              'Complete Payment'
+              t("completePayment")
             )}
           </NextStepButton>
         </div>
@@ -196,16 +198,17 @@ const ReviewAndPay: React.FC<ReviewAndPayProps> = ({
   orderDetail,
   onError,
 }) => {
+  const t = useTranslations('checkoutPage');
   const clientSecret = orderDetail.stripe_client_secret;
   if (!clientSecret) {
-    onError?.('Payment data is incomplete');
+    onError?.(t("errorLoadingOrder"));
     return;
   }
   const [stripeError, setStripeError] = useState<string>('');
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
-      setStripeError('Stripe publishable key is not configured');
+      setStripeError(t("errorLoadingOrder"));
     }
   }, []);
 

@@ -243,5 +243,33 @@
     "facebookOAuthError": "获取 Facebook OAuth 重定向 URL 失败",
     "googleLoginError": "启动 Google 登录失败",
     "facebookLoginError": "启动 Facebook 登录失败"
+  },
+  "checkoutPage": {
+    "title": "结账",
+    "errorLoadingOrder": "加载订单错误",
+    "shipping": "配送",
+    "deliveryOptions": "配送选项",
+    "reviewAndPay": "审查并付款",
+    "changeAddress": "更改地址",
+    "addNewAddress": "添加新地址",
+    "billingAddressQuestion": "账单需要发送到新地址？",
+    "yes": "是",
+    "noNeed": "不需要",
+    "termsAndConditions": "条款和条件",
+    "privacyPolicy": "隐私政策",
+    "continueToDelivery": "继续配送",
+    "estimatedDelivery": "预计送达：{days} 个工作日",
+    "continueToPayment": "继续付款",
+    "cardInformation": "卡信息",
+    "completePayment": "完成付款",
+    "processing": "处理中...",
+    "paymentSuccess": "付款成功！",
+    "paymentProcessing": "付款处理中。我们将在收到付款后通知您。",
+    "paymentFailed": "付款失败。请尝试其他付款方式。",
+    "paymentStatusUnknown": "付款状态未知。请联系客服。",
+    "completePaymentSecure": "使用我们安全的结账方式之一完成您的付款。",
+    "summary": "摘要",
+    "couponCode": "优惠券代码：{code}",
+    "addresses": "地址"
   }
 }

@@ -243,5 +243,33 @@
     "facebookOAuthError": "Échec de l'obtention de l'URL de redirection Facebook OAuth",
     "googleLoginError": "Échec de l'initialisation de la connexion Google",
     "facebookLoginError": "Échec de l'initialisation de la connexion Facebook"
+  },
+  "checkoutPage": {
+    "title": "Commande",
+    "errorLoadingOrder": "Erreur lors du chargement de la commande",
+    "shipping": "Livraison",
+    "deliveryOptions": "Options de livraison",
+    "reviewAndPay": "Examiner et payer",
+    "changeAddress": "Changer d'adresse",
+    "addNewAddress": "Ajouter une nouvelle adresse",
+    "billingAddressQuestion": "Les factures doivent-elles être envoyées à une nouvelle adresse ?",
+    "yes": "Oui",
+    "noNeed": "Pas besoin",
+    "termsAndConditions": "termes et conditions",
+    "privacyPolicy": "politique de confidentialité",
+    "continueToDelivery": "Continuer vers la livraison",
+    "estimatedDelivery": "Livraison estimée : {days} jours ouvrables",
+    "continueToPayment": "Continuer vers le paiement",
+    "cardInformation": "Informations de la carte",
+    "completePayment": "Finaliser le paiement",
+    "processing": "Traitement...",
+    "paymentSuccess": "Paiement réussi !",
+    "paymentProcessing": "Paiement en cours. Nous vous informerons lors de la réception du paiement.",
+    "paymentFailed": "Paiement échoué. Veuillez essayer une autre méthode de paiement.",
+    "paymentStatusUnknown": "Statut de paiement inconnu. Veuillez contacter le support.",
+    "completePaymentSecure": "Finalisez votre paiement avec l'une de nos méthodes de paiement sécurisées.",
+    "summary": "Résumé",
+    "couponCode": "Code de coupon : {code}",
+    "addresses": "Adresses"
   }
 }
