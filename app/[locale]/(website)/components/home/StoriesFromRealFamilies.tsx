@@ -20,7 +20,7 @@ const testimonials: Testimonial[] = [
   },
   {
     id: 2,
-    quote: "I bought one for each child. What surprised me most was how personalized each felt — not just the name. The pages feel like they understand who my kids are. That's rare and incredibly special.",
+    quote: "I bought one for each child. What surprised me most was how personalized each felt — not just name. The pages feel like they understand who my kids are. That's rare and incredibly special.",
     author: "Sophie Bernard",
     role: "Mom of siblings, ages 2 & 6",
     image: HOME_STORIES('sophie-bernard.png'),
@@ -31,168 +31,128 @@ const testimonials: Testimonial[] = [
 export default function StoriesFromRealFamilies() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const carouselRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
 
+  // Universal autoplay effect - works for both mobile and desktop
   useEffect(() => {
     const video = videoRef.current;
     
     if (!video) return;
 
-    // Intersection Observer to detect when video is in viewport
+    // Set video properties for autoplay
+    video.playsInline = true;
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', 'true');
+    (video as any).webkitPlaysInline = true;
+
+    // Video should always play for all views
+    const shouldPlay = () => true;
+
+    const attemptAutoplay = async () => {
+      if (shouldPlay()) {
+        try {
+          // Set volume to 0 for autoplay
+          video.volume = 0;
+          await video.play();
+          setIsPlaying(true);
+          console.log('Video autoplay successful');
+        } catch (err) {
+          console.log('Initial autoplay failed, trying alternatives:', err);
+          
+          // Try multiple approaches
+          const fallbackAttempts = [
+            () => video.play(),
+            () => {
+              video.currentTime = 0.1;
+              return video.play();
+            },
+            () => {
+              video.load();
+              return video.play();
+            }
+          ];
+
+          for (const attempt of fallbackAttempts) {
+            try {
+              await attempt();
+              setIsPlaying(true);
+              console.log('Fallback autoplay successful');
+              break;
+            } catch (fallbackErr) {
+              console.log('Fallback attempt failed:', fallbackErr);
+            }
+          }
+        }
+      } else {
+        video.pause();
+        setIsPlaying(false);
+      }
+    };
+
+    // Intersection Observer for viewport detection
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
         
-        if (entry.isIntersecting) {
-          // Check if it's mobile view and video slide is visible
-          const isMobile = window.innerWidth < 768;
-          const isVideoSlide = isMobile ? currentIndex === 1 : true;
-          
-          if (isVideoSlide) {
-            // Video is in view, start playing
-            video.play().catch(err => {
-              console.log('Autoplay failed:', err);
-            });
-            setIsPlaying(true);
-          }
-        } else {
+        if (entry.isIntersecting && shouldPlay()) {
+          // Video is in view and should play
+          attemptAutoplay();
+        } else if (!entry.isIntersecting) {
           // Video is out of view, pause
           video.pause();
           setIsPlaying(false);
         }
       },
       {
-        threshold: 0.5 // Play when 50% of video is visible
+        threshold: 0.1 // Lower threshold for better detection
       }
     );
 
-    // Observe the video element itself for better mobile support
+    // Observe the video element
     observer.observe(video);
+
+    // Initial autoplay attempt
+    attemptAutoplay();
+
+    // Also try after a short delay (some browsers need this)
+    setTimeout(attemptAutoplay, 100);
+    setTimeout(attemptAutoplay, 1000);
 
     return () => {
       observer.disconnect();
     };
-  }, [currentIndex]);
+  }, []);
 
-  // Effect to handle mobile video playback specifically
+  // Enhanced user interaction effect for all browsers
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    const isMobile = window.innerWidth < 768;
-    
-    if (isMobile && currentIndex === 1) {
-      // For mobile, we need to be more aggressive with autoplay
-      const attemptPlay = async () => {
-        try {
-          // Set video properties for mobile autoplay
-          video.muted = true;
-          video.playsInline = true;
-          video.setAttribute('muted', '');
-          video.setAttribute('playsinline', '');
-          video.setAttribute('webkit-playsinline', 'true');
-          (video as any).webkitPlaysInline = true;
-          
-          // Try multiple approaches to start playback
-          await video.play();
-          setIsPlaying(true);
-        } catch (err) {
-          console.log('Mobile autoplay attempt failed:', err);
-          
-          // Fallback: try after a short delay
-          setTimeout(() => {
-            video.play().catch(e => console.log('Delayed autoplay failed:', e));
-          }, 100);
-          
-          // Another fallback: try with user interaction hint
-          setTimeout(() => {
-            video.play().catch(e => console.log('Second delayed autoplay failed:', e));
-          }, 500);
-        }
-      };
-
-      attemptPlay();
-    } else if (isMobile && currentIndex !== 1) {
-      video.pause();
-      setIsPlaying(false);
-    }
-  }, [currentIndex]);
-
-  // Effect to handle resize events
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const handleResize = () => {
-      const isMobile = window.innerWidth < 768;
-      
-      if (isMobile) {
-        // In mobile view, only play if video slide is active
-        if (currentIndex === 1) {
-          video.muted = true;
-          video.playsInline = true;
-          video.setAttribute('muted', '');
-          video.setAttribute('playsinline', '');
-          video.play().catch(err => {
-            console.log('Resize autoplay failed:', err);
-          });
-          setIsPlaying(true);
-        } else {
-          video.pause();
-          setIsPlaying(false);
-        }
-      } else {
-        // In desktop view, use intersection observer logic
-        const rect = video.getBoundingClientRect();
-        const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
-        
-        if (isInViewport) {
-          video.play().catch(err => {
-            console.log('Autoplay failed:', err);
-          });
-          setIsPlaying(true);
-        } else {
-          video.pause();
-          setIsPlaying(false);
-        }
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    handleResize(); // Initial check
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [currentIndex]);
-
-  // Additional effect to ensure mobile video starts when user swipes to it
-  useEffect(() => {
-    const handleTouchStart = () => {
-      const video = videoRef.current;
-      const isMobile = window.innerWidth < 768;
-      
-      if (isMobile && currentIndex === 1 && video && video.paused) {
-        // User is interacting, try to play the video
+    const handleUserInteraction = () => {
+      if (video && video.paused) {
+        // User is interacting, this is our chance to start video
         video.play().then(() => {
           setIsPlaying(true);
+          console.log('User interaction triggered playback');
         }).catch(err => {
-          console.log('Touch-triggered play failed:', err);
+          console.log('User interaction playback failed:', err);
         });
       }
     };
 
-    // Add touch listener to document for user interaction
-    document.addEventListener('touchstart', handleTouchStart, { once: true });
+    // Add multiple event listeners to catch user interaction
+    const events = ['touchstart', 'touchend', 'click', 'keydown'];
     
+    events.forEach(event => {
+      document.addEventListener(event, handleUserInteraction, { once: true });
+    });
+
     return () => {
-      document.removeEventListener('touchstart', handleTouchStart);
+      events.forEach(event => {
+        document.removeEventListener(event, handleUserInteraction);
+      });
     };
-  }, [currentIndex]);
+  }, []);
 
   const handleVideoClick = () => {
     const video = videoRef.current;
@@ -222,34 +182,6 @@ export default function StoriesFromRealFamilies() {
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(0);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe && currentIndex < 2) {
-      setCurrentIndex(currentIndex + 1);
-    }
-    if (isRightSwipe && currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
-  };
-
-  const goToSlide = (index: number) => {
-    setCurrentIndex(index);
-  };
-
   return (
     <div className="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
@@ -262,6 +194,7 @@ export default function StoriesFromRealFamilies() {
           </p>
         </div>
 
+        {/* Grid Layout for all screen sizes */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 lg:gap-8 relative">
           <div className="bg-[#F8F8F8] rounded p-6 sm:p-8 lg:p-10 relative md:col-span-2">
             <img src={HOME_STORIES('top-quote.png')} className="w-10 h-10 lg:w-12 lg:h-12" />
@@ -292,7 +225,6 @@ export default function StoriesFromRealFamilies() {
                 src={HOME_STORIES('video.mp4')}
                 loop
                 playsInline
-                muted
                 autoPlay
                 disablePictureInPicture
                 x-webkit-airplay="deny"
