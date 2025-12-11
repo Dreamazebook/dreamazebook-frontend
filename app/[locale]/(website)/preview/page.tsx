@@ -2279,22 +2279,43 @@ export default function PreviewPageWithTopNav() {
       if (!authHeader && process.env.NEXT_PUBLIC_API_STATIC_TOKEN) {
         authHeader = `Bearer ${process.env.NEXT_PUBLIC_API_STATIC_TOKEN}`;
       }
-      const resp = await fetch(url, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/x-ndjson',
-          ...(authHeader ? { Authorization: authHeader } : {}),
-        },
-        body: JSON.stringify(payload),
-      });
+      // Add a 3-minute timeout for the preview render request
+      const controller = new AbortController();
+      const timeoutMs = 3 * 60 * 1000; // 3 minutes
+      const timeoutId = setTimeout(() => {
+        try { controller.abort(); } catch (e) {}
+      }, timeoutMs);
+
+      let resp: Response;
+      try {
+        resp = await fetch(url, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/x-ndjson',
+            ...(authHeader ? { Authorization: authHeader } : {}),
+          },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+      } catch (err: any) {
+        if (err && err.name === 'AbortError') {
+          throw new Error('请求超时（3 分钟）');
+        }
+        throw err;
+      } finally {
+        // don't clear timeout here because we still need it until response body read completes
+      }
+
       if (!resp.ok) {
         const text = await resp.text();
+        clearTimeout(timeoutId);
         throw new Error(`请求失败 (${resp.status}): ${text}`);
       }
       const reader = resp.body?.getReader();
       if (!reader) {
+        clearTimeout(timeoutId);
         throw new Error('当前环境不支持流式响应');
       }
       const decoder = new TextDecoder();
@@ -2327,6 +2348,9 @@ export default function PreviewPageWithTopNav() {
           handleNdjsonEvent(evt, spuCode);
         } catch (_e) {}
       }
+      try {
+        clearTimeout(timeoutId);
+      } catch {}
     } catch (e: any) {
       console.error('预览渲染流式请求失败:', e);
     }
