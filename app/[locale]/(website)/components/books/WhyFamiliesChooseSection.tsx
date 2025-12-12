@@ -58,7 +58,7 @@ const WhyFamiliesChooseSection: React.FC<WhyFamiliesChooseSectionProps> = ({
         </h2>
 
         {/* 4个标签的总div */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-[48px] md:h-[152px] w-full max-w-[260px] md:max-w-[968px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-[48px] md:h-[152px] w-full px-8 md:px-0 md:max-w-[968px]">
           {features.map((feature) => (
             <div
               key={feature.id}
