@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useCallback, useRef, useImperativeHandle, forwardRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { Address } from '@/types/address';
 import FormField from './FormField';
 import useUserStore from '@/stores/userStore';
@@ -37,7 +38,6 @@ const AddressSuggestions: React.FC<AddressSuggestionsProps> = ({
 interface AddressFormProps {
   address: Address;
   setAddress: (value: React.SetStateAction<Address>) => void;
-  validateShippingAddress?: () => boolean;
 }
 
 const AddressForm = forwardRef<{
@@ -45,10 +45,10 @@ const AddressForm = forwardRef<{
 }, AddressFormProps>(({
   address,
   setAddress,
-  validateShippingAddress,
 }, ref) => {
 
   const { countryList } = useUserStore();
+  const t = useTranslations('addressForm');
   const [errors, setErrors] = useState<ShippingErrors>({});
 
   const clearError = (field: keyof ShippingErrors) => {
@@ -82,21 +82,21 @@ const AddressForm = forwardRef<{
     };
 
     const checkEmail = () => {
-      if (!address.email) setOrClear('email', 'Email is required');
-      else if (!/\S+@\S+\.\S+/.test(address.email)) setOrClear('email', 'Invalid email address');
+      if (!address.email) setOrClear('email', t('required', { field: t('email') }));
+      else if (!/\S+@\S+\.\S+/.test(address.email)) setOrClear('email', t('invalidEmail'));
       else setOrClear('email');
     };
 
   const checks: Record<string, () => void> = {
       email: checkEmail,
-      first_name: () => setOrClear('first_name', address.first_name ? undefined : 'First name is required'),
-      last_name: () => setOrClear('last_name', address.last_name ? undefined : 'Last name is required'),
-      address: () => setOrClear('address', address.street ? undefined : 'Address is required'),
-      city: () => setOrClear('city', address.city ? undefined : 'City is required'),
-      post_code: () => setOrClear('post_code', address.post_code ? undefined : 'Postal code is required'),
-      country: () => setOrClear('country', address.country ? undefined : 'Country is required'),
-      state: () => setOrClear('state', address.state ? undefined : 'State is required'),
-      phone: () => setOrClear('phone', address.phone ? undefined : 'Phone number is required'),
+      first_name: () => setOrClear('first_name', address.first_name ? undefined : t('required', { field: t('firstName') })),
+      last_name: () => setOrClear('last_name', address.last_name ? undefined : t('required', { field: t('lastName') })),
+      address: () => setOrClear('address', address.street ? undefined : t('required', { field: t('address') })),
+      city: () => setOrClear('city', address.city ? undefined : t('required', { field: t('city') })),
+      post_code: () => setOrClear('post_code', address.post_code ? undefined : t('required', { field: t('postalCode') })),
+      country: () => setOrClear('country', address.country ? undefined : t('required', { field: t('country') })),
+      state: () => setOrClear('state', address.state ? undefined : t('required', { field: t('state') })),
+      phone: () => setOrClear('phone', address.phone ? undefined : t('required', { field: t('phoneNumber') })),
     } as Record<string, () => void>;
 
     if (field) {
@@ -187,7 +187,7 @@ const AddressForm = forwardRef<{
     <>
       <FormField
         id="email"
-        label="Email"
+        label={t('email')}
         type="email"
         required
         value={address.email}
@@ -197,14 +197,14 @@ const AddressForm = forwardRef<{
         }}
         onBlur={() => validateShippingInfo('email')}
         error={errors.email}
-        placeholder="Enter your email address"
+        placeholder={t('emailPlaceholder')}
       >
-        <span className='text-[16px] text-[#999]'>We will confirm the final effect of the book with you and update you on the status of your order</span>
+        <span className='text-[16px] text-[#999]'>{t('emailHelp')}</span>
       </FormField>
 
           <FormField
           id="first_name"
-          label="First Name"
+          label={t('firstName')}
           type="text"
           required
           value={address.first_name}
@@ -214,12 +214,12 @@ const AddressForm = forwardRef<{
           }}
           onBlur={() => validateShippingInfo('first_name')}
           error={errors.first_name}
-          placeholder="Enter your first name"
+          placeholder={t('firstNamePlaceholder')}
         />
 
         <FormField
           id="last_name"
-          label="Last Name"
+          label={t('lastName')}
           type="text"
           required
           value={address.last_name}
@@ -229,12 +229,12 @@ const AddressForm = forwardRef<{
           }}
           onBlur={() => validateShippingInfo('last_name')}
           error={errors.last_name}
-          placeholder="Enter your last name"
+          placeholder={t('lastNamePlaceholder')}
         />
 
         <FormField
           id="country"
-          label="Country"
+          label={t('country')}
           type="select"
           required
           value={address.country}
@@ -251,7 +251,7 @@ const AddressForm = forwardRef<{
 
       <FormField
         id="address"
-        label="Address"
+        label={t('address')}
         type="text"
         required
         value={address.street}
@@ -262,7 +262,7 @@ const AddressForm = forwardRef<{
         }}
         onBlur={() => validateShippingInfo('address')}
         error={errors.address}
-        placeholder="Enter your street address"
+        placeholder={t('addressPlaceholder')}
       />
 
       {address.street && (
@@ -274,7 +274,7 @@ const AddressForm = forwardRef<{
 
         <FormField
           id="city"
-          label="City"
+          label={t('city')}
           type="text"
           required
           value={address.city}
@@ -284,12 +284,12 @@ const AddressForm = forwardRef<{
           }}
           onBlur={() => validateShippingInfo('city')}
           error={errors.city}
-          placeholder="Enter your city"
+          placeholder={t('cityPlaceholder')}
         />
 
         <FormField
           id="post_code"
-          label="Postal Code"
+          label={t('postalCode')}
           type="text"
           required
           value={address.post_code}
@@ -299,12 +299,12 @@ const AddressForm = forwardRef<{
           }}
           onBlur={() => validateShippingInfo('post_code')}
           error={errors.post_code}
-          placeholder="Enter your postal code"
+          placeholder={t('postalCodePlaceholder')}
         />
 
       <FormField
         id="phone"
-        label="Phone Number"
+        label={t('phoneNumber')}
         type="tel"
         required
         value={address.phone}
@@ -314,9 +314,9 @@ const AddressForm = forwardRef<{
         }}
         onBlur={() => validateShippingInfo('phone')}
         error={errors.phone}
-        placeholder="Enter your phone number"
+        placeholder={t('phoneNumberPlaceholder')}
       >
-        <span className='text-[16px] text-[#999]'>Get free updates on where your parcel is</span>
+        <span className='text-[16px] text-[#999]'>{t('phoneHelp')}</span>
       </FormField>
 
       <div className="mt-4 mb-6">
@@ -327,7 +327,7 @@ const AddressForm = forwardRef<{
             value={address.is_default}
             onChange={(e: any) => setAddress((prev) => ({ ...prev, is_default: e.target.checked }))}
           >
-            <span className='text-[16px] text-[#999]'>Save as a frequently used address</span>
+            <span className='text-[16px] text-[#999]'>{t('saveAsDefault')}</span>
           </FormField>
         </div>
       </div>

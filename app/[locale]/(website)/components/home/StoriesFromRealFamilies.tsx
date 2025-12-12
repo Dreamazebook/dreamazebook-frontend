@@ -33,59 +33,26 @@ export default function StoriesFromRealFamilies() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Universal autoplay effect - works for both mobile and desktop
+  // Play video only when in viewport
   useEffect(() => {
     const video = videoRef.current;
     
     if (!video) return;
 
-    // Set video properties for autoplay
+    // Set video properties
     video.playsInline = true;
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', 'true');
     (video as any).webkitPlaysInline = true;
 
-    // Video should always play for all views
-    const shouldPlay = () => true;
-
-    const attemptAutoplay = async () => {
-      if (shouldPlay()) {
-        try {
-          // Set volume to 0 for autoplay
-          video.volume = 0;
-          await video.play();
-          setIsPlaying(true);
-          console.log('Video autoplay successful');
-        } catch (err) {
-          console.log('Initial autoplay failed, trying alternatives:', err);
-          
-          // Try multiple approaches
-          const fallbackAttempts = [
-            () => video.play(),
-            () => {
-              video.currentTime = 0.1;
-              return video.play();
-            },
-            () => {
-              video.load();
-              return video.play();
-            }
-          ];
-
-          for (const attempt of fallbackAttempts) {
-            try {
-              await attempt();
-              setIsPlaying(true);
-              console.log('Fallback autoplay successful');
-              break;
-            } catch (fallbackErr) {
-              console.log('Fallback attempt failed:', fallbackErr);
-            }
-          }
-        }
-      } else {
-        video.pause();
-        setIsPlaying(false);
+    const attemptPlay = async () => {
+      try {
+        video.volume = 0;
+        await video.play();
+        setIsPlaying(true);
+        console.log('Video started playing');
+      } catch (err) {
+        console.log('Video play failed:', err);
       }
     };
 
@@ -94,57 +61,56 @@ export default function StoriesFromRealFamilies() {
       (entries) => {
         const entry = entries[0];
         
-        if (entry.isIntersecting && shouldPlay()) {
-          // Video is in view and should play
-          attemptAutoplay();
-        } else if (!entry.isIntersecting) {
+        if (entry.isIntersecting) {
+          // Video is in view, try to play
+          console.log('Video entered viewport, attempting to play');
+          attemptPlay();
+        } else {
           // Video is out of view, pause
+          console.log('Video left viewport, pausing');
           video.pause();
           setIsPlaying(false);
         }
       },
       {
-        threshold: 0.1 // Lower threshold for better detection
+        threshold: 0.5 // Play when 50% of video is visible
       }
     );
 
-    // Observe the video element
-    observer.observe(video);
-
-    // Initial autoplay attempt
-    attemptAutoplay();
-
-    // Also try after a short delay (some browsers need this)
-    setTimeout(attemptAutoplay, 100);
-    setTimeout(attemptAutoplay, 1000);
+    // Observe the video container instead of video element for better detection
+    observer.observe(containerRef.current || video);
 
     return () => {
       observer.disconnect();
     };
   }, []);
 
-  // Enhanced user interaction effect for all browsers
+  // Handle user interaction to enable video playback
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     const handleUserInteraction = () => {
-      if (video && video.paused) {
-        // User is interacting, this is our chance to start video
-        video.play().then(() => {
-          setIsPlaying(true);
-          console.log('User interaction triggered playback');
-        }).catch(err => {
-          console.log('User interaction playback failed:', err);
-        });
+      // Check if video container is in viewport when user interacts
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (rect) {
+        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+        if (isVisible && video.paused) {
+          video.play().then(() => {
+            setIsPlaying(true);
+            console.log('User interaction enabled video playback');
+          }).catch(err => {
+            console.log('User interaction playback failed:', err);
+          });
+        }
       }
     };
 
-    // Add multiple event listeners to catch user interaction
+    // Add event listeners for user interaction
     const events = ['touchstart', 'touchend', 'click', 'keydown'];
     
     events.forEach(event => {
-      document.addEventListener(event, handleUserInteraction, { once: true });
+      document.addEventListener(event, handleUserInteraction, { passive: true });
     });
 
     return () => {
@@ -158,12 +124,14 @@ export default function StoriesFromRealFamilies() {
     const video = videoRef.current;
     if (!video) return;
 
-    if (video.requestFullscreen) {
-      video.requestFullscreen();
-    } else if ((video as any).webkitRequestFullscreen) {
-      (video as any).webkitRequestFullscreen();
-    } else if ((video as any).msRequestFullscreen) {
-      (video as any).msRequestFullscreen();
+    if (isPlaying) {
+      video.pause();
+      setIsPlaying(false);
+    } else {
+      video.play().catch(err => {
+        console.log('Play failed:', err);
+      });
+      setIsPlaying(true);
     }
   };
 
@@ -225,17 +193,17 @@ export default function StoriesFromRealFamilies() {
                 src={HOME_STORIES('video.mp4')}
                 loop
                 playsInline
-                autoPlay
                 disablePictureInPicture
                 x-webkit-airplay="deny"
                 className="w-full h-full object-cover"
+                muted
               />
               
               {/* Play/Pause overlay button */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  togglePlayPause();
+                  handleVideoClick();
                 }}
                 className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white rounded-full p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
               >
@@ -250,9 +218,9 @@ export default function StoriesFromRealFamilies() {
                 )}
               </button>
               
-              {/* Fullscreen hint */}
+              {/* Play/Pause hint */}
               <div className="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                Click for fullscreen
+                {isPlaying ? 'Click to pause' : 'Click to play'}
               </div>
             </div>
             <p className="text-[#222] text-[16px] md:text-[18px] leading-relaxed mb-6 lg:mb-8">
