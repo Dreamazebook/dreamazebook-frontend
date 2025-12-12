@@ -11,9 +11,8 @@ interface UserState {
   openLoginModal: () => void
   closeLoginModal: () => void
   toggleLoginModal: () => void
+  setLoginUserToken: (userResponse:UserResponse) => void
   // Post-login redirect state
-  postLoginRedirect: string | null
-  setPostLoginRedirect: (url: string | null) => void
   
   // User state
   user: UserType | null
@@ -97,15 +96,13 @@ const useUserStore = create<UserState>((set,get) => ({
   closeLoginModal: () => set({ isLoginModalOpen: false }),
   toggleLoginModal: () => set((state) => ({ isLoginModalOpen: !state.isLoginModalOpen })),
   // Post-login redirect state
-  postLoginRedirect: null,
-  setPostLoginRedirect: (url) => set({ postLoginRedirect: url }),
   
   // User state - initially not logged in
   user: null,
 
   orderList: [],
-  fetchOrderList: async (options?: any) => {
-    // const refresh = options?.refresh;
+  fetchOrderList: async (_options?: any) => {
+    // const refresh = _options?.refresh;
     // if (!refresh && get().orderList.length > 0) return;
     try {
       const response = await api.get<ApiResponse<OrderDetail[]>>(API_ORDER_LIST);
@@ -200,7 +197,7 @@ const useUserStore = create<UserState>((set,get) => ({
         // 优先选择任意“未完成”的套餐
         const pendingPkg = packages.find((p: any) => evaluate(p).need);
         const target = pendingPkg || packages[0];
-        const { configured, total, need, status } = evaluate(target);
+        const { configured, total, status } = evaluate(target);
         const packageId = target.package_id || target.package?.id || target.packageId;
 
         const summary: KickstarterUserSummary = {
@@ -233,12 +230,17 @@ const useUserStore = create<UserState>((set,get) => ({
       return null;
     }
   },
+  setLoginUserToken: (userResponse:UserResponse) => {
+    if (userResponse.token) {
+      set({isLoggedIn:true, user:userResponse.user});
+    localStorage.setItem('token', userResponse.token);
+    }
+  },
   login: async (userData): Promise<ApiResponse<UserResponse> | null> => {
     try {
       const response = await api.post<ApiResponse<UserResponse>>(API_USER_LOGIN, userData);
       if (response.success && response.data?.token) {
-        localStorage.setItem('token', response.data.token);
-        set({ isLoggedIn: true, user: response.data.user });
+        get().setLoginUserToken(response.data);
       }
       return response;
     } catch (error) {
@@ -250,8 +252,7 @@ const useUserStore = create<UserState>((set,get) => ({
     try {
       const response = await api.post<ApiResponse<UserResponse>>(API_ADMIN_LOGIN, userData);
       if (response.success && response.data?.token) {
-        localStorage.setItem('token', response.data.token);
-        set({ isLoggedIn: true, user: response.data.user });
+        get().setLoginUserToken(response.data);
       }
       return response;
     } catch (error) {
