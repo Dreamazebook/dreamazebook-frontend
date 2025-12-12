@@ -119,7 +119,7 @@ export default function EmailForm({btnText, handleCallBack, btnId='', redirectUr
           type="email" 
           name="email" 
           placeholder='Enter your email' 
-          className='w-full text-black caret-[#999999] bg-white p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
+          className='w-full text-black caret-[#999999] bg-[#00000008] p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
           aria-label="Email address"
         />
         <Button id={btnId} tl={btnText||'Reserve and Save 40%'} isLoading={isLoading} />

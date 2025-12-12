@@ -114,7 +114,7 @@ export default function CartItemCard({
                   {onRemoveItem && 
                   <button
                     onClick={() => onRemoveItem(item.id)}
-                    className="text-gray-400 hover:text-red-500"
+                    className="text-gray-400 hover:text-red-500 cursor-pointer"
                   >
                     <svg
                       width="20"

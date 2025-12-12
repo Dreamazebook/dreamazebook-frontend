@@ -132,7 +132,7 @@ export default function ShoppingCartPage() {
 
   const handleRemoveItem = async (id: number) => {
     try {
-      const { code, success, message, data } = await api.delete<ApiResponse>(`${API_CART_REMOVE}/${id}`);
+      const { code, success, message, data } = await api.delete<ApiResponse>(`${API_CART_UPDATE(id)}`);
       if (success) {
         // 移除主商品
         setCartItems(prev => prev.filter(item => item.id !== id));
@@ -221,7 +221,7 @@ export default function ShoppingCartPage() {
   const [calculatedCost, setCalculatedCost] = useState<any>(null);
 
   // Calculate cost based on API response or fallback to local calculation
-  const subtotal = calculatedCost?.subtotal || 0;
+  const subtotal = calculatedCost?.original_subtotal || 0;
   const shipping = calculatedCost?.shipping ?? 0;
   const discountInfo = calculatedCost?.discount;
   const discountAmount = discountInfo?.applicable ? (discountInfo.amount || 0) : 0;
@@ -393,18 +393,18 @@ export default function ShoppingCartPage() {
                 </div>
                 {discountInfo?.applicable && discountAmount > 0 && (
                   <div className="space-y-2">
-                    <div className="flex justify-between text-green-600">
+                    <div className="flex justify-between text-[#abd29b]">
                       <div>
-                        <p>{t('discount')}</p>
-                        {discountInfo.description && (
-                          <p className="text-xs text-green-500">{discountInfo.description}</p>
-                        )}
+                        <p>Multi-book discount:</p>
+                        {/* {discountInfo.description && (
+                          <p className="text-xs text-[#abd29b]">{discountInfo.description}</p>
+                        )} */}
                       </div>
                       <div className="text-right">
-                        <p>-${discountAmount.toFixed(2)}</p>
-                        {discountInfo.percentage && (
-                          <p className="text-xs text-green-500">-{discountInfo.percentage}%</p>
-                        )}
+                        <p>-${discountAmount.toFixed(2)} ({discountInfo.percentage}%)</p>
+                        {/* {discountInfo.percentage && (
+                          <p className="text-xs text-[#abd29b]">-{discountInfo.percentage}%</p>
+                        )} */}
                       </div>
                     </div>
                   </div>

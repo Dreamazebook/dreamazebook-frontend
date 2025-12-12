@@ -1,5 +1,4 @@
 import { HOME_STORIES } from '@/constants/cdn';
-import { FaQuoteRight as Quote } from 'react-icons/fa';
 import { useEffect, useRef, useState } from 'react';
 
 interface Testimonial {
@@ -21,7 +20,7 @@ const testimonials: Testimonial[] = [
   },
   {
     id: 2,
-    quote: "I bought one for each child. What surprised me most was how personalized each felt — not just the name. The pages feel like they understand who my kids are. That's rare and incredibly special.",
+    quote: "I bought one for each child. What surprised me most was how personalized each felt — not just name. The pages feel like they understand who my kids are. That's rare and incredibly special.",
     author: "Sophie Bernard",
     role: "Mom of siblings, ages 2 & 6",
     image: HOME_STORIES('sophie-bernard.png'),
@@ -34,38 +33,124 @@ export default function StoriesFromRealFamilies() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
+  // Universal autoplay effect - works for both mobile and desktop
   useEffect(() => {
     const video = videoRef.current;
-    const container = containerRef.current;
     
-    if (!video || !container) return;
+    if (!video) return;
 
-    // Intersection Observer to detect when video is in viewport
+    // Set video properties for autoplay
+    video.playsInline = true;
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', 'true');
+    (video as any).webkitPlaysInline = true;
+
+    // Video should always play for all views
+    const shouldPlay = () => true;
+
+    const attemptAutoplay = async () => {
+      if (shouldPlay()) {
+        try {
+          // Set volume to 0 for autoplay
+          video.volume = 0;
+          await video.play();
+          setIsPlaying(true);
+          console.log('Video autoplay successful');
+        } catch (err) {
+          console.log('Initial autoplay failed, trying alternatives:', err);
+          
+          // Try multiple approaches
+          const fallbackAttempts = [
+            () => video.play(),
+            () => {
+              video.currentTime = 0.1;
+              return video.play();
+            },
+            () => {
+              video.load();
+              return video.play();
+            }
+          ];
+
+          for (const attempt of fallbackAttempts) {
+            try {
+              await attempt();
+              setIsPlaying(true);
+              console.log('Fallback autoplay successful');
+              break;
+            } catch (fallbackErr) {
+              console.log('Fallback attempt failed:', fallbackErr);
+            }
+          }
+        }
+      } else {
+        video.pause();
+        setIsPlaying(false);
+      }
+    };
+
+    // Intersection Observer for viewport detection
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
         
-        if (entry.isIntersecting) {
-          // Video is in view, start playing
-          video.play().catch(err => {
-            console.log('Autoplay failed:', err);
-          });
-          setIsPlaying(true);
-        } else {
+        if (entry.isIntersecting && shouldPlay()) {
+          // Video is in view and should play
+          attemptAutoplay();
+        } else if (!entry.isIntersecting) {
           // Video is out of view, pause
           video.pause();
           setIsPlaying(false);
         }
       },
       {
-        threshold: 0.5 // Play when 50% of video is visible
+        threshold: 0.1 // Lower threshold for better detection
       }
     );
 
-    observer.observe(container);
+    // Observe the video element
+    observer.observe(video);
+
+    // Initial autoplay attempt
+    attemptAutoplay();
+
+    // Also try after a short delay (some browsers need this)
+    setTimeout(attemptAutoplay, 100);
+    setTimeout(attemptAutoplay, 1000);
 
     return () => {
       observer.disconnect();
+    };
+  }, []);
+
+  // Enhanced user interaction effect for all browsers
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleUserInteraction = () => {
+      if (video && video.paused) {
+        // User is interacting, this is our chance to start video
+        video.play().then(() => {
+          setIsPlaying(true);
+          console.log('User interaction triggered playback');
+        }).catch(err => {
+          console.log('User interaction playback failed:', err);
+        });
+      }
+    };
+
+    // Add multiple event listeners to catch user interaction
+    const events = ['touchstart', 'touchend', 'click', 'keydown'];
+    
+    events.forEach(event => {
+      document.addEventListener(event, handleUserInteraction, { once: true });
+    });
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, handleUserInteraction);
+      });
     };
   }, []);
 
@@ -98,7 +183,7 @@ export default function StoriesFromRealFamilies() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 bg-white">
+    <div className="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12 lg:mb-16">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 lg:mb-4">
@@ -109,9 +194,9 @@ export default function StoriesFromRealFamilies() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 relative">
-
-          <div className="bg-[#F8F8F8] rounded p-6 sm:p-8 lg:p-10 relative">
+        {/* Grid Layout for all screen sizes */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 lg:gap-8 relative">
+          <div className="bg-[#F8F8F8] rounded p-6 sm:p-8 lg:p-10 relative md:col-span-2">
             <img src={HOME_STORIES('top-quote.png')} className="w-10 h-10 lg:w-12 lg:h-12" />
             <p className="text-[#222] text-[16px] md:text-[18px] leading-relaxed mb-6 lg:mb-8">
               {testimonials[0].quote}
@@ -129,10 +214,10 @@ export default function StoriesFromRealFamilies() {
             </div>
           </div>
 
-          <div className="bg-[#F8F8F8] rounded p-6 relative lg:row-span-2">
+          <div className="bg-[#F8F8F8] rounded p-6 relative lg:row-span-2 md:col-span-3">
             <div 
               ref={containerRef}
-              className="aspect-[4/3] lg:aspect-auto lg:h-[400px] xl:h-[480px] rounded-xl bg-gray-200 mb-6 lg:mb-8 overflow-hidden relative cursor-pointer group"
+              className="aspect-[4/3] lg:aspect-auto lg:h-[400px] xl:h-[480px] rounded bg-gray-200 mb-6 lg:mb-8 overflow-hidden relative cursor-pointer group"
               onClick={handleVideoClick}
             >
               <video
@@ -140,13 +225,16 @@ export default function StoriesFromRealFamilies() {
                 src={HOME_STORIES('video.mp4')}
                 loop
                 playsInline
+                autoPlay
+                disablePictureInPicture
+                x-webkit-airplay="deny"
                 className="w-full h-full object-cover"
               />
               
               {/* Play/Pause overlay button */}
               <button
                 onClick={(e) => {
-                  e.stopPropagation(); // Prevent triggering fullscreen
+                  e.stopPropagation();
                   togglePlayPause();
                 }}
                 className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white rounded-full p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
@@ -183,8 +271,8 @@ export default function StoriesFromRealFamilies() {
             </div>
           </div>
 
-          <div className="bg-[#F8F8F8] rounded p-6 sm:p-8 lg:p-10 relative">
-            <div className="aspect-[3/2] sm:aspect-[4/3] mx-auto lg:h-48 rounded-xl bg-gray-200 mb-6 overflow-hidden flex items-center justify-center">
+          <div className="bg-[#F8F8F8] rounded p-6 sm:p-8 lg:p-10 relative md:col-span-2 md:col-start-1">
+            <div className="aspect-[3/2] sm:aspect-[4/3] mx-auto lg:h-48 rounded bg-gray-200 mb-6 overflow-hidden flex items-center justify-center">
               <img
                 src={HOME_STORIES('book_pic.webp')}
                 alt="Personalized children's book"
@@ -195,7 +283,7 @@ export default function StoriesFromRealFamilies() {
               {testimonials[1].quote}
             </p>
             <div className="flex items-center gap-3 lg:gap-4">
-              <img src={testimonials[1].image} alt={testimonials[1].author} className="w-12 mx-auto h-12 lg:w-14 lg:h-14 rounded-full object-cover flex-shrink-0" />
+              <img src={testimonials[1].image} alt={testimonials[1].author} className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover" />
               <div>
                 <p className="font-semibold text-[#222] text-[14px] md:text-[18px]">
                   {testimonials[1].author}
