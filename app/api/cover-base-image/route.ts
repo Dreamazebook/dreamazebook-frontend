@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// 这个接口的响应内容依赖 query（bookId/coverId/imageUrl）。
+// 线上如果被 CDN/浏览器错误缓存（尤其是忽略 query 的缓存键），会导致不同书/不同 coverId 返回同一张图。
+// 因此强制为动态，并禁用缓存。
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const R2_BASE = 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev';
 const ALLOWED_IMAGE_HOSTS = new Set([
   'pub-9cf31543472247c2936bb3ad6524d445.r2.dev',
@@ -37,9 +43,10 @@ export async function GET(req: NextRequest) {
         status: 200,
         headers: {
           'Content-Type': res.headers.get('Content-Type') ?? 'image/*',
-          'Cache-Control':
-            res.headers.get('Cache-Control') ??
-            'public, max-age=604800, immutable',
+          // 禁用所有缓存，避免线上出现“不同 query 返回同一张图”的问题
+          'Cache-Control': 'no-store, max-age=0',
+          Pragma: 'no-cache',
+          Expires: '0',
         },
       });
     } catch {
@@ -80,11 +87,10 @@ export async function GET(req: NextRequest) {
       headers: {
         'Content-Type':
           res.headers.get('Content-Type') ?? 'image/webp',
-        // 浏览器端 Canvas 叠加文字后通常会再缓存一份 DataURL，
-        // 这里可以适当缓存原始 base 图，减轻 R2 压力
-        'Cache-Control':
-          res.headers.get('Cache-Control') ??
-          'public, max-age=604800, immutable',
+        // 禁用所有缓存，避免线上出现“不同 query 返回同一张图”的问题
+        'Cache-Control': 'no-store, max-age=0',
+        Pragma: 'no-cache',
+        Expires: '0',
       },
     });
   } catch (err) {

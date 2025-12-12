@@ -1374,15 +1374,15 @@ export default function PreviewPageWithTopNav() {
         }
         
         return {
-          id: idx + 1,
-          option_type: String(o?.value).toUpperCase(),
-          option_key: String(o?.value),
-          name: o?.label || String(o?.value),
+        id: idx + 1,
+        option_type: String(o?.value).toUpperCase(),
+        option_key: String(o?.value),
+        name: o?.label || String(o?.value),
           description,
-          price: Number(o?.price_diff || 0),
-          currency_code: 'USD',
-          image_url: '',
-          is_default: !!o?.is_default,
+        price: Number(o?.price_diff || 0),
+        currency_code: 'USD',
+        image_url: '',
+        is_default: !!o?.is_default,
         };
       });
 
@@ -1395,18 +1395,18 @@ export default function PreviewPageWithTopNav() {
         }
         
         return {
-          id: idx + 1,
+        id: idx + 1,
           // 后台的 label 可能包含 "(Included)" 或 "(+$14.99)" 等展示文案，这里只保留名称本体
           name: String(o?.label || o?.value || '')
             .replace(/\s*\([^)]*\)\s*/g, ' ')
             .replace(/\s+/g, ' ')
             .trim() || String(o?.value),
-          price: Number(o?.price_diff || 0),
-          currency_code: 'USD',
-          image_url: '',
+        price: Number(o?.price_diff || 0),
+        currency_code: 'USD',
+        image_url: '',
           description,
-          is_default: !!o?.is_default,
-          option_key: String(o?.value),
+        is_default: !!o?.is_default,
+        option_key: String(o?.value),
         };
       });
 
@@ -3806,7 +3806,7 @@ export default function PreviewPageWithTopNav() {
                           : '-top-[2px] -right-[2px]'
                       }`}>
                         <span className="text-[#FF7B00] font-semibold text-[16px] leading-[24px] tracking-[0.5px]">
-                          Lifetime keepsake
+                          Lifetime Keepsake
                         </span>
                       </div>
                     )}
@@ -3822,7 +3822,7 @@ export default function PreviewPageWithTopNav() {
                       {formatOptionPrice(option.price, option.currency_code)}
                     </p>
                     {option.description && (
-                      <p className="text-sm text-gray-500 text-center mb-4">{option.description}</p>
+                    <p className="text-sm text-gray-500 text-center mb-4">{option.description}</p>
                     )}
                     <div className="flex items-center justify-center mt-auto space-x-2 mb-2">
                       {/* 左侧圆形选中框 */}
@@ -3863,7 +3863,7 @@ export default function PreviewPageWithTopNav() {
                 })}
               </div>
             </section>
-            
+
             {/* Book Wrap Section */}
             <section ref={giftBoxRef} className="w-full mt-2 max-w-3xl mb-8 mx-auto">
               <h1 className="text-[28px] text-center mb-2">Make the surprise complete</h1>
@@ -4058,9 +4058,9 @@ export default function PreviewPageWithTopNav() {
                       <div>
                         <h2 className="text-xl">{getGiftBoxDisplayName(detailModal.name)}</h2>
                         {detailModal.description && (
-                          <p className="text-gray-600 mt-2">
-                            {detailModal.description}
-                          </p>
+                        <p className="text-gray-600 mt-2">
+                          {detailModal.description}
+                        </p>
                         )}
                       </div>
                     </div>
