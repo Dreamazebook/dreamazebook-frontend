@@ -3754,16 +3754,62 @@ export default function PreviewPageWithTopNav() {
               </p>
               {/* 一排横向排列，尺寸与 Gift Box 相同，仅排列方式不同 */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mx-auto w-[80%] md:w-full overflow-x-auto pb-2">
-                {bookOptions?.binding_options?.map((option) => (
+                {bookOptions?.binding_options?.map((option) => {
+                  const optionKey = String(option.option_key || option.option_type || '').toLowerCase();
+                  const isPremium = optionKey.includes('premium');
+                  const isHardcover = optionKey.includes('hard') && !isPremium;
+                  const showBadge = isPremium || isHardcover;
+                  
+                  return (
                   <div
                     key={option.id}
                     onClick={() => setSelectedBinding(selectedBinding === option.id ? null : option.id)}
-                    className={`bg-white p-4 rounded flex flex-col cursor-pointer ${
+                    className={`bg-white p-4 rounded flex flex-col cursor-pointer relative ${
                       selectedBinding === option.id
                         ? 'border-2 border-[#012CCE]'
                         : 'border-2 border-transparent'
                     }`}
                   >
+                    {isPremium && (
+                      <div className={`absolute z-10 bg-[#FFE9E9] rounded-bl-[4px] rounded-tr-[2px] px-3 py-1 flex items-center gap-1.5 ${
+                        selectedBinding === option.id 
+                          ? 'top-0 right-0' 
+                          : '-top-[2px] -right-[2px]'
+                      }`}>
+                        {/* 火焰图标 */}
+                        <svg width="13" height="16" viewBox="0 0 13 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M10.6737 3.42233C8.63033 4.03767 8.256 5.78233 8.38767 6.89067C6.93 5.08067 6.98967 2.999 6.98967 0C2.31433 1.86167 3.40167 7.22967 3.262 8.85967C2.086 7.843 1.86367 5.41433 1.86367 5.41433C0.622333 6.089 0 7.89067 0 9.352C0 12.886 2.712 15.7507 6.058 15.7507C9.40367 15.7507 12.1157 12.886 12.1157 9.352C12.1157 7.252 10.6557 6.283 10.6737 3.422V3.42233Z" fill={`url(#paint0_linear_${option.id})`}/>
+                          <defs>
+                            <linearGradient id={`paint0_linear_${option.id}`} x1="6.05783" y1="0" x2="5.98755" y2="19.4951" gradientUnits="userSpaceOnUse">
+                              <stop offset="0.514424" stopColor="#FF415D"/>
+                              <stop offset="1" stopColor="#FF6A1F" stopOpacity="0"/>
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                        <span 
+                          className="font-semibold text-[16px] leading-[24px] tracking-[0.5px]"
+                          style={{
+                            background: 'linear-gradient(180.16deg, #FF415D 63.63%, rgba(255, 106, 31, 0) 123.57%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text',
+                          }}
+                        >
+                          Most Popular
+                        </span>
+                      </div>
+                    )}
+                    {isHardcover && (
+                      <div className={`absolute z-10 bg-[#FFF3E9] rounded-bl-[4px] rounded-tr-[2px] px-3 py-1 flex items-center gap-1.5 ${
+                        selectedBinding === option.id 
+                          ? 'top-0 right-0' 
+                          : '-top-[2px] -right-[2px]'
+                      }`}>
+                        <span className="text-[#FF7B00] font-semibold text-[16px] leading-[24px] tracking-[0.5px]">
+                          Lifetime keepsake
+                        </span>
+                      </div>
+                    )}
                     <Image
                       src={buildBindingImageUrl(option)}
                       alt={option.name}
@@ -3813,10 +3859,11 @@ export default function PreviewPageWithTopNav() {
                       </span>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
-
+            
             {/* Book Wrap Section */}
             <section ref={giftBoxRef} className="w-full mt-2 max-w-3xl mb-8 mx-auto">
               <h1 className="text-[28px] text-center mb-2">Make the surprise complete</h1>
