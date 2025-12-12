@@ -1009,6 +1009,7 @@ export default function PreviewPageWithTopNav() {
 
   // 仅预填一次个性化产品的封面/装订/礼盒选项
   const hasPrefilledOptionsRef = useRef(false);
+  const hasAutoSetDefaultCoverRef = useRef(false);
   useEffect(() => {
     if (hasPrefilledOptionsRef.current) return;
     if (!bookOptions) return;
@@ -1118,6 +1119,18 @@ export default function PreviewPageWithTopNav() {
       if (!activeOption && bookOptions.cover_options.length > 0) {
         activeOption = bookOptions.cover_options[0];
       }
+      // 自动设置默认封面为selectedBookCover，确保coverTextConfig能正确加载和应用
+      // 使用ref避免重复设置和无限循环
+      if (activeOption && selectedBookCover === null && !hasAutoSetDefaultCoverRef.current) {
+        hasAutoSetDefaultCoverRef.current = true;
+        // 直接设置，不需要setTimeout，因为后续的coverTextConfig加载不依赖于selectedBookCover
+        // 它只依赖于activeOption，而activeOption已经找到了
+        setSelectedBookCover(activeOption.id);
+      }
+    }
+    // 重置ref，允许在bookOptions变化时重新设置
+    if (selectedBookCover !== null) {
+      hasAutoSetDefaultCoverRef.current = false;
     }
     if (!activeOption) return;
 
@@ -1145,10 +1158,20 @@ export default function PreviewPageWithTopNav() {
           setCoverTextConfig(null);
           return;
         }
+        const configKey = `${upperBookId}_${coverId}`;
         setCoverTextConfig({
-          key: `${upperBookId}_${coverId}`,
+          key: configKey,
           texts,
         });
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[coverTextConfig] 加载成功:', {
+            key: configKey,
+            bookId: upperBookId,
+            coverId,
+            textsCount: texts.length,
+            selectedBookCover,
+          });
+        }
       } catch (err) {
         console.warn('Failed to load cover page_properties via API:', err);
         setCoverTextConfig(null);
@@ -1351,7 +1374,11 @@ export default function PreviewPageWithTopNav() {
 
       const gift_box_options = (giftAttr?.options || []).map((o: any, idx: number) => ({
         id: idx + 1,
-        name: o?.label || String(o?.value),
+        // 后台的 label 可能包含 "(Included)" 或 "(+$14.99)" 等展示文案，这里只保留名称本体
+        name: String(o?.label || o?.value || '')
+          .replace(/\s*\([^)]*\)\s*/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim() || String(o?.value),
         price: Number(o?.price_diff || 0),
         currency_code: 'USD',
         image_url: '',
@@ -1801,6 +1828,18 @@ export default function PreviewPageWithTopNav() {
       normalizedBookId,
     )}&coverId=${encodeURIComponent(coverId)}`;
 
+    // 调试日志：检查bookId和封面URL
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[buildCoverR2Urls]', {
+        rawBookId,
+        normalizedBookId,
+        coverId,
+        base,
+        optionKey: option.option_key,
+        optionImageUrl: option.image_url,
+      });
+    }
+
     return {
       key,
       base,
@@ -1832,6 +1871,41 @@ export default function PreviewPageWithTopNav() {
       return option.image_url;
     }
     return '/format.png';
+  };
+
+  // 获取gift box的默认图片URL
+  const getGiftBoxImageUrl = (option: GiftBoxOption): string => {
+    // 如果已有有效的图片URL，直接使用
+    if (option.image_url && option.image_url.startsWith('http')) {
+      return option.image_url;
+    }
+    
+    // 根据option_key或name判断是premium还是standard
+    const key = (option.option_key || option.name || '').toLowerCase();
+    if (key.includes('premium')) {
+      return 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/product-options/gift-box/premium.png';
+    }
+    
+    // 默认为standard
+    return 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/product-options/gift-box/standard.png';
+  };
+
+  // gift box 名称：去掉 "(Included)" / "(+$xx.xx)" 等后缀
+  const getGiftBoxDisplayName = (raw: string) => {
+    return String(raw || '')
+      .replace(/\s*\([^)]*\)\s*/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
+  // 价格展示：0 显示为 Free
+  const formatOptionPrice = (price: number | null | undefined, currency?: string) => {
+    if (price == null) return null;
+    const n = Number(price);
+    if (!Number.isFinite(n)) return null;
+    if (n === 0) return 'Free';
+    const num = n.toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
+    return `$${num}${currency ? ` ${currency}` : ''}`;
   };
 
   // 确保人脸图片为绝对可访问地址（优先 S3 全路径），并移除 public/ 前缀
@@ -2322,6 +2396,11 @@ export default function PreviewPageWithTopNav() {
       let buffer = '';
       // 持续读取 NDJSON
       while (true) {
+        // 检查是否已超时
+        if (controller.signal.aborted) {
+          clearTimeout(timeoutId);
+          throw new Error('请求超时（3 分钟）');
+        }
         const { value, done } = await reader.read();
         if (value) {
           buffer += decoder.decode(value, { stream: !done });
@@ -3149,6 +3228,82 @@ export default function PreviewPageWithTopNav() {
                     }
                   }
 
+                  // 优先使用API返回的image_url（如果存在且有效），但需要验证是否属于当前bookId
+                  const currentBookId = (searchParams.get('bookid') || '').toUpperCase();
+                  if (activeOption?.image_url && activeOption.image_url.startsWith('http')) {
+                    // 验证image_url是否属于当前bookId
+                    // 检查URL中是否包含当前bookId，或者包含对应的书籍类型（BRAVE/SANTA/GOODNIGHT/BIRTHDAY）
+                    const imageUrlUpper = activeOption.image_url.toUpperCase();
+                    let isImageUrlValid = false;
+                    
+                    if (currentBookId) {
+                      // 直接包含bookId
+                      if (imageUrlUpper.includes(currentBookId)) {
+                        isImageUrlValid = true;
+                      } else {
+                        // 检查书籍类型匹配
+                        const bookTypeMap: Record<string, string[]> = {
+                          'BRAVE': ['BRAVE', 'BRAVEY'],
+                          'BRAVEY': ['BRAVE', 'BRAVEY'],
+                          'SANTA': ['SANTA'],
+                          'GOODNIGHT': ['GOODNIGHT'],
+                          'BIRTHDAY': ['BIRTHDAY'],
+                        };
+                        const bookTypes = bookTypeMap[currentBookId] || [currentBookId];
+                        const urlContainsBookType = bookTypes.some(type => imageUrlUpper.includes(type));
+                        const currentIsBookType = bookTypes.some(type => currentBookId.includes(type));
+                        isImageUrlValid = urlContainsBookType && currentIsBookType;
+                      }
+                    }
+                    
+                    // 如果image_url不属于当前bookId，则使用buildCoverR2Urls构建的URL
+                    if (!isImageUrlValid && currentBookId) {
+                      console.warn(`[Preview] 封面图片URL不匹配当前bookId，将使用R2 URL:`, {
+                        currentBookId,
+                        imageUrl: activeOption.image_url,
+                        optionKey: activeOption.option_key,
+                      });
+                    } else if (isImageUrlValid) {
+                      // 检查是否需要Canvas叠加名字
+                      if (coverTextConfig && recipient && recipient.trim()) {
+                        const rawCoverKeyInner = activeOption.option_key || String(activeOption.id);
+                        const coverIdInner = /^\d+$/.test(rawCoverKeyInner)
+                          ? rawCoverKeyInner
+                          : String(activeOption.id);
+                        const expectedKey = `${currentBookId}_${coverIdInner}`;
+                        // 如果需要叠加名字，仍然使用R2 URL以便Canvas处理
+                        if (coverTextConfig.key === expectedKey) {
+                          const coverUrls = buildCoverR2Urls(searchParams.get('bookid'), activeOption);
+                          if (coverUrls) {
+                            return (
+                              <div className="relative w-full max-w-[400px] shadow-md rounded-lg overflow-hidden">
+                                <CoverNameCanvas
+                                  src={coverUrls.canvasBase}
+                                  name={recipient.trim()}
+                                  texts={coverTextConfig.texts}
+                                  className="w-full h-auto block"
+                                />
+                              </div>
+                            );
+                          }
+                        }
+                      }
+                      // 不需要叠加名字时，直接使用API返回的图片URL
+                      return (
+                        <div className="relative w-full max-w-[400px] shadow-md rounded-lg overflow-hidden">
+                          <Image
+                            src={activeOption.image_url}
+                            alt="Book Cover"
+                            width={400}
+                            height={400}
+                            priority
+                            className="w-full h-auto object-cover object-center"
+                          />
+                        </div>
+                      );
+                    }
+                  }
+
                   const coverUrls = activeOption ? buildCoverR2Urls(searchParams.get('bookid'), activeOption) : null;
 
                   if (coverUrls) {
@@ -3162,6 +3317,16 @@ export default function PreviewPageWithTopNav() {
                         : String(activeOption.id);
                       // 仅当配置对应当前封面时启用
                       const expectedKey = `${(searchParams.get('bookid') || '').toUpperCase()}_${coverIdInner}`;
+                      if (process.env.NODE_ENV === 'development') {
+                        console.log('[封面显示] key匹配检查:', {
+                          coverTextConfigKey: coverTextConfig.key,
+                          expectedKey,
+                          match: coverTextConfig.key === expectedKey,
+                          recipient: recipient.trim(),
+                          activeOptionId: activeOption.id,
+                          activeOptionKey: activeOption.option_key,
+                        });
+                      }
                       if (coverTextConfig.key === expectedKey) {
                         return (
                           <div className="relative w-full max-w-[400px] shadow-md rounded-lg overflow-hidden">
@@ -3474,6 +3639,53 @@ export default function PreviewPageWithTopNav() {
                       }`}
                     >
                       {(() => {
+                        // 优先使用API返回的image_url（如果存在且有效），但需要验证是否属于当前bookId
+                        const currentBookId = (searchParams.get('bookid') || '').toUpperCase();
+                        if (option.image_url && option.image_url.startsWith('http')) {
+                          // 验证image_url是否属于当前bookId
+                          const imageUrlUpper = option.image_url.toUpperCase();
+                          let isImageUrlValid = false;
+                          
+                          if (currentBookId) {
+                            // 直接包含bookId
+                            if (imageUrlUpper.includes(currentBookId)) {
+                              isImageUrlValid = true;
+                            } else {
+                              // 检查书籍类型匹配
+                              const bookTypeMap: Record<string, string[]> = {
+                                'BRAVE': ['BRAVE', 'BRAVEY'],
+                                'BRAVEY': ['BRAVE', 'BRAVEY'],
+                                'SANTA': ['SANTA'],
+                                'GOODNIGHT': ['GOODNIGHT'],
+                                'BIRTHDAY': ['BIRTHDAY'],
+                              };
+                              const bookTypes = bookTypeMap[currentBookId] || [currentBookId];
+                              const urlContainsBookType = bookTypes.some(type => imageUrlUpper.includes(type));
+                              const currentIsBookType = bookTypes.some(type => currentBookId.includes(type));
+                              isImageUrlValid = urlContainsBookType && currentIsBookType;
+                            }
+                          }
+                          
+                          // 如果image_url不属于当前bookId，则使用buildCoverR2Urls构建的URL
+                          if (!isImageUrlValid && currentBookId) {
+                            console.warn(`[Preview] 封面缩略图URL不匹配当前bookId，将使用R2 URL:`, {
+                              currentBookId,
+                              imageUrl: option.image_url,
+                              optionKey: option.option_key,
+                            });
+                          } else if (isImageUrlValid) {
+                            return (
+                              <Image
+                                src={option.image_url}
+                                alt={`Cover ${option.id} - ${option.name}`}
+                                width={200}
+                                height={200}
+                                className="w-full h-auto mb-2"
+                              />
+                            );
+                          }
+                        }
+
                         const coverUrls = buildCoverR2Urls(searchParams.get('bookid'), option);
                         // 如果缺少 bookid，则回退到本地占位图
                         if (!coverUrls) {
@@ -3552,7 +3764,7 @@ export default function PreviewPageWithTopNav() {
                           </div>
                         </span>
                         <span className="text-center">
-                          ${option.price} {option.currency_code}
+                        {formatOptionPrice(option.price, option.currency_code)}
                         </span>
                       </div>
                     </div>
@@ -3657,7 +3869,9 @@ export default function PreviewPageWithTopNav() {
                       className="w-full h-auto mb-2"
                     />
                     <h2 className="text-lg font-medium text-center">{option.name}</h2>
-                    <p className="text-lg font-medium text-center mb-2">${option.price} {option.currency_code}</p>
+                    <p className="text-lg font-medium text-center mb-2">
+                      {formatOptionPrice(option.price, option.currency_code)}
+                    </p>
                     <p className="text-sm text-gray-500 text-center mb-4">{option.description}</p>
                     <div className="flex items-center justify-center mt-auto space-x-2 mb-2">
                       {/* 左侧圆形选中框 */}
@@ -3716,15 +3930,17 @@ export default function PreviewPageWithTopNav() {
                     }`}
                   >
                     <Image
-                      src={(option.image_url && option.image_url.startsWith('http')) ? option.image_url : '/wrap.png'}
+                      src={getGiftBoxImageUrl(option)}
                       alt={option.name}
                       width={300}
                       height={200}
                       className="w-full h-auto mb-2"
                     />
-                    <h2 className="text-lg font-medium text-center">{option.name}</h2>
+                    <h2 className="text-lg font-medium text-center">{getGiftBoxDisplayName(option.name)}</h2>
                     {option.price != null && (
-                      <p className="text-lg font-medium text-center mb-2">${option.price} {option.currency_code}</p>
+                      <p className="text-lg font-medium text-center mb-2">
+                        {formatOptionPrice(option.price, option.currency_code)}
+                      </p>
                     )}
                     
                     <a
@@ -3831,7 +4047,7 @@ export default function PreviewPageWithTopNav() {
                     <div className="mt-8 flex flex-col gap-4">
                       <div>
                         <Image
-                          src={(detailModal.images && detailModal.images[currentIndex]) || detailModal.image_url || '/wrap.png'}
+                          src={(detailModal.images && detailModal.images[currentIndex]) || getGiftBoxImageUrl(detailModal)}
                           alt={detailModal.name}
                           width={800}
                           height={600}
@@ -3888,7 +4104,7 @@ export default function PreviewPageWithTopNav() {
                         </div>
                       </div>
                       <div>
-                        <h2 className="text-xl">{detailModal.name}</h2>
+                        <h2 className="text-xl">{getGiftBoxDisplayName(detailModal.name)}</h2>
                         <p className="text-gray-600 mt-2">
                           {detailModal.description}
                         </p>
@@ -3899,7 +4115,7 @@ export default function PreviewPageWithTopNav() {
                   <div className="mt-auto flex gap-6 h-[44px] justify-between">
                     <div className="flex items-end gap-3">
                       <span className="text-[#012CCE] text-3xl font-semibold">
-                        ${detailModal.price ?? 0} {detailModal.currency_code ?? ''}
+                        {formatOptionPrice(detailModal.price ?? 0, detailModal.currency_code ?? '')}
                       </span>
                     </div>
                     <button 

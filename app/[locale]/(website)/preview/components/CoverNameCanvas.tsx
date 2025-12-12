@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { batamy } from '@/app/fonts';
+import { aLittleMonster, batamy, caslonAntique, notoSansSC } from '@/app/fonts';
 
 export interface CoverTextProperty {
   type?: string;
@@ -35,6 +35,35 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
 
   useEffect(() => {
     let cancelled = false;
+
+    const resolveFontFamily = (rawFont?: string) => {
+      const f = (rawFont || '').trim();
+      const key = f.toLowerCase().replace(/[\s_-]/g, '');
+      if (!key) {
+        return 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      }
+      if (key.includes('batamy')) return batamy.style.fontFamily;
+      if (key.includes('caslonantique') || key === 'caslon') return caslonAntique.style.fontFamily;
+      if (key.includes('notosanssc') || key.includes('notosans')) return notoSansSC.style.fontFamily;
+      if (key.includes('alittlemonster')) return aLittleMonster.style.fontFamily;
+      // 兜底：尝试使用 page_properties 里的字体名（假设已通过 CSS/字体文件加载）
+      return `"${f}", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+    };
+
+    const loadFontIfNeeded = async (font: string, weight: string, sizePx: number) => {
+      try {
+        // document.fonts.load 的 family 参数需要是单个 family（不要带逗号后的 fallback）
+        const family = String(font).split(',')[0].trim().replace(/^"(.+)"$/, '$1');
+        const fontsAny = (document as any)?.fonts;
+        if (!fontsAny?.load) return;
+        await Promise.race([
+          fontsAny.load(`${weight} ${Math.max(1, Math.floor(sizePx))}px "${family}"`),
+          new Promise((resolve) => setTimeout(resolve, 800)), // 避免首次加载卡太久
+        ]);
+      } catch {
+        // 忽略字体加载失败，继续用 fallback
+      }
+    };
 
     const loadImageWithCorsFallback = (url: string): Promise<HTMLImageElement> => {
       return new Promise((resolve, reject) => {
@@ -75,6 +104,19 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
         if (!name.trim()) return;
         if (!Array.isArray(texts) || texts.length === 0) return;
 
+        // 确保涉及到的字体在绘制前已加载（否则 Canvas 会先用 fallback 字体渲染）
+        const dynamicTexts = texts.filter((t) => t && t.type === 'dynamic');
+        await Promise.all(
+          dynamicTexts.map((t) => {
+            const rawSize = typeof t.fontSize === 'number' ? t.fontSize : 70;
+            const fontSizePx = rawSize * (300 / 72);
+            const fontFamily = resolveFontFamily(t.font);
+            const fontWeight = t.fontWeight === 'bold' ? 'bold' : 'normal';
+            return loadFontIfNeeded(fontFamily, fontWeight, fontSizePx);
+          }),
+        );
+        if (cancelled) return;
+
         // 只处理 type === 'dynamic' 的配置
         texts.forEach((t) => {
           if (!t || t.type !== 'dynamic') return;
@@ -87,12 +129,7 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
           // px = pt * 300 / 72
           const rawSize = typeof t.fontSize === 'number' ? t.fontSize : 70;
           const fontSizePx = rawSize * (300 / 72);
-          const isBatamy = (t.font || '').toLowerCase() === 'batamy';
-          const fontFamily = isBatamy
-            ? batamy.style.fontFamily
-            : (t.font
-              ? `"${t.font}", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`
-              : 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif');
+          const fontFamily = resolveFontFamily(t.font);
           const fontWeight = t.fontWeight === 'bold' ? 'bold' : 'normal';
           ctx.font = `${fontWeight} ${fontSizePx}px ${fontFamily}`;
 
