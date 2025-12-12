@@ -271,5 +271,31 @@
     "summary": "摘要",
     "couponCode": "优惠券代码：{code}",
     "addresses": "地址"
+  },
+  "loginCallback": {
+    "title": "OAuth 回调响应",
+    "processingCallback": "处理 OAuth 回调...",
+    "extractingCode": "提取代码并发送到 Laravel API",
+    "oauthError": "OAuth 错误：{error}",
+    "noAuthorizationCode": "未收到 Google 的授权码",
+    "failedToProcessCallback": "处理 OAuth 回调失败",
+    "error": "错误",
+    "backToLogin": "返回登录",
+    "authenticationSuccessful": "身份验证成功！",
+    "redirectingToDashboard": "3 秒后重定向到仪表板...",
+    "authenticationCompleted": "身份验证完成",
+    "checkResponseBelow": "请查看下面的响应",
+    "urlQueryParameters": "URL 查询参数",
+    "code": "代码：",
+    "state": "状态：",
+    "errorDescription": "错误描述：",
+    "none": "无",
+    "laravelApiResponse": "Laravel API 响应",
+    "copyResponse": "复制响应",
+    "debugInformation": "调试信息",
+    "httpStatus": "HTTP 状态：",
+    "responseTime": "响应时间：",
+    "callbackUrl": "回调 URL：",
+    "retry": "重试"
   }
 }

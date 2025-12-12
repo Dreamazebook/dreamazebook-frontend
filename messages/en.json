@@ -271,5 +271,31 @@
     "summary": "Summary",
     "couponCode": "Coupon Code: {code}",
     "addresses": "Addresses"
+  },
+  "loginCallback": {
+    "title": "OAuth Callback Response",
+    "processingCallback": "Processing OAuth callback...",
+    "extractingCode": "Extracting code and sending to Laravel API",
+    "oauthError": "OAuth Error: {error}",
+    "noAuthorizationCode": "No authorization code received from Google",
+    "failedToProcessCallback": "Failed to process OAuth callback",
+    "backToLogin": "Back to Login",
+    "authenticationSuccessful": "Authentication Successful!",
+    "redirectingToDashboard": "Redirecting to dashboard in 3 seconds...",
+    "authenticationCompleted": "Authentication Completed",
+    "checkResponseBelow": "Please check response below",
+    "urlQueryParameters": "URL Query Parameters",
+    "code": "Code:",
+    "state": "State:",
+    "error": "Error:",
+    "errorDescription": "Error Description:",
+    "none": "None",
+    "laravelApiResponse": "Laravel API Response",
+    "copyResponse": "Copy Response",
+    "debugInformation": "Debug Information",
+    "httpStatus": "HTTP Status:",
+    "responseTime": "Response Time:",
+    "callbackUrl": "Callback URL:",
+    "retry": "Retry"
   }
 }

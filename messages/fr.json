@@ -271,5 +271,31 @@
     "summary": "Résumé",
     "couponCode": "Code de coupon : {code}",
     "addresses": "Adresses"
+  },
+  "loginCallback": {
+    "title": "Réponse de rappel OAuth",
+    "processingCallback": "Traitement du rappel OAuth...",
+    "extractingCode": "Extraction du code et envoi à l'API Laravel",
+    "oauthError": "Erreur OAuth : {error}",
+    "noAuthorizationCode": "Aucun code d'autorisation reçu de Google",
+    "failedToProcessCallback": "Échec du traitement du rappel OAuth",
+    "backToLogin": "Retour à la connexion",
+    "authenticationSuccessful": "Authentification réussie !",
+    "redirectingToDashboard": "Redirection vers le tableau de bord dans 3 secondes...",
+    "authenticationCompleted": "Authentification terminée",
+    "checkResponseBelow": "Veuillez vérifier la réponse ci-dessous",
+    "urlQueryParameters": "Paramètres de requête URL",
+    "code": "Code :",
+    "state": "État :",
+    "error": "Erreur :",
+    "errorDescription": "Description de l'erreur :",
+    "none": "Aucun",
+    "laravelApiResponse": "Réponse de l'API Laravel",
+    "copyResponse": "Copier la réponse",
+    "debugInformation": "Informations de débogage",
+    "httpStatus": "Statut HTTP :",
+    "responseTime": "Heure de réponse :",
+    "callbackUrl": "URL de rappel :",
+    "retry": "Réessayer"
   }
 }
