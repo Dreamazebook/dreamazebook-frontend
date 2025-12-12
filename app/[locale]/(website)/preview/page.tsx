@@ -1361,31 +1361,54 @@ export default function PreviewPageWithTopNav() {
         option_key: String(o?.value),
       }));
 
-      const binding_options = (bindingAttr?.options || []).map((o: any, idx: number) => ({
-        id: idx + 1,
-        option_type: String(o?.value).toUpperCase(),
-        option_key: String(o?.value),
-        name: o?.label || String(o?.value),
-        description: null,
-        price: Number(o?.price_diff || 0),
-        currency_code: 'USD',
-        image_url: '',
-        is_default: !!o?.is_default,
-      }));
+      const binding_options = (bindingAttr?.options || []).map((o: any, idx: number) => {
+        const optionKey = String(o?.value || '').toLowerCase();
+        // 根据 option_key 设置描述
+        let description: string | null = null;
+        if (optionKey.includes('soft') || optionKey.includes('paper')) {
+          description = 'Light, flexible, and easy to take';
+        } else if (optionKey.includes('hard')) {
+          description = 'Sturdy and elegant — a keepsake to cherish.';
+        } else if (optionKey.includes('premium')) {
+          description = 'Luxurious lay-flat design for panoramic reading — a treasure to cherish.';
+        }
+        
+        return {
+          id: idx + 1,
+          option_type: String(o?.value).toUpperCase(),
+          option_key: String(o?.value),
+          name: o?.label || String(o?.value),
+          description,
+          price: Number(o?.price_diff || 0),
+          currency_code: 'USD',
+          image_url: '',
+          is_default: !!o?.is_default,
+        };
+      });
 
-      const gift_box_options = (giftAttr?.options || []).map((o: any, idx: number) => ({
-        id: idx + 1,
-        // 后台的 label 可能包含 "(Included)" 或 "(+$14.99)" 等展示文案，这里只保留名称本体
-        name: String(o?.label || o?.value || '')
-          .replace(/\s*\([^)]*\)\s*/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim() || String(o?.value),
-        price: Number(o?.price_diff || 0),
-        currency_code: 'USD',
-        image_url: '',
-        is_default: !!o?.is_default,
-        option_key: String(o?.value),
-      }));
+      const gift_box_options = (giftAttr?.options || []).map((o: any, idx: number) => {
+        const optionKey = String(o?.value || '').toLowerCase();
+        // 根据 option_key 设置描述
+        let description = 'Crafted from sturdy recycled materials, beautify, reusable, and ready to gift.';
+        if (optionKey.includes('standard')) {
+          description = 'Simple and safely packed.';
+        }
+        
+        return {
+          id: idx + 1,
+          // 后台的 label 可能包含 "(Included)" 或 "(+$14.99)" 等展示文案，这里只保留名称本体
+          name: String(o?.label || o?.value || '')
+            .replace(/\s*\([^)]*\)\s*/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim() || String(o?.value),
+          price: Number(o?.price_diff || 0),
+          currency_code: 'USD',
+          image_url: '',
+          description,
+          is_default: !!o?.is_default,
+          option_key: String(o?.value),
+        };
+      });
 
       const derived: BookOptions = {
         cover_options,
@@ -1854,6 +1877,11 @@ export default function PreviewPageWithTopNav() {
     const baseDomain = 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/product-options/covers';
     const rawKey = String(option.option_key || option.option_type || option.name || '').toLowerCase();
 
+    // 先检查 premium（因为 premium_hardcover 同时包含 premium 和 hard，需要优先匹配 premium）
+    if (rawKey.includes('premium')) {
+      // 高级版
+      return `${baseDomain}/premium.webp`;
+    }
     if (rawKey.includes('hard')) {
       // 精装
       return `${baseDomain}/hardcover.webp`;
@@ -1861,10 +1889,6 @@ export default function PreviewPageWithTopNav() {
     if (rawKey.includes('soft') || rawKey.includes('paper')) {
       // 软封 / 平装
       return `${baseDomain}/softcover.webp`;
-    }
-    if (rawKey.includes('premium')) {
-      // 高级版
-      return `${baseDomain}/premium.webp`;
     }
 
     // 兜底：保持之前行为
@@ -3751,7 +3775,9 @@ export default function PreviewPageWithTopNav() {
                     <p className="text-lg font-medium text-center mb-2">
                       {formatOptionPrice(option.price, option.currency_code)}
                     </p>
-                    <p className="text-sm text-gray-500 text-center mb-4">{option.description}</p>
+                    {option.description && (
+                      <p className="text-sm text-gray-500 text-center mb-4">{option.description}</p>
+                    )}
                     <div className="flex items-center justify-center mt-auto space-x-2 mb-2">
                       {/* 左侧圆形选中框 */}
                       <span
@@ -3984,9 +4010,11 @@ export default function PreviewPageWithTopNav() {
                       </div>
                       <div>
                         <h2 className="text-xl">{getGiftBoxDisplayName(detailModal.name)}</h2>
-                        <p className="text-gray-600 mt-2">
-                          {detailModal.description}
-                        </p>
+                        {detailModal.description && (
+                          <p className="text-gray-600 mt-2">
+                            {detailModal.description}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
