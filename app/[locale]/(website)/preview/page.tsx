@@ -1848,9 +1848,10 @@ export default function PreviewPageWithTopNav() {
     // 直连 R2 的封面图（用于普通 Image 显示）
     const base = `${folder}/base.webp`;
     // 通过本地 API 代理的封面图（用于 Canvas 叠加名字，避免 CORS 污染）
-    const canvasBase = `/api/cover-base-image?bookId=${encodeURIComponent(
+    // 注意：线上（Netlify）存在 query 缓存键异常的情况，改为 path 参数，避免 coverId/bookId 被忽略
+    const canvasBase = `/api/cover-base-image/${encodeURIComponent(
       normalizedBookId,
-    )}&coverId=${encodeURIComponent(coverId)}`;
+    )}/${encodeURIComponent(coverId)}`;
 
     // 调试日志：检查bookId和封面URL
     if (process.env.NODE_ENV === 'development') {
