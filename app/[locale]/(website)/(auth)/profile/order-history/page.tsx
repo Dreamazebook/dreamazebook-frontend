@@ -5,9 +5,11 @@ import useUserStore from '@/stores/userStore';
 import DisplayPrice from '../../../components/component/DisplayPrice';
 import { formatAddress } from '@/types/address';
 import OrderHistoryCard from './components/OrderHistoryCard';
+import { useTranslations } from 'next-intl';
 
 const OrderHistory = () => {
   const {orderList, fetchOrderList} = useUserStore();
+  const t = useTranslations('orderHistory');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('all');
@@ -17,13 +19,13 @@ const OrderHistory = () => {
     : orderList.filter(order => order.status === activeTab);
 
   const tabs = [
-    { id: 'all', label: 'All Order', count: orderList.length },
-    { id: 'pending', label: 'Paid', count: orderList.filter(order => order.status === 'pending').length },
-    { id: 'processing', label: 'Digital Production', count: orderList.filter(order => order.status === 'processing').length },
-    { id: 'confirmed', label: 'Print Production', count: orderList.filter(order => order.status === 'confirmed').length },
-    { id: 'shipping', label: 'In Transit', count: orderList.filter(order => order.status === 'shipping').length },
-    { id: 'completed', label: 'Delivered', count: orderList.filter(order => order.status === 'completed').length },
-    { id: 'closed', label: 'Closed', count: orderList.filter(order => order.status === 'closed').length },
+    { id: 'all', label: t('allOrder'), count: orderList.length },
+    { id: 'pending', label: t('paid'), count: orderList.filter(order => order.status === 'pending').length },
+    { id: 'processing', label: t('digitalProduction'), count: orderList.filter(order => order.status === 'processing').length },
+    { id: 'confirmed', label: t('printProduction'), count: orderList.filter(order => order.status === 'confirmed').length },
+    { id: 'shipping', label: t('inTransit'), count: orderList.filter(order => order.status === 'shipping').length },
+    { id: 'completed', label: t('delivered'), count: orderList.filter(order => order.status === 'completed').length },
+    { id: 'closed', label: t('closed'), count: orderList.filter(order => order.status === 'closed').length },
   ];
 
   useEffect(() => {
@@ -31,7 +33,7 @@ const OrderHistory = () => {
       try {
         fetchOrderList();
       } catch (err) {
-        setError('Failed to load orders. Please try again later.');
+        setError(t('failedToLoadOrders'));
         console.error('Error fetching orders:', err);
       } finally {
         setLoading(false);
@@ -41,22 +43,22 @@ const OrderHistory = () => {
     fetchOrders();
   }, []);
 
-  if (loading) return <div className="text-center py-8">Loading orders...</div>;
+  if (loading) return <div className="text-center py-8">{t('loadingOrders')}</div>;
   if (error) return <div className="text-center py-8 text-red-500">{error}</div>;
-  if (orderList.length === 0) return <div className="text-center py-8">No orders found</div>;
+  if (orderList.length === 0) return <div className="text-center py-8">{t('noOrdersFound')}</div>;
 
   return (
     <div className="bg-white min-h-screen">
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-normal text-gray-900">Order History</h1>
+          <h1 className="text-2xl font-normal text-gray-900">{t('title')}</h1>
           <div className="flex gap-3">
             <button className="px-5 py-2 border border-gray-300 rounded text-gray-700 bg-white hover:bg-gray-50">
-              Show Invoice
+              {t('showInvoice')}
             </button>
             <button className="px-5 py-2 bg-gray-900 text-white rounded hover:bg-gray-800">
-              Buy now
+              {t('buyNow')}
             </button>
           </div>
         </div>

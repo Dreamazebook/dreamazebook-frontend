@@ -30,6 +30,7 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [uploadingPageCode, setUploadingPageCode] = useState<string | null>(null);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { handleManualConfirm } = useOrderDetail();
   
@@ -40,8 +41,13 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
 
   const handleConfirm = async () => {
     setIsConfirming(true);
+    setConfirmError(null);
     try {
       await handleManualConfirm(orderItem.id.toString());
+    } catch (err: any) {
+      const msg = err?.message || 'Failed to confirm item';
+      console.error('Error confirming item:', err);
+      setConfirmError(msg);
     } finally {
       setIsConfirming(false);
     }
@@ -190,6 +196,9 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
     <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4">
       <div className="relative w-full h-full max-w-6xl max-h-full bg-white rounded-lg overflow-hidden">
         {/* Header */}
+        {confirmError && (
+          <p className="text-sm text-red-600 ml-3">{confirmError}</p>
+        )}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <div className="flex items-center space-x-4">
             <h2 className="text-xl font-semibold text-gray-900">

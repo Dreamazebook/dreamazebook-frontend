@@ -3,13 +3,13 @@
 import useUserStore from "@/stores/userStore";
 import { Link } from "@/i18n/routing";
 import { useEffect } from "react";
-import DisplayPrice from "../../components/component/DisplayPrice";
-import { formatAddress } from "@/types/address";
 import LatestOrderHistory from "./components/LatestOrderHistory";
+import { useTranslations } from 'next-intl';
 
 // Profile Page Component
 export default function ProfilePage() {
   const {orderList, fetchOrderList} = useUserStore();
+  const t = useTranslations('profilePage');
   useEffect(()=>{
     fetchOrderList();
   },[]);
@@ -18,9 +18,9 @@ export default function ProfilePage() {
       {/* Order History Section */}
       <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base md:text-lg font-medium text-gray-900">📋 Order History</h2>
+          <h2 className="text-base md:text-lg font-medium text-gray-900">{t("orderHistory")}</h2>
           <div className="flex items-center text-gray-600">
-            <Link href={'/profile/order-history'}>More</Link>
+            <Link href={'/profile/order-history'}>{t("more")}</Link>
             
           </div>
         </div>
@@ -77,13 +77,13 @@ export default function ProfilePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Recent Orders</h3>
-              <p className="text-gray-500 mb-6">Start your journey by exploring our amazing collection of books.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t("noRecentOrders")}</h3>
+              <p className="text-gray-500 mb-6">{t("startJourney")}</p>
               <Link 
                 href="/books"
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                Browse Books
+                {t("browseBooks")}
                 <svg className="ml-2 -mr-1 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import Loading from '../../components/Loading';
 import { Address } from '@/types/address';
 import CheckoutStep from './components/CheckoutStep';
@@ -17,6 +18,7 @@ import { useShippingMethod } from './hooks/useShippingMethod';
 import { CheckoutProvider } from './context/CheckoutContext';
 
 function CheckoutPageContent() {
+  const t = useTranslations('checkoutPage');
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
   const paymentMethod = searchParams.get('paymentMethod') || 'card';
@@ -76,7 +78,7 @@ function CheckoutPageContent() {
     setShowShippingForm(true);
   };
 
-  const handleApplyCoupon = async (couponCode: string) => {
+  const handleApplyCoupon = async (_couponCode: string) => {
     // TODO: Implement coupon logic
   };
 
@@ -134,7 +136,7 @@ function CheckoutPageContent() {
     <div className="bg-gray-100 min-h-screen py-8">
       <Loading isLoading={isOrderLoading||isAddressLoading||isShippingMethodLoading} />
       <div className="max-w-5xl mx-auto px-4">
-        <h1 className="text-2xl font-bold mb-8 text-center">Checkout</h1>
+        <h1 className="text-2xl font-bold mb-8 text-center">{t("title")}</h1>
         {error && <div className="text-center text-red-500 py-4">{error}</div>}
 
         {showAddressListModal && <AddressCardListModal handleClickAddress={handleClickAddress} handleEditAddress={handleEditAddress} handleCloseModal={() => setShowAddressListModal(false)} />}
@@ -144,7 +146,7 @@ function CheckoutPageContent() {
             {/* Step 1: Shipping Information */}
             <CheckoutStep
               stepNumber={1}
-              title="Shipping"
+              title={t("shipping")}
               isOpen={openStep === 1}
               isCompleted={completedSteps.includes(1)}
               onToggle={() => toggleStep(1)}
@@ -172,7 +174,7 @@ function CheckoutPageContent() {
             {/* Step 2: Delivery Options */}
             <CheckoutStep
               stepNumber={2}
-              title="Delivery Options"
+              title={t("deliveryOptions")}
               isOpen={openStep === 2}
               isCompleted={completedSteps.includes(2)}
               onToggle={() => toggleStep(2)}
@@ -195,7 +197,7 @@ function CheckoutPageContent() {
             {/* Step 3: Review and Pay */}
             <CheckoutStep
               stepNumber={3}
-              title="Review and Pay"
+              title={t("reviewAndPay")}
               isOpen={openStep === 3}
               isCompleted={completedSteps.includes(3)}
               onToggle={() => toggleStep(3)}

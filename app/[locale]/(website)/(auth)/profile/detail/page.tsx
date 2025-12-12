@@ -6,8 +6,10 @@ import api from '@/utils/api';
 import React, { useEffect, useState } from 'react';
 import AddressCard from '../../../components/address/AddressCard';
 import AddressCardList from '../../../components/address/AddressCardList';
+import { useTranslations } from 'next-intl';
 export default function AccountDetails() {
   const {user, fetchAddresses, addresses} = useUserStore();
+  const t = useTranslations('accountDetails');
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     firstName: user?.name || '',
@@ -25,7 +27,7 @@ export default function AccountDetails() {
         alert(message);
       }
     } catch (error) {
-      alert('Failed to update profile');
+      alert(t('failedToUpdateProfile'));
     }
   };
 
@@ -49,27 +51,27 @@ export default function AccountDetails() {
 
   return (
     <div className="max-w-4xl mx-auto p-8 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-medium text-gray-900 mb-12">Account Details</h1>
+      <h1 className="text-2xl font-medium text-gray-900 mb-12">{t('title')}</h1>
       
       {/* About You Section */}
       <div className="mb-16">
         <div className="flex items-center mb-8">
           <div className="w-1 h-5 bg-blue-500 mr-3"></div>
-          <h2 className="text-base font-medium text-gray-900">About you</h2>
+          <h2 className="text-base font-medium text-gray-900">{t('aboutYou')}</h2>
         </div>
         
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <div className="grid grid-cols-2 gap-x-16 gap-y-6 mb-8">
             <div>
-              <div className="text-sm text-gray-500 mb-2">First Name</div>
+              <div className="text-sm text-gray-500 mb-2">{t('firstName')}</div>
               <div className="text-gray-900">{user?.name}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500 mb-2">Last Name</div>
+              <div className="text-sm text-gray-500 mb-2">{t('lastName')}</div>
               <div className="text-gray-900"></div>
             </div>
             <div className="col-span-2">
-              <div className="text-sm text-gray-500 mb-2">Email Address</div>
+              <div className="text-sm text-gray-500 mb-2">{t('emailAddress')}</div>
               <div className="text-gray-900">{user?.email}</div>
             </div>
           </div>
@@ -79,7 +81,7 @@ export default function AccountDetails() {
               onClick={() => setIsEditing(!isEditing)}
               className="px-6 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              {isEditing ? 'Cancel' : 'Edit'}
+              {isEditing ? t('cancel') : t('edit')}
             </button>
           </div>
           
@@ -87,7 +89,7 @@ export default function AccountDetails() {
             <form onSubmit={handleSubmit} className="mt-6">
               <div className="grid grid-cols-2 gap-x-16 gap-y-6 mb-8">
                 <div>
-                  <label className="text-sm text-gray-500 mb-2 block">First Name</label>
+                  <label className="text-sm text-gray-500 mb-2 block">{t('firstName')}</label>
                   <input
                     type="text"
                     value={formData.firstName}
@@ -96,7 +98,7 @@ export default function AccountDetails() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500 mb-2 block">Last Name</label>
+                  <label className="text-sm text-gray-500 mb-2 block">{t('lastName')}</label>
                   <input
                     type="text"
                     value={formData.lastName}
@@ -105,7 +107,7 @@ export default function AccountDetails() {
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="text-sm text-gray-500 mb-2 block">Email Address</label>
+                  <label className="text-sm text-gray-500 mb-2 block">{t('emailAddress')}</label>
                   <input
                     type="email"
                     value={formData.email}
@@ -120,7 +122,7 @@ export default function AccountDetails() {
                   type="submit"
                   className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                 >
-                  Save Changes
+                  {t('saveChanges')}
                 </button>
               </div>
             </form>
@@ -132,7 +134,7 @@ export default function AccountDetails() {
       <div>
         <div className="flex items-center mb-8">
           <div className="w-1 h-5 bg-blue-500 mr-3"></div>
-          <h2 className="text-base font-medium text-gray-900">Receipt information</h2>
+          <h2 className="text-base font-medium text-gray-900">{t('receiptInformation')}</h2>
         </div>
         
         <div className="bg-white rounded-lg shadow-sm divide-y divide-gray-100">
@@ -143,7 +145,7 @@ export default function AccountDetails() {
               onClick={addNewAddress}
               className="px-6 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              Add New Address
+              {t('addNewAddress')}
             </button>
           </div>
         </div>

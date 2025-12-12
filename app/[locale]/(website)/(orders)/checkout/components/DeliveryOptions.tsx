@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
 import { API_ORDER_SHIPPING_METHODS } from '@/constants/api';
@@ -19,6 +20,7 @@ const DeliveryOptions: React.FC<DeliveryOptionsProps> = ({
   updateOrderShippingMethod,
   handleNextFromDelivery
 }) => {
+  const t = useTranslations('checkoutPage');
   return (
     <>
       <div className="space-y-4 mb-6">
@@ -37,7 +39,7 @@ const DeliveryOptions: React.FC<DeliveryOptionsProps> = ({
               </div>
               <div>
                 <h4 className="font-medium">{name}</h4>
-                <p className="text-sm text-gray-600">Estimated delivery: {estimated_days} business days</p>
+                <p className="text-sm text-gray-600">{t("estimatedDelivery", {days: estimated_days})}</p>
                 <p className='text-[#999999]'>{description}</p>
               </div>
             </div>
@@ -51,7 +53,7 @@ const DeliveryOptions: React.FC<DeliveryOptionsProps> = ({
         <NextStepButton
           disabled={orderDetail.shipping_method === null}
           handleOnClick={handleNextFromDelivery}
-        >Continue to Payment</NextStepButton>
+        >{t("continueToPayment")}</NextStepButton>
       </div>
     </>
   );

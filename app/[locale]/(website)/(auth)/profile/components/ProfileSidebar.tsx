@@ -124,6 +124,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={()=>setSidebarOpen(false)}
                   className={`block px-3 text-center py-2 rounded ${
                     pathname.endsWith(item.href)
                       ? 'text-[#012CCE] font-medium text-[18px]'
