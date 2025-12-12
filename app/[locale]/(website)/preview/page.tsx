@@ -1355,7 +1355,8 @@ export default function PreviewPageWithTopNav() {
         name: o?.label || String(o?.value),
         price: Number(o?.price_diff || 0),
         currency_code: 'USD',
-        image_url: pageImgByCode[String(o?.value)] || '',
+        // 接口不再提供封面图片，封面统一走 R2（buildCoverR2Urls）
+        image_url: '',
         is_default: !!o?.is_default,
         option_key: String(o?.value),
       }));
@@ -3228,82 +3229,6 @@ export default function PreviewPageWithTopNav() {
                     }
                   }
 
-                  // 优先使用API返回的image_url（如果存在且有效），但需要验证是否属于当前bookId
-                  const currentBookId = (searchParams.get('bookid') || '').toUpperCase();
-                  if (activeOption?.image_url && activeOption.image_url.startsWith('http')) {
-                    // 验证image_url是否属于当前bookId
-                    // 检查URL中是否包含当前bookId，或者包含对应的书籍类型（BRAVE/SANTA/GOODNIGHT/BIRTHDAY）
-                    const imageUrlUpper = activeOption.image_url.toUpperCase();
-                    let isImageUrlValid = false;
-                    
-                    if (currentBookId) {
-                      // 直接包含bookId
-                      if (imageUrlUpper.includes(currentBookId)) {
-                        isImageUrlValid = true;
-                      } else {
-                        // 检查书籍类型匹配
-                        const bookTypeMap: Record<string, string[]> = {
-                          'BRAVE': ['BRAVE', 'BRAVEY'],
-                          'BRAVEY': ['BRAVE', 'BRAVEY'],
-                          'SANTA': ['SANTA'],
-                          'GOODNIGHT': ['GOODNIGHT'],
-                          'BIRTHDAY': ['BIRTHDAY'],
-                        };
-                        const bookTypes = bookTypeMap[currentBookId] || [currentBookId];
-                        const urlContainsBookType = bookTypes.some(type => imageUrlUpper.includes(type));
-                        const currentIsBookType = bookTypes.some(type => currentBookId.includes(type));
-                        isImageUrlValid = urlContainsBookType && currentIsBookType;
-                      }
-                    }
-                    
-                    // 如果image_url不属于当前bookId，则使用buildCoverR2Urls构建的URL
-                    if (!isImageUrlValid && currentBookId) {
-                      console.warn(`[Preview] 封面图片URL不匹配当前bookId，将使用R2 URL:`, {
-                        currentBookId,
-                        imageUrl: activeOption.image_url,
-                        optionKey: activeOption.option_key,
-                      });
-                    } else if (isImageUrlValid) {
-                      // 检查是否需要Canvas叠加名字
-                      if (coverTextConfig && recipient && recipient.trim()) {
-                        const rawCoverKeyInner = activeOption.option_key || String(activeOption.id);
-                        const coverIdInner = /^\d+$/.test(rawCoverKeyInner)
-                          ? rawCoverKeyInner
-                          : String(activeOption.id);
-                        const expectedKey = `${currentBookId}_${coverIdInner}`;
-                        // 如果需要叠加名字，仍然使用R2 URL以便Canvas处理
-                        if (coverTextConfig.key === expectedKey) {
-                          const coverUrls = buildCoverR2Urls(searchParams.get('bookid'), activeOption);
-                          if (coverUrls) {
-                            return (
-                              <div className="relative w-full max-w-[400px] shadow-md rounded-lg overflow-hidden">
-                                <CoverNameCanvas
-                                  src={coverUrls.canvasBase}
-                                  name={recipient.trim()}
-                                  texts={coverTextConfig.texts}
-                                  className="w-full h-auto block"
-                                />
-                              </div>
-                            );
-                          }
-                        }
-                      }
-                      // 不需要叠加名字时，直接使用API返回的图片URL
-                      return (
-                        <div className="relative w-full max-w-[400px] shadow-md rounded-lg overflow-hidden">
-                          <Image
-                            src={activeOption.image_url}
-                            alt="Book Cover"
-                            width={400}
-                            height={400}
-                            priority
-                            className="w-full h-auto object-cover object-center"
-                          />
-                        </div>
-                      );
-                    }
-                  }
-
                   const coverUrls = activeOption ? buildCoverR2Urls(searchParams.get('bookid'), activeOption) : null;
 
                   if (coverUrls) {
@@ -3639,53 +3564,7 @@ export default function PreviewPageWithTopNav() {
                       }`}
                     >
                       {(() => {
-                        // 优先使用API返回的image_url（如果存在且有效），但需要验证是否属于当前bookId
-                        const currentBookId = (searchParams.get('bookid') || '').toUpperCase();
-                        if (option.image_url && option.image_url.startsWith('http')) {
-                          // 验证image_url是否属于当前bookId
-                          const imageUrlUpper = option.image_url.toUpperCase();
-                          let isImageUrlValid = false;
-                          
-                          if (currentBookId) {
-                            // 直接包含bookId
-                            if (imageUrlUpper.includes(currentBookId)) {
-                              isImageUrlValid = true;
-                            } else {
-                              // 检查书籍类型匹配
-                              const bookTypeMap: Record<string, string[]> = {
-                                'BRAVE': ['BRAVE', 'BRAVEY'],
-                                'BRAVEY': ['BRAVE', 'BRAVEY'],
-                                'SANTA': ['SANTA'],
-                                'GOODNIGHT': ['GOODNIGHT'],
-                                'BIRTHDAY': ['BIRTHDAY'],
-                              };
-                              const bookTypes = bookTypeMap[currentBookId] || [currentBookId];
-                              const urlContainsBookType = bookTypes.some(type => imageUrlUpper.includes(type));
-                              const currentIsBookType = bookTypes.some(type => currentBookId.includes(type));
-                              isImageUrlValid = urlContainsBookType && currentIsBookType;
-                            }
-                          }
-                          
-                          // 如果image_url不属于当前bookId，则使用buildCoverR2Urls构建的URL
-                          if (!isImageUrlValid && currentBookId) {
-                            console.warn(`[Preview] 封面缩略图URL不匹配当前bookId，将使用R2 URL:`, {
-                              currentBookId,
-                              imageUrl: option.image_url,
-                              optionKey: option.option_key,
-                            });
-                          } else if (isImageUrlValid) {
-                            return (
-                              <Image
-                                src={option.image_url}
-                                alt={`Cover ${option.id} - ${option.name}`}
-                                width={200}
-                                height={200}
-                                className="w-full h-auto mb-2"
-                              />
-                            );
-                          }
-                        }
-
+                        // 接口不再提供封面图片，封面缩略图统一走 R2（buildCoverR2Urls）
                         const coverUrls = buildCoverR2Urls(searchParams.get('bookid'), option);
                         // 如果缺少 bookid，则回退到本地占位图
                         if (!coverUrls) {

@@ -54,7 +54,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 items-start justify-items-center pb-8 bg-[#F3F3F3]">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 items-start justify-items-center pb-8 md:pb-0 bg-[#F3F3F3]">
         {booksWithComingSoon.map((book, idx) => {
         const idOrCode = (book as any)?.spu_code ?? (book as any)?.id ?? (book as any)?.code ?? `idx-${idx}`;
         const originalName = (book as any)?.name ?? (book as any)?.default_name ?? 'Product';

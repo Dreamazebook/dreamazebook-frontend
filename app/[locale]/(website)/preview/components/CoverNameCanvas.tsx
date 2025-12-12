@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { aLittleMonster, batamy, caslonAntique, notoSansSC } from '@/app/fonts';
 
 export interface CoverTextProperty {
   type?: string;
@@ -36,32 +35,87 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
   useEffect(() => {
     let cancelled = false;
 
-    const resolveFontFamily = (rawFont?: string) => {
-      const f = (rawFont || '').trim();
-      const key = f.toLowerCase().replace(/[\s_-]/g, '');
-      if (!key) {
-        return 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-      }
-      if (key.includes('batamy')) return batamy.style.fontFamily;
-      if (key.includes('caslonantique') || key === 'caslon') return caslonAntique.style.fontFamily;
-      if (key.includes('notosanssc') || key.includes('notosans')) return notoSansSC.style.fontFamily;
-      if (key.includes('alittlemonster')) return aLittleMonster.style.fontFamily;
-      // 兜底：尝试使用 page_properties 里的字体名（假设已通过 CSS/字体文件加载）
-      return `"${f}", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+    // 关键：Canvas 的 fillText 不会“自动等待字体下载完成”。
+    // 默认封面第一次绘制时，如果字体尚未 ready，会先用 fallback 字体画上去；
+    // 后续交互（切 tab / 点 option）触发重绘，才会变成正确字体。
+    // 这里用 FontFace + document.fonts 显式确保字体可用后再绘制。
+
+    const normalizeFontKey = (rawFont?: string) =>
+      String(rawFont || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[\s_-]/g, '');
+
+    const fontRegistry: Record<string, { family: string; url: string }> = {
+      batamy: { family: 'Batamy', url: '/fonts/Batamy-Regular.ttf' },
+      caslonantique: { family: 'Caslon Antique', url: '/fonts/CaslonAntique-Regular.ttf' },
+      notosanssc: { family: 'Noto Sans SC', url: '/fonts/NotoSansSC-Regular.ttf' },
+      alittlemonster: { family: 'ALittleMonster', url: '/fonts/ALittleMonster.ttf' },
     };
 
-    const loadFontIfNeeded = async (font: string, weight: string, sizePx: number) => {
+    const resolveFontInfo = (rawFont?: string) => {
+      const key = normalizeFontKey(rawFont);
+      if (!key) return null;
+      if (key.includes('batamy')) return fontRegistry.batamy;
+      if (key.includes('caslonantique') || key === 'caslon') return fontRegistry.caslonantique;
+      if (key.includes('notosanssc') || key.includes('notosans')) return fontRegistry.notosanssc;
+      if (key.includes('alittlemonster')) return fontRegistry.alittlemonster;
+      return null;
+    };
+
+    const resolveFontFamily = (rawFont?: string) => {
+      const direct = String(rawFont || '').trim();
+      const known = resolveFontInfo(rawFont);
+      if (known) {
+        // 让已知字体名排在最前，保证 ctx.font 命中正确 family
+        return `"${known.family}", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+      }
+      if (direct) {
+        return `"${direct}", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+      }
+      return 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    };
+
+    const ensureFontReady = async (rawFont: string | undefined, weight: string, sizePx: number) => {
       try {
-        // document.fonts.load 的 family 参数需要是单个 family（不要带逗号后的 fallback）
-        const family = String(font).split(',')[0].trim().replace(/^"(.+)"$/, '$1');
         const fontsAny = (document as any)?.fonts;
         if (!fontsAny?.load) return;
+
+        const known = resolveFontInfo(rawFont);
+        if (known && typeof (window as any).FontFace === 'function') {
+          // 如果还未注册该 family，则用 FontFace 主动注册并加载
+          const exists = fontsAny.check?.(`${weight} ${Math.max(1, Math.floor(sizePx))}px "${known.family}"`);
+          if (!exists) {
+            try {
+              const ff = new (window as any).FontFace(known.family, `url(${known.url})`, { weight });
+              const loaded = await Promise.race([
+                ff.load(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('font load timeout')), 1500)),
+              ]);
+              fontsAny.add(loaded);
+            } catch {
+              // ignore
+            }
+          }
+          // 触发浏览器加载并等待 ready
+          await Promise.race([
+            fontsAny.load(`${weight} ${Math.max(1, Math.floor(sizePx))}px "${known.family}"`),
+            fontsAny.ready,
+            new Promise((resolve) => setTimeout(resolve, 800)),
+          ]);
+          return;
+        }
+
+        // 未知字体：尽力加载（如果页面上有对应 @font-face，会起作用）
+        const family = String(rawFont || '').trim().replace(/^"(.+)"$/, '$1');
+        if (!family) return;
         await Promise.race([
           fontsAny.load(`${weight} ${Math.max(1, Math.floor(sizePx))}px "${family}"`),
-          new Promise((resolve) => setTimeout(resolve, 800)), // 避免首次加载卡太久
+          fontsAny.ready,
+          new Promise((resolve) => setTimeout(resolve, 800)),
         ]);
       } catch {
-        // 忽略字体加载失败，继续用 fallback
+        // ignore
       }
     };
 
@@ -110,9 +164,8 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
           dynamicTexts.map((t) => {
             const rawSize = typeof t.fontSize === 'number' ? t.fontSize : 70;
             const fontSizePx = rawSize * (300 / 72);
-            const fontFamily = resolveFontFamily(t.font);
             const fontWeight = t.fontWeight === 'bold' ? 'bold' : 'normal';
-            return loadFontIfNeeded(fontFamily, fontWeight, fontSizePx);
+            return ensureFontReady(t.font, fontWeight, fontSizePx);
           }),
         );
         if (cancelled) return;
