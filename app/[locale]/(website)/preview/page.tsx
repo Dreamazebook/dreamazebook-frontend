@@ -3771,7 +3771,7 @@ export default function PreviewPageWithTopNav() {
                         : 'border-2 border-transparent'
                     }`}
                   >
-                    {isPremium && (
+                    {isHardcover && (
                       <div className={`absolute z-10 bg-[#FFE9E9] rounded-bl-[4px] rounded-tr-[2px] px-3 py-1 flex items-center gap-1.5 ${
                         selectedBinding === option.id 
                           ? 'top-0 right-0' 
@@ -3800,7 +3800,7 @@ export default function PreviewPageWithTopNav() {
                         </span>
                       </div>
                     )}
-                    {isHardcover && (
+                    {isPremium && (
                       <div className={`absolute z-10 bg-[#FFF3E9] rounded-bl-[4px] rounded-tr-[2px] px-3 py-1 flex items-center gap-1.5 ${
                         selectedBinding === option.id 
                           ? 'top-0 right-0' 
