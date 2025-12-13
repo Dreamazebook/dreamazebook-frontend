@@ -974,6 +974,8 @@ export default function PreviewPageWithTopNav() {
   const shouldUploadP34ComposedRef = useRef(false);
   const p34ComposeUploadInFlightRef = useRef(false);
   const p34ComposeUploadedRef = useRef(false);
+  // sidebar「Name on Book」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
+  const [isNameOnBookCompleted, setIsNameOnBookCompleted] = useState(false);
 
   const uploadP34ComposedImage = useCallback(async (dataUrl: string) => {
     // 仅在用户刚上传完图片后触发一次
@@ -1040,6 +1042,7 @@ export default function PreviewPageWithTopNav() {
         setGiverImageUrl(null);
         shouldUploadP34ComposedRef.current = false;
         p34ComposeUploadedRef.current = true;
+        setIsNameOnBookCompleted(true);
       } else {
         console.warn('[P3-4 Compose] uploaded but no image_url in response', resp);
       }
@@ -1049,6 +1052,13 @@ export default function PreviewPageWithTopNav() {
       p34ComposeUploadInFlightRef.current = false;
     }
   }, [previewData, searchParams]);
+
+  // 一旦本地选择了 giver 图片（blob/objectURL 或远程 URL），就把 Name on Book 标记为完成
+  useEffect(() => {
+    if (giverImageUrl) {
+      setIsNameOnBookCompleted(true);
+    }
+  }, [giverImageUrl]);
   
   // Giver图片编辑：隐藏的文件输入框
   const giverFileInputRef = useRef<HTMLInputElement>(null);
@@ -2984,7 +2994,8 @@ export default function PreviewPageWithTopNav() {
 
   // 各部分的完成状态判断
   const completedSections = {
-    giver: giver.trim() !== "",
+    // Name on Book：输入文本或上传图片任一完成即可
+    giver: giver.trim() !== "" || isNameOnBookCompleted,
     dedication: dedication.trim() !== "",
     coverDesign: selectedBookCover !== null,
     binding: selectedBinding !== null,
@@ -4282,6 +4293,8 @@ export default function PreviewPageWithTopNav() {
                           setGiverImageUrl(objUrl);
                           shouldUploadP34ComposedRef.current = true;
                           p34ComposeUploadedRef.current = false;
+                          // 上传图片即视为完成 Name on Book
+                          setIsNameOnBookCompleted(true);
                         } catch {}
                         setEditField(null);
                         setPendingGiverFile(null);
