@@ -1696,22 +1696,23 @@ export default function PreviewPageWithTopNav() {
       const response = await api.get<ApiResponse<DetailedBook>>(`/products/${bookId}`, { params: { language: (searchParams.get('lang') || 'en') } });
       
       if (response.success) {
-        setBookInfo(response.data!);
+        const bookData = (response as any)?.data?.data || response.data || response;
+        setBookInfo(bookData);
         // 记录预览页数量
         try {
-          const count = Number((response.data as any)?.preview_pages_count);
+          const count = Number(bookData?.preview_pages_count);
           if (!Number.isNaN(count) && count > 0) setPreviewPagesCount(count);
         } catch {}
         // 记录有可替换文本（2）的页ID集合，供预览渲染时判断
         try {
-          const pages = response.data?.pages || [];
-          const targets = pages.filter(p => Number(p?.has_replaceable_text) === 2);
-          const ids = targets.map(p => Number(p.id)).filter(n => !Number.isNaN(n));
-          const nums = targets.map(p => Number(p.page_number)).filter(n => !Number.isNaN(n));
+          const pages: any[] = bookData?.pages || [];
+          const targets = pages.filter((p: any) => Number(p?.has_replaceable_text) === 2);
+          const ids = targets.map((p: any) => Number(p.id)).filter((n: number) => !Number.isNaN(n));
+          const nums = targets.map((p: any) => Number(p.page_number)).filter((n: number) => !Number.isNaN(n));
           setReplaceableTextPageIds(new Set(ids));
           setReplaceableTextPageNumbers(new Set(nums));
         } catch {}
-        console.log('书籍信息获取成功:', response.data);
+        console.log('书籍信息获取成功:', bookData);
       } else {
         console.error('获取书籍信息失败:', response);
       }
@@ -1919,6 +1920,32 @@ export default function PreviewPageWithTopNav() {
     if (n === 0) return 'Free';
     const num = n.toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
     return `$${num}${currency ? ` ${currency}` : ''}`;
+  };
+
+  // 解析后端可能返回的价格字符串（如 "$29.99" / "29.99" / "USD 29.99"）
+  const parseMoney = (v: any): number => {
+    if (v == null) return 0;
+    if (typeof v === 'number') return Number.isFinite(v) ? v : 0;
+    const s = String(v);
+    // 提取第一个数字（包含小数）
+    const m = s.match(/(\d+(?:\.\d+)?)/);
+    if (!m) return 0;
+    const n = Number(m[1]);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  // 获取绘本本身的“基础价格”（不同接口字段不完全一致，这里做多路径兜底）
+  const getBookBasePrice = (): number => {
+    if (!bookInfo) return 0;
+    const anyInfo: any = bookInfo as any;
+    return (
+      parseMoney(anyInfo?.price) ||
+      parseMoney(anyInfo?.variant?.price) ||
+      parseMoney(anyInfo?.current_price) ||
+      parseMoney(anyInfo?.base_price) ||
+      parseMoney(anyInfo?.market_price) ||
+      0
+    );
   };
 
   // 确保人脸图片为绝对可访问地址（优先 S3 全路径），并移除 public/ 前缀
@@ -3814,7 +3841,31 @@ export default function PreviewPageWithTopNav() {
                     />
                     <h2 className="text-lg font-medium text-center">{option.name}</h2>
                     <p className="text-lg font-medium text-center mb-2">
-                      {formatOptionPrice(option.price, option.currency_code)}
+                      {(() => {
+                        // 计算总价：绘本基础价格 + 装订方式的 price_diff
+                        const basePrice = getBookBasePrice();
+                        const priceDiff = Number(option.price) || 0;
+                        const totalPrice = basePrice + priceDiff;
+                        
+                        // 调试日志
+                        if (process.env.NODE_ENV === 'development') {
+                          console.log('[Book Format Price]', {
+                            bookInfoPrice: (bookInfo as any)?.price,
+                            variantPrice: (bookInfo as any)?.variant?.price,
+                            currentPrice: (bookInfo as any)?.current_price,
+                            basePriceRaw: (bookInfo as any)?.base_price,
+                            basePrice,
+                            priceDiff,
+                            totalPrice,
+                            optionName: option.name,
+                          });
+                        }
+                        
+                        return formatOptionPrice(
+                          totalPrice,
+                          option.currency_code || (bookInfo as any)?.currencycode || (bookInfo as any)?.variant?.currencycode,
+                        );
+                      })()}
                     </p>
                     {option.description && (
                     <p className="text-sm text-gray-500 text-center mb-4">{option.description}</p>
