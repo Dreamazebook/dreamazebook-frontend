@@ -94,7 +94,7 @@ const TopPickThisMonth = () => {
                     }`}
                     style={{
                       transformOrigin: 'bottom left',
-                      transform: isActive && !isAnimating ? 'rotate(6deg)' : undefined,
+                      transform: isActive && !isAnimating && (!isClient || window.innerWidth < 768) ? 'rotate(6deg)' : undefined,
                     }}
                   >
                     <img

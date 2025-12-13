@@ -118,12 +118,12 @@ function TheHeartBehindDreamaze() {
       <div className="w-full">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-normal text-gray-900 mb-6">
+          <h1 className="text-[24px] md:text-[40px] font-semibold text-gray-900 mb-6">
             The Heart Behind Dreamaze
           </h1>
           
-          <div className="max-w-lg mx-auto space-y-1 text-sm text-gray-600 leading-relaxed">
-            <p>When children see themselves in the story,<br/>reading becomes real bonding.</p>
+          <div className="space-y-1 text-[14px] md:text-[16px] text-[#222222] leading-relaxed">
+            <p>When children see themselves in the story, reading becomes real bonding.</p>
           </div>
         </div>
 
@@ -135,7 +135,7 @@ function TheHeartBehindDreamaze() {
             <div
               className="flex gap-4 items-center animate-marquee"
               style={{
-                animationDuration: '18s', // adjust this to change speed (lower = faster)
+                animationDuration: '38s', // adjust this to change speed (lower = faster)
                 animationTimingFunction: 'linear',
                 animationIterationCount: 'infinite',
               }}

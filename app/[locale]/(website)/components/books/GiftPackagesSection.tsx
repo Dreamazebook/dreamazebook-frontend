@@ -72,7 +72,7 @@ const GiftPackagesSection: React.FC<GiftPackagesSectionProps> = ({
               <div 
                 className="relative mb-6 md:mb-8 mx-auto"
                 style={{
-                  width: '148px',
+                  width: '160px',
                   height: '130px',
                   opacity: 1,
                   transform: 'rotate(0deg)',

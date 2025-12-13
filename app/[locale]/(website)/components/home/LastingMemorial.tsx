@@ -54,7 +54,7 @@ export default function LastingMemorial() {
           {steps.map((step, index) => (
             <article
               key={index}
-              className="flex md:flex-col items-start gap-6 pl-6 pr-0 w-full border-l border-solid border-[#22222233] md:border-0"
+              className="flex md:flex-col items-start gap-6 pl-6 pr-0 w-full border-l border-solid border-[#22222233]"
             >
               <img
                 className="w-12 h-11 flex-shrink-0"

@@ -151,7 +151,7 @@ export default function StoriesFromRealFamilies() {
   };
 
   return (
-    <div className="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 bg-white">
+    <div className="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 bg-white mt-15">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12 lg:mb-16">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 lg:mb-4">
@@ -165,8 +165,8 @@ export default function StoriesFromRealFamilies() {
         {/* Grid Layout for all screen sizes */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 lg:gap-8 relative">
           <div className="bg-[#F8F8F8] rounded p-6 sm:p-8 lg:p-10 relative md:col-span-2">
-            <img src={HOME_STORIES('top-quote.png')} className="w-10 h-10 lg:w-12 lg:h-12" />
-            <p className="text-[#222] text-[16px] md:text-[18px] leading-relaxed mb-6 lg:mb-8">
+            <img src={HOME_STORIES('top-quote.png')} className="w-10 h-10 lg:w-12 lg:h-12 absolute -top-5 left-4" />
+            <p className="text-[#222] text-[16px] md:text-[18px] font-medium leading-relaxed mb-6 lg:mb-8">
               {testimonials[0].quote}
             </p>
             <div className="flex items-center gap-3 lg:gap-4">
@@ -182,10 +182,10 @@ export default function StoriesFromRealFamilies() {
             </div>
           </div>
 
-          <div className="bg-[#F8F8F8] rounded p-6 relative lg:row-span-2 md:col-span-3">
+          <div className="bg-[#F8F8F8] rounded p-10 relative lg:row-span-2 md:col-span-3">
             <div 
               ref={containerRef}
-              className="aspect-[4/3] lg:aspect-auto lg:h-[400px] xl:h-[480px] rounded bg-gray-200 mb-6 lg:mb-8 overflow-hidden relative cursor-pointer group"
+              className="aspect-square lg:aspect-auto rounded md:w-[536px] mx-auto mb-6 lg:mb-8 overflow-hidden relative cursor-pointer group"
               onClick={handleVideoClick}
             >
               <video
@@ -223,10 +223,10 @@ export default function StoriesFromRealFamilies() {
                 {isPlaying ? 'Click to pause' : 'Click to play'}
               </div>
             </div>
-            <p className="text-[#222] text-[16px] md:text-[18px] leading-relaxed mb-6 lg:mb-8">
+            <p className="text-[#222] text-[16px] md:text-[18px] font-medium leading-relaxed mb-6 lg:mb-8">
               As a mom, I've read lots of books my kids, but nothing has ever made my son light up quite like this when he saw his own face in the story. He disrupts and then he started acting out. It was seriously the sweetest thing I had ever seen. I almost cried. It just made him feel so seen. And as a mom, that just meant everything to me.
             </p>
-            <div className="flex items-center gap-3 lg:gap-4">
+            <div className="flex items-center justify-center gap-3 lg:gap-4">
               <img src={HOME_STORIES('mckynlee.webp')} alt="McKynlee.M" className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover flex-shrink-0" />
               <div>
                 <p className="font-semibold text-[#222] text-[14px] md:text-[18px]">
@@ -247,7 +247,7 @@ export default function StoriesFromRealFamilies() {
                 className="w-full h-full object-cover"
               />
             </div>
-            <p className="text-[#222] text-[16px] md:text-[18px] leading-relaxed mb-6 lg:mb-8">
+            <p className="text-[#222] text-[16px] md:text-[18px] font-medium leading-relaxed mb-6 lg:mb-8">
               {testimonials[1].quote}
             </p>
             <div className="flex items-center gap-3 lg:gap-4">
@@ -263,7 +263,7 @@ export default function StoriesFromRealFamilies() {
             </div>
           </div>
 
-          <img src={HOME_STORIES('bottom-quote.png')} className="absolute -bottom-4 right-4 lg:right-8 w-12 h-12 lg:w-16 lg:h-16" />
+          <img src={HOME_STORIES('bottom-quote.png')} className="absolute -bottom-4 right-4 lg:right-8 w-12 h-12" />
         </div>
       </div>
     </div>
