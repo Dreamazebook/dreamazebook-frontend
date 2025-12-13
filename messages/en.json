@@ -51,6 +51,7 @@
   "orderHistory": {
     "title": "Order History",
     "allOrder": "All Order",
+    "unpaid": "Unpaid",
     "paid": "Paid",
     "digitalProduction": "Digital Production",
     "printProduction": "Print Production",

@@ -108,7 +108,7 @@ export default function CartItemCard({
             
             <div className="w-full space-y-4 pt-4 pr-6 pb-4 opacity-100 box-border">
               <div className='flex justify-between items-center'>
-                <h3 className="font-bold">{item.product_name || item.spu_code}</h3>
+                <h3 className="font-bold">{item.book_name || item.spu_code}</h3>
                 <div className='flex items-center gap-3'>
                   <DisplayPrice style='text-[#222222] font-bold' value={item.total_price} />
                   {onRemoveItem && 
@@ -195,6 +195,7 @@ export default function CartItemCard({
                   )}
 
                   {/* 添加附加产品链接：进入编辑页的附加项标签 */}
+                  {item.status === 'pending' && 
                   <a
                     className={`text-sm text-blue-600 hover:underline cursor-pointer truncate max-w-[180px] md:max-w-[260px] ${isAddonLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     onClick={async (e) => {
@@ -217,6 +218,7 @@ export default function CartItemCard({
                   >
                     {isAddonLoading ? 'Loading...' : t('addAdditionalProducts')}
                   </a>
+                  }
                 </div>                
               </div>
               

@@ -20,7 +20,7 @@ const OrderHistory = () => {
 
   const tabs = [
     { id: 'all', label: t('allOrder'), count: orderList.length },
-    { id: 'pending', label: t('paid'), count: orderList.filter(order => order.status === 'pending').length },
+    { id: 'pending', label: t('unpaid'), count: orderList.filter(order => order.status === 'pending').length },
     { id: 'processing', label: t('digitalProduction'), count: orderList.filter(order => order.status === 'processing').length },
     { id: 'confirmed', label: t('printProduction'), count: orderList.filter(order => order.status === 'confirmed').length },
     { id: 'shipping', label: t('inTransit'), count: orderList.filter(order => order.status === 'shipping').length },
