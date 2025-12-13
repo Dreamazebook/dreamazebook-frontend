@@ -71,7 +71,8 @@
     "qty": "Qty:",
     "downloadInvoice": "Download Invoice",
     "buySame": "Buy the Same",
-    "moreDetails": "More Details"
+    "moreDetails": "More Details",
+    "continueToPay": "Continue to Pay"
   },
   "latestOrderHistory": {
     "total": "Total",

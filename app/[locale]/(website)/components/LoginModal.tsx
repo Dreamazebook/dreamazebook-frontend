@@ -46,6 +46,7 @@ export default function LoginModal() {
       const res = await fetch(OAUTH_REDIRECT(provider), { method: 'GET', credentials: 'include' });
       if (!res.ok) return null;
       const json = await res.json();
+      localStorage.setItem('oauthProvider',provider);
       return json.redirect_url ?? json.url ?? null;
     } catch (e) {
       console.error('fetchOAuthRedirect error', e);

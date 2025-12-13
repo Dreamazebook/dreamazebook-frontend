@@ -71,7 +71,8 @@
     "qty": "数量：",
     "downloadInvoice": "下载发票",
     "buySame": "购买相同",
-    "moreDetails": "更多详情"
+    "moreDetails": "更多详情",
+    "continueToPay": "继续支付"
   },
   "latestOrderHistory": {
     "total": "总计",
