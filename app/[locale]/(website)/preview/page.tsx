@@ -2926,6 +2926,13 @@ export default function PreviewPageWithTopNav() {
   const handleContinue = async () => {
     try {
       console.debug('[AddToCart] Clicked');
+      // personalized-products（从购物车编辑进入）不再需要再次 add-to-cart；
+      // 仅返回购物车即可。由 edit 页调用 /api/cart/:cartItemId/regenerate-preview 完成更新。
+      const fromCartItemId = searchParams.get('fromCartItemId');
+      if (fromCartItemId) {
+        router.push('/shopping-cart');
+        return;
+      }
       // 检查是否所有必要的部分都已完成
       // 允许未填写 giver 和 dedication 也能继续
       const incompleteSections = Object.entries(completedSections)

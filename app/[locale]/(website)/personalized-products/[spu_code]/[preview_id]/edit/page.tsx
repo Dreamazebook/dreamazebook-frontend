@@ -66,6 +66,8 @@ export default function EditPersonalizedProductPage() {
   const [isLoading, setIsLoading] = useState(true);
   // 绘本语言（与网页语言不同），必须从 cart/list 的 preview.language 获取
   const [bookLanguage, setBookLanguage] = useState<string | null>(null);
+  // 该个性化商品对应的购物车条目 id：用于 regenerate-preview
+  const [cartItemId, setCartItemId] = useState<number | null>(null);
 
   const form1Ref = useRef<SingleCharacterForm1Handle>(null);
   const form2Ref = useRef<SingleCharacterForm2Handle>(null);
@@ -164,6 +166,9 @@ export default function EditPersonalizedProductPage() {
       try {
         const { data } = await api.get<ApiResponse<CartItems>>(`${API_CART_LIST}`);
         const item = data.items.find(ci => String(ci.preview_id) === String(previewId));
+        if (item?.id) {
+          setCartItemId(Number(item.id));
+        }
         const p = item?.preview;
         if (!p && !item) {
           setIsLoading(false);
@@ -236,6 +241,18 @@ export default function EditPersonalizedProductPage() {
     })();
   }, [bookId, previewId, currentLang]);
 
+  // 无论初始数据来自 batch 还是 cart，都需要 cartItemId；这里再兜底取一次
+  useEffect(() => {
+    if (cartItemId) return;
+    (async () => {
+      try {
+        const { data } = await api.get<ApiResponse<CartItems>>(`${API_CART_LIST}`);
+        const item = data.items.find(ci => String(ci.preview_id) === String(previewId));
+        if (item?.id) setCartItemId(Number(item.id));
+      } catch {}
+    })();
+  }, [cartItemId, previewId]);
+
   const renderForm = () => {
     if (isLoading) return <SkeletonLoader />;
     if (!formType) return null;
@@ -274,8 +291,11 @@ export default function EditPersonalizedProductPage() {
     let fullName: string;
     let genderRaw: '' | 'boy' | 'girl';
     let skinColorRaw: string;
+    let hairStyleRaw: string | undefined;
+    let hairColorRaw: string | undefined;
     let photoData: { file?: File; path: string } | null = null;
     let photosData: string[] = [];
+    let relationshipRaw: string | undefined;
 
     if (formType === 'SINGLE1' && form1Ref.current) {
       const validationResult = form1Ref.current.validateForm({ scope: 'all' });
@@ -284,8 +304,11 @@ export default function EditPersonalizedProductPage() {
       fullName = form1.fullName;
       genderRaw = form1.gender;
       skinColorRaw = form1.skinColor;
+      hairStyleRaw = (form1 as any).hairstyle || (form1 as any).hairStyle;
+      hairColorRaw = (form1 as any).hairColor || (form1 as any).hair_color;
       photoData = form1.photo;
       photosData = (form1 as any).photos || [];
+      relationshipRaw = (form1 as any).relationship;
     } else if (formType === 'SINGLE2' && form2Ref.current) {
       const validationResult = form2Ref.current.validateForm();
       if (!validationResult.isValid) return;
@@ -293,8 +316,11 @@ export default function EditPersonalizedProductPage() {
       fullName = form2.fullName;
       genderRaw = form2.gender;
       skinColorRaw = form2.skinColor;
+      hairStyleRaw = (form2 as any).hairstyle || (form2 as any).hairStyle;
+      hairColorRaw = (form2 as any).hairColor || (form2 as any).hair_color;
       photoData = form2.photo;
       photosData = [form2.photo?.path].filter(Boolean) as string[];
+      relationshipRaw = (form2 as any).relationship;
     } else {
       return;
     }
@@ -318,26 +344,94 @@ export default function EditPersonalizedProductPage() {
       targetLang = currentLang || 'en';
     }
 
-    // 由预览页负责创建任务：使用 Zustand store 存储用户数据
-    const userData = {
-      characters: [
-        {
-          full_name: fullName,
-          language: targetLang,
-          // 与个性化页保持一致：gender 为字符串，gender_code 保留数值
-          gender: genderRaw || '',
-          gender_code: genderCode,
-          skincolor: skinColorCode,
-          photo: photoData.path,
-          photos: photosData.length > 0 ? photosData : (photoData?.path ? [photoData.path] : []),
-        },
-      ],
+    // 使用新接口：POST /api/cart/:cartItemId/regenerate-preview
+    if (!cartItemId) {
+      console.error('Missing cartItemId for regenerate-preview');
+      return;
+    }
+
+    const genderStr = genderRaw === 'boy' || genderRaw === 'girl' ? genderRaw : '';
+    const skinTone =
+      skinColorRaw === skinColors[0] ? 'white' :
+      skinColorRaw === skinColors[1] ? 'original' :
+      skinColorRaw === skinColors[2] ? 'black' :
+      undefined;
+
+    // hair_style: 支持 "hair_1" -> "1"；优先使用用户当前选择，其次用回填的 initialData
+    const hairstyleCandidate =
+      (hairStyleRaw as any) ||
+      (initialData as any)?.hairstyle ||
+      (initialData as any)?.hairStyle;
+    const hairStyle =
+      typeof hairstyleCandidate === 'string' && hairstyleCandidate
+        ? (hairstyleCandidate.startsWith('hair_') ? hairstyleCandidate.replace(/^hair_/, '') : hairstyleCandidate)
+        : undefined;
+
+    // hair_color: 必填；优先用用户当前选择，其次用 initialData
+    const hairColorCandidate =
+      (hairColorRaw as any) ||
+      (initialData as any)?.hairColor ||
+      (initialData as any)?.hair_color;
+    const mapHairColorToBackend = (v: any): string | undefined => {
+      if (typeof v === 'string') {
+        const s = v.trim().toLowerCase();
+        // 与 personalize/preview 页一致：light -> blone, brown/original -> original, dark/black -> dark
+        if (s === 'light') return 'blone';
+        if (s === 'brown' || s === 'original') return 'original';
+        if (s === 'dark' || s === 'black') return 'dark';
+        // 如果后端本身就返回了 blone/original/dark，则直接透传
+        if (s === 'blone' || s === 'dark') return s;
+        return undefined;
+      }
+      const n = Number(v);
+      if (n === 1) return 'blone';
+      if (n === 2) return 'original';
+      if (n === 3) return 'dark';
+      return undefined;
     };
-    
-    usePreviewStore.getState().setUserData(userData);
-    usePreviewStore.getState().setBookId(bookId);
-    
-    router.push(`/preview?bookid=${bookId}&previewid=${previewId}`);
+    const hairColor = mapHairColorToBackend(hairColorCandidate);
+
+    if (!hairStyle || !hairColor) {
+      console.error('Missing required attributes for regenerate-preview:', { hairStyle, hairColor });
+      return;
+    }
+
+    const faceImages = (photosData && photosData.length > 0 ? photosData : [photoData.path]).filter(Boolean);
+
+    const payload = {
+      full_name: fullName,
+      language: targetLang,
+      gender: genderStr,
+      relationship: relationshipRaw || 'Parent/Guardian',
+      attributes: {
+        ...(skinTone ? { skin_tone: skinTone } : {}),
+        // 后端校验必填
+        hair_style: hairStyle,
+        hair_color: hairColor,
+      },
+      texts: {},
+      face_images: faceImages,
+    };
+
+    let nextPreviewId: string = String(previewId);
+    try {
+      const resp = await api.post<any>(`/cart/${cartItemId}/regenerate-preview`, payload);
+      // 兼容不同返回结构：优先取 batch_id / preview_id
+      const bid =
+        resp?.data?.batch_id ||
+        resp?.data?.preview_id ||
+        resp?.batch_id ||
+        resp?.preview_id ||
+        resp?.data?.batch?.batch_id ||
+        resp?.data?.batch?.id;
+      if (bid) nextPreviewId = String(bid);
+    } catch (e) {
+      console.error('Regenerate preview failed:', e);
+      return;
+    }
+
+    // 不再“再次添加购物车”；跳转到 preview 展示结果，Add to cart 仅返回购物车
+    router.push(`/preview?bookid=${encodeURIComponent(bookId)}&previewid=${encodeURIComponent(nextPreviewId)}&fromCartItemId=${encodeURIComponent(String(cartItemId))}`);
   };
 
   return (
