@@ -15,6 +15,8 @@ interface Props {
   className?: string;
   leftBelow?: React.ReactNode;
   rightBelow?: React.ReactNode;
+  // 可选：合成完成后的回调（用于把合成图上传到后端）
+  onRendered?: (dataUrl: string) => void;
 }
 
 /**
@@ -76,6 +78,7 @@ export default function GiverDedicationCanvas({
   className,
   leftBelow,
   rightBelow,
+  onRendered,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const leftCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -101,6 +104,28 @@ export default function GiverDedicationCanvas({
       : `${philosopher.style.fontFamily}, Georgia, serif`),
     [isChinese, notoSansSC.style.fontFamily, philosopher.style.fontFamily]
   );
+
+  // 当需要导出（toDataURL/toBlob）时，必须确保底图为同源资源，否则 canvas 会 taint
+  const buildProxyUrl = (src: string) => {
+    try {
+      if (!src) return src;
+      if (src.startsWith('/') || src.startsWith('blob:') || src.startsWith('data:')) return src;
+      const u = new URL(src, window.location.href);
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') return src;
+      // 用短 key 放在 path，上游 URL 放在 query，避免 path 过长导致 404/414
+      const urlStr = u.toString();
+      let hash = 2166136261;
+      for (let i = 0; i < urlStr.length; i++) {
+        hash ^= urlStr.charCodeAt(i);
+        // FNV-1a 32bit
+        hash = Math.imul(hash, 16777619);
+      }
+      const key = (hash >>> 0).toString(16);
+      return `/api/image-proxy/${key}?url=${encodeURIComponent(urlStr)}`;
+    } catch {
+      return src;
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -175,10 +200,13 @@ export default function GiverDedicationCanvas({
       if (!ctx) return;
 
       const needOverlay = typeof giverImageUrl === 'string' && !!giverImageUrl.trim();
+      const baseSrc = onRendered ? buildProxyUrl(imageUrl) : imageUrl;
+      const overlaySrc =
+        onRendered && typeof giverImageUrl === 'string' ? buildProxyUrl(giverImageUrl as string) : (giverImageUrl as string);
       const [img, overlay]: [HTMLImageElement, HTMLImageElement | null] = await Promise.all([
-        loadImageWithCorsFallback(imageUrl),
+        loadImageWithCorsFallback(baseSrc),
         needOverlay
-          ? loadImageWithCorsFallback(giverImageUrl as string).catch(() => null)
+          ? loadImageWithCorsFallback(overlaySrc).catch(() => null)
           : Promise.resolve(null),
       ]);
 
@@ -255,6 +283,16 @@ export default function GiverDedicationCanvas({
         rightY += rightLineHeight;
       }
       ctx.restore();
+
+      // 回调：返回整张双页合成图
+      if (onRendered) {
+        try {
+          const url = canvas.toDataURL('image/jpeg', 0.92);
+          onRendered(url);
+        } catch (e) {
+          console.warn('[GiverDedicationCanvas] toDataURL failed (canvas tainted?)', e);
+        }
+      }
     };
 
     const drawSingle = async () => {
@@ -266,10 +304,13 @@ export default function GiverDedicationCanvas({
       if (!lctx || !rctx) return;
 
       const needOverlay = typeof giverImageUrl === 'string' && !!giverImageUrl.trim();
+      const baseSrc = onRendered ? buildProxyUrl(imageUrl) : imageUrl;
+      const overlaySrc =
+        onRendered && typeof giverImageUrl === 'string' ? buildProxyUrl(giverImageUrl as string) : (giverImageUrl as string);
       const [loadedImg, overlay]: [HTMLImageElement, HTMLImageElement | null] = await Promise.all([
-        loadImageWithCorsFallback(imageUrl),
+        loadImageWithCorsFallback(baseSrc),
         needOverlay
-          ? loadImageWithCorsFallback(giverImageUrl as string).catch(() => null)
+          ? loadImageWithCorsFallback(overlaySrc).catch(() => null)
           : Promise.resolve(null),
       ]);
       const img: HTMLImageElement = loadedImg;
@@ -335,6 +376,24 @@ export default function GiverDedicationCanvas({
         rY += rLH;
       }
       rctx.restore();
+
+      // 回调：将左右半页合成为一张完整双页图（便于上传给后端）
+      if (onRendered) {
+        try {
+          const fullCanvas = document.createElement('canvas');
+          fullCanvas.width = fullW;
+          fullCanvas.height = fullH;
+          const fctx = fullCanvas.getContext('2d');
+          if (fctx) {
+            fctx.drawImage(leftCanvas, 0, 0);
+            fctx.drawImage(rightCanvas, halfW, 0);
+            const url = fullCanvas.toDataURL('image/jpeg', 0.92);
+            onRendered(url);
+          }
+        } catch (e) {
+          console.warn('[GiverDedicationCanvas] toDataURL failed (canvas tainted?)', e);
+        }
+      }
     };
 
     (async () => {
@@ -348,7 +407,7 @@ export default function GiverDedicationCanvas({
         console.error('GiverDedicationCanvas draw error:', e);
       }
     })();
-  }, [ready, imageUrl, mode, giverText, dedicationText, giverImageUrl, giverPx, dedicationPx]);
+  }, [ready, imageUrl, mode, giverText, dedicationText, giverImageUrl, giverPx, dedicationPx, onRendered]);
 
   if (mode === 'double') {
     return (

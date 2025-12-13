@@ -971,6 +971,94 @@ export default function PreviewPageWithTopNav() {
   // 当前展示图片的索引，用于翻页
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [activeSection, setActiveSection] = React.useState<string>("");
+  const shouldUploadP34ComposedRef = useRef(false);
+  const p34ComposeUploadInFlightRef = useRef(false);
+  const p34ComposeUploadedRef = useRef(false);
+  // sidebar「Name on Book」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
+  const [isNameOnBookCompleted, setIsNameOnBookCompleted] = useState(false);
+
+  const uploadP34ComposedImage = useCallback(async (dataUrl: string) => {
+    // 仅在用户刚上传完图片后触发一次
+    if (!shouldUploadP34ComposedRef.current) {
+      console.debug('[P3-4 Compose] skip: shouldUpload=false');
+      return;
+    }
+    if (p34ComposeUploadedRef.current) {
+      console.debug('[P3-4 Compose] skip: already uploaded');
+      return;
+    }
+    if (p34ComposeUploadInFlightRef.current) {
+      console.debug('[P3-4 Compose] skip: in flight');
+      return;
+    }
+
+    const spu = searchParams.get('bookid');
+    // batch_id 的兜底：优先用 previewData.batch_id；否则用 URL previewid（该项目里 previewid 通常等于 batch_id）
+    const batchId = (previewData as any)?.batch_id || searchParams.get('previewid');
+
+    console.log('[P3-4 Compose] attempting upload', {
+      spu,
+      batchId,
+      hasDataUrl: Boolean(dataUrl),
+      dataUrlPrefix: typeof dataUrl === 'string' ? dataUrl.slice(0, 32) : '',
+      dataUrlLength: typeof dataUrl === 'string' ? dataUrl.length : 0,
+    });
+
+    if (!spu) {
+      console.warn('[P3-4 Compose] skip: missing bookid');
+      return;
+    }
+    if (!batchId) {
+      console.warn('[P3-4 Compose] skip: missing batch_id (check previewData.batch_id / url previewid)');
+      return;
+    }
+    if (!dataUrl) {
+      console.warn('[P3-4 Compose] skip: missing dataUrl');
+      return;
+    }
+
+    p34ComposeUploadInFlightRef.current = true;
+    try {
+      const resp: any = await api.post(
+        `/products/${encodeURIComponent(spu)}/pages/p3-4/upload-special-image`,
+        { data: dataUrl, batch_id: batchId },
+        { timeout: 120000 },
+      );
+      const imageUrl = resp?.data?.image_url || resp?.image_url || '';
+      console.log('[P3-4 Compose] upload response', { hasImageUrl: Boolean(imageUrl), imageUrl });
+
+      if (imageUrl) {
+        setPreviewData((prev) => {
+          if (!prev || !(prev as any).preview_data) return prev as any;
+          return {
+            ...(prev as any),
+            preview_data: (prev as any).preview_data.map((p: any) => {
+              const code = String(p?.page_code || '');
+              const isP34 = code === 'p3-4' || code === 'p3-p4';
+              return isP34 ? { ...p, image_url: imageUrl } : p;
+            }),
+          } as any;
+        });
+        setGiverImageUrl(null);
+        shouldUploadP34ComposedRef.current = false;
+        p34ComposeUploadedRef.current = true;
+        setIsNameOnBookCompleted(true);
+      } else {
+        console.warn('[P3-4 Compose] uploaded but no image_url in response', resp);
+      }
+    } catch (e) {
+      console.error('[P3-4 Compose] upload failed', e);
+    } finally {
+      p34ComposeUploadInFlightRef.current = false;
+    }
+  }, [previewData, searchParams]);
+
+  // 一旦本地选择了 giver 图片（blob/objectURL 或远程 URL），就把 Name on Book 标记为完成
+  useEffect(() => {
+    if (giverImageUrl) {
+      setIsNameOnBookCompleted(true);
+    }
+  }, [giverImageUrl]);
   
   // Giver图片编辑：隐藏的文件输入框
   const giverFileInputRef = useRef<HTMLInputElement>(null);
@@ -1009,7 +1097,6 @@ export default function PreviewPageWithTopNav() {
 
   // 仅预填一次个性化产品的封面/装订/礼盒选项
   const hasPrefilledOptionsRef = useRef(false);
-  const hasAutoSetDefaultCoverRef = useRef(false);
   useEffect(() => {
     if (hasPrefilledOptionsRef.current) return;
     if (!bookOptions) return;
@@ -1074,15 +1161,18 @@ export default function PreviewPageWithTopNav() {
   }, [bookOptions, searchParams, selectedBookCover, selectedBinding, selectedGiftBox]);
 
   // 为当前书籍的当前封面（如果 R2 上存在 page_properties.json）加载文字配置，用于在封面上绘制名字
+  const lastCoverTextConfigKeyRef = useRef<string | null>(null);
   useEffect(() => {
     const bookIdParam = searchParams.get('bookid');
     const upperBookId = (bookIdParam || '').toUpperCase();
     if (!upperBookId) {
       if (coverTextConfig) setCoverTextConfig(null);
+      lastCoverTextConfigKeyRef.current = null;
       return;
     }
     if (!bookOptions?.cover_options || bookOptions.cover_options.length === 0) {
       if (coverTextConfig) setCoverTextConfig(null);
+      lastCoverTextConfigKeyRef.current = null;
       return;
     }
 
@@ -1119,23 +1209,18 @@ export default function PreviewPageWithTopNav() {
       if (!activeOption && bookOptions.cover_options.length > 0) {
         activeOption = bookOptions.cover_options[0];
       }
-      // 自动设置默认封面为selectedBookCover，确保coverTextConfig能正确加载和应用
-      // 使用ref避免重复设置和无限循环
-      if (activeOption && selectedBookCover === null && !hasAutoSetDefaultCoverRef.current) {
-        hasAutoSetDefaultCoverRef.current = true;
-        // 直接设置，不需要setTimeout，因为后续的coverTextConfig加载不依赖于selectedBookCover
-        // 它只依赖于activeOption，而activeOption已经找到了
-        setSelectedBookCover(activeOption.id);
-      }
-    }
-    // 重置ref，允许在bookOptions变化时重新设置
-    if (selectedBookCover !== null) {
-      hasAutoSetDefaultCoverRef.current = false;
     }
     if (!activeOption) return;
 
     const rawCoverKey = activeOption.option_key || String(activeOption.id);
     const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(activeOption.id);
+    const configKey = `${upperBookId}_${coverId}`;
+
+    // 同一个 bookId+coverId 不要重复拉取（尤其在 React 18 dev strict mode 下 effect 会触发两次）
+    if (lastCoverTextConfigKeyRef.current === configKey) {
+      return;
+    }
+    lastCoverTextConfigKeyRef.current = configKey;
 
     // 尝试通过本地 API 代理获取 R2 上的 page_properties.json
     (async () => {
@@ -1158,7 +1243,6 @@ export default function PreviewPageWithTopNav() {
           setCoverTextConfig(null);
           return;
         }
-        const configKey = `${upperBookId}_${coverId}`;
         setCoverTextConfig({
           key: configKey,
           texts,
@@ -1709,22 +1793,23 @@ export default function PreviewPageWithTopNav() {
       const response = await api.get<ApiResponse<DetailedBook>>(`/products/${bookId}`, { params: { language: (searchParams.get('lang') || 'en') } });
       
       if (response.success) {
-        setBookInfo(response.data!);
+        const bookData = (response as any)?.data?.data || response.data || response;
+        setBookInfo(bookData);
         // 记录预览页数量
         try {
-          const count = Number((response.data as any)?.preview_pages_count);
+          const count = Number(bookData?.preview_pages_count);
           if (!Number.isNaN(count) && count > 0) setPreviewPagesCount(count);
         } catch {}
         // 记录有可替换文本（2）的页ID集合，供预览渲染时判断
         try {
-          const pages = response.data?.pages || [];
-          const targets = pages.filter(p => Number(p?.has_replaceable_text) === 2);
-          const ids = targets.map(p => Number(p.id)).filter(n => !Number.isNaN(n));
-          const nums = targets.map(p => Number(p.page_number)).filter(n => !Number.isNaN(n));
+          const pages: any[] = bookData?.pages || [];
+          const targets = pages.filter((p: any) => Number(p?.has_replaceable_text) === 2);
+          const ids = targets.map((p: any) => Number(p.id)).filter((n: number) => !Number.isNaN(n));
+          const nums = targets.map((p: any) => Number(p.page_number)).filter((n: number) => !Number.isNaN(n));
           setReplaceableTextPageIds(new Set(ids));
           setReplaceableTextPageNumbers(new Set(nums));
         } catch {}
-        console.log('书籍信息获取成功:', response.data);
+        console.log('书籍信息获取成功:', bookData);
       } else {
         console.error('获取书籍信息失败:', response);
       }
@@ -1932,6 +2017,32 @@ export default function PreviewPageWithTopNav() {
     if (n === 0) return 'Free';
     const num = n.toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
     return `$${num}${currency ? ` ${currency}` : ''}`;
+  };
+
+  // 解析后端可能返回的价格字符串（如 "$29.99" / "29.99" / "USD 29.99"）
+  const parseMoney = (v: any): number => {
+    if (v == null) return 0;
+    if (typeof v === 'number') return Number.isFinite(v) ? v : 0;
+    const s = String(v);
+    // 提取第一个数字（包含小数）
+    const m = s.match(/(\d+(?:\.\d+)?)/);
+    if (!m) return 0;
+    const n = Number(m[1]);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  // 获取绘本本身的“基础价格”（不同接口字段不完全一致，这里做多路径兜底）
+  const getBookBasePrice = (): number => {
+    if (!bookInfo) return 0;
+    const anyInfo: any = bookInfo as any;
+    return (
+      parseMoney(anyInfo?.price) ||
+      parseMoney(anyInfo?.variant?.price) ||
+      parseMoney(anyInfo?.current_price) ||
+      parseMoney(anyInfo?.base_price) ||
+      parseMoney(anyInfo?.market_price) ||
+      0
+    );
   };
 
   // 确保人脸图片为绝对可访问地址（优先 S3 全路径），并移除 public/ 前缀
@@ -2883,7 +2994,8 @@ export default function PreviewPageWithTopNav() {
 
   // 各部分的完成状态判断
   const completedSections = {
-    giver: giver.trim() !== "",
+    // Name on Book：输入文本或上传图片任一完成即可
+    giver: giver.trim() !== "" || isNameOnBookCompleted,
     dedication: dedication.trim() !== "",
     coverDesign: selectedBookCover !== null,
     binding: selectedBinding !== null,
@@ -2926,6 +3038,13 @@ export default function PreviewPageWithTopNav() {
   const handleContinue = async () => {
     try {
       console.debug('[AddToCart] Clicked');
+      // personalized-products（从购物车编辑进入）不再需要再次 add-to-cart；
+      // 仅返回购物车即可。由 edit 页调用 /api/cart/:cartItemId/regenerate-preview 完成更新。
+      const fromCartItemId = searchParams.get('fromCartItemId');
+      if (fromCartItemId) {
+        router.push('/shopping-cart');
+        return;
+      }
       // 检查是否所有必要的部分都已完成
       // 允许未填写 giver 和 dedication 也能继续
       const incompleteSections = Object.entries(completedSections)
@@ -3437,8 +3556,9 @@ export default function PreviewPageWithTopNav() {
                     const isReplaceablePage = replaceableTextPageIds.has(page.page_id) || replaceableTextPageNumbers.has(page.page_number);
                     // 轮到该页前（progress 为 0）显示 loading；开始后显示进度
                     const overlayMode = (progress > 0 ? 'progress' : 'loading');
-                      // 仅在 page_code === 'p3-4' 的页面渲染 Giver & Dedication
-                      const isGiverDedicationPage = String((page as any).page_code || '') === 'p3-4';
+                      // 仅在 p3-4（有的书返回 p3-p4）页面渲染 Giver & Dedication
+                      const pageCode = String((page as any).page_code || '');
+                      const isGiverDedicationPage = pageCode === 'p3-4' || pageCode === 'p3-p4';
                       // 单页模式：在 p3-4 直接用 GiverDedicationCanvas 取代基础图
                       if (isGiverDedicationPage && viewMode === 'single') {
                         return (
@@ -3451,6 +3571,7 @@ export default function PreviewPageWithTopNav() {
                               giverText={giver}
                               dedicationText={dedication}
                               giverImageUrl={giverImageUrl}
+                              onRendered={uploadP34ComposedImage}
                               leftBelow={(
                                 <div className="mt-2 w-full flex justify-center">
                                   <button
@@ -3501,6 +3622,7 @@ export default function PreviewPageWithTopNav() {
                                   giverText={giver}
                                   dedicationText={dedication}
                                   giverImageUrl={giverImageUrl}
+                                  onRendered={uploadP34ComposedImage}
                                 />
                                 <div className="pointer-events-none">
                                   <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
@@ -3820,7 +3942,31 @@ export default function PreviewPageWithTopNav() {
                     />
                     <h2 className="text-lg font-medium text-center">{option.name}</h2>
                     <p className="text-lg font-medium text-center mb-2">
-                      {formatOptionPrice(option.price, option.currency_code)}
+                      {(() => {
+                        // 计算总价：绘本基础价格 + 装订方式的 price_diff
+                        const basePrice = getBookBasePrice();
+                        const priceDiff = Number(option.price) || 0;
+                        const totalPrice = basePrice + priceDiff;
+                        
+                        // 调试日志
+                        if (process.env.NODE_ENV === 'development') {
+                          console.log('[Book Format Price]', {
+                            bookInfoPrice: (bookInfo as any)?.price,
+                            variantPrice: (bookInfo as any)?.variant?.price,
+                            currentPrice: (bookInfo as any)?.current_price,
+                            basePriceRaw: (bookInfo as any)?.base_price,
+                            basePrice,
+                            priceDiff,
+                            totalPrice,
+                            optionName: option.name,
+                          });
+                        }
+                        
+                        return formatOptionPrice(
+                          totalPrice,
+                          option.currency_code || (bookInfo as any)?.currencycode || (bookInfo as any)?.variant?.currencycode,
+                        );
+                      })()}
                     </p>
                     {option.description && (
                     <p className="text-sm text-gray-500 text-center mb-4">{option.description}</p>
@@ -4137,21 +4283,19 @@ export default function PreviewPageWithTopNav() {
                           URL.revokeObjectURL(pendingGiverFile);
                         }
                       }}
-                      onDone={(url) => {
-                        if (url) {
-                          // 后端返回的 image_url 是更新后的页面预览图片，需要更新预览数据中 p3-4 页面的 image_url
-                          setPreviewData((prev) => {
-                            if (!prev || !prev.preview_data) return prev;
-                            return {
-                              ...prev,
-                              preview_data: prev.preview_data.map((p: any) =>
-                                String((p as any).page_code || '') === 'p3-4'
-                                  ? { ...p, image_url: url }
-                                  : p
-                              ),
-                            } as any;
-                          });
-                        }
+                      // resultMode=file 时不会调用 onDone，但 props 仍要求提供
+                      onDone={() => {}}
+                      resultMode="file"
+                      onDoneFile={(file) => {
+                        // 用户上传后：先本地预览（不立刻发后端），等 Canvas 合成完成后再上传合成图
+                        try {
+                          const objUrl = URL.createObjectURL(file);
+                          setGiverImageUrl(objUrl);
+                          shouldUploadP34ComposedRef.current = true;
+                          p34ComposeUploadedRef.current = false;
+                          // 上传图片即视为完成 Name on Book
+                          setIsNameOnBookCompleted(true);
+                        } catch {}
                         setEditField(null);
                         setPendingGiverFile(null);
                         if (pendingGiverFile) {
@@ -4204,6 +4348,9 @@ export default function PreviewPageWithTopNav() {
                   <button
                     className="bg-[#222222] text-[#F5E3E3] py-2 px-4 rounded-sm"
                     onClick={() => {
+                      // Dedication 更新：通过同样接口上传「已合成（底图 + giver + dedication）」的 p3-4 图片
+                      shouldUploadP34ComposedRef.current = true;
+                      p34ComposeUploadedRef.current = false;
                       setDedication(message);
                       setEditField(null);
                     }}
