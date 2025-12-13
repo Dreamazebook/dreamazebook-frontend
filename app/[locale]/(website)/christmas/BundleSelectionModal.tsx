@@ -331,8 +331,8 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
 
       {detailBook && (
         <div className="fixed inset-0 z-[60]">
-          <div className="absolute inset-0 bg-black/10 pointer-events-auto" onClick={() => setDetailBook(null)} />
-          <div className="absolute right-0 top-36 bottom-0 md:top-0 md:bottom-0 w-full md:w-[360px] bg-[#F8F8F8] shadow-2xl pointer-events-auto overflow-hidden rounded-t-lg md:rounded-none flex flex-col">
+          <div className="absolute inset-0 bg-black/60 pointer-events-auto" onClick={() => setDetailBook(null)} />
+          <div className="absolute right-0 top-26 bottom-0 md:top-0 md:bottom-0 w-full md:w-[360px] bg-[#F8F8F8] shadow-2xl pointer-events-auto overflow-hidden rounded-t-lg md:rounded-none flex flex-col">
             {/* 手机端 Header */}
             <div className="md:hidden bg-white flex items-center justify-center px-4 h-14 flex-shrink-0 relative">
               <h2 className="font-medium text-[16px] leading-[24px] tracking-[0.15px] text-center text-[#222222]">
