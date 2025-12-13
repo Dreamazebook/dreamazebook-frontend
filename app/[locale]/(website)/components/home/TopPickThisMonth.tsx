@@ -60,7 +60,7 @@ const TopPickThisMonth = () => {
   };
 
   return (
-    <div className="bg-[#FFF7F9] flex items-center justify-center px-4 py-8 md:py-30">
+    <div className="bg-[#FFF7F9] flex items-center justify-center px-[24px] pb-[64px] md:pt-[120px] md:pb-[88px]">
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center rounded bg-white p-6">
         <div
           className="relative w-[237px] md:w-[420px] mx-auto lg:mx-0"
@@ -154,7 +154,7 @@ const TopPickThisMonth = () => {
 
           <Link href={BOOK_DETAIL_URL('PICBOOK_SANTA')} className="text-[16px] text-[#222222] justify-center md:justify-start font-medium flex items-center mx-auto md:ml-0 gap-2 cursor-pointer hover:text-primary transition-colors duration-200 mt-4 md:mt-20">
             Personalize This Book
-            <ArrowRight className="w-5 h-5" />
+            <img src="/images/common/arrow-black.svg" className="w-5 h-5" />
           </Link>
         </div>
       </div>

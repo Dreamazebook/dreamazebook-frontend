@@ -18,7 +18,7 @@ export default function ReserveSection({title,desc,style,cssClass,btnText,btnId,
   }
   
   return (
-    <section style={style} className={`py-16 px-5 text-center bg-no-repeat bg-cover ${cssClass}`}>
+    <section style={style} className={`py-[44px] md:py-[64px] px-[24px] text-center bg-no-repeat bg-cover ${cssClass}`}>
       {show&&
       <>
         {title && <h2 className="text-2xl md:text-[40px] font-bold" dangerouslySetInnerHTML={{__html: title}}></h2>}

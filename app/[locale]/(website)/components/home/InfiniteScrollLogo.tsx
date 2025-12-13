@@ -25,7 +25,7 @@ export default function InfiniteScrollLogo() {
   }, []);
 
   return (
-    <div className="h-[157px] bg-white flex flex-col">
+    <div className="h-[64px] md:my-[48px] bg-white flex flex-col">
       <div className="flex-1 flex items-center justify-center overflow-hidden">
         <div className="w-full overflow-hidden">
           <div
@@ -34,7 +34,8 @@ export default function InfiniteScrollLogo() {
               width: '400%',
             }}
           >
-            <div className="">
+            {Array.from({ length: 4 }).map((_, index) => (
+            <div className="" key={index}>
               <img
                 src="/home-page/logo.png"
                 alt="Animated graphic 1"
@@ -42,30 +43,7 @@ export default function InfiniteScrollLogo() {
                 draggable={false}
               />
             </div>
-            <div className="">
-              <img
-                src="/home-page/logo.png"
-                alt="Animated graphic 2"
-                className="max-w-full h-auto block"
-                draggable={false}
-              />
-            </div>
-            <div className="">
-              <img
-                src="/home-page/logo.png"
-                alt="Animated graphic 3"
-                className="max-w-full h-auto block"
-                draggable={false}
-              />
-            </div>
-            <div className="">
-              <img
-                src="/home-page/logo.png"
-                alt="Animated graphic 4"
-                className="max-w-full h-auto block"
-                draggable={false}
-              />
-            </div>
+            ))}
           </div>
         </div>
       </div>

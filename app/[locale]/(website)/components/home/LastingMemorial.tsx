@@ -42,14 +42,14 @@ export default function LastingMemorial() {
   };
 
   return (
-    <section className="flex flex-col items-center px-4 py-16 bg-cover bg-center bg-white">
+    <section className="flex flex-col items-center px-[24px] py-[64px] md:py-[88px] bg-cover bg-center bg-white">
       <header className="flex items-center justify-center gap-2.5 pb-6 w-full">
         <h1 className="flex-1 font-semibold text-[#222222] text-2xl md:text-4xl text-center tracking-[0] leading-8" style={{ fontFamily: "Roboto, Helvetica" }}>
           Easy 3 Steps to Create a Lasting Memory
         </h1>
       </header>
 
-      <div className="flex flex-col items-center w-full max-w-[375px] md:max-w-6xl">
+      <div className="flex flex-col items-center w-full max-w-[375px] md:max-w-[1000px]">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-start gap-12 pt-9">
           {steps.map((step, index) => (
             <article
