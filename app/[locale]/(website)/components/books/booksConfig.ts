@@ -80,6 +80,7 @@ export interface BookSection {
     discount: string;
     extras: string;
     image: string;
+    width?: number;
   }>;
   bannerImage?: string; // 顶部横幅背景图
   bannerTitle?: string; // 横幅标题
