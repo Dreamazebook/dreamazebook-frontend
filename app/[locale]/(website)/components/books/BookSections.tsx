@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+'use client';
+
+import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { getBookConfig, BookSection } from './booksConfig';
 import GiftPackagesSection from './GiftPackagesSection';
+import api from '@/utils/api';
+import toast from 'react-hot-toast';
 
 interface BookSectionsProps {
   book: any;
@@ -57,7 +61,70 @@ const BehindStorySection: React.FC<{ section: BookSection }> = ({ section }) => 
 };
 
 // Toddler Favorites Section 组件
-const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }) => {
+const ToddlerFavoritesSection: React.FC<{ section: BookSection; bookId: string | number }> = ({ section, bookId }) => {
+  const [isAdding, setIsAdding] = useState(false);
+
+  const normalizedBookId = String(bookId || '');
+
+  // 发送到购物车时的 spu_code 规范化：PICBOOK_GOODNIGHT -> PICBOOK_GOODNIGHT3
+  const normalizeSpuCodeForCart = (spuCode: string) => (spuCode === 'PICBOOK_GOODNIGHT' ? 'PICBOOK_GOODNIGHT3' : spuCode);
+
+  // 需求指定：PICBOOK_BRAVEY / PICBOOK_GOODNIGHT 的 bundle 都是 GOODNIGHT + BRAVEY
+  const forcedBundleSpuCodes = useMemo(() => {
+    if (normalizedBookId === 'PICBOOK_BRAVEY' || normalizedBookId === 'PICBOOK_GOODNIGHT' || normalizedBookId === 'PICBOOK_GOODNIGHT3') {
+      return ['PICBOOK_GOODNIGHT', 'PICBOOK_BRAVEY'];
+    }
+    return null;
+  }, [normalizedBookId]);
+
+  const sectionBundleSpuCodes = useMemo(() => {
+    const codes = (section.books || [])
+      .map((b: any) => b?.spuCode)
+      .filter(Boolean) as string[];
+    return Array.from(new Set(codes));
+  }, [section.books]);
+
+  const bundleSpuCodes = forcedBundleSpuCodes ?? sectionBundleSpuCodes;
+  const bundleSpuCodesForCart = useMemo(() => {
+    // 去重：例如同时出现 GOODNIGHT 与 GOODNIGHT3 时，最终只发 GOODNIGHT3
+    // 过滤掉不允许添加的 PICBOOK_BIRTHDAY（所有详情页都过滤）
+    return Array.from(new Set(bundleSpuCodes.map(normalizeSpuCodeForCart))).filter(
+      code => code !== 'PICBOOK_BIRTHDAY'
+    );
+  }, [bundleSpuCodes]);
+
+  const handleAddBundleToBag = async () => {
+    if (isAdding) return;
+
+    if (!bundleSpuCodesForCart || bundleSpuCodesForCart.length === 0) {
+      toast.error('Bundle configuration is missing, unable to add to cart');
+      return;
+    }
+
+    setIsAdding(true);
+    try {
+      const payload = {
+        items: bundleSpuCodesForCart.map(code => ({
+          // 后端要求字段名：spu_code
+          spu_code: code,
+          quantity: 1,
+        })),
+      };
+
+      const resp = await api.post<any>('/cart/batch-add', payload);
+      if (resp?.success === false) {
+        throw new Error('batch-add failed');
+      }
+
+      toast.success('Added to cart');
+    } catch (e) {
+      console.error('[AddBundleToBag] failed:', e);
+      toast.error('Failed to add to cart, please try again');
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
   // 如果提供了 bundle 背景图，使用背景图模式
   if (section.bundleImage || section.bundleImageMobile) {
     return (
@@ -192,7 +259,18 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
             
             {/* Button */}
             {section.buttonText && (
-              <button className="bg-black text-[#F5E3E3] px-8 py-3 rounded-[4px] hover:bg-gray-800 transition-colors">
+              <button
+                type="button"
+                onClick={
+                  section.buttonText.trim().toLowerCase() === 'add bundle to bag'
+                    ? handleAddBundleToBag
+                    : undefined
+                }
+                disabled={isAdding}
+                className={`bg-black text-[#F5E3E3] px-8 py-3 rounded-[4px] hover:bg-gray-800 transition-colors ${
+                  isAdding ? 'opacity-75 cursor-wait pointer-events-none' : ''
+                }`}
+              >
                 {section.buttonText}
               </button>
             )}
@@ -426,7 +504,18 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection }> = ({ section }
           
           {/* Button */}
           {section.buttonText && (
-            <button className="bg-black text-[#F5E3E3] px-8 py-3 rounded-[4px] hover:bg-gray-800 transition-colors">
+            <button
+              type="button"
+              onClick={
+                section.buttonText.trim().toLowerCase() === 'add bundle to bag'
+                  ? handleAddBundleToBag
+                  : undefined
+              }
+              disabled={isAdding}
+              className={`bg-black text-[#F5E3E3] px-8 py-3 rounded-[4px] hover:bg-gray-800 transition-colors ${
+                isAdding ? 'opacity-75 cursor-wait pointer-events-none' : ''
+              }`}
+            >
               {section.buttonText}
             </button>
           )}
@@ -1213,12 +1302,12 @@ const FAQSection: React.FC<{ section: BookSection }> = ({ section }) => {
 };
 
 // Section 渲染器
-const renderSection = (section: BookSection, index: number) => {
+const renderSection = (section: BookSection, index: number, bookId: string | number) => {
   switch (section.type) {
     case 'behind-story':
       return <BehindStorySection key={index} section={section} />;
     case 'toddler-favorites':
-      return <ToddlerFavoritesSection key={index} section={section} />;
+      return <ToddlerFavoritesSection key={index} section={section} bookId={bookId} />;
     case 'why-personalized':
       return <WhyPersonalizedSection key={index} section={section} />;
     case 'meet-author':
@@ -1261,7 +1350,7 @@ const BookSections: React.FC<BookSectionsProps> = ({ book, bookId }) => {
 
   return (
     <>
-      {config.sections.map((section, index) => renderSection(section, index))}
+      {config.sections.map((section, index) => renderSection(section, index, bookId))}
     </>
   );
 };

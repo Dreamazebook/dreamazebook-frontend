@@ -40,6 +40,8 @@ export interface BookSection {
     price: string;
     backgroundColor?: string;
     backgroundImage?: string;
+    // 用于 bundle 加购（batch-add）时映射到对应产品
+    spuCode?: string;
   }>;
   originalPrice?: string; // 原价
   discountedPrice?: string; // 折后价
@@ -165,6 +167,7 @@ const GOODNIGHT_BASE_CONFIG: Omit<BookConfig, 'id'> = {
             backgroundColor: '#4A90E2', // 蓝色背景
           backgroundImage:
             'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_1.png',
+            spuCode: 'PICBOOK_GOODNIGHT',
           },
           {
             title: "You're Brave in Many Ways",
@@ -174,15 +177,7 @@ const GOODNIGHT_BASE_CONFIG: Omit<BookConfig, 'id'> = {
             backgroundColor: '#FFD700', // 黄色背景
           backgroundImage:
             'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_2.png',
-          },
-          {
-            title: 'Birthday Book for You',
-            subtitle: 'Special day keepsake',
-            coverImage: '', // 需要添加实际图片URL
-            price: '$8.5',
-            backgroundColor: '#FF6B6B', // 红色背景
-          backgroundImage:
-            'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_3.png',
+            spuCode: 'PICBOOK_BRAVEY',
           },
         ],
         originalPrice: '$25.0',
@@ -277,12 +272,14 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
         bundleImageMobile: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bundle-mobile.png',
         books: [
           {
-            title: 'Your Melody',
-            subtitle: 'A heartfelt keepsake for babies (0–2)',
+            title: 'Goodnight to You',
+            subtitle: 'Gentle bedtime routine',
             coverImage: '', // 需要添加实际图片URL
             price: '$12.2',
             backgroundColor: '#4A90E2', // 蓝色背景
-            backgroundImage: '', // 需要添加实际图片URL
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_1.png',
+            spuCode: 'PICBOOK_GOODNIGHT',
           },
           {
             title: "Little One, You're Brave in Many Ways",
@@ -290,7 +287,9 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
             coverImage: '', // 需要添加实际图片URL
             price: '$4.2',
             backgroundColor: '#FFD700', // 黄色背景
-            backgroundImage: '', // 需要添加实际图片URL
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_2.png',
+            spuCode: 'PICBOOK_BRAVEY',
           },
         ],
         originalPrice: '$25.0',
@@ -487,20 +486,13 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
         bundleImageMobile: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/bundle-mobile.png',
         books: [
           {
-            title: 'Goodnight to You',
-            subtitle: 'Gentle bedtime routine',
-            coverImage: '',
-            price: '$12.2',
-            backgroundColor: '#4A90E2',
-            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_1.png',
-          },
-          {
             title: "You're Brave in Many Ways",
             subtitle: 'Everyday courage',
             coverImage: '',
             price: '$4.2',
             backgroundColor: '#FFD700',
             backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_2.png',
+            spuCode: 'PICBOOK_BRAVEY',
           },
           {
             title: 'Birthday Book for You',
@@ -509,6 +501,7 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
             price: '$8.5',
             backgroundColor: '#FF6B6B',
             backgroundImage: '',
+            spuCode: 'PICBOOK_BIRTHDAY',
           },
         ],
         originalPrice: '$25.0',
