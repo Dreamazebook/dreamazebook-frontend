@@ -94,16 +94,33 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0" onClick={onClose} />
       <div className="relative w-full h-full overflow-y-auto">
-        <div className="h-14 bg-white flex items-center px-4 sm:px-32">
+        {/* 桌面端 Header */}
+        <div className="hidden md:flex h-14 bg-white items-center px-4 sm:px-32">
           <button className="flex items-center gap-2 text-sm text-[#222222] cursor-pointer" onClick={onClose}>
             <span aria-hidden>←</span> Back
           </button>
           <div className="flex-1" />
         </div>
 
-        <div className="px-6 md:px-10 bg-[#F8F8F8] lg:px-[220px] py-6 md:py-10 space-y-6 md:gap-3">
+        {/* 手机端 Header - 贴顶 */}
+        <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center px-4 z-50">
+          <button 
+            className="w-8 h-8 flex items-center justify-center text-[#222222] cursor-pointer"
+            onClick={onClose}
+            aria-label="Back"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <h1 className="flex-1 text-center font-medium text-[16px] leading-[24px] tracking-[0.15px] text-[#222222] pr-8">
+            {bundle.title}
+          </h1>
+        </div>
+
+        <div className="px-6 md:px-10 bg-[#F8F8F8] lg:px-[220px] pt-18 md:pt-6 md:py-10 pb-32 md:pb-10 space-y-6 md:gap-3">
           <div className="text-center space-y-2">
-            <p className="text-[22px] md:text-[28px] leading-[36px] text-[#222222]">{bundle.title}</p>
+            <p className="hidden md:block text-[22px] md:text-[28px] leading-[36px] text-[#222222]">{bundle.title}</p>
             <p className="text-sm md:text-[16px] leading-[24px] tracking-[0.5px] text-[#444444]">
               {bundle.features.filter(Boolean).join(' • ')}
             </p>
@@ -114,7 +131,8 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
             <p className="text-xs md:text-[16px] leading-[24px] tracking-[0.5px] text-[#999999]">You can select the same book more than once.</p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-[10px]">
+          {/* 桌面端已选图书 */}
+          <div className="hidden md:flex flex-wrap items-center justify-center gap-[10px]">
             {selected.map((spu, idx) => {
               const book = books.find(b => b.spu === spu)
               const firstEmptyIndex = selected.findIndex(v => !v)
@@ -168,9 +186,9 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
             })}
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 pb-4 md:pb-0">
             {loading ? (
-              <div className="col-span-3 flex items-center justify-center py-12 text-sm text-[#666666]">Loading books…</div>
+              <div className="col-span-2 md:col-span-3 flex items-center justify-center py-12 text-sm text-[#666666]">Loading books…</div>
             ) : (
               books.map(book => {
                 const disabled = !!book.disabled
@@ -189,7 +207,7 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
                         handleSelect(book.spu, disabled)
                       }
                     }}
-                    className={`relative bg-white overflow-hidden px-4 pb-6 flex flex-col items-center text-center ${
+                    className={`relative bg-white overflow-hidden px-4 py-2 md:py-0 md:pb-6 flex flex-col items-center text-center ${
                       disabled ? 'grayscale opacity-60 cursor-not-allowed' : 'hover:shadow-md transition-shadow cursor-pointer'
                     }`}
                   >
@@ -198,7 +216,7 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
                         sale out
                       </span>
                     )}
-                    <div className="relative w-full aspect-[1.1/1] bg-white px-8 flex items-end justify-center">
+                    <div className="relative w-full aspect-[1.1/1] bg-white md:px-8 flex items-end justify-center">
                       <div className="relative w-full h-full overflow-hidden flex items-start justify-center pt-4">
                         <Image src={book.image} alt={book.name} fill className="object-contain" />
                       </div>
@@ -209,13 +227,13 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
                       )}
                     </div>
                     <div className="w-full flex flex-col items-center gap-2 px-2">
-                      <p className="text-[20px] md:font-medium md:text-[18px] text-[#222222] leading-[24px] tracking-[0.15px]">{book.name}</p>
+                      <p className="hidden md:block text-[20px] md:font-medium md:text-[18px] text-[#222222] leading-[24px] tracking-[0.15px]">{book.name}</p>
                       <Link
                         href={book.href}
                         className="text-[16px] leading-[24px] tracking-[0.5px] text-[#012CCE] hover:underline flex items-center gap-1"
                         onClick={(e) => handleMoreDetails(book, e)}
                       >
-                        more details <span aria-hidden>→</span>
+                        more details <span aria-hidden className="hidden md:inline">→</span>
                       </Link>
                     </div>
                   </div>
@@ -224,7 +242,8 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
             )}
           </div>
 
-          <div className="flex justify-center">
+          {/* 桌面端 Finish Button */}
+          <div className="hidden md:flex justify-center">
             <button
               type="button"
               onClick={canSubmit ? onClose : undefined}
@@ -237,41 +256,132 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
             </button>
           </div>
         </div>
+
+        {/* 手机端底部 Bar */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+          <div className="px-4 py-3 space-y-3">
+            {/* 已选图书 */}
+            <div className="flex flex-wrap items-center justify-center gap-[10px]">
+              {selected.map((spu, idx) => {
+                const book = books.find(b => b.spu === spu)
+                const firstEmptyIndex = selected.findIndex(v => !v)
+                const isActiveSlot = !book && firstEmptyIndex === idx
+                const inactiveShadowStyle = { boxShadow: '0 0 4px rgba(12, 12, 12, 0.05)' }
+                return (
+                  <div
+                    key={`${spu || 'empty'}-${idx}`}
+                    className="relative flex items-start justify-center w-12 h-16 pt-2 pb-2"
+                    style={{ gap: '10px' }}
+                  >
+                    {book ? (
+                      <div
+                        className="absolute top-2 left-1 w-[48px] h-[48px] rounded-[2px] bg-white overflow-hidden"
+                        style={inactiveShadowStyle}
+                      >
+                        <Image src={book.image} alt={book.name} width={48} height={48} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          aria-label="Remove book"
+                          onClick={() => handleClearSlot(idx)}
+                          className="absolute top-[0px] right-[0px] z-10 w-4 h-4 rounded-tr-[2.67px] rounded-bl-[2.67px] bg-[#000000]/60 text-white flex items-center justify-center hover:bg-[#000000]/80"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 6.5H5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                            <path d="M10 10.5V16.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                            <path d="M14 10.5V16.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                            <path d="M6 6.5H18L17.2 19C17.127 20.0781 16.2329 21 15.1537 21H8.84627C7.7671 21 6.87299 20.0781 6.79999 19L6 6.5Z" stroke="currentColor" strokeWidth="1.6" />
+                            <path d="M9.5 6.5L10.25 4.25C10.5268 3.41605 11.3012 2.875 12.1753 2.875H12.8247C13.6988 2.875 14.4732 3.41605 14.75 4.25L15.5 6.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                          </svg>
+                        </button>
+                      </div>
+                    ) : isActiveSlot ? (
+                      <button
+                        type="button"
+                        onClick={() => handleClearSlot(idx)}
+                        className="absolute top-2 left-1 w-[42px] h-[48px] rounded-[2px] border-[0.5px] border-[#012CCE] bg-white text-[#F0F0F0] flex items-center justify-center text-[30px] leading-[30px]"
+                      >
+                        ?
+                      </button>
+                    ) : (
+                      <div
+                        className="absolute top-2 left-1 w-[42px] h-[48px] rounded-[2px] border-[0.5px] border-gray-200 bg-white text-[#F0F0F0] flex items-center justify-center text-[30px] leading-[30px]"
+                        style={inactiveShadowStyle}
+                      >
+                        ?
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            {/* Finish Button */}
+            <button
+              type="button"
+              onClick={canSubmit ? onClose : undefined}
+              disabled={!canSubmit}
+              className={`w-full px-6 py-3 rounded-[4px] text-[16px] leading-[24px] tracking-[0.5px] ${
+                canSubmit ? 'bg-[#222222] text-[#F5E3E3] hover:bg-[#001E99]' : 'bg-[#C4C4C4] text-white cursor-not-allowed'
+              }`}
+            >
+              I&apos;ve finished choosing
+            </button>
+          </div>
+        </div>
       </div>
 
       {detailBook && (
         <div className="fixed inset-0 z-[60] pointer-events-none">
           <div className="absolute inset-0 bg-black/10 pointer-events-auto" onClick={() => setDetailBook(null)} />
-          <div className="absolute right-0 top-0 h-full w-full md:w-[360px] bg-[#F8F8F8] shadow-2xl border-l border-black/10 pointer-events-auto overflow-hidden">
-            {iframeLoading && (
-              <div className="absolute inset-0 bg-[#F8F8F8] overflow-y-auto z-10">
-                <div className="animate-pulse">
-                  {/* 骨架屏：图片区域 */}
-                  <div className="w-full aspect-[3/4] bg-gray-300" />
-                  
-                  {/* 骨架屏：标题区域 */}
-                  <div className="px-4 pt-6 pb-4 space-y-3 bg-white">
-                    <div className="h-6 bg-gray-300 rounded w-3/4" />
-                    <div className="h-4 bg-gray-300 rounded w-1/2" />
-                  </div>
-                  
-                  {/* 骨架屏：描述区域 */}
-                  <div className="px-4 pb-6 pt-4 space-y-2 bg-white">
-                    <div className="h-4 bg-gray-300 rounded w-full" />
-                    <div className="h-4 bg-gray-300 rounded w-full" />
-                    <div className="h-4 bg-gray-300 rounded w-5/6" />
-                    <div className="h-4 bg-gray-300 rounded w-full" />
-                    <div className="h-4 bg-gray-300 rounded w-4/5" />
+          <div className="absolute right-0 top-36 md:top-0 h-[calc(100%)] md:h-full w-full md:w-[360px] bg-[#F8F8F8] shadow-2xl pointer-events-auto overflow-hidden md:rounded-none flex flex-col">
+            {/* 手机端 Header */}
+            <div className="md:hidden bg-white flex items-center justify-center px-4 h-14 flex-shrink-0 relative">
+              <h2 className="font-medium text-[16px] leading-[24px] tracking-[0.15px] text-center text-[#222222]">
+                {detailBook.name}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setDetailBook(null)}
+                className="absolute right-4 w-8 h-8 flex items-center justify-center text-[#222222] hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Close"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="flex-1 relative overflow-hidden">
+              {iframeLoading && (
+                <div className="absolute inset-0 bg-[#F8F8F8] overflow-y-auto z-10">
+                  <div className="animate-pulse">
+                    {/* 骨架屏：图片区域 */}
+                    <div className="w-full aspect-[3/4] bg-gray-300" />
+                    
+                    {/* 骨架屏：标题区域 */}
+                    <div className="px-4 pt-6 pb-4 space-y-3 bg-white">
+                      <div className="h-6 bg-gray-300 rounded w-3/4" />
+                      <div className="h-4 bg-gray-300 rounded w-1/2" />
+                    </div>
+                    
+                    {/* 骨架屏：描述区域 */}
+                    <div className="px-4 pb-6 pt-4 space-y-2 bg-white">
+                      <div className="h-4 bg-gray-300 rounded w-full" />
+                      <div className="h-4 bg-gray-300 rounded w-full" />
+                      <div className="h-4 bg-gray-300 rounded w-5/6" />
+                      <div className="h-4 bg-gray-300 rounded w-full" />
+                      <div className="h-4 bg-gray-300 rounded w-4/5" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-            <iframe
-              src={`${detailBook.href}${detailBook.href.includes('?') ? '&' : '?'}embed=true`}
-              title={detailBook.name}
-              className={`absolute inset-0 w-full h-full border-0 bg-[#F8F8F8] ${iframeLoading ? 'opacity-0 pointer-events-none' : 'opacity-100'} transition-opacity duration-500`}
-              onLoad={handleIframeLoad}
-            />
+              )}
+              <iframe
+                src={`${detailBook.href}${detailBook.href.includes('?') ? '&' : '?'}embed=true`}
+                title={detailBook.name}
+                className={`absolute inset-0 w-full h-full border-0 bg-[#F8F8F8] ${iframeLoading ? 'opacity-0 pointer-events-none' : 'opacity-100'} transition-opacity duration-500`}
+                onLoad={handleIframeLoad}
+                style={{ display: 'block', overflow: 'auto' }}
+              />
+            </div>
           </div>
         </div>
       )}

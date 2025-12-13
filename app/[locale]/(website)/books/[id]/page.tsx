@@ -119,7 +119,7 @@ const BookDetailPage = () => {
   const [availableLanguages, setAvailableLanguages] = useState<string[]>(['en', 'zh']);
 
   const normalizedId = Array.isArray(id) ? id[0] : String(id || '');
-  
+
   // 检查是否在嵌入模式（用于抽屉显示）
   const isEmbedMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === 'true';
 
@@ -257,21 +257,21 @@ const BookDetailPage = () => {
         />
         {!isEmbedMode && (
           <>
-            <ReviewsSection book={book} keywords={keywords} reviews={reviews} />
-            {/* Book Sections - Dynamically rendered based on book config */}
-            <BookSections book={book} bookId={normalizedId} />
+        <ReviewsSection book={book} keywords={keywords} reviews={reviews} />
+        {/* Book Sections - Dynamically rendered based on book config */}
+        <BookSections book={book} bookId={normalizedId} />
           </>
         )}
       </div>
       {/* 手机端吸底栏 */}
       {!isEmbedMode && (
-        <BookDetailStickyBar
-          book={book}
-          primaryButtonLabel={t('personalizeButton')}
-          primaryButtonHref={`/personalize?bookid=${normalizedId}`}
-          onPrimaryClick={handlePersonalizeClick}
-          selectedLanguage={availableLanguages[0] || 'en'}
-        />
+      <BookDetailStickyBar
+        book={book}
+        primaryButtonLabel={t('personalizeButton')}
+        primaryButtonHref={`/personalize?bookid=${normalizedId}`}
+        onPrimaryClick={handlePersonalizeClick}
+        selectedLanguage={availableLanguages[0] || 'en'}
+      />
       )}
     </>
   );
