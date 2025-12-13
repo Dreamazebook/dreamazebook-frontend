@@ -60,10 +60,10 @@ const TopPickThisMonth = () => {
   };
 
   return (
-    <div className="bg-[#FFF7F9] flex items-center justify-center px-[24px] pb-[64px] md:pt-[120px] md:pb-[88px]">
+    <div className="bg-[#FFF7F9] flex items-center justify-center pt-[135px] px-[24px] pb-[64px] md:pt-[120px] md:pb-[88px]">
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center rounded bg-white p-6">
         <div
-          className="relative w-[237px] md:w-[420px] mx-auto lg:mx-0"
+          className="relative w-[237px] md:w-[420px] mx-auto -mt-[135px] md:mt-auto lg:mx-0"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
@@ -133,12 +133,12 @@ const TopPickThisMonth = () => {
             Top Picks This Month
           </h1>
 
-          <div className="space-y-4">
+          <div className="space-y-[16px]">
             <h2 className="text-[18px] font-semibold text-[#222222]">
               Santa's Letter For You
             </h2>
 
-            <p className="text-[14px] text-[#222222] md:text-[16px] text-[#666666] leading-relaxed">
+            <p className="text-[14px] text-left text-[#222222] md:text-[16px] text-[#666666] leading-relaxed">
               Watch your child's eyes light up as Santa writes directly to them.<br/>
               This story reveals the good deeds, hopes, and holiday magic Santa has
               seen in your little one.<br/>

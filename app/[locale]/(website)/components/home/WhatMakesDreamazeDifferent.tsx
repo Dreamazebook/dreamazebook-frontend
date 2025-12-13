@@ -4,12 +4,12 @@ import Image from "next/image";
 function WhatMakesDreamazeDifferent() {
   const features = [
     {
-      icon: HOME_DIFFERENT('icon_1.webp'),
+      icon: HOME_DIFFERENT('icon_2.webp'),
       title: "Truly Looks Like Your Child",
       description: "real-photo personalization so little ones insanely recognize themselves"
     },
     {
-      icon: HOME_DIFFERENT('icon_2.webp'),
+      icon: HOME_DIFFERENT('icon_1.webp'),
       title: "Hand-Drawn, Award-Level Art",
       description: "Warm, premium illustrations crafted to be cherished for years."
     },
