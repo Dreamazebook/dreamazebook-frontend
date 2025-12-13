@@ -219,3 +219,24 @@ export interface Pickbook {
   is_saleable: boolean;
   choices_type: string;
 }
+
+export const statusLabelMap = {
+  all: 'allOrder',
+  unpaid: 'unpaid',
+  paid: 'paid',
+  pending: 'unpaid',
+  processing: 'digitalProduction',
+  ai_processing: 'digitalProduction',
+  ai_completed: 'digitalProduction',
+  confirmed: 'printProduction',
+  pdf_confirmed: 'printProduction',
+  shipping: 'inTransit',
+  logistics_confirmed: 'inTransit',
+  logistics_shipped: 'inTransit',
+  delivered: 'delivered',
+  completed: 'delivered',
+  logistics_delivered: 'delivered',
+  cancelled: 'closed',
+  refunded: 'closed',
+  closed: 'closed',
+};

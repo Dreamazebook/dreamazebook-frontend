@@ -1,14 +1,12 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Link } from "@/i18n/routing";
 import useUserStore from '@/stores/userStore';
-import DisplayPrice from '../../../components/component/DisplayPrice';
-import { formatAddress } from '@/types/address';
 import OrderHistoryCard from './components/OrderHistoryCard';
 import { useTranslations } from 'next-intl';
+import { statusLabelMap } from '@/types/order';
 
 const OrderHistory = () => {
-  const {orderList, fetchOrderList} = useUserStore();
+  const {orderList, fetchOrderList, orderStatusMapping} = useUserStore();
   const t = useTranslations('orderHistory');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,16 +14,44 @@ const OrderHistory = () => {
 
   const filteredOrders = activeTab === 'all' 
     ? orderList 
-    : orderList.filter(order => order.status === activeTab);
+    : orderList.filter(order => orderStatusMapping?.[order.status] === activeTab);
 
   const tabs = [
-    { id: 'all', label: t('allOrder'), count: orderList.length },
-    { id: 'pending', label: t('unpaid'), count: orderList.filter(order => order.status === 'pending').length },
-    { id: 'processing', label: t('digitalProduction'), count: orderList.filter(order => order.status === 'processing').length },
-    { id: 'confirmed', label: t('printProduction'), count: orderList.filter(order => order.status === 'confirmed').length },
-    { id: 'shipping', label: t('inTransit'), count: orderList.filter(order => order.status === 'shipping').length },
-    { id: 'completed', label: t('delivered'), count: orderList.filter(order => order.status === 'completed').length },
-    { id: 'closed', label: t('closed'), count: orderList.filter(order => order.status === 'closed').length },
+    { 
+      id: 'all', 
+      label: t(statusLabelMap.all), 
+      count: orderList.length 
+    },
+    { 
+      id: 'unpaid', 
+      label: t(statusLabelMap.unpaid), 
+      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'unpaid').length 
+    },
+    { 
+      id: 'processing', 
+      label: t(statusLabelMap.processing), 
+      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'processing').length 
+    },
+    { 
+      id: 'confirmed', 
+      label: t(statusLabelMap.confirmed), 
+      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'confirmed').length 
+    },
+    { 
+      id: 'shipping', 
+      label: t(statusLabelMap.shipping), 
+      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'shipping').length 
+    },
+    { 
+      id: 'completed', 
+      label: t(statusLabelMap.completed), 
+      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'completed').length 
+    },
+    { 
+      id: 'closed', 
+      label: t(statusLabelMap.closed), 
+      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'closed').length 
+    },
   ];
 
   useEffect(() => {

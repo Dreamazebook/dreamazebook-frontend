@@ -1,3 +1,6 @@
+import useUserStore from "@/stores/userStore";
+import { statusLabelMap } from "@/types/order";
+import { useTranslations } from 'next-intl';
 interface OrderStatusLabelProps {
   status: string;
 }
@@ -14,9 +17,13 @@ const getStatusColor = (status: string) => {
   }
 };
 
-const OrderStatusLabel = ({status}:OrderStatusLabelProps) => {  
+const OrderStatusLabel = ({status}:OrderStatusLabelProps) => {
+  const t = useTranslations('orderHistory');
+  const {orderStatusMapping} = useUserStore();
+  const orderStatus = orderStatusMapping[status] || status;
+  console.log(orderStatus);
   return (
-    <span className={`${getStatusColor(status)} px-1 py-0.5 rounded capitalize font-medium`}>{status}</span>
+    <span className={`  px-1 py-0.5 rounded capitalize font-medium`}>{t(statusLabelMap[orderStatus])}</span>
   );
 };
 
