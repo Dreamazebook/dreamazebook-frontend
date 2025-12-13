@@ -45,6 +45,32 @@ export async function OPTIONS() {
   });
 }
 
+const HOP_BY_HOP_REQ_HEADERS = new Set([
+  'connection',
+  'host',
+  'keep-alive',
+  'proxy-authenticate',
+  'proxy-authorization',
+  'te',
+  'trailer',
+  'transfer-encoding',
+  'upgrade',
+  'content-length',
+]);
+
+const HOP_BY_HOP_RES_HEADERS = new Set([
+  'connection',
+  'keep-alive',
+  'proxy-authenticate',
+  'proxy-authorization',
+  'te',
+  'trailer',
+  'transfer-encoding',
+  'upgrade',
+  // 交给 Next/运行时重新计算
+  'content-length',
+]);
+
 async function handleRequest(
   request: NextRequest,
   params: { path: string[] },
@@ -56,57 +82,39 @@ async function handleRequest(
     const queryString = searchParams.toString();
     const url = `${API_BASE_URL}/${path}${queryString ? `?${queryString}` : ''}`;
 
-    // 获取请求头
-    const authHeader = request.headers.get('authorization');
-    const contentType = request.headers.get('content-type');
-    
-    const headers: HeadersInit = {
-      'Accept': 'application/json',
+    // 透传请求头（保留 Accept，NDJSON）
+    const upstreamHeaders = new Headers(request.headers);
+    for (const h of HOP_BY_HOP_REQ_HEADERS) upstreamHeaders.delete(h);
+
+    if (!upstreamHeaders.get('accept')) {
+      upstreamHeaders.set('accept', 'application/json');
+    }
+
+    const init: RequestInit = {
+      method,
+      headers: upstreamHeaders,
     };
 
-    if (authHeader) {
-      headers['Authorization'] = authHeader;
-    }
-
-    if (contentType) {
-      headers['Content-Type'] = contentType;
-    } else if (method !== 'GET' && method !== 'DELETE') {
-      headers['Content-Type'] = 'application/json';
-    }
-
-    // 获取请求体（如果有）
-    let body: string | undefined;
+    // 透传请求体（不要 request.text()/json()，否则会破坏流/大文件）
     if (method !== 'GET' && method !== 'DELETE') {
-      try {
-        body = await request.text();
-      } catch (e) {
-        // 如果没有请求体，忽略错误
-      }
+      // Node fetch 在使用流式 body 时需要 duplex=half（Undici）
+      (init as any).duplex = 'half';
+      init.body = request.body;
     }
 
-    const response = await fetch(url, {
-      method,
-      headers,
-      body: body || undefined,
-    });
+    const upstreamResp = await fetch(url, init);
 
-    // 尝试解析 JSON，如果失败则返回文本
-    let data: any;
-    const contentTypeHeader = response.headers.get('content-type');
-    if (contentTypeHeader?.includes('application/json')) {
-      data = await response.json();
-    } else {
-      data = await response.text();
-    }
+    // 透传响应头 + 加 CORS（不要 NextResponse.json 二次封装，否则 Content-Type/流式都会被破坏）
+    const resHeaders = new Headers(upstreamResp.headers);
+    for (const h of HOP_BY_HOP_RES_HEADERS) resHeaders.delete(h);
 
-    // 返回响应，保持原始状态码
-    return NextResponse.json(data, {
-      status: response.status,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
+    resHeaders.set('Access-Control-Allow-Origin', '*');
+    resHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    resHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    return new NextResponse(upstreamResp.body, {
+      status: upstreamResp.status,
+      headers: resHeaders,
     });
   } catch (error) {
     console.error('API代理错误:', error);

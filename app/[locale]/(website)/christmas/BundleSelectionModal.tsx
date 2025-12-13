@@ -118,8 +118,8 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
           </h1>
         </div>
 
-        <div className="px-6 md:px-10 bg-[#F8F8F8] lg:px-[220px] pt-18 md:pt-6 md:py-10 pb-32 md:pb-10 space-y-6 md:gap-3">
-          <div className="text-center space-y-2">
+        <div className="px-6 md:px-10 bg-[#F8F8F8] lg:px-[220px] pt-18 md:pt-6 md:py-10 pb-32 md:pb-10 gap-3 flex flex-col">
+          <div className="text-center gap-3 md:gap-0 flex flex-col items-center">
             <p className="hidden md:block text-[22px] md:text-[28px] leading-[36px] text-[#222222]">{bundle.title}</p>
             <p className="text-sm md:text-[16px] leading-[24px] tracking-[0.5px] text-[#444444]">
               {bundle.features.filter(Boolean).join(' • ')}
@@ -186,9 +186,9 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
             })}
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 pb-4 md:pb-0">
+          <div className="flex flex-wrap gap-3 md:gap-6 justify-between md:justify-center pb-14 md:pb-8">
             {loading ? (
-              <div className="col-span-2 md:col-span-3 flex items-center justify-center py-12 text-sm text-[#666666]">Loading books…</div>
+              <div className="w-full flex items-center justify-center py-12 text-sm text-[#666666]">Loading books…</div>
             ) : (
               books.map(book => {
                 const disabled = !!book.disabled
@@ -207,18 +207,23 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
                         handleSelect(book.spu, disabled)
                       }
                     }}
-                    className={`relative bg-white overflow-hidden px-4 py-2 md:py-0 md:pb-6 flex flex-col items-center text-center ${
-                      disabled ? 'grayscale opacity-60 cursor-not-allowed' : 'hover:shadow-md transition-shadow cursor-pointer'
+                    className={`flex-none basis-[calc(50%-6px)] md:basis-[calc(33.333%-16px)] rounded-[4px] relative bg-white overflow-hidden px-3 md:px-4 py-3 md:py-0 md:pb-6 flex flex-col items-center text-center ${
+                      disabled ? 'cursor-not-allowed' : 'hover:shadow-md transition-shadow cursor-pointer'
                     }`}
                   >
                     {disabled && (
-                      <span className="absolute left-3 top-3 z-10 rounded-sm bg-white px-2 py-1 text-[11px] font-semibold text-[#012CCE] uppercase">
+                      <span className="absolute right-0 top-0 z-10 rounded-bl-[4px] rounded-tr-[4px] bg-[#012CCE1A] px-2 py-1 text-[12px] md:text-[16px] leading-[24px] tracking-[0.5px] text-[#012CCE] uppercase">
                         sale out
                       </span>
                     )}
                     <div className="relative w-full aspect-[1.1/1] bg-white md:px-8 flex items-end justify-center">
                       <div className="relative w-full h-full overflow-hidden flex items-start justify-center pt-4">
-                        <Image src={book.image} alt={book.name} fill className="object-contain" />
+                        <Image
+                          src={book.image}
+                          alt={book.name}
+                          fill
+                          className={`object-contain transition-opacity ${disabled ? 'opacity-40' : 'opacity-100'}`}
+                        />
                       </div>
                       {selectedTimes > 0 && (
                         <span className="absolute right-3 top-3 rounded-full bg-[#222222] text-white text-xs px-2 py-1">
@@ -258,10 +263,10 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
         </div>
 
         {/* 手机端底部 Bar */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white shadow-lg z-50">
           <div className="px-4 py-3 space-y-3">
             {/* 已选图书 */}
-            <div className="flex flex-wrap items-center justify-center gap-[10px]">
+            <div className="flex flex-wrap items-center gap-6 bg-[#F8F8F8] rounded-[4px] px-3 py-2">
               {selected.map((spu, idx) => {
                 const book = books.find(b => b.spu === spu)
                 const firstEmptyIndex = selected.findIndex(v => !v)
@@ -304,7 +309,7 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
                       </button>
                     ) : (
                       <div
-                        className="absolute top-2 left-1 w-[42px] h-[48px] rounded-[2px] border-[0.5px] border-gray-200 bg-white text-[#F0F0F0] flex items-center justify-center text-[30px] leading-[30px]"
+                        className="absolute top-2 left-1 w-[42px] h-[48px] rounded-[4px] border-[0.5px] border-gray-200 bg-white text-[#F0F0F0] flex items-center justify-center text-[30px] leading-[30px]"
                         style={inactiveShadowStyle}
                       >
                         ?
@@ -330,9 +335,9 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
       </div>
 
       {detailBook && (
-        <div className="fixed inset-0 z-[60] pointer-events-none">
-          <div className="absolute inset-0 bg-black/10 pointer-events-auto" onClick={() => setDetailBook(null)} />
-          <div className="absolute right-0 top-36 md:top-0 h-[calc(100%)] md:h-full w-full md:w-[360px] bg-[#F8F8F8] shadow-2xl pointer-events-auto overflow-hidden md:rounded-none flex flex-col">
+        <div className="fixed inset-0 z-[60]">
+          <div className="absolute inset-0 bg-black/60 pointer-events-auto" onClick={() => setDetailBook(null)} />
+          <div className="absolute right-0 top-26 bottom-0 md:top-0 md:bottom-0 w-full md:w-[360px] bg-[#F8F8F8] shadow-2xl pointer-events-auto overflow-hidden md:rounded-none flex flex-col">
             {/* 手机端 Header */}
             <div className="md:hidden bg-white flex items-center justify-center px-4 h-14 flex-shrink-0 relative">
               <h2 className="font-medium text-[16px] leading-[24px] tracking-[0.15px] text-center text-[#222222]">
@@ -350,7 +355,7 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
               </button>
             </div>
             
-            <div className="flex-1 relative overflow-hidden">
+            <div className="flex-1 relative overflow-y-auto">
               {iframeLoading && (
                 <div className="absolute inset-0 bg-[#F8F8F8] overflow-y-auto z-10">
                   <div className="animate-pulse">
@@ -377,9 +382,9 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
               <iframe
                 src={`${detailBook.href}${detailBook.href.includes('?') ? '&' : '?'}embed=true`}
                 title={detailBook.name}
-                className={`absolute inset-0 w-full h-full border-0 bg-[#F8F8F8] ${iframeLoading ? 'opacity-0 pointer-events-none' : 'opacity-100'} transition-opacity duration-500`}
+                className={`w-full h-full border-0 bg-[#F8F8F8] ${iframeLoading ? 'opacity-0 pointer-events-none' : 'opacity-100'} transition-opacity duration-500`}
                 onLoad={handleIframeLoad}
-                style={{ display: 'block', overflow: 'auto' }}
+                style={{ display: 'block', minHeight: '100%', overflow: 'auto', WebkitOverflowScrolling: 'touch' }}
               />
             </div>
           </div>
