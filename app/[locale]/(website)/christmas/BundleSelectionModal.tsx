@@ -94,16 +94,33 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0" onClick={onClose} />
       <div className="relative w-full h-full overflow-y-auto">
-        <div className="h-14 bg-white flex items-center px-4 sm:px-32">
+        {/* 桌面端 Header */}
+        <div className="hidden md:flex h-14 bg-white items-center px-4 sm:px-32">
           <button className="flex items-center gap-2 text-sm text-[#222222] cursor-pointer" onClick={onClose}>
             <span aria-hidden>←</span> Back
           </button>
           <div className="flex-1" />
         </div>
 
-        <div className="px-6 md:px-10 bg-[#F8F8F8] lg:px-[220px] py-6 md:py-10 pb-32 md:pb-10 space-y-6 md:gap-3">
+        {/* 手机端 Header - 贴顶 */}
+        <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center px-4 z-50">
+          <button 
+            className="w-8 h-8 flex items-center justify-center text-[#222222] cursor-pointer"
+            onClick={onClose}
+            aria-label="Back"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <h1 className="flex-1 text-center font-medium text-[16px] leading-[24px] tracking-[0.15px] text-[#222222] pr-8">
+            {bundle.title}
+          </h1>
+        </div>
+
+        <div className="px-6 md:px-10 bg-[#F8F8F8] lg:px-[220px] pt-18 md:pt-6 md:py-10 pb-32 md:pb-10 space-y-6 md:gap-3">
           <div className="text-center space-y-2">
-            <p className="text-[22px] md:text-[28px] leading-[36px] text-[#222222]">{bundle.title}</p>
+            <p className="hidden md:block text-[22px] md:text-[28px] leading-[36px] text-[#222222]">{bundle.title}</p>
             <p className="text-sm md:text-[16px] leading-[24px] tracking-[0.5px] text-[#444444]">
               {bundle.features.filter(Boolean).join(' • ')}
             </p>
