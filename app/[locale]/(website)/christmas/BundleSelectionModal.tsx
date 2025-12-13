@@ -330,9 +330,9 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
       </div>
 
       {detailBook && (
-        <div className="fixed inset-0 z-[60] pointer-events-none">
+        <div className="fixed inset-0 z-[60]">
           <div className="absolute inset-0 bg-black/10 pointer-events-auto" onClick={() => setDetailBook(null)} />
-          <div className="absolute right-0 top-36 md:top-0 h-[calc(100%)] md:h-full w-full md:w-[360px] bg-[#F8F8F8] shadow-2xl pointer-events-auto overflow-hidden md:rounded-none flex flex-col">
+          <div className="absolute right-0 top-36 bottom-0 md:top-0 md:bottom-0 w-full md:w-[360px] bg-[#F8F8F8] shadow-2xl pointer-events-auto overflow-hidden rounded-t-lg md:rounded-none flex flex-col">
             {/* 手机端 Header */}
             <div className="md:hidden bg-white flex items-center justify-center px-4 h-14 flex-shrink-0 relative">
               <h2 className="font-medium text-[16px] leading-[24px] tracking-[0.15px] text-center text-[#222222]">
@@ -350,7 +350,7 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
               </button>
             </div>
             
-            <div className="flex-1 relative overflow-hidden">
+            <div className="flex-1 relative overflow-y-auto">
               {iframeLoading && (
                 <div className="absolute inset-0 bg-[#F8F8F8] overflow-y-auto z-10">
                   <div className="animate-pulse">
@@ -377,9 +377,9 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
               <iframe
                 src={`${detailBook.href}${detailBook.href.includes('?') ? '&' : '?'}embed=true`}
                 title={detailBook.name}
-                className={`absolute inset-0 w-full h-full border-0 bg-[#F8F8F8] ${iframeLoading ? 'opacity-0 pointer-events-none' : 'opacity-100'} transition-opacity duration-500`}
+                className={`w-full h-full border-0 bg-[#F8F8F8] ${iframeLoading ? 'opacity-0 pointer-events-none' : 'opacity-100'} transition-opacity duration-500`}
                 onLoad={handleIframeLoad}
-                style={{ display: 'block', overflow: 'auto' }}
+                style={{ display: 'block', minHeight: '100%', overflow: 'auto', WebkitOverflowScrolling: 'touch' }}
               />
             </div>
           </div>
