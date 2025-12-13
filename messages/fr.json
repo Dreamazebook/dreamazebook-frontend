@@ -39,7 +39,8 @@
     "logout": "Se déconnecter",
     "goodMorning": "Bonjour,",
     "menu": "Menu",
-    "more": "Plus"
+    "more": "Plus",
+    "admin": "Admin"
   },
   "profilePage": {
     "more": "Plus",

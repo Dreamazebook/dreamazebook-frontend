@@ -49,6 +49,7 @@ type UserType = {
   name?: string
   email: string
   user_type?: string
+  avatar?: string
 }
 
 type LoginData = {
