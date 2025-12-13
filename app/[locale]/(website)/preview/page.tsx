@@ -1009,7 +1009,6 @@ export default function PreviewPageWithTopNav() {
 
   // 仅预填一次个性化产品的封面/装订/礼盒选项
   const hasPrefilledOptionsRef = useRef(false);
-  const hasAutoSetDefaultCoverRef = useRef(false);
   useEffect(() => {
     if (hasPrefilledOptionsRef.current) return;
     if (!bookOptions) return;
@@ -1119,18 +1118,6 @@ export default function PreviewPageWithTopNav() {
       if (!activeOption && bookOptions.cover_options.length > 0) {
         activeOption = bookOptions.cover_options[0];
       }
-      // 自动设置默认封面为selectedBookCover，确保coverTextConfig能正确加载和应用
-      // 使用ref避免重复设置和无限循环
-      if (activeOption && selectedBookCover === null && !hasAutoSetDefaultCoverRef.current) {
-        hasAutoSetDefaultCoverRef.current = true;
-        // 直接设置，不需要setTimeout，因为后续的coverTextConfig加载不依赖于selectedBookCover
-        // 它只依赖于activeOption，而activeOption已经找到了
-        setSelectedBookCover(activeOption.id);
-      }
-    }
-    // 重置ref，允许在bookOptions变化时重新设置
-    if (selectedBookCover !== null) {
-      hasAutoSetDefaultCoverRef.current = false;
     }
     if (!activeOption) return;
 
