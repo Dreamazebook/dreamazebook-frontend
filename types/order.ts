@@ -220,7 +220,7 @@ export interface Pickbook {
   choices_type: string;
 }
 
-export const statusLabelMap = {
+export const statusLabelMap:{[key:string]:string} = {
   all: 'allOrder',
   unpaid: 'unpaid',
   paid: 'paid',
