@@ -17,8 +17,6 @@ export default function LoginModal() {
     login,
     loginAdmin,
     sendResetPasswordLink,
-    postLoginRedirect,
-    setPostLoginRedirect,
     checkKickstarterStatus,
   } = useUserStore();
   const [name, setName] = useState('');
@@ -35,6 +33,12 @@ export default function LoginModal() {
 
   useEffect(() => {
     setErrorMessage('');
+    const urlRedirect = searchParams.get('redirect');
+    
+    // Save URL redirect to localStorage if it exists
+    if (urlRedirect) {
+      localStorage.setItem('redirectUrl', urlRedirect);
+    }
   },[mode]);
 
   const fetchOAuthRedirect = async (provider: string) => {
@@ -71,12 +75,13 @@ export default function LoginModal() {
 
   const handleFacebookLogin = () => startOAuth('facebook', setFacebookLoading);
 
-  const handlePostLoginRedirect = () => {
-    const redirectUrl = searchParams.get('redirect') || postLoginRedirect;
+  const handlePostLoginRedirect = () => {    
     closeLoginModal();
-    setPostLoginRedirect(null);
-    if (redirectUrl) {
-      router.push(redirectUrl);
+    const urlRedirect = localStorage.getItem('redirectUrl');
+    if (urlRedirect) {
+      // Remove the redirect URL from localStorage before redirecting
+      localStorage.removeItem('redirectUrl');
+      router.push(urlRedirect);
     } else {
       router.push('/');
     }
