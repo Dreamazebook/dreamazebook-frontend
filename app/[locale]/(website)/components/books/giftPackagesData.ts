@@ -9,6 +9,7 @@ export interface GiftPackage {
   discount: string;
   extras: string;
   image: string;
+  width?: number;
 }
 
 // Gift Packages Section 配置接口
@@ -39,6 +40,7 @@ export const DEFAULT_GIFT_PACKAGES_CONFIG: GiftPackagesConfig = {
       description: 'Perfect for siblings or friends',
       discount: '10%',
       extras: 'holiday extras',
+      width: 148,
       image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/ready_to_gift_packages/pic_1.webp'
     },
     {
@@ -48,6 +50,7 @@ export const DEFAULT_GIFT_PACKAGES_CONFIG: GiftPackagesConfig = {
       description: 'One story for each child to feel seen',
       discount: '15%',
       extras: 'free personalized cover',
+      width: 148,
       image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/ready_to_gift_packages/pic_2.webp'
     },
     {
@@ -57,6 +60,7 @@ export const DEFAULT_GIFT_PACKAGES_CONFIG: GiftPackagesConfig = {
       description: 'A joyful gift for holiday gatherings.',
       discount: '20%',
       extras: 'premium festive wrapping',
+      width: 160,
       image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/ready_to_gift_packages/pic_3.webp'
     }
   ]

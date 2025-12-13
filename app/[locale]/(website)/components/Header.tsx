@@ -94,7 +94,7 @@ const Header = () => {
       </div>
       
       {/* Desktop Navigation */}
-      <nav className="hidden md:flex space-x-4">
+      <nav className="hidden md:flex space-x-12">
         {menuItems.map((item) => (
           <Link 
             key={item.href}
@@ -211,7 +211,7 @@ const Header = () => {
           </>
         )}
       </AnimatePresence>
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-6">
         {/* Search icon next to cart, opens books page and reveals search */}
         <div className="relative group">
           <Image src={'/header/language.svg'} alt="language" width={48} height={24} className="cursor-pointer" />

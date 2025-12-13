@@ -90,7 +90,7 @@ export default function SlideShow() {
               } as React.CSSProperties}
             />
             
-            <div className="absolute inset-0 flex z-10 w-full">
+            <div className="absolute inset-0 flex z-10 max-w-5xl mx-auto">
               <div className={`slide-content flex flex-col justify-end md:justify-center p-6 ${slide.color}`}>
                 <h1 className="text-[36px] md:text-[64px] font-bold leading-tight">
                   {slide.title.map((line, i) => (
@@ -101,7 +101,7 @@ export default function SlideShow() {
                   ))}
                 </h1>
                 <p className="text-[16px] text-[#333333]">{slide.description}</p>
-                <Link href={BOOKS_URL} className={`mt-5 md:mt-30 w-full md:w-[180px] inline-flex justify-center md:justify-between items-center bg-[#222222] gap-2 text-[16px] text-white px-4   py-3 rounded hover:gap-4 transition-all duration-300 group`}>
+                <Link href={BOOKS_URL} className={`mt-5 md:mt-30 w-full md:w-[160px] inline-flex justify-center md:justify-between items-center bg-[#222222] gap-2 text-[16px] text-white px-4   py-3 rounded hover:gap-4 transition-all duration-300 group`}>
                   {slide.buttonText}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>

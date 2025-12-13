@@ -1,6 +1,6 @@
 'use client';
 
-import { FaFacebookF, FaTwitter, FaInstagram } from 'react-icons/fa';
+import { FaFacebookF, FaInstagram } from 'react-icons/fa';
 import Image from 'next/image';
 import { Link, usePathname } from '@/i18n/routing';
 import { CONTACT_US_URL } from '@/constants/links';
@@ -44,11 +44,11 @@ const Footer = () => {
   
   const renderMenuSection = (menu: typeof footerMenus[0]) => (
     <div key={menu.title}>
-      <h3 className="text-xl font-semibold mb-4 lg:mb-6">{menu.title}</h3>
+      <h3 className="text-[16px] font-medium mb-4 lg:mb-6">{menu.title}</h3>
       <ul className="space-y-3 lg:space-y-4">
         {menu.items.map((item) => (
           <li key={item.label}>
-            <Link href={item.href} className="text-gray-300 hover:text-white transition-colors duration-200">
+            <Link href={item.href} className="text-[#FFFFFF99] text-[14px] hover:text-white transition-colors duration-200">
               {item.label}
             </Link>
           </li>
@@ -63,7 +63,7 @@ const Footer = () => {
         <a
           key={label}
           href={href}
-          className="bg-gray-600 p-3 rounded-lg hover:bg-gray-500 transition-colors duration-200"
+          className="rounded hover:bg-gray-500 cursor-pointer transition-colors duration-200"
           aria-label={label}
         >
           <Icon className="w-5 h-5 lg:w-6 lg:h-6" />
@@ -75,31 +75,18 @@ const Footer = () => {
   return (
     <footer className={`${isChristmasPage ? '' : 'bg-neutral-800'} text-white py-12 px-6`} style={bgColor ? { backgroundColor: bgColor } : undefined}>
       <div className="max-w-7xl mx-auto">
-        {/* Mobile Layout */}
-        <div className="block lg:hidden">
-          {/* Logo and Social Icons */}
-          <div className="flex flex-col items-center mb-8">
-            <Image src="/logo-white.png" alt="logo" width={124} height={48} />
-            {renderSocialLinks()}
-          </div>
-
-          {/* Footer Links */}
-          <div className="space-y-8">
-            {footerMenus.map(renderMenuSection)}
-          </div>
-        </div>
-
-        {/* Desktop Layout */}
-        <div className="hidden lg:block">
-          <div className="grid grid-cols-12 gap-8">
-            {/* Footer Links - Left Side */}
-            <div className="col-span-8 grid grid-cols-3 gap-12">
+        <div className="flex flex-col md:flex-row md:justify-between gap-8">
+          {/* Footer Links - Responsive Layout */}
+          <div className="">
+            <div className="grid grid-cols-3 gap-3 lg:gap-12">
               {footerMenus.map(renderMenuSection)}
             </div>
+          </div>
 
-            {/* Logo and Social Icons - Right Side */}
-            <div className="col-span-4 flex flex-col items-end">
-              <Image src="/logo-white.png" alt="logo" width={124} height={48} />
+          {/* Logo and Social Icons - Responsive Layout */}
+          <div className={`flex items-center lg:flex-col lg:items-end order-1 lg:order-2 gap-5 lg:gap-0`}>
+            <img src="/logo-white.png" alt="logo" width={124} height={48} />
+            <div className="ml-auto lg:ml-0 lg:mt-4">
               {renderSocialLinks()}
             </div>
           </div>
