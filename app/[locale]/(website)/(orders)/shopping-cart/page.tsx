@@ -116,6 +116,8 @@ export default function ShoppingCartPage() {
         quantity: Math.max(1, (cartItems.find(item => item.id === id)?.quantity || 1) + delta)
       });
 
+      calculateCost();
+
       if (!success) {
         // 如果API失败，回滚本地状态
         setCartItems(data.items || data.cart_item);
@@ -194,6 +196,7 @@ export default function ShoppingCartPage() {
 
   const [appliedCoupon, setAppliedCoupon] = useState('');
   const [calculatedCost, setCalculatedCost] = useState<any>(null);
+  const [calculatingCost, setCalculatingCost] = useState(false);
 
   // Calculate cost based on API response or fallback to local calculation
   const subtotal = calculatedCost?.original_subtotal || 0;
@@ -202,29 +205,32 @@ export default function ShoppingCartPage() {
   const discountAmount = discountInfo?.applicable ? (discountInfo.amount || 0) : 0;
   const total = calculatedCost?.total_amount || 0;
 
+  const calculateCost = async () => {
+    if (selectedItems.length === 0) {
+      setCalculatedCost(null);
+      return;
+    }
+
+    setCalculatingCost(true);
+    try {
+      const { data, success, message } = await api.post<ApiResponse>(API_CART_CALCULATE_COST, {
+        cart_item_ids: selectedItems
+      });
+
+      if (success && data) {
+        setCalculatedCost(data);
+      } else {
+        alert(message);
+      }
+    } catch (err:any) {
+      alert(err.toString());
+      setCalculatedCost(null);
+    } finally {
+      setCalculatingCost(false);
+    }
+  };
   // Call API_CART_CALCULATE_COST whenever selectedItems changes
   useEffect(() => {
-    const calculateCost = async () => {
-      if (selectedItems.length === 0) {
-        setCalculatedCost(null);
-        return;
-      }
-
-      try {
-        const { data, success, message } = await api.post<ApiResponse>(API_CART_CALCULATE_COST, {
-          cart_item_ids: selectedItems
-        });
-
-        if (success && data) {
-          setCalculatedCost(data);
-        } else {
-          alert(message);
-        }
-      } catch (err:any) {
-        alert(err.toString());
-        setCalculatedCost(null);
-      }
-    };
 
     calculateCost();
   }, [selectedItems]);
@@ -357,36 +363,55 @@ export default function ShoppingCartPage() {
               )}
 
               <div className="space-y-3 border-t border-gray-200 pt-4">
-                <div className="flex justify-between">
-                  <p className="text-gray-600">{t('subtotal')} ({selectedItems.length} {t('items')})</p>
-                  <p>${subtotal.toFixed(2)}</p>
-                </div>
-                <div className="flex justify-between">
-                  <p className="text-gray-600">{t('shipping')}</p>
-                  <p>${shipping.toFixed(2)}</p>
-                </div>
-                {discountInfo?.applicable && discountAmount > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-[#abd29b]">
-                      <div>
-                        <p>{t('multiBookDiscount')}</p>
-                        {/* {discountInfo.description && (
-                          <p className="text-xs text-[#abd29b]">{discountInfo.description}</p>
-                        )} */}
-                      </div>
-                      <div className="text-right">
-                        <p>-${discountAmount.toFixed(2)} ({discountInfo.percentage}%)</p>
-                        {/* {discountInfo.percentage && (
-                          <p className="text-xs text-[#abd29b]">-{discountInfo.percentage}%</p>
-                        )} */}
-                      </div>
+                {calculatingCost ? (
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                    </div>
+                    <div className="border-t border-gray-200 pt-3 flex justify-between">
+                      <div className="h-5 bg-gray-200 rounded w-12 animate-pulse"></div>
+                      <div className="h-5 bg-gray-200 rounded w-16 animate-pulse"></div>
                     </div>
                   </div>
+                ) : (
+                  <>
+                    <div className="flex justify-between">
+                      <p className="text-gray-600">{t('subtotal')} ({selectedItems.length} {t('items')})</p>
+                      <p>${subtotal.toFixed(2)}</p>
+                    </div>
+                    <div className="flex justify-between">
+                      <p className="text-gray-600">{t('shipping')}</p>
+                      <p>${shipping.toFixed(2)}</p>
+                    </div>
+                    {discountInfo?.applicable && discountAmount > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-[#abd29b]">
+                          <div>
+                            <p>{t('multiBookDiscount')}</p>
+                            {/* {discountInfo.description && (
+                              <p className="text-xs text-[#abd29b]">{discountInfo.description}</p>
+                            )} */}
+                          </div>
+                          <div className="text-right">
+                            <p>-${discountAmount.toFixed(2)} ({discountInfo.percentage}%)</p>
+                            {/* {discountInfo.percentage && (
+                              <p className="text-xs text-[#abd29b]">-{discountInfo.percentage}%</p>
+                            )} */}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div className="border-t border-gray-200 pt-3 flex justify-between">
+                      <p>{t('total')}</p>
+                      <p className='font-bold'>${total.toFixed(2)}</p>
+                    </div>
+                  </>
                 )}
-                <div className="border-t border-gray-200 pt-3 flex justify-between">
-                  <p>{t('total')}</p>
-                  <p className='font-bold'>${total.toFixed(2)}</p>
-                </div>
               </div>
 
               <div className="space-y-2">
@@ -458,7 +483,11 @@ export default function ShoppingCartPage() {
                 onClick={() => setMobileSummaryOpen(true)}
                 className="flex items-center gap-2"
               >
-                <span className="font-md text-lg">${total.toFixed(2)}</span>
+                {calculatingCost ? (
+                  <div className="h-5 bg-gray-200 rounded w-16 animate-pulse"></div>
+                ) : (
+                  <span className="font-md text-lg">${total.toFixed(2)}</span>
+                )}
                 <svg className={`w-5 h-5 transition-transform`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
@@ -513,26 +542,45 @@ export default function ShoppingCartPage() {
               </div>
 
               <div className="space-y-3 text-[#666666]">
-                <div className="flex justify-between">
-                  <p className="text-[#666666]">{t('subtotal')} ({selectedItems.length} {t('items')})</p>
-                  <p>${subtotal.toFixed(2)}</p>
-                </div>
-                <div className="flex justify-between">
-                  <p className="text-[#666666]">{t('shipping')}</p>
-                  <p>${shipping.toFixed(2)}</p>
-                </div>
-                {discount > 0 && (
-                  <div className="flex justify-between text-[#666666]">
-                    <p>{t('discount')}</p>
-                    <p>-${discount.toFixed(2)}</p>
+                {calculatingCost ? (
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                    </div>
                   </div>
+                ) : (
+                  <>
+                    <div className="flex justify-between">
+                      <p className="text-[#666666]">{t('subtotal')} ({selectedItems.length} {t('items')})</p>
+                      <p>${subtotal.toFixed(2)}</p>
+                    </div>
+                    <div className="flex justify-between">
+                      <p className="text-[#666666]">{t('shipping')}</p>
+                      <p>${shipping.toFixed(2)}</p>
+                    </div>
+                    {discount > 0 && (
+                      <div className="flex justify-between text-[#666666]">
+                        <p>{t('discount')}</p>
+                        <p>-${discount.toFixed(2)}</p>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 
               <div className="border-t border-[#E5E5E5] pt-3 flex items-center justify-between mb-6">
                 <p className='font-normal'>{t('total')}</p>
                 <div className="flex items-center gap-2">
-                  <p className='font-md text-lg'>${total.toFixed(2)}</p>
+                  {calculatingCost ? (
+                    <div className="h-5 bg-gray-200 rounded w-16 animate-pulse"></div>
+                  ) : (
+                    <p className='font-md text-lg'>${total.toFixed(2)}</p>
+                  )}
                   <button aria-label="toggle-summary" onClick={() => setMobileSummaryOpen(false)} className="p-1">
                     <svg className={`w-5 h-5 transition-transform rotate-180`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="6 9 12 15 18 9"></polyline>

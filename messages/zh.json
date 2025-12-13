@@ -51,6 +51,7 @@
   "orderHistory": {
     "title": "订单历史",
     "allOrder": "全部订单",
+    "unpaid": "未付款",
     "paid": "已付款",
     "digitalProduction": "数字制作",
     "printProduction": "印刷制作",

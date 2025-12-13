@@ -51,6 +51,7 @@
   "orderHistory": {
     "title": "Historique des commandes",
     "allOrder": "Toutes les commandes",
+    "unpaid": "Non payé",
     "paid": "Payé",
     "digitalProduction": "Production numérique",
     "printProduction": "Production d'impression",
