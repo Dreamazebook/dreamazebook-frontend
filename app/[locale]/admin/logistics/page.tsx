@@ -3,7 +3,7 @@
 import { FC, useEffect, useState } from 'react';
 import Head from 'next/head';
 import api from '@/utils/api';
-import { API_ADMIN_LOGSTICS, API_ADMIN_LOGSTIC_COMFIRM, API_ADMIN_LOGSTIC_PRINT_PICKUP_ORDER, API_ADMIN_LOGSTIC_DETAIL_PRINT_LABEL } from '@/constants/api';
+import { API_ADMIN_LOGSTICS, API_ADMIN_LOGSTIC_COMFIRM, API_ADMIN_LOGSTIC_DETAIL_PRINT_LABEL, API_ADMIN_LOGSTIC_RESCHEDULE_PICKUP } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
 import { LogisticsOrder } from '@/types/logistics';
 
@@ -15,12 +15,14 @@ const LogisticsPage: FC = () => {
   const [confirmingOrderId, setConfirmingOrderId] = useState<number | null>(null);
   const [printingLabelOrderId, setPrintingLabelOrderId] = useState<number | null>(null);
   const [printingBookletOrderId, setPrintingBookletOrderId] = useState<number | null>(null);
-  const [selectedOrderIds, setSelectedOrderIds] = useState<number[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string>('');
 
   const handleCreate4PXOrder = async (orderId: number) => {
     setCreatingOrderId(orderId);
     try {
-      const response = await api.post<ApiResponse<any>>(`/admin/logistics/${orderId}/create-4px-order`);
+      const response = await api.post<ApiResponse<any>>(API_ADMIN_LOGSTIC_RESCHEDULE_PICKUP(orderId), {
+        reserve_time: selectedDate
+      });
       if (response.success) {
         // Refresh the logistics data to update the status
         const { data, success } = await api.get<ApiResponse<LogisticsOrder[]>>(API_ADMIN_LOGSTICS);
@@ -28,11 +30,11 @@ const LogisticsPage: FC = () => {
           setLogisticsData(data);
         }
       } else {
-        setError((response as any).message || 'Failed to create 4PX order');
+        setError((response as any).message || 'Failed to reschedule pickup');
       }
     } catch (err:any) {
-      console.error('Error creating 4PX order:', err);
-      setError(err?.response?.data?.message || 'Failed to create 4PX order');
+      console.error('Error rescheduling pickup:', err);
+      setError(err?.response?.data?.message || 'Failed to reschedule pickup');
     } finally {
       setCreatingOrderId(null);
     }
@@ -163,7 +165,6 @@ const LogisticsPage: FC = () => {
                     logistics_status,
                     logistics_request_no,
                     has_logistics,
-                    can_create_logistics,
                     created_at
                   } = item;
 
@@ -221,13 +222,29 @@ const LogisticsPage: FC = () => {
                             </button>
                           )}
                           {logistics_request_no && (
-                            <button
-                              onClick={() => handleCreate4PXOrder(id)}
-                              disabled={isCreating}
-                              className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
-                            >
-                              {isCreating ? '创建中...' : '创建揽件时间'}
-                            </button>
+                            <div className="flex flex-col gap-2">
+                              {item.pickup_reserve_time && (
+                                <div className="text-xs text-blue-600">
+                                  当前揽件时间: {new Date(item.pickup_reserve_time).toLocaleString()}
+                                </div>
+                              )}
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="datetime-local"
+                                  value={selectedDate}
+                                  onChange={(e) => setSelectedDate(e.target.value)}
+                                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  disabled={isCreating}
+                                />
+                                <button
+                                  onClick={() => selectedDate && handleCreate4PXOrder(id)}
+                                  disabled={isCreating || !selectedDate}
+                                  className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
+                                >
+                                  {isCreating ? '设置中...' : '重新安排'}
+                                </button>
+                              </div>
+                            </div>
                           )}
                         </div>
                       </td>

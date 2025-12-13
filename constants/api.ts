@@ -61,6 +61,7 @@ export const API_ADMIN_LOGSTIC_DETAIL = (id: string | number) => `${API_ADMIN_LO
 export const API_ADMIN_LOGSTIC_DETAIL_PRINT_LABEL = (id: string | number) =>`${API_ADMIN_LOGSTIC_DETAIL(id)}/print-label`
 export const API_ADMIN_LOGSTIC_COMFIRM = `${API_ADMIN_LOGSTICS}/confirm`;
 export const API_ADMIN_LOGSTIC_PRINT_PICKUP_ORDER = `${API_ADMIN_LOGSTICS}/print-pickup-order`;
+export const API_ADMIN_LOGSTIC_RESCHEDULE_PICKUP = (id:string|number) => `${API_ADMIN_LOGSTIC_DETAIL(id)}/reschedule-pickup`;
 
 export const API_ADMIN_PICBOOKS = '/admin/picbooks'
 export const API_ADMIN_PICBOOK_DETAIL = (id: string | number) => `${API_ADMIN_PICBOOKS}/${id}`
