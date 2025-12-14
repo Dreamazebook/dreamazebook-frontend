@@ -1,54 +1,68 @@
-'use client';
+"use client";
 
-import { FaFacebookF, FaInstagram } from 'react-icons/fa';
-import Image from 'next/image';
-import { Link, usePathname } from '@/i18n/routing';
-import { CONTACT_US_URL } from '@/constants/links';
+import { FaFacebookF, FaInstagram } from "react-icons/fa";
+import Image from "next/image";
+import { Link, usePathname } from "@/i18n/routing";
+import { CONTACT_US_URL } from "@/constants/links";
 
 const footerMenus = [
   {
-    title: 'Help & Support',
+    title: "Help & Support",
     items: [
-      { label: 'Contact Us', href: CONTACT_US_URL },
-      { label: 'FAQ', href: '/faq' },
-      { label: 'Delivery Information', href: '/delivery-information' },
+      { label: "Contact Us", href: CONTACT_US_URL },
+      { label: "FAQ", href: "/faq" },
+      { label: "Delivery Information", href: "/delivery-information" },
     ],
   },
   {
-    title: 'Legal & Policies',
+    title: "Legal & Policies",
     items: [
-      { label: 'Return Policy', href: '/return-policy' },
-      { label: 'Privacy Policy', href: '/privacy-policy' },
-      { label: 'Terms & Conditions', href: '/terms-and-conditions' },
+      { label: "Return Policy", href: "/return-policy" },
+      { label: "Privacy Policy", href: "/privacy-policy" },
+      { label: "Terms & Conditions", href: "/terms-and-conditions" },
     ],
   },
   {
-    title: 'Dreamaze',
+    title: "Dreamaze",
     items: [
-      { label: 'About Us', href: '/about-us' },
-      { label: 'Create With Us', href: '/survey' },
+      { label: "About Us", href: "/about-us" },
+      { label: "Create With Us", href: "/survey" },
     ],
   },
 ];
 
 const socialLinks = [
-  { icon: FaInstagram, label: 'Instagram', href: 'https://www.instagram.com/dreamaze.book/?hl=en' },
-  { icon: FaFacebookF, label: 'Facebook', href: 'https://www.facebook.com/dreamazebook/' },
+  {
+    icon: FaInstagram,
+    label: "Instagram",
+    href: "https://www.instagram.com/dreamaze.book/?hl=en",
+  },
+  {
+    icon: FaFacebookF,
+    label: "Facebook",
+    href: "https://www.facebook.com/dreamazebook/",
+  },
   // { icon: FaTwitter, label: 'Twitter', href: '#' },
 ];
 
 const Footer = () => {
   const pathname = usePathname();
-  const isChristmasPage = pathname === '/christmas' || pathname?.endsWith('/christmas') || pathname?.includes('/christmas');
-  const bgColor = isChristmasPage ? '#2F491F' : undefined;
-  
-  const renderMenuSection = (menu: typeof footerMenus[0]) => (
+  const isChristmasPage =
+    pathname === "/christmas" ||
+    pathname?.endsWith("/christmas") ||
+    pathname?.includes("/christmas");
+  const bgColor = isChristmasPage ? "#2F491F" : undefined;
+
+  const renderMenuSection = (menu: (typeof footerMenus)[0]) => (
     <div key={menu.title}>
       <h3 className="text-[16px] font-medium mb-4 lg:mb-6">{menu.title}</h3>
-      <ul className="space-y-3 lg:space-y-4">
+      <ul className="space-y-[4px] lg:space-y-[4px]">
         {menu.items.map((item) => (
           <li key={item.label}>
-            <Link href={item.href} className="text-[#FFFFFF99] text-[14px] hover:text-white transition-colors duration-200">
+            <Link
+              href={item.href}
+              className="text-[#FFFFFF99] text-[14px] hover:text-white transition-colors duration-200"
+            >
               {item.label}
             </Link>
           </li>
@@ -73,9 +87,14 @@ const Footer = () => {
   );
 
   return (
-    <footer className={`${isChristmasPage ? '' : 'bg-neutral-800'} text-white py-12 px-6`} style={bgColor ? { backgroundColor: bgColor } : undefined}>
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:justify-between gap-8">
+    <footer
+      className={`${
+        isChristmasPage ? "" : "bg-neutral-800"
+      } text-white py-[32px] px-[24px] md:py-[64px]`}
+      style={bgColor ? { backgroundColor: bgColor } : undefined}
+    >
+      <div className="max-w-[1200px] mx-auto">
+        <div className="flex flex-col-reverse md:flex-row md:justify-between gap-[24px]">
           {/* Footer Links - Responsive Layout */}
           <div className="">
             <div className="grid grid-cols-3 gap-3 lg:gap-12">
@@ -84,11 +103,15 @@ const Footer = () => {
           </div>
 
           {/* Logo and Social Icons - Responsive Layout */}
-          <div className={`flex items-center lg:flex-col lg:items-end order-1 lg:order-2 gap-5 lg:gap-0`}>
-            <img src="/logo-white.png" alt="logo" width={124} height={48} />
-            <div className="ml-auto lg:ml-0 lg:mt-4">
-              {renderSocialLinks()}
-            </div>
+          <div
+            className={`flex items-center lg:flex-col lg:justify-between order-1 lg:order-2 gap-5 lg:gap-0`}
+          >
+            <img
+              src="/images/common/logo-footer.png"
+              alt="logo"
+              className="w-[124px] h-[48px] -ml-[6px] md:ml-0"
+            />
+            <div className="ml-auto lg:ml-0 lg:mt-4">{renderSocialLinks()}</div>
           </div>
         </div>
       </div>
