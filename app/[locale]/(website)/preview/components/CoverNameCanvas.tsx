@@ -181,12 +181,17 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
         if (!name.trim()) return;
         if (!Array.isArray(texts) || texts.length === 0) return;
 
+        // 规则：名字超过 10 个字符时，字号稍微缩小一点点
+        // 用 Array.from 兼容 emoji/代理对的长度计算
+        const nameCharCount = Array.from(name.trim()).length;
+        const fontScale = nameCharCount > 10 ? 0.92 : 1;
+
         // 确保涉及到的字体在绘制前已加载（否则 Canvas 会先用 fallback 字体渲染）
         const dynamicTexts = texts.filter((t) => t && t.type === 'dynamic');
         await Promise.all(
           dynamicTexts.map((t) => {
             const rawSize = typeof t.fontSize === 'number' ? t.fontSize : 70;
-            const fontSizePx = rawSize * (300 / 72);
+            const fontSizePx = rawSize * (300 / 72) * fontScale;
             const fontWeight = normalizeFontWeight(t.fontWeight);
             return ensureFontReady(t.font, fontWeight, fontSizePx);
           }),
@@ -204,7 +209,7 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
           // page_properties 中的 fontSize 按 300dpi 下的 pt 存储，这里换算为像素：
           // px = pt * 300 / 72
           const rawSize = typeof t.fontSize === 'number' ? t.fontSize : 70;
-          const fontSizePx = rawSize * (300 / 72);
+          const fontSizePx = rawSize * (300 / 72) * fontScale;
           const fontFamily = resolveFontFamily(t.font);
           const fontWeight = normalizeFontWeight(t.fontWeight);
           ctx.font = `${fontWeight} ${fontSizePx}px ${fontFamily}`;
