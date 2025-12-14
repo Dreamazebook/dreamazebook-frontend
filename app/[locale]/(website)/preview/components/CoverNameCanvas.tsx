@@ -46,11 +46,30 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
         .toLowerCase()
         .replace(/[\s_-]/g, '');
 
-    const fontRegistry: Record<string, { family: string; url: string }> = {
-      batamy: { family: 'Batamy', url: '/fonts/Batamy-Regular.ttf' },
-      caslonantique: { family: 'Caslon Antique', url: '/fonts/CaslonAntique-Regular.ttf' },
-      notosanssc: { family: 'Noto Sans SC', url: '/fonts/NotoSansSC-Regular.ttf' },
-      alittlemonster: { family: 'ALittleMonster', url: '/fonts/ALittleMonster.ttf' },
+    const normalizeFontWeight = (rawWeight?: string) => {
+      const w = String(rawWeight || '').trim().toLowerCase();
+      // 兼容 JSON 中可能出现的 'Bold' / '700'
+      if (w === 'bold' || w === '700' || w === '800' || w === '900') return 'bold';
+      return 'normal';
+    };
+
+    type KnownFont = {
+      family: string;
+      urls: {
+        normal: string;
+        bold?: string;
+      };
+    };
+
+    const fontRegistry: Record<string, KnownFont> = {
+      batamy: { family: 'Batamy', urls: { normal: '/fonts/Batamy-Regular.ttf' } },
+      // 注意：Caslon Antique 有独立 Bold 文件，需要按 weight 选择 url
+      caslonantique: {
+        family: 'Caslon Antique',
+        urls: { normal: '/fonts/CaslonAntique-Regular.ttf', bold: '/fonts/CaslonAntique-Bold.ttf' },
+      },
+      notosanssc: { family: 'Noto Sans SC', urls: { normal: '/fonts/NotoSansSC-Regular.ttf' } },
+      alittlemonster: { family: 'ALittleMonster', urls: { normal: '/fonts/ALittleMonster.ttf' } },
     };
 
     const resolveFontInfo = (rawFont?: string) => {
@@ -83,11 +102,15 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
 
         const known = resolveFontInfo(rawFont);
         if (known && typeof (window as any).FontFace === 'function') {
+          const url =
+            weight === 'bold' && known.urls.bold
+              ? known.urls.bold
+              : known.urls.normal;
           // 如果还未注册该 family，则用 FontFace 主动注册并加载
           const exists = fontsAny.check?.(`${weight} ${Math.max(1, Math.floor(sizePx))}px "${known.family}"`);
           if (!exists) {
             try {
-              const ff = new (window as any).FontFace(known.family, `url(${known.url})`, { weight });
+              const ff = new (window as any).FontFace(known.family, `url(${url})`, { weight });
               const loaded = await Promise.race([
                 ff.load(),
                 new Promise((_, reject) => setTimeout(() => reject(new Error('font load timeout')), 1500)),
@@ -158,13 +181,18 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
         if (!name.trim()) return;
         if (!Array.isArray(texts) || texts.length === 0) return;
 
+        // 规则：名字超过 10 个字符时，字号稍微缩小一点点
+        // 用 Array.from 兼容 emoji/代理对的长度计算
+        const nameCharCount = Array.from(name.trim()).length;
+        const fontScale = nameCharCount > 10 ? 0.92 : 1;
+
         // 确保涉及到的字体在绘制前已加载（否则 Canvas 会先用 fallback 字体渲染）
         const dynamicTexts = texts.filter((t) => t && t.type === 'dynamic');
         await Promise.all(
           dynamicTexts.map((t) => {
             const rawSize = typeof t.fontSize === 'number' ? t.fontSize : 70;
-            const fontSizePx = rawSize * (300 / 72);
-            const fontWeight = t.fontWeight === 'bold' ? 'bold' : 'normal';
+            const fontSizePx = rawSize * (300 / 72) * fontScale;
+            const fontWeight = normalizeFontWeight(t.fontWeight);
             return ensureFontReady(t.font, fontWeight, fontSizePx);
           }),
         );
@@ -181,9 +209,9 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
           // page_properties 中的 fontSize 按 300dpi 下的 pt 存储，这里换算为像素：
           // px = pt * 300 / 72
           const rawSize = typeof t.fontSize === 'number' ? t.fontSize : 70;
-          const fontSizePx = rawSize * (300 / 72);
+          const fontSizePx = rawSize * (300 / 72) * fontScale;
           const fontFamily = resolveFontFamily(t.font);
-          const fontWeight = t.fontWeight === 'bold' ? 'bold' : 'normal';
+          const fontWeight = normalizeFontWeight(t.fontWeight);
           ctx.font = `${fontWeight} ${fontSizePx}px ${fontFamily}`;
 
           const alignment = (t.alignment || 'left').toLowerCase();
