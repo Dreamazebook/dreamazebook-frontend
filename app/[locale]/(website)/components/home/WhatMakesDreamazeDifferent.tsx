@@ -27,7 +27,7 @@ function WhatMakesDreamazeDifferent() {
 
   return (
     <div className="bg-white py-[64px] px-[24px] md:py-[88px]">
-      <div className="max-w-4xl mx-auto space-y-[24px] md:space-y-[48px]">
+      <div className="max-w-[1000px] mx-auto space-y-[24px] md:space-y-[48px]">
         <h1 className="text-[24px] md:text-[40px] font-medium text-center leading-tight text-gray-900">
           What Makes Dreamaze Different
         </h1>

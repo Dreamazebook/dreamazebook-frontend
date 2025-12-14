@@ -90,7 +90,7 @@ export default function SlideShow() {
               } as React.CSSProperties}
             />
             
-            <div className="absolute inset-0 flex z-10 max-w-5xl mx-auto">
+            <div className="absolute inset-0 flex z-10 max-w-[1200px] mx-auto">
               <div className={`slide-content flex flex-col justify-end md:justify-center p-[24px] ${slide.color}`}>
                 <h1 className="text-[36px] md:text-[64px] font-bold leading-tight">
                   {slide.title.map((line, i) => (

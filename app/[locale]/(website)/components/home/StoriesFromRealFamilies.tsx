@@ -152,7 +152,7 @@ export default function StoriesFromRealFamilies() {
 
   return (
     <div className="bg-white py-[64px] md:py-[88px] px-[24px]">
-      <div className="max-w-[1680px] mx-auto">
+      <div className="max-w-[1200px] mx-auto">
         <div className="text-center mb-12 lg:mb-16">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 lg:mb-4">
             Stories from Real Families

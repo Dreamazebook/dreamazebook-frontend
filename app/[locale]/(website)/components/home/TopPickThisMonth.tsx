@@ -67,7 +67,7 @@ const TopPickThisMonth = () => {
 
   return (
     <div className="bg-[#FFF7F9] flex items-center justify-center pt-[135px] px-[24px] pb-[64px] md:pt-[120px] md:pb-[88px]">
-      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center rounded bg-white p-6">
+      <div className="max-w-[1200px] w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center rounded bg-white p-6">
         <div
           className="relative w-[237px] md:w-[420px] mx-auto -mt-[135px] md:mt-auto lg:mx-0"
           onMouseEnter={handleMouseEnter}

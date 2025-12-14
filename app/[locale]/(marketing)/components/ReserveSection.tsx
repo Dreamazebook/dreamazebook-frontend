@@ -25,7 +25,7 @@ export default function ReserveSection({title,desc,style,cssClass,btnText,btnId,
         <p className="text-[16px] md:text-xl font-light" dangerouslySetInnerHTML={{__html:desc}}></p>
       </>
       }
-      <div className="max-w-lg mx-auto mt-6">
+      <div className="max-w-[360px] mx-auto mt-6">
         <EmailForm btnId={btnId} btnText={btnText} handleCallBack={handleCallBack} redirectUrl={redirectUrl} />
       </div>
     </section>
