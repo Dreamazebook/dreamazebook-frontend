@@ -37,7 +37,7 @@ function MediaItemComponent({ item, keyPrefix, index }: MediaItemProps) {
 // Reusable component to render media items list
 function MediaItemsList({ items, keyPrefix }: { items: MediaItem[]; keyPrefix: string }) {
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-[16px] md:gap-[24px]">
       {items.map((item, idx) => (
         <MediaItemComponent
           key={`${keyPrefix}-${idx}`}
@@ -97,7 +97,7 @@ function TheHeartBehindDreamaze() {
   ];
 
   return (
-    <div className="bg-white py-12">
+    <div className="bg-white mt-[64px] md:mt-[88px] md:mb-[88px] space-y-[24px] text-center">
       {/* Local styles for marquee animation */}
       <style jsx global>{`
         @keyframes marquee {
@@ -115,20 +115,17 @@ function TheHeartBehindDreamaze() {
         /* Pause animation on hover of the wrapper */
         .animate-marquee:hover { animation-play-state: paused; }
       `}</style>
-      <div className="w-full">
         {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-[24px] md:text-[40px] font-semibold text-gray-900 mb-6">
+          <h1 className="text-[24px] md:text-[40px] font-semibold">
             The Heart Behind Dreamaze
           </h1>
           
-          <div className="space-y-1 text-[14px] md:text-[16px] text-[#222222] leading-relaxed">
-            <p>When children see themselves in the story, reading becomes real bonding.</p>
-          </div>
-        </div>
+          <p className="text-[14px] md:text-[16px] text-[#222222] leading-relaxed px-[24px]">
+            When children see themselves in the story, reading becomes real bonding.
+          </p>
 
         {/* Image Gallery - auto-scrolling marquee left-to-right */}
-        <div className="overflow-hidden mb-16">
+        <div className="overflow-hidden">
           {/* Wrapper to apply pause-on-hover */}
           <div className="relative">
             {/* Track: duplicated content for seamless loop */}
@@ -152,7 +149,6 @@ function TheHeartBehindDreamaze() {
           </div>
         </div>
 
-      </div>
     </div>
   );
 }

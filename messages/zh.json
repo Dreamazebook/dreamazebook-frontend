@@ -39,7 +39,8 @@
     "logout": "退出登录",
     "goodMorning": "早上好,",
     "menu": "菜单",
-    "more": "更多"
+    "more": "更多",
+    "admin": "管理后台"
   },
   "profilePage": {
     "more": "更多",
@@ -71,7 +72,8 @@
     "qty": "数量：",
     "downloadInvoice": "下载发票",
     "buySame": "购买相同",
-    "moreDetails": "更多详情"
+    "moreDetails": "更多详情",
+    "continueToPay": "继续支付"
   },
   "latestOrderHistory": {
     "total": "总计",

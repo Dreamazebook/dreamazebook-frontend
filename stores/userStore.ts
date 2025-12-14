@@ -1,4 +1,4 @@
-import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT, API_USER_SEND_PASSWORD_RESET_EMAIL, API_ADDRESS_LIST, API_ADMIN_LOGIN, API_ORDER_LIST, API_ORDER_DETAIL, API_COUNTRY_LIST, API_CART_LIST } from '@/constants/api'
+import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT, API_USER_SEND_PASSWORD_RESET_EMAIL, API_ADDRESS_LIST, API_ADMIN_LOGIN, API_ORDER_LIST, API_ORDER_DETAIL, API_COUNTRY_LIST, API_CART_LIST, API_ORDER_STATUS } from '@/constants/api'
 import api from '@/utils/api'
 import { ApiResponse, UserResponse } from '@/types/api'
 import { create } from 'zustand'
@@ -22,6 +22,9 @@ interface UserState {
   orderList: OrderDetail[]
   fetchOrderList: (options?:any) => void
   fetchOrderDetail: (orderId:string) => Promise<ApiResponse<OrderDetail>>
+
+  orderStatusMapping: any | null
+  fetchOrderStatus: () => void
 
   countryList: {value:string,label:string}[]
   fetchCountryList: () => void
@@ -49,6 +52,7 @@ type UserType = {
   name?: string
   email: string
   user_type?: string
+  avatar?: string
 }
 
 type LoginData = {
@@ -101,6 +105,8 @@ const useUserStore = create<UserState>((set,get) => ({
   user: null,
 
   orderList: [],
+
+  orderStatusMapping: null,
   fetchOrderList: async (_options?: any) => {
     // const refresh = _options?.refresh;
     // if (!refresh && get().orderList.length > 0) return;
@@ -116,6 +122,32 @@ const useUserStore = create<UserState>((set,get) => ({
   fetchOrderDetail : async (orderId:string) => {
     return await api.get<ApiResponse<OrderDetail>>(API_ORDER_DETAIL(orderId));
     
+  },
+
+  fetchOrderStatus: async () => {
+    if (get().orderStatusMapping) return; // Only fetch if orderStatus is null
+    try {
+      const response = await api.get<ApiResponse<any>>(API_ORDER_STATUS);
+      if (response.success && response.data) {
+        // Get status categories dynamically from response data keys
+        const statusCategories = Object.keys(response.data);
+        
+        // Create mapping object by iterating through categories
+        const orderStatusMapping = statusCategories.reduce((acc, category) => {
+          const statuses = response.data[category];
+          if (Array.isArray(statuses)) {
+            statuses.forEach((status: string) => {
+              acc[status] = category;
+            });
+          }
+          return acc;
+        }, {} as Record<string, string>);
+        
+        set({ orderStatusMapping });
+      }
+    } catch (error) {
+      console.error('Fetch order status error:', error);
+    }
   },
 
   addresses: [],

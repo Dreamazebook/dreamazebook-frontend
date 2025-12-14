@@ -39,7 +39,8 @@
     "logout": "Log out",
     "goodMorning": "Good Morning,",
     "menu": "Menu",
-    "more": "More"
+    "more": "More",
+    "admin": "Admin"
   },
   "profilePage": {
     "more": "More",
@@ -71,7 +72,8 @@
     "qty": "Qty:",
     "downloadInvoice": "Download Invoice",
     "buySame": "Buy the Same",
-    "moreDetails": "More Details"
+    "moreDetails": "More Details",
+    "continueToPay": "Continue to Pay"
   },
   "latestOrderHistory": {
     "total": "Total",

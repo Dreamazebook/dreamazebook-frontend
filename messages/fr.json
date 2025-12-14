@@ -39,7 +39,8 @@
     "logout": "Se déconnecter",
     "goodMorning": "Bonjour,",
     "menu": "Menu",
-    "more": "Plus"
+    "more": "Plus",
+    "admin": "Admin"
   },
   "profilePage": {
     "more": "Plus",
@@ -71,7 +72,8 @@
     "qty": "Qté :",
     "downloadInvoice": "Télécharger la facture",
     "buySame": "Acheter le même",
-    "moreDetails": "Plus de détails"
+    "moreDetails": "Plus de détails",
+    "continueToPay": "Continuer à payer"
   },
   "latestOrderHistory": {
     "total": "Total",

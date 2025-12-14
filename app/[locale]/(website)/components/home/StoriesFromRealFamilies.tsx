@@ -151,8 +151,8 @@ export default function StoriesFromRealFamilies() {
   };
 
   return (
-    <div className="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 bg-white mt-15">
-      <div className="max-w-7xl mx-auto">
+    <div className="bg-white py-[64px] md:py-[88px] px-[24px]">
+      <div className="max-w-[1680px] mx-auto">
         <div className="text-center mb-12 lg:mb-16">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 lg:mb-4">
             Stories from Real Families

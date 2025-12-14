@@ -76,25 +76,25 @@ export const SCROLL_TO_TOP_CONFIGS: Record<string, ScrollToTopConfig> = {
 // 根据路径获取配置的函数
 export const getScrollToTopConfig = (path: string): ScrollToTopConfig => {
   // 根据路径确定页面类型
-  if (path === '/' || path === '/en' || path === '/fr') {
-    return SCROLL_TO_TOP_CONFIGS.home;
-  }
+  // if (path === '/' || path === '/en' || path === '/fr') {
+  //   return SCROLL_TO_TOP_CONFIGS.home;
+  // }
   
-  if (path.includes('/personalized-products/')) {
-    return SCROLL_TO_TOP_CONFIGS.product;
-  }
+  // if (path.includes('/personalized-products/')) {
+  //   return SCROLL_TO_TOP_CONFIGS.product;
+  // }
   
-  if (path.includes('/checkout') || path.includes('/order-summary')) {
-    return SCROLL_TO_TOP_CONFIGS.checkout;
-  }
+  // if (path.includes('/checkout') || path.includes('/order-summary')) {
+  //   return SCROLL_TO_TOP_CONFIGS.checkout;
+  // }
   
-  if (path.includes('/profile')) {
-    return SCROLL_TO_TOP_CONFIGS.profile;
-  }
+  // if (path.includes('/profile')) {
+  //   return SCROLL_TO_TOP_CONFIGS.profile;
+  // }
   
-  if (path.includes('/about')) {
-    return SCROLL_TO_TOP_CONFIGS.about;
-  }
+  // if (path.includes('/about')) {
+  //   return SCROLL_TO_TOP_CONFIGS.about;
+  // }
   
   // 默认配置
   return SCROLL_TO_TOP_CONFIGS.default;

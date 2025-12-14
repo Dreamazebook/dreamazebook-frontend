@@ -20,6 +20,7 @@ export const API_CART_REMOVE = '/cart/remove';
 export const API_CART_UPDATE = (id:number) => `${API_CART_LIST}/${id}`;
 
 export const API_ORDER_LIST = '/orders';
+export const API_ORDER_STATUS = `${API_ORDER_LIST}/status`;
 export const API_ORDER_CREATE = '/checkout/create-order';
 export const API_ORDER_DETAIL = (id: string | number) => `${API_ORDER_LIST}/${id}`;
 export const API_ORDER_PROGRESS = (id: string | number) => `${API_ORDER_LIST}/${id}/progress`;

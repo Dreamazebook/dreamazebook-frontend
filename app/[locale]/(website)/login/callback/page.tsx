@@ -42,8 +42,10 @@ export default function LoginCallbackPage() {
         return;
       }
 
+      const provider = localStorage.getItem('oauthProvider') || 'google';
+
       // Send the code to Laravel API
-      const response = await fetch(OAUTH_CALLBACK('google')+`?code=${code}`, {
+      const response = await fetch(OAUTH_CALLBACK(provider)+`?code=${code}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -61,6 +63,7 @@ export default function LoginCallbackPage() {
         const redirectUrl = localStorage.getItem('redirectUrl') || '/';
         setLoginUserToken(responseData);
         localStorage.removeItem('redirectUrl');
+        localStorage.removeItem('oauthProvider'); 
         setTimeout(() => {
           router.push(redirectUrl);
         }, 2000);

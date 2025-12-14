@@ -4,12 +4,12 @@ import Image from "next/image";
 function WhatMakesDreamazeDifferent() {
   const features = [
     {
-      icon: HOME_DIFFERENT('icon_1.webp'),
+      icon: HOME_DIFFERENT('icon_2.webp'),
       title: "Truly Looks Like Your Child",
       description: "real-photo personalization so little ones insanely recognize themselves"
     },
     {
-      icon: HOME_DIFFERENT('icon_2.webp'),
+      icon: HOME_DIFFERENT('icon_1.webp'),
       title: "Hand-Drawn, Award-Level Art",
       description: "Warm, premium illustrations crafted to be cherished for years."
     },
@@ -26,13 +26,13 @@ function WhatMakesDreamazeDifferent() {
   ];
 
   return (
-    <div className="bg-white px-6 pb-16 lg:px-24 mb-20 md:mt-10">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-[24px] md:text-[40px] font-medium text-center mb-10 leading-tight text-gray-900">
+    <div className="bg-white py-[64px] px-[24px] md:py-[88px]">
+      <div className="max-w-4xl mx-auto space-y-[24px] md:space-y-[48px]">
+        <h1 className="text-[24px] md:text-[40px] font-medium text-center leading-tight text-gray-900">
           What Makes Dreamaze Different
         </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px]">
           {features.map((feature, index) => {
             return (
               <div key={index} className="flex md:flex-col items-center gap-3 md:text-center md:bg-[#F8F8F8] p-1 md:p-8 rounded">
@@ -46,7 +46,7 @@ function WhatMakesDreamazeDifferent() {
           })}
         </div>
 
-        <div className="flex justify-center my-16">
+        <div className="flex justify-center">
           <div className="w-px h-18 bg-[#CCCCCC]"></div>
         </div>
 

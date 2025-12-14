@@ -20,6 +20,11 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
     // { href: "#", translationKey: "loyalty" },
   ];
 
+  // Add admin navigation item if user has admin in email
+  if (user?.email?.includes('admin')) {
+    navItems.push({ href: "/admin", translationKey: "admin" });
+  }
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -111,7 +116,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-3 overflow-hidden">
                 <img
-                  src="/api/placeholder/64/64"
+                  src={user?.avatar}
                   alt="Augustine"
                   className="w-full h-full object-cover"
                 />
