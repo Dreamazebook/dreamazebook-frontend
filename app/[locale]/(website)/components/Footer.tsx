@@ -33,12 +33,12 @@ const footerMenus = [
 
 const socialLinks = [
   {
-    icon: FaInstagram,
+    icon: "/images/common/instagram.png",
     label: "Instagram",
     href: "https://www.instagram.com/dreamaze.book/?hl=en",
   },
   {
-    icon: FaFacebookF,
+    icon: "/images/common/facebook.png",
     label: "Facebook",
     href: "https://www.facebook.com/dreamazebook/",
   },
@@ -72,15 +72,15 @@ const Footer = () => {
   );
 
   const renderSocialLinks = () => (
-    <div className="flex space-x-4">
-      {socialLinks.map(({ icon: Icon, label, href }) => (
+    <div className="flex gap-[24px]">
+      {socialLinks.map(({ icon, label, href }) => (
         <a
           key={label}
           href={href}
           className="rounded hover:bg-gray-500 cursor-pointer transition-colors duration-200"
           aria-label={label}
         >
-          <Icon className="w-5 h-5 lg:w-6 lg:h-6" />
+          <img src={icon} className="w-[24px] h-[24px]" />
         </a>
       ))}
     </div>

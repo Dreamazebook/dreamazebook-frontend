@@ -61,7 +61,7 @@ const Header = () => {
   };
 
   return (
-    <header className="relative z-50 max-w-[1200px] mx-auto flex items-center justify-between p-[24px] bg-white md:bg-transparent">
+    <header className="relative z-50 max-w-[1200px] mx-auto flex items-center justify-between p-[12px] md:p-[24px] bg-white md:bg-transparent">
       <button
         className="text-2xl md:hidden z-50"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -248,9 +248,9 @@ const Header = () => {
           </>
         )}
       </AnimatePresence>
-      <div className="flex items-center space-x-6">
+      <div className="flex items-center gap-[12px]">
         {/* Search icon next to cart, opens books page and reveals search */}
-        <div className="relative group">
+        <div className="relative group hidden md:block">
           <Image
             src={"/header/language.svg"}
             alt="language"
@@ -283,12 +283,10 @@ const Header = () => {
           className="text-2xl"
           aria-label="Search books"
         >
-          <Image
+          <img
             src={"/header/search.svg"}
             alt="Search"
-            width={28}
-            height={28}
-            className="cursor-pointer"
+            className="cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]"
           />
         </Link>
         <Link
@@ -299,12 +297,10 @@ const Header = () => {
           }
           className="text-2xl"
         >
-          <Image
+          <img
             src={"/header/cart.svg"}
             alt="Shopping Cart"
-            width={28}
-            height={28}
-            className="cursor-pointer"
+            className="cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]"
           />
         </Link>
         <Link
@@ -317,12 +313,10 @@ const Header = () => {
               : "/login"
           }
         >
-          <Image
+          <img
             src={"/header/profile.svg"}
             alt="Login"
-            width={28}
-            height={28}
-            className="cursor-pointer"
+            className="cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]"
           />
         </Link>
       </div>
