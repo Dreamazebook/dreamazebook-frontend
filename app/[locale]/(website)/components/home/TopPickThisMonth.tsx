@@ -56,7 +56,13 @@ const TopPickThisMonth = () => {
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
+    // hover结束后，延迟3S再恢复自动切换
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = window.setTimeout(() => {
+      setIsHovered(false);
+    }, 3000);
   };
 
   return (
@@ -70,31 +76,38 @@ const TopPickThisMonth = () => {
           <div className="relative aspect-square w-full">
             {images.map((image, index) => {
               const isActive = index === currentIndex;
-              const isPrev = index === (currentIndex - 1 + images.length) % images.length;
+              const isNext = index === (currentIndex + 1) % images.length;
+
+              // 只显示当前图片和下一张图片
+              if (!isActive && !isNext) {
+                return null;
+              }
 
               return (
                 <div
                   key={index}
-                  className={`absolute inset-0 transition-all duration-500 ease-out ${
-                    isActive ? 'z-10' : isPrev && isAnimating ? 'z-20' : 'z-0 opacity-0 pointer-events-none'
-                  }`}
+                  className={`absolute inset-0 transition-all duration-500 ease-out`}
                   style={{
+                    zIndex: isActive ? 10 : 5,
                     transformOrigin: 'bottom left',
                   }}
                 >
                   <div
                     className={`w-full h-full bg-white rounded shadow ${
-                      isClient && window.innerWidth >= 768 ? (
-                        isPrev && isAnimating
+                      isClient && window.innerWidth >= 768
+                        ? isActive && isAnimating
                           ? 'animate-image-exit'
-                          : isActive && !isPrev
+                          : isNext && isAnimating
                           ? 'animate-image-enter'
                           : ''
-                      ) : ''
+                        : ''
                     }`}
                     style={{
                       transformOrigin: 'bottom left',
-                      transform: isActive && !isAnimating && (!isClient || window.innerWidth < 768) ? 'rotate(6deg)' : undefined,
+                      transform:
+                        isClient && window.innerWidth >= 768 && isActive && !isAnimating
+                          ? 'rotate(6deg)'
+                          : undefined,
                     }}
                   >
                     <img

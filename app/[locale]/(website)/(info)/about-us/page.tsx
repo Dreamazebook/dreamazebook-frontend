@@ -140,7 +140,7 @@ Our books come in three durable formats, each tested to withstand eager hands an
             </p>
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-5 w-[200px] md:w-[660px] mx-auto">
               {SAFT_AND_FRIENDLY.map((item)=>
-              <li className="flex items-center gap-4">
+              <li className="flex items-center gap-4" key={item.title}>
                 <img className="w-[36px] h-[36px] md:w-[64px] md:h-[64px]" src={item.img} alt={item.title} />
                 <span className="md:font-medium">{item.title}</span>
               </li>

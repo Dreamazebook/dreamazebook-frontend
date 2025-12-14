@@ -9,12 +9,12 @@ export default function InfiniteScrollLogo() {
           transform: translateX(0);
         }
         100% {
-          transform: translateX(-25%);
+          transform: translateX(-50%);
         }
       }
 
       .scroll-loop-container {
-        animation: scrollLoop 40s linear infinite;
+        animation: scrollLoop 20s linear infinite;
       }
     `;
     document.head.appendChild(style);
@@ -29,17 +29,27 @@ export default function InfiniteScrollLogo() {
       <div className="flex-1 flex items-center justify-center overflow-hidden">
         <div className="w-full overflow-hidden">
           <div
-            className="scroll-loop-container flex items-center"
+            className="scroll-loop-container flex items-center gap-0"
             style={{
-              width: '400%',
+              width: '200%',
             }}
           >
             {Array.from({ length: 4 }).map((_, index) => (
-            <div className="" key={index}>
+            <div className="flex-shrink-0" key={index} style={{ width: '25%' }}>
               <img
                 src="/home-page/logo.png"
-                alt="Animated graphic 1"
-                className="max-w-full h-auto block"
+                alt={`Logo ${index + 1}`}
+                className="max-w-full h-auto block w-full"
+                draggable={false}
+              />
+            </div>
+            ))}
+            {Array.from({ length: 4 }).map((_, index) => (
+            <div className="flex-shrink-0" key={`dup-${index}`} style={{ width: '25%' }}>
+              <img
+                src="/home-page/logo.png"
+                alt={`Logo ${index + 1}`}
+                className="max-w-full h-auto block w-full"
                 draggable={false}
               />
             </div>
