@@ -60,6 +60,23 @@ export default function EditPersonalizedProductPage() {
   const previewId = params.preview_id as string; // preview_id 是 UUID 字符串，不是数字
   const currentLang = (pathname.match(/^\/(en|zh|fr)\b/)?.[1] as 'en'|'zh'|'fr') || 'en';
 
+  const normalizeGender = (v: any): '' | 'boy' | 'girl' => {
+    if (v == null) return '';
+    // number / numeric string
+    const n = Number(v);
+    if (!Number.isNaN(n)) {
+      if (n === 1) return 'boy';
+      if (n === 2) return 'girl';
+    }
+    if (typeof v === 'string') {
+      const s = v.trim().toLowerCase();
+      if (s === 'boy' || s === 'girl') return s as any;
+      if (s === 'male' || s === 'm' || s === 'man') return 'boy';
+      if (s === 'female' || s === 'f' || s === 'woman') return 'girl';
+    }
+    return '';
+  };
+
   const [formType, setFormType] = useState<'SINGLE1'|'SINGLE2'|'DOUBLE'|null>(null);
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [initialData, setInitialData] = useState<any>();
@@ -107,6 +124,13 @@ export default function EditPersonalizedProductPage() {
         if (options && (options.full_name || options.face_images || options.attributes)) {
           const fullName = options.full_name || batch.recipient_name || '';
           const attrs = options.attributes || {};
+          const gender = normalizeGender(
+            options.gender ??
+              options.gender_code ??
+              attrs.gender ??
+              attrs.gender_code ??
+              attrs.genderCode
+          );
 
           // skin_tone: 'white' | 'original' | 'black' → hex
           let skinColor = '';
@@ -141,8 +165,8 @@ export default function EditPersonalizedProductPage() {
 
           setInitialData({
             fullName,
-            // 性别后端当前未在 options 中返回，这里留空交给用户选择
-            gender: '',
+            // gender 可能在 options 或 options.attributes 中；缺失则留空交给用户选择
+            gender,
             skinColor,
             photo: faceImages.length > 0 ? { path: faceImages[0] } : null,
             photos: faceImages,
@@ -200,7 +224,7 @@ export default function EditPersonalizedProductPage() {
         
         // 获取性别和肤色 (处理数字字符串或数字)
         const genderVal = p?.gender || (item as any)?.gender;
-        const gender = (String(genderVal) === '1') ? 'boy' : (String(genderVal) === '2') ? 'girl' : '';
+        const gender = normalizeGender(genderVal);
         
         const skinVal = (p?.skin_color?.length ? p.skin_color[0] : p?.skin_color) || (item as any)?.skin_color;
         // 假设 skinVal 是 1, 2, 3 对应的索引，或者是颜色值
