@@ -13,7 +13,7 @@ interface ButtonProps {
 }
 
 export default function Button({tl,id='',isLoading,url,target,icon,leftIcon,handleClick,className='w-full'}:ButtonProps) {
-  const buttonStyle = `${className} cursor-pointer bg-[#222222] text-[#FCF2F2] px-4 py-3 rounded capitalize disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center`;
+  const buttonStyle = `${className} cursor-pointer bg-[#222222] text-[#FCF2F2] px-[8px] py-3 w-full rounded capitalize disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center gap-[10px]`;
 
   if (url) {
     return (
@@ -37,7 +37,7 @@ export default function Button({tl,id='',isLoading,url,target,icon,leftIcon,hand
         <>
           {leftIcon && <Image src={leftIcon} className="mr-2" alt="" width={28} height={28} />}
           <span className="font-bold">{tl}</span>
-          {icon && <Image src={icon} alt="" width={28} height={28} />}
+          {icon && <Image src={icon} alt="" width={16} height={8} />}
         </>
       )}
     </button>

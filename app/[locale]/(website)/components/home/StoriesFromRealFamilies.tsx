@@ -33,11 +33,45 @@ export default function StoriesFromRealFamilies() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Play video only when in viewport
+  // Handle video load and readiness
   useEffect(() => {
     const video = videoRef.current;
-    
     if (!video) return;
+
+    const handleLoadedData = () => {
+      console.log('Video loaded and ready');
+      // Try to autoplay immediately when loaded
+      tryAutoplay();
+    };
+
+    const tryAutoplay = async () => {
+      try {
+        video.muted = true;
+        await video.play();
+        console.log('Immediate autoplay successful');
+        setTimeout(() => {
+          video.muted = false;
+          video.volume = 0.5;
+        }, 100);
+      } catch (err) {
+        console.log('Immediate autoplay failed:', err);
+      }
+    };
+
+    const handlePlay = () => {
+      console.log('Video play event fired');
+      setIsPlaying(true);
+    };
+    
+    const handlePause = () => {
+      console.log('Video pause event fired');
+      setIsPlaying(false);
+    };
+    
+    const handleEnded = () => {
+      console.log('Video ended event fired');
+      setIsPlaying(false);
+    };
 
     // Set video properties
     video.playsInline = true;
@@ -45,14 +79,49 @@ export default function StoriesFromRealFamilies() {
     video.setAttribute('webkit-playsinline', 'true');
     (video as any).webkitPlaysInline = true;
 
+    // Add event listeners
+    video.addEventListener('loadeddata', handleLoadedData);
+    video.addEventListener('play', handlePlay);
+    video.addEventListener('pause', handlePause);
+    video.addEventListener('ended', handleEnded);
+
+    return () => {
+      video.removeEventListener('loadeddata', handleLoadedData);
+      video.removeEventListener('play', handlePlay);
+      video.removeEventListener('pause', handlePause);
+      video.removeEventListener('ended', handleEnded);
+    };
+  }, []);
+
+  // Auto-play when in viewport, pause when out of view
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
     const attemptPlay = async () => {
       try {
-        video.volume = 0;
+        // First try muted (browsers allow muted autoplay)
+        video.muted = true;
         await video.play();
-        setIsPlaying(true);
-        console.log('Video started playing');
+        console.log('Auto-play started (muted) when video entered viewport');
+        
+        // Then try to unmute after playing starts
+        setTimeout(() => {
+          video.muted = false;
+          video.volume = 0.5;
+          console.log('Video unmuted after starting');
+        }, 100);
       } catch (err) {
-        console.log('Video play failed:', err);
+        console.log('Muted auto-play failed, trying with volume:', err);
+        // Fallback: try with volume if muted fails
+        try {
+          video.muted = false;
+          video.volume = 0.5;
+          await video.play();
+          console.log('Auto-play started with volume when video entered viewport');
+        } catch (err2) {
+          console.log('All auto-play attempts failed (user interaction required):', err2);
+        }
       }
     };
 
@@ -62,14 +131,11 @@ export default function StoriesFromRealFamilies() {
         const entry = entries[0];
         
         if (entry.isIntersecting) {
-          // Video is in view, try to play
-          console.log('Video entered viewport, attempting to play');
+          console.log('Video entered viewport, attempting auto-play');
           attemptPlay();
         } else {
-          // Video is out of view, pause
           console.log('Video left viewport, pausing');
           video.pause();
-          setIsPlaying(false);
         }
       },
       {
@@ -77,7 +143,6 @@ export default function StoriesFromRealFamilies() {
       }
     );
 
-    // Observe the video container instead of video element for better detection
     observer.observe(containerRef.current || video);
 
     return () => {
@@ -85,74 +150,36 @@ export default function StoriesFromRealFamilies() {
     };
   }, []);
 
-  // Handle user interaction to enable video playback
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const handleUserInteraction = () => {
-      // Check if video container is in viewport when user interacts
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (rect) {
-        const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-        if (isVisible && video.paused) {
-          video.play().then(() => {
-            setIsPlaying(true);
-            console.log('User interaction enabled video playback');
-          }).catch(err => {
-            console.log('User interaction playback failed:', err);
-          });
-        }
-      }
-    };
-
-    // Add event listeners for user interaction
-    const events = ['touchstart', 'touchend', 'click', 'keydown'];
-    
-    events.forEach(event => {
-      document.addEventListener(event, handleUserInteraction, { passive: true });
-    });
-
-    return () => {
-      events.forEach(event => {
-        document.removeEventListener(event, handleUserInteraction);
-      });
-    };
-  }, []);
-
   const handleVideoClick = () => {
     const video = videoRef.current;
     if (!video) return;
 
-    if (isPlaying) {
-      video.pause();
-      setIsPlaying(false);
+    console.log('Video clicked, paused:', video.paused, 'ended:', video.ended);
+    
+    if (video.paused || video.ended) {
+      // Set volume and play the video
+      video.volume = 0.5;
+      const playPromise = video.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          console.log('Video play successful');
+        }).catch(err => {
+          console.log('Play failed:', err);
+        });
+      }
     } else {
-      video.play().catch(err => {
-        console.log('Play failed:', err);
-      });
-      setIsPlaying(true);
+      // Pause the video
+      video.pause();
+      console.log('Video paused');
     }
   };
 
-  const togglePlayPause = () => {
-    const video = videoRef.current;
-    if (!video) return;
 
-    if (isPlaying) {
-      video.pause();
-      setIsPlaying(false);
-    } else {
-      video.play().catch(err => {
-        console.log('Play failed:', err);
-      });
-      setIsPlaying(true);
-    }
-  };
 
   return (
     <div className="bg-white py-[64px] md:py-[88px] px-[24px]">
-      <div className="max-w-[1680px] mx-auto">
+      <div className="max-w-[1200px] mx-auto">
         <div className="text-center mb-12 lg:mb-16">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 lg:mb-4">
             Stories from Real Families
@@ -193,10 +220,12 @@ export default function StoriesFromRealFamilies() {
                 src={HOME_STORIES('video.mp4')}
                 loop
                 playsInline
+                controls
+                muted
                 disablePictureInPicture
                 x-webkit-airplay="deny"
+                preload="metadata"
                 className="w-full h-full object-cover"
-                muted
               />
               
               {/* Play/Pause overlay button */}

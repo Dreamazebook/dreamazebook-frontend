@@ -17,18 +17,18 @@ interface MediaItemProps {
 // Reusable component to render individual media items
 function MediaItemComponent({ item, keyPrefix, index }: MediaItemProps) {
   return (
-    <div key={`${keyPrefix}-${index}`} className="w-96 flex-shrink-0 overflow-hidden rounded relative">
+    <div key={`${keyPrefix}-${index}`} className="w-[240px] h-[180px] md:w-[480px] md:h-[360px] flex-shrink-0 overflow-hidden rounded relative">
       {item.type === 'video' ? (
         <video
           src={item.src}
-          className="w-full h-60 object-cover"
+          className="w-full h-full object-cover"
           autoPlay
           loop
           muted
           playsInline
         />
       ) : (
-        <img src={item.src} alt={item.alt} className="w-full h-60 object-cover" />
+        <img src={item.src} alt={item.alt} className="w-full h-full object-cover" />
       )}
     </div>
   );

@@ -1,18 +1,22 @@
-import { HOME_HERO } from '@/constants/cdn';
-import { BOOKS_URL } from '@/constants/links';
-import { Link } from '@/i18n/routing';
-import { useState, useEffect, useCallback } from 'react';
-import { FaArrowRight as ArrowRight, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { HOME_HERO } from "@/constants/cdn";
+import { BOOKS_URL } from "@/constants/links";
+import { Link } from "@/i18n/routing";
+import { useState, useEffect, useCallback } from "react";
+import {
+  FaArrowRight as ArrowRight,
+  FaChevronLeft,
+  FaChevronRight,
+} from "react-icons/fa";
 
 const slides = [
   {
     id: 1,
-    title: ['A Storybook Where', 'Your Child Is the Hero'],
-    color: 'text-primary',
-    buttonText: 'Create Yours',
-    image: HOME_HERO('hero_mobile.png'),
-    image_desktop: HOME_HERO('hero.webp'),
-    description: 'Be seen. Be loved. Be celebrated',
+    title: ["A Storybook Where", "Your Child Is the Hero"],
+    color: "text-primary",
+    buttonText: "Create Yours",
+    image: HOME_HERO("hero_mobile.png"),
+    image_desktop: HOME_HERO("hero.webp"),
+    description: "Be seen. Be loved. Be celebrated",
   },
 ];
 
@@ -79,20 +83,27 @@ export default function SlideShow() {
         }
       `}</style>
 
-      <div className="slideshow-container">
+      <div className="slideshow-container max-h-[680px]">
         {slides.map((slide, index) => (
-          <div key={slide.id} className={`slide ${index === currentIndex ? 'active' : ''}`}>
-            <div 
+          <div
+            key={slide.id}
+            className={`slide ${index === currentIndex ? "active" : ""}`}
+          >
+            <div
               className="slide-bg"
-              style={{ 
-                backgroundImage: `url(${slide.image})`,
-                '--desktop-bg': `url(${slide.image_desktop})`
-              } as React.CSSProperties}
+              style={
+                {
+                  backgroundImage: `url(${slide.image})`,
+                  "--desktop-bg": `url(${slide.image_desktop})`,
+                } as React.CSSProperties
+              }
             />
-            
-            <div className="absolute inset-0 flex z-10 max-w-5xl mx-auto">
-              <div className={`slide-content flex flex-col justify-end md:justify-center p-[24px] ${slide.color}`}>
-                <h1 className="text-[36px] md:text-[64px] font-bold leading-tight">
+
+            <div className="absolute inset-0 flex z-10 max-w-[1200px] mx-auto w-full">
+              <div
+                className={`slide-content flex flex-col justify-end md:justify-center w-full p-[24px] ${slide.color}`}
+              >
+                <h1 className="text-[36px] md:text-[64px] font-semibold md:font-bold leading-[44px] md:leading-[88px]">
                   {slide.title.map((line, i) => (
                     <span key={i}>
                       <span className={`inline-block`}>{line}</span>
@@ -100,10 +111,18 @@ export default function SlideShow() {
                     </span>
                   ))}
                 </h1>
-                <p className="text-[16px] text-[#333333]">{slide.description}</p>
-                <Link href={BOOKS_URL} className={`mt-5 md:mt-30 w-full md:w-[160px] inline-flex justify-center md:justify-between items-center bg-[#222222] gap-2 text-[16px] text-white px-4   py-3 rounded hover:gap-4 transition-all duration-300 group`}>
+                <p className="text-[16px] text-[#333333] mt-[12px]">
+                  {slide.description}
+                </p>
+                <Link
+                  href={BOOKS_URL}
+                  className={`mt-5 md:mt-30 w-full md:w-[160px] inline-flex justify-center md:justify-between items-center bg-[#222222] gap-2 text-[16px] text-white px-4   py-3 rounded hover:gap-4 transition-all duration-300 group`}
+                >
                   {slide.buttonText}
-                  <img src="/images/common/arrow-white.svg" className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  <img
+                    src="/images/common/arrow-white.svg"
+                    className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                  />
                 </Link>
               </div>
             </div>
@@ -125,10 +144,7 @@ export default function SlideShow() {
             />
           ))}
         </div> */}
-
-
-
       </div>
     </>
   );
-};
+}

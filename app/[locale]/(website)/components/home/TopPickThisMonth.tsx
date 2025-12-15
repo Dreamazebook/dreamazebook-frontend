@@ -56,45 +56,72 @@ const TopPickThisMonth = () => {
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
+    // hover结束后，延迟3S再恢复自动切换
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = window.setTimeout(() => {
+      setIsHovered(false);
+    }, 3000);
   };
 
   return (
     <div className="bg-[#FFF7F9] flex items-center justify-center pt-[135px] px-[24px] pb-[64px] md:pt-[120px] md:pb-[88px]">
-      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center rounded bg-white p-6">
+      <div className="max-w-[1200px] w-full relative">
+        {/* 图片容器 - 超出白色背景 */}
         <div
-          className="relative w-[237px] md:w-[420px] mx-auto -mt-[135px] md:mt-auto lg:mx-0"
+          className="relative w-[237px] md:w-[420px] mx-auto -mt-[135px] md:-mt-[80px] md:absolute md:left-0 md:-ml-[40px]"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
           <div className="relative aspect-square w-full">
+            {/* 堆叠背景层 */}
+            <div className="hidden md:block absolute inset-0 bg-white rounded shadow" style={{
+              transform: 'translate(12px, 12px) rotate(2deg)',
+              zIndex: 2,
+              opacity: 0.6,
+            }} />
+            <div className="hidden md:block absolute inset-0 bg-white rounded shadow" style={{
+              transform: 'translate(24px, 24px) rotate(-2deg)',
+              zIndex: 1,
+              opacity: 0.3,
+            }} />
+
+            {/* 主卡片层 */}
             {images.map((image, index) => {
               const isActive = index === currentIndex;
-              const isPrev = index === (currentIndex - 1 + images.length) % images.length;
+              const isNext = index === (currentIndex + 1) % images.length;
+
+              // 只显示当前图片和下一张图片
+              if (!isActive && !isNext) {
+                return null;
+              }
 
               return (
                 <div
                   key={index}
-                  className={`absolute inset-0 transition-all duration-500 ease-out ${
-                    isActive ? 'z-10' : isPrev && isAnimating ? 'z-20' : 'z-0 opacity-0 pointer-events-none'
-                  }`}
+                  className={`absolute inset-0 transition-all duration-500 ease-out`}
                   style={{
+                    zIndex: isActive ? 10 : 5,
                     transformOrigin: 'bottom left',
                   }}
                 >
                   <div
                     className={`w-full h-full bg-white rounded shadow ${
-                      isClient && window.innerWidth >= 768 ? (
-                        isPrev && isAnimating
+                      isClient
+                        ? isActive && isAnimating
                           ? 'animate-image-exit'
-                          : isActive && !isPrev
+                          : isNext && isAnimating
                           ? 'animate-image-enter'
                           : ''
-                      ) : ''
+                        : ''
                     }`}
                     style={{
                       transformOrigin: 'bottom left',
-                      transform: isActive && !isAnimating && (!isClient || window.innerWidth < 768) ? 'rotate(6deg)' : undefined,
+                      transform:
+                        isClient && isActive && !isAnimating
+                          ? 'rotate(6deg)'
+                          : undefined,
                     }}
                   >
                     <img
@@ -107,28 +134,13 @@ const TopPickThisMonth = () => {
               );
             })}
           </div>
-
-          {/* <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
-            {images.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setIsAnimating(true);
-                  setTimeout(() => {
-                    setCurrentIndex(index);
-                    setIsAnimating(false);
-                  }, 500);
-                }}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === currentIndex ? 'bg-blue-600 w-8' : 'bg-gray-300'
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div> */}
         </div>
 
-        <div className="text-center lg:text-left space-y-6 mt-12 lg:mt-0 rounded">
+        {/* 白色内容区域 */}
+        <div className="flex justify-end gap-8 items-center rounded bg-white p-6 md:ml-[220px]">
+          {/* <div className="hidden md:block" /> */}
+
+          <div className="text-center lg:text-left space-y-6 mt-12 lg:mt-0 rounded md:w-[70%]">
           <h1 className="text-[24px] md:text-[40px] font-medium text-[#222] leading-tight">
             Top Picks This Month
           </h1>
@@ -156,6 +168,7 @@ const TopPickThisMonth = () => {
             Personalize This Book
             <img src="/images/common/arrow-black.svg" className="w-5 h-5" />
           </Link>
+          </div>
         </div>
       </div>
 
