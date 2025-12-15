@@ -55,8 +55,8 @@ const OrderHistoryCard = ({orderDetail}:{orderDetail:OrderDetail}) => {
 
         <div className="flex gap-8 text-sm text-gray-600 mb-1">
           <span><span className="text-gray-900">{t("orderDate")}</span> {formatDate(orderDetail.created_at)}</span>
-          {orderDetail.updated_at && (
-            <span><span className="text-gray-900">{t("deliveryDate")}</span> {formatDate(orderDetail.updated_at)}</span>
+          {orderDetail.shipped_at && (
+            <span><span className="text-gray-900">{t("deliveryDate")}</span> {formatDate(orderDetail.shipped_at)}</span>
           )}
         </div>
 

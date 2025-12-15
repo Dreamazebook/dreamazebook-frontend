@@ -1,4 +1,4 @@
-import { ResultImage } from './order';
+import { ResultImage } from "./order";
 
 export interface LocaleString {
   en: string;
@@ -53,8 +53,9 @@ export interface CustomizationData {
 
 export interface CartItem {
   id: number;
-  book_name: string;
+  book_name?: string;
   book_cover: string;
+  full_name?: string;
   item_type: string;
   sku_id: number;
   sku_code: string;
@@ -84,7 +85,7 @@ export interface CartItem {
   package_id?: number;
   ks_pending?: boolean;
   message?: string;
-  result_images?: ResultImage[]
+  result_images?: ResultImage[];
   subItems?: CartItem[];
   status: string;
   remaining_previews?: {

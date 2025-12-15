@@ -2,16 +2,16 @@ import { Address } from "@/types/address";
 import { CartItem } from "./cart";
 
 export function formatDate(date: string) {
-  return date.split('T')[0];
+  return date.split("T")[0];
 }
 
 export interface OrderDetail {
   id: number;
   user_id: number;
   user: {
-    id: string,
-    name: string,
-    email: string
+    id: string;
+    name: string;
+    email: string;
   };
   order_number: string;
   total_amount: number;
@@ -22,6 +22,7 @@ export interface OrderDetail {
   payment_id: string | null;
   billing_address: Address;
   shipping_method: string;
+  shipped_at?: string | null;
   shipping_cost: number;
   tax_amount: number;
   discount_amount: number;
@@ -36,7 +37,7 @@ export interface OrderDetail {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-  items:CartItem[];
+  items: CartItem[];
   shipping_options: {
     options: ShippingOption[];
   };
@@ -141,20 +142,20 @@ export interface DeliverToRecipientInfo {
 
 export const EMPTY_CART_ITEM = {
   id: 0,
-  name: '',
-  format: '',
-  box: '',
-  image: '',
+  name: "",
+  format: "",
+  box: "",
+  image: "",
   price: 0,
   quantity: 0,
   total_price: 0,
-  picbook_name: '',
-  picbook_cover: '',
-  message: '',
-  status: '',
-  created_at: '',
-  updated_at: '',
-}
+  picbook_name: "",
+  picbook_cover: "",
+  message: "",
+  status: "",
+  created_at: "",
+  updated_at: "",
+};
 
 export interface ResultImage {
   base_image_path: string;
@@ -220,23 +221,23 @@ export interface Pickbook {
   choices_type: string;
 }
 
-export const statusLabelMap:{[key:string]:string} = {
-  all: 'allOrder',
-  unpaid: 'unpaid',
-  paid: 'paid',
-  pending: 'unpaid',
-  processing: 'digitalProduction',
-  ai_processing: 'digitalProduction',
-  ai_completed: 'digitalProduction',
-  confirmed: 'printProduction',
-  pdf_confirmed: 'printProduction',
-  shipping: 'inTransit',
-  logistics_confirmed: 'inTransit',
-  logistics_shipped: 'inTransit',
-  delivered: 'delivered',
-  completed: 'delivered',
-  logistics_delivered: 'delivered',
-  cancelled: 'closed',
-  refunded: 'closed',
-  closed: 'closed',
+export const statusLabelMap: { [key: string]: string } = {
+  all: "allOrder",
+  unpaid: "unpaid",
+  paid: "paid",
+  pending: "unpaid",
+  processing: "digitalProduction",
+  ai_processing: "digitalProduction",
+  ai_completed: "digitalProduction",
+  confirmed: "printProduction",
+  pdf_confirmed: "printProduction",
+  shipping: "inTransit",
+  logistics_confirmed: "inTransit",
+  logistics_shipped: "inTransit",
+  delivered: "delivered",
+  completed: "delivered",
+  logistics_delivered: "delivered",
+  cancelled: "closed",
+  refunded: "closed",
+  closed: "closed",
 };
