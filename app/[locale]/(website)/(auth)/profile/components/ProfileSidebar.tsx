@@ -3,15 +3,18 @@ import { useState } from "react";
 import { Link } from "@/i18n/routing";
 import { usePathname, useRouter } from "@/i18n/routing";
 import useUserStore from "@/stores/userStore";
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 
-export default function ProfileSidebar({ children }:{children:React.ReactNode}) {
-  
-  const {user, logout} = useUserStore();
+export default function ProfileSidebar({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { user, logout } = useUserStore();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
-  const t = useTranslations('profileSidebar');
+  const t = useTranslations("profileSidebar");
 
   const navItems = [
     { href: "/profile", translationKey: "home" },
@@ -21,10 +24,9 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
   ];
 
   // Add admin navigation item if user has admin in email
-  if (user?.email?.includes('admin')) {
+  if (user?.email?.includes("admin")) {
     navItems.push({ href: "/admin", translationKey: "admin" });
   }
-
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -84,7 +86,7 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
             </div>
           </div>
           <div className="text-sm md:text-lg font-medium text-gray-700 hidden sm:block">
-            {t("goodMorning")} {user?.name || 'User'}
+            {t("goodMorning")} {user?.name || "User"}
           </div>
         </div>
       </div>
@@ -116,12 +118,14 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-3 overflow-hidden">
                 <img
-                  src={user?.avatar}
+                  src={user?.avatar || "/favicon-32x32.png"}
                   alt="Augustine"
                   className="w-full h-full object-cover"
                 />
               </div>
-              <h2 className="text-lg font-semibold text-[#222222]">{user?.name}</h2>
+              <h2 className="text-lg font-semibold text-[#222222]">
+                {user?.name}
+              </h2>
             </div>
 
             <nav className="space-y-1">
@@ -129,11 +133,11 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={()=>setSidebarOpen(false)}
+                  onClick={() => setSidebarOpen(false)}
                   className={`block px-3 text-center py-2 rounded ${
                     pathname.endsWith(item.href)
-                      ? 'text-[#012CCE] font-medium text-[18px]'
-                      : 'text-[#222222] hover:bg-gray-50'
+                      ? "text-[#012CCE] font-medium text-[18px]"
+                      : "text-[#222222] hover:bg-gray-50"
                   }`}
                 >
                   {t(item.translationKey)}
@@ -142,10 +146,13 @@ export default function ProfileSidebar({ children }:{children:React.ReactNode}) 
             </nav>
 
             <div className="mt-12">
-              <button className="text-gray-600 cursor-pointer text-center w-full hover:text-gray-800 text-sm" onClick={()=>{
-                logout();
-                router.push('/');
-              }}>
+              <button
+                className="text-gray-600 cursor-pointer text-center w-full hover:text-gray-800 text-sm"
+                onClick={() => {
+                  logout();
+                  router.push("/");
+                }}
+              >
                 {t("logout")}
               </button>
             </div>

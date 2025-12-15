@@ -100,7 +100,7 @@ export default function CartItemCard({
           <div className="flex items-center gap-4 h-full relative">
             <div className="w-20 h-22 rounded overflow-hidden">
               <img 
-                src={item.product_image || '/home-page/cover.png'} 
+                src={item.book_cover || '/home-page/cover.png'} 
                 alt={item.sku_code}
                 className="w-full h-full object-cover"
               />

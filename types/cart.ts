@@ -54,6 +54,7 @@ export interface CustomizationData {
 export interface CartItem {
   id: number;
   book_name: string;
+  book_cover: string;
   item_type: string;
   sku_id: number;
   sku_code: string;
