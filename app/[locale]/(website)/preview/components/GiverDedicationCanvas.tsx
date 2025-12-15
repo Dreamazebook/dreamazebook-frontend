@@ -12,6 +12,18 @@ interface Props {
   giverText: string;
   dedicationText: string;
   giverImageUrl?: string | null;
+  /**
+   * giver 图片在合成时的期望宽高比（width/height）。
+   * - 不传：默认按图片自身宽高比绘制
+   * - 传入：会按该比例做居中裁剪，并以矩形区域绘制（不再强制 1:1）
+   */
+  giverImageAspectRatio?: number;
+  /**
+   * giver 图片绘制占比（相对于可用区域较短边的比例）。
+   * - 默认 0.45（历史行为）
+   * - 建议范围：0.35 ~ 1.0
+   */
+  giverImageScale?: number;
   className?: string;
   leftBelow?: React.ReactNode;
   rightBelow?: React.ReactNode;
@@ -69,12 +81,48 @@ function wrapText(
   return lines;
 }
 
+function computeCenteredCropForAspect(
+  naturalWidth: number,
+  naturalHeight: number,
+  aspectRatio: number
+): { sx: number; sy: number; sw: number; sh: number } {
+  const safeAspect = Number.isFinite(aspectRatio) && aspectRatio > 0 ? aspectRatio : 1;
+  const current = naturalWidth / naturalHeight;
+  if (current > safeAspect) {
+    // 太宽：裁掉左右
+    const sw = Math.floor(naturalHeight * safeAspect);
+    const sh = naturalHeight;
+    const sx = Math.floor((naturalWidth - sw) / 2);
+    const sy = 0;
+    return { sx, sy, sw, sh };
+  }
+  // 太高：裁掉上下
+  const sw = naturalWidth;
+  const sh = Math.floor(naturalWidth / safeAspect);
+  const sx = 0;
+  const sy = Math.floor((naturalHeight - sh) / 2);
+  return { sx, sy, sw, sh };
+}
+
+function computeTargetSizeByMaxSide(
+  maxSide: number,
+  aspectRatio: number
+): { w: number; h: number } {
+  const safeAspect = Number.isFinite(aspectRatio) && aspectRatio > 0 ? aspectRatio : 1;
+  if (safeAspect >= 1) {
+    return { w: Math.round(maxSide), h: Math.round(maxSide / safeAspect) };
+  }
+  return { w: Math.round(maxSide * safeAspect), h: Math.round(maxSide) };
+}
+
 export default function GiverDedicationCanvas({
   imageUrl,
   mode,
   giverText,
   dedicationText,
   giverImageUrl,
+  giverImageAspectRatio,
+  giverImageScale = 0.45,
   className,
   leftBelow,
   rightBelow,
@@ -232,14 +280,19 @@ export default function GiverDedicationCanvas({
       // 在双页模式下，左边优先显示头像（与右侧原逻辑对称）
       if (needOverlayLeft) {
         try {
-          const overlay = await loadImageWithCorsFallback(giverImageUrl as string);
-          const targetSize = Math.min(halfW - padding * 2, canvas.height - padding * 2) * 0.45;
-          const targetX = halfW / 2 - targetSize / 2;
-          const targetY = canvas.height / 2 - targetSize / 2;
-          const srcSize = Math.min(overlay.naturalWidth, overlay.naturalHeight);
-          const sx = Math.floor((overlay.naturalWidth - srcSize) / 2);
-          const sy = Math.floor((overlay.naturalHeight - srcSize) / 2);
-          ctx.drawImage(overlay as CanvasImageSource, sx, sy, srcSize, srcSize, targetX, targetY, targetSize, targetSize);
+          if (!overlay) {
+            throw new Error('overlay missing');
+          }
+          const desiredAspect = giverImageAspectRatio ?? (overlay.naturalWidth / overlay.naturalHeight);
+          const maxW = halfW - padding * 2;
+          const maxH = canvas.height - padding * 2;
+          const scale = Math.min(1.0, Math.max(0.2, giverImageScale));
+          const maxSide = Math.min(maxW, maxH) * scale;
+          const { w: targetW, h: targetH } = computeTargetSizeByMaxSide(maxSide, desiredAspect);
+          const targetX = halfW / 2 - targetW / 2;
+          const targetY = canvas.height / 2 - targetH / 2;
+          const { sx, sy, sw, sh } = computeCenteredCropForAspect(overlay.naturalWidth, overlay.naturalHeight, desiredAspect);
+          ctx.drawImage(overlay, sx, sy, sw, sh, targetX, targetY, targetW, targetH);
         } catch (_) {
           ctx.font = `${giverPx}px ${giverFontFamily}`;
           const leftLines = wrapText(ctx, (giverText || '').trim(), leftMaxWidth);
@@ -333,14 +386,17 @@ export default function GiverDedicationCanvas({
       const lMaxW = halfW - padding * 2;
       const hasAvatarLeft = !!(needOverlay && overlay && overlay.naturalWidth > 0 && overlay.naturalHeight > 0);
       if (hasAvatarLeft && overlay) {
-        const targetSize = Math.min(halfW - padding * 2, fullH - padding * 2) * 0.45;
-        const targetX = halfW / 2 - targetSize / 2;
-        const targetY = fullH / 2 - targetSize / 2;
         const o = overlay as HTMLImageElement;
-        const srcSize = Math.min(o.naturalWidth, o.naturalHeight);
-        const sx = Math.floor((o.naturalWidth - srcSize) / 2);
-        const sy = Math.floor((o.naturalHeight - srcSize) / 2);
-        lctx.drawImage(o, sx, sy, srcSize, srcSize, targetX, targetY, targetSize, targetSize);
+        const desiredAspect = giverImageAspectRatio ?? (o.naturalWidth / o.naturalHeight);
+        const maxW = halfW - padding * 2;
+        const maxH = fullH - padding * 2;
+        const scale = Math.min(1.0, Math.max(0.2, giverImageScale));
+        const maxSide = Math.min(maxW, maxH) * scale;
+        const { w: targetW, h: targetH } = computeTargetSizeByMaxSide(maxSide, desiredAspect);
+        const targetX = halfW / 2 - targetW / 2;
+        const targetY = fullH / 2 - targetH / 2;
+        const { sx, sy, sw, sh } = computeCenteredCropForAspect(o.naturalWidth, o.naturalHeight, desiredAspect);
+        lctx.drawImage(o, sx, sy, sw, sh, targetX, targetY, targetW, targetH);
       } else {
         lctx.font = `${giverPx}px ${giverFontFamily}`;
         const lLines = wrapText(lctx, (giverText || '').trim(), lMaxW);
@@ -407,7 +463,7 @@ export default function GiverDedicationCanvas({
         console.error('GiverDedicationCanvas draw error:', e);
       }
     })();
-  }, [ready, imageUrl, mode, giverText, dedicationText, giverImageUrl, giverPx, dedicationPx, onRendered]);
+  }, [ready, imageUrl, mode, giverText, dedicationText, giverImageUrl, giverImageAspectRatio, giverImageScale, giverPx, dedicationPx, onRendered]);
 
   if (mode === 'double') {
     return (

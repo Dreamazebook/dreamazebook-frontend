@@ -15,6 +15,13 @@ type Props = {
   onCancel: () => void;
   // 可选：固定裁剪比例（例如头像 1:1）。不传则自由裁剪
   aspectRatio?: number | undefined;
+  /**
+   * 可选：固定导出裁剪结果的画布尺寸（像素）。
+   * - 仅影响最终导出（getCroppedCanvas）的 width/height
+   * - 通常与 aspectRatio 搭配使用，避免变形
+   * - 若提供该值，将优先于 maxSize 生效
+   */
+  outputSize?: { width: number; height: number };
   // 可选：导出格式和质量
   exportMime?: 'image/jpeg' | 'image/png' | 'image/webp';
   exportQuality?: number; // 0-1，仅 JPEG/WebP 生效
@@ -69,6 +76,7 @@ export default function GiverAvatarCropper({
   onDone,
   onCancel,
   aspectRatio,
+  outputSize,
   maxSize,
   exportMime = 'image/jpeg',
   exportQuality = 0.92,
@@ -179,22 +187,31 @@ export default function GiverAvatarCropper({
     setIsUploading(true);
     setError(null);
     try {
-      // 限制最大导出尺寸（如果配置了 maxSize）
-      let canvas = cropper.getCroppedCanvas({ imageSmoothingEnabled: true, imageSmoothingQuality: 'high' });
-      if (maxSize && (canvas.width > maxSize || canvas.height > maxSize)) {
-        const ratio = Math.min(maxSize / canvas.width, maxSize / canvas.height);
-        const targetW = Math.round(canvas.width * ratio);
-        const targetH = Math.round(canvas.height * ratio);
-        const scaled = document.createElement('canvas');
-        scaled.width = targetW;
-        scaled.height = targetH;
-        const ctx = scaled.getContext('2d');
-        if (ctx) {
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-          ctx.drawImage(canvas, 0, 0, targetW, targetH);
+      // 获取裁剪结果：支持固定导出尺寸（outputSize），否则可选 maxSize 限制
+      const cropOpts: any = { imageSmoothingEnabled: true, imageSmoothingQuality: 'high' };
+      const hasOutputSize = !!(outputSize?.width && outputSize?.height);
+      if (hasOutputSize) {
+        cropOpts.width = outputSize!.width;
+        cropOpts.height = outputSize!.height;
+      }
+      let canvas = cropper.getCroppedCanvas(cropOpts);
+      if (!hasOutputSize) {
+        // 限制最大导出尺寸（如果配置了 maxSize）
+        if (maxSize && (canvas.width > maxSize || canvas.height > maxSize)) {
+          const ratio = Math.min(maxSize / canvas.width, maxSize / canvas.height);
+          const targetW = Math.round(canvas.width * ratio);
+          const targetH = Math.round(canvas.height * ratio);
+          const scaled = document.createElement('canvas');
+          scaled.width = targetW;
+          scaled.height = targetH;
+          const ctx = scaled.getContext('2d');
+          if (ctx) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(canvas, 0, 0, targetW, targetH);
+          }
+          canvas = scaled;
         }
-        canvas = scaled;
       }
 
       canvas.toBlob(async (blob) => {

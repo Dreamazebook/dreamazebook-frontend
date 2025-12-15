@@ -3559,6 +3559,19 @@ export default function PreviewPageWithTopNav() {
                       // 仅在 p3-4（有的书返回 p3-p4）页面渲染 Giver & Dedication
                       const pageCode = String((page as any).page_code || '');
                       const isGiverDedicationPage = pageCode === 'p3-4' || pageCode === 'p3-p4';
+                      const upperBookId = (searchParams.get('bookid') || '').toUpperCase();
+                      const giverImageAspectRatio =
+                        upperBookId === 'PICBOOK_BRAVEY'
+                          ? 1050 / 840
+                          : (upperBookId === 'PICBOOK_GOODNIGHT3' || upperBookId === 'PICBOOK_SANTA')
+                              ? 695 / 640
+                              : 1;
+                      const giverImageScale =
+                        upperBookId === 'PICBOOK_BRAVEY'
+                          ? 1.2
+                          : (upperBookId === 'PICBOOK_GOODNIGHT3' || upperBookId === 'PICBOOK_SANTA')
+                              ? 0.7
+                              : undefined;
                       // 单页模式：在 p3-4 直接用 GiverDedicationCanvas 取代基础图
                       if (isGiverDedicationPage && viewMode === 'single') {
                         return (
@@ -3571,6 +3584,8 @@ export default function PreviewPageWithTopNav() {
                               giverText={giver}
                               dedicationText={dedication}
                               giverImageUrl={giverImageUrl}
+                              giverImageAspectRatio={giverImageAspectRatio}
+                              giverImageScale={giverImageScale}
                               onRendered={uploadP34ComposedImage}
                               leftBelow={(
                                 <div className="mt-2 w-full flex justify-center">
@@ -3622,6 +3637,8 @@ export default function PreviewPageWithTopNav() {
                                   giverText={giver}
                                   dedicationText={dedication}
                                   giverImageUrl={giverImageUrl}
+                                  giverImageAspectRatio={giverImageAspectRatio}
+                                  giverImageScale={giverImageScale}
                                   onRendered={uploadP34ComposedImage}
                                 />
                                 <div className="pointer-events-none">
@@ -4258,6 +4275,29 @@ export default function PreviewPageWithTopNav() {
                 {(() => {
                   // 获取bookId（spu）
                   const bookId = searchParams.get('bookid');
+                  const upperBookId = (bookId || '').toUpperCase();
+                  const giverCropConfig: {
+                    aspectRatio: number;
+                    maxSize?: number;
+                    outputSize?: { width: number; height: number };
+                  } = (() => {
+                    if (upperBookId === 'PICBOOK_BRAVEY') {
+                      return {
+                        aspectRatio: 1050 / 840,
+                        outputSize: { width: 1050, height: 840 },
+                      };
+                    }
+                    if (upperBookId === 'PICBOOK_GOODNIGHT3' || upperBookId === 'PICBOOK_SANTA') {
+                      return {
+                        aspectRatio: 695 / 640,
+                        outputSize: { width: 695, height: 640 },
+                      };
+                    }
+                    return {
+                      aspectRatio: 1,
+                      maxSize: 1024,
+                    };
+                  })();
                   // 找到显示giver的页面（通常是第二页，idx === 1）
                   const displayedPages = previewData?.preview_data?.filter((p: any) => !(p as any).is_cover) || [];
                   const giverPage = displayedPages.length > 1 ? displayedPages[1] : displayedPages[0];
@@ -4268,8 +4308,9 @@ export default function PreviewPageWithTopNav() {
                   
                   return (
                     <GiverAvatarCropper
-                      aspectRatio={1}
-                      maxSize={1024}
+                      aspectRatio={giverCropConfig.aspectRatio}
+                      maxSize={giverCropConfig.maxSize}
+                      outputSize={giverCropConfig.outputSize}
                       exportMime="image/jpeg"
                       exportQuality={0.92}
                       spu={bookId || undefined}

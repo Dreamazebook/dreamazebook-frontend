@@ -5,6 +5,10 @@
   "scripts": {
     "start": "next dev --turbopack",
     "dev": "next dev --turbopack",
+    "clean": "rm -rf .next",
+    "dev:clean": "npm run clean && next dev --turbopack",
+    "build:clean": "npm run clean && next build",
+    "start:prod": "next start",
     "build": "next build",
     "lint": "next lint"
   },
