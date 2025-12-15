@@ -207,16 +207,16 @@ export default function BooksPage() {
       {/* Main Content */}
       <main className="mx-auto">
         {/* Hero Section */}
-        <section className="hidden md:block w-full bg-white py-12 px-4 md:h-[164px] md:pt-6 md:pb-6 md:pr-[120px] md:pl-[120px]">
-          <div className="mx-auto flex flex-col gap-3 md:gap-3">
+        <section className="block w-full bg-white py-6 px-6 md:h-[164px] md:pt-6 md:pb-6 md:px-[120px]">
+          <div className="mx-auto flex flex-col gap-3 md:gap-3 text-center md:text-left">
             <h1
-              className="text-[32px] md:text-[40px] font-semibold md:font-medium text-[#222222] md:leading-[40px] leading-tight"
+              className="text-[24px] leading-[32px] md:text-[40px] font-semibold md:font-medium text-[#222222] md:leading-[40px]"
               style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
             >
               Who do you want to surprise with this super exciting gift?
             </h1>
             <p
-              className="text-[16px] font-normal text-[#666666] md:leading-[24px] leading-relaxed"
+              className="text-[14px] leading-[20px] tracking-[0.25px] text-[#666666] md:text-[16px] md:leading-[24px] md:tracking-[0.5px]"
               style={{ fontFamily: 'var(--font-roboto), Roboto, sans-serif' }}
             >
               Discover the only hand-drawn personalized books that let your child be the hero of the story.
