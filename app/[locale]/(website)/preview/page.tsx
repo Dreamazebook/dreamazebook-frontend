@@ -705,6 +705,13 @@ export default function PreviewPageWithTopNav() {
 
   // KS 流程：通过查询参数关闭 Others 标签
   const isKs = searchParams.get('ks') === '1';
+  // 手机端底部状态面板（点击右侧箭头展开）
+  const [mobileStatusOpen, setMobileStatusOpen] = React.useState(false);
+
+  // 打开 giver 裁剪弹窗时，确保收起状态面板
+  React.useEffect(() => {
+    if (editField === 'giver') setMobileStatusOpen(false);
+  }, [editField]);
 
   // 页面加载即尝试从 Zustand store 预填 recipient（从 personalized-product 进入时）
   // 如果是从 personalized-product 进入，优先使用 store 中的名字，不会被后续的 batch API 覆盖
@@ -4480,49 +4487,139 @@ export default function PreviewPageWithTopNav() {
         </div>
       </aside>
 
+      {/* status 面板展开时：仅背景页面变暗（不遮住吸底栏内容） */}
+      {mobileStatusOpen && (
+        <div
+          className="fixed inset-0 md:hidden z-40 bg-black/20"
+          onClick={() => setMobileStatusOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* 手机端吸底进度条和 Continue 按钮 */}
       {/* 在 Giver 添加图片（裁剪弹窗打开）时隐藏该吸底条，避免与弹窗底部区域冲突 */}
       <div
-        className={`fixed bottom-0 left-0 right-0 md:hidden z-50 bg-white border-t border-gray-200 shadow-lg ${
-          editField === 'giver' ? 'hidden' : ''
-        }`}
+        className={`fixed bottom-0 left-0 right-0 md:hidden z-50 bg-white border-t border-gray-200 ${
+          mobileStatusOpen ? '' : 'shadow-lg'
+        } ${editField === 'giver' ? 'hidden' : ''}`}
       >
+        {/* 状态面板（展开态） */}
+        {mobileStatusOpen && (
+          <div className="px-6 pt-6 pb-2 flex justify-center">
+            {(() => {
+              const statuses = [
+                { id: 'giver', label: 'Name on Book', done: !!completedSections.giver },
+                { id: 'dedication', label: 'Your Special Message', done: !!completedSections.dedication },
+                { id: 'coverDesign', label: 'Cover Design', done: !!completedSections.coverDesign },
+                { id: 'binding', label: 'Book Format', done: !!completedSections.binding },
+                { id: 'giftBox', label: 'Add Extras', done: !!completedSections.giftBox },
+              ];
+
+              const firstIncomplete = statuses.findIndex(s => !s.done);
+              const activeIndex = firstIncomplete === -1 ? statuses.length - 1 : firstIncomplete;
+
+              return (
+                <div className="bg-white w-full max-w-[320px]">
+                  {/* 让“圆点+文字”这一组整体居中 */}
+                  <div className="flex flex-col items-center">
+                    {statuses.map((s, idx) => {
+                      const isActive = idx === activeIndex;
+                      const isCompleted = !!s.done;
+                      const isBlueDot = isActive || isCompleted;
+                      const dotClass = isBlueDot ? 'bg-[#012CCE]' : 'bg-gray-300';
+                      // 竖线：每个“蓝点”后面的第一段线都应该是蓝色（线段跟随左侧点）
+                      const lineClass = isBlueDot ? 'bg-[#012CCE]' : 'bg-gray-200';
+                      return (
+                        <div key={s.id} className="flex gap-3 justify-center">
+                          <div className="flex flex-col items-center pt-2 flex-none">
+                            <div className={`w-2 h-2 rounded-full ${dotClass}`} />
+                            {idx < statuses.length - 1 && <div className={`w-px h-5 mt-2 ${lineClass}`} />}
+                          </div>
+                          <div className="w-[170px]">
+                            <div className="text-[16px] leading-[24px] tracking-[0.15px] font-medium text-[#222222] text-start">
+                              {s.label}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
         {/* 进度指示器 */}
-        <div className="flex items-center justify-center gap-2 px-4 pt-4 pb-2">
+        <div className="flex items-center justify-center px-4 pt-4 pb-2">
           {(() => {
-            // 排除 giver（personalize photo 是可选的）
             const steps = [
+              { id: 'giver', completed: completedSections.giver },
               { id: 'dedication', completed: completedSections.dedication },
               { id: 'coverDesign', completed: completedSections.coverDesign },
               { id: 'binding', completed: completedSections.binding },
               { id: 'giftBox', completed: completedSections.giftBox },
             ];
+
+            // 和 status 面板保持一致：当前步骤（第一个未完成）也显示为蓝色
+            const firstIncomplete = steps.findIndex(s => !s.completed);
+            const activeIndex = firstIncomplete === -1 ? steps.length - 1 : firstIncomplete;
             
             return (
-              <>
-                {steps.map((step, index) => (
-                  <React.Fragment key={step.id}>
-                    <div
-                      className={`w-2 h-2 rounded-full ${
-                        step.completed ? 'bg-[#012CCE]' : 'bg-gray-300'
-                      }`}
-                    />
-                    {index < steps.length - 1 && (
+              <div className="flex items-center w-full">
+                <div className="flex items-center flex-1">
+                  {steps.map((step, index) => (
+                    <React.Fragment key={step.id}>
+                      {(() => {
+                        const isBlueDot = step.completed || index === activeIndex;
+                        const dotColor = isBlueDot ? 'bg-[#012CCE]' : 'bg-gray-300';
+                        // 横线：每个“蓝点”后面的第一段线都应该是蓝色（线段跟随左侧点）
+                        const lineColor = isBlueDot ? 'bg-[#012CCE]' : 'bg-gray-300';
+                        return (
+                          <>
                       <div
-                        className={`h-0.5 w-4 ${
-                          step.completed ? 'bg-[#012CCE]' : 'bg-gray-300'
-                        }`}
+                        className={`w-2 h-2 rounded-full ${dotColor}`}
                       />
-                    )}
-                  </React.Fragment>
-                ))}
-                {/* 向下箭头指示器 */}
-                <div className="ml-2 text-gray-400">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 9L2 5H10L6 9Z" fill="currentColor"/>
-                  </svg>
+                      {index < steps.length - 1 && (
+                        <div
+                          className={`h-0.5 flex-1 mx-3 ${
+                            // 横线也跟随“完成/当前”变蓝
+                            lineColor
+                          }`}
+                        />
+                      )}
+                          </>
+                        );
+                      })()}
+                    </React.Fragment>
+                  ))}
                 </div>
-              </>
+
+                {/* 右侧箭头（展开/收起状态面板） */}
+                <button
+                  type="button"
+                  className="ml-3 text-gray-400"
+                  aria-label={mobileStatusOpen ? 'Collapse status' : 'Expand status'}
+                  onClick={() => setMobileStatusOpen(v => !v)}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`transition-transform duration-200 ${mobileStatusOpen ? 'rotate-180' : ''}`}
+                  >
+                    <path
+                      d="M6 14L12 8L18 14"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
             );
           })()}
         </div>
