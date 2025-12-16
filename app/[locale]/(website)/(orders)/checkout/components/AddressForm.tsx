@@ -328,14 +328,13 @@ const AddressForm = forwardRef<
         label={t("unit")}
         type="text"
         required
-        value={address.unit}
+        value={address.house_number}
         onChange={(e) => {
-          setAddress((prev) => ({ ...prev, unit: e.target.value }));
-          clearError("unit");
-          debouncedGetAddressSuggestions();
+          setAddress((prev) => ({ ...prev, house_number: e.target.value }));
+          clearError("house_number");
         }}
-        onBlur={() => validateShippingInfo("unit")}
-        error={errors.unit}
+        onBlur={() => validateShippingInfo("house_number")}
+        error={errors.house_number}
         placeholder={t("unitPlaceholder")}
       />
 

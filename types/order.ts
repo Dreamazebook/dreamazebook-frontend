@@ -169,7 +169,7 @@ export interface ShippingErrors {
   email?: string;
   first_name?: string;
   last_name?: string;
-  unit?: string;
+  house_number?: string;
   address?: string;
   city?: string;
   post_code?: string;
