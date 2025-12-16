@@ -73,7 +73,7 @@
     "downloadInvoice": "Download Invoice",
     "buySame": "Buy the Same",
     "moreDetails": "More Details",
-    "continueToPay": "Continue to Pay"
+    "continueToPay": "Complete Payment"
   },
   "latestOrderHistory": {
     "total": "Total",
@@ -285,6 +285,8 @@
     "lastNamePlaceholder": "Enter your last name",
     "country": "Country",
     "address": "Address",
+    "unit": "Unit",
+    "unitPlaceholder": "Enter your appartment unit, condo unit etc",
     "addressPlaceholder": "Enter your street address",
     "city": "City",
     "cityPlaceholder": "Enter your city",

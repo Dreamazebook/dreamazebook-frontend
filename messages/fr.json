@@ -286,6 +286,8 @@
     "country": "Pays",
     "address": "Adresse",
     "addressPlaceholder": "Entrez votre adresse de rue",
+    "unit": "unité",
+    "unitPlaceholder": "Saisissez votre numéro d'appartement, de condo, etc.",
     "city": "Ville",
     "cityPlaceholder": "Entrez votre ville",
     "postalCode": "Code postal",
