@@ -69,6 +69,7 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
   }
 
   const canSubmit = selected.filter(Boolean).length === bundle.bookCount
+  const selectedCount = selected.filter(Boolean).length
 
   const handleMoreDetails = (book: BookOption, e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
@@ -128,7 +129,7 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
               <span className="text-[#999999] line-through text-[16px] md:text-[18px] leading-[28px]">{formatPrice(Math.round(bundle.price * 1.0))}</span>
               <span className="text-[#222222] font-semibold text-[22px] md:text-[24px] leading-[28px]">{formatPrice(bundle.price)}</span>
             </div>
-            <p className="text-xs md:text-[16px] leading-[24px] tracking-[0.5px] text-[#999999]">You can select the same book more than once.</p>
+            <p className="text-xs md:text-[16px] leading-[24px] tracking-[0.5px] text-[#999999]">Pick any {bundle.bookCount} books · Mix & match freely</p>
           </div>
 
           {/* 桌面端已选图书 */}
@@ -171,14 +172,14 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
                       onClick={() => handleClearSlot(idx)}
                       className="absolute top-2 left-1 w-[42px] h-[48px] rounded-[2px] border-[0.5px] border-[#012CCE] bg-white text-[#F0F0F0] flex items-center justify-center text-[30px] leading-[30px]"
                     >
-                      ?
+                      +
                     </button>
                   ) : (
                     <div
                       className="absolute top-2 left-1 w-[42px] h-[48px] rounded-[2px] border-[0.5px] border-gray-200 bg-white text-[#F0F0F0] flex items-center justify-center text-[30px] leading-[30px]"
                       style={inactiveShadowStyle}
                     >
-                      ?
+                      +
                     </div>
                   )}
                 </div>
@@ -213,7 +214,7 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
                   >
                     {disabled && (
                       <span className="absolute right-0 top-0 z-10 rounded-bl-[4px] rounded-tr-[4px] bg-[#012CCE1A] px-2 py-1 text-[12px] md:text-[16px] leading-[24px] tracking-[0.5px] text-[#012CCE] uppercase">
-                        sale out
+                        Sold out
                       </span>
                     )}
                     <div className="relative w-full aspect-[1.1/1] bg-white md:px-8 flex items-end justify-center">
@@ -238,7 +239,7 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
                         className="text-[16px] leading-[24px] tracking-[0.5px] text-[#012CCE] hover:underline flex items-center gap-1"
                         onClick={(e) => handleMoreDetails(book, e)}
                       >
-                        more details <span aria-hidden className="hidden md:inline">→</span>
+                        About this book <span aria-hidden className="hidden md:inline">→</span>
                       </Link>
                     </div>
                   </div>
@@ -257,7 +258,7 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
                 canSubmit ? 'bg-[#222222] text-[#F5E3E3] hover:bg-[#001E99]' : 'bg-[#C4C4C4] text-white cursor-not-allowed'
               }`}
             >
-              I&apos;ve finished choosing
+              {canSubmit ? `Add ${bundle.bookCount} books to cart` : `Choose ${bundle.bookCount} books (${selectedCount}/${bundle.bookCount})`}
             </button>
           </div>
         </div>
@@ -305,14 +306,14 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
                         onClick={() => handleClearSlot(idx)}
                         className="absolute top-2 left-1 w-[42px] h-[48px] rounded-[2px] border-[0.5px] border-[#012CCE] bg-white text-[#F0F0F0] flex items-center justify-center text-[30px] leading-[30px]"
                       >
-                        ?
+                        +
                       </button>
                     ) : (
                       <div
                         className="absolute top-2 left-1 w-[42px] h-[48px] rounded-[4px] border-[0.5px] border-gray-200 bg-white text-[#F0F0F0] flex items-center justify-center text-[30px] leading-[30px]"
                         style={inactiveShadowStyle}
                       >
-                        ?
+                        +
                       </div>
                     )}
                   </div>
@@ -328,7 +329,7 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
                 canSubmit ? 'bg-[#222222] text-[#F5E3E3] hover:bg-[#001E99]' : 'bg-[#C4C4C4] text-white cursor-not-allowed'
               }`}
             >
-              I&apos;ve finished choosing
+              {canSubmit ? `Add ${bundle.bookCount} books to cart` : `Choose ${bundle.bookCount} books (${selectedCount}/${bundle.bookCount})`}
             </button>
           </div>
         </div>
