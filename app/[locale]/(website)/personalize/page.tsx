@@ -48,6 +48,9 @@ export default function PersonalizeApiDrivenPage() {
 
   const form1Ref = useRef<SingleCharacterForm1Handle>(null);
   const form2Ref = useRef<SingleCharacterForm2Handle>(null);
+  
+  // 跟踪是否正在添加图片（裁剪器是否打开）
+  const [isAddingImage, setIsAddingImage] = useState(false);
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -134,6 +137,11 @@ export default function PersonalizeApiDrivenPage() {
 
     fetchConfig();
   }, [bookId, locale, mockParam]);
+
+  // 处理裁剪器状态变化
+  const handleCropperOpenChange = (isOpen: boolean) => {
+    setIsAddingImage(isOpen);
+  };
 
   // 滚动到错误字段的函数
   const scrollToErrorField = (fieldName: string | null) => {
@@ -403,6 +411,7 @@ export default function PersonalizeApiDrivenPage() {
             uploadOptions={uploadOptions}
             assetSpuCode={'PICBOOK_GOODNIGHT'}
             currentStep={currentStep}
+            onCropperOpenChange={handleCropperOpenChange}
           />
         ) : (
           <SingleCharacterForm2
@@ -455,7 +464,7 @@ export default function PersonalizeApiDrivenPage() {
         </div>
       </div>
       {/* 手机端吸底按钮 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#F8F8F8] z-50 md:hidden border-t border-gray-200">
+      <div className={`fixed bottom-0 left-0 right-0 bg-[#F8F8F8] z-50 md:hidden border-t border-gray-200 transition-transform duration-300 ${isAddingImage ? 'translate-y-full' : ''}`}>
         <div className="flex items-center justify-center h-[76px] px-[12px] py-[16px] gap-[10px]">
           {currentStep === 1 && formType === 'SINGLE1' ? (
             <button

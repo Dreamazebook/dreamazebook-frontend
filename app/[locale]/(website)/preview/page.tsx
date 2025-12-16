@@ -4481,7 +4481,12 @@ export default function PreviewPageWithTopNav() {
       </aside>
 
       {/* 手机端吸底进度条和 Continue 按钮 */}
-      <div className="fixed bottom-0 left-0 right-0 md:hidden z-50 bg-white border-t border-gray-200 shadow-lg">
+      {/* 在 Giver 添加图片（裁剪弹窗打开）时隐藏该吸底条，避免与弹窗底部区域冲突 */}
+      <div
+        className={`fixed bottom-0 left-0 right-0 md:hidden z-50 bg-white border-t border-gray-200 shadow-lg ${
+          editField === 'giver' ? 'hidden' : ''
+        }`}
+      >
         {/* 进度指示器 */}
         <div className="flex items-center justify-center gap-2 px-4 pt-4 pb-2">
           {(() => {

@@ -22,6 +22,7 @@ export interface SingleCharacterForm1Handle {
   validateForm: (options?: { scope?: 'step1' | 'all' }) => { isValid: boolean; firstErrorField: string | null }; // Method to validate form data
   formData: PersonalizeFormData;
   getFormData: () => PersonalizeFormData;
+  isCropperOpen: boolean; // 是否正在添加/裁剪图片
 }
 
 interface FormErrors {
@@ -61,9 +62,11 @@ interface SingleCharacterForm1Props {
   assetSpuCode?: string;
   // 分步显示
   currentStep?: number; // 1 或 2
+  // 裁剪器状态变化回调
+  onCropperOpenChange?: (isOpen: boolean) => void;
 }
 
-const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharacterForm1Props>(({ initialData, bookId = '1', apiSkinToneValues, apiHairStyleValues, apiHairColorValues, uploadOptions, assetSpuCode, currentStep = 1 }, ref) => {
+const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharacterForm1Props>(({ initialData, bookId = '1', apiSkinToneValues, apiHairStyleValues, apiHairColorValues, uploadOptions, assetSpuCode, currentStep = 1, onCropperOpenChange }, ref) => {
   const [formData, setFormData] = useState<PersonalizeFormData>({
     fullName: initialData?.fullName ?? '',
     gender: initialData?.gender ?? '',
@@ -177,6 +180,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     const firstUrl = URL.createObjectURL(filesToProcess[0]);
     setPendingPreviewUrl(firstUrl);
     setIsCropperOpen(true);
+    onCropperOpenChange?.(true);
   };
 
   // 裁剪完成后，调用原有上传逻辑，将裁剪结果作为新文件上传
@@ -204,9 +208,11 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       const nextUrl = URL.createObjectURL(pendingFiles[nextIndex]);
       setPendingPreviewUrl(nextUrl);
       setIsCropperOpen(true);
+      onCropperOpenChange?.(true);
     } else {
       // 队列结束，关闭裁剪弹窗并清理
       setIsCropperOpen(false);
+      onCropperOpenChange?.(false);
       setPendingFiles([]);
       if (pendingPreviewUrl) {
         URL.revokeObjectURL(pendingPreviewUrl);
@@ -217,6 +223,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
 
   const handleCropperCancel = () => {
     setIsCropperOpen(false);
+    onCropperOpenChange?.(false);
     setPendingFiles([]);
     if (pendingPreviewUrl) {
       URL.revokeObjectURL(pendingPreviewUrl);
@@ -313,7 +320,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
         // 添加额外的photos字段用于存储所有图片路径
         photos: currentPaths 
       } as any;
-    }
+    },
+    isCropperOpen,
   }));
 
   // 判断是否显示第二步内容（Single Choice 和 Multiple Choice）
