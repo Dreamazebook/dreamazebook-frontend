@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React from "react";
 
 interface Option {
   value: string;
@@ -11,14 +11,19 @@ interface FormFieldProps {
   id: string;
   label?: string;
   value?: string | boolean | number;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+  onChange?: (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => void;
   onBlur?: () => void;
-  type?: 'text' | 'email' | 'select' | 'checkbox' | 'tel' | 'textarea';
+  type?: "text" | "email" | "select" | "checkbox" | "tel" | "textarea";
   required?: boolean;
   error?: string | undefined;
   options?: Option[];
   placeholder?: string;
   children?: React.ReactNode;
+  disabled?: boolean;
 }
 
 export default function FormField({
@@ -27,48 +32,57 @@ export default function FormField({
   value,
   onChange,
   onBlur,
-  type = 'text',
+  type = "text",
   required = false,
   error,
   options = [],
   placeholder,
   children,
+  disabled = false,
 }: FormFieldProps) {
   return (
     <div className="mb-4">
       {label && (
-      <label htmlFor={id} className="block text-[16px] font-medium text-[#222] mb-1">
-        {label}
-      </label>
+        <label
+          htmlFor={id}
+          className="block text-[16px] font-medium text-[#222] mb-1"
+        >
+          {label}
+        </label>
       )}
 
-      {type === 'select' ? (
+      {type === "select" ? (
         <select
           id={id}
+          disabled={disabled}
           required={required}
-          className={`w-full p-2 border rounded ${error ? 'border-red-500' : 'border-gray-300'}`}
-          value={String(value ?? '')}
+          className={`w-full p-2 border rounded ${
+            error ? "border-red-500" : "border-gray-300"
+          }`}
+          value={String(value ?? "")}
           onChange={onChange as any}
           onBlur={onBlur}
         >
           <option value="">Select</option>
-          {options.map((opt,idx) => (
-            <option key={opt.value+idx} value={opt.value}>
+          {options.map((opt, idx) => (
+            <option key={opt.value + idx} value={opt.value}>
               {opt.label}
             </option>
           ))}
         </select>
-      ) : type === 'textarea' ? (
+      ) : type === "textarea" ? (
         <textarea
           id={id}
           required={required}
-          className={`w-full p-2 border rounded ${error ? 'border-red-500' : 'border-gray-300'}`}
-          value={String(value ?? '')}
+          className={`w-full p-2 border rounded ${
+            error ? "border-red-500" : "border-gray-300"
+          }`}
+          value={String(value ?? "")}
           onChange={onChange as any}
           onBlur={onBlur}
           placeholder={placeholder}
         />
-      ) : type === 'checkbox' ? (
+      ) : type === "checkbox" ? (
         <div className="flex items-center">
           <input
             id={id}
@@ -83,21 +97,25 @@ export default function FormField({
         </div>
       ) : (
         <>
-        <input
-          id={id}
-          type={type}
-          required={required}
-          className={`w-full p-2 border rounded ${error ? 'border-red-500' : 'border-gray-300'}`}
-          value={String(value ?? '')}
-          onChange={onChange as any}
-          onBlur={onBlur}
-          placeholder={placeholder}
-        />
-        {children}
+          <input
+            id={id}
+            type={type}
+            required={required}
+            className={`w-full p-2 border rounded ${
+              error ? "border-red-500" : "border-gray-300"
+            }`}
+            value={String(value ?? "")}
+            onChange={onChange as any}
+            onBlur={onBlur}
+            placeholder={placeholder}
+          />
+          {children}
         </>
       )}
 
-      {error && type !== 'checkbox' && <p className="text-red-500 text-sm mt-1">{error}</p>}
+      {error && type !== "checkbox" && (
+        <p className="text-red-500 text-sm mt-1">{error}</p>
+      )}
     </div>
   );
 }

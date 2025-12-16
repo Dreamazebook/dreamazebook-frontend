@@ -1,34 +1,40 @@
-'use client';
+"use client";
 
-import React, { useEffect, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import Loading from '../../components/Loading';
-import { Address } from '@/types/address';
-import CheckoutStep from './components/CheckoutStep';
-import ShippingForm from './components/ShippingForm';
-import DeliveryOptions from './components/DeliveryOptions';
-import ReviewAndPay from './components/ReviewAndPay';
-import OrderSummary from './components/OrderSummary';
-import AddressCardListModal from './components/AddressCardListModal';
-import { useOrderDetail } from './hooks/useOrderDetail';
-import { useCheckoutSteps } from './hooks/useCheckoutSteps';
-import { useShippingAddress } from './hooks/useShippingAddress';
-import { useShippingMethod } from './hooks/useShippingMethod';
-import { CheckoutProvider } from './context/CheckoutContext';
+import React, { useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import Loading from "../../components/Loading";
+import { Address } from "@/types/address";
+import CheckoutStep from "./components/CheckoutStep";
+import ShippingForm from "./components/ShippingForm";
+import DeliveryOptions from "./components/DeliveryOptions";
+import ReviewAndPay from "./components/ReviewAndPay";
+import OrderSummary from "./components/OrderSummary";
+import AddressCardListModal from "./components/AddressCardListModal";
+import { useOrderDetail } from "./hooks/useOrderDetail";
+import { useCheckoutSteps } from "./hooks/useCheckoutSteps";
+import { useShippingAddress } from "./hooks/useShippingAddress";
+import { useShippingMethod } from "./hooks/useShippingMethod";
+import { CheckoutProvider } from "./context/CheckoutContext";
 
 function CheckoutPageContent() {
-  const t = useTranslations('checkoutPage');
+  const t = useTranslations("checkoutPage");
   const searchParams = useSearchParams();
-  const orderId = searchParams.get('orderId');
-  const paymentMethod = searchParams.get('paymentMethod') || 'card';
+  const orderId = searchParams.get("orderId");
+  const paymentMethod = searchParams.get("paymentMethod") || "card";
 
-  const { orderDetail, setOrderDetail, isLoading:isOrderLoading, error } = useOrderDetail(orderId);
-  const { openStep, completedSteps, toggleStep, completeStep } = useCheckoutSteps();
-  const { 
-    shippingAddress, 
+  const {
+    orderDetail,
+    setOrderDetail,
+    isLoading: isOrderLoading,
+    error,
+  } = useOrderDetail(orderId);
+  const { openStep, completedSteps, toggleStep, completeStep } =
+    useCheckoutSteps();
+  const {
+    shippingAddress,
     setShippingAddress,
-    billingAddress, 
+    billingAddress,
     setBillingAddress,
     needsBillingAddress,
     setNeedsBillingAddress,
@@ -38,11 +44,12 @@ function CheckoutPageContent() {
     setShowAddressListModal,
     updateOrderAddress,
     saveAddress,
-    isLoading: isAddressLoading
+    isLoading: isAddressLoading,
   } = useShippingAddress(orderId);
-  
-  const { updateOrderShippingMethod, isLoading: isShippingMethodLoading } = useShippingMethod(orderId);
-  
+
+  const { updateOrderShippingMethod, isLoading: isShippingMethodLoading } =
+    useShippingMethod(orderId);
+
   // Refs for address form validation
   const shippingAddressRef = useRef<any>(null);
   const billingAddressRef = useRef<any>(null);
@@ -57,7 +64,10 @@ function CheckoutPageContent() {
       if (orderDetail.billing_address) {
         setBillingAddress(orderDetail.billing_address);
       }
-      if (orderDetail.shipping_address?.street !== orderDetail.billing_address?.street) {
+      if (
+        orderDetail.shipping_address?.street !==
+        orderDetail.billing_address?.street
+      ) {
         setNeedsBillingAddress(true);
       }
     }
@@ -83,17 +93,20 @@ function CheckoutPageContent() {
   };
 
   const isSameAddress = (addr1: Address, addr2: Address) => {
-    return addr1.street === addr2.street &&
-           addr1.city === addr2.city &&
-           addr1.state === addr2.state &&
-           addr1.post_code === addr2.post_code &&
-           addr1.country === addr2.country;
-  }
+    return (
+      addr1.street === addr2.street &&
+      addr1.city === addr2.city &&
+      addr1.state === addr2.state &&
+      addr1.post_code === addr2.post_code &&
+      addr1.country === addr2.country
+    );
+  };
 
   const handleNextFromShipping = async () => {
     // Always validate shipping address if form is shown
     if (showShippingForm && shippingAddressRef.current) {
-      const isShippingValid = shippingAddressRef.current.validateShippingAddress();
+      const isShippingValid =
+        shippingAddressRef.current.validateShippingAddress();
       if (!isShippingValid) {
         return; // Stop if shipping address validation fails
       }
@@ -101,7 +114,8 @@ function CheckoutPageContent() {
 
     // Always validate billing address if needed and form is shown
     if (needsBillingAddress && billingAddressRef.current) {
-      const isBillingValid = billingAddressRef.current.validateShippingAddress();
+      const isBillingValid =
+        billingAddressRef.current.validateShippingAddress();
       if (!isBillingValid) {
         return; // Stop if billing address validation fails
       }
@@ -109,17 +123,23 @@ function CheckoutPageContent() {
 
     let skipUpdateShippingAddress = false;
     if (orderDetail?.shipping_address) {
-      skipUpdateShippingAddress = isSameAddress(orderDetail?.shipping_address, shippingAddress);
+      skipUpdateShippingAddress = isSameAddress(
+        orderDetail?.shipping_address,
+        shippingAddress
+      );
     }
-    const skipUpdateBillingAddress = (!needsBillingAddress || (needsBillingAddress && orderDetail?.billing_address?.street === billingAddress.street));
-    
+    const skipUpdateBillingAddress =
+      !needsBillingAddress ||
+      (needsBillingAddress &&
+        orderDetail?.billing_address?.street === billingAddress.street);
+
     if (skipUpdateShippingAddress && skipUpdateBillingAddress) {
       completeStep(1);
       return;
     }
 
     const { success, data, message } = await saveAddress();
-    
+
     if (success && data) {
       setOrderDetail(data);
       completeStep(1);
@@ -134,13 +154,23 @@ function CheckoutPageContent() {
 
   return (
     <div className="bg-gray-100 min-h-screen py-8">
-      <Loading isLoading={isOrderLoading||isAddressLoading||isShippingMethodLoading} />
-      <div className="max-w-5xl mx-auto px-4">
+      <Loading
+        isLoading={
+          isOrderLoading || isAddressLoading || isShippingMethodLoading
+        }
+      />
+      <div className="max-w-[1200px] mx-auto px-4">
         <h1 className="text-2xl font-bold mb-8 text-center">{t("title")}</h1>
         {error && <div className="text-center text-red-500 py-4">{error}</div>}
 
-        {showAddressListModal && <AddressCardListModal handleClickAddress={handleClickAddress} handleEditAddress={handleEditAddress} handleCloseModal={() => setShowAddressListModal(false)} />}
-        
+        {showAddressListModal && (
+          <AddressCardListModal
+            handleClickAddress={handleClickAddress}
+            handleEditAddress={handleEditAddress}
+            handleCloseModal={() => setShowAddressListModal(false)}
+          />
+        )}
+
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="lg:w-2/3">
             {/* Step 1: Shipping Information */}
@@ -152,25 +182,25 @@ function CheckoutPageContent() {
               onToggle={() => toggleStep(1)}
               canOpen={true}
             >
-              {orderDetail &&
-              <ShippingForm
-                orderDetail={orderDetail}
-                address={shippingAddress}
-                setAddress={setShippingAddress}
-                billingAddress={billingAddress}
-                setBillingAddress={setBillingAddress}
-                needsBillingAddress={needsBillingAddress}
-                setNeedsBillingAddress={setNeedsBillingAddress}
-                handleNextFromShipping={handleNextFromShipping}
-                setShowAddressListModal={setShowAddressListModal}
-                showShippingForm={showShippingForm}
-                setShowShippingForm={setShowShippingForm}
-                shippingAddressRef={shippingAddressRef}
-                billingAddressRef={billingAddressRef}
-              />
-              }
+              {orderDetail && (
+                <ShippingForm
+                  orderDetail={orderDetail}
+                  address={shippingAddress}
+                  setAddress={setShippingAddress}
+                  billingAddress={billingAddress}
+                  setBillingAddress={setBillingAddress}
+                  needsBillingAddress={needsBillingAddress}
+                  setNeedsBillingAddress={setNeedsBillingAddress}
+                  handleNextFromShipping={handleNextFromShipping}
+                  setShowAddressListModal={setShowAddressListModal}
+                  showShippingForm={showShippingForm}
+                  setShowShippingForm={setShowShippingForm}
+                  shippingAddressRef={shippingAddressRef}
+                  billingAddressRef={billingAddressRef}
+                />
+              )}
             </CheckoutStep>
-            
+
             {/* Step 2: Delivery Options */}
             <CheckoutStep
               stepNumber={2}
@@ -180,20 +210,22 @@ function CheckoutPageContent() {
               onToggle={() => toggleStep(2)}
               canOpen={completedSteps.includes(1)}
             >
-            {orderDetail && 
-              <DeliveryOptions
-                orderDetail={orderDetail}
-                updateOrderShippingMethod={async (option) => {
-                  const updatedOrder = await updateOrderShippingMethod(option);
-                  if (updatedOrder) {
-                    setOrderDetail(updatedOrder);
-                  }
-                }}
-                handleNextFromDelivery={handleNextFromDelivery}
-              />
-            }
+              {orderDetail && (
+                <DeliveryOptions
+                  orderDetail={orderDetail}
+                  updateOrderShippingMethod={async (option) => {
+                    const updatedOrder = await updateOrderShippingMethod(
+                      option
+                    );
+                    if (updatedOrder) {
+                      setOrderDetail(updatedOrder);
+                    }
+                  }}
+                  handleNextFromDelivery={handleNextFromDelivery}
+                />
+              )}
             </CheckoutStep>
-            
+
             {/* Step 3: Review and Pay */}
             <CheckoutStep
               stepNumber={3}
@@ -203,15 +235,15 @@ function CheckoutPageContent() {
               onToggle={() => toggleStep(3)}
               canOpen={completedSteps.includes(2)}
             >
-              {orderDetail && 
-              <ReviewAndPay
-                paymentMethod={paymentMethod}
-                orderDetail={orderDetail}
-              />
-              }
+              {orderDetail && (
+                <ReviewAndPay
+                  paymentMethod={paymentMethod}
+                  orderDetail={orderDetail}
+                />
+              )}
             </CheckoutStep>
           </div>
-          
+
           {/* Right column - Order summary */}
           <div className="lg:w-1/3 relative">
             <OrderSummary

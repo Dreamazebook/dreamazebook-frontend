@@ -33,66 +33,6 @@ export default function StoriesFromRealFamilies() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Handle video load and readiness
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const handleLoadedData = () => {
-      console.log('Video loaded and ready');
-      // Try to autoplay immediately when loaded
-      tryAutoplay();
-    };
-
-    const tryAutoplay = async () => {
-      try {
-        video.muted = true;
-        await video.play();
-        console.log('Immediate autoplay successful');
-        setTimeout(() => {
-          video.muted = false;
-          video.volume = 0.5;
-        }, 100);
-      } catch (err) {
-        console.log('Immediate autoplay failed:', err);
-      }
-    };
-
-    const handlePlay = () => {
-      console.log('Video play event fired');
-      setIsPlaying(true);
-    };
-    
-    const handlePause = () => {
-      console.log('Video pause event fired');
-      setIsPlaying(false);
-    };
-    
-    const handleEnded = () => {
-      console.log('Video ended event fired');
-      setIsPlaying(false);
-    };
-
-    // Set video properties
-    video.playsInline = true;
-    video.setAttribute('playsinline', '');
-    video.setAttribute('webkit-playsinline', 'true');
-    (video as any).webkitPlaysInline = true;
-
-    // Add event listeners
-    video.addEventListener('loadeddata', handleLoadedData);
-    video.addEventListener('play', handlePlay);
-    video.addEventListener('pause', handlePause);
-    video.addEventListener('ended', handleEnded);
-
-    return () => {
-      video.removeEventListener('loadeddata', handleLoadedData);
-      video.removeEventListener('play', handlePlay);
-      video.removeEventListener('pause', handlePause);
-      video.removeEventListener('ended', handleEnded);
-    };
-  }, []);
-
   // Auto-play when in viewport, pause when out of view
   useEffect(() => {
     const video = videoRef.current;
