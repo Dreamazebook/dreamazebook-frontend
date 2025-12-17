@@ -56,8 +56,12 @@ export default function FormField({
           id={id}
           disabled={disabled}
           required={required}
-          className={`w-full p-2 border rounded ${
-            error ? "border-red-500" : "border-gray-300"
+          className={`w-full p-2 border rounded transition-colors ${
+            error 
+              ? "border-red-500" 
+              : disabled
+                ? "bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed"
+                : "border-gray-300 bg-white"
           }`}
           value={String(value ?? "")}
           onChange={onChange as any}
@@ -74,8 +78,13 @@ export default function FormField({
         <textarea
           id={id}
           required={required}
-          className={`w-full p-2 border rounded ${
-            error ? "border-red-500" : "border-gray-300"
+          disabled={disabled}
+          className={`w-full p-2 border rounded transition-colors resize-none ${
+            error 
+              ? "border-red-500" 
+              : disabled
+                ? "bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed"
+                : "border-gray-300 bg-white"
           }`}
           value={String(value ?? "")}
           onChange={onChange as any}
@@ -89,9 +98,14 @@ export default function FormField({
             type="checkbox"
             checked={Boolean(value)}
             onChange={onChange as any}
-            className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+            disabled={disabled}
+            className={`h-4 w-4 border-gray-300 rounded transition-colors ${
+              disabled 
+                ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
+                : "text-blue-600"
+            }`}
           />
-          <label htmlFor={id} className="ml-2 block">
+          <label htmlFor={id} className={`ml-2 block ${disabled ? "text-gray-500" : ""}`}>
             {children}
           </label>
         </div>
@@ -101,8 +115,13 @@ export default function FormField({
             id={id}
             type={type}
             required={required}
-            className={`w-full p-2 border rounded ${
-              error ? "border-red-500" : "border-gray-300"
+            disabled={disabled}
+            className={`w-full p-2 border rounded transition-colors ${
+              error 
+                ? "border-red-500" 
+                : disabled
+                  ? "bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed"
+                  : "border-gray-300 bg-white"
             }`}
             value={String(value ?? "")}
             onChange={onChange as any}

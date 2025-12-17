@@ -73,7 +73,8 @@
     "downloadInvoice": "Download Invoice",
     "buySame": "Buy the Same",
     "moreDetails": "More Details",
-    "continueToPay": "Complete Payment"
+    "continueToPay": "Complete Payment",
+    "editShippingAddress": "Edit Shipping Address"
   },
   "latestOrderHistory": {
     "total": "Total",
@@ -255,6 +256,7 @@
     "reviewAndPay": "Review and Pay",
     "changeAddress": "Change Address",
     "addNewAddress": "Add New Address",
+    "editShippingAddress": "Edit Shipping Address",
     "billingAddressQuestion": "Bills need to be sent to a new address？",
     "yes": "Yes",
     "noNeed": "No need",

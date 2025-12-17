@@ -11,6 +11,7 @@ import DeliveryOptions from "./components/DeliveryOptions";
 import ReviewAndPay from "./components/ReviewAndPay";
 import OrderSummary from "./components/OrderSummary";
 import AddressCardListModal from "./components/AddressCardListModal";
+import useOrderStatus from "../../hooks/useOrderStatus";
 import { useOrderDetail } from "./hooks/useOrderDetail";
 import { useCheckoutSteps } from "./hooks/useCheckoutSteps";
 import { useShippingAddress } from "./hooks/useShippingAddress";
@@ -29,6 +30,12 @@ function CheckoutPageContent() {
     isLoading: isOrderLoading,
     error,
   } = useOrderDetail(orderId);
+
+  // Get order status to determine if editing is allowed
+  const { orderStatus } = useOrderStatus(orderDetail?.status || '');
+
+  // Check if order status allows editing shipping address
+  const canEditShippingAddress = orderStatus === 'processing' || orderStatus === 'pending' || orderStatus === 'unpaid';
   const { openStep, completedSteps, toggleStep, completeStep } =
     useCheckoutSteps();
   const {
@@ -197,6 +204,7 @@ function CheckoutPageContent() {
                   setShowShippingForm={setShowShippingForm}
                   shippingAddressRef={shippingAddressRef}
                   billingAddressRef={billingAddressRef}
+                  canEditShippingAddress={canEditShippingAddress}
                 />
               )}
             </CheckoutStep>

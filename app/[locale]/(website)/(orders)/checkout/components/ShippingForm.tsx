@@ -24,6 +24,7 @@ interface ShippingFormProps {
   setShowShippingForm: (value: boolean) => void;
   shippingAddressRef?: React.RefObject<any>;
   billingAddressRef?: React.RefObject<any>;
+  canEditShippingAddress?: boolean;
 }
 
 const ShippingForm: React.FC<ShippingFormProps> = ({
@@ -40,6 +41,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   setShowShippingForm,
   shippingAddressRef,
   billingAddressRef,
+  canEditShippingAddress = true,
 }) => {
   const t = useTranslations("checkoutPage");
   const { fetchCountryList, fetchAddresses } = useUserStore();
@@ -76,10 +78,26 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   return (
     <div className="space-y-4">
       {orderDetail?.shipping_address && (
-        <AddressCard
-          style="bg-[#F8F8F8]"
-          address={orderDetail.shipping_address}
-        />
+        <div>
+          <AddressCard
+            style="bg-[#F8F8F8]"
+            address={orderDetail.shipping_address}
+          />
+          {/* Edit Shipping Address link */}
+          {canEditShippingAddress && (
+            <div className="mt-2">
+              <button
+                onClick={() => {
+                  setShowShippingForm(true);
+                  setAddress(orderDetail.shipping_address!);
+                }}
+                className="text-[#012CCE] hover:text-[#012CCE]/80 text-sm font-medium"
+              >
+                {t("editShippingAddress")}
+              </button>
+            </div>
+          )}
+        </div>
       )}
       {/* 使用新地址选项 */}
       <div className="flex items-center gap-5">

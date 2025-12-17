@@ -73,7 +73,8 @@
     "downloadInvoice": "Télécharger la facture",
     "buySame": "Acheter le même",
     "moreDetails": "Plus de détails",
-    "continueToPay": "Continuer à payer"
+    "continueToPay": "Continuer à payer",
+    "editShippingAddress": "Modifier l'adresse de livraison"
   },
   "latestOrderHistory": {
     "total": "Total",
@@ -255,6 +256,7 @@
     "reviewAndPay": "Examiner et payer",
     "changeAddress": "Changer d'adresse",
     "addNewAddress": "Ajouter une nouvelle adresse",
+    "editShippingAddress": "Modifier l'adresse de livraison",
     "billingAddressQuestion": "Les factures doivent-elles être envoyées à une nouvelle adresse ?",
     "yes": "Oui",
     "noNeed": "Pas besoin",
