@@ -8,6 +8,7 @@ import { create } from 'zustand';
 import TopNavBarWithTabs from '../components/TopNavBarWithTabs';
 
 import Image from 'next/image';
+import { LoaderCircle } from 'lucide-react';
 import GiverDedicationCanvas from './components/GiverDedicationCanvas';
 import GiverAvatarCropper from './components/GiverAvatarCropper';
 import CoverNameCanvas from './components/CoverNameCanvas';
@@ -367,6 +368,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   overlayMode = 'progress',
   content,
   customOverlayContent,
+  onImageLoaded,
 }: {
   pageId: number;
   pageNumber: number;
@@ -377,7 +379,17 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   overlayMode?: 'progress' | 'loading';
   content?: string | null;
   customOverlayContent?: React.ReactNode;
+  onImageLoaded?: (pageId: number) => void;
 }) {
+  const notifiedRef = useRef(false);
+  const handleImageLoad = () => {
+    if (notifiedRef.current) return;
+    notifiedRef.current = true;
+    try {
+      onImageLoaded?.(pageId);
+    } catch {}
+  };
+
   if (viewMode === 'single') {
     return (
       <div className="w-full flex flex-col items-center gap-4">
@@ -396,6 +408,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                       width: '100%',
                       height: '100%'
                     }}
+                    onLoad={handleImageLoad}
                   />
                 </div>
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
@@ -433,6 +446,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                   }}
                   onLoad={() => {
                     console.log(`图片加载成功: ${src}`);
+                    handleImageLoad();
                   }}
                 />
               </div>
@@ -455,6 +469,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                       width: '100%',
                       height: '100%'
                     }}
+                    onLoad={handleImageLoad}
                   />
                 </div>
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
@@ -492,6 +507,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                   }}
                   onLoad={() => {
                     console.log(`图片加载成功: ${src}`);
+                    handleImageLoad();
                   }}
                 />
               </div>
@@ -524,6 +540,8 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
             width={1600}
             height={600}
             className="w-full h-auto rounded-lg object-cover"
+            onLoad={handleImageLoad}
+            onLoadingComplete={() => handleImageLoad()}
           />
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
             {overlayMode === 'progress' ? (
@@ -562,7 +580,9 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
             }}
             onLoad={() => {
               console.log(`图片加载成功: ${src}`);
+              handleImageLoad();
             }}
+            onLoadingComplete={() => handleImageLoad()}
           />
           {customOverlayContent && (
             <div className="absolute inset-0 z-10 pointer-events-none">
@@ -969,6 +989,9 @@ export default function PreviewPageWithTopNav() {
   const [previewData, setPreviewData] = useState<PreviewResponse | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  // 扉页（标题页）展示完成后显示提示文案
+  const [isTitlePageLoaded, setIsTitlePageLoaded] = useState(false);
+  const titlePageIdRef = useRef<number | null>(null);
 
   // 为 Others 标签页添加局部状态，用于记录选中的选项
   const [selectedBookCover, setSelectedBookCover] = React.useState<number | null>(null);
@@ -1315,6 +1338,22 @@ export default function PreviewPageWithTopNav() {
   const isQueued = isProcessingLike && queuePos !== null && queuePos > 0;
   const isGenerating = isProcessingLike && (queuePos === null || queuePos === 0);
   const isCompleted = faceSwapStatus === 'completed';
+
+  // 扉页（标题页）：约定为预览列表里第二张“非封面”页（index=1）
+  const titlePageId = useMemo(() => {
+    const pages = (previewData?.preview_data ?? []).filter((p: any) => !(p as any).is_cover);
+    const candidate = pages[1] || pages[0];
+    const id = candidate ? Number((candidate as any).page_id) : null;
+    if (!id || Number.isNaN(id)) return null;
+    return id;
+  }, [previewData?.preview_data]);
+
+  useEffect(() => {
+    if (titlePageIdRef.current !== titlePageId) {
+      titlePageIdRef.current = titlePageId;
+      setIsTitlePageLoaded(false);
+    }
+  }, [titlePageId]);
   useEffect(() => {
     // 仅当从无到有或 URL 变化时触发 loading，避免重复置为 true 导致闪烁
     setIsCoverLoading((prev) => {
@@ -3340,7 +3379,7 @@ export default function PreviewPageWithTopNav() {
             
             {/* 书籍封面 */}
             <div className="flex flex-col items-center w-full max-w-3xl">
-              <div className="w-full flex justify-center mb-8">
+              <div className={`w-full flex justify-center ${isProcessing ? 'mb-4' : 'mb-8'}`}>
                 {(() => {
                   // 尝试获取当前选中的封面：
                   // - 如果用户已选择封面，则使用选中的封面；
@@ -3480,39 +3519,21 @@ export default function PreviewPageWithTopNav() {
                   );
                 })()}
               </div>
+              {isProcessing && (
+                <div className="mb-8 flex flex-col items-center gap-2" role="status" aria-live="polite">
+                  <LoaderCircle
+                    size={48}
+                    className="animate-spin"
+                    style={{ color: '#C9CCD3', animationDuration: '1.5s' }}
+                    aria-label="loading"
+                  />
+                  <p className="text-base font-medium text-[#C9CCD3]">Your story is coming to life…</p>
+                </div>
+              )}
             </div>
             {/* 寄语页已移除：改为叠加至第二张预览图 */}
 
-            {/* 换脸状态信息（仅排队时展示提示条），放在寄语页下方 */}
-            {(() => {
-              const displayedPages = (previewData?.preview_data ?? []).filter((p: any) => !(p as any).is_cover);
-              const hasAnyBase = displayedPages.some((p: any) => !!(p as any).base_image_url || (!!p.image_url && (p as any).base_only === true));
-              if (hasAnyBase) return null; // 一旦出现任意 base 图，隐藏所有队列提示
-              const pos = Number(queueStatus?.position ?? 0);
-              const tot = Number(queueStatus?.total ?? 0);
-              const hasPos = pos > 0 && tot > 0;
-              const showNumbered = hasPos; // 一旦拿到队列信息就显示数字版本
-              return (
-                <div className="w-full max-w-5xl mx-auto py-[12px] px-[24px] mb-8 border bg-[#FCF2F2] border-[#222222] rounded-[4px] text-center text-[#222222]">
-                  <p>
-                    {showNumbered ? t('queueTip', { pos, tot }) : t('queueTipNoPos')} <br />
-                    {t('selectOptions', { options: buildOptions({
-                      cover: !completedSections.coverDesign,
-                      binding: !completedSections.binding,
-                      wrap: !completedSections.giftBox
-                    }, displayLang) })}{' '}
-                    {!isKs && (
-                      <a
-                        className="underline cursor-pointer text-blue-600"
-                        onClick={() => setActiveTab('Others')}
-                      >
-                        Others
-                      </a>
-                    )}
-                  </p>
-                </div>
-              );
-            })()}
+            {/* 移除：排队提示条（queueTip/queueTipNoPos + selectOptions） */}
 
             {/* 页面预览：有图片就展示（包括排队时的base_image） */}
             {(() => {
@@ -3672,6 +3693,11 @@ export default function PreviewPageWithTopNav() {
                                 </div>
                               </div>
                             ) : undefined}
+                            onImageLoaded={(loadedPageId) => {
+                              if (titlePageId && loadedPageId === titlePageId) {
+                                setIsTitlePageLoaded(true);
+                              }
+                            }}
                           />
                         </div>
                       </div>
@@ -3679,9 +3705,9 @@ export default function PreviewPageWithTopNav() {
                   });
                   })()}
                 </div>
-                {(isCompleted) && (
-                  <p className="text-center text-[#999999] mt-8">
-                    We've specially curated {previewData.preview_data.length} pages for you – enjoy a sneak peek of your unique story!
+                {isTitlePageLoaded && (
+                  <p className="text-center text-[#999999] mt-8 whitespace-pre-line">
+                    {`This is your personalized title page.\nYour full book preview will be emailed within 48 hours.`}
                   </p>
                 )}
               </div>
