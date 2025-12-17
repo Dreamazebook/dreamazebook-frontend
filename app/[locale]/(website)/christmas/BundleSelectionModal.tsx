@@ -243,7 +243,7 @@ export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onC
                       <p className="hidden md:block text-[20px] md:font-medium md:text-[18px] text-[#222222] leading-[24px] tracking-[0.15px]">{book.name}</p>
                       <Link
                         href={book.href}
-                        className="text-[16px] leading-[24px] tracking-[0.5px] text-[#012CCE] hover:underline flex items-center gap-1"
+                        className="text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[#999999] hover:underline flex items-center gap-1"
                         onClick={(e) => handleMoreDetails(book, e)}
                       >
                         About this book <span aria-hidden className="hidden md:inline">→</span>
