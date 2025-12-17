@@ -95,7 +95,7 @@ export default function AboutUsPage() {
               "--hero-image-mobile": `url(${ABOUT_IMAGE("hero-mobile.png")})`,
             } as React.CSSProperties
           }
-          className="max-w-[1200px] h-[640px] md:max-h-[440px] mt-[24px] mb-[48px] mx-[24px] p-[24px] md:p-20 bg-(image:--hero-image-mobile) md:bg-(image:--hero-image) bg-no-repeat bg-center bg-cover mx-auto flex flex-col justify-end md:justify-center h-[80vh] md:h-[440px]"
+          className="max-w-[1200px] h-[640px] md:max-h-[440px] mt-[24px] mb-[48px] p-[24px] pt-0 md:p-20 bg-(image:--hero-image-mobile) md:bg-(image:--hero-image) bg-no-repeat bg-cover mx-auto flex flex-col justify-end md:justify-center md:h-[440px]"
         >
           <div>
             <h1 className="text-[28px] md:text-[40px] font-semibold leading-[32px] md:leading-[64px] lg:w-[70%]">
