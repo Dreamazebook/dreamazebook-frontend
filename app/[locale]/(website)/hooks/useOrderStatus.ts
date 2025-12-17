@@ -26,17 +26,19 @@ export const useOrderStatus = (status: string) => {
   // Get status color classes
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "paid":
-        return "text-[#296849] bg-[#E7EDDE]";
+      case "unpaid":
+        return "text-[#AC7B00] bg-[#FFEDC8]";
       case "preparing":
         return "text-[#AC7B00] bg-[#FFEDC8]";
       case "processing":
         return "text-[#AC7B00] bg-[#FFEDC8]";
+      case "confirmed":
+        return "text-[#1963C3] bg-[#E2EEFF]";
       case "shipping":
         return "text-[#1963C3] bg-[#E2EEFF]";
       case "delivered":
-        return "text-[#666666] bg-[#F0F0F0]";
-      case "cancelled":
+        return "text-[#296849] bg-[#E7EDDE]";
+      case "closed":
         return "text-[#CF0F02] bg-[#FCF2F2]";
       default:
         return "text-gray-500";

@@ -9,7 +9,7 @@ const OrderStatusLabel = ({ status }: OrderStatusLabelProps) => {
   const { colorClasses, statusLabel } = useOrderStatus(status);
   
   return (
-    <span className={`${colorClasses} px-2 py-1 rounded capitalize font-medium`}>
+    <span className={`${colorClasses} px-2 py-1 rounded capitalize text-[16px] font-medium`}>
       {t(statusLabel)}
     </span>
   );

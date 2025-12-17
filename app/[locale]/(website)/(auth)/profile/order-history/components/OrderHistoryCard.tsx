@@ -8,6 +8,15 @@ import { ORDER_CHECKOUT_URL, ORDER_SUMMARY_URL } from "@/constants/links";
 import useOrderStatus from "../../../../hooks/useOrderStatus";
 import { useTranslations } from "next-intl";
 
+const OrderHistoryTextStyle = ({label, value}:any) => {
+  return (
+    <div className="mb-1 flex gap-[12px]">
+      <span className="text-[#999999]">{label}</span>
+      {value}
+    </div>
+  )
+}
+
 const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
   const orderDetailLink =
     orderDetail.payment_status === "paid"
@@ -51,12 +60,12 @@ const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
       </div>
 
       {/* Order Details */}
-      <div className="flex-1">
+      <div className="flex-1 text-[16px]">
         <div className="flex justify-between items-start mb-2 flex-wrap">
           <div className="flex items-center gap-[12px]">
             <Link
               href={orderDetailLink}
-              className="text-primary font-medium text-base"
+              className="text-[#222] font-medium text-[18px]"
             >
               #{orderDetail.order_number}
             </Link>
@@ -64,50 +73,35 @@ const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
           </div>
           <DisplayPrice
             value={orderDetail.total_amount}
-            style="text-lg font-semibold text-gray-900"
+            style="text-[18px] font-medium"
           />
         </div>
 
-        <div className="text-sm text-gray-600 mb-1">
-          <span className="text-gray-900">{t("shipTo")}</span>{" "}
-          {formatAddress(orderDetail.shipping_address)}
-        </div>
+        <OrderHistoryTextStyle label={t('shipTo')} value={formatAddress(orderDetail.shipping_address)} />
 
-        <div className="flex gap-8 text-sm text-gray-600 mb-1">
-          <span>
-            <span className="text-gray-900">{t("orderDate")}</span>{" "}
-            {formatDate(orderDetail.created_at)}
-          </span>
+        <div className="flex gap-[12px] mb-1">
+          
+          <OrderHistoryTextStyle label={t('orderDate')} value={formatDate(orderDetail.created_at)} />
+
           {orderDetail.shipped_at && (
-            <span>
-              <span className="text-gray-900">{t("deliveryDate")}</span>{" "}
-              {formatDate(orderDetail.shipped_at)}
-            </span>
+            <OrderHistoryTextStyle label={t('deliveryDate')} value={formatDate(orderDetail.shipped_at)} />
           )}
         </div>
 
-        <div className="text-sm text-gray-600 mb-4">
-          <span className="text-gray-900">{t("qty")}</span>{" "}
-          {orderDetail.items?.reduce((sum, item) => sum + item.quantity, 0)}
-        </div>
+        <OrderHistoryTextStyle label={t('qty')} value={orderDetail.items?.reduce((sum, item) => sum + item.quantity, 0)} />
 
-        <div className="flex gap-6 flex-wrap">
-          {orderDetail.status !== "unpaid" && (
-            <>
-              <button className="text-blue-600 hover:underline text-sm">
-                {t("downloadInvoice")}
-              </button>
-              {/* <button className="text-blue-600 hover:underline text-sm">
-                {t("buySame")}
-              </button> */}
-            </>
+        <div className="flex gap-[32px] font-[16px]">
+          {orderDetail.status === "delivered" && (
+            <button className="text-blue-600 hover:underline text-sm">
+              {t("downloadInvoice")}
+            </button>
           )}
           
           {/* Edit Shipping Address link - only show for orders that can be edited */}
           {canEditShippingAddress && (
             <Link
               href={ORDER_CHECKOUT_URL(orderDetail.id)}
-              className="text-blue-600 hover:underline text-sm flex items-center gap-1"
+              className="text-primary hover:underline flex items-center gap-1"
             >
               {t("editShippingAddress")}
             </Link>
@@ -115,7 +109,7 @@ const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
           
           <Link
             href={orderDetailLink}
-            className="text-blue-600 hover:underline text-sm flex items-center gap-1"
+            className="text-primary hover:underline flex items-center gap-1"
           >
             {orderDetail.status === "unpaid"
               ? t("continueToPay")

@@ -151,7 +151,7 @@ export default function HomePage() {
 
       {/* Newsletter */}
       <AnimatedSection className="bg-black text-white" delay={0.3}>
-        <ReserveSection cssClass='bg-white text-[#222222]' btnId="email_submit_mid" redirectUrl={'/en/welcome/success'} title={"Every child deserves to be the hero."} desc={'Join the Dreamaze circle to get free printables, story samples, and early access gifts.'} btnText="Join Now" />
+        <ReserveSection cssClass='bg-white text-[#222222]' btnId="email_submit_mid" redirectUrl={'/en/welcome/success'} title={"Every child deserves<br class='md:hidden' /> to be the hero."} desc={'Join the Dreamaze circle to get free printables, story samples, and early access gifts.'} btnText="Join Now" />
       </AnimatedSection>
 
     </main>
