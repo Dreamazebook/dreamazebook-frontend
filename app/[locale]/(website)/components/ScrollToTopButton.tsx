@@ -130,7 +130,7 @@ const ScrollToTopButton: React.FC<ScrollToTopButtonProps> = ({
           exit="exit"
           onClick={scrollToTop}
           className={`
-            fixed z-50 ${getSizeClasses()} ${getVariantClasses()} 
+            fixed cursor-pointer z-50 ${getSizeClasses()} ${getVariantClasses()} 
             rounded-full shadow-lg hover:shadow-xl transition-all duration-300 
             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
             ${getPositionClasses()}

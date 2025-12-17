@@ -73,7 +73,8 @@
     "downloadInvoice": "下载发票",
     "buySame": "购买相同",
     "moreDetails": "更多详情",
-    "continueToPay": "继续支付"
+    "continueToPay": "继续支付",
+    "editShippingAddress": "编辑收货地址"
   },
   "latestOrderHistory": {
     "total": "总计",
@@ -255,6 +256,7 @@
     "reviewAndPay": "审查并付款",
     "changeAddress": "更改地址",
     "addNewAddress": "添加新地址",
+    "editShippingAddress": "编辑收货地址",
     "billingAddressQuestion": "账单需要发送到新地址？",
     "yes": "是",
     "noNeed": "不需要",

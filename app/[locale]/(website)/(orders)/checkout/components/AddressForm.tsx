@@ -11,7 +11,7 @@ import { useTranslations } from "next-intl";
 import { Address } from "@/types/address";
 import FormField from "./FormField";
 import useUserStore from "@/stores/userStore";
-import { ShippingErrors } from "@/types/order";
+import { OrderDetail, ShippingErrors } from "@/types/order";
 
 const PUBLIC_MAPBOX_API_KEY = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
 
@@ -44,6 +44,7 @@ const AddressSuggestions: React.FC<AddressSuggestionsProps> = ({
 interface AddressFormProps {
   address: Address;
   setAddress: (value: React.SetStateAction<Address>) => void;
+  orderDetail: OrderDetail;
 }
 
 const AddressForm = forwardRef<
@@ -51,7 +52,7 @@ const AddressForm = forwardRef<
     validateShippingAddress: () => boolean;
   },
   AddressFormProps
->(({ address, setAddress }, ref) => {
+>(({ address, setAddress, orderDetail }, ref) => {
   const { countryList } = useUserStore();
   const t = useTranslations("addressForm");
   const [errors, setErrors] = useState<ShippingErrors>({});
@@ -298,6 +299,7 @@ const AddressForm = forwardRef<
         onBlur={() => validateShippingInfo("country")}
         error={errors.country}
         options={countryList}
+        disabled={orderDetail.status != "unpaid"}
       />
 
       <FormField
@@ -328,14 +330,13 @@ const AddressForm = forwardRef<
         label={t("unit")}
         type="text"
         required
-        value={address.unit}
+        value={address.house_number}
         onChange={(e) => {
-          setAddress((prev) => ({ ...prev, unit: e.target.value }));
-          clearError("unit");
-          debouncedGetAddressSuggestions();
+          setAddress((prev) => ({ ...prev, house_number: e.target.value }));
+          clearError("house_number");
         }}
-        onBlur={() => validateShippingInfo("unit")}
-        error={errors.unit}
+        onBlur={() => validateShippingInfo("house_number")}
+        error={errors.house_number}
         placeholder={t("unitPlaceholder")}
       />
 

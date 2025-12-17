@@ -5,6 +5,7 @@ import { formatDate } from "@/app/[locale]/admin/orders/utils";
 import { Link } from "@/i18n/routing";
 import OrderStatusLabel from "../../../../components/component/OrderStatusLabel";
 import { ORDER_CHECKOUT_URL, ORDER_SUMMARY_URL } from "@/constants/links";
+import useOrderStatus from "../../../../hooks/useOrderStatus";
 import { useTranslations } from "next-intl";
 
 const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
@@ -12,6 +13,13 @@ const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
     orderDetail.payment_status === "paid"
       ? ORDER_SUMMARY_URL(orderDetail.id)
       : ORDER_CHECKOUT_URL(orderDetail.id);
+  
+  // Get order status to determine if editing is allowed
+  const { orderStatus } = useOrderStatus(orderDetail.status || '');
+  
+  // Check if order status allows editing shipping address
+  const canEditShippingAddress = orderStatus === 'processing' || orderStatus === 'pending';
+  
   const t = useTranslations("orderHistoryCard");
   return (
     <div className="flex gap-4 py-4">
@@ -45,7 +53,7 @@ const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
       {/* Order Details */}
       <div className="flex-1">
         <div className="flex justify-between items-start mb-2 flex-wrap">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-[12px]">
             <Link
               href={orderDetailLink}
               className="text-primary font-medium text-base"
@@ -83,17 +91,28 @@ const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
           {orderDetail.items?.reduce((sum, item) => sum + item.quantity, 0)}
         </div>
 
-        <div className="flex gap-6">
-          {orderDetail.status !== "pending" && (
+        <div className="flex gap-6 flex-wrap">
+          {orderDetail.status !== "unpaid" && (
             <>
               <button className="text-blue-600 hover:underline text-sm">
                 {t("downloadInvoice")}
               </button>
-              <button className="text-blue-600 hover:underline text-sm">
+              {/* <button className="text-blue-600 hover:underline text-sm">
                 {t("buySame")}
-              </button>
+              </button> */}
             </>
           )}
+          
+          {/* Edit Shipping Address link - only show for orders that can be edited */}
+          {canEditShippingAddress && (
+            <Link
+              href={ORDER_CHECKOUT_URL(orderDetail.id)}
+              className="text-blue-600 hover:underline text-sm flex items-center gap-1"
+            >
+              {t("editShippingAddress")}
+            </Link>
+          )}
+          
           <Link
             href={orderDetailLink}
             className="text-blue-600 hover:underline text-sm flex items-center gap-1"
@@ -101,19 +120,6 @@ const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
             {orderDetail.status === "unpaid"
               ? t("continueToPay")
               : t("moreDetails")}
-            <svg
-              className="w-3 h-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
           </Link>
         </div>
       </div>

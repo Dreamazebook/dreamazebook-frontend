@@ -91,7 +91,7 @@ export default function ProfileSidebar({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-3 md:p-6">
+      <div className="max-w-[1200px] mx-auto p-3">
         <div className="flex gap-4 md:gap-8">
           {/* Mobile Sidebar Overlay */}
           {sidebarOpen && (

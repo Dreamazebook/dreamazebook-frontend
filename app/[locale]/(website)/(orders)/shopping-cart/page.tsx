@@ -11,7 +11,6 @@ import { CartItem, CartItems } from '@/types/cart';
 
 // 导入组件
 import CartHeader from './components/CartHeader';
-import CouponInput from './components/CouponInput';
 import CartItemList from './components/CartItemList';
 import ConfirmModal from '../../components/component/ConfirmModal';
 import useUserStore from '@/stores/userStore';
@@ -21,7 +20,7 @@ export default function ShoppingCartPage() {
   const t = useTranslations('ShoppingCart');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [discount, setDiscount] = useState(0);
+  
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(true);
   const router = useRouter();
   const { checkKickstarterStatus } = useUserStore();
@@ -173,8 +172,7 @@ export default function ShoppingCartPage() {
     try {
       const { success, message, data } = await api.post<ApiResponse>(API_ORDER_CREATE, {
         cart_item_ids: selectedItems,
-        payment_method: paymentMethod,
-        coupon_code: appliedCoupon
+        payment_method: paymentMethod
       });
       if (success) {
         setError('');
@@ -194,7 +192,7 @@ export default function ShoppingCartPage() {
     }
   };
 
-  const [appliedCoupon, setAppliedCoupon] = useState('');
+  
   const [calculatedCost, setCalculatedCost] = useState<any>(null);
   const [calculatingCost, setCalculatingCost] = useState(false);
 
@@ -235,18 +233,7 @@ export default function ShoppingCartPage() {
     calculateCost();
   }, [selectedItems]);
 
-  const handleApplyCoupon = (code: string) => {
-    // 这里应该是调用API验证优惠码并获取折扣金额
-    // 为了演示，我们假设"BLACKFRIDAY"优惠码会给25%的折扣
-    if (code.toUpperCase() === 'BLACKFRIDAY') {
-      const newDiscount = Math.round(subtotal * 0.25 * 100) / 100;
-      setDiscount(newDiscount);
-      alert(t('couponApplied'));
-    } else {
-      alert(t('invalidCoupon'));
-    }
-    setAppliedCoupon(code);
-  };
+  
 
   if (loading) {
     return (
@@ -347,20 +334,6 @@ export default function ShoppingCartPage() {
           <div className="hidden lg:flex bg-white lg:w-[480px] xl:w-[544px] relative pt-[64px] pr-[48px] pb-[64px] pl-[48px] xl:pr-[120px] xl:pl-[64px] flex-col gap-[10px] opacity-100 ml-auto min-h-screen">
             <div className="bg-white w-full rounded sticky top-4 right-0 flex flex-col opacity-100 gap-4">
               <h2 className="text-3xl font-normal">{t('orderSummary')}</h2>
-
-              <div className="">
-                <p className="text-md font-medium">{t('haveCouponCode')}</p>
-                <p className="text-[#666666] text-md">
-                  t('blackFridayCoupon')
-                </p>
-                <CouponInput onApply={handleApplyCoupon} />
-              </div>
-
-              {appliedCoupon && (
-                <p className="text-green-600 text-sm">
-                  {t('appliedCoupon')}: <strong>{appliedCoupon}</strong>
-                </p>
-              )}
 
               <div className="space-y-3 border-t border-gray-200 pt-4">
                 {calculatingCost ? (
@@ -536,9 +509,6 @@ export default function ShoppingCartPage() {
             <div className="mt-3 space-y-3">
               <div className="border-b border-[#E5E5E5] pb-4">
                 <h2 className="text-3xl font-normal mb-4">{t('orderSummary')}</h2>
-                <p className="text-md font-medium">{t('haveCouponCode')}</p>
-                <p className="text-[#666666] text-md">t('blackFridayCoupon')</p>
-                <CouponInput onApply={handleApplyCoupon} />
               </div>
 
               <div className="space-y-3 text-[#666666]">
@@ -563,12 +533,19 @@ export default function ShoppingCartPage() {
                       <p className="text-[#666666]">{t('shipping')}</p>
                       <p>${shipping.toFixed(2)}</p>
                     </div>
-                    {discount > 0 && (
-                      <div className="flex justify-between text-[#666666]">
-                        <p>{t('discount')}</p>
-                        <p>-${discount.toFixed(2)}</p>
+                    {discountInfo?.applicable && discountAmount > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-[#abd29b]">
+                          <div>
+                            <p>{t('multiBookDiscount')}</p>
+                          </div>
+                          <div className="text-right">
+                            <p>-${discountAmount.toFixed(2)} ({discountInfo.percentage}%)</p>
+                          </div>
+                        </div>
                       </div>
                     )}
+                    
                   </>
                 )}
               </div>
