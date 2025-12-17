@@ -95,7 +95,7 @@ export default function AboutUsPage() {
               "--hero-image-mobile": `url(${ABOUT_IMAGE("hero-mobile.png")})`,
             } as React.CSSProperties
           }
-          className="max-w-[1200px] max-h-[440px] mt-[24px] mb-[48px] mx-[24px] p-[24px] md:p-20 bg-(image:--hero-image-mobile) md:bg-(image:--hero-image) bg-no-repeat bg-center bg-cover mx-auto flex flex-col justify-end md:justify-center h-[80vh] md:h-[440px]"
+          className="max-w-[1200px] h-[640px] md:max-h-[440px] mt-[24px] mb-[48px] mx-[24px] p-[24px] md:p-20 bg-(image:--hero-image-mobile) md:bg-(image:--hero-image) bg-no-repeat bg-center bg-cover mx-auto flex flex-col justify-end md:justify-center h-[80vh] md:h-[440px]"
         >
           <div>
             <h1 className="text-[28px] md:text-[40px] font-semibold leading-[32px] md:leading-[64px] lg:w-[70%]">
@@ -259,7 +259,7 @@ export default function AboutUsPage() {
               </span>
             </p>
             <Link
-              className="bg-[#222] flex items-center justify-center gap-[10px] mx-auto md:w-[360px] mt-5 block text-[16px] p-[8px] rounded text-[#FCF2F2]"
+              className="bg-[#222] flex items-center justify-center gap-[10px] mx-auto md:w-[360px] mt-5 text-[16px] p-[8px] rounded text-[#FCF2F2]"
               href={SURVEY_URL}
             >
               <span>Submit Your Idea</span>
@@ -270,12 +270,12 @@ export default function AboutUsPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <section className="bg-[#FCF2F2] py-[48px] px-[24x] md:py-[88px] flex flex-col gap-[24px] md:gap-[48px]">
+        <section className="bg-[#FCF2F2] py-[48px] px-[24px] md:py-[88px] flex flex-col gap-[24px] md:gap-[48px]">
           <h2 className="text-[24px] md:text-[40px] font-semibold text-center">
             Safe and Friendly
             <br className="md:hidden" /> for Little Hands
           </h2>
-          <p className="md:text-center px-[24px] leading-[20px] md:leading-[24px]">
+          <p className="md:text-center leading-[20px] md:leading-[24px]">
             At Dreamaze, your child's safety always comes first.
             <br />
             We use non-toxic inks and gentle paper designed for young eyes,
@@ -305,7 +305,7 @@ export default function AboutUsPage() {
             ))}
           </ul>
           <Link
-            className="bg-[#222] md:w-[360px] flex items-center justify-center gap-[10px] mx-auto text-center mt-5 block text-[16px] p-[8px] rounded text-[#FCF2F2]"
+            className="bg-[#222] w-full md:w-[360px] flex items-center justify-center gap-[10px] mx-auto text-center mt-5 text-[16px] p-[8px] rounded text-[#FCF2F2]"
             href={BOOKS_URL}
           >
             <span>Explore Our Books</span>
