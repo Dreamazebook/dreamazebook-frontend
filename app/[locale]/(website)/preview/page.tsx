@@ -884,6 +884,8 @@ export default function PreviewPageWithTopNav() {
                     page_id: idx + 1,
                     page_code: bp.page_code,
                     page_number: bp.sort_order ?? idx + 1,
+                    // 保留后端原始 image_url（很多情况下它才是“未叠字/未合成”的底图）
+                    raw_image_url: bp.image_url,
                     image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
                     has_face_swap: !!bp.has_face_elements,
                     status: bp.status,
@@ -1001,11 +1003,35 @@ export default function PreviewPageWithTopNav() {
   // 当前展示图片的索引，用于翻页
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [activeSection, setActiveSection] = React.useState<string>("");
+  // p3-4 扉页合成：缓存“基础底图”（不含文字/不含用户上传照片），避免二次编辑时在已合成图上叠字
+  const p34BaseImageUrlRef = useRef<string | null>(null);
   const shouldUploadP34ComposedRef = useRef(false);
   const p34ComposeUploadInFlightRef = useRef(false);
   const p34ComposeUploadedRef = useRef(false);
   // sidebar「Name on Book」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
   const [isNameOnBookCompleted, setIsNameOnBookCompleted] = useState(false);
+
+  // 当 previewid/bookid 变化时重置缓存，避免跨不同预览复用旧底图
+  const p34CacheKey = `${searchParams.get('bookid') || ''}_${searchParams.get('previewid') || ''}`;
+  useEffect(() => {
+    p34BaseImageUrlRef.current = null;
+  }, [p34CacheKey]);
+
+  // 首次拿到 previewData 后，记录 p3-4 的基础图（优先用 base_image_url；否则退回 image_url）
+  useEffect(() => {
+    if (p34BaseImageUrlRef.current) return;
+    const pages = (previewData as any)?.preview_data;
+    if (!Array.isArray(pages)) return;
+    const p34 = pages.find((p: any) => {
+      const code = String(p?.page_code || '');
+      return code === 'p3-4' || code === 'p3-p4';
+    });
+    // p3-4 的“底图”优先用 raw_image_url（后端原始 image_url）；其次再退回 base/final/image_url
+    const base = p34?.raw_image_url || p34?.base_image_url || p34?.image_url;
+    if (typeof base === 'string' && base.trim()) {
+      p34BaseImageUrlRef.current = base;
+    }
+  }, [previewData]);
 
   const uploadP34ComposedImage = useCallback(async (dataUrl: string) => {
     // 仅在用户刚上传完图片后触发一次
@@ -1047,6 +1073,21 @@ export default function PreviewPageWithTopNav() {
       return;
     }
 
+    // 上传前兜底：如果还没缓存过基础图，先从当前 previewData 里抓一次，避免后续 image_url 被覆盖成“已合成图”
+    if (!p34BaseImageUrlRef.current) {
+      const pages = (previewData as any)?.preview_data;
+      if (Array.isArray(pages)) {
+        const p34 = pages.find((p: any) => {
+          const code = String(p?.page_code || '');
+          return code === 'p3-4' || code === 'p3-p4';
+        });
+        const base = p34?.raw_image_url || p34?.base_image_url || p34?.image_url;
+        if (typeof base === 'string' && base.trim()) {
+          p34BaseImageUrlRef.current = base;
+        }
+      }
+    }
+
     p34ComposeUploadInFlightRef.current = true;
     try {
       const resp: any = await api.post(
@@ -1069,7 +1110,6 @@ export default function PreviewPageWithTopNav() {
             }),
           } as any;
         });
-        setGiverImageUrl(null);
         shouldUploadP34ComposedRef.current = false;
         p34ComposeUploadedRef.current = true;
         setIsNameOnBookCompleted(true);
@@ -2248,6 +2288,7 @@ export default function PreviewPageWithTopNav() {
                   page_id: idx + 1,
                   page_code: bp.page_code,
                   page_number: bp.sort_order ?? idx + 1,
+                  raw_image_url: bp.image_url,
                   image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
                   has_face_swap: !!bp.has_face_elements,
                   // 保存关键状态字段供UI使用
@@ -2276,6 +2317,7 @@ export default function PreviewPageWithTopNav() {
                   page_id: idx + 1,
                   page_code: bp.page_code,
                   page_number: bp.sort_order ?? idx + 1,
+                  raw_image_url: bp.image_url,
                   image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
                   has_face_swap: !!bp.has_face_elements,
                   status: bp.status,
@@ -2298,6 +2340,7 @@ export default function PreviewPageWithTopNav() {
               page_id: idx + 1,
               page_code: bp.page_code,
               page_number: ((bp.sort_order != null ? Number(bp.sort_order) : idx) + 1),
+              raw_image_url: bp.image_url,
               image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
               has_face_swap: !!bp.has_face_elements,
               status: bp.status,
@@ -2489,6 +2532,8 @@ export default function PreviewPageWithTopNav() {
                 p.page_code === pageCode
                   ? { 
                       ...p, 
+                      // 保留流事件中的原始 image_url 作为 raw_image_url（用于 p3-4 等需要“未叠字底图”的场景）
+                      raw_image_url: data?.image_url ?? p.raw_image_url,
                       image_url: imageUrl || p.image_url, 
                       has_face_swap: !!data?.has_face_elements,
                       base_only: data?.base_only ?? (data?.final_image_url ? false : data?.base_image_url ? true : p.base_only),
@@ -3587,6 +3632,13 @@ export default function PreviewPageWithTopNav() {
                       // 仅在 p3-4（有的书返回 p3-p4）页面渲染 Giver & Dedication
                       const pageCode = String((page as any).page_code || '');
                       const isGiverDedicationPage = pageCode === 'p3-4' || pageCode === 'p3-p4';
+                      // p3-4 画布底图：永远使用“基础图”（不含文字/不含上传照片），避免二次编辑叠字
+                      const p34BaseRaw = isGiverDedicationPage
+                        ? ((page as any).raw_image_url || (page as any).base_image_url || p34BaseImageUrlRef.current || (page as any).image_url)
+                        : null;
+                      const p34BaseSrc = isGiverDedicationPage
+                        ? buildImageUrl(String(p34BaseRaw || (page as any).image_url || ''))
+                        : src;
                       const upperBookId = (searchParams.get('bookid') || '').toUpperCase();
                       const giverImageAspectRatio =
                         upperBookId === 'PICBOOK_BRAVEY'
@@ -3607,7 +3659,7 @@ export default function PreviewPageWithTopNav() {
                           <div className="w-full max-w-5xl">
                             <GiverDedicationCanvas
                               className="w-full"
-                              imageUrl={src}
+                              imageUrl={p34BaseSrc}
                               mode="single"
                               giverText={giver}
                               dedicationText={dedication}
@@ -3660,7 +3712,7 @@ export default function PreviewPageWithTopNav() {
                               <div className="w-full h-full relative">
                                 <GiverDedicationCanvas
                                   className="w-full h-full"
-                                  imageUrl={src}
+                                  imageUrl={p34BaseSrc}
                                   mode="double"
                                   giverText={giver}
                                   dedicationText={dedication}

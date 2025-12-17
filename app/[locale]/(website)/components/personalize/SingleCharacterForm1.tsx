@@ -49,6 +49,8 @@ interface SingleCharacterForm1Props {
     photos?: string[]; // 支持多张图片初始化
   };
   bookId?: string;
+  // Relationship/consent defaults（用于 personalized-products 等场景）
+  defaultConsentChecked?: boolean;
   // Optional backend-driven values
   apiSkinToneValues?: string[];
   apiHairStyleValues?: string[];
@@ -66,7 +68,7 @@ interface SingleCharacterForm1Props {
   onCropperOpenChange?: (isOpen: boolean) => void;
 }
 
-const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharacterForm1Props>(({ initialData, bookId = '1', apiSkinToneValues, apiHairStyleValues, apiHairColorValues, uploadOptions, assetSpuCode, currentStep = 1, onCropperOpenChange }, ref) => {
+const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharacterForm1Props>(({ initialData, bookId = '1', defaultConsentChecked = false, apiSkinToneValues, apiHairStyleValues, apiHairColorValues, uploadOptions, assetSpuCode, currentStep = 1, onCropperOpenChange }, ref) => {
   const [formData, setFormData] = useState<PersonalizeFormData>({
     fullName: initialData?.fullName ?? '',
     gender: initialData?.gender ?? '',
@@ -78,7 +80,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     multipleChoice: [],
     photos: [], // 新增多图片支持
     relationship: 'Parent/Guardian', // 默认关系
-    consent: false, // 默认未同意
+    consent: !!defaultConsentChecked, // 默认同意（按场景可配置）
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
