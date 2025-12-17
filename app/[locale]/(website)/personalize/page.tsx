@@ -48,7 +48,7 @@ export default function PersonalizeApiDrivenPage() {
 
   const form1Ref = useRef<SingleCharacterForm1Handle>(null);
   const form2Ref = useRef<SingleCharacterForm2Handle>(null);
-  
+
   // 跟踪是否正在添加图片（裁剪器是否打开）
   const [isAddingImage, setIsAddingImage] = useState(false);
 

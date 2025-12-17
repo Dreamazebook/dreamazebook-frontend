@@ -22,14 +22,16 @@ type Props = {
   bundle: BundleLike
   books: BookOption[]
   loading: boolean
+  isSubmitting?: boolean
   onClose: () => void
+  onSubmit?: () => void | Promise<void>
 }
 
 function formatPrice(price: number) {
   return `$${price}`
 }
 
-export function BundleSelectionModal({ bundle, books, loading, onClose }: Props) {
+export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onClose, onSubmit }: Props) {
   const [selected, setSelected] = useState<string[]>(() => Array(bundle.bookCount).fill(''))
   const [detailBook, setDetailBook] = useState<BookOption | null>(null)
   const [iframeLoading, setIframeLoading] = useState(true)
@@ -70,6 +72,11 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
 
   const canSubmit = selected.filter(Boolean).length === bundle.bookCount
   const selectedCount = selected.filter(Boolean).length
+
+  const handleSubmit = async () => {
+    if (!canSubmit) return
+    await onSubmit?.()
+  }
 
   const handleMoreDetails = (book: BookOption, e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
@@ -252,10 +259,12 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
           <div className="hidden md:flex justify-center">
             <button
               type="button"
-              onClick={canSubmit ? onClose : undefined}
-              disabled={!canSubmit}
+              onClick={canSubmit ? handleSubmit : undefined}
+              disabled={!canSubmit || !!isSubmitting}
               className={`w-full md:w-auto min-w-[240px] px-6 py-3 rounded-[4px] text-[16px] leading-[24px] tracking-[0.5px] ${
-                canSubmit ? 'bg-[#222222] text-[#F5E3E3] hover:bg-[#001E99]' : 'bg-[#C4C4C4] text-white cursor-not-allowed'
+                canSubmit && !isSubmitting
+                  ? 'bg-[#222222] text-[#F5E3E3] hover:bg-[#001E99]'
+                  : 'bg-[#C4C4C4] text-white cursor-not-allowed'
               }`}
             >
               {canSubmit ? `Add ${bundle.bookCount} books to cart` : `Choose ${bundle.bookCount} books (${selectedCount}/${bundle.bookCount})`}
@@ -323,10 +332,12 @@ export function BundleSelectionModal({ bundle, books, loading, onClose }: Props)
             {/* Finish Button */}
             <button
               type="button"
-              onClick={canSubmit ? onClose : undefined}
-              disabled={!canSubmit}
+              onClick={canSubmit ? handleSubmit : undefined}
+              disabled={!canSubmit || !!isSubmitting}
               className={`w-full px-6 py-3 rounded-[4px] text-[16px] leading-[24px] tracking-[0.5px] ${
-                canSubmit ? 'bg-[#222222] text-[#F5E3E3] hover:bg-[#001E99]' : 'bg-[#C4C4C4] text-white cursor-not-allowed'
+                canSubmit && !isSubmitting
+                  ? 'bg-[#222222] text-[#F5E3E3] hover:bg-[#001E99]'
+                  : 'bg-[#C4C4C4] text-white cursor-not-allowed'
               }`}
             >
               {canSubmit ? `Add ${bundle.bookCount} books to cart` : `Choose ${bundle.bookCount} books (${selectedCount}/${bundle.bookCount})`}

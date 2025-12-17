@@ -2,11 +2,13 @@
 
 import React, { useMemo, useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
+import toast from 'react-hot-toast'
 import api from '@/utils/api'
 import { API_PRODUCTS } from '@/constants/api'
 import { ApiResponse } from '@/types/api'
 import { Product } from '@/types/product'
 import { BundleSelectionModal, BookOption } from './BundleSelectionModal'
+import { useRouter } from '@/i18n/routing'
 
 type Bundle = {
   id: string
@@ -124,11 +126,26 @@ function BundleCard({ bundle, onGetBundle }: { bundle: Bundle; onGetBundle: (bun
 }
 
 export default function ChristmasPage() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<'trio' | 'four' | 'classics'>('trio')
   const [showBundleModal, setShowBundleModal] = useState(false)
   const [activeBundle, setActiveBundle] = useState<Bundle | null>(null)
   const [products, setProducts] = useState<Product[]>([])
   const [loadingProducts, setLoadingProducts] = useState(false)
+  const [isAddingPackage, setIsAddingPackage] = useState(false)
+
+  // 后端 package_id 映射（Christmas special）
+  const PACKAGE_ID_BY_BUNDLE_ID: Record<string, number> = useMemo(
+    () => ({
+      'trio-classic': 1, // CHRISTMAS_HARDCOVER_X2
+      'trio-premium': 2, // CHRISTMAS_PREMIUM_LAYFLAT_X2
+      'four-classic': 3, // CHRISTMAS_HARDCOVER_X3
+      'four-premium': 4, // CHRISTMAS_PREMIUM_LAYFLAT_X3
+      'christmas-classic': 5, // CHRISTMAS_HARDCOVER_X4
+      'christmas-premium': 6, // CHRISTMAS_PREMIUM_LAYFLAT_X4
+    }),
+    [],
+  )
 
   const groups: BundleGroup[] = useMemo(() => [
     {
@@ -298,6 +315,31 @@ export default function ChristmasPage() {
   const handleBundleClick = (bundle: Bundle) => {
     setActiveBundle(bundle)
     setShowBundleModal(true)
+  }
+
+  const handleAddPackageToCart = async (bundle: Bundle) => {
+    const packageId = PACKAGE_ID_BY_BUNDLE_ID[bundle.id]
+    if (!packageId) {
+      toast.error('Bundle configuration is missing, unable to add to cart')
+      return
+    }
+    if (isAddingPackage) return
+    setIsAddingPackage(true)
+    try {
+      const resp: any = await api.post('/cart/add-package', { package_id: packageId, quantity: 1 })
+      if (resp?.success) {
+        toast.success('Added to cart')
+        setShowBundleModal(false)
+        router.push('/shopping-cart')
+        return
+      }
+      toast.error('Failed to add to cart, please try again')
+    } catch (e) {
+      console.error('Failed to add package to cart', e)
+      toast.error('Failed to add to cart, please try again')
+    } finally {
+      setIsAddingPackage(false)
+    }
   }
 
   // Refs for scroll container and bundle cards
@@ -703,7 +745,9 @@ export default function ChristmasPage() {
           bundle={activeBundle}
           books={bookOptions}
           loading={loadingProducts}
+          isSubmitting={isAddingPackage}
           onClose={() => setShowBundleModal(false)}
+          onSubmit={() => handleAddPackageToCart(activeBundle)}
         />
       )}
     </div>
