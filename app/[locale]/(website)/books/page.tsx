@@ -25,6 +25,19 @@ const BOOK_NAME_OVERRIDES: Record<string, string> = {
   PICBOOK_SANTA: "Santa's Letter for You",
 };
 
+// 固定 Our Books 展示顺序：good night, santa, bravery, birthday, melody
+const BOOK_DISPLAY_ORDER_RANK: Record<string, number> = {
+  PICBOOK_GOODNIGHT3: 0,
+  PICBOOK_GOODNIGHT: 0,
+  PICBOOK_SANTA: 1,
+  PICBOOK_BRAVEY: 2,
+  PICBOOK_BIRTHDAY: 3,
+  PICBOOK_MELODY: 4,
+};
+
+const getBookCode = (book: any): string =>
+  String((book as any)?.spu_code ?? (book as any)?.id ?? (book as any)?.code ?? '').trim();
+
 // 规范化图片地址：
 // - 移除以 /public/ 开头的前缀
 // - 确保本地静态资源以 / 开头
@@ -142,16 +155,34 @@ export default function BooksPage() {
     return String(name).toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  const sortedBooks = [...filteredBooks].sort((a, b) => {
+  const sortedBooks = useMemo(() => {
+    const base = (filteredBooks || []).map((book, index) => ({
+      book,
+      index,
+      code: getBookCode(book),
+      price: Number((book as any)?.current_price ?? (book as any)?.price ?? 0),
+    }));
+
     switch (sortOption) {
-      case 'price-low':
-        return Number((a as any)?.current_price ?? (a as any)?.price ?? 0) - Number((b as any)?.current_price ?? (b as any)?.price ?? 0);
-      case 'price-high':
-        return Number((b as any)?.current_price ?? (b as any)?.price ?? 0) - Number((a as any)?.current_price ?? (a as any)?.price ?? 0);
-      default:
-        return 0;
+      case 'price-low': {
+        base.sort((a, b) => (a.price - b.price) || (a.index - b.index));
+        return base.map(x => x.book);
+      }
+      case 'price-high': {
+        base.sort((a, b) => (b.price - a.price) || (a.index - b.index));
+        return base.map(x => x.book);
+      }
+      // featured：按固定顺序展示；其余未命中的书保持原相对顺序并放在后面
+      default: {
+        base.sort((a, b) => {
+          const ar = BOOK_DISPLAY_ORDER_RANK[a.code] ?? Number.MAX_SAFE_INTEGER;
+          const br = BOOK_DISPLAY_ORDER_RANK[b.code] ?? Number.MAX_SAFE_INTEGER;
+          return (ar - br) || (a.index - b.index);
+        });
+        return base.map(x => x.book);
+      }
     }
-  });
+  }, [filteredBooks, sortOption]);
   const bestSeller = sortedBooks.length > 0 ? sortedBooks[0] : null;
   const bestSellerImage: string | null = bestSeller
     ? normalizeImageUrl(

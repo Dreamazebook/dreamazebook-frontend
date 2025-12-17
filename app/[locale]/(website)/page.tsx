@@ -1,7 +1,7 @@
 'use client';
 
 import { useLocale } from 'next-intl';
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { motion, useAnimation, useInView } from 'framer-motion';
 import TheHeartBehindDreamaze from './components/home/TheHeartBehindDreamaze';
 import LastingMemorial from './components/home/LastingMemorial';
@@ -17,6 +17,19 @@ import InfiniteScrollLogo from './components/home/InfiniteScrollLogo';
 import StoriesFromRealFamilies from './components/home/StoriesFromRealFamilies';
 import { DEFAULT_GIFT_PACKAGES_CONFIG } from './components/books/giftPackagesData';
 import GiftPackagesSection from './components/books/GiftPackagesSection';
+
+// 固定 Our Books 展示顺序：good night, santa, bravery, birthday, melody
+const BOOK_DISPLAY_ORDER_RANK: Record<string, number> = {
+  PICBOOK_GOODNIGHT3: 0,
+  PICBOOK_GOODNIGHT: 0,
+  PICBOOK_SANTA: 1,
+  PICBOOK_BRAVEY: 2,
+  PICBOOK_BIRTHDAY: 3,
+  PICBOOK_MELODY: 4,
+};
+
+const getBookCode = (book: any): string =>
+  String((book as any)?.spu_code ?? (book as any)?.id ?? (book as any)?.code ?? '').trim();
 
 interface AnimatedSectionProps {
   children: React.ReactNode;
@@ -76,6 +89,16 @@ export default function HomePage() {
     fetchBooks();
   }, [locale]);
 
+  const orderedBooks = useMemo(() => {
+    const enriched = (books || []).map((book, index) => {
+      const code = getBookCode(book);
+      const rank = BOOK_DISPLAY_ORDER_RANK[code] ?? Number.MAX_SAFE_INTEGER;
+      return { book, index, rank };
+    });
+    enriched.sort((a, b) => (a.rank - b.rank) || (a.index - b.index));
+    return enriched.map(x => x.book);
+  }, [books]);
+
   return (
     <main className="min-h-screen">
       {/* Slideshow doesn't need animation as it's already animated */}
@@ -98,7 +121,7 @@ export default function HomePage() {
           <span className='md:hidden'>Create the story that brings out their biggest smile.</span>
           <span className='hidden md:block'>Find the story where they become the hero.</span>
         </p>
-        <BooksGrid books={books} />
+        <BooksGrid books={orderedBooks} />
       </AnimatedSection>
 
       <AnimatedSection delay={0.2}>
