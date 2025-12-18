@@ -37,7 +37,7 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
   );
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { handleManualConfirm } = useOrderDetail();
+  const { handleManualConfirm, fetchOrderDetail } = useOrderDetail();
 
   if (!isOpen) return null;
 
@@ -167,6 +167,7 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
       );
 
       if (success) {
+        fetchOrderDetail(orderId);
       } else {
         alert(message || "Failed to upload image");
       }

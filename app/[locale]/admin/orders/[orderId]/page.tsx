@@ -47,25 +47,25 @@ const AdminOrderDetailPage: FC = () => {
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    const fetchOrderDetail = async () => {
-      try {
-        const { data, success, message } = await api.get<ApiResponse<OrderDetail>>(API_ADMIN_ORDER_DETAIL(orderId));
-        if (success && data) {
-          setOrder(data);
-        } else {
-          setError(message || 'Failed to fetch order details');
-        }
-      } catch (err) {
-        console.error('Error fetching order details:', err);
-        setError('Failed to load order details');
-      } finally {
-        setLoading(false);
+  const fetchOrderDetail = async (orderId:string|number) => {
+    try {
+      const { data, success, message } = await api.get<ApiResponse<OrderDetail>>(API_ADMIN_ORDER_DETAIL(orderId));
+      if (success && data) {
+        setOrder(data);
+      } else {
+        setError(message || 'Failed to fetch order details');
       }
-    };
+    } catch (err) {
+      console.error('Error fetching order details:', err);
+      setError('Failed to load order details');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (orderId) {
-      fetchOrderDetail();
+      fetchOrderDetail(orderId);
     }
   }, [orderId]);
 
@@ -162,6 +162,7 @@ const AdminOrderDetailPage: FC = () => {
   return (
     <OrderDetailProvider 
       order={order} 
+      fetchOrderDetail={fetchOrderDetail}
       handleManualConfirm={handleManualConfirm}
       isModalOpen={isModalOpen}
       selectedItem={selectedItem}

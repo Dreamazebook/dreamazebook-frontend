@@ -5,6 +5,7 @@ import { createContext, useContext, ReactNode, useState } from 'react';
 
 interface OrderDetailContextType {
   order: OrderDetail | null;
+  fetchOrderDetail: (orderId: string|number) => void;
   handleManualConfirm: (itemId: string) => Promise<void>;
   isModalOpen: boolean;
   selectedItem: any;
@@ -17,6 +18,7 @@ const OrderDetailContext = createContext<OrderDetailContextType | undefined>(und
 interface OrderDetailProviderProps {
   children: ReactNode;
   order: OrderDetail | null;
+  fetchOrderDetail: (orderId: string|number) => void;
   handleManualConfirm: (itemId: string) => Promise<void>;
   isModalOpen: boolean;
   selectedItem: any;
@@ -27,6 +29,7 @@ interface OrderDetailProviderProps {
 export const OrderDetailProvider = ({ 
   children, 
   order, 
+  fetchOrderDetail,
   handleManualConfirm,
   isModalOpen,
   selectedItem,
@@ -36,6 +39,7 @@ export const OrderDetailProvider = ({
   return (
     <OrderDetailContext.Provider value={{ 
       order, 
+      fetchOrderDetail,
       handleManualConfirm,
       isModalOpen,
       selectedItem,
