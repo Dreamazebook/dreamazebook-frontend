@@ -203,7 +203,7 @@ const LogisticsPage: FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex gap-2">
-                          {logistics_request_no && (
+                          {item.print_data?.print_pdf?.files && item.print_data.print_pdf.files.length > 0 && (
                             <button
                               onClick={() => handlePrintBooklet(id, item)}
                               disabled={isPrintingBooklet}
