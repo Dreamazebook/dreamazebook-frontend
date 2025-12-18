@@ -81,6 +81,7 @@ export default function EditPersonalizedProductPage() {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [initialData, setInitialData] = useState<any>();
   const [isLoading, setIsLoading] = useState(true);
+  const [isContinuing, setIsContinuing] = useState(false);
   // 绘本语言（与网页语言不同），必须从 cart/list 的 preview.language 获取
   const [bookLanguage, setBookLanguage] = useState<string | null>(null);
   // 该个性化商品对应的购物车条目 id：用于 regenerate-preview
@@ -280,182 +281,206 @@ export default function EditPersonalizedProductPage() {
   const renderForm = () => {
     if (isLoading) return <SkeletonLoader />;
     if (!formType) return null;
-    if (formType === 'SINGLE1') return <SingleCharacterForm1 ref={form1Ref} initialData={initialData} bookId={bookId} currentStep={currentStep} />;
+    if (formType === 'SINGLE1') return <SingleCharacterForm1 ref={form1Ref} initialData={initialData} bookId={bookId} currentStep={currentStep} defaultConsentChecked />;
     if (formType === 'SINGLE2') return <SingleCharacterForm2 ref={form2Ref} initialData={initialData} bookId={bookId} />;
-    return <SingleCharacterForm1 ref={form1Ref} initialData={initialData} bookId={bookId} currentStep={currentStep} />;
+    return <SingleCharacterForm1 ref={form1Ref} initialData={initialData} bookId={bookId} currentStep={currentStep} defaultConsentChecked />;
   };
 
   const handleContinue = async () => {
-    // Step 1 处理
-    if (currentStep === 1) {
-      if (formType === 'SINGLE1' && form1Ref.current) {
-        const validationResult = form1Ref.current.validateForm({ scope: 'step1' });
-        if (validationResult.isValid) {
-          setCurrentStep(2);
-          // 滚动到顶部
-          window.scrollTo(0, 0);
-        } else {
-          // 如果验证失败，通常组件内部已经设置了 errors 和 touched 状态
-          // 但为了确保用户看到，我们可以手动聚焦到第一个错误字段（如果 ref 支持）
-          // 这里我们简单地不做操作，依靠组件的错误提示
-          console.log('Step 1 validation failed:', validationResult);
-          // 简单提示，避免用户困惑
-          // alert('Please fill in all required fields.'); 
-        }
-      } else if (formType === 'SINGLE2' && form2Ref.current) {
-        // ...
-      } else {
-        // 默认情况
-      }
-      // 如果是分步表单且在第一步，验证通过后切换到第二步并返回
-      if (formType === 'SINGLE1') return;
-    }
-
-    // Step 2 (或单步表单) 提交处理
-    let fullName: string;
-    let genderRaw: '' | 'boy' | 'girl';
-    let skinColorRaw: string;
-    let hairStyleRaw: string | undefined;
-    let hairColorRaw: string | undefined;
-    let photoData: { file?: File; path: string } | null = null;
-    let photosData: string[] = [];
-    let relationshipRaw: string | undefined;
-
-    if (formType === 'SINGLE1' && form1Ref.current) {
-      const validationResult = form1Ref.current.validateForm({ scope: 'all' });
-      if (!validationResult.isValid) return;
-      const form1 = form1Ref.current.getFormData();
-      fullName = form1.fullName;
-      genderRaw = form1.gender;
-      skinColorRaw = form1.skinColor;
-      hairStyleRaw = (form1 as any).hairstyle || (form1 as any).hairStyle;
-      hairColorRaw = (form1 as any).hairColor || (form1 as any).hair_color;
-      photoData = form1.photo;
-      photosData = (form1 as any).photos || [];
-      relationshipRaw = (form1 as any).relationship;
-    } else if (formType === 'SINGLE2' && form2Ref.current) {
-      const validationResult = form2Ref.current.validateForm();
-      if (!validationResult.isValid) return;
-      const form2 = form2Ref.current.getFormData();
-      fullName = form2.fullName;
-      genderRaw = form2.gender;
-      skinColorRaw = form2.skinColor;
-      hairStyleRaw = (form2 as any).hairstyle || (form2 as any).hairStyle;
-      hairColorRaw = (form2 as any).hairColor || (form2 as any).hair_color;
-      photoData = form2.photo;
-      photosData = [form2.photo?.path].filter(Boolean) as string[];
-      relationshipRaw = (form2 as any).relationship;
-    } else {
-      return;
-    }
-
-    if (!photoData || !photoData.path) {
-      console.error('Please upload photo');
-      return;
-    }
-
-    const genderCode = genderRaw === 'boy' ? 1 : genderRaw === 'girl' ? 2 : 0;
-    const colors = ['#FFE2CF', '#DCB593', '#665444'];
-    const idx = colors.findIndex(c => c === skinColorRaw);
-    const skinColorCode = idx >= 0 ? idx + 1 : 0;
-    if (!genderCode || !skinColorCode) return;
-
-    // 必须从购物车中获取绘本语言，且为2字符
-    // 如果购物车中未指定，尝试使用当前网页语言或默认为 'en'
-    let targetLang = bookLanguage;
-    if (!targetLang || typeof targetLang !== 'string' || targetLang.length !== 2) {
-      console.warn('Book language missing from cart, falling back to current locale or en');
-      targetLang = currentLang || 'en';
-    }
-
-    // 使用新接口：POST /api/cart/:cartItemId/regenerate-preview
-    if (!cartItemId) {
-      console.error('Missing cartItemId for regenerate-preview');
-      return;
-    }
-
-    const genderStr = genderRaw === 'boy' || genderRaw === 'girl' ? genderRaw : '';
-    const skinTone =
-      skinColorRaw === skinColors[0] ? 'white' :
-      skinColorRaw === skinColors[1] ? 'original' :
-      skinColorRaw === skinColors[2] ? 'black' :
-      undefined;
-
-    // hair_style: 支持 "hair_1" -> "1"；优先使用用户当前选择，其次用回填的 initialData
-    const hairstyleCandidate =
-      (hairStyleRaw as any) ||
-      (initialData as any)?.hairstyle ||
-      (initialData as any)?.hairStyle;
-    const hairStyle =
-      typeof hairstyleCandidate === 'string' && hairstyleCandidate
-        ? (hairstyleCandidate.startsWith('hair_') ? hairstyleCandidate.replace(/^hair_/, '') : hairstyleCandidate)
-        : undefined;
-
-    // hair_color: 必填；优先用用户当前选择，其次用 initialData
-    const hairColorCandidate =
-      (hairColorRaw as any) ||
-      (initialData as any)?.hairColor ||
-      (initialData as any)?.hair_color;
-    const mapHairColorToBackend = (v: any): string | undefined => {
-      if (typeof v === 'string') {
-        const s = v.trim().toLowerCase();
-        // 与 personalize/preview 页一致：light -> blone, brown/original -> original, dark/black -> dark
-        if (s === 'light') return 'blone';
-        if (s === 'brown' || s === 'original') return 'original';
-        if (s === 'dark' || s === 'black') return 'dark';
-        // 如果后端本身就返回了 blone/original/dark，则直接透传
-        if (s === 'blone' || s === 'dark') return s;
-        return undefined;
-      }
-      const n = Number(v);
-      if (n === 1) return 'blone';
-      if (n === 2) return 'original';
-      if (n === 3) return 'dark';
-      return undefined;
-    };
-    const hairColor = mapHairColorToBackend(hairColorCandidate);
-
-    if (!hairStyle || !hairColor) {
-      console.error('Missing required attributes for regenerate-preview:', { hairStyle, hairColor });
-      return;
-    }
-
-    const faceImages = (photosData && photosData.length > 0 ? photosData : [photoData.path]).filter(Boolean);
-
-    const payload = {
-      full_name: fullName,
-      language: targetLang,
-      gender: genderStr,
-      relationship: relationshipRaw || 'Parent/Guardian',
-      attributes: {
-        ...(skinTone ? { skin_tone: skinTone } : {}),
-        // 后端校验必填
-        hair_style: hairStyle,
-        hair_color: hairColor,
-      },
-      texts: {},
-      face_images: faceImages,
-    };
-
-    let nextPreviewId: string = String(previewId);
+    if (isContinuing) return;
+    setIsContinuing(true);
+    const stop = () => setIsContinuing(false);
     try {
-      const resp = await api.post<any>(`/cart/${cartItemId}/regenerate-preview`, payload);
-      // 兼容不同返回结构：优先取 batch_id / preview_id
-      const bid =
-        resp?.data?.batch_id ||
-        resp?.data?.preview_id ||
-        resp?.batch_id ||
-        resp?.preview_id ||
-        resp?.data?.batch?.batch_id ||
-        resp?.data?.batch?.id;
-      if (bid) nextPreviewId = String(bid);
-    } catch (e) {
-      console.error('Regenerate preview failed:', e);
-      return;
-    }
+      // Step 1 处理
+      if (currentStep === 1) {
+        if (formType === 'SINGLE1' && form1Ref.current) {
+          const validationResult = form1Ref.current.validateForm({ scope: 'step1' });
+          if (validationResult.isValid) {
+            setCurrentStep(2);
+            // 滚动到顶部
+            window.scrollTo(0, 0);
+            // Step1 只是翻到下一步，不需要 loading
+            stop();
+            return;
+          }
+          console.log('Step 1 validation failed:', validationResult);
+          stop();
+          return;
+        } else if (formType === 'SINGLE2' && form2Ref.current) {
+          // ...
+          stop();
+          return;
+        } else {
+          // 默认情况
+          stop();
+          return;
+        }
+      }
 
-    // 不再“再次添加购物车”；跳转到 preview 展示结果，Add to cart 仅返回购物车
-    router.push(`/preview?bookid=${encodeURIComponent(bookId)}&previewid=${encodeURIComponent(nextPreviewId)}&fromCartItemId=${encodeURIComponent(String(cartItemId))}`);
+      // Step 2 (或单步表单) 提交处理
+      let fullName: string;
+      let genderRaw: '' | 'boy' | 'girl';
+      let skinColorRaw: string;
+      let hairStyleRaw: string | undefined;
+      let hairColorRaw: string | undefined;
+      let photoData: { file?: File; path: string } | null = null;
+      let photosData: string[] = [];
+      let relationshipRaw: string | undefined;
+
+      if (formType === 'SINGLE1' && form1Ref.current) {
+        const validationResult = form1Ref.current.validateForm({ scope: 'all' });
+        if (!validationResult.isValid) {
+          stop();
+          return;
+        }
+        const form1 = form1Ref.current.getFormData();
+        fullName = form1.fullName;
+        genderRaw = form1.gender;
+        skinColorRaw = form1.skinColor;
+        hairStyleRaw = (form1 as any).hairstyle || (form1 as any).hairStyle;
+        hairColorRaw = (form1 as any).hairColor || (form1 as any).hair_color;
+        photoData = form1.photo;
+        photosData = (form1 as any).photos || [];
+        relationshipRaw = (form1 as any).relationship;
+      } else if (formType === 'SINGLE2' && form2Ref.current) {
+        const validationResult = form2Ref.current.validateForm();
+        if (!validationResult.isValid) {
+          stop();
+          return;
+        }
+        const form2 = form2Ref.current.getFormData();
+        fullName = form2.fullName;
+        genderRaw = form2.gender;
+        skinColorRaw = form2.skinColor;
+        hairStyleRaw = (form2 as any).hairstyle || (form2 as any).hairStyle;
+        hairColorRaw = (form2 as any).hairColor || (form2 as any).hair_color;
+        photoData = form2.photo;
+        photosData = [form2.photo?.path].filter(Boolean) as string[];
+        relationshipRaw = (form2 as any).relationship;
+      } else {
+        stop();
+        return;
+      }
+
+      if (!photoData || !photoData.path) {
+        console.error('Please upload photo');
+        stop();
+        return;
+      }
+
+      const genderCode = genderRaw === 'boy' ? 1 : genderRaw === 'girl' ? 2 : 0;
+      const colors = ['#FFE2CF', '#DCB593', '#665444'];
+      const idx = colors.findIndex(c => c === skinColorRaw);
+      const skinColorCode = idx >= 0 ? idx + 1 : 0;
+      if (!genderCode || !skinColorCode) {
+        stop();
+        return;
+      }
+
+      // 必须从购物车中获取绘本语言，且为2字符
+      // 如果购物车中未指定，尝试使用当前网页语言或默认为 'en'
+      let targetLang = bookLanguage;
+      if (!targetLang || typeof targetLang !== 'string' || targetLang.length !== 2) {
+        console.warn('Book language missing from cart, falling back to current locale or en');
+        targetLang = currentLang || 'en';
+      }
+
+      // 使用新接口：POST /api/cart/:cartItemId/regenerate-preview
+      if (!cartItemId) {
+        console.error('Missing cartItemId for regenerate-preview');
+        stop();
+        return;
+      }
+
+      const genderStr = genderRaw === 'boy' || genderRaw === 'girl' ? genderRaw : '';
+      const skinTone =
+        skinColorRaw === skinColors[0] ? 'white' :
+        skinColorRaw === skinColors[1] ? 'original' :
+        skinColorRaw === skinColors[2] ? 'black' :
+        undefined;
+
+      // hair_style: 支持 "hair_1" -> "1"；优先使用用户当前选择，其次用回填的 initialData
+      const hairstyleCandidate =
+        (hairStyleRaw as any) ||
+        (initialData as any)?.hairstyle ||
+        (initialData as any)?.hairStyle;
+      const hairStyle =
+        typeof hairstyleCandidate === 'string' && hairstyleCandidate
+          ? (hairstyleCandidate.startsWith('hair_') ? hairstyleCandidate.replace(/^hair_/, '') : hairstyleCandidate)
+          : undefined;
+
+      // hair_color: 必填；优先用用户当前选择，其次用 initialData
+      const hairColorCandidate =
+        (hairColorRaw as any) ||
+        (initialData as any)?.hairColor ||
+        (initialData as any)?.hair_color;
+      const mapHairColorToBackend = (v: any): string | undefined => {
+        if (typeof v === 'string') {
+          const s = v.trim().toLowerCase();
+          // 与 personalize/preview 页一致：light -> blone, brown/original -> original, dark/black -> dark
+          if (s === 'light') return 'blone';
+          if (s === 'brown' || s === 'original') return 'original';
+          if (s === 'dark' || s === 'black') return 'dark';
+          // 如果后端本身就返回了 blone/original/dark，则直接透传
+          if (s === 'blone' || s === 'dark') return s;
+          return undefined;
+        }
+        const n = Number(v);
+        if (n === 1) return 'blone';
+        if (n === 2) return 'original';
+        if (n === 3) return 'dark';
+        return undefined;
+      };
+      const hairColor = mapHairColorToBackend(hairColorCandidate);
+
+      if (!hairStyle || !hairColor) {
+        console.error('Missing required attributes for regenerate-preview:', { hairStyle, hairColor });
+        stop();
+        return;
+      }
+
+      const faceImages = (photosData && photosData.length > 0 ? photosData : [photoData.path]).filter(Boolean);
+
+      const payload = {
+        full_name: fullName,
+        language: targetLang,
+        gender: genderStr,
+        relationship: relationshipRaw || 'Parent/Guardian',
+        attributes: {
+          ...(skinTone ? { skin_tone: skinTone } : {}),
+          // 后端校验必填
+          hair_style: hairStyle,
+          hair_color: hairColor,
+        },
+        texts: {},
+        face_images: faceImages,
+      };
+
+      let nextPreviewId: string = String(previewId);
+      try {
+        const resp = await api.post<any>(`/cart/${cartItemId}/regenerate-preview`, payload);
+        // 兼容不同返回结构：优先取 batch_id / preview_id
+        const bid =
+          resp?.data?.batch_id ||
+          resp?.data?.preview_id ||
+          resp?.batch_id ||
+          resp?.preview_id ||
+          resp?.data?.batch?.batch_id ||
+          resp?.data?.batch?.id;
+        if (bid) nextPreviewId = String(bid);
+      } catch (e) {
+        console.error('Regenerate preview failed:', e);
+        stop();
+        return;
+      }
+
+      // 不再“再次添加购物车”；跳转到 preview 展示结果，Add to cart 仅返回购物车
+      router.push(`/preview?bookid=${encodeURIComponent(bookId)}&previewid=${encodeURIComponent(nextPreviewId)}&fromCartItemId=${encodeURIComponent(String(cartItemId))}`);
+      // 注意：成功 push 后保持 loading，直到页面卸载（与详情页 personalize 按钮一致）
+    } catch (e) {
+      console.error('Continue failed:', e);
+      stop();
+    }
   };
 
   return (
@@ -510,9 +535,22 @@ export default function EditPersonalizedProductPage() {
             type="button"
             onClick={handleContinue}
             style={{ width: '180px' }}
-            className="bg-black text-white py-3 rounded hover:bg-gray-800 mb-16"
+            disabled={isContinuing}
+            className={`bg-[#222222] text-[#F5E3E3] h-[44px] px-4 py-3 rounded-[4px] hover:bg-gray-800 text-[14px] leading-[20px] tracking-[0.25px] transition-colors flex items-center justify-center whitespace-nowrap mb-16 ${
+              isContinuing ? 'opacity-75 cursor-wait pointer-events-none' : ''
+            }`}
           >
-            Continue
+            {isContinuing ? (
+              <>
+                <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Loading...
+              </>
+            ) : (
+              'Continue'
+            )}
           </button>
         </div>
       </div>
