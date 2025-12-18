@@ -14,8 +14,8 @@ export default function LatestOrderHistory({ orderDetail }:{orderDetail:OrderDet
   const t = useTranslations('latestOrderHistory');
 
   return (
-    <div key={order_number} className="border rounded-lg p-3 md:p-4">
-      <div className="flex flex-col sm:flex-row sm:items-center mb-5 gap-2">
+    <div key={order_number} className="">
+      <div className="flex items-center mb-5 gap-2">
         <Link href={`/${orderDetail.payment_status === 'paid' ? ORDER_SUMMARY_URL(id) : ORDER_CHECKOUT_URL(id)}`} className="text-base md:text-lg font-medium text-primary">#{order_number}</Link>
         <OrderStatusLabel status={status} />
       </div>
