@@ -1,10 +1,10 @@
 "use client";
 
-import { FC, useState, useRef } from "react";
+import { FC, useState } from "react";
 import Image from "next/image";
 import { ResultImage } from "@/types/order";
 import { useOrderDetail } from "../context/OrderDetailContext";
-import { CartItem, FaceImage } from "@/types/cart";
+import { FaceImage } from "@/types/cart";
 import api from "@/utils/api";
 import {
   API_ADMIN_ORDER_DOWNLOAD_IMAGES,
@@ -15,8 +15,6 @@ import { ApiResponse } from "@/types/api";
 interface ResultImagesModalProps {
   isOpen: boolean;
   onClose: () => void;
-  orderItem: CartItem;
-  itemName: string;
   orderId: number;
 }
 
@@ -24,8 +22,6 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
   orderId,
   isOpen,
   onClose,
-  orderItem,
-  itemName,
 }) => {
   const [isConfirming, setIsConfirming] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "full">("grid");
@@ -36,20 +32,21 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
     null
   );
   const [confirmError, setConfirmError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { handleManualConfirm, fetchOrderDetail } = useOrderDetail();
+  const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
+  const { handleManualConfirm, fetchOrderDetail, selectedItem } = useOrderDetail();
+  const itemName = selectedItem?.sku_code || '';
 
   if (!isOpen) return null;
 
-  const images: ResultImage[] = orderItem.result_images || [];
+  const images: ResultImage[] = selectedItem?.result_images || [];
   const faceImages: FaceImage[] =
-    orderItem?.customization_data?.face_images || [];
+    selectedItem?.customization_data?.face_images || [];
 
   const handleConfirm = async () => {
     setIsConfirming(true);
     setConfirmError(null);
     try {
-      await handleManualConfirm(orderItem.id.toString());
+      await handleManualConfirm(selectedItem.id.toString());
     } catch (err: any) {
       const msg = err?.message || "Failed to confirm item";
       console.error("Error confirming item:", err);
@@ -157,7 +154,7 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
       };
 
       const { success, message } = await api.post<ApiResponse>(
-        API_ADMIN_ORDER_ITEM_UPLOAD_FINAL_IMAGE(orderId, orderItem.id),
+        API_ADMIN_ORDER_ITEM_UPLOAD_FINAL_IMAGE(orderId, selectedItem.id),
         requestBody,
         {
           headers: {
@@ -168,6 +165,8 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
 
       if (success) {
         fetchOrderDetail(orderId);
+        setUploadSuccess(message || 'Upload Image Successfully');
+        setTimeout(() => setUploadSuccess(null), 3000);
       } else {
         alert(message || "Failed to upload image");
       }
@@ -198,6 +197,9 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
         {/* Header */}
         {confirmError && (
           <p className="text-sm text-red-600 ml-3">{confirmError}</p>
+        )}
+        {uploadSuccess && (
+          <p className="text-sm text-green-600 ml-3">{uploadSuccess}</p>
         )}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <div className="flex items-center space-x-4">
@@ -292,7 +294,7 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                 </svg>
               )}
             </button>
-            {orderItem.status === "ai_completed" && (
+            {selectedItem.status === "ai_completed" && (
               <button
                 onClick={handleConfirm}
                 disabled={isConfirming}

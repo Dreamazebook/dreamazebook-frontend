@@ -52,6 +52,13 @@ const AdminOrderDetailPage: FC = () => {
       const { data, success, message } = await api.get<ApiResponse<OrderDetail>>(API_ADMIN_ORDER_DETAIL(orderId));
       if (success && data) {
         setOrder(data);
+        if (selectedItem) {
+          // Update the selectedItem with the refreshed data
+          const refreshedItem = data.items.find(item => item.id === selectedItem.id);
+          if (refreshedItem) {
+            setSelectedItem(refreshedItem);
+          }
+        }
       } else {
         setError(message || 'Failed to fetch order details');
       }
@@ -110,7 +117,7 @@ const AdminOrderDetailPage: FC = () => {
         // 确认成功后关闭模态窗口
         setIsModalOpen(false);
         setSelectedItem(null);
-        window.location.reload();
+        setOrder(data);
       }
     } catch (err) {
       console.error('Error confirming order:', err);
@@ -194,7 +201,7 @@ const AdminOrderDetailPage: FC = () => {
 
             <OrderActions 
               order={order}
-              onRefresh={() => window.location.reload()}
+              onRefresh={() => fetchOrderDetail(orderId)}
             />
           </div>
         </div>

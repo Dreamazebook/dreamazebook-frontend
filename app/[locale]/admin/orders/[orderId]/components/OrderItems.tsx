@@ -108,9 +108,7 @@ const OrderItems: FC<OrderItemsProps> = ({ order }) => {
       <ResultImagesModal
         isOpen={isModalOpen}
         onClose={closeModal}
-        orderItem={selectedItem}
         orderId={order.id}
-        itemName={selectedItem?.sku_code || ''}
       />
     </>
   );
