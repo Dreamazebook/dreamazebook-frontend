@@ -101,6 +101,11 @@ function CheckoutPageContent() {
 
   const isSameAddress = (addr1: Address, addr2: Address) => {
     return (
+      addr1.email === addr2.email &&
+      addr1.first_name === addr2.first_name &&
+      addr1.last_name === addr2.last_name &&
+      addr1.phone === addr2.phone &&
+      addr1.house_number === addr2.house_number &&
       addr1.street === addr2.street &&
       addr1.city === addr2.city &&
       addr1.state === addr2.state &&
