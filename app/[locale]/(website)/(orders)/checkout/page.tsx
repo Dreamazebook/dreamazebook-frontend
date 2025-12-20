@@ -146,7 +146,12 @@ function CheckoutPageContent() {
         orderDetail?.billing_address?.street === billingAddress.street);
 
     if (skipUpdateShippingAddress && skipUpdateBillingAddress) {
-      completeStep(1);
+      if (orderDetail?.permissions.can_pay) {
+        completeStep(1);
+      } else {
+        window.history.back();
+      }
+      
       return;
     }
 
@@ -154,7 +159,11 @@ function CheckoutPageContent() {
 
     if (success && data) {
       setOrderDetail(data);
-      completeStep(1);
+      if (orderDetail?.permissions.can_pay) {
+        completeStep(1);
+      } else {
+        window.history.back();
+      }
     } else {
       alert(message);
     }
