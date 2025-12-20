@@ -1,12 +1,8 @@
 import { HOME_HERO } from "@/constants/cdn";
 import { BOOKS_URL } from "@/constants/links";
 import { Link } from "@/i18n/routing";
-import { useState, useEffect, useCallback } from "react";
-import {
-  FaArrowRight as ArrowRight,
-  FaChevronLeft,
-  FaChevronRight,
-} from "react-icons/fa";
+import { useState, useEffect } from "react";
+import Image from "../common/Image";
 
 const slides = [
   {
@@ -119,8 +115,9 @@ export default function SlideShow() {
                   className={`mt-5 md:mt-30 w-full md:w-[160px] inline-flex justify-center md:justify-between items-center bg-[#222222] gap-2 text-[16px] text-white px-4   py-3 rounded hover:gap-4 transition-all duration-300 group`}
                 >
                   {slide.buttonText}
-                  <img
+                  <Image
                     src="/images/common/arrow-white.svg"
+                    alt="Arrow"
                     className="w-5 h-5 group-hover:translate-x-1 transition-transform"
                   />
                 </Link>

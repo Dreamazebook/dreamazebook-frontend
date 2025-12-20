@@ -1,12 +1,13 @@
 import { HOME_STORIES } from '@/constants/cdn';
 import { useEffect, useRef, useState } from 'react';
+import Image from '../common/Image';
 
 interface Testimonial {
   id: number;
   quote: string;
   author: string;
   role: string;
-  image?: string;
+  image: string;
   bookImage?: string;
 }
 
@@ -132,12 +133,12 @@ export default function StoriesFromRealFamilies() {
         {/* Grid Layout for all screen sizes */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 lg:gap-8 relative">
           <div className="bg-[#F8F8F8] rounded p-6 sm:p-8 lg:p-10 relative md:col-span-2">
-            <img src={HOME_STORIES('top-quote.png')} className="w-10 h-10 lg:w-12 lg:h-12 absolute -top-5 left-4" />
+            <Image alt='Quuote' src={HOME_STORIES('top-quote.png')} className="w-10 h-10 lg:w-12 lg:h-12 absolute -top-5 left-4" />
             <p className="text-[#222] text-[16px] md:text-[18px] font-medium leading-relaxed mb-6 lg:mb-8">
               {testimonials[0].quote}
             </p>
             <div className="flex items-center gap-3 lg:gap-4">
-              <img src={testimonials[0].image} alt={testimonials[0].author} className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover flex-shrink-0" />
+              <Image src={testimonials[0].image} alt={testimonials[0].author} className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover flex-shrink-0" />
               <div>
                 <p className="font-semibold text-[#222] text-[14px] md:text-[18px]">
                   {testimonials[0].author}
@@ -196,7 +197,7 @@ export default function StoriesFromRealFamilies() {
               As a mom, I've read lots of books my kids, but nothing has ever made my son light up quite like this when he saw his own face in the story. He disrupts and then he started acting out. It was seriously the sweetest thing I had ever seen. I almost cried. It just made him feel so seen. And as a mom, that just meant everything to me.
             </p>
             <div className="flex items-center justify-center gap-3 lg:gap-4">
-              <img src={HOME_STORIES('mckynlee.webp')} alt="McKynlee.M" className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover flex-shrink-0" />
+              <Image src={HOME_STORIES('mckynlee.webp')} alt="McKynlee.M" className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover flex-shrink-0" />
               <div>
                 <p className="font-semibold text-[#222] text-[14px] md:text-[18px]">
                   McKynlee.M
@@ -210,7 +211,7 @@ export default function StoriesFromRealFamilies() {
 
           <div className="bg-[#F8F8F8] rounded p-6 sm:p-8 lg:p-10 relative md:col-span-2 md:col-start-1">
             <div className="aspect-[3/2] sm:aspect-[4/3] mx-auto lg:h-48 rounded bg-gray-200 mb-6 overflow-hidden flex items-center justify-center">
-              <img
+              <Image
                 src={HOME_STORIES('book_pic.webp')}
                 alt="Personalized children's book"
                 className="w-full h-full object-cover"
@@ -220,7 +221,7 @@ export default function StoriesFromRealFamilies() {
               {testimonials[1].quote}
             </p>
             <div className="flex items-center gap-3 lg:gap-4">
-              <img src={testimonials[1].image} alt={testimonials[1].author} className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover" />
+              <Image src={testimonials[1].image} alt={testimonials[1].author} className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover" />
               <div>
                 <p className="font-semibold text-[#222] text-[14px] md:text-[18px]">
                   {testimonials[1].author}
@@ -232,7 +233,7 @@ export default function StoriesFromRealFamilies() {
             </div>
           </div>
 
-          <img src={HOME_STORIES('bottom-quote.png')} className="absolute -bottom-4 right-4 lg:right-8 w-12 h-12" />
+          <Image alt='quote' src={HOME_STORIES('bottom-quote.png')} className="absolute -bottom-4 right-4 lg:right-8 w-12 h-12" />
         </div>
       </div>
     </div>

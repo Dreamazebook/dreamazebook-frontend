@@ -4,6 +4,7 @@ import { Link } from '@/i18n/routing';
 import { useState, useEffect, useRef } from 'react';
 
 import { FaStar as Star, FaArrowRight as ArrowRight } from 'react-icons/fa';
+import Image from '../common/Image';
 
 const TopPickThisMonth = () => {
   const images = [
@@ -124,7 +125,7 @@ const TopPickThisMonth = () => {
                           : undefined,
                     }}
                   >
-                    <img
+                    <Image
                       src={image}
                       alt={`Slide ${index + 1}`}
                       className="w-full h-full object-cover rounded"
@@ -166,7 +167,7 @@ const TopPickThisMonth = () => {
 
           <Link href={BOOK_DETAIL_URL('PICBOOK_SANTA')} className="text-[16px] text-[#222222] justify-center md:justify-start font-medium flex items-center mx-auto md:ml-0 gap-2 cursor-pointer hover:text-primary transition-colors duration-200 mt-4 md:mt-20">
             Personalize This Book
-            <img src="/images/common/arrow-black.svg" className="w-5 h-5" />
+            <Image alt='Personalize' src="/images/common/arrow-black.svg" className="w-5 h-5" />
           </Link>
           </div>
         </div>

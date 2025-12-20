@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Logo from "./Logo";
 import { usePathname, useRouter } from "@/i18n/routing";
-import Image from "next/image";
+import Image from "./common/Image";
 import useUserStore from "@/stores/userStore";
 import { Link } from "@/i18n/routing";
 import { useLocale } from "next-intl";
@@ -283,7 +283,7 @@ const Header = () => {
           className="text-2xl"
           aria-label="Search books"
         >
-          <img
+          <Image
             src={"/header/search.svg"}
             alt="Search"
             className="cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]"
@@ -297,7 +297,7 @@ const Header = () => {
           }
           className="text-2xl"
         >
-          <img
+          <Image
             src={"/header/cart.svg"}
             alt="Shopping Cart"
             className="cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]"
@@ -313,7 +313,7 @@ const Header = () => {
               : "/login"
           }
         >
-          <img
+          <Image
             src={"/header/profile.svg"}
             alt="Login"
             className="cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]"

@@ -1,5 +1,5 @@
 import { HOME_DIFFERENT } from "@/constants/cdn";
-import Image from "next/image";
+import Image from "../common/Image";
 
 function WhatMakesDreamazeDifferent() {
   const features = [
@@ -36,7 +36,7 @@ function WhatMakesDreamazeDifferent() {
           {features.map((feature, index) => {
             return (
               <div key={index} className="flex md:flex-col items-center gap-3 md:text-center md:bg-[#F8F8F8] p-1 md:p-8 rounded">
-                <Image src={feature.icon} alt={feature.title} width={48} height={48} className="w-15 h-15 md:w-24 md:h-24 bg-gray-50 rounded md:mb-6" />
+                <Image src={feature.icon} alt={feature.title} className="w-15 h-15 md:w-24 md:h-24 bg-gray-50 rounded md:mb-6" />
                 <div>
                   <h3 className="text-[16px] md:text-[18px] font-medium text-[#222222] md:mb-3">{feature.title}</h3>
                   <p className="text-[#666666] text-[16px] leading-relaxed">{feature.description}</p>
@@ -51,7 +51,7 @@ function WhatMakesDreamazeDifferent() {
         </div>
 
         <div className="flex justify-center">
-          <img src={HOME_DIFFERENT('divider.webp')} alt="divider" className="w-[185px] md:w-[329px]" />
+          <Image src={HOME_DIFFERENT('divider.webp')} alt="divider" className="w-[185px] md:w-[329px]" />
         </div>
       </div>
     </div>
