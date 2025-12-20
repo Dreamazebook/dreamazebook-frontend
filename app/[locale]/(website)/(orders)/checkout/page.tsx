@@ -35,7 +35,7 @@ function CheckoutPageContent() {
   const { orderStatus } = useOrderStatus(orderDetail?.status || '');
 
   // Check if order status allows editing shipping address
-  const canEditShippingAddress = orderStatus === 'processing' || orderStatus === 'pending' || orderStatus === 'unpaid';
+  const canEditShippingAddress = orderDetail?.permissions.can_update_address || orderDetail?.permissions.can_update_address_except_country;
   const { openStep, completedSteps, toggleStep, completeStep } =
     useCheckoutSteps();
   const {
