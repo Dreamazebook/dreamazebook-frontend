@@ -16,7 +16,7 @@ export default function ProfilePage() {
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Order History Section */}
-      <div className="bg-white rounded-lg shadow-sm p-4 md:p-6">
+      <div className="bg-white rounded shadow-sm p-4 md:p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base md:text-lg font-medium text-gray-900">{t("orderHistory")}</h2>
           <div className="flex items-center text-gray-600">

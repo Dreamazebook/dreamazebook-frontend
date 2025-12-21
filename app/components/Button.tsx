@@ -35,9 +35,9 @@ export default function Button({tl,id='',isLoading,url,target,icon,leftIcon,hand
         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
       ) : (
         <>
-          {leftIcon && <Image src={leftIcon} className="mr-2" alt="" width={28} height={28} />}
+          {leftIcon && <Image src={leftIcon} className="mr-2" alt="icon" width={28} height={28} />}
           <span className="font-bold">{tl}</span>
-          {icon && <Image src={icon} alt="" width={16} height={8} />}
+          {icon && <Image src={icon} alt="icon" width={16} height={8} />}
         </>
       )}
     </button>

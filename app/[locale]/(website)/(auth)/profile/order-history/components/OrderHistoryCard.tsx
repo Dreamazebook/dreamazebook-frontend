@@ -8,27 +8,24 @@ import { ORDER_CHECKOUT_URL, ORDER_SUMMARY_URL } from "@/constants/links";
 import useOrderStatus from "../../../../hooks/useOrderStatus";
 import { useTranslations } from "next-intl";
 
-const OrderHistoryTextStyle = ({label, value}:any) => {
+const OrderHistoryTextStyle = ({ label, value }: any) => {
   return (
     <div className="mb-1 flex gap-[12px]">
       <span className="text-[#999999]">{label}</span>
       {value}
     </div>
-  )
-}
+  );
+};
 
 const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
   const orderDetailLink =
     orderDetail.payment_status === "paid"
       ? ORDER_SUMMARY_URL(orderDetail.id)
       : ORDER_CHECKOUT_URL(orderDetail.id);
-  
+
   // Get order status to determine if editing is allowed
-  const { orderStatus } = useOrderStatus(orderDetail.status || '');
-  
-  // Check if order status allows editing shipping address
-  const canEditShippingAddress = orderStatus === 'processing' || orderStatus === 'pending';
-  
+  const { orderStatus } = useOrderStatus(orderDetail.status || "");
+
   const t = useTranslations("orderHistoryCard");
   return (
     <div className="flex gap-4 py-4">
@@ -77,18 +74,32 @@ const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
           />
         </div>
 
-        <OrderHistoryTextStyle label={t('shipTo')} value={formatAddress(orderDetail.shipping_address)} />
+        <OrderHistoryTextStyle
+          label={t("shipTo")}
+          value={formatAddress(orderDetail.shipping_address)}
+        />
 
         <div className="flex gap-[12px] mb-1">
-          
-          <OrderHistoryTextStyle label={t('orderDate')} value={formatDate(orderDetail.created_at)} />
+          <OrderHistoryTextStyle
+            label={t("orderDate")}
+            value={formatDate(orderDetail.created_at)}
+          />
 
           {orderDetail.shipped_at && (
-            <OrderHistoryTextStyle label={t('deliveryDate')} value={formatDate(orderDetail.shipped_at)} />
+            <OrderHistoryTextStyle
+              label={t("deliveryDate")}
+              value={formatDate(orderDetail.shipped_at)}
+            />
           )}
         </div>
 
-        <OrderHistoryTextStyle label={t('qty')} value={orderDetail.items?.reduce((sum, item) => sum + item.quantity, 0)} />
+        <OrderHistoryTextStyle
+          label={t("qty")}
+          value={orderDetail.items?.reduce(
+            (sum, item) => sum + item.quantity,
+            0
+          )}
+        />
 
         <div className="flex gap-[32px] font-[16px]">
           {orderDetail.status === "delivered" && (
@@ -96,9 +107,9 @@ const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
               {t("downloadInvoice")}
             </button>
           )}
-          
+
           {/* Edit Shipping Address link - only show for orders that can be edited */}
-          {canEditShippingAddress && (
+          {orderDetail.permissions.can_update_address_except_country && (
             <Link
               href={ORDER_CHECKOUT_URL(orderDetail.id)}
               className="text-primary hover:underline flex items-center gap-1"
@@ -106,12 +117,12 @@ const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
               {t("editShippingAddress")}
             </Link>
           )}
-          
+
           <Link
             href={orderDetailLink}
             className="text-primary hover:underline flex items-center gap-1"
           >
-            {orderDetail.status === "unpaid"
+            {orderDetail.permissions.can_pay
               ? t("continueToPay")
               : t("moreDetails")}
           </Link>

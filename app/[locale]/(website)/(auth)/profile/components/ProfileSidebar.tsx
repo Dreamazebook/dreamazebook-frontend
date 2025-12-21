@@ -31,90 +31,95 @@ export default function ProfileSidebar({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header with colorful letters */}
-      <div className="bg-white p-4 border-b">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div className="flex items-center">
-            {/* Mobile menu button */}
-            <button
-              className="md:hidden mr-4 p-2 rounded-md hover:bg-gray-100"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-            >
-              {sidebarOpen ? "X" : t("menu")}
-            </button>
-
-            <div className="flex items-center mr-4 md:mr-8">
-              <span className="text-xl md:text-3xl font-bold text-orange-500">
-                R
-              </span>
-              <span className="text-xl md:text-3xl font-bold text-blue-900">
-                E
-              </span>
-              <span className="text-xl md:text-3xl font-bold text-green-500">
-                A
-              </span>
-              <span className="text-xl md:text-3xl font-bold text-purple-400">
-                D
-              </span>
-              <span className="text-xl md:text-3xl font-bold text-blue-500">
-                A
-              </span>
-              <span className="text-xl md:text-3xl font-bold text-yellow-400">
-                Z
-              </span>
-              <span className="text-xl md:text-3xl font-bold text-blue-900">
-                E
-              </span>
-            </div>
-            <div className="flex items-center">
-              <span className="text-xl md:text-3xl font-bold text-orange-500">
-                B
-              </span>
-              <span className="text-xl md:text-3xl font-bold text-green-500">
-                O
-              </span>
-              <div className="w-6 h-6 md:w-8 md:h-8 bg-orange-500 rounded-full flex items-center justify-center mx-1">
-                <span className="text-white text-sm md:text-xl font-bold">
-                  O
+      <div className="bg-white p-4">
+        <div className="flex items-center justify-between max-w-[1200px] mx-auto">
+          <div className="flex flex-col md:flex-row items-center w-full">
+            <div className="flex items-center mb-2 md:mb-0">
+              <div className="flex items-center mr-4 md:mr-8">
+                <span className="text-xl md:text-3xl font-bold text-orange-500">
+                  R
+                </span>
+                <span className="text-xl md:text-3xl font-bold text-blue-900">
+                  E
+                </span>
+                <span className="text-xl md:text-3xl font-bold text-green-500">
+                  A
+                </span>
+                <span className="text-xl md:text-3xl font-bold text-purple-400">
+                  D
+                </span>
+                <span className="text-xl md:text-3xl font-bold text-blue-500">
+                  A
+                </span>
+                <span className="text-xl md:text-3xl font-bold text-yellow-400">
+                  Z
+                </span>
+                <span className="text-xl md:text-3xl font-bold text-blue-900">
+                  E
                 </span>
               </div>
-              <span className="text-xl md:text-3xl font-bold text-orange-500">
-                K
-              </span>
-              <span className="text-xl md:text-3xl font-bold text-orange-500">
-                S
-              </span>
+              <div className="flex items-center">
+                <span className="text-xl md:text-3xl font-bold text-orange-500">
+                  B
+                </span>
+                <span className="text-xl md:text-3xl font-bold text-green-500">
+                  O
+                </span>
+                <div className="w-6 h-6 md:w-8 md:h-8 bg-orange-500 rounded-full flex items-center justify-center mx-1">
+                  <span className="text-white text-sm md:text-xl font-bold">
+                    O
+                  </span>
+                </div>
+                <span className="text-xl md:text-3xl font-bold text-orange-500">
+                  K
+                </span>
+                <span className="text-xl md:text-3xl font-bold text-orange-500">
+                  S
+                </span>
+              </div>
+            </div>
+            <div className="text-sm md:text-lg font-medium text-gray-700 md:hidden">
+              {t("goodMorning")} {user?.name || "User"}
             </div>
           </div>
-          <div className="text-sm md:text-lg font-medium text-gray-700 hidden sm:block">
+          <div className="text-sm md:text-lg font-medium text-gray-700 hidden md:block">
             {t("goodMorning")} {user?.name || "User"}
           </div>
         </div>
       </div>
 
+      {/* Mobile Horizontal Menu */}
+      <div className="md:hidden bg-white overflow-x-auto">
+        <div className="flex justify-around px-2 py-3 whitespace-nowrap">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`px-3 py-2 text-sm rounded ${
+                pathname.endsWith(item.href)
+                  ? "text-[#012CCE] font-medium"
+                  : "text-[#222222] hover:text-gray-600"
+              }`}
+            >
+              {t(item.translationKey)}
+            </Link>
+          ))}
+          <button
+            className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800"
+            onClick={() => {
+              logout();
+              router.push("/");
+            }}
+          >
+            {t("logout")}
+          </button>
+        </div>
+      </div>
+
       <div className="max-w-[1200px] mx-auto p-3">
         <div className="flex gap-4 md:gap-8">
-          {/* Mobile Sidebar Overlay */}
-          {sidebarOpen && (
-            <div
-              className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-              onClick={() => setSidebarOpen(false)}
-            />
-          )}
-
-          {/* Sidebar */}
-          <div
-            className={`
-                  fixed md:relative top-0 left-0 z-50 md:z-auto
-                  w-64 md:w-56 h-full md:h-auto
-                  bg-white rounded-none md:rounded-lg shadow-lg md:shadow-sm 
-                  p-6 transform transition-transform duration-300 ease-in-out
-                  ${
-                    sidebarOpen
-                      ? "translate-x-0"
-                      : "-translate-x-full md:translate-x-0"
-                  }
-                `}
-          >
+          {/* Desktop Sidebar */}
+          <div className="hidden md:block w-56 bg-white rounded-lg shadow-sm p-6">
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-3 overflow-hidden">
                 <img
@@ -133,7 +138,6 @@ export default function ProfileSidebar({
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setSidebarOpen(false)}
                   className={`block px-3 text-center py-2 rounded ${
                     pathname.endsWith(item.href)
                       ? "text-[#012CCE] font-medium text-[18px]"

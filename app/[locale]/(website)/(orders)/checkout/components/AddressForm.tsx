@@ -299,7 +299,7 @@ const AddressForm = forwardRef<
         onBlur={() => validateShippingInfo("country")}
         error={errors.country}
         options={countryList}
-        disabled={orderDetail.status != "unpaid"}
+        disabled={orderDetail.permissions.can_update_address_except_country}
       />
 
       <FormField
@@ -326,8 +326,8 @@ const AddressForm = forwardRef<
       )}
 
       <FormField
-        id="unit"
-        label={t("unit")}
+        id="address2"
+        label={t("address2")}
         type="text"
         required
         value={address.house_number}
@@ -337,7 +337,7 @@ const AddressForm = forwardRef<
         }}
         onBlur={() => validateShippingInfo("house_number")}
         error={errors.house_number}
-        placeholder={t("unitPlaceholder")}
+        placeholder={t("address2Placeholder")}
       />
 
       <FormField

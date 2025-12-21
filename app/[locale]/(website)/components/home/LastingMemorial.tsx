@@ -1,4 +1,5 @@
 import React, { StrictMode } from "react";
+import Image from "../common/Image";
 const steps = [
   {
     number: "01",
@@ -56,7 +57,7 @@ export default function LastingMemorial() {
               key={index}
               className="flex md:flex-col items-start gap-6 pl-6 pr-0 w-full border-l border-solid border-[#22222233]"
             >
-              <img
+              <Image
                 className="w-12 h-11 flex-shrink-0"
                 alt={`Step ${step.number} icon`}
                 src={step.icon}

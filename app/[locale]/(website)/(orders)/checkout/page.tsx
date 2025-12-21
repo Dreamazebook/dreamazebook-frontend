@@ -35,7 +35,7 @@ function CheckoutPageContent() {
   const { orderStatus } = useOrderStatus(orderDetail?.status || '');
 
   // Check if order status allows editing shipping address
-  const canEditShippingAddress = orderStatus === 'processing' || orderStatus === 'pending' || orderStatus === 'unpaid';
+  const canEditShippingAddress = orderDetail?.permissions.can_update_address || orderDetail?.permissions.can_update_address_except_country;
   const { openStep, completedSteps, toggleStep, completeStep } =
     useCheckoutSteps();
   const {
@@ -101,6 +101,11 @@ function CheckoutPageContent() {
 
   const isSameAddress = (addr1: Address, addr2: Address) => {
     return (
+      addr1.email === addr2.email &&
+      addr1.first_name === addr2.first_name &&
+      addr1.last_name === addr2.last_name &&
+      addr1.phone === addr2.phone &&
+      addr1.house_number === addr2.house_number &&
       addr1.street === addr2.street &&
       addr1.city === addr2.city &&
       addr1.state === addr2.state &&
@@ -141,7 +146,12 @@ function CheckoutPageContent() {
         orderDetail?.billing_address?.street === billingAddress.street);
 
     if (skipUpdateShippingAddress && skipUpdateBillingAddress) {
-      completeStep(1);
+      if (orderDetail?.permissions.can_pay) {
+        completeStep(1);
+      } else {
+        window.history.back();
+      }
+      
       return;
     }
 
@@ -149,7 +159,11 @@ function CheckoutPageContent() {
 
     if (success && data) {
       setOrderDetail(data);
-      completeStep(1);
+      if (orderDetail?.permissions.can_pay) {
+        completeStep(1);
+      } else {
+        window.history.back();
+      }
     } else {
       alert(message);
     }

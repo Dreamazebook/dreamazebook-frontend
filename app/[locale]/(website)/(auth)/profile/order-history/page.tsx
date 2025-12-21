@@ -75,18 +75,10 @@ const OrderHistory = () => {
 
   return (
     <div className="bg-white min-h-screen">
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="max-w-[1200px] mx-auto px-[12px] py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-normal text-gray-900">{t('title')}</h1>
-          <div className="flex gap-3">
-            <button className="px-5 py-2 border border-gray-300 rounded text-gray-700 bg-white hover:bg-gray-50">
-              {t('showInvoice')}
-            </button>
-            <button className="px-5 py-2 bg-gray-900 text-white rounded hover:bg-gray-800">
-              {t('buyNow')}
-            </button>
-          </div>
         </div>
 
         {/* Tab Navigation */}

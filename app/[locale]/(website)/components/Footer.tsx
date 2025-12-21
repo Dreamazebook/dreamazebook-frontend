@@ -1,7 +1,6 @@
 "use client";
 
-import { FaFacebookF, FaInstagram } from "react-icons/fa";
-import Image from "next/image";
+import Image from "./common/Image";
 import { Link, usePathname } from "@/i18n/routing";
 import { CONTACT_US_URL } from "@/constants/links";
 
@@ -80,7 +79,7 @@ const Footer = () => {
           className="rounded hover:bg-gray-500 cursor-pointer transition-colors duration-200"
           aria-label={label}
         >
-          <img src={icon} className="w-[24px] h-[24px]" />
+          <Image src={icon} alt={label} className="w-[24px] h-[24px]" />
         </a>
       ))}
     </div>
@@ -106,7 +105,7 @@ const Footer = () => {
           <div
             className={`flex items-center lg:flex-col lg:justify-between order-1 lg:order-2 gap-5 lg:gap-0`}
           >
-            <img
+            <Image
               src="/images/common/logo-footer.png"
               alt="logo"
               className="w-[124px] h-[48px] -ml-[6px] md:ml-0"

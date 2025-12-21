@@ -47,25 +47,32 @@ const AdminOrderDetailPage: FC = () => {
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    const fetchOrderDetail = async () => {
-      try {
-        const { data, success, message } = await api.get<ApiResponse<OrderDetail>>(API_ADMIN_ORDER_DETAIL(orderId));
-        if (success && data) {
-          setOrder(data);
-        } else {
-          setError(message || 'Failed to fetch order details');
+  const fetchOrderDetail = async (orderId:string|number) => {
+    try {
+      const { data, success, message } = await api.get<ApiResponse<OrderDetail>>(API_ADMIN_ORDER_DETAIL(orderId));
+      if (success && data) {
+        setOrder(data);
+        if (selectedItem) {
+          // Update the selectedItem with the refreshed data
+          const refreshedItem = data.items.find(item => item.id === selectedItem.id);
+          if (refreshedItem) {
+            setSelectedItem(refreshedItem);
+          }
         }
-      } catch (err) {
-        console.error('Error fetching order details:', err);
-        setError('Failed to load order details');
-      } finally {
-        setLoading(false);
+      } else {
+        setError(message || 'Failed to fetch order details');
       }
-    };
+    } catch (err) {
+      console.error('Error fetching order details:', err);
+      setError('Failed to load order details');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (orderId) {
-      fetchOrderDetail();
+      fetchOrderDetail(orderId);
     }
   }, [orderId]);
 
@@ -110,7 +117,7 @@ const AdminOrderDetailPage: FC = () => {
         // 确认成功后关闭模态窗口
         setIsModalOpen(false);
         setSelectedItem(null);
-        window.location.reload();
+        setOrder(data);
       }
     } catch (err) {
       console.error('Error confirming order:', err);
@@ -162,6 +169,7 @@ const AdminOrderDetailPage: FC = () => {
   return (
     <OrderDetailProvider 
       order={order} 
+      fetchOrderDetail={fetchOrderDetail}
       handleManualConfirm={handleManualConfirm}
       isModalOpen={isModalOpen}
       selectedItem={selectedItem}
@@ -193,7 +201,7 @@ const AdminOrderDetailPage: FC = () => {
 
             <OrderActions 
               order={order}
-              onRefresh={() => window.location.reload()}
+              onRefresh={() => fetchOrderDetail(orderId)}
             />
           </div>
         </div>

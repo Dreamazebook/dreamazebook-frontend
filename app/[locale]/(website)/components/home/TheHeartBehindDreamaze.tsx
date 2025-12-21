@@ -1,5 +1,6 @@
 import { HOME_SPARKS } from '@/constants/cdn';
 import React from 'react';
+import Image from '../common/Image';
 
 interface MediaItem {
   src: string;
@@ -28,7 +29,7 @@ function MediaItemComponent({ item, keyPrefix, index }: MediaItemProps) {
           playsInline
         />
       ) : (
-        <img src={item.src} alt={item.alt} className="w-full h-full object-cover" />
+        <Image src={item.src} alt={item.alt} className="w-full h-full object-cover" />
       )}
     </div>
   );

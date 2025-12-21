@@ -186,7 +186,7 @@ const LogisticsPage: FC = () => {
                         <div className="space-y-1">
                           <div className="flex items-center gap-3">
                             <span>{order_number}</span>
-                            {!isConfirmed && (
+                            {/* {!isConfirmed && (
                               <button
                                 onClick={() => handleConfirmOrder(id)}
                                 disabled={isConfirming || hasLogisticsRequest}
@@ -194,7 +194,7 @@ const LogisticsPage: FC = () => {
                               >
                                 {isConfirming ? '确认中...' : !has_logistics ? '确认订单' : '已确认'}
                               </button>
-                            )}
+                            )} */}
                           </div>
                           <div className="text-xs text-gray-500">
                             {new Date(created_at).toLocaleString()}
@@ -203,7 +203,7 @@ const LogisticsPage: FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex gap-2">
-                          {logistics_request_no && (
+                          {item.print_data?.print_pdf?.files && item.print_data.print_pdf.files.length > 0 && (
                             <button
                               onClick={() => handlePrintBooklet(id, item)}
                               disabled={isPrintingBooklet}
