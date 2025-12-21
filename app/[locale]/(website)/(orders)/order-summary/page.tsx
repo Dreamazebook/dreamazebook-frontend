@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { EMPTY_CART_ITEM, OrderDetail } from "@/types/order";
+import { EMPTY_CART_ITEM, formatDate, OrderDetail } from "@/types/order";
 import useUserStore from "@/stores/userStore";
 import api from "@/utils/api";
 import { ApiResponse } from "@/types/api";
@@ -19,6 +19,7 @@ import CartItemCard from "../shopping-cart/components/CartItemCard";
 import MessageModal from "./components/MessageModal";
 import Image from "next/image";
 import { CartItem } from "@/types/cart";
+import OrderStatusLabel from "../../components/component/OrderStatusLabel";
 
 const OrderSummary: React.FC = () => {
   const t = useTranslations("orderSummary");
@@ -104,7 +105,7 @@ const OrderSummary: React.FC = () => {
   // 计算费用小结
   const discount = 0; // 如果有优惠就填入相应数值
 
-  if (!orderId) {
+  if (!(orderId || orderDetail)) {
     return (
       <div className="min-h-screen bg-gray-50 py-8 px-4 flex items-center justify-center">
         <p className="text-red-500 text-lg">{t("noOrderIdError")}</p>
@@ -169,8 +170,11 @@ const OrderSummary: React.FC = () => {
       <div className="max-w-[1200px] mx-auto">
         {/* 标题与提示 */}
         <div className="mb-4">
-          <h1 className="text-2xl mb-2">🎉 {t("preparationTitle")}</h1>
-          <p className="text-gray-600">{t("preparationSubtitle")} ✨</p>
+          <h1 className="text-[18px] md:text-[28px] flex items-center gap-[4px] mb-2">
+            🎉 {t("preparationTitle")}
+            {orderDetail && <div className="hidden md:block"><OrderStatusLabel status={orderDetail?.status} /></div>}
+          </h1>
+          {/* <p className="text-gray-600">{t("preparationSubtitle")} ✨</p> */}
         </div>
 
         {/* 订单号和预计送达 */}
@@ -190,7 +194,7 @@ const OrderSummary: React.FC = () => {
         </div>
 
         {/* 进度状态指示 */}
-        {orderDetail && <StepIndicator orderDetail={orderDetail} />}
+        {/* {orderDetail && <StepIndicator orderDetail={orderDetail} />} */}
 
         {/* 订单列表 */}
         <div className="space-y-4 mb-6">
@@ -204,7 +208,7 @@ const OrderSummary: React.FC = () => {
         </div>
 
         {/* 费用小结 & 收货信息 */}
-        <div className="grid gap-4 mb-6 bg-white p-4">
+        <div className="grid gap-4 mb-6 bg-white py-[16px] px-[24px]">
           {orderDetail && (
             <>
               <OrderSummaryDelivery orderDetail={orderDetail} />
@@ -213,8 +217,21 @@ const OrderSummary: React.FC = () => {
           )}
         </div>
 
+        {orderDetail?.stripe_payment_intent_data && 
+        <div className="bg-white py-[16px] px-[24px] rounded mt-[16px] text-[16px] text-[#666666]">
+          <div className="flex justify-between items-center">
+            <span className="">Payment Method</span>
+            <span className="">{orderDetail?.payment_method}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="">Payment Date</span>
+            <span className="">{formatDate(orderDetail?.stripe_payment_intent_data?.updated_at)}</span>
+          </div>
+        </div>
+        }
+
         {/* 操作按钮 */}
-        <div className="flex items-center justify-end gap-4">
+        <div className="flex items-center justify-end gap-4 mt-[16px]">
           <button className="text-[#222] py-2 border border-[#222] px-4 rounded hover:bg-gray-300">
             {t("actions.downloadInvoice")}
           </button>

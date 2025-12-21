@@ -7,17 +7,9 @@ import OrderStatusLabel from "../../../../components/component/OrderStatusLabel"
 import { ORDER_CHECKOUT_URL, ORDER_SUMMARY_URL } from "@/constants/links";
 import useOrderStatus from "../../../../hooks/useOrderStatus";
 import { useTranslations } from "next-intl";
+import OrderSummaryDelivery from "@/app/[locale]/(website)/components/component/OrderSummaryDelivery";
 
-const OrderHistoryTextStyle = ({ label, value }: any) => {
-  return (
-    <div className="mb-1 flex gap-[12px]">
-      <span className="text-[#999999]">{label}</span>
-      {value}
-    </div>
-  );
-};
-
-const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
+const OrderHistoryCard = ({ orderDetail,showStatus,handlePayment }: { orderDetail: OrderDetail,showStatus:Boolean, handlePayment:(orderDetail:OrderDetail)=>void }) => {
   const orderDetailLink =
     orderDetail.payment_status === "paid"
       ? ORDER_SUMMARY_URL(orderDetail.id)
@@ -30,8 +22,8 @@ const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
   return (
     <div className="flex gap-4 py-4">
       {/* Product Images */}
-      <div className="flex-shrink-0">
-        {/* {orderDetail.images ? (
+      {/* <div className="flex-shrink-0">
+        {orderDetail.images ? (
           <div className="relative">
             <img
               src={orderDetail.images[0]}
@@ -53,8 +45,8 @@ const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
             alt="Product"
             className="w-20 h-20 object-cover"
           />
-        )} */}
-      </div>
+        )}
+      </div> */}
 
       {/* Order Details */}
       <div className="flex-1 text-[16px]">
@@ -66,7 +58,7 @@ const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
             >
               #{orderDetail.order_number}
             </Link>
-            <OrderStatusLabel status={orderDetail.status} />
+            {showStatus && <OrderStatusLabel status={orderDetail.status} />}
           </div>
           <DisplayPrice
             value={orderDetail.total_amount}
@@ -74,32 +66,7 @@ const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
           />
         </div>
 
-        <OrderHistoryTextStyle
-          label={t("shipTo")}
-          value={formatAddress(orderDetail.shipping_address)}
-        />
-
-        <div className="flex gap-[12px] mb-1">
-          <OrderHistoryTextStyle
-            label={t("orderDate")}
-            value={formatDate(orderDetail.created_at)}
-          />
-
-          {orderDetail.shipped_at && (
-            <OrderHistoryTextStyle
-              label={t("deliveryDate")}
-              value={formatDate(orderDetail.shipped_at)}
-            />
-          )}
-        </div>
-
-        <OrderHistoryTextStyle
-          label={t("qty")}
-          value={orderDetail.items?.reduce(
-            (sum, item) => sum + item.quantity,
-            0
-          )}
-        />
+        <OrderSummaryDelivery orderDetail={orderDetail} />
 
         <div className="flex gap-[32px] font-[16px]">
           {orderDetail.status === "delivered" && (
@@ -118,14 +85,18 @@ const OrderHistoryCard = ({ orderDetail }: { orderDetail: OrderDetail }) => {
             </Link>
           )}
 
+          {orderDetail.permissions.can_pay ?
+          <button className="cursor-pointer text-primary hover:underline" onClick={()=>handlePayment(orderDetail)}>
+            {t("continueToPay")}
+          </button>
+          :
           <Link
             href={orderDetailLink}
             className="text-primary hover:underline flex items-center gap-1"
           >
-            {orderDetail.permissions.can_pay
-              ? t("continueToPay")
-              : t("moreDetails")}
+            {t("moreDetails")}
           </Link>
+          }
         </div>
       </div>
     </div>

@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import useUserStore from '@/stores/userStore';
 import OrderHistoryCard from './components/OrderHistoryCard';
 import { useTranslations } from 'next-intl';
-import { statusLabelMap } from '@/types/order';
+import { OrderDetail, statusLabelMap } from '@/types/order';
+import ReviewAndPay from '../../../(orders)/checkout/components/ReviewAndPay';
 
 const OrderHistory = () => {
   const {orderList, fetchOrderList, orderStatusMapping} = useUserStore();
@@ -11,6 +12,8 @@ const OrderHistory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('all');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedOrderDetail, setSelectedOrderDetail] = useState<OrderDetail|null>(null);
 
   const filteredOrders = activeTab === 'all' 
     ? orderList 
@@ -53,6 +56,10 @@ const OrderHistory = () => {
       count: orderList.filter(order => orderStatusMapping?.[order.status] === 'closed').length 
     },
   ];
+
+  const handlePayment = (orderDetail: OrderDetail) => {
+    setSelectedOrderDetail(orderDetail);
+  };
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -128,10 +135,21 @@ const OrderHistory = () => {
         {/* Order List */}
         <div className="space-y-6">
           {filteredOrders.map((order) => (
-            <OrderHistoryCard key={order.id} orderDetail={order} />
+            <OrderHistoryCard handlePayment={handlePayment} showStatus={activeTab==='all'} key={order.id} orderDetail={order} />
           ))}
         </div>
       </div>
+
+      {/* Payment Modal */}
+      {selectedOrderDetail && (
+        <>
+        <div className='fixed h-full w-full bottom-0 left-0 bg-black/50 z-100' onClick={()=>setSelectedOrderDetail(null)}></div>
+        <div className='fixed bottom-0 left-0 w-full z-200'>
+          <ReviewAndPay orderDetail={selectedOrderDetail} />
+        </div>
+        </>
+      )}
+
     </div>
   );
 };

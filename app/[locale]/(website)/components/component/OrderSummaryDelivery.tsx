@@ -2,35 +2,49 @@ import { formatAddress } from "@/types/address";
 import { formatDate, OrderDetail } from "@/types/order";
 import { useTranslations } from 'next-intl';
 
+const OrderHistoryTextStyle = ({ label, value }: any) => {
+  return (
+    <div className="mb-1 flex gap-[12px]">
+      <span className="text-[#999999]">{label}</span>
+      {value}
+    </div>
+  );
+};
 interface OrderSummaryDeliveryProps {
   orderDetail: OrderDetail;
 }
 
 const OrderSummaryDelivery = ({ orderDetail }: OrderSummaryDeliveryProps) => {
-  const { shipping_address, updated_at } = orderDetail;
   const t = useTranslations('orderSummaryDelivery');
 
   return (
-    <div className="text-lg text-[#222] mb-4 bg-[#F8F8F8] p-3 space-y-3">
-      <div>
-        <span className="font-medium text-[#999] mr-4">{t("shipTo")}</span>{" "}
-        {formatAddress(shipping_address)}
+    <div className="text-[#222] mb-4 bg-[#F8F8F8] p-3 space-y-3">
+      <OrderHistoryTextStyle
+        label={t("shipTo")}
+        value={formatAddress(orderDetail.shipping_address)}
+      />
+
+      <div className="flex gap-[12px] mb-1">
+        <OrderHistoryTextStyle
+          label={t("orderDate")}
+          value={formatDate(orderDetail.created_at)}
+        />
+
+        {orderDetail.shipped_at && (
+          <OrderHistoryTextStyle
+            label={t("deliveryDate")}
+            value={formatDate(orderDetail.shipped_at)}
+          />
+        )}
       </div>
 
-      <div className="grid grid-cols-2">
-        <div>
-          <span className="font-medium text-[#999] mr-4">{t("orderDate")}</span>{" "}
-          {formatDate(updated_at)}
-        </div>
-
-        <div>
-          <span className="font-medium text-[#999] mr-4">{t("deliveryDate")}</span>{" "}
-        </div>
-      </div>
-      <div>
-        <span className="font-medium text-[#999] mr-4">{t("qty")}</span>{" "}
-        {orderDetail.items.length}
-      </div>
+      <OrderHistoryTextStyle
+          label={t("qty")}
+          value={orderDetail.items?.reduce(
+            (sum, item) => sum + item.quantity,
+            0
+          )}
+        />
     </div>
   );
 };

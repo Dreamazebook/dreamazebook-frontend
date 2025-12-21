@@ -30,6 +30,12 @@ export interface OrderDetail {
   notes: string;
   stripe_payment_intent_id: string;
   stripe_client_secret: string;
+  stripe_payment_intent_data?: {
+      amount: number,
+      status: string,
+      currency: string,
+      updated_at: string
+  },
   shipping_address: Address;
   paid_at: string | null;
   completed_at: string | null;

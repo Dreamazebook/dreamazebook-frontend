@@ -17,6 +17,9 @@ import { useRouter } from '@/i18n/routing';
 import DisplayPrice from '../../../components/component/DisplayPrice';
 import NextStepButton from './NextStepButton';
 import { ORDER_SUMMARY_URL } from '@/constants/links';
+import OrderSummaryDelivery from '../../../components/component/OrderSummaryDelivery';
+import OrderSummary from './OrderSummary';
+import CartItemCard from '../../shopping-cart/components/CartItemCard';
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
@@ -118,8 +121,6 @@ const CheckoutForm: React.FC<{
     setIsLoading(false);
   };
 
-  console.log(paymentMethod);
-
   const paymentElementOptions: any = {
     layout: "tabs",
     defaultValues: {
@@ -136,16 +137,17 @@ const CheckoutForm: React.FC<{
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg">
-      <div className="mb-6">
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="font-semibold text-gray-800"></h3>
-          {/* <p className="text-gray-600">Customer: {email}</p> */}
-          <p className="text-xl font-bold text-gray-900 mt-2">
-            Total: <DisplayPrice value={total_amount} />
-          </p>
-        </div>
-      </div>
+    <div className="bg-white p-6 rounded shadow">
+
+      <h3 className='text-[22px] md:text-[28px] mb-[16px]'>Oorder Summary</h3>
+
+      {orderDetail.items.map((item) => (
+        <CartItemCard key={item.id} item={item} />
+      ))}
+
+      <h3 className='text-[22px] md:text-[28px] mb-[16px] border-t border-[#E5E5E5] pt-[16px] mt-[16px]'>Payment Information</h3>
+
+      <OrderSummaryDelivery orderDetail={orderDetail} />
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
