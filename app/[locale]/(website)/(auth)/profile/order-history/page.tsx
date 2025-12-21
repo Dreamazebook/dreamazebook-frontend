@@ -81,7 +81,7 @@ const OrderHistory = () => {
   if (orderList.length === 0) return <div className="text-center py-8">{t('noOrdersFound')}</div>;
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="min-h-screen">
       <div className="max-w-[1200px] mx-auto px-[12px] py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
@@ -133,7 +133,7 @@ const OrderHistory = () => {
         `}</style>
 
         {/* Order List */}
-        <div className="space-y-6">
+        <div className="space-y-[12px]">
           {filteredOrders.map((order) => (
             <OrderHistoryCard handlePayment={handlePayment} showStatus={activeTab==='all'} key={order.id} orderDetail={order} />
           ))}
@@ -144,7 +144,8 @@ const OrderHistory = () => {
       {selectedOrderDetail && (
         <>
         <div className='fixed h-full w-full bottom-0 left-0 bg-black/50 z-100' onClick={()=>setSelectedOrderDetail(null)}></div>
-        <div className='fixed bottom-0 left-0 w-full z-200'>
+        <div className='fixed bottom-0 left-0 w-full z-200 max-h-full overflow-y-auto md:w-[600px] md:h-[620px] right-0 mx-auto md:top-[50%] md:-translate-y-1/2'>
+          <span className='absolute top-5 right-5 text-2xl cursor-pointer' onClick={()=>setSelectedOrderDetail(null)}>X</span>
           <ReviewAndPay orderDetail={selectedOrderDetail} />
         </div>
         </>

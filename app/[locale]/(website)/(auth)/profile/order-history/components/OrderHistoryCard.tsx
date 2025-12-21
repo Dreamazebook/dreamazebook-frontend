@@ -20,7 +20,7 @@ const OrderHistoryCard = ({ orderDetail,showStatus,handlePayment }: { orderDetai
 
   const t = useTranslations("orderHistoryCard");
   return (
-    <div className="flex gap-4 py-4">
+    <div className="flex gap-4 p-[12px] md:py-[16px] md:px-[24px] bg-white">
       {/* Product Images */}
       {/* <div className="flex-shrink-0">
         {orderDetail.images ? (
@@ -66,7 +66,7 @@ const OrderHistoryCard = ({ orderDetail,showStatus,handlePayment }: { orderDetai
           />
         </div>
 
-        <OrderSummaryDelivery showShipTo={false} orderDetail={orderDetail} />
+        <OrderSummaryDelivery bgColor="bg-white" showShipTo={false} orderDetail={orderDetail} />
 
         <div className="flex gap-[32px] font-[16px]">
           {orderDetail.status === "delivered" && (

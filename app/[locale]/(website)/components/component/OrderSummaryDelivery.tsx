@@ -13,14 +13,15 @@ const OrderHistoryTextStyle = ({ label, value }: any) => {
 interface OrderSummaryDeliveryProps {
   orderDetail: OrderDetail;
   showShipTo?: boolean;
+  bgColor?: string
 }
 
-const OrderSummaryDelivery = ({ orderDetail, showShipTo = true }: OrderSummaryDeliveryProps) => {
+const OrderSummaryDelivery = ({ orderDetail, showShipTo = true, bgColor = 'bg-[#F8F8F8]' }: OrderSummaryDeliveryProps) => {
   const t = useTranslations('orderSummaryDelivery');
 
   return (
-    <div className="text-[#222] mb-4 bg-[#F8F8F8] p-3 space-y-3">
-      
+    <div className={`text-[#222] mb-4 p-3 space-y-3 ${bgColor}`}>
+
       {showShipTo && (
         <OrderHistoryTextStyle
           label={t("shipTo")}
