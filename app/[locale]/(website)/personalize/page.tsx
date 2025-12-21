@@ -367,6 +367,17 @@ export default function PersonalizeApiDrivenPage() {
       if (isKs) qs.set('ks', '1');
       if (isKs && ksPackageItemId) qs.set('package_item_id', ksPackageItemId);
       if (isKs && ksPackageId) qs.set('package_id', ksPackageId);
+      // 圣诞 bundle：把购物车子项 id 透传给 preview，用于 regenerate-preview 更新该子项
+      const fromCartItemId = searchParams.get('fromCartItemId');
+      if (fromCartItemId) qs.set('fromCartItemId', fromCartItemId);
+      // 圣诞 bundle：preview 页面不展示 option tab
+      if (searchParams.get('hideOptions') === '1') qs.set('hideOptions', '1');
+      // 透传封面类型（圣诞 bundle：用于 preview 默认封面选择）
+      const coverType = searchParams.get('cover_type');
+      if (coverType) qs.set('cover_type', coverType);
+      // 透传装订类型（圣诞 bundle：用于 preview 默认选中 binding）
+      const bindingType = searchParams.get('binding_type');
+      if (bindingType) qs.set('binding_type', bindingType);
       router.push(`/preview?${qs.toString()}`);
     } catch (error) {
       console.error('Failed to continue:', error);

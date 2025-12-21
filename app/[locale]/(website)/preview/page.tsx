@@ -209,7 +209,11 @@ function CoverOptionImageWithName({
   const [composedUrl, setComposedUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    const upperBookId = (bookId || '').toUpperCase();
+    let upperBookId = (bookId || '').toUpperCase();
+    // 与其他页面保持一致，PICBOOK_GOODNIGHT3 资源使用 PICBOOK_GOODNIGHT 目录
+    if (upperBookId === 'PICBOOK_GOODNIGHT3') {
+      upperBookId = 'PICBOOK_GOODNIGHT';
+    }
     if (!upperBookId) {
       setTexts(null);
       setComposedUrl(null);
@@ -725,6 +729,13 @@ export default function PreviewPageWithTopNav() {
 
   // KS 流程：通过查询参数关闭 Others 标签
   const isKs = searchParams.get('ks') === '1';
+  // 圣诞 bundle：通过查询参数关闭 Others(Options) 标签
+  const isHideOptions = searchParams.get('hideOptions') === '1';
+  const hideOthers = isKs || isHideOptions;
+  // 圣诞 bundle：根据封面类型决定默认封面（cover_type=personalized -> cover_3）
+  const coverTypeParam = (searchParams.get('cover_type') || '').toLowerCase();
+  const preferCover3AsDefault = isHideOptions && coverTypeParam === 'personalized';
+  const bindingTypeParam = (searchParams.get('binding_type') || '').toLowerCase();
   // 手机端底部状态面板（点击右侧箭头展开）
   const [mobileStatusOpen, setMobileStatusOpen] = React.useState(false);
 
@@ -886,6 +897,10 @@ export default function PreviewPageWithTopNav() {
                     page_number: bp.sort_order ?? idx + 1,
                     // 保留后端原始 image_url（很多情况下它才是“未叠字/未合成”的底图）
                     raw_image_url: bp.image_url,
+                    // 分层模型：后端可选返回 p3-4 giver 图片数据（URL 或 data URL）
+                    giver_data: bp.giver_data,
+                    // 分层模型：后端可选返回“纯底图”（无 dedication / 无 giver）
+                    template_image_url: bp.template_image_url || bp.template_url,
                     image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
                     has_face_swap: !!bp.has_face_elements,
                     status: bp.status,
@@ -1005,6 +1020,8 @@ export default function PreviewPageWithTopNav() {
   const [activeSection, setActiveSection] = React.useState<string>("");
   // p3-4 扉页合成：缓存“基础底图”（不含文字/不含用户上传照片），避免二次编辑时在已合成图上叠字
   const p34BaseImageUrlRef = useRef<string | null>(null);
+  // p3-4 分层模型：缓存 giver 图片数据（data URL），用于 dedication 重绘时始终携带最新 giver
+  const p34GiverDataRef = useRef<string | null>(null);
   const shouldUploadP34ComposedRef = useRef(false);
   const p34ComposeUploadInFlightRef = useRef(false);
   const p34ComposeUploadedRef = useRef(false);
@@ -1015,6 +1032,7 @@ export default function PreviewPageWithTopNav() {
   const p34CacheKey = `${searchParams.get('bookid') || ''}_${searchParams.get('previewid') || ''}`;
   useEffect(() => {
     p34BaseImageUrlRef.current = null;
+    p34GiverDataRef.current = null;
   }, [p34CacheKey]);
 
   // 首次拿到 previewData 后，记录 p3-4 的基础图（优先用 base_image_url；否则退回 image_url）
@@ -1026,8 +1044,12 @@ export default function PreviewPageWithTopNav() {
       const code = String(p?.page_code || '');
       return code === 'p3-4' || code === 'p3-p4';
     });
-    // p3-4 的“底图”优先用 raw_image_url（后端原始 image_url）；其次再退回 base/final/image_url
-    const base = p34?.raw_image_url || p34?.base_image_url || p34?.image_url;
+    // p3-4 的“底图”必须保证：
+    // - 不包含 dedication 文本（避免二次渲染叠字）
+    // - 但需要包含“最新 giver 图片”（从 personalized-products 或 preview 更新 giver 后）
+    // 因此优先使用后端提供的 base_image_url（约定为“无 dedication 的基础图”，但包含 giver），
+    // 若后端缺失则退回 raw/image_url 兜底。
+    const base = p34?.base_image_url || p34?.raw_image_url || p34?.image_url;
     if (typeof base === 'string' && base.trim()) {
       p34BaseImageUrlRef.current = base;
     }
@@ -1090,13 +1112,41 @@ export default function PreviewPageWithTopNav() {
 
     p34ComposeUploadInFlightRef.current = true;
     try {
+      const giverData =
+        p34GiverDataRef.current ||
+        (() => {
+          try {
+            const pages = (previewData as any)?.preview_data;
+            if (!Array.isArray(pages)) return null;
+            const p34 = pages.find((p: any) => {
+              const code = String(p?.page_code || '');
+              return code === 'p3-4' || code === 'p3-p4';
+            });
+            return (p34 as any)?.giver_data || null;
+          } catch {
+            return null;
+          }
+        })();
+      const dedicationTextToPersist = typeof dedication === 'string' ? dedication.trim() : '';
       const resp: any = await api.post(
         `/products/${encodeURIComponent(spu)}/pages/p3-4/upload-special-image`,
-        { data: dataUrl, batch_id: batchId },
+        {
+          data: dataUrl,
+          batch_id: batchId,
+          ...(giverData ? { giver_data: giverData } : {}),
+          ...(dedicationTextToPersist ? { dedication_text: dedicationTextToPersist } : {}),
+        },
         { timeout: 120000 },
       );
       const imageUrl = resp?.data?.image_url || resp?.image_url || '';
-      console.log('[P3-4 Compose] upload response', { hasImageUrl: Boolean(imageUrl), imageUrl });
+      // 重要：后端若返回 base_image_url（无 dedication，但包含最新 giver 图），必须同步保存
+      const baseUrl =
+        resp?.data?.base_image_url ||
+        resp?.base_image_url ||
+        resp?.data?.base_url ||
+        resp?.base_url ||
+        '';
+      console.log('[P3-4 Compose] upload response', { hasImageUrl: Boolean(imageUrl), imageUrl, hasBaseUrl: Boolean(baseUrl), baseUrl });
 
       if (imageUrl) {
         setPreviewData((prev) => {
@@ -1106,10 +1156,20 @@ export default function PreviewPageWithTopNav() {
             preview_data: (prev as any).preview_data.map((p: any) => {
               const code = String(p?.page_code || '');
               const isP34 = code === 'p3-4' || code === 'p3-p4';
-              return isP34 ? { ...p, image_url: imageUrl } : p;
+              return isP34
+                ? {
+                    ...p,
+                    image_url: imageUrl,
+                    ...(baseUrl ? { base_image_url: baseUrl } : {}),
+                    ...(giverData ? { giver_data: giverData } : {}),
+                  }
+                : p;
             }),
           } as any;
         });
+        if (baseUrl) {
+          p34BaseImageUrlRef.current = baseUrl;
+        }
         shouldUploadP34ComposedRef.current = false;
         p34ComposeUploadedRef.current = true;
         setIsNameOnBookCompleted(true);
@@ -1121,7 +1181,7 @@ export default function PreviewPageWithTopNav() {
     } finally {
       p34ComposeUploadInFlightRef.current = false;
     }
-  }, [previewData, searchParams]);
+  }, [previewData, searchParams, dedication]);
 
   // 一旦本地选择了 giver 图片（blob/objectURL 或远程 URL），就把 Name on Book 标记为完成
   useEffect(() => {
@@ -1149,6 +1209,36 @@ export default function PreviewPageWithTopNav() {
 
   // 添加 options 状态
   const [bookOptions, setBookOptions] = useState<BookOptions | null>(null);
+
+  // 圣诞 bundle：自动预选默认封面/装订（不让 Add to cart 引导去 option tab）
+  useEffect(() => {
+    if (!isHideOptions) return;
+    if (!bookOptions) return;
+
+    // cover: personalized -> cover_3，否则 cover_1
+    if (selectedBookCover == null && Array.isArray(bookOptions.cover_options) && bookOptions.cover_options.length > 0) {
+      const findCover = (coverId: '1' | '3') =>
+        bookOptions.cover_options.find(
+          (o) =>
+            String(o.id) === coverId ||
+            o.option_key === coverId ||
+            (typeof o.option_key === 'string' && o.option_key.toLowerCase().includes(`cover_${coverId}`)),
+        ) || null;
+      const preferred = preferCover3AsDefault ? findCover('3') : findCover('1');
+      const fallback = preferCover3AsDefault ? findCover('1') : findCover('3');
+      const chosen = preferred || fallback || bookOptions.cover_options[0];
+      if (chosen?.id != null) setSelectedBookCover(chosen.id);
+    }
+
+    // binding: 按 URL 的 binding_type 尝试匹配 option_key / name（例如 hardcover）
+    if (selectedBinding == null && bindingTypeParam && Array.isArray(bookOptions.binding_options)) {
+      const chosen =
+        bookOptions.binding_options.find((o: any) => String(o.option_key || '').toLowerCase() === bindingTypeParam) ||
+        bookOptions.binding_options.find((o: any) => String(o.name || '').toLowerCase().includes(bindingTypeParam)) ||
+        null;
+      if (chosen?.id != null) setSelectedBinding(chosen.id);
+    }
+  }, [isHideOptions, bookOptions, preferCover3AsDefault, bindingTypeParam, selectedBookCover, selectedBinding]);
   const [isLoadingOptions, setIsLoadingOptions] = useState(false);
   const [optionsError, setOptionsError] = useState<string | null>(null);
   // Bravey 封面文案配置（根据 page_properties.json 绘制名字）
@@ -1234,7 +1324,11 @@ export default function PreviewPageWithTopNav() {
   const lastCoverTextConfigKeyRef = useRef<string | null>(null);
   useEffect(() => {
     const bookIdParam = searchParams.get('bookid');
-    const upperBookId = (bookIdParam || '').toUpperCase();
+    let upperBookId = (bookIdParam || '').toUpperCase();
+    // 与其他页面保持一致，PICBOOK_GOODNIGHT3 资源使用 PICBOOK_GOODNIGHT 目录
+    if (upperBookId === 'PICBOOK_GOODNIGHT3') {
+      upperBookId = 'PICBOOK_GOODNIGHT';
+    }
     if (!upperBookId) {
       if (coverTextConfig) setCoverTextConfig(null);
       lastCoverTextConfigKeyRef.current = null;
@@ -1248,32 +1342,34 @@ export default function PreviewPageWithTopNav() {
 
     // 复用封面区域的 activeOption 选择逻辑：
     // - 如果用户已选择封面，则使用选中的封面；
-    // - 否则：所有书籍统一优先使用 cover_1 作为默认封面；
-    // - 如果不存在 cover_1，则回退到 cover_3，再兜底第一个。
+    // - 否则：默认优先 cover_1；
+    // - 圣诞 bundle 且 cover_type=personalized：默认优先 cover_3；
+    // - 若不存在对应 cover，则回退到另一个 cover，再兜底第一个。
     let activeOption: CoverOption | null = null;
     if (selectedBookCover != null) {
       activeOption = bookOptions.cover_options.find((o) => o.id === selectedBookCover) || null;
     }
     if (!activeOption) {
-      // 1）优先：cover_1
-      activeOption =
+      const findCover1 = () =>
         bookOptions.cover_options.find(
           (o) =>
             String(o.id) === '1' ||
             o.option_key === '1' ||
-            (typeof o.option_key === 'string' &&
-              o.option_key.toLowerCase().includes('cover_1')),
+            (typeof o.option_key === 'string' && o.option_key.toLowerCase().includes('cover_1')),
         ) || null;
-      // 2）其次：cover_3（兼容老数据）
+      const findCover3 = () =>
+        bookOptions.cover_options.find(
+          (o) =>
+            String(o.id) === '3' ||
+            o.option_key === '3' ||
+            (typeof o.option_key === 'string' && o.option_key.toLowerCase().includes('cover_3')),
+        ) || null;
+
+      // 1）优先：cover_1（默认）或 cover_3（圣诞 personalized）
+      activeOption = preferCover3AsDefault ? findCover3() : findCover1();
+      // 2）回退：另一个 cover
       if (!activeOption) {
-        activeOption =
-          bookOptions.cover_options.find(
-            (o) =>
-              String(o.id) === '3' ||
-              o.option_key === '3' ||
-              (typeof o.option_key === 'string' &&
-                o.option_key.toLowerCase().includes('cover_3')),
-          ) || null;
+        activeOption = preferCover3AsDefault ? findCover1() : findCover3();
       }
       // 3）兜底：第一个
       if (!activeOption && bookOptions.cover_options.length > 0) {
@@ -1920,7 +2016,7 @@ export default function PreviewPageWithTopNav() {
   // 占位数组移除，使用 API 返回的 binding_options 与 gift_box_options
 
   // 定义侧边栏各项，并为每个项配置默认图标和完成后的图标
-  const sidebarItems = [
+  const sidebarItemsAll = [
     { id: "giver", label: "Name on Book", 
       icon: 
         <svg width="18" height="21" viewBox="0 0 18 21" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1955,6 +2051,11 @@ export default function PreviewPageWithTopNav() {
     },
   ];
 
+  // 圣诞 bundle：不展示 Options 相关的侧边栏信息与状态（Cover Design / Book Format / Add Extras）
+  const sidebarItems = isHideOptions
+    ? sidebarItemsAll.filter((it) => it.id === 'giver' || it.id === 'dedication')
+    : sidebarItemsAll;
+
   // 为每个部分创建 ref（用于滚动定位）
   const giverRef = useRef<HTMLDivElement>(null);
   const dedicationRef = useRef<HTMLDivElement>(null);
@@ -1965,7 +2066,7 @@ export default function PreviewPageWithTopNav() {
   // 监听 URL tab 参数，跳转到指定部分
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam === 'giftBox' || tabParam === 'addons') {
+    if (!hideOthers && (tabParam === 'giftBox' || tabParam === 'addons')) {
       setActiveTab('Others');
       // 延迟滚动以确保 DOM 渲染
       setTimeout(() => {
@@ -2289,6 +2390,8 @@ export default function PreviewPageWithTopNav() {
                   page_code: bp.page_code,
                   page_number: bp.sort_order ?? idx + 1,
                   raw_image_url: bp.image_url,
+                  giver_data: bp.giver_data,
+                  template_image_url: bp.template_image_url || bp.template_url,
                   image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
                   has_face_swap: !!bp.has_face_elements,
                   // 保存关键状态字段供UI使用
@@ -2318,6 +2421,8 @@ export default function PreviewPageWithTopNav() {
                   page_code: bp.page_code,
                   page_number: bp.sort_order ?? idx + 1,
                   raw_image_url: bp.image_url,
+                  giver_data: bp.giver_data,
+                  template_image_url: bp.template_image_url || bp.template_url,
                   image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
                   has_face_swap: !!bp.has_face_elements,
                   status: bp.status,
@@ -2341,6 +2446,8 @@ export default function PreviewPageWithTopNav() {
               page_code: bp.page_code,
               page_number: ((bp.sort_order != null ? Number(bp.sort_order) : idx) + 1),
               raw_image_url: bp.image_url,
+              giver_data: bp.giver_data,
+              template_image_url: bp.template_image_url || bp.template_url,
               image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
               has_face_swap: !!bp.has_face_elements,
               status: bp.status,
@@ -2536,6 +2643,9 @@ export default function PreviewPageWithTopNav() {
                       raw_image_url: data?.image_url ?? p.raw_image_url,
                       image_url: imageUrl || p.image_url, 
                       has_face_swap: !!data?.has_face_elements,
+                      // 分层模型：后端可选返回 giver/template 信息
+                      giver_data: data?.giver_data ?? p.giver_data,
+                      template_image_url: (data?.template_image_url || data?.template_url) ?? p.template_image_url,
                       base_only: data?.base_only ?? (data?.final_image_url ? false : data?.base_image_url ? true : p.base_only),
                       final_image_url: data?.final_image_url ?? p.final_image_url,
                       base_image_url: data?.base_image_url ?? p.base_image_url,
@@ -3129,17 +3239,70 @@ export default function PreviewPageWithTopNav() {
   const handleContinue = async () => {
     try {
       console.debug('[AddToCart] Clicked');
-      // personalized-products（从购物车编辑进入）不再需要再次 add-to-cart；
-      // 仅返回购物车即可。由 edit 页调用 /api/cart/:cartItemId/regenerate-preview 完成更新。
       const fromCartItemId = searchParams.get('fromCartItemId');
+      // 圣诞 bundle：不新增 SKU，改用 regenerate-preview 更新 bundle 内部子项，然后回购物车
+      if (fromCartItemId && isHideOptions) {
+        try {
+          const storeUserData = usePreviewStore.getState().userData as any;
+          const raw = storeUserData ? storeUserData : (() => {
+            try {
+              const s = localStorage.getItem('previewUserData');
+              return s ? JSON.parse(s) : null;
+            } catch { return null; }
+          })();
+
+          const character = raw?.characters?.[0] || {};
+          const fullName = character?.full_name || character?.fullName || '';
+          const language = character?.language || (searchParams.get('lang') || 'en');
+          const genderRaw = character?.gender || character?.gender_code;
+          const gender = genderRaw === 'boy' || genderRaw === 'girl'
+            ? genderRaw
+            : (genderRaw === 1 || genderRaw === '1' ? 'boy' : (genderRaw === 2 || genderRaw === '2' ? 'girl' : ''));
+          const relationship = character?.relationship || 'Parent/Guardian';
+          const attrs = character?.attributes || {};
+          const hairStyle = attrs?.hair_style || attrs?.hairStyle;
+          const hairColor = attrs?.hair_color || attrs?.hairColor;
+          const skinTone = attrs?.skin_tone || attrs?.skinTone;
+          const photos = Array.isArray(character?.photos) ? character.photos : (character?.photo ? [character.photo] : []);
+
+          const payload: any = {
+            full_name: fullName,
+            language,
+            gender,
+            relationship,
+            attributes: {
+              ...(skinTone ? { skin_tone: skinTone } : {}),
+              ...(hairStyle ? { hair_style: hairStyle } : {}),
+              ...(hairColor ? { hair_color: hairColor } : {}),
+            },
+            texts: {},
+            face_images: photos.filter(Boolean),
+          };
+
+          await api.post<any>(`/cart/${encodeURIComponent(String(fromCartItemId))}/regenerate-preview`, payload);
+        } catch (e) {
+          console.error('[ChristmasBundle] regenerate-preview failed:', e);
+          // 失败也回购物车，避免卡在 preview；购物车仍可继续 edit
+        }
+        router.push('/shopping-cart');
+        return;
+      }
+
+      // personalized-products（从购物车编辑进入）不再需要再次 add-to-cart；仅返回购物车
       if (fromCartItemId) {
         router.push('/shopping-cart');
         return;
       }
       // 检查是否所有必要的部分都已完成
       // 允许未填写 giver 和 dedication 也能继续
+      // 圣诞 bundle（hideOptions=1）：不要求 coverDesign/binding/giftBox，否则会被引导去 option tab
+      const ignoreSections = isHideOptions ? new Set(['coverDesign', 'binding', 'giftBox']) : null;
       const incompleteSections = Object.entries(completedSections)
-        .filter(([section, completed]) => section !== 'giver' && section !== 'dedication' && !completed)
+        .filter(([section, completed]) => {
+          if (section === 'giver' || section === 'dedication') return false;
+          if (ignoreSections && ignoreSections.has(section)) return false;
+          return !completed;
+        })
         .map(([section, _]) => section);
       console.debug('[AddToCart] completedSections:', completedSections, 'incomplete:', incompleteSections);
 
@@ -3408,12 +3571,12 @@ export default function PreviewPageWithTopNav() {
             <TopNavBarWithTabs
               activeTab={activeTab}
               onTabChange={(tab) => {
-                if (isKs && tab === 'Others') return;
+                if (hideOthers && tab === 'Others') return;
                 setActiveTab(tab);
               }}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
-              hideOthers={isKs}
+              hideOthers={hideOthers}
             />
           </div>
         </div>
@@ -3428,8 +3591,9 @@ export default function PreviewPageWithTopNav() {
                 {(() => {
                   // 尝试获取当前选中的封面：
                   // - 如果用户已选择封面，则使用选中的封面；
-                  // - 否则：所有书籍统一优先使用 cover_1 作为默认封面；
-                  // - 如果不存在 cover_1，则回退到 cover_3，再兜底第一个。
+                  // - 否则：默认优先 cover_1；
+                  // - 圣诞 bundle 且 cover_type=personalized：默认优先 cover_3；
+                  // - 若不存在对应 cover，则回退到另一个 cover，再兜底第一个。
                   let activeOption: CoverOption | null = null;
 
                   if (bookOptions?.cover_options) {
@@ -3437,25 +3601,26 @@ export default function PreviewPageWithTopNav() {
                       activeOption = bookOptions.cover_options.find((o) => o.id === selectedBookCover) || null;
                     }
                     if (!activeOption) {
-                      // 1）优先：cover_1
-                      activeOption =
+                      const findCover1 = () =>
                         bookOptions.cover_options.find(
                           (o) =>
                             String(o.id) === '1' ||
                             o.option_key === '1' ||
-                            (typeof o.option_key === 'string' &&
-                              o.option_key.toLowerCase().includes('cover_1')),
+                            (typeof o.option_key === 'string' && o.option_key.toLowerCase().includes('cover_1')),
                         ) || null;
-                      // 2）其次：cover_3（兼容老数据）
+                      const findCover3 = () =>
+                        bookOptions.cover_options.find(
+                          (o) =>
+                            String(o.id) === '3' ||
+                            o.option_key === '3' ||
+                            (typeof o.option_key === 'string' && o.option_key.toLowerCase().includes('cover_3')),
+                        ) || null;
+
+                      // 1）优先：cover_1（默认）或 cover_3（圣诞 personalized）
+                      activeOption = preferCover3AsDefault ? findCover3() : findCover1();
+                      // 2）回退：另一个 cover
                       if (!activeOption) {
-                        activeOption =
-                          bookOptions.cover_options.find(
-                            (o) =>
-                              String(o.id) === '3' ||
-                              o.option_key === '3' ||
-                              (typeof o.option_key === 'string' &&
-                                o.option_key.toLowerCase().includes('cover_3')),
-                          ) || null;
+                        activeOption = preferCover3AsDefault ? findCover1() : findCover3();
                       }
                       // 3）兜底：第一个
                       if (!activeOption && !selectedBookCover && bookOptions.cover_options.length > 0) {
@@ -3476,7 +3641,12 @@ export default function PreviewPageWithTopNav() {
                         ? rawCoverKeyInner
                         : String(activeOption.id);
                       // 仅当配置对应当前封面时启用
-                      const expectedKey = `${(searchParams.get('bookid') || '').toUpperCase()}_${coverIdInner}`;
+                      let expectedBookId = (searchParams.get('bookid') || '').toUpperCase();
+                      // 与其他页面保持一致，PICBOOK_GOODNIGHT3 资源使用 PICBOOK_GOODNIGHT 目录
+                      if (expectedBookId === 'PICBOOK_GOODNIGHT3') {
+                        expectedBookId = 'PICBOOK_GOODNIGHT';
+                      }
+                      const expectedKey = `${expectedBookId}_${coverIdInner}`;
                       if (process.env.NODE_ENV === 'development') {
                         console.log('[封面显示] key匹配检查:', {
                           coverTextConfigKey: coverTextConfig.key,
@@ -3632,13 +3802,18 @@ export default function PreviewPageWithTopNav() {
                       // 仅在 p3-4（有的书返回 p3-p4）页面渲染 Giver & Dedication
                       const pageCode = String((page as any).page_code || '');
                       const isGiverDedicationPage = pageCode === 'p3-4' || pageCode === 'p3-p4';
-                      // p3-4 画布底图：永远使用“基础图”（不含文字/不含上传照片），避免二次编辑叠字
-                      const p34BaseRaw = isGiverDedicationPage
-                        ? ((page as any).raw_image_url || (page as any).base_image_url || p34BaseImageUrlRef.current || (page as any).image_url)
+                      // p3-4 分层模型：
+                      // - 底图：优先 template_image_url（严格无 dedication）；否则退回 base_image_url（后端应保证无 dedication）；再退回 raw/image_url
+                      const p34TemplateRaw = isGiverDedicationPage
+                        ? ((page as any).template_image_url || (page as any).base_image_url || p34BaseImageUrlRef.current || (page as any).raw_image_url || (page as any).image_url)
                         : null;
                       const p34BaseSrc = isGiverDedicationPage
-                        ? buildImageUrl(String(p34BaseRaw || (page as any).image_url || ''))
+                        ? buildImageUrl(String(p34TemplateRaw || (page as any).image_url || ''))
                         : src;
+                      // giver 图：优先使用用户本次上传（giverImageUrl），否则用后端保存的 giver_data（URL / data URL）
+                      const p34GiverOverlaySrc = isGiverDedicationPage
+                        ? (giverImageUrl || (page as any).giver_data || null)
+                        : giverImageUrl;
                       const upperBookId = (searchParams.get('bookid') || '').toUpperCase();
                       const giverImageAspectRatio =
                         upperBookId === 'PICBOOK_BRAVEY'
@@ -3663,7 +3838,7 @@ export default function PreviewPageWithTopNav() {
                               mode="single"
                               giverText={giver}
                               dedicationText={dedication}
-                              giverImageUrl={giverImageUrl}
+                              giverImageUrl={p34GiverOverlaySrc}
                               giverImageAspectRatio={giverImageAspectRatio}
                               giverImageScale={giverImageScale}
                               onRendered={uploadP34ComposedImage}
@@ -3716,7 +3891,7 @@ export default function PreviewPageWithTopNav() {
                                   mode="double"
                                   giverText={giver}
                                   dedicationText={dedication}
-                                  giverImageUrl={giverImageUrl}
+                                  giverImageUrl={p34GiverOverlaySrc}
                                   giverImageAspectRatio={giverImageAspectRatio}
                                   giverImageScale={giverImageScale}
                                   onRendered={uploadP34ComposedImage}
@@ -4417,6 +4592,17 @@ export default function PreviewPageWithTopNav() {
                         try {
                           const objUrl = URL.createObjectURL(file);
                           setGiverImageUrl(objUrl);
+                          // 分层模型：把 giver 文件转成 data URL 存起来，后续 dedication 重绘/上传都带上最新 giver
+                          try {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              const result = reader.result;
+                              if (typeof result === 'string' && result.startsWith('data:')) {
+                                p34GiverDataRef.current = result;
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          } catch {}
                           shouldUploadP34ComposedRef.current = true;
                           p34ComposeUploadedRef.current = false;
                           // 上传图片即视为完成 Name on Book
@@ -4585,13 +4771,18 @@ export default function PreviewPageWithTopNav() {
         {mobileStatusOpen && (
           <div className="px-6 pt-6 pb-2 flex justify-center">
             {(() => {
-              const statuses = [
-                { id: 'giver', label: 'Name on Book', done: !!completedSections.giver },
-                { id: 'dedication', label: 'Your Special Message', done: !!completedSections.dedication },
-                { id: 'coverDesign', label: 'Cover Design', done: !!completedSections.coverDesign },
-                { id: 'binding', label: 'Book Format', done: !!completedSections.binding },
-                { id: 'giftBox', label: 'Add Extras', done: !!completedSections.giftBox },
-              ];
+              const statuses = isHideOptions
+                ? [
+                    { id: 'giver', label: 'Name on Book', done: !!completedSections.giver },
+                    { id: 'dedication', label: 'Your Special Message', done: !!completedSections.dedication },
+                  ]
+                : [
+                    { id: 'giver', label: 'Name on Book', done: !!completedSections.giver },
+                    { id: 'dedication', label: 'Your Special Message', done: !!completedSections.dedication },
+                    { id: 'coverDesign', label: 'Cover Design', done: !!completedSections.coverDesign },
+                    { id: 'binding', label: 'Book Format', done: !!completedSections.binding },
+                    { id: 'giftBox', label: 'Add Extras', done: !!completedSections.giftBox },
+                  ];
 
               const firstIncomplete = statuses.findIndex(s => !s.done);
               const activeIndex = firstIncomplete === -1 ? statuses.length - 1 : firstIncomplete;
@@ -4631,13 +4822,18 @@ export default function PreviewPageWithTopNav() {
         {/* 进度指示器 */}
         <div className="flex items-center justify-center px-4 pt-4 pb-2">
           {(() => {
-            const steps = [
-              { id: 'giver', completed: completedSections.giver },
-              { id: 'dedication', completed: completedSections.dedication },
-              { id: 'coverDesign', completed: completedSections.coverDesign },
-              { id: 'binding', completed: completedSections.binding },
-              { id: 'giftBox', completed: completedSections.giftBox },
-            ];
+            const steps = isHideOptions
+              ? [
+                  { id: 'giver', completed: completedSections.giver },
+                  { id: 'dedication', completed: completedSections.dedication },
+                ]
+              : [
+                  { id: 'giver', completed: completedSections.giver },
+                  { id: 'dedication', completed: completedSections.dedication },
+                  { id: 'coverDesign', completed: completedSections.coverDesign },
+                  { id: 'binding', completed: completedSections.binding },
+                  { id: 'giftBox', completed: completedSections.giftBox },
+                ];
 
             // 和 status 面板保持一致：当前步骤（第一个未完成）也显示为蓝色
             const firstIncomplete = steps.findIndex(s => !s.completed);

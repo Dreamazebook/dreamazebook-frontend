@@ -14,12 +14,15 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // 与前端逻辑保持一致：SPU 一律使用大写
-  const upperBookId = bookId.toUpperCase();
+  // 与前端逻辑保持一致：SPU 一律使用大写，并处理 GOODNIGHT3 特例
+  let normalizedBookId = bookId.trim().toUpperCase();
+  if (normalizedBookId === 'PICBOOK_GOODNIGHT3') {
+    normalizedBookId = 'PICBOOK_GOODNIGHT';
+  }
 
   // 注意：R2 实际路径为 /products/picbooks/...，不包含 website 前缀
   const url = `${R2_BASE}/products/picbooks/${encodeURIComponent(
-    upperBookId,
+    normalizedBookId,
   )}/covers/cover_${encodeURIComponent(coverId)}/page_properties.json`;
 
   try {
