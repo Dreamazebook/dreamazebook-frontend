@@ -31,7 +31,7 @@ export const useOrderStatus = (status: string) => {
       case "preparing":
         return "text-[#AC7B00] bg-[#FFEDC8]";
       case "processing":
-        return "text-[#AC7B00] bg-[#FFEDC8]";
+        return "text-[#1963C3] bg-[#E2EEFF]";
       case "confirmed":
         return "text-[#1963C3] bg-[#E2EEFF]";
       case "shipping":
