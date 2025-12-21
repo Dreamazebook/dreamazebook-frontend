@@ -39,6 +39,12 @@ export default function ShoppingCartPage() {
         const augmented = await Promise.all(
           data.items.map(async (item: any) => {
             if (item.item_type === 'package' && item.package_id) {
+              // 圣诞套装（CHRISTMAS_*）已经选好书，不需要走 Kickstarter 配置/状态接口
+              const pkgCode = item?.package_code || item?.package_snapshot?.code;
+              const isChristmasBundle = typeof pkgCode === 'string' && pkgCode.startsWith('CHRISTMAS_');
+              if (isChristmasBundle) {
+                return item;
+              }
               try {
                 const status = await api.get<any>(API_KS_PACKAGE_STATUS(item.package_id));
                 const packageItems = status?.data?.package_items || [];

@@ -30,19 +30,24 @@ const uploadApi = axios.create({
     // 移除默认的 Content-Type，让浏览器自动设置正确的 boundary
 });
 
-const HARDCODED_TOKEN = "19|UqsoRkS237cOjSzy5b7XRdXDe2q28CTtHhLmw23F668dd412"
+// 注意：不要在浏览器端回退到硬编码 token，否则所有未登录用户会共享同一个 user_id，
+// 导致后端唯一键（如 package_id + user_id + item_index）发生全站冲突。
+// 如确需服务端调用鉴权接口，请通过环境变量注入，而不是写死在代码里。
+const SERVER_SIDE_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN || process.env.API_TOKEN
 
 // 请求拦截器
 const addAuthHeader = (config) => {
     // 检查是否在客户端环境
     if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('token') || HARDCODED_TOKEN;
+        const token = localStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
     } else {
-        // 服务器端环境，使用硬编码token
-        config.headers.Authorization = `Bearer ${HARDCODED_TOKEN}`;
+        // 服务器端环境：仅在显式提供 token 时才注入
+        if (SERVER_SIDE_TOKEN) {
+            config.headers.Authorization = `Bearer ${SERVER_SIDE_TOKEN}`;
+        }
     }
     return config;
 };

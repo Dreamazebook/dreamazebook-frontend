@@ -24,7 +24,7 @@ type Props = {
   loading: boolean
   isSubmitting?: boolean
   onClose: () => void
-  onSubmit?: () => void | Promise<void>
+  onSubmit?: (spuCodes: string[]) => void | Promise<void>
 }
 
 function formatPrice(price: number) {
@@ -75,7 +75,9 @@ export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onC
 
   const handleSubmit = async () => {
     if (!canSubmit) return
-    await onSubmit?.()
+    // canSubmit 时 selected 中不应包含空字符串；这里仍做一次防御性过滤
+    const spuCodes = selected.filter(Boolean)
+    await onSubmit?.(spuCodes)
   }
 
   const handleMoreDetails = (book: BookOption, e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -267,7 +269,16 @@ export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onC
                   : 'bg-[#C4C4C4] text-white cursor-not-allowed'
               }`}
             >
-              {canSubmit ? `Add ${bundle.bookCount} books to cart` : `Choose ${bundle.bookCount} books (${selectedCount}/${bundle.bookCount})`}
+              {isSubmitting ? (
+                <span className="inline-flex items-center justify-center gap-2">
+                  <span className="inline-block w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
+                  Adding…
+                </span>
+              ) : canSubmit ? (
+                `Add ${bundle.bookCount} books to cart`
+              ) : (
+                `Choose ${bundle.bookCount} books (${selectedCount}/${bundle.bookCount})`
+              )}
             </button>
           </div>
         </div>
@@ -340,7 +351,16 @@ export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onC
                   : 'bg-[#C4C4C4] text-white cursor-not-allowed'
               }`}
             >
-              {canSubmit ? `Add ${bundle.bookCount} books to cart` : `Choose ${bundle.bookCount} books (${selectedCount}/${bundle.bookCount})`}
+              {isSubmitting ? (
+                <span className="inline-flex items-center justify-center gap-2">
+                  <span className="inline-block w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
+                  Adding…
+                </span>
+              ) : canSubmit ? (
+                `Add ${bundle.bookCount} books to cart`
+              ) : (
+                `Choose ${bundle.bookCount} books (${selectedCount}/${bundle.bookCount})`
+              )}
             </button>
           </div>
         </div>

@@ -4,9 +4,10 @@ import React, { useMemo, useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
 import api from '@/utils/api'
-import { API_PRODUCTS } from '@/constants/api'
+import { API_CART_LIST, API_PRODUCTS } from '@/constants/api'
 import { ApiResponse } from '@/types/api'
 import { Product } from '@/types/product'
+import { CartItems } from '@/types/cart'
 import { BundleSelectionModal, BookOption } from './BundleSelectionModal'
 import { useRouter } from '@/i18n/routing'
 
@@ -317,26 +318,91 @@ export default function ChristmasPage() {
     setShowBundleModal(true)
   }
 
-  const handleAddPackageToCart = async (bundle: Bundle) => {
+  const handleAddPackageToCart = async (bundle: Bundle, spuCodes: string[]) => {
     const packageId = PACKAGE_ID_BY_BUNDLE_ID[bundle.id]
     if (!packageId) {
       toast.error('Bundle configuration is missing, unable to add to cart')
       return
     }
+    if (!Array.isArray(spuCodes) || spuCodes.length !== bundle.bookCount) {
+      toast.error('Please choose the required number of books before adding to cart')
+      return
+    }
     if (isAddingPackage) return
     setIsAddingPackage(true)
     try {
-      const resp: any = await api.post('/cart/add-package', { package_id: packageId, quantity: 1 })
+      // 兜底：如果该 package 已经在购物车里，直接引导去购物车，避免后端唯一键冲突
+      try {
+        const cartResp: any = await api.get<ApiResponse<CartItems>>(API_CART_LIST)
+        const cartItems = cartResp?.data?.items || []
+        const packageAlreadyInCart = Array.isArray(cartItems) && cartItems.some((it: any) => it?.item_type === 'package' && it?.package_id === packageId)
+        if (packageAlreadyInCart) {
+          toast.success('Added to cart')
+          setShowBundleModal(false)
+          router.push('/shopping-cart')
+          return
+        }
+      } catch (err) {
+        // 若购物车查询失败，不阻断添加流程（继续走添加接口）
+        console.warn('[AddPackageWithSpuCodes] failed to precheck cart:', err)
+      }
+
+      console.debug('[AddPackageWithSpuCodes] request:', {
+        url: '/cart/add-package-with-spu-codes',
+        payload: { package_id: packageId, spu_codes: spuCodes },
+      })
+      // 对齐新接口：POST /api/cart/add-package-with-spu-codes
+      //（客户端 baseURL 是 /api，因此这里写相对路径即可）
+      const resp: any = await api.post('/cart/add-package-with-spu-codes', { package_id: packageId, spu_codes: spuCodes })
       if (resp?.success) {
         toast.success('Added to cart')
         setShowBundleModal(false)
         router.push('/shopping-cart')
         return
       }
-      toast.error('Failed to add to cart, please try again')
+      toast.error(resp?.message || 'Failed to add to cart, please try again')
     } catch (e) {
-      console.error('Failed to add package to cart', e)
-      toast.error('Failed to add to cart, please try again')
+      const err: any = e
+      const serverMsg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message
+      console.error('Failed to add package to cart', {
+        message: err?.message,
+        status: err?.response?.status,
+        data: err?.response?.data,
+        url: err?.config?.url,
+      })
+      // 后端已知问题兜底：唯一键(package_id + user_id + item_index)冲突时，引导继续配置已有套餐
+      const msgText = String(serverMsg || '')
+      if (
+        msgText.includes('kickstarter_package_items.package_user_item_index') ||
+        (msgText.includes('Integrity constraint violation') && msgText.includes('Duplicate entry'))
+      ) {
+        // 解释：后端可能已写入购物车主记录，但写入子表失败导致报错；这里回查购物车避免“已加购但提示失败”的误导
+        try {
+          const cartResp: any = await api.get<ApiResponse<CartItems>>(API_CART_LIST)
+          const cartItems = cartResp?.data?.items || []
+          const exists = Array.isArray(cartItems) && cartItems.some((it: any) => it?.item_type === 'package' && it?.package_id === packageId)
+          if (exists) {
+            toast.success('added to cart')
+            setShowBundleModal(false)
+            // Kickstarter 套餐需要去配置页；圣诞套装则去购物车
+            const pkgCode = cartItems.find((it: any) => it?.item_type === 'package' && it?.package_id === packageId)?.package_code
+            const isChristmas = typeof pkgCode === 'string' && pkgCode.startsWith('CHRISTMAS_')
+            router.push(isChristmas ? '/shopping-cart' : `/kickstarter-config/${packageId}`)
+            return
+          }
+        } catch (err2) {
+          console.warn('[AddPackageWithSpuCodes] failed to recheck cart after duplicate error:', err2)
+        }
+
+        toast.error('该用户下此套餐似乎已创建（后端唯一键冲突）。正在带你去继续配置该套餐…')
+        setShowBundleModal(false)
+        router.push(`/kickstarter-config/${packageId}`)
+        return
+      }
+      toast.error(serverMsg || 'Failed to add to cart, please try again')
     } finally {
       setIsAddingPackage(false)
     }
@@ -747,7 +813,7 @@ export default function ChristmasPage() {
           loading={loadingProducts}
           isSubmitting={isAddingPackage}
           onClose={() => setShowBundleModal(false)}
-          onSubmit={() => handleAddPackageToCart(activeBundle)}
+          onSubmit={(spuCodes) => handleAddPackageToCart(activeBundle, spuCodes)}
         />
       )}
     </div>
