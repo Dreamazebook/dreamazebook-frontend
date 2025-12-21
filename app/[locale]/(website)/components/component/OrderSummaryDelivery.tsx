@@ -12,17 +12,21 @@ const OrderHistoryTextStyle = ({ label, value }: any) => {
 };
 interface OrderSummaryDeliveryProps {
   orderDetail: OrderDetail;
+  showShipTo?: boolean;
 }
 
-const OrderSummaryDelivery = ({ orderDetail }: OrderSummaryDeliveryProps) => {
+const OrderSummaryDelivery = ({ orderDetail, showShipTo = true }: OrderSummaryDeliveryProps) => {
   const t = useTranslations('orderSummaryDelivery');
 
   return (
     <div className="text-[#222] mb-4 bg-[#F8F8F8] p-3 space-y-3">
-      <OrderHistoryTextStyle
-        label={t("shipTo")}
-        value={formatAddress(orderDetail.shipping_address)}
-      />
+      
+      {showShipTo && (
+        <OrderHistoryTextStyle
+          label={t("shipTo")}
+          value={formatAddress(orderDetail.shipping_address)}
+        />
+      )}
 
       <div className="flex gap-[12px] mb-1">
         <OrderHistoryTextStyle

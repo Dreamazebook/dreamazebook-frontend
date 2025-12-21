@@ -66,7 +66,7 @@ const OrderHistoryCard = ({ orderDetail,showStatus,handlePayment }: { orderDetai
           />
         </div>
 
-        <OrderSummaryDelivery orderDetail={orderDetail} />
+        <OrderSummaryDelivery showShipTo={false} orderDetail={orderDetail} />
 
         <div className="flex gap-[32px] font-[16px]">
           {orderDetail.status === "delivered" && (
