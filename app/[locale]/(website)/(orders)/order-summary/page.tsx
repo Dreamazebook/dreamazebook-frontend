@@ -232,9 +232,11 @@ const OrderSummary: React.FC = () => {
 
         {/* 操作按钮 */}
         <div className="flex items-center justify-end gap-4 mt-[16px]">
-          <button className="text-[#222] py-2 border border-[#222] px-4 rounded hover:bg-gray-300">
+          {orderDetail?.stripe_receipt_url &&
+          <a href={orderDetail.stripe_receipt_url} target="_blank" className="text-[#222] py-2 border border-[#222] px-4 rounded hover:bg-gray-300">
             {t("actions.downloadInvoice")}
-          </button>
+          </a>
+          }
           <button className="bg-[#222] text-white py-2 px-4 rounded hover:opacity-70 cursor-pointer">
             {t("actions.buySame")}
           </button>
