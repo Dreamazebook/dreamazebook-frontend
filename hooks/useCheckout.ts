@@ -18,7 +18,7 @@ export const useCheckout = ({ selectedItems }: UseCheckoutProps) => {
   const [paypalCheckoutLoading, setPaypalCheckoutLoading] = useState(false);
   const [error, setError] = useState<string | undefined>('');
 
-  const handleCheckout = async (paymentMethod: 'stripe' | 'paypal' = 'stripe') => {
+  const handleCheckout = async (paymentMethod: 'card' | 'paypal' = 'card') => {
     if (selectedItems.length === 0) {
       setError(t('noItemsSelected'));
       return;

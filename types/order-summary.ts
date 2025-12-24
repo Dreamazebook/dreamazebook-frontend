@@ -8,7 +8,7 @@ export interface OrderSummaryProps {
   selectedItems: number[];
   checkoutLoading: boolean;
   paypalCheckoutLoading: boolean;
-  onCheckout: (paymentMethod: 'stripe' | 'paypal') => void;
+  onCheckout: (paymentMethod: 'card' | 'paypal') => void;
 }
 
 export interface DiscountInfo {
