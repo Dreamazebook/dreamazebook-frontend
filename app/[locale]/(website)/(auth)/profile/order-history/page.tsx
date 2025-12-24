@@ -5,6 +5,7 @@ import OrderHistoryCard from './components/OrderHistoryCard';
 import { useTranslations } from 'next-intl';
 import { OrderDetail, statusLabelMap } from '@/types/order';
 import ReviewAndPay from '../../../(orders)/checkout/components/ReviewAndPay';
+import AddressForm from '../../../(orders)/checkout/components/AddressForm';
 
 const OrderHistory = () => {
   const {orderList, fetchOrderList, orderStatusMapping} = useUserStore();
@@ -12,7 +13,7 @@ const OrderHistory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('all');
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showModal, setShowModal] = useState('');
   const [selectedOrderDetail, setSelectedOrderDetail] = useState<OrderDetail|null>(null);
 
   const filteredOrders = activeTab === 'all' 
@@ -57,9 +58,15 @@ const OrderHistory = () => {
     },
   ];
 
-  const handlePayment = (orderDetail: OrderDetail) => {
+  const openModal = (orderDetail: OrderDetail, modal='payment') => {
+    setShowModal(modal);
     setSelectedOrderDetail(orderDetail);
   };
+
+  const closeModal = () => {
+    setShowModal('');
+    setSelectedOrderDetail(null);
+  }
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -135,18 +142,19 @@ const OrderHistory = () => {
         {/* Order List */}
         <div className="space-y-[12px]">
           {filteredOrders.map((order) => (
-            <OrderHistoryCard handlePayment={handlePayment} showStatus={activeTab==='all'} key={order.id} orderDetail={order} />
+            <OrderHistoryCard openModal={openModal} showStatus={activeTab==='all'} key={order.id} orderDetail={order} />
           ))}
         </div>
       </div>
 
       {/* Payment Modal */}
-      {selectedOrderDetail && (
+      {showModal && selectedOrderDetail && (
         <>
-        <div className='fixed h-full w-full bottom-0 left-0 bg-black/50 z-100' onClick={()=>setSelectedOrderDetail(null)}></div>
-        <div className='fixed bottom-0 left-0 w-full z-200 max-h-full overflow-y-auto md:w-[600px] md:h-[620px] right-0 mx-auto md:top-[50%] md:-translate-y-1/2'>
-          <span className='absolute top-5 right-5 text-2xl cursor-pointer' onClick={()=>setSelectedOrderDetail(null)}>X</span>
-          <ReviewAndPay orderDetail={selectedOrderDetail} />
+        <div className='fixed h-full w-full bottom-0 left-0 bg-black/50 z-100' onClick={closeModal}></div>
+        <div className='fixed bottom-0 rounded left-0 w-full z-200 max-h-full bg-white p-[24px] overflow-y-auto md:w-[600px] md:h-[620px] right-0 mx-auto md:top-[50%] md:-translate-y-1/2'>
+          <span className='absolute top-5 right-5 text-2xl cursor-pointer' onClick={closeModal}>X</span>
+          {showModal === 'payment' && <ReviewAndPay orderDetail={selectedOrderDetail} />}
+          {showModal === 'address' && <AddressForm orderDetail={selectedOrderDetail} address={selectedOrderDetail.shipping_address} setAddress={()=>{}} /> }
         </div>
         </>
       )}

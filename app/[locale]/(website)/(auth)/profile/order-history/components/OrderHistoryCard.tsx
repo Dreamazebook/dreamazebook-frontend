@@ -9,7 +9,7 @@ import useOrderStatus from "../../../../hooks/useOrderStatus";
 import { useTranslations } from "next-intl";
 import OrderSummaryDelivery from "@/app/[locale]/(website)/components/component/OrderSummaryDelivery";
 
-const OrderHistoryCard = ({ orderDetail,showStatus,handlePayment }: { orderDetail: OrderDetail,showStatus:Boolean, handlePayment:(orderDetail:OrderDetail)=>void }) => {
+const OrderHistoryCard = ({ orderDetail,showStatus,openModal }: { orderDetail: OrderDetail,showStatus:Boolean, openModal:(orderDetail:OrderDetail,modal?:string)=>void }) => {
   const orderDetailLink =
     orderDetail.payment_status === "paid"
       ? ORDER_SUMMARY_URL(orderDetail.id)
@@ -77,16 +77,16 @@ const OrderHistoryCard = ({ orderDetail,showStatus,handlePayment }: { orderDetai
 
           {/* Edit Shipping Address link - only show for orders that can be edited */}
           {orderDetail.permissions.can_update_address_except_country && (
-            <Link
-              href={ORDER_CHECKOUT_URL(orderDetail.id)}
-              className="text-primary hover:underline flex items-center gap-1"
+            <button
+              className="cursor-pointer text-primary hover:underline flex items-center gap-1"
+              onClick={()=>openModal(orderDetail, 'address')}
             >
               {t("editShippingAddress")}
-            </Link>
+            </button>
           )}
 
           {orderDetail.permissions.can_pay ?
-          <button className="cursor-pointer text-primary hover:underline" onClick={()=>handlePayment(orderDetail)}>
+          <button className="cursor-pointer text-primary hover:underline" onClick={()=>openModal(orderDetail)}>
             {t("continueToPay")}
           </button>
           :
