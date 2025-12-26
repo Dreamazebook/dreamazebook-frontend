@@ -4,6 +4,7 @@ import React, {
   useState,
   useCallback,
   useRef,
+  useEffect,
   useImperativeHandle,
   forwardRef,
 } from "react";
@@ -45,6 +46,7 @@ interface AddressFormProps {
   address: Address;
   setAddress: (value: React.SetStateAction<Address>) => void;
   orderDetail: OrderDetail;
+  updateShippingAddress?: () => Promise<{ success: boolean; message?: string }>;
 }
 
 const AddressForm = forwardRef<
@@ -52,10 +54,14 @@ const AddressForm = forwardRef<
     validateShippingAddress: () => boolean;
   },
   AddressFormProps
->(({ address, setAddress, orderDetail }, ref) => {
-  const { countryList } = useUserStore();
+>(({ address, setAddress, orderDetail, updateShippingAddress }, ref) => {
+  const { countryList, fetchCountryList } = useUserStore();
   const t = useTranslations("addressForm");
   const [errors, setErrors] = useState<ShippingErrors>({});
+
+  useEffect(()=>{
+    fetchCountryList();
+  },[])
 
   const clearError = (field: keyof ShippingErrors) => {
     if (errors[field]) {
@@ -167,6 +173,7 @@ const AddressForm = forwardRef<
 
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const getAddressSuggestions = useCallback(async () => {
     if (!address?.street || address?.street.length < 3) {
@@ -403,6 +410,37 @@ const AddressForm = forwardRef<
           </FormField>
         </div>
       </div>
+
+      {updateShippingAddress && (
+        <div className="mt-6">
+          <button
+            type="button"
+            onClick={async () => {
+              if (validateShippingInfo()) {
+                setIsUpdating(true);
+                try {
+                  const result = await updateShippingAddress();
+                  if (result.success) {
+                    // Success message or close modal logic could be handled by parent
+                    console.log('Address updated successfully');
+                  } else {
+                    // Handle error
+                    console.error('Failed to update address:', result.message);
+                  }
+                } catch (error) {
+                  console.error('Error updating address:', error);
+                } finally {
+                  setIsUpdating(false);
+                }
+              }
+            }}
+            disabled={isUpdating}
+            className="w-full cursor-pointer bg-primary text-white font-medium py-3 px-4 rounded transition-colors duration-200 disabled:cursor-not-allowed"
+          >
+            {isUpdating ? 'Updating...' : 'Update Shipping Address'}
+          </button>
+        </div>
+      )}
     </>
   );
 });

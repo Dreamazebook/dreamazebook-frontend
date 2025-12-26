@@ -80,7 +80,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   const CheckoutButtons = () => (
     <div className="space-y-3">
       <button
-        onClick={() => onCheckout('stripe')}
+        onClick={() => onCheckout('card')}
         disabled={selectedItems.length === 0 || checkoutLoading}
         className="w-full py-3 cursor-pointer bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-400 flex items-center justify-center gap-2"
       >
@@ -89,7 +89,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       <button
         onClick={() => onCheckout('paypal')}
         disabled={selectedItems.length === 0 || paypalCheckoutLoading}
-        className="w-full py-3 bg-[#0070BA] text-white rounded-md hover:bg-[#003087] disabled:bg-blue-300 flex items-center justify-center gap-2"
+        className="w-full py-3 cursor-pointer bg-[#0070BA] text-white rounded-md hover:bg-[#003087] disabled:bg-blue-300 flex items-center justify-center gap-2"
       >
         {paypalCheckoutLoading ? <LoadingSpinner /> : t('checkoutWithPayPal')}
       </button>

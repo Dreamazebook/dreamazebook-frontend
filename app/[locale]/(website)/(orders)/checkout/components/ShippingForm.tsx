@@ -44,13 +44,9 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
   canEditShippingAddress = true,
 }) => {
   const t = useTranslations("checkoutPage");
-  const { fetchCountryList, fetchAddresses } = useUserStore();
+  const { fetchAddresses } = useUserStore();
 
   // const [showBillingForm, setShowBillingForm] = useState(false);
-
-  useEffect(() => {
-    fetchCountryList();
-  }, []);
 
   const isAddressValidated = () => {
     const REQUIRED_FIELDS = [

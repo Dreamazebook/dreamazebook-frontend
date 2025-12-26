@@ -186,15 +186,15 @@ const LogisticsPage: FC = () => {
                         <div className="space-y-1">
                           <div className="flex items-center gap-3">
                             <span>{order_number}</span>
-                            {/* {!isConfirmed && (
+                            {!isConfirmed && (
                               <button
                                 onClick={() => handleConfirmOrder(id)}
                                 disabled={isConfirming || hasLogisticsRequest}
-                                className="px-3 py-1 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed transition-colors"
+                                className="px-3 cursor-pointer py-1 bg-green-600 text-white text-xs font-medium rounded hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed transition-colors"
                               >
                                 {isConfirming ? '确认中...' : !has_logistics ? '确认订单' : '已确认'}
                               </button>
-                            )} */}
+                            )}
                           </div>
                           <div className="text-xs text-gray-500">
                             {new Date(created_at).toLocaleString()}
@@ -203,24 +203,20 @@ const LogisticsPage: FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex gap-2">
-                          {item.print_data?.print_pdf?.files && item.print_data.print_pdf.files.length > 0 && (
-                            <button
-                              onClick={() => handlePrintBooklet(id, item)}
-                              disabled={isPrintingBooklet}
-                              className="px-3 py-1 bg-purple-600 text-white text-xs font-medium rounded hover:bg-purple-700 disabled:bg-purple-300 disabled:cursor-not-allowed transition-colors"
-                            >
-                              {isPrintingBooklet ? '打印中...' : '打印绘本'}
-                            </button>
-                          )}
-                          {logistics_request_no && (
-                            <button
-                              onClick={() => handlePrintLabel(id)}
-                              disabled={isPrintingLabel}
-                              className="px-3 py-1 bg-orange-600 text-white text-xs font-medium rounded hover:bg-orange-700 disabled:bg-orange-300 disabled:cursor-not-allowed transition-colors"
-                            >
-                              {isPrintingLabel ? '打印中...' : '打印面单'}
-                            </button>
-                          )}
+                          <button
+                            onClick={() => handlePrintBooklet(id, item)}
+                            disabled={item.print_data?.print_pdf?.files?.length == 0 || isPrintingBooklet}
+                            className="cursor-pointer px-3 py-1 bg-purple-600 text-white text-xs font-medium rounded hover:bg-purple-700 disabled:bg-purple-300 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {isPrintingBooklet ? '打印中...' : '打印绘本'}
+                          </button>
+                          <button
+                            onClick={() => handlePrintLabel(id)}
+                            disabled={isPrintingLabel || !logistics_request_no}
+                            className="cursor-pointer px-3 py-1 bg-orange-600 text-white text-xs font-medium rounded hover:bg-orange-700 disabled:bg-orange-300 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {isPrintingLabel ? '打印中...' : '打印面单'}
+                          </button>
                           {logistics_request_no && (
                             <div className="flex flex-col gap-2">
                               {item.pickup_reserve_time && (
