@@ -371,13 +371,49 @@ export default function PersonalizeApiDrivenPage() {
       const fromCartItemId = searchParams.get('fromCartItemId');
       if (fromCartItemId) qs.set('fromCartItemId', fromCartItemId);
       // 圣诞 bundle：preview 页面不展示 option tab
-      if (searchParams.get('hideOptions') === '1') qs.set('hideOptions', '1');
+      const isHideOptions = searchParams.get('hideOptions') === '1';
+      if (isHideOptions) qs.set('hideOptions', '1');
       // 透传封面类型（圣诞 bundle：用于 preview 默认封面选择）
       const coverType = searchParams.get('cover_type');
       if (coverType) qs.set('cover_type', coverType);
       // 透传装订类型（圣诞 bundle：用于 preview 默认选中 binding）
       const bindingType = searchParams.get('binding_type');
       if (bindingType) qs.set('binding_type', bindingType);
+
+      // 关键修复：从购物车的 bundle/占位条目（mode=create）进入 personalize 时，不应该在 preview 里再次新增一条购物车记录。
+      // 做法：在此处先用 regenerate-preview 把生成的 preview 绑定到原 cart item，然后带 previewid 进入 preview 页。
+      if (fromCartItemId && !isHideOptions) {
+        try {
+          const ch: any = (userData as any)?.characters?.[0] || {};
+          const faceImages = (Array.isArray(ch?.photos) ? ch.photos : (ch?.photo ? [ch.photo] : [])).filter(Boolean);
+          const payload: any = {
+            full_name: ch?.full_name || '',
+            language: ch?.language || selectedLanguage || 'en',
+            gender: ch?.gender || '',
+            relationship: ch?.relationship || 'Parent/Guardian',
+            attributes: ch?.attributes || {},
+            texts: {},
+            face_images: faceImages,
+          };
+
+          const resp: any = await api.post<any>(
+            `/cart/${encodeURIComponent(String(fromCartItemId))}/regenerate-preview`,
+            payload
+          );
+          const bid =
+            resp?.data?.batch_id ||
+            resp?.data?.preview_id ||
+            resp?.batch_id ||
+            resp?.preview_id ||
+            resp?.data?.batch?.batch_id ||
+            resp?.data?.batch?.id;
+          if (bid) qs.set('previewid', String(bid));
+        } catch (e) {
+          console.error('[CartCreateFlow] regenerate-preview failed:', e);
+          setIsSubmitting(false);
+          return;
+        }
+      }
       router.push(`/preview?${qs.toString()}`);
     } catch (error) {
       console.error('Failed to continue:', error);

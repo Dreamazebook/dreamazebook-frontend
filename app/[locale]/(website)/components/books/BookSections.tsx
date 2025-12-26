@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { getBookConfig, BookSection } from './booksConfig';
 import GiftPackagesSection from './GiftPackagesSection';
 import api from '@/utils/api';
-import toast from 'react-hot-toast';
+import { useRouter } from '@/i18n/routing';
 
 interface BookSectionsProps {
   book: any;
@@ -63,6 +63,7 @@ const BehindStorySection: React.FC<{ section: BookSection }> = ({ section }) => 
 // Toddler Favorites Section 组件
 const ToddlerFavoritesSection: React.FC<{ section: BookSection; bookId: string | number }> = ({ section, bookId }) => {
   const [isAdding, setIsAdding] = useState(false);
+  const router = useRouter();
 
   const normalizedBookId = String(bookId || '');
 
@@ -97,7 +98,7 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection; bookId: string |
     if (isAdding) return;
 
     if (!bundleSpuCodesForCart || bundleSpuCodesForCart.length === 0) {
-      toast.error('Bundle configuration is missing, unable to add to cart');
+      console.warn('[AddBundleToBag] missing bundle configuration');
       return;
     }
 
@@ -115,11 +116,10 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection; bookId: string |
       if (resp?.success === false) {
         throw new Error('batch-add failed');
       }
-
-      toast.success('Added to cart');
+      // 加购成功：直接跳转购物车（不弹 toast）
+      router.push('/shopping-cart');
     } catch (e) {
       console.error('[AddBundleToBag] failed:', e);
-      toast.error('Failed to add to cart, please try again');
     } finally {
       setIsAdding(false);
     }
@@ -271,7 +271,14 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection; bookId: string |
                   isAdding ? 'opacity-75 cursor-wait pointer-events-none' : ''
                 }`}
               >
-                {section.buttonText}
+                {isAdding ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="h-4 w-4 rounded-full border-2 border-[#F5E3E3] border-t-transparent animate-spin" />
+                    Adding...
+                  </span>
+                ) : (
+                  section.buttonText
+                )}
               </button>
             )}
           </div>
@@ -516,7 +523,14 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection; bookId: string |
                 isAdding ? 'opacity-75 cursor-wait pointer-events-none' : ''
               }`}
             >
-              {section.buttonText}
+              {isAdding ? (
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-4 w-4 rounded-full border-2 border-[#F5E3E3] border-t-transparent animate-spin" />
+                  Adding...
+                </span>
+              ) : (
+                section.buttonText
+              )}
             </button>
           )}
         </div>

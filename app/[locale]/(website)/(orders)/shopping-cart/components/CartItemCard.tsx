@@ -31,6 +31,9 @@ export default function CartItemCard({
   handleClickEditMessage,
 }: CartItemProps) {
   const t = useTranslations("ShoppingCart");
+  const tSafe = (key: string, fallback: string) =>
+    // next-intl v3 支持 t.has；避免 dev 环境 messages 热更新不及时导致页面直接抛错
+    (typeof (t as any)?.has === "function" && (t as any).has(key)) ? (t as any)(key) : fallback;
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -43,6 +46,11 @@ export default function CartItemCard({
   const isChristmasBundle =
     typeof packageCode === "string" && packageCode.startsWith("CHRISTMAS_");
   const isKickstarterPackage = isPackage && !isChristmasBundle;
+
+  // 后端新增字段：mode = create|edit，用于决定购物车 item 的按钮语义
+  // 兼容旧数据：无 mode 时用 preview_id 推断
+  const effectiveMode = (item as any)?.mode ?? (item.preview_id ? "edit" : "create");
+  const isEditMode = effectiveMode === "edit" && !!item.preview_id;
 
   const pkgSnapshot = (item as any)?.package_snapshot;
   const pkgName = (item as any)?.package_name || pkgSnapshot?.name?.en || packageCode || "Bundle";
@@ -203,7 +211,7 @@ export default function CartItemCard({
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-6 overflow-hidden">
                     {showEditBook &&
-                      (item.preview_id ? (
+                      (isEditMode ? (
                         <a
                           className={`text-sm text-blue-600 hover:underline cursor-pointer ${
                             isPackage ? "mt-2" : ""
@@ -243,6 +251,7 @@ export default function CartItemCard({
                               (item as any)?.picbook?.id;
                             let url = "";
                             if (bookId) {
+                              const fromCartParam = `&fromCartItemId=${encodeURIComponent(String(item.id))}`;
                               const ksParams = isSubItem
                                 ? `&ks=1&package_item_id=${
                                     (item as any)?.id || ""
@@ -250,14 +259,15 @@ export default function CartItemCard({
                                     (item as any)?.package_id || ""
                                   }`
                                 : "";
-                              url = `/personalize?bookid=${bookId}${ksParams}`;
+                              // 关键：把 cart item id 透传给 personalize/preview，用于后续 regenerate-preview 绑定，避免重复新增
+                              url = `/personalize?bookid=${bookId}${ksParams}${fromCartParam}`;
                             } else {
                               url = "/shopping-cart";
                             }
                             router.push(url);
                           }}
                         >
-                          {t("editBook")}
+                          {tSafe("createBook", "Create book")}
                         </a>
                       ))}
 
@@ -424,9 +434,10 @@ export default function CartItemCard({
                           ""
                         const spec = [bindingType, coverType].filter(Boolean).join(" · ")
 
-                        const hasPreview = !!pi?.preview_id
-                        const ctaLabel = hasPreview ? "Edit book" : "create book"
-                        const ctaHref = hasPreview
+                        const piMode = pi?.mode ?? (pi?.preview_id ? "edit" : "create")
+                        const piIsEdit = piMode === "edit" && !!pi?.preview_id
+                        const ctaLabel = piIsEdit ? t("editBook") : tSafe("createBook", "Create book")
+                        const ctaHref = piIsEdit
                           ? `/personalized-products/${spuCode}/${pi.preview_id}/edit`
                           // 圣诞 bundle：跳转到 preview 后不展示 option tab
                           : `/personalize?bookid=${spuCode}&hideOptions=1&fromCartItemId=${encodeURIComponent(String(pi?.id ?? ''))}${coverType ? `&cover_type=${encodeURIComponent(coverType)}` : ''}${bindingType ? `&binding_type=${encodeURIComponent(bindingType)}` : ''}`
