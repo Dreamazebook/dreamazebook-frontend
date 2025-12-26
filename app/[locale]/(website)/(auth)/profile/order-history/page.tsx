@@ -4,8 +4,12 @@ import useUserStore from '@/stores/userStore';
 import OrderHistoryCard from './components/OrderHistoryCard';
 import { useTranslations } from 'next-intl';
 import { OrderDetail, statusLabelMap } from '@/types/order';
+import { Address, EMPTY_ADDRESS } from '@/types/address';
 import ReviewAndPay from '../../../(orders)/checkout/components/ReviewAndPay';
 import AddressForm from '../../../(orders)/checkout/components/AddressForm';
+import api from '@/utils/api';
+import { API_ORDER_UPDATE_ADDRESS } from '@/constants/api';
+import { ApiResponse } from '@/types/api';
 
 const OrderHistory = () => {
   const {orderList, fetchOrderList, orderStatusMapping} = useUserStore();
@@ -15,6 +19,7 @@ const OrderHistory = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [showModal, setShowModal] = useState('');
   const [selectedOrderDetail, setSelectedOrderDetail] = useState<OrderDetail|null>(null);
+  const [address, setAddress] = useState<Address>(EMPTY_ADDRESS);
 
   const filteredOrders = activeTab === 'all' 
     ? orderList 
@@ -61,11 +66,43 @@ const OrderHistory = () => {
   const openModal = (orderDetail: OrderDetail, modal='payment') => {
     setShowModal(modal);
     setSelectedOrderDetail(orderDetail);
+    if (modal === 'address') {
+      setAddress(orderDetail.shipping_address);
+    }
   };
 
   const closeModal = () => {
     setShowModal('');
     setSelectedOrderDetail(null);
+    setAddress(EMPTY_ADDRESS);
+  }
+
+  const updateShippingAddress = async () => {
+    if (!selectedOrderDetail || !address) {
+      return { success: false, message: 'No order or address data available' };
+    }
+
+    try {
+      const response = await api.put<ApiResponse>(API_ORDER_UPDATE_ADDRESS(selectedOrderDetail.id), {
+        shipping_address_id: address.id,
+        shipping_address: address,
+      });
+
+      if (response.success) {
+        // Refresh order list to get updated data
+        await fetchOrderList();
+        closeModal();
+        return { success: true };
+      } else {
+        return { success: false, message: response.message || 'Failed to update address' };
+      }
+    } catch (error: any) {
+      console.error('Error updating shipping address:', error);
+      return { 
+        success: false, 
+        message: error?.response?.data?.message || 'Failed to update shipping address' 
+      };
+    }
   }
 
   useEffect(() => {
@@ -152,9 +189,16 @@ const OrderHistory = () => {
         <>
         <div className='fixed h-full w-full bottom-0 left-0 bg-black/50 z-100' onClick={closeModal}></div>
         <div className='fixed bottom-0 rounded left-0 w-full z-200 max-h-full bg-white p-[24px] overflow-y-auto md:w-[600px] md:h-[620px] right-0 mx-auto md:top-[50%] md:-translate-y-1/2'>
-          <span className='absolute top-5 right-5 text-2xl cursor-pointer' onClick={closeModal}>X</span>
+          <span className='absolute top-3 right-3 text-xl cursor-pointer' onClick={closeModal}>X</span>
           {showModal === 'payment' && <ReviewAndPay orderDetail={selectedOrderDetail} />}
-          {showModal === 'address' && <AddressForm orderDetail={selectedOrderDetail} address={selectedOrderDetail.shipping_address} setAddress={()=>{}} /> }
+          {showModal === 'address' && address && (
+            <AddressForm 
+              orderDetail={selectedOrderDetail} 
+              address={address} 
+              setAddress={setAddress} 
+              updateShippingAddress={updateShippingAddress}
+            />
+          )}
         </div>
         </>
       )}
