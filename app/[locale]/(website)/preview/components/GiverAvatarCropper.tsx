@@ -253,7 +253,7 @@ export default function GiverAvatarCropper({
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-2">
             <h2 className="text-lg font-semibold">Add image</h2>
-            <p className="text-gray-500">Adjust the photo to help us create the best result.</p>
+            <p className="text-gray-500">Add a meaningful photo to fill your book with love.</p>
           </div>
           <button className="text-xl text-gray-500 hover:text-gray-700" onClick={onCancel}>&#x2715;</button>
         </div>
