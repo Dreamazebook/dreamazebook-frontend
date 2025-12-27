@@ -1127,6 +1127,8 @@ export default function PreviewPageWithTopNav() {
             return null;
           }
         })();
+      // 需要把 dedication 和 giver_data 一起持久化到后端：
+      // - 即使 dedication 为空字符串，也显式传给后端（用于清空/同步）
       const dedicationTextToPersist = typeof dedication === 'string' ? dedication.trim() : '';
       const resp: any = await api.post(
         `/products/${encodeURIComponent(spu)}/pages/p3-4/upload-special-image`,
@@ -1134,7 +1136,7 @@ export default function PreviewPageWithTopNav() {
           data: dataUrl,
           batch_id: batchId,
           ...(giverData ? { giver_data: giverData } : {}),
-          ...(dedicationTextToPersist ? { dedication_text: dedicationTextToPersist } : {}),
+          dedication_text: dedicationTextToPersist,
         },
         { timeout: 120000 },
       );
@@ -1513,8 +1515,8 @@ export default function PreviewPageWithTopNav() {
     for (let i = 0; i < pages.length; i++) {
       const p = pages[i];
       const pid = Number(p.page_id);
-      const hasBase = !!(p as any).base_image_url || (!!p.image_url && (p as any).base_only === true);
-      const hasFinal = !!(p as any).final_image_url && (p as any).base_only === false;
+      const hasBase = !!(p as any).base_image_url || !!p.image_url;
+      const hasFinal = !!(p as any).final_image_url;
 
       if (hasFinal) {
         // 本页完成：清理定时器并置 100
@@ -2646,7 +2648,7 @@ export default function PreviewPageWithTopNav() {
                       // 分层模型：后端可选返回 giver/template 信息
                       giver_data: data?.giver_data ?? p.giver_data,
                       template_image_url: (data?.template_image_url || data?.template_url) ?? p.template_image_url,
-                      base_only: data?.base_only ?? (data?.final_image_url ? false : data?.base_image_url ? true : p.base_only),
+                      base_only: data?.base_only ?? p.base_only,
                       final_image_url: data?.final_image_url ?? p.final_image_url,
                       base_image_url: data?.base_image_url ?? p.base_image_url,
                     }
@@ -3279,7 +3281,11 @@ export default function PreviewPageWithTopNav() {
             face_images: photos.filter(Boolean),
           };
 
-          await api.post<any>(`/cart/${encodeURIComponent(String(fromCartItemId))}/regenerate-preview`, payload);
+          // 圣诞 bundle：fromCartItemId 实际是 packageItemId（cart.items[].items[].id），需要调用新的接口
+          await api.post<any>(
+            `/cart/package-items/${encodeURIComponent(String(fromCartItemId))}/regenerate-preview`,
+            payload
+          );
         } catch (e) {
           console.error('[ChristmasBundle] regenerate-preview failed:', e);
           // 失败也回购物车，避免卡在 preview；购物车仍可继续 edit
@@ -3790,18 +3796,35 @@ export default function PreviewPageWithTopNav() {
                     // 根据batch返回的状态判断是否需要显示蒙版
                     // 需要换脸 且 已有基础图 且 尚无最终图 → 显示蒙版 + 进度
                     const hasSwap = !!page.has_face_swap;
-                    const hasBase = !!(page as any).base_image_url || (!!page.image_url && (page as any).base_only === true);
-                    const hasFinal = !!(page as any).final_image_url && (page as any).base_only === false;
+                    // 后端不再返回 base_only：以字段是否存在来判断
+                    const hasBase = !!(page as any).base_image_url || !!page.image_url;
+                    const hasFinal = !!(page as any).final_image_url;
                     const needsOverlay = hasSwap && hasBase && !hasFinal;
                     const isSwapping = needsOverlay;
                     const progress = Math.round(pageProgress[page.page_id] ?? 0);
-                    const src = buildImageUrl(page.image_url);
+                    // 展示策略：当 final 与 base/image 不同（说明最终图已更新）时优先展示 final；
+                    // 否则展示 base/image（例如 create 流程里 final 可能为空或等同于 base）
+                    const baseOrImageUrlRaw = (page as any).image_url || (page as any).base_image_url || '';
+                    const finalUrlRaw = (page as any).final_image_url || '';
+                    const preferFinal = !!finalUrlRaw && !!baseOrImageUrlRaw && String(finalUrlRaw).trim() !== String(baseOrImageUrlRaw).trim();
+                    const displayUrlRaw = preferFinal ? finalUrlRaw : (baseOrImageUrlRaw || finalUrlRaw || '');
+                    const src = buildImageUrl(String(displayUrlRaw || ''));
                     const isReplaceablePage = replaceableTextPageIds.has(page.page_id) || replaceableTextPageNumbers.has(page.page_number);
                     // 轮到该页前（progress 为 0）显示 loading；开始后显示进度
                     const overlayMode = (progress > 0 ? 'progress' : 'loading');
                       // 仅在 p3-4（有的书返回 p3-p4）页面渲染 Giver & Dedication
                       const pageCode = String((page as any).page_code || '');
                       const isGiverDedicationPage = pageCode === 'p3-4' || pageCode === 'p3-p4';
+                      // p3-4 展示策略同上：只有当 final 与 base/image 不同，才默认展示 final。
+                      // 这样 edited book 能展示历史最终图；create book（final==base 或无 final）则会走 Canvas 展示默认寄语。
+                      const p34FinalRaw = (page as any).final_image_url || '';
+                      const p34BaseOrImageRaw = (page as any).image_url || (page as any).base_image_url || '';
+                      const p34PreferFinal =
+                        isGiverDedicationPage &&
+                        !!p34FinalRaw &&
+                        !!p34BaseOrImageRaw &&
+                        String(p34FinalRaw).trim() !== String(p34BaseOrImageRaw).trim();
+                      const p34FinalSrc = p34PreferFinal ? buildImageUrl(String(p34FinalRaw || '')) : null;
                       // p3-4 分层模型：
                       // - 底图：优先 template_image_url（严格无 dedication）；否则退回 base_image_url（后端应保证无 dedication）；再退回 raw/image_url
                       const p34TemplateRaw = isGiverDedicationPage
@@ -3827,8 +3850,49 @@ export default function PreviewPageWithTopNav() {
                           : (upperBookId === 'PICBOOK_GOODNIGHT3' || upperBookId === 'PICBOOK_SANTA')
                               ? 0.7
                               : undefined;
-                      // 单页模式：在 p3-4 直接用 GiverDedicationCanvas 取代基础图
+                      // 如果是“曾经编辑过的书”，后端会返回 p3-4 的 final_image_url。
+                      // 默认应直接展示 final 图；只有当用户打开编辑弹窗/发生本地修改时，才使用 Canvas 分层合成。
+                      const p34HasLocalChanges =
+                        !!giverImageUrl || !!editField || shouldUploadP34ComposedRef.current;
+
+                      // 单页模式：p3-4 默认展示 final；编辑时切换到 Canvas
                       if (isGiverDedicationPage && viewMode === 'single') {
+                        if (p34FinalSrc && !p34HasLocalChanges) {
+                          return (
+                            <div key={page.page_id} ref={giverRef} className="w-full flex flex-col items-center">
+                              <div className="w-full max-w-5xl">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={p34FinalSrc}
+                                  alt={`Page ${page.page_number}`}
+                                  className="w-full h-auto rounded-lg object-cover"
+                                />
+                                <div className="mt-2 w-full grid grid-cols-2 gap-2">
+                                  <div className="w-full flex justify-center">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        giverFileInputRef.current?.click();
+                                      }}
+                                      className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                    >
+                                      Personalize with a photo
+                                    </button>
+                                  </div>
+                                  <div className="w-full flex justify-center">
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditField('dedication')}
+                                      className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                    >
+                                      Edit Dedication
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
                         return (
                         <div key={page.page_id} ref={giverRef} className="w-full flex flex-col items-center">
                           <div className="w-full max-w-5xl">
@@ -3871,54 +3935,60 @@ export default function PreviewPageWithTopNav() {
                         </div>
                       );
                     }
+                      // 双页模式：p3-4 默认展示 final（并保留操作按钮）；编辑时才用 Canvas overlay
+                      const p34ButtonsOverlay = isGiverDedicationPage ? (
+                        <div className="pointer-events-none">
+                          <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                giverFileInputRef.current?.click();
+                              }}
+                              className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                            >
+                              Personalize with a photo
+                            </button>
+                          </div>
+                          <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
+                            <button
+                              type="button"
+                              onClick={() => setEditField('dedication')}
+                              className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                            >
+                              Edit Dedication
+                            </button>
+                          </div>
+                        </div>
+                      ) : null;
                       return (
                       <div key={page.page_id} ref={isGiverDedicationPage ? dedicationRef : undefined} className="w-full flex flex-col items-center">
                         <div className="w-full max-w-5xl">
                           <PreviewPageItem
                             pageId={page.page_id}
                             pageNumber={page.page_number}
-                            src={src}
+                            src={(p34FinalSrc && isGiverDedicationPage && !p34HasLocalChanges) ? p34FinalSrc : src}
                             viewMode={viewMode}
                             showOverlay={isSwapping}
                             progress={progress}
                             overlayMode={overlayMode as any}
                             content={page.content}
                             customOverlayContent={isGiverDedicationPage ? (
-                              <div className="w-full h-full relative">
-                                <GiverDedicationCanvas
-                                  className="w-full h-full"
-                                  imageUrl={p34BaseSrc}
-                                  mode="double"
-                                  giverText={giver}
-                                  dedicationText={dedication}
-                                  giverImageUrl={p34GiverOverlaySrc}
-                                  giverImageAspectRatio={giverImageAspectRatio}
-                                  giverImageScale={giverImageScale}
-                                  onRendered={uploadP34ComposedImage}
-                                />
-                                <div className="pointer-events-none">
-                                  <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        giverFileInputRef.current?.click();
-                                      }}
-                                      className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                                    >
-                                      Personalize with a photo
-                                    </button>
-                                  </div>
-                                  <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
-                                    <button
-                                      type="button"
-                                      onClick={() => setEditField('dedication')}
-                                      className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                                    >
-                                      Edit Dedication
-                                    </button>
-                                  </div>
+                              (p34FinalSrc && !p34HasLocalChanges) ? p34ButtonsOverlay : (
+                                <div className="w-full h-full relative">
+                                  <GiverDedicationCanvas
+                                    className="w-full h-full"
+                                    imageUrl={p34BaseSrc}
+                                    mode="double"
+                                    giverText={giver}
+                                    dedicationText={dedication}
+                                    giverImageUrl={p34GiverOverlaySrc}
+                                    giverImageAspectRatio={giverImageAspectRatio}
+                                    giverImageScale={giverImageScale}
+                                    onRendered={uploadP34ComposedImage}
+                                  />
+                                  {p34ButtonsOverlay}
                                 </div>
-                              </div>
+                              )
                             ) : undefined}
                             onImageLoaded={(loadedPageId) => {
                               if (titlePageId && loadedPageId === titlePageId) {
