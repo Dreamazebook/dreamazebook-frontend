@@ -796,6 +796,8 @@ export default function PreviewPageWithTopNav() {
           }
           // 同步到画布渲染用的 dedication（后端 message 即前端 dedication）
           setDedication(msg);
+          // 购物车里存在已保存的寄语：视为已提交
+          setIsDedicationSubmitted(true);
         }
       } catch (e) {
         console.warn('获取购物车失败，跳过预填:', e);
@@ -962,6 +964,7 @@ export default function PreviewPageWithTopNav() {
             if (msg) {
                setMessage(msg);
                setDedication(msg);
+               setIsDedicationSubmitted(true);
             }
         }
 
@@ -1027,9 +1030,17 @@ export default function PreviewPageWithTopNav() {
   const p34ComposeUploadedRef = useRef(false);
   // sidebar「Name on Book」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
   const [isNameOnBookCompleted, setIsNameOnBookCompleted] = useState(false);
+  // dedication 完成态：必须用户点过 Submit 才算完成（避免默认寄语导致“已完成”误导）
+  const [isDedicationSubmitted, setIsDedicationSubmitted] = useState(false);
 
-  // 当 previewid/bookid 变化时重置缓存，避免跨不同预览复用旧底图
+  // 当 previewid/bookid 变化时重置缓存，避免跨不同预览复用旧数据
   const p34CacheKey = `${searchParams.get('bookid') || ''}_${searchParams.get('previewid') || ''}`;
+
+  // 切换到不同 preview 时重置 Submit 状态（后续若从后端/购物车回填到真实寄语，会再置为 true）
+  useEffect(() => {
+    setIsDedicationSubmitted(false);
+  }, [p34CacheKey]);
+
   useEffect(() => {
     p34BaseImageUrlRef.current = null;
     p34GiverDataRef.current = null;
@@ -3199,7 +3210,8 @@ export default function PreviewPageWithTopNav() {
   const completedSections = {
     // Name on Book：输入文本或上传图片任一完成即可
     giver: giver.trim() !== "" || isNameOnBookCompleted,
-    dedication: dedication.trim() !== "",
+    // dedication：只有用户点击 Submit（或从后端/购物车回填了真实寄语）才算完成
+    dedication: isDedicationSubmitted,
     coverDesign: selectedBookCover !== null,
     binding: selectedBinding !== null,
     giftBox: selectedGiftBox !== null,
@@ -3242,6 +3254,18 @@ export default function PreviewPageWithTopNav() {
     try {
       console.debug('[AddToCart] Clicked');
       const fromCartItemId = searchParams.get('fromCartItemId');
+
+      // 无论是否来自 personalized-products（fromCartItemId），Dedication 都必须 Submit 才允许继续。
+      // 这样不会因为默认寄语展示而误导用户跳过提交。
+      if (!completedSections.dedication) {
+        setActiveTab("Book preview");
+        setTimeout(() => {
+          scrollToSection('dedication');
+        }, 100);
+        console.warn('[AddToCart] Blocked: dedication not submitted');
+        return;
+      }
+
       // 圣诞 bundle：不新增 SKU，改用 regenerate-preview 更新 bundle 内部子项，然后回购物车
       if (fromCartItemId && isHideOptions) {
         try {
@@ -3300,12 +3324,12 @@ export default function PreviewPageWithTopNav() {
         return;
       }
       // 检查是否所有必要的部分都已完成
-      // 允许未填写 giver 和 dedication 也能继续
+      // 允许未填写 giver 也能继续；但 dedication 必须 Submit 后才算完成
       // 圣诞 bundle（hideOptions=1）：不要求 coverDesign/binding/giftBox，否则会被引导去 option tab
       const ignoreSections = isHideOptions ? new Set(['coverDesign', 'binding', 'giftBox']) : null;
       const incompleteSections = Object.entries(completedSections)
         .filter(([section, completed]) => {
-          if (section === 'giver' || section === 'dedication') return false;
+          if (section === 'giver') return false;
           if (ignoreSections && ignoreSections.has(section)) return false;
           return !completed;
         })
@@ -4734,6 +4758,7 @@ export default function PreviewPageWithTopNav() {
                       shouldUploadP34ComposedRef.current = true;
                       p34ComposeUploadedRef.current = false;
                       setDedication(message);
+                      setIsDedicationSubmitted(true);
                       setEditField(null);
                     }}
                   >
