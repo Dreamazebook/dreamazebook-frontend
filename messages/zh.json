@@ -211,6 +211,14 @@
       "buySame": "购买相同"
     },
     "preparationTitle": "您的书籍正在精心准备中！",
+    "pendingTitle": "您的订单正在等待中",
+    "processingTitle": "您的书籍正在精心准备中！",
+    "shippedTitle": "您的订单正在安全地运送给您！",
+    "deliveredTitle": "希望您已经享受您的订单！",
+    "cancelledTitle": "您的订单已被取消",
+    "refundedTitle": "您的订单已全额退款，我们随时为您提供帮助。",
+    "inTransitTitle": "您的订单正在安全地运送给您！",
+    "digitalProductionTitle": "您的书籍正在精心准备中！",
     "preparationSubtitle": "我们将在 48 小时内联系您以完成书籍设计！请留意您的邮箱",
     "noOrderIdError": "未提供订单 ID。请检查您的订单详情。"
   },

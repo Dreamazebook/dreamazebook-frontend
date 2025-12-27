@@ -20,6 +20,7 @@ import MessageModal from "./components/MessageModal";
 import Image from "next/image";
 import { CartItem } from "@/types/cart";
 import OrderStatusLabel from "../../components/component/OrderStatusLabel";
+import OrderTitle from "./components/OrderTitle";
 
 const OrderSummary: React.FC = () => {
   const t = useTranslations("orderSummary");
@@ -168,14 +169,10 @@ const OrderSummary: React.FC = () => {
       )}
       {/* 容器 */}
       <div className="max-w-[1200px] mx-auto">
-        {/* 标题与提示 */}
-        <div className="mb-4">
-          <h1 className="text-[18px] md:text-[28px] flex items-center gap-[4px] mb-2">
-            🎉 {t("preparationTitle")}
-            {orderDetail && <div className="hidden md:block"><OrderStatusLabel status={orderDetail?.status} /></div>}
-          </h1>
-          {/* <p className="text-gray-600">{t("preparationSubtitle")} ✨</p> */}
-        </div>
+        <h1 className="text-[18px] md:text-[28px] flex items-center gap-[4px] mb-4">
+          {orderDetail && <OrderTitle status={orderDetail?.status} />}
+          {orderDetail && <div className="hidden md:flex items-center"><OrderStatusLabel status={orderDetail?.status} /></div>}
+        </h1>
 
         {/* 订单号和预计送达 */}
         <div className="flex items-center flex-wrap space-x-8 mb-4">
