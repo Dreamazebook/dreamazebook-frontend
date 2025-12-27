@@ -4814,7 +4814,7 @@ export default function PreviewPageWithTopNav() {
                   Adding to cart...
                 </>
               ) : (
-                'Add to cart'
+                'Next'
               )}
             </button>
           </div>
@@ -4998,7 +4998,7 @@ export default function PreviewPageWithTopNav() {
                       Adding to cart...
                     </>
                   ) : (
-                    'Add to cart'
+                    'Next'
                   )}
                 </button>
               );
