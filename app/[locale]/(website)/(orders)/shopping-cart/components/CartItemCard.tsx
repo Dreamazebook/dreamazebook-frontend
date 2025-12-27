@@ -158,8 +158,8 @@ export default function CartItemCard({
             <div className="flex items-center gap-4 h-full relative">
               <div className="w-20 h-22 rounded overflow-hidden">
                 <img
-                  src={item.book_cover || "/home-page/cover.png"}
-                  alt={item.sku_code}
+                  src={item.cover_image || item.book_cover || "/home-page/cover.png"}
+                  alt={item.product_name || item.sku_code}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -167,8 +167,7 @@ export default function CartItemCard({
               <div className="w-full space-y-4 pt-4 pr-6 pb-4 opacity-100 box-border">
                 <div className="flex justify-between items-center">
                   <h3 className="font-bold">
-                    {item.book_name || item.spu_code} -{" "}
-                    {item.full_name || "Name"}
+                    {item.product_name || item.spu_code} | {item.full_name || "Name"}
                   </h3>
                   <div className="flex items-center gap-3">
                     <DisplayPrice
