@@ -167,7 +167,7 @@ export default function CartItemCard({
               <div className="w-full space-y-4 pt-4 pr-6 pb-4 opacity-100 box-border">
                 <div className="flex justify-between items-center">
                   <h3 className="font-bold">
-                    {item.product_name || item.spu_code} | {item.full_name || "Name"}
+                    {item.product_name || item.book_name} | {item.full_name || "Name"}
                   </h3>
                   <div className="flex items-center gap-3">
                     <DisplayPrice
