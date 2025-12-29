@@ -7,7 +7,8 @@ import DisplayPrice from "../../../components/component/DisplayPrice";
 import { Link, useRouter } from "@/i18n/routing";
 import { useEffect, useState } from "react";
 import KickstarterInlineCard from "./KickstarterInlineCard";
-import { getChristmasBundleCover } from "@/utils/bookCovers";
+import { getR2BookCover } from "@/utils/bookCovers";
+import { formatCartBookTitle, getOurBookDisplayName } from "@/utils/bookNames";
 
 interface CartItemProps {
   showEditBook?: boolean;
@@ -158,7 +159,7 @@ export default function CartItemCard({
             <div className="flex items-center gap-4 h-full relative">
               <div className="w-20 h-22 rounded overflow-hidden">
                 <img
-                  src={item.book_cover || "/home-page/cover.png"}
+                  src={getR2BookCover(item.spu_code, item.book_cover || "/home-page/cover.png")}
                   alt={item.sku_code}
                   className="w-full h-full object-cover"
                 />
@@ -167,8 +168,13 @@ export default function CartItemCard({
               <div className="w-full space-y-4 pt-4 pr-6 pb-4 opacity-100 box-border">
                 <div className="flex justify-between items-center">
                   <h3 className="font-bold">
-                    {item.book_name || item.spu_code} -{" "}
-                    {item.full_name || "Name"}
+                    {formatCartBookTitle({
+                      spuCode: item.spu_code,
+                      bookName: item.book_name,
+                      fullName: item.full_name,
+                      skuName: item.sku_name,
+                      productName: item.product_name,
+                    })}
                   </h3>
                   <div className="flex items-center gap-3">
                     <DisplayPrice
@@ -423,7 +429,7 @@ export default function CartItemCard({
                     {Array.isArray((item as any)?.items) &&
                       (item as any).items.map((pi: any) => {
                         const spuCode = pi?.spu_code
-                        const bookName = pi?.spu_name || spuCode || "Book"
+                        const bookName = getOurBookDisplayName(spuCode, pi?.spu_name || spuCode || "Book") || "Book"
                         const bindingType =
                           pi?.customization_data?.binding_type ||
                           pkgDefaultOptions?.binding_type ||
@@ -447,7 +453,7 @@ export default function CartItemCard({
                             <div className="w-[88px] h-[100px] overflow-hidden flex items-center justify-center self-center">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
-                                src={getChristmasBundleCover(spuCode)}
+                                src={getR2BookCover(spuCode)}
                                 alt={bookName}
                                 className="max-w-full max-h-full object-contain block"
                               />
