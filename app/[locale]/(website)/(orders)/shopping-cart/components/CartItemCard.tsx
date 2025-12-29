@@ -159,8 +159,8 @@ export default function CartItemCard({
             <div className="flex items-center gap-4 h-full relative">
               <div className="w-20 h-22 rounded overflow-hidden">
                 <img
-                  src={getR2BookCover(item.spu_code, item.book_cover || "/home-page/cover.png")}
-                  alt={item.sku_code}
+                  src={item.cover_image || item.book_cover || "/home-page/cover.png"}
+                  alt={item.product_name || item.sku_code}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -168,13 +168,7 @@ export default function CartItemCard({
               <div className="w-full space-y-4 pt-4 pr-6 pb-4 opacity-100 box-border">
                 <div className="flex justify-between items-center">
                   <h3 className="font-bold">
-                    {formatCartBookTitle({
-                      spuCode: item.spu_code,
-                      bookName: item.book_name,
-                      fullName: item.full_name,
-                      skuName: item.sku_name,
-                      productName: item.product_name,
-                    })}
+                    {item.product_name || item.book_name} | {item.full_name || "Name"}
                   </h3>
                   <div className="flex items-center gap-3">
                     <DisplayPrice

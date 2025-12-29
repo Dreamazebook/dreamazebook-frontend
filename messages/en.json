@@ -211,6 +211,14 @@
       "buySame": "Buy the Same"
     },
     "preparationTitle": "Your book is being carefully prepared!",
+    "pendingTitle": "Your order is pending",
+    "processingTitle": "Your book is being carefully prepared!",
+    "shippedTitle": "Your order is safely on its way to you!",
+    "deliveredTitle": "We hope you've been enjoying your order!",
+    "cancelledTitle": "Your order has been cancelled",
+    "refundedTitle": "Your order has been fully refunded, We're here to help.",
+    "inTransitTitle": "Your order is safely on its way to you!",
+    "digitalProductionTitle": "Your book is being carefully prepared!",
     "preparationSubtitle": "We will reach out within 48 hours to finalize your book's design! Keep an eye on your email",
     "noOrderIdError": "No order ID provided. Please check your order details."
   },

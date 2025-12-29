@@ -226,7 +226,7 @@ const LogisticsPage: FC = () => {
                               )}
                               <div className="flex items-center gap-2">
                                 <input
-                                  type="datetime-local"
+                                  type="date"
                                   value={selectedDate}
                                   onChange={(e) => setSelectedDate(e.target.value)}
                                   className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
