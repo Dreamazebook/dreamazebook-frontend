@@ -16,6 +16,7 @@ type Bundle = {
   title: string
   qtyLabel: string
   features: string[]
+  originalPrice: number
   price: number
   ctaHref?: string
   imageUrl: string
@@ -51,6 +52,8 @@ const BOOK_NAME_MAP: Record<string, string> = {
 const IMAGE_FALLBACK_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="280" height="360" viewBox="0 0 280 360" fill="none"><rect width="280" height="360" rx="16" fill="%23F2F2F2"/><path d="M80 170C80 142.386 102.386 120 130 120H150C177.614 120 200 142.386 200 170V230C200 257.614 177.614 280 150 280H130C102.386 280 80 257.614 80 230V170Z" fill="%23E0E0E0"/><circle cx="140" cy="182" r="28" fill="%23CCCCCC"/><path d="M102 246C104.667 222 118.4 210 143.2 210C167.6 210 180.667 222 182.4 246" stroke="%23CCCCCC" stroke-width="10" stroke-linecap="round"/></svg>'
 
 function formatPrice(price: number) {
+  const n = Number(price)
+  if (Number.isFinite(n)) return `${CURRENCY}${n.toFixed(2)}`
   return `${CURRENCY}${price}`
 }
 
@@ -110,7 +113,7 @@ function BundleCard({ bundle, onGetBundle }: { bundle: Bundle; onGetBundle: (bun
 
         <div className="bg-white mt-6 lg:mt-0 flex flex-col items-center gap-4">
           <div className="flex items-baseline gap-1">
-            <span className="text-[#999999] text-[18px] line-through">{formatPrice(Math.round(bundle.price * 1.0))}</span>
+            <span className="text-[#999999] text-[18px] line-through">{formatPrice(bundle.originalPrice)}</span>
             <span className="text-[#222222] font-semibold text-[24px]">{formatPrice(bundle.price)}</span>
           </div>
           <button
@@ -158,11 +161,12 @@ export default function ChristmasPage() {
           title: 'Classic Hardcover Set',
           qtyLabel: 'x2',
           features: [
-            '2 Hardcover Books',
+            'Hardcover Books x2',
             '2 Hand-drawn Sticker Sets',
             '2 Christmas Edition Bookmarks',
           ],
-          price: 224,
+          originalPrice: 118.0,
+          price: 106.2,
           ctaHref: '#',
           imageUrl: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/bundle-sibling-classic.png',
           bookCount: 2,
@@ -172,11 +176,12 @@ export default function ChristmasPage() {
           title: 'Premium Lay-flat Set',
           qtyLabel: 'x2',
           features: [
-            '2 Premium Lay-flat Hardcover Books',
+            'Premium Lay-Flat Hardcover Books x2',
             '2 Hand-drawn Sticker Sets',
             '2 Christmas Edition Bookmarks',
           ],
-          price: 224,
+          originalPrice: 158.0,
+          price: 142.2,
           ctaHref: '#',
           imageUrl: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/bundle-sibling-premium.png',
           bookCount: 2,
@@ -192,13 +197,14 @@ export default function ChristmasPage() {
           title: 'Classic Hardcover Set',
           qtyLabel: 'x3',
           features: [
-            '3 Hardcover Books',
+            'Hardcover Books x3',
             '3 Hand-drawn Sticker Sets',
             '3 Christmas Edition Bookmarks',
             '3 Personalized Book Covers (Free)',
             '',
           ],
-          price: 239,
+          originalPrice: 177.0,
+          price: 150.4,
           ctaHref: '#',
           imageUrl: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/bundle-storytime-classic.png',
           bookCount: 3,
@@ -208,13 +214,14 @@ export default function ChristmasPage() {
           title: 'Premium Lay-flat Set',
           qtyLabel: 'x3',
           features: [
-            '3 Premium Lay-flat Hardcover Books',
+            'Premium Lay-Flat Hardcover Books x3',
             '1 Festive Gift Box',
             '3 Hand-drawn Sticker Sets',
             '3 Christmas Edition Bookmarks',
             '3 Personalized Book Covers (Free)',
           ],
-          price: 289,
+          originalPrice: 237.0,
+          price: 201.4,
           ctaHref: '#',
           imageUrl: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/bundle-storytime-premium.png',
           bookCount: 3,
@@ -230,14 +237,15 @@ export default function ChristmasPage() {
           title: 'Classic Hardcover Set',
           qtyLabel: 'x4',
           features: [
-            '4 Hardcover Books',
+            'Hardcover Books x4',
             '4 Hand-drawn Sticker Sets',
             '4 Christmas Edition Bookmarks',
             '4 Personalized Book Covers (Free)',
             '1 Personalized Coloring Books',
             '2 Festive Gift Boxes',
           ],
-          price: 129,
+          originalPrice: 236.0,
+          price: 188.8,
           ctaHref: '#',
           imageUrl: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/bundle-celebration-classic.png',
           bookCount: 4,
@@ -247,14 +255,15 @@ export default function ChristmasPage() {
           title: 'Premium Lay-flat Set',
           qtyLabel: 'x4',
           features: [
-            '4 Premium Lay-flat Hardcover Books',
+            'Premium Lay-Flat Hardcover Books x4',
             '4 Hand-drawn Sticker Sets',
             '4 Christmas Edition Bookmarks',
             '4 Personalized Book Covers (Free)',
             '2 Personalized Coloring Books',
             '4 Festive Gift Boxes',
           ],
-          price: 169,
+          originalPrice: 316.0,
+          price: 252.8,
           ctaHref: '#',
           imageUrl: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas/bundle-celebration-premium.png',
           bookCount: 4,

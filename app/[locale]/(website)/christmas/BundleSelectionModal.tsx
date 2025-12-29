@@ -14,6 +14,7 @@ export type BookOption = {
 type BundleLike = {
   title: string
   features: string[]
+  originalPrice: number
   price: number
   bookCount: number
 }
@@ -28,6 +29,8 @@ type Props = {
 }
 
 function formatPrice(price: number) {
+  const n = Number(price)
+  if (Number.isFinite(n)) return `$${n.toFixed(2)}`
   return `$${price}`
 }
 
@@ -135,7 +138,7 @@ export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onC
               {bundle.features.filter(Boolean).join(' • ')}
             </p>
             <div className="flex items-baseline justify-center gap-2">
-              <span className="text-[#999999] line-through text-[16px] md:text-[18px] leading-[28px]">{formatPrice(Math.round(bundle.price * 1.0))}</span>
+              <span className="text-[#999999] line-through text-[16px] md:text-[18px] leading-[28px]">{formatPrice(bundle.originalPrice)}</span>
               <span className="text-[#222222] font-semibold text-[22px] md:text-[24px] leading-[28px]">{formatPrice(bundle.price)}</span>
             </div>
             <p className="text-xs md:text-[16px] leading-[24px] tracking-[0.5px] text-[#999999]">Pick any {bundle.bookCount} books · Mix & match freely</p>
