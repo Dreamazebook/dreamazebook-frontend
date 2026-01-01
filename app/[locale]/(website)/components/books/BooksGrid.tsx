@@ -64,45 +64,39 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
         const hoverCoverUrl = getCoverUrl(String(idOrCode), true, false);
         const priceVal = (book as any)?.current_price ?? (book as any)?.price ?? 0;
         const desc = (book as any)?.description ?? (book as any)?.desc ?? '';
-        const isComingSoon = priceVal === 0 && idOrCode === 'new-books-coming';
+        // 仅对我们人工插入的“new-books-coming”卡片做 coming soon 判定
+        // （不要用 price===0 来判断，避免误伤真实 0 元商品或数据异常）
+        const isComingSoon = idOrCode === 'new-books-coming';
         
         const cardContent = (
-          <div className={`flex flex-col md:relative w-full min-h-[355px] book-card-height overflow-hidden mx-auto bg-[#F3F3F3] transition-colors duration-300 ${
-            isComingSoon ? '' : 'group-hover:bg-[#E0E4EF]'
-          }`}>
+          <div className="flex flex-col md:relative w-full min-h-[355px] book-card-height overflow-hidden mx-auto bg-[#F3F3F3] transition-colors duration-300 group-hover:bg-[#E0E4EF]">
             {/* 图片容器 */}
             <div className="relative w-full flex-shrink-0">
               {/* Mobile Cover：贴顶，宽度等于容器，高度自适应 */}
               <img
                 src={mobileCoverUrl}
                 alt={String(name || 'Product image')}
-                className={`block md:hidden w-full h-auto object-contain object-top transition-opacity duration-300 ${
-                  isComingSoon ? '' : 'group-hover:opacity-0'
-                }`}
+                className="block md:hidden w-full h-auto object-contain object-top transition-opacity duration-300 group-hover:opacity-0"
                 style={{ objectPosition: 'top' }}
               />
               {/* Default Cover (Desktop)：贴顶，宽度等于容器，高度自适应 */}
               <img
                 src={defaultCoverUrl}
                 alt={String(name || 'Product image')}
-                className={`hidden md:block w-full h-auto object-contain object-top transition-opacity duration-300 ${
-                  isComingSoon ? '' : 'group-hover:opacity-0'
-                }`}
+                className="hidden md:block w-full h-auto object-contain object-top transition-opacity duration-300 group-hover:opacity-0"
                 style={{ objectPosition: 'top' }}
               />
               {/* Hover Cover (Desktop only)：同样贴顶，宽度等于容器 */}
-              {!isComingSoon && (
-                <img
-                  src={hoverCoverUrl}
-                  alt={String(name || 'Product image')}
-                  className="hidden md:block w-full h-auto object-contain object-top opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute inset-x-0 top-0"
-                  style={{ objectPosition: 'top' }}
-                  onError={(e) => {
-                    const target = e.currentTarget as HTMLImageElement;
-                    target.src = defaultCoverUrl;
-                  }}
-                />
-              )}
+              <img
+                src={hoverCoverUrl}
+                alt={String(name || 'Product image')}
+                className="hidden md:block w-full h-auto object-contain object-top opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute inset-x-0 top-0"
+                style={{ objectPosition: 'top' }}
+                onError={(e) => {
+                  const target = e.currentTarget as HTMLImageElement;
+                  target.src = defaultCoverUrl;
+                }}
+              />
             </div>
             
             {/* Mobile: 标题和价格在图片下方 */}
@@ -115,18 +109,22 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
                   ${Number(priceVal).toFixed(2)}
                 </p>
               ) : (
-                <p className="text-[#666666] text-[14px]">
-                  New books will be online soon, please stay tuned
-                </p>
+                <div className="flex flex-col items-center gap-2 px-4">
+                  <p className="text-[#666666] text-[14px] text-center">
+                    New books will be online soon, please stay tuned
+                  </p>
+                  <span className="text-[#222222] text-[14px] font-medium inline-flex items-center gap-2">
+                    Fill it out
+                    <svg width="18" height="10" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1 5H17M17 5L12.5 1M17 5L12.5 9" stroke="#222222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </span>
+                </div>
               )}
             </div>
 
             {/* Desktop: Overlay - name and price floated over image */}
-            <div className={`hidden md:flex absolute inset-x-0 bottom-0 pt-12 pb-8 lg:pt-20 lg:pb-16 flex-col items-center z-20 transform transition-transform duration-300 ${
-              isComingSoon 
-                ? 'gap-3 translate-y-[-48px]' 
-                : 'gap-3 group-hover:gap-6 translate-y-[-48px] group-hover:translate-y-0'
-            }`}>
+            <div className="hidden md:flex absolute inset-x-0 bottom-0 pt-12 pb-8 lg:pt-20 lg:pb-16 flex-col items-center z-20 transform transition-transform duration-300 gap-3 group-hover:gap-6 translate-y-[-48px] group-hover:translate-y-0">
               <div className="flex flex-col items-center gap-1">
                 <h3 className="text-[#222222] text-[18px] font-medium text-center px-4 line-clamp-2">
                   {name}
@@ -142,13 +140,21 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
                   ${Number(priceVal).toFixed(2)}
                 </p>
               ) : (
-                <p className="text-[#666666] text-[16px]">
+                <p className="text-[#666666] text-[16px] text-center px-4">
                   New books will be online soon, please stay tuned
                 </p>
               )}
               {!isComingSoon && (
                 <button className="hidden group-hover:inline-flex text-[#222222] text-sm items-center gap-2">
                   {t('personalize')}
+                  <svg width="18" height="10" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 5H17M17 5L12.5 1M17 5L12.5 9" stroke="#222222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              )}
+              {isComingSoon && (
+                <button className="hidden group-hover:inline-flex text-[#222222] text-sm items-center gap-2">
+                  Fill it out
                   <svg width="18" height="10" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M1 5H17M17 5L12.5 1M17 5L12.5 9" stroke="#222222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
