@@ -59,7 +59,10 @@ function formatPrice(price: number) {
 
 function BundleCard({ bundle, onGetBundle }: { bundle: Bundle; onGetBundle: (bundle: Bundle) => void }) {
   return (
-    <div className="bg-white rounded-[12px] p-6 md:p-8 lg:w-[528px] lg:pt-6 lg:pr-6 lg:pb-12 lg:pl-6 lg:rounded-[4px] lg:space-y-12">
+    <div
+      className="bg-white rounded-[12px] p-6 md:p-8 lg:w-[528px] lg:pt-6 lg:pr-6 lg:pb-12 lg:pl-6 lg:rounded-[4px] lg:space-y-12"
+      style={{ boxShadow: '6px 12px 20px rgba(0, 0, 0, 0.02)' }}
+    >
       <div className="lg:flex lg:flex-col lg:w-[480px] lg:gap-6">
         <div className="bg-[#F8F8F8]">
           {/* <div className="py-6">
