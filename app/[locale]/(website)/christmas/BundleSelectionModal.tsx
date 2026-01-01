@@ -109,7 +109,7 @@ export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onC
       <div className="relative w-full h-full overflow-y-auto">
         {/* 桌面端 Header */}
         <div className="hidden md:flex h-14 bg-white items-center px-4 sm:px-32">
-          <button className="flex items-center gap-2 text-sm text-[#222222] cursor-pointer" onClick={onClose}>
+          <button className="flex items-center gap-2 text-md text-[#222222] cursor-pointer" onClick={onClose}>
             <span aria-hidden>←</span> Back
           </button>
           <div className="flex-1" />

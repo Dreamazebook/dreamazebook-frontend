@@ -731,7 +731,16 @@ export default function ChristmasPage() {
         </div>
 
         <div className="relative w-full max-w-[1012px] z-10 mx-auto px-3 h-[60px]">
-          <div className="bg-[#FCE5E5] h-[60px] rounded-full p-1 md:p-2 flex items-center gap-[6px] md:gap-12">
+          {(() => {
+            const activeIndex = Math.max(0, groups.findIndex(g => g.id === activeTab))
+            return (
+              <div className="bg-[#FCE5E5] h-[60px] rounded-full p-1 md:p-2">
+                <div
+                  className="bundleTabsInner relative flex h-full items-center gap-[6px] md:gap-12"
+                  style={{ ['--tab-index' as any]: activeIndex }}
+                >
+                  {/* sliding indicator */}
+                  <div aria-hidden className="bundleTabsIndicator absolute inset-y-0 left-0 rounded-full bg-white" />
             {groups.map(g => {
               // 检查 label 是否包含括号，如果有则拆分显示
               const match = g.label.match(/^(.+?)\s*\((.+?)\)$/);
@@ -751,9 +760,9 @@ export default function ChristmasPage() {
                   onClick={() => {
                     scrollToGroup(g.id as typeof activeTab)
                   }}
-                  className={`flex-1 text-[14px] font-medium md:px-3 md:gap-[10px] h-full rounded-full text-center ${
+                  className={`relative z-10 flex-1 text-[14px] md:px-3 md:gap-[10px] h-full rounded-full text-center transition-colors ${
                     activeTab === g.id
-                      ? 'bg-white text-[#222222] md:font-bold'
+                      ? 'text-[#222222] md:font-bold'
                       : 'text-[#222222] hover:bg-[#FADADA] md:font-medium'
                   }`}
                 >
@@ -761,7 +770,27 @@ export default function ChristmasPage() {
                 </button>
               );
             })}
-          </div>
+                </div>
+                <style jsx>{`
+                  .bundleTabsInner {
+                    --tab-gap: 6px;
+                  }
+                  @media (min-width: 768px) {
+                    .bundleTabsInner {
+                      --tab-gap: 48px; /* md:gap-12 */
+                    }
+                  }
+                  .bundleTabsIndicator {
+                    pointer-events: none;
+                    will-change: transform;
+                    width: calc((100% - 2 * var(--tab-gap)) / 3);
+                    transform: translateX(calc(var(--tab-index) * (100% + var(--tab-gap))));
+                    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+                  }
+                `}</style>
+              </div>
+            )
+          })()}
         </div>
 
       {/* Bundles */}
