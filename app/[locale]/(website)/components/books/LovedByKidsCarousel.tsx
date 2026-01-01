@@ -15,9 +15,17 @@ interface CarouselCard {
 
 interface LovedByKidsCarouselProps {
   cards: CarouselCard[];
+  /** 桌面端（三卡）左右卡片与中间卡片之间的“视觉间距”（px），影响 translateX 的计算 */
+  desktopGapPx?: number;
+  /** 移动端（两卡）间距（px） */
+  mobileGapPx?: number;
 }
 
-const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
+const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({
+  cards,
+  desktopGapPx = 48,
+  mobileGapPx = 18,
+}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [cardsToShow, setCardsToShow] = useState(2); // 默认移动端显示 2 张
   const touchStartX = useRef<number | null>(null);
@@ -118,7 +126,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({ cards }) => {
             const isDesktop = isDesktopRef.current;
             const baseW = isDesktop ? 800 : 280;
             const baseH = isDesktop ? 450 : 361; // 中间卡片的高度 → 用于固定容器高度
-            const gap = isDesktop ? 32 : 18;
+            const gap = isDesktop ? desktopGapPx : mobileGapPx;
             // 左右卡片的目标缩放（模拟 480x270 与 800x450 的比例 ≈ 0.6）
             const sideScale = isDesktop ? 0.6 : 0.9; // 移动端原设计 325/361 ≈ 0.9
             const centerScale = 1;
