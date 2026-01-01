@@ -221,9 +221,11 @@ export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onC
                       }
                     }}
                     className={`flex-none basis-[calc(50%-6px)] md:basis-[calc(33.333%-16px)] rounded-[4px] relative bg-white overflow-hidden px-3 md:px-4 py-3 md:py-0 md:pb-6 flex flex-col items-center text-center ${
-                      // Figma: X=6, Y=12, Blur=20, Spread=0, Color=#000000 @ 2%
-                      'shadow-[6px_12px_20px_rgba(0,0,0,0.02)]'
-                    } ${disabled ? 'cursor-default' : 'hover:shadow-md transition-shadow cursor-pointer'}`}
+                      disabled
+                        ? 'cursor-default'
+                        : // 默认无阴影，hover 时才出现阴影（Figma: X=6, Y=12, Blur=20, Spread=0, #000 2%）
+                          'cursor-pointer transition-shadow hover:shadow-[6px_12px_20px_rgba(0,0,0,0.02)]'
+                    }`}
                   >
                     {disabled && (
                       <span className="font-normal absolute right-0 top-0 z-10 rounded-bl-[4px] rounded-tr-[4px] bg-[#012CCE1A] px-2 text-[12px] md:text-[16px] leading-[24px] tracking-[0.5px] text-[#012CCE] uppercase">
