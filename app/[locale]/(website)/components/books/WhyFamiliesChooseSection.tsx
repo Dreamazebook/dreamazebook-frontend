@@ -66,13 +66,13 @@ const WhyFamiliesChooseSection: React.FC<WhyFamiliesChooseSectionProps> = ({
             >
               {/* 左侧：图标 */}
               {feature.icon ? (
-                <div className="w-[64px] h-[64px] flex-shrink-0 self-center rounded-[4px] overflow-hidden">
+                <div className="w-[36px] h-[36px] md:w-[64px] md:h-[64px] flex-shrink-0 self-center rounded-[4px] overflow-hidden">
                   <Image
                     src={feature.icon}
                     alt={feature.title}
                     width={64}
                     height={64}
-                    className="w-full h-full object-cover scale-100"
+                    className="w-full h-full object-cover"
                     unoptimized={true}
                   />
                 </div>
