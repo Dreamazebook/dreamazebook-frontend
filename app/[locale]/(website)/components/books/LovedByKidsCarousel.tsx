@@ -269,7 +269,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({
           onClick={prevSlide}
           className="hidden lg:flex absolute top-25 w-12 h-12 rounded-full bg-transparent border border-[#222222] items-center justify-center hover:bg-[#F9E8E8] transition-colors z-10"
           style={{
-            left: 'calc(50% - 400px - 48px - 16px)',
+            left: 'calc(50% - 400px - 54px - 16px)',
           }}
           aria-label="Previous slide"
         >
@@ -281,7 +281,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({
           onClick={nextSlide}
           className="hidden lg:flex absolute right-0 bottom-25 w-12 h-12 rounded-full bg-transparent border border-[#222222] items-center justify-center hover:bg-[#F9E8E8] transition-colors z-10"
           style={{
-            left: 'calc(50% + 400px + 16px)',
+            left: 'calc(50% + 400px + 24px)',
           }}
           aria-label="Next slide"
         >
