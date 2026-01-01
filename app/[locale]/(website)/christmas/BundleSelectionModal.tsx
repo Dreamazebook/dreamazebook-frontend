@@ -132,8 +132,8 @@ export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onC
         </div>
 
         <div className="px-6 md:px-10 bg-[#F8F8F8] lg:px-[220px] pt-18 md:pt-6 md:py-10 pb-32 md:pb-10 gap-3 flex flex-col">
-          <div className="text-center gap-3 md:gap-0 flex flex-col items-center">
-            <p className="hidden md:block text-[22px] md:text-[28px] leading-[36px] text-[#222222]">{bundle.title}</p>
+          <div className="text-center gap-3 md:gap-2 flex flex-col items-center">
+            <p className="text-[24px] leading-[32px] md:text-[28px] md:leading-[36px] text-[#222222]">{bundle.title}</p>
             <p className="text-sm md:text-[16px] leading-[24px] tracking-[0.5px] text-[#444444]">
               {bundle.features.filter(Boolean).join(' • ')}
             </p>
@@ -188,7 +188,7 @@ export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onC
                     </button>
                   ) : (
                     <div
-                      className="absolute top-2 left-1 w-[42px] h-[48px] rounded-[2px] border-[0.5px] border-gray-200 bg-white text-[#F0F0F0] flex items-center justify-center text-[30px] leading-[30px]"
+                      className="absolute top-2 left-1 w-[42px] h-[48px] rounded-[2px] bg-white text-[#F0F0F0] flex items-center justify-center text-[30px] leading-[30px]"
                       style={inactiveShadowStyle}
                     >
                       +
@@ -221,11 +221,12 @@ export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onC
                       }
                     }}
                     className={`flex-none basis-[calc(50%-6px)] md:basis-[calc(33.333%-16px)] rounded-[4px] relative bg-white overflow-hidden px-3 md:px-4 py-3 md:py-0 md:pb-6 flex flex-col items-center text-center ${
-                      disabled ? 'cursor-not-allowed' : 'hover:shadow-md transition-shadow cursor-pointer'
-                    }`}
+                      // Figma: X=6, Y=12, Blur=20, Spread=0, Color=#000000 @ 2%
+                      'shadow-[6px_12px_20px_rgba(0,0,0,0.02)]'
+                    } ${disabled ? 'cursor-default' : 'hover:shadow-md transition-shadow cursor-pointer'}`}
                   >
                     {disabled && (
-                      <span className="absolute right-0 top-0 z-10 rounded-bl-[4px] rounded-tr-[4px] bg-[#012CCE1A] px-2 py-1 text-[12px] md:text-[16px] leading-[24px] tracking-[0.5px] text-[#012CCE] uppercase">
+                      <span className="font-normal absolute right-0 top-0 z-10 rounded-bl-[4px] rounded-tr-[4px] bg-[#012CCE1A] px-2 text-[12px] md:text-[16px] leading-[24px] tracking-[0.5px] text-[#012CCE] uppercase">
                         Sold out
                       </span>
                     )}
@@ -239,7 +240,7 @@ export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onC
                         />
                       </div>
                       {selectedTimes > 0 && (
-                        <span className="absolute right-3 top-3 rounded-full bg-[#222222] text-white text-xs px-2 py-1">
+                        <span className="absolute right-0 top-0 md:right-3 md:top-3 md:bottom-auto rounded-full bg-[#222222] text-white text-xs px-2 py-1">
                           {selectedTimes}x
                         </span>
                       )}
@@ -248,7 +249,7 @@ export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onC
                       <p className="hidden md:block text-[20px] md:font-medium md:text-[18px] text-[#222222] leading-[24px] tracking-[0.15px]">{book.name}</p>
                       <Link
                         href={book.href}
-                        className="text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[#999999] hover:underline flex items-center gap-1"
+                        className="text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[#222222] hover:underline flex items-center gap-1"
                         onClick={(e) => handleMoreDetails(book, e)}
                       >
                         About this book <span aria-hidden className="hidden md:inline">→</span>
@@ -268,7 +269,7 @@ export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onC
               disabled={!canSubmit || !!isSubmitting}
               className={`w-full md:w-auto min-w-[240px] px-6 py-3 rounded-[4px] text-[16px] leading-[24px] tracking-[0.5px] ${
                 canSubmit && !isSubmitting
-                  ? 'bg-[#222222] text-[#F5E3E3] hover:bg-[#001E99]'
+                  ? 'bg-[#222222] text-[#F5E3E3]'
                   : 'bg-[#C4C4C4] text-white cursor-not-allowed'
               }`}
             >
