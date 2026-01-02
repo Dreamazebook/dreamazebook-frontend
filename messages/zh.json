@@ -289,7 +289,7 @@
   "addressForm": {
     "email": "邮箱",
     "emailPlaceholder": "请输入您的邮箱地址",
-    "emailHelp": "我们将与您确认书籍的最终效果，并更新您的订单状态",
+    "emailHelp": "您的完整书籍预览将在 48 小时内通过电子邮件发送给您。",
     "firstName": "名字",
     "firstNamePlaceholder": "请输入您的名字",
     "lastName": "姓氏",

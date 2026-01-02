@@ -289,7 +289,7 @@
   "addressForm": {
     "email": "Email",
     "emailPlaceholder": "Enter your email address",
-    "emailHelp": "We will confirm the final effect of the book with you and update you on the status of your order",
+    "emailHelp": "Your full book preview will be emailed within 48 hours.",
     "firstName": "First Name",
     "firstNamePlaceholder": "Enter your first name",
     "lastName": "Last Name", 
