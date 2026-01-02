@@ -11,7 +11,6 @@ import {
   API_ORDER_PROGRESS,
   API_ORDER_STRIPE_PAID,
   API_ORDER_UPDATE_MESSAGE,
-  API_ORDER_UPDATE_ADDRESS,
 } from "@/constants/api";
 import OrderSummaryPrices from "../../components/component/OrderSummaryPrices";
 import OrderSummaryDelivery from "../../components/component/OrderSummaryDelivery";
@@ -21,8 +20,8 @@ import Image from "next/image";
 import { CartItem } from "@/types/cart";
 import OrderStatusLabel from "../../components/component/OrderStatusLabel";
 import OrderTitle from "./components/OrderTitle";
-import AddressForm from "../checkout/components/AddressForm";
-import { Address, EMPTY_ADDRESS } from "@/types/address";
+import AddressEditModal from "../../components/component/AddressEditModal";
+import { useAddressModal } from "@/hooks/useAddressModal";
 
 const OrderSummary: React.FC = () => {
   const t = useTranslations("orderSummary");
@@ -35,8 +34,27 @@ const OrderSummary: React.FC = () => {
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<CartItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showAddressModal, setShowAddressModal] = useState(false);
-  const [address, setAddress] = useState<Address>(EMPTY_ADDRESS);
+
+  // Use address modal hook
+  const {
+    showAddressModal,
+    selectedOrderDetail,
+    address,
+    setAddress,
+    openAddressModal,
+    closeAddressModal,
+    updateShippingAddress,
+  } = useAddressModal({
+    onAddressUpdated: async () => {
+      // Refresh order detail after address update
+      if (orderId) {
+        const { data, success } = await fetchOrderDetail(orderId);
+        if (success) {
+          setOrderDetail(data);
+        }
+      }
+    }
+  });
 
   const getOrderProgress = async (orderId: string) => {
     if (orderId) {
@@ -88,46 +106,6 @@ const OrderSummary: React.FC = () => {
   const handleClickEditMessage = (orderItem: any) => {
     setSelectedItem(orderItem);
     setShowMessageModal(true);
-  };
-
-  const handleClickEditShippingAddress = () => {
-    if (orderDetail?.shipping_address) {
-      setAddress(orderDetail.shipping_address);
-      setShowAddressModal(true);
-    }
-  };
-
-  const updateShippingAddress = async () => {
-    if (!orderDetail || !address) {
-      return { success: false, message: 'No order or address data available' };
-    }
-
-    try {
-      const response = await api.put<ApiResponse>(API_ORDER_UPDATE_ADDRESS(orderDetail.id), {
-        shipping_address_id: address.id,
-        shipping_address: address,
-      });
-
-      if (response.success) {
-        // Refresh order detail to get updated data
-        if (orderId) {
-          const { data, success } = await fetchOrderDetail(orderId);
-          if (success) {
-            setOrderDetail(data);
-          }
-        }
-        setShowAddressModal(false);
-        return { success: true };
-      } else {
-        return { success: false, message: response.message || 'Failed to update address' };
-      }
-    } catch (error: any) {
-      console.error('Error updating shipping address:', error);
-      return {
-        success: false,
-        message: error?.response?.data?.message || 'Failed to update shipping address'
-      };
-    }
   };
   const handleMessageSubmit = async (updateMessage: string) => {
     setIsSubmitting(true);
@@ -254,7 +232,7 @@ const OrderSummary: React.FC = () => {
             <>
               <OrderSummaryDelivery
                 orderDetail={orderDetail}
-                handleClickEditShippingAddress={handleClickEditShippingAddress}
+                handleClickEditShippingAddress={() => openAddressModal(orderDetail)}
                 showShipTo={true}
               />
               <OrderSummaryPrices orderDetail={orderDetail} />
@@ -289,28 +267,14 @@ const OrderSummary: React.FC = () => {
       </div>
 
       {/* Address Edit Modal */}
-      {showAddressModal && orderDetail && address && (
-        <>
-          <div
-            className="fixed h-full w-full bottom-0 left-0 bg-black/50 z-100"
-            onClick={() => setShowAddressModal(false)}
-          ></div>
-          <div className="fixed bottom-0 rounded left-0 w-full z-200 max-h-full bg-white p-[24px] overflow-y-auto md:w-[600px] md:h-[620px] right-0 mx-auto md:top-[50%] md:-translate-y-1/2">
-            <span
-              className="absolute top-3 right-3 text-xl cursor-pointer"
-              onClick={() => setShowAddressModal(false)}
-            >
-              X
-            </span>
-            <AddressForm
-              orderDetail={orderDetail}
-              address={address}
-              setAddress={setAddress}
-              updateShippingAddress={updateShippingAddress}
-            />
-          </div>
-        </>
-      )}
+      <AddressEditModal
+        show={showAddressModal}
+        orderDetail={selectedOrderDetail}
+        address={address}
+        setAddress={setAddress}
+        updateShippingAddress={updateShippingAddress}
+        onClose={closeAddressModal}
+      />
     </div>
   );
 };

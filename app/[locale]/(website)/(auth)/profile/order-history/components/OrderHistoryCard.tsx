@@ -9,7 +9,7 @@ import useOrderStatus from "../../../../hooks/useOrderStatus";
 import { useTranslations } from "next-intl";
 import OrderSummaryDelivery from "@/app/[locale]/(website)/components/component/OrderSummaryDelivery";
 
-const OrderHistoryCard = ({ orderDetail,showStatus,openModal }: { orderDetail: OrderDetail,showStatus:Boolean, openModal:(orderDetail:OrderDetail,modal?:string)=>void }) => {
+const OrderHistoryCard = ({ orderDetail,showStatus,openModal,openAddressModal }: { orderDetail: OrderDetail,showStatus:Boolean, openModal:(orderDetail:OrderDetail)=>void, openAddressModal:(orderDetail:OrderDetail)=>void }) => {
   const orderDetailLink =
     orderDetail.payment_status === "paid"
       ? ORDER_SUMMARY_URL(orderDetail.id)
@@ -66,7 +66,12 @@ const OrderHistoryCard = ({ orderDetail,showStatus,openModal }: { orderDetail: O
           />
         </div>
 
-        <OrderSummaryDelivery bgColor="bg-white" showShipTo={false} orderDetail={orderDetail} />
+        <OrderSummaryDelivery
+          bgColor="bg-white"
+          showShipTo={false}
+          orderDetail={orderDetail}
+          handleClickEditShippingAddress={openAddressModal ? () => openAddressModal(orderDetail) : undefined}
+        />
 
         <div className="flex gap-[32px] font-[16px]">
           {orderDetail.status === "delivered" && (
@@ -79,7 +84,7 @@ const OrderHistoryCard = ({ orderDetail,showStatus,openModal }: { orderDetail: O
           {orderDetail.permissions.can_update_address_except_country && (
             <button
               className="cursor-pointer text-primary hover:underline flex items-center gap-1"
-              onClick={()=>openModal(orderDetail, 'address')}
+              onClick={()=>openAddressModal(orderDetail)}
             >
               {t("editShippingAddress")}
             </button>

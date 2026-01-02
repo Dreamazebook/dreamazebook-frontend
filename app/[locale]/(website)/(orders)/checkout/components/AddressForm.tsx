@@ -46,7 +46,7 @@ interface AddressFormProps {
   address: Address;
   setAddress: (value: React.SetStateAction<Address>) => void;
   orderDetail: OrderDetail;
-  updateShippingAddress?: () => Promise<{ success: boolean; message?: string }>;
+  updateShippingAddress?: (orderId:string|number) => Promise<{ success: boolean; message?: string }>;
 }
 
 const AddressForm = forwardRef<
@@ -419,7 +419,7 @@ const AddressForm = forwardRef<
               if (validateShippingInfo()) {
                 setIsUpdating(true);
                 try {
-                  const result = await updateShippingAddress();
+                  const result = await updateShippingAddress(orderDetail.id);
                   if (result.success) {
                     // Success message or close modal logic could be handled by parent
                     console.log('Address updated successfully');
