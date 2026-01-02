@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { EMPTY_CART_ITEM, formatDate, OrderDetail } from "@/types/order";
+import { formatDate, OrderDetail } from "@/types/order";
 import useUserStore from "@/stores/userStore";
 import api from "@/utils/api";
 import { ApiResponse } from "@/types/api";
@@ -13,7 +13,6 @@ import {
   API_ORDER_UPDATE_MESSAGE,
 } from "@/constants/api";
 import OrderSummaryPrices from "../../components/component/OrderSummaryPrices";
-import StepIndicator from "./components/StepIndicator";
 import OrderSummaryDelivery from "../../components/component/OrderSummaryDelivery";
 import CartItemCard from "../shopping-cart/components/CartItemCard";
 import MessageModal from "./components/MessageModal";
@@ -21,6 +20,8 @@ import Image from "next/image";
 import { CartItem } from "@/types/cart";
 import OrderStatusLabel from "../../components/component/OrderStatusLabel";
 import OrderTitle from "./components/OrderTitle";
+import AddressEditModal from "../../components/component/AddressEditModal";
+import { useAddressModal } from "@/hooks/useAddressModal";
 
 const OrderSummary: React.FC = () => {
   const t = useTranslations("orderSummary");
@@ -30,6 +31,30 @@ const OrderSummary: React.FC = () => {
 
   const [orderDetail, setOrderDetail] = useState<OrderDetail>();
   const [isLoading, setIsLoading] = useState(true);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<CartItem | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Use address modal hook
+  const {
+    showAddressModal,
+    selectedOrderDetail,
+    address,
+    setAddress,
+    openAddressModal,
+    closeAddressModal,
+    updateShippingAddress,
+  } = useAddressModal({
+    onAddressUpdated: async () => {
+      // Refresh order detail after address update
+      if (orderId) {
+        const { data, success } = await fetchOrderDetail(orderId);
+        if (success) {
+          setOrderDetail(data);
+        }
+      }
+    }
+  });
 
   const getOrderProgress = async (orderId: string) => {
     if (orderId) {
@@ -69,10 +94,6 @@ const OrderSummary: React.FC = () => {
     }
   }, []);
 
-  const [showMessageModal, setShowMessageModal] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<CartItem | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const copyOrderNumberToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(orderDetail?.order_number || "");
@@ -81,6 +102,7 @@ const OrderSummary: React.FC = () => {
       console.error("Failed to copy order number:", err);
     }
   };
+
   const handleClickEditMessage = (orderItem: any) => {
     setSelectedItem(orderItem);
     setShowMessageModal(true);
@@ -208,7 +230,11 @@ const OrderSummary: React.FC = () => {
         <div className="grid gap-4 mb-6 bg-white py-[16px] px-[24px]">
           {orderDetail && (
             <>
-              <OrderSummaryDelivery orderDetail={orderDetail} />
+              <OrderSummaryDelivery
+                orderDetail={orderDetail}
+                handleClickEditShippingAddress={() => openAddressModal(orderDetail)}
+                showShipTo={true}
+              />
               <OrderSummaryPrices orderDetail={orderDetail} />
             </>
           )}
@@ -239,6 +265,16 @@ const OrderSummary: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Address Edit Modal */}
+      <AddressEditModal
+        show={showAddressModal}
+        orderDetail={selectedOrderDetail}
+        address={address}
+        setAddress={setAddress}
+        updateShippingAddress={updateShippingAddress}
+        onClose={closeAddressModal}
+      />
     </div>
   );
 };

@@ -3,13 +3,10 @@ import React, { useEffect, useState } from 'react';
 import useUserStore from '@/stores/userStore';
 import OrderHistoryCard from './components/OrderHistoryCard';
 import { useTranslations } from 'next-intl';
-import { OrderDetail, statusLabelMap } from '@/types/order';
-import { Address, EMPTY_ADDRESS } from '@/types/address';
+import { OrderDetail } from '@/types/order';
 import ReviewAndPay from '../../../(orders)/checkout/components/ReviewAndPay';
-import AddressForm from '../../../(orders)/checkout/components/AddressForm';
-import api from '@/utils/api';
-import { API_ORDER_UPDATE_ADDRESS } from '@/constants/api';
-import { ApiResponse } from '@/types/api';
+import { useAddressModal } from '@/hooks/useAddressModal';
+import AddressEditModal from '../../../components/component/AddressEditModal';
 
 const OrderHistory = () => {
   const {orderList, fetchOrderList, orderStatusMapping} = useUserStore();
@@ -17,93 +14,76 @@ const OrderHistory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('all');
-  const [showModal, setShowModal] = useState('');
-  const [selectedOrderDetail, setSelectedOrderDetail] = useState<OrderDetail|null>(null);
-  const [address, setAddress] = useState<Address>(EMPTY_ADDRESS);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedOrderDetailForPayment, setSelectedOrderDetailForPayment] = useState<OrderDetail | null>(null);
+
+  // Use address modal hook
+  const {
+    showAddressModal,
+    selectedOrderDetail,
+    address,
+    setAddress,
+    openAddressModal,
+    closeAddressModal,
+    updateShippingAddress,
+  } = useAddressModal({
+    onAddressUpdated: async () => {
+      // Refresh order list after address update
+      await fetchOrderList();
+    }
+  });
 
   const filteredOrders = activeTab === 'all' 
     ? orderList 
     : orderList.filter(order => orderStatusMapping?.[order.status] === activeTab);
 
   const tabs = [
-    { 
-      id: 'all', 
-      label: t(statusLabelMap.all), 
-      count: orderList.length 
+    {
+      id: 'all',
+      label: t('allOrder'),
+      count: orderList.length
     },
-    { 
-      id: 'unpaid', 
-      label: t(statusLabelMap.unpaid), 
-      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'unpaid').length 
+    {
+      id: 'unpaid',
+      label: t('unpaid'),
+      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'unpaid').length
     },
-    { 
-      id: 'processing', 
-      label: t(statusLabelMap.processing), 
-      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'processing').length 
+    {
+      id: 'processing',
+      label: t('digitalProduction'),
+      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'processing').length
     },
-    { 
-      id: 'confirmed', 
-      label: t(statusLabelMap.confirmed), 
-      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'confirmed').length 
+    {
+      id: 'confirmed',
+      label: t('printProduction'),
+      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'confirmed').length
     },
-    { 
-      id: 'shipping', 
-      label: t(statusLabelMap.shipping), 
-      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'shipping').length 
+    {
+      id: 'shipping',
+      label: t('inTransit'),
+      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'shipping').length
     },
-    { 
-      id: 'completed', 
-      label: t(statusLabelMap.completed), 
-      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'completed').length 
+    {
+      id: 'completed',
+      label: t('delivered'),
+      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'completed').length
     },
-    { 
-      id: 'closed', 
-      label: t(statusLabelMap.closed), 
-      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'closed').length 
+    {
+      id: 'closed',
+      label: t('closed'),
+      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'closed').length
     },
   ];
 
-  const openModal = (orderDetail: OrderDetail, modal='payment') => {
-    setShowModal(modal);
-    setSelectedOrderDetail(orderDetail);
-    if (modal === 'address') {
-      setAddress(orderDetail.shipping_address);
-    }
+  const openPaymentModal = (orderDetail: OrderDetail) => {
+    setShowPaymentModal(true);
+    setSelectedOrderDetailForPayment(orderDetail);
   };
 
-  const closeModal = () => {
-    setShowModal('');
-    setSelectedOrderDetail(null);
-    setAddress(EMPTY_ADDRESS);
-  }
-
-  const updateShippingAddress = async () => {
-    if (!selectedOrderDetail || !address) {
-      return { success: false, message: 'No order or address data available' };
-    }
-
-    try {
-      const response = await api.put<ApiResponse>(API_ORDER_UPDATE_ADDRESS(selectedOrderDetail.id), {
-        shipping_address_id: address.id,
-        shipping_address: address,
-      });
-
-      if (response.success) {
-        // Refresh order list to get updated data
-        await fetchOrderList();
-        closeModal();
-        return { success: true };
-      } else {
-        return { success: false, message: response.message || 'Failed to update address' };
-      }
-    } catch (error: any) {
-      console.error('Error updating shipping address:', error);
-      return { 
-        success: false, 
-        message: error?.response?.data?.message || 'Failed to update shipping address' 
-      };
-    }
-  }
+  const closePaymentModal = () => {
+    setShowPaymentModal(false);
+    setSelectedOrderDetailForPayment(null);
+  };
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -179,30 +159,40 @@ const OrderHistory = () => {
         {/* Order List */}
         <div className="space-y-[12px]">
           {filteredOrders.map((order) => (
-            <OrderHistoryCard openModal={openModal} showStatus={activeTab==='all'} key={order.id} orderDetail={order} />
+            <OrderHistoryCard
+              openModal={openPaymentModal}
+              openAddressModal={openAddressModal}
+              showStatus={activeTab==='all'}
+              key={order.id}
+              orderDetail={order}
+            />
           ))}
         </div>
       </div>
 
       {/* Payment Modal */}
-      {showModal && selectedOrderDetail && (
+      {showPaymentModal && selectedOrderDetailForPayment && (
         <>
-        <div className='fixed h-full w-full bottom-0 left-0 bg-black/50 z-100' onClick={closeModal}></div>
-        <div className='fixed bottom-0 rounded left-0 w-full z-200 max-h-full bg-white p-[24px] overflow-y-auto md:w-[600px] md:h-[620px] right-0 mx-auto md:top-[50%] md:-translate-y-1/2'>
-          <span className='absolute top-3 right-3 text-xl cursor-pointer' onClick={closeModal}>X</span>
-          {showModal === 'payment' && <ReviewAndPay orderDetail={selectedOrderDetail} />}
-          {showModal === 'address' && address && (
-            <AddressForm 
-              orderDetail={selectedOrderDetail} 
-              address={address} 
-              setAddress={setAddress} 
-              updateShippingAddress={updateShippingAddress}
-            />
-          )}
-        </div>
+          <div
+            className='fixed h-full w-full bottom-0 left-0 bg-black/50 z-100'
+            onClick={closePaymentModal}
+          ></div>
+          <div className='fixed bottom-0 rounded left-0 w-full z-200 max-h-full bg-white p-[24px] overflow-y-auto md:w-[600px] md:h-[620px] right-0 mx-auto md:top-[50%] md:-translate-y-1/2'>
+            <span className='absolute top-3 right-3 text-xl cursor-pointer' onClick={closePaymentModal}>X</span>
+            <ReviewAndPay orderDetail={selectedOrderDetailForPayment} />
+          </div>
         </>
       )}
 
+      {/* Address Edit Modal */}
+      <AddressEditModal
+        show={showAddressModal}
+        orderDetail={selectedOrderDetail}
+        address={address}
+        setAddress={setAddress}
+        updateShippingAddress={updateShippingAddress}
+        onClose={closeAddressModal}
+      />
     </div>
   );
 };

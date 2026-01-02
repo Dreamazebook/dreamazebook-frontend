@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 
 const OrderHistoryTextStyle = ({ label, value }: any) => {
   return (
-    <div className="mb-1 flex gap-[12px]">
+    <div className="flex gap-[12px]">
       <span className="text-[#999999]">{label}</span>
       {value}
     </div>
@@ -13,20 +13,26 @@ const OrderHistoryTextStyle = ({ label, value }: any) => {
 interface OrderSummaryDeliveryProps {
   orderDetail: OrderDetail;
   showShipTo?: boolean;
-  bgColor?: string
+  bgColor?: string;
+  handleClickEditShippingAddress?: () => void;
 }
 
-const OrderSummaryDelivery = ({ orderDetail, showShipTo = true, bgColor = 'bg-[#F8F8F8]' }: OrderSummaryDeliveryProps) => {
+const OrderSummaryDelivery = ({ orderDetail, handleClickEditShippingAddress, showShipTo = true, bgColor = 'bg-[#F8F8F8]' }: OrderSummaryDeliveryProps) => {
   const t = useTranslations('orderSummaryDelivery');
 
   return (
     <div className={`text-[#222] mb-4 p-3 space-y-3 ${bgColor}`}>
 
       {showShipTo && (
+        <div className="flex items-center gap-[12px]">
         <OrderHistoryTextStyle
           label={t("shipTo")}
           value={formatAddress(orderDetail.shipping_address)}
         />
+        {orderDetail.permissions.can_update_address_except_country && handleClickEditShippingAddress && 
+          <button className="text-primary cursor-pointer" onClick={handleClickEditShippingAddress}>Edit</button>
+        }
+        </div>
       )}
 
       <div className="flex gap-[12px] mb-1">
