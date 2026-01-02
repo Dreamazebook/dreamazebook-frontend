@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { EMPTY_CART_ITEM, formatDate, OrderDetail } from "@/types/order";
+import { formatDate, OrderDetail } from "@/types/order";
 import useUserStore from "@/stores/userStore";
 import api from "@/utils/api";
 import { ApiResponse } from "@/types/api";
@@ -11,9 +11,9 @@ import {
   API_ORDER_PROGRESS,
   API_ORDER_STRIPE_PAID,
   API_ORDER_UPDATE_MESSAGE,
+  API_ORDER_UPDATE_ADDRESS,
 } from "@/constants/api";
 import OrderSummaryPrices from "../../components/component/OrderSummaryPrices";
-import StepIndicator from "./components/StepIndicator";
 import OrderSummaryDelivery from "../../components/component/OrderSummaryDelivery";
 import CartItemCard from "../shopping-cart/components/CartItemCard";
 import MessageModal from "./components/MessageModal";
@@ -21,6 +21,8 @@ import Image from "next/image";
 import { CartItem } from "@/types/cart";
 import OrderStatusLabel from "../../components/component/OrderStatusLabel";
 import OrderTitle from "./components/OrderTitle";
+import AddressForm from "../checkout/components/AddressForm";
+import { Address, EMPTY_ADDRESS } from "@/types/address";
 
 const OrderSummary: React.FC = () => {
   const t = useTranslations("orderSummary");
@@ -30,6 +32,11 @@ const OrderSummary: React.FC = () => {
 
   const [orderDetail, setOrderDetail] = useState<OrderDetail>();
   const [isLoading, setIsLoading] = useState(true);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<CartItem | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [address, setAddress] = useState<Address>(EMPTY_ADDRESS);
 
   const getOrderProgress = async (orderId: string) => {
     if (orderId) {
@@ -69,10 +76,6 @@ const OrderSummary: React.FC = () => {
     }
   }, []);
 
-  const [showMessageModal, setShowMessageModal] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<CartItem | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const copyOrderNumberToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(orderDetail?.order_number || "");
@@ -81,9 +84,50 @@ const OrderSummary: React.FC = () => {
       console.error("Failed to copy order number:", err);
     }
   };
+
   const handleClickEditMessage = (orderItem: any) => {
     setSelectedItem(orderItem);
     setShowMessageModal(true);
+  };
+
+  const handleClickEditShippingAddress = () => {
+    if (orderDetail?.shipping_address) {
+      setAddress(orderDetail.shipping_address);
+      setShowAddressModal(true);
+    }
+  };
+
+  const updateShippingAddress = async () => {
+    if (!orderDetail || !address) {
+      return { success: false, message: 'No order or address data available' };
+    }
+
+    try {
+      const response = await api.put<ApiResponse>(API_ORDER_UPDATE_ADDRESS(orderDetail.id), {
+        shipping_address_id: address.id,
+        shipping_address: address,
+      });
+
+      if (response.success) {
+        // Refresh order detail to get updated data
+        if (orderId) {
+          const { data, success } = await fetchOrderDetail(orderId);
+          if (success) {
+            setOrderDetail(data);
+          }
+        }
+        setShowAddressModal(false);
+        return { success: true };
+      } else {
+        return { success: false, message: response.message || 'Failed to update address' };
+      }
+    } catch (error: any) {
+      console.error('Error updating shipping address:', error);
+      return {
+        success: false,
+        message: error?.response?.data?.message || 'Failed to update shipping address'
+      };
+    }
   };
   const handleMessageSubmit = async (updateMessage: string) => {
     setIsSubmitting(true);
@@ -208,7 +252,11 @@ const OrderSummary: React.FC = () => {
         <div className="grid gap-4 mb-6 bg-white py-[16px] px-[24px]">
           {orderDetail && (
             <>
-              <OrderSummaryDelivery orderDetail={orderDetail} />
+              <OrderSummaryDelivery
+                orderDetail={orderDetail}
+                handleClickEditShippingAddress={handleClickEditShippingAddress}
+                showShipTo={true}
+              />
               <OrderSummaryPrices orderDetail={orderDetail} />
             </>
           )}
@@ -239,6 +287,30 @@ const OrderSummary: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Address Edit Modal */}
+      {showAddressModal && orderDetail && address && (
+        <>
+          <div
+            className="fixed h-full w-full bottom-0 left-0 bg-black/50 z-100"
+            onClick={() => setShowAddressModal(false)}
+          ></div>
+          <div className="fixed bottom-0 rounded left-0 w-full z-200 max-h-full bg-white p-[24px] overflow-y-auto md:w-[600px] md:h-[620px] right-0 mx-auto md:top-[50%] md:-translate-y-1/2">
+            <span
+              className="absolute top-3 right-3 text-xl cursor-pointer"
+              onClick={() => setShowAddressModal(false)}
+            >
+              X
+            </span>
+            <AddressForm
+              orderDetail={orderDetail}
+              address={address}
+              setAddress={setAddress}
+              updateShippingAddress={updateShippingAddress}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 };
