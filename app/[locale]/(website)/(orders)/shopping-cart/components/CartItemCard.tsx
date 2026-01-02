@@ -341,7 +341,7 @@ export default function CartItemCard({
           ) : (
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3 h-10 pt-4 px-3 opacity-100">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   {onToggleSelect && selectedItems && (
                     <div className="relative inline-block h-6 w-6">
                       <span
@@ -371,7 +371,7 @@ export default function CartItemCard({
                     </div>
                   )}
                   {isChristmasBundle ? (
-                    <span className="font-medium text-[#222222] text-[18px] leading-[24px] tracking-[0.15px] max-w-[260px]">
+                    <span className="font-medium text-[#222222] text-[18px] leading-[24px] tracking-[0.15px] max-w-[560px]">
                       {pkgName}
                     </span>
                   ) : (
@@ -445,7 +445,27 @@ export default function CartItemCard({
                           pi?.customization_data?.cover_type ||
                           pkgDefaultOptions?.cover_type ||
                           ""
-                        const spec = [bindingType, coverType].filter(Boolean).join(" · ")
+                        // 仅展示装订信息（首字母大写）
+                        const formatBindingLabel = (raw: any) => {
+                          const s = String(raw || '').trim();
+                          if (!s) return '';
+                          const normalized = s.replace(/[_-]+/g, ' ');
+                          return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+                        };
+                        const spec = formatBindingLabel(bindingType);
+
+                        // 根据 cover_type 自动展示 cover option 图片：
+                        // - personalized → cover_3
+                        // - 其他/缺省 → cover_1
+                        const normalizeSpuForCover = (spu: string) => (spu === 'PICBOOK_GOODNIGHT3' ? 'PICBOOK_GOODNIGHT' : spu);
+                        const coverId =
+                          String(coverType || '').toLowerCase().includes('personalized') ? '3' : '1';
+                        const coverOptionImageUrl =
+                          spuCode
+                            ? `https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/${encodeURIComponent(
+                                normalizeSpuForCover(String(spuCode)),
+                              )}/covers/cover_${encodeURIComponent(coverId)}/base.webp`
+                            : '';
 
                         // 圣诞 bundle 子项：preview_id 可能在 customization_data.preview_id（而不是顶层 preview_id）
                         const piPreviewId =
@@ -466,9 +486,14 @@ export default function CartItemCard({
                             <div className="w-[88px] h-[100px] overflow-hidden flex items-center justify-center self-center">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
-                                src={getR2BookCover(spuCode)}
+                                src={coverOptionImageUrl || getR2BookCover(spuCode)}
                                 alt={bookName}
                                 className="max-w-full max-h-full object-contain block"
+                                onError={(e) => {
+                                  try {
+                                    (e.currentTarget as HTMLImageElement).src = getR2BookCover(spuCode);
+                                  } catch {}
+                                }}
                               />
                             </div>
 
