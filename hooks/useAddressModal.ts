@@ -28,13 +28,13 @@ export const useAddressModal = ({ onAddressUpdated }: UseAddressModalProps = {})
     setAddress(EMPTY_ADDRESS);
   };
 
-  const updateShippingAddress = async (orderId: string) => {
+  const updateShippingAddress = async (orderId: string | number) => {
     if (!address) {
       return { success: false, message: 'No address data available' };
     }
 
     try {
-      const response = await api.put<ApiResponse>(API_ORDER_UPDATE_ADDRESS(orderId), {
+      const response = await api.put<ApiResponse>(API_ORDER_UPDATE_ADDRESS(orderId.toString()), {
         shipping_address_id: address.id,
         shipping_address: address,
       });

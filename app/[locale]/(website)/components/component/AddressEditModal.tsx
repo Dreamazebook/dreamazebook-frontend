@@ -6,8 +6,8 @@ interface AddressEditModalProps {
   show: boolean;
   orderDetail: OrderDetail | null;
   address: Address;
-  setAddress: (address: Address) => void;
-  updateShippingAddress: (orderId: string) => Promise<{ success: boolean; message?: string }>;
+  setAddress: (value: React.SetStateAction<Address>) => void;
+  updateShippingAddress: (orderId: string | number) => Promise<{ success: boolean; message?: string }>;
   onClose: () => void;
 }
 
