@@ -86,6 +86,8 @@ export default function EditPersonalizedProductPage() {
   const [bookLanguage, setBookLanguage] = useState<string | null>(null);
   // 该个性化商品对应的购物车条目 id：用于 regenerate-preview
   const [cartItemId, setCartItemId] = useState<number | null>(null);
+  // 圣诞 bundle/套装子项：用于 regenerate-preview（/cart/package-items/:id/regenerate-preview）
+  const [packageItemId, setPackageItemId] = useState<number | null>(null);
 
   const form1Ref = useRef<SingleCharacterForm1Handle>(null);
   const form2Ref = useRef<SingleCharacterForm2Handle>(null);
@@ -190,9 +192,28 @@ export default function EditPersonalizedProductPage() {
       // 2) 兜底：从购物车列表中查找 previewId 获取初始数据（旧逻辑）
       try {
         const { data } = await api.get<ApiResponse<CartItems>>(`${API_CART_LIST}`);
-        const item = data.items.find(ci => String(ci.preview_id) === String(previewId));
-        if (item?.id) {
-          setCartItemId(Number(item.id));
+        const items: any[] = Array.isArray((data as any)?.items) ? (data as any).items : [];
+        const item = items.find((ci: any) => String(ci.preview_id) === String(previewId));
+        if (item?.id) setCartItemId(Number(item.id));
+        // 圣诞 bundle：preview_id 可能在 package.items[].customization_data.preview_id
+        if (!item) {
+          for (const pkg of items) {
+            const subItems: any[] = Array.isArray((pkg as any)?.items) ? (pkg as any).items : [];
+            const match = subItems.find(
+              (pi: any) =>
+                String(pi?.preview_id || pi?.customization_data?.preview_id) === String(previewId),
+            );
+            if (match?.id) {
+              setPackageItemId(Number(match.id));
+              // 尽力补齐绘本语言（如果 batch 没给 language）
+              const lang =
+                match?.customization_data?.language ||
+                match?.preview?.language ||
+                match?.language;
+              if (lang) setBookLanguage(String(lang));
+              break;
+            }
+          }
         }
         const p = item?.preview;
         if (!p && !item) {
@@ -268,15 +289,29 @@ export default function EditPersonalizedProductPage() {
 
   // 无论初始数据来自 batch 还是 cart，都需要 cartItemId；这里再兜底取一次
   useEffect(() => {
-    if (cartItemId) return;
+    if (cartItemId || packageItemId) return;
     (async () => {
       try {
         const { data } = await api.get<ApiResponse<CartItems>>(`${API_CART_LIST}`);
-        const item = data.items.find(ci => String(ci.preview_id) === String(previewId));
+        const items: any[] = Array.isArray((data as any)?.items) ? (data as any).items : [];
+        const item = items.find((ci: any) => String(ci.preview_id) === String(previewId));
         if (item?.id) setCartItemId(Number(item.id));
+        if (!item) {
+          for (const pkg of items) {
+            const subItems: any[] = Array.isArray((pkg as any)?.items) ? (pkg as any).items : [];
+            const match = subItems.find(
+              (pi: any) =>
+                String(pi?.preview_id || pi?.customization_data?.preview_id) === String(previewId),
+            );
+            if (match?.id) {
+              setPackageItemId(Number(match.id));
+              break;
+            }
+          }
+        }
       } catch {}
     })();
-  }, [cartItemId, previewId]);
+  }, [cartItemId, packageItemId, previewId]);
 
   const renderForm = () => {
     if (isLoading) return <SkeletonLoader />;
@@ -385,9 +420,11 @@ export default function EditPersonalizedProductPage() {
         targetLang = currentLang || 'en';
       }
 
-      // 使用新接口：POST /api/cart/:cartItemId/regenerate-preview
-      if (!cartItemId) {
-        console.error('Missing cartItemId for regenerate-preview');
+      // regenerate-preview：普通商品用 cartItemId；圣诞 bundle 子项用 packageItemId
+      const effectiveItemId = cartItemId ?? packageItemId;
+      const isPackageItem = !cartItemId && !!packageItemId;
+      if (!effectiveItemId) {
+        console.error('Missing cartItemId/packageItemId for regenerate-preview');
         stop();
         return;
       }
@@ -458,7 +495,10 @@ export default function EditPersonalizedProductPage() {
 
       let nextPreviewId: string = String(previewId);
       try {
-        const resp = await api.post<any>(`/cart/${cartItemId}/regenerate-preview`, payload);
+        const endpoint = isPackageItem
+          ? `/cart/package-items/${encodeURIComponent(String(effectiveItemId))}/regenerate-preview`
+          : `/cart/${encodeURIComponent(String(effectiveItemId))}/regenerate-preview`;
+        const resp = await api.post<any>(endpoint, payload);
         // 兼容不同返回结构：优先取 batch_id / preview_id
         const bid =
           resp?.data?.batch_id ||
@@ -475,7 +515,14 @@ export default function EditPersonalizedProductPage() {
       }
 
       // 不再“再次添加购物车”；跳转到 preview 展示结果，Add to cart 仅返回购物车
-      router.push(`/preview?bookid=${encodeURIComponent(bookId)}&previewid=${encodeURIComponent(nextPreviewId)}&fromCartItemId=${encodeURIComponent(String(cartItemId))}`);
+      // 重要：圣诞 bundle 需要透传 packageItemId（preview 页会走 /cart/package-items/:id/regenerate-preview）
+      router.push(
+        `/preview?bookid=${encodeURIComponent(bookId)}&previewid=${encodeURIComponent(
+          nextPreviewId,
+        )}&fromCartItemId=${encodeURIComponent(String(effectiveItemId))}${
+          isPackageItem ? '&hideOptions=1' : ''
+        }`,
+      );
       // 注意：成功 push 后保持 loading，直到页面卸载（与详情页 personalize 按钮一致）
     } catch (e) {
       console.error('Continue failed:', e);

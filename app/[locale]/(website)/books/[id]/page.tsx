@@ -13,7 +13,6 @@ import BookDetailView from '../../components/BookDetailView';
 import BookSections from '../../components/books/BookSections';
 import BookDetailSkeleton from '../../components/books/BookDetailSkeleton';
 import BookDetailStickyBar from '../../components/books/BookDetailStickyBar';
-import useUserStore from '@/stores/userStore';
 import { useTranslations } from 'next-intl';
 
 interface PagePic {
@@ -106,7 +105,6 @@ const BookDetailPage = () => {
   const id = params.id;
   const locale = useLocale();
   const router = useRouter();
-  const { isLoggedIn } = useUserStore();
 
   const [book, setBook] = useState<any | null>(null);
   //const [recommendedBooks, setRecommendedBooks] = useState<RecommendedBook[]>([]);
@@ -230,13 +228,11 @@ const BookDetailPage = () => {
   const description = book?.description || "No description available.";
 
   const handlePersonalizeClick = (e: React.MouseEvent, lang: string) => {
-    if (!isLoggedIn) {
-      e.preventDefault();
-      const redirectTo = `/personalize?bookid=${normalizedId}&language=${encodeURIComponent(lang || 'en')}`;
-      router.push(`/login?redirect=${encodeURIComponent(redirectTo)}`);
-      return;
-    }
-    // 如果已登录，正常跳转
+    // 允许未登录用户直接进入首次个性化流程（不再强制跳转登录）
+    // 这里保持空实现即可：不阻止默认行为，让 Link 正常跳转到 /personalize
+    void e;
+    void lang;
+    void router;
   };
 
   return (

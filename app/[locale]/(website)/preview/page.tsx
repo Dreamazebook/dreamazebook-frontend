@@ -3280,6 +3280,8 @@ export default function PreviewPageWithTopNav() {
 
       // 圣诞 bundle：不新增 SKU，改用 regenerate-preview 更新 bundle 内部子项，然后回购物车
       if (fromCartItemId && isHideOptions) {
+        // 圣诞 bundle 的 Next 也需要 loading（防止重复点击/重复触发 regenerate-preview）
+        setIsAddingToCart(true);
         try {
           const storeUserData = usePreviewStore.getState().userData as any;
           const raw = storeUserData ? storeUserData : (() => {

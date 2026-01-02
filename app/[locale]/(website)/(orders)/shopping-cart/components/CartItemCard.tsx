@@ -423,7 +423,20 @@ export default function CartItemCard({
                     {Array.isArray((item as any)?.items) &&
                       (item as any).items.map((pi: any) => {
                         const spuCode = pi?.spu_code
-                        const bookName = getOurBookDisplayName(spuCode, pi?.spu_name || spuCode || "Book") || "Book"
+                        const baseBookName =
+                          getOurBookDisplayName(spuCode, pi?.spu_name || spuCode || "Book") || "Book"
+                        const fullName =
+                          pi?.customization_data?.full_name ||
+                          pi?.customization_data?.recipient_name ||
+                          pi?.full_name ||
+                          pi?.preview?.recipient_name ||
+                          ""
+                        // 圣诞 bundle：与普通书保持一致，若已填写 full_name，则在书名后追加后缀（如：Santa's Letter for You | kiki）
+                        // 备注：这里用 "|" 作为分隔符（与普通购物车非 bundle 卡片保持一致的展示风格）
+                        const bookName =
+                          fullName && !String(baseBookName).includes(String(fullName))
+                            ? `${baseBookName} | ${fullName}`
+                            : baseBookName
                         const bindingType =
                           pi?.customization_data?.binding_type ||
                           pkgDefaultOptions?.binding_type ||
@@ -434,11 +447,17 @@ export default function CartItemCard({
                           ""
                         const spec = [bindingType, coverType].filter(Boolean).join(" · ")
 
-                        const piMode = pi?.mode ?? (pi?.preview_id ? "edit" : "create")
-                        const piIsEdit = piMode === "edit" && !!pi?.preview_id
+                        // 圣诞 bundle 子项：preview_id 可能在 customization_data.preview_id（而不是顶层 preview_id）
+                        const piPreviewId =
+                          pi?.preview_id ||
+                          pi?.customization_data?.preview_id ||
+                          (pi as any)?.preview?.preview_id ||
+                          null
+                        const piMode = pi?.mode ?? (piPreviewId ? "edit" : "create")
+                        const piIsEdit = piMode === "edit" && !!piPreviewId
                         const ctaLabel = piIsEdit ? t("editBook") : tSafe("createBook", "Create book")
                         const ctaHref = piIsEdit
-                          ? `/personalized-products/${spuCode}/${pi.preview_id}/edit`
+                          ? `/personalized-products/${spuCode}/${encodeURIComponent(String(piPreviewId))}/edit`
                           // 圣诞 bundle：跳转到 preview 后不展示 option tab
                           : `/personalize?bookid=${spuCode}&hideOptions=1&fromCartItemId=${encodeURIComponent(String(pi?.id ?? ''))}${coverType ? `&cover_type=${encodeURIComponent(coverType)}` : ''}${bindingType ? `&binding_type=${encodeURIComponent(bindingType)}` : ''}`
 
