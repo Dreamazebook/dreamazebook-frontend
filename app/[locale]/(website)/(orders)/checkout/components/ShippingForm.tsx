@@ -97,7 +97,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
       )}
       {/* 使用新地址选项 */}
       <div className="flex items-center gap-5">
-        <div
+        {/* <div
           className={`cursor-pointer text-[#012CCE]`}
           onClick={() => {
             setShowShippingForm(false);
@@ -106,7 +106,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
           }}
         >
           {t("changeAddress")}
-        </div>
+        </div> */}
         {(orderDetail?.shipping_address || !showShippingForm) && (
           <div
             className={`cursor-pointer text-[#012CCE]`}
