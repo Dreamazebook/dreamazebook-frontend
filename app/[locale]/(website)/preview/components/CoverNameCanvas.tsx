@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 export interface CoverTextProperty {
   type?: string;
@@ -31,6 +31,11 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
   onRendered,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const onRenderedRef = useRef<CoverNameCanvasProps['onRendered']>(onRendered);
+
+  useEffect(() => {
+    onRenderedRef.current = onRendered;
+  }, [onRendered]);
 
   useEffect(() => {
     let cancelled = false;
@@ -228,10 +233,10 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
         });
 
         // 通知外部：当前封面已完成合成，返回 DataURL 以便缓存（避免重复绘制）
-        if (onRendered) {
+        if (onRenderedRef.current) {
           try {
             const url = canvas.toDataURL('image/png');
-            onRendered(url);
+            onRenderedRef.current(url);
           } catch {
             // 忽略 DataURL 生成失败
           }
@@ -246,7 +251,7 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [src, name, texts, onRendered]);
+  }, [src, name, texts]);
 
   return (
     <canvas

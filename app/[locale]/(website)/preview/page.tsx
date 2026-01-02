@@ -274,6 +274,10 @@ function CoverOptionImageWithName({
   const rawCoverKey = option.option_key || String(option.id);
   const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(option.id);
   const composedKey = `${upperBookId}_${coverId}_${trimmedName}`;
+  const handleCoverRendered = useCallback((dataUrl: string) => {
+    coverComposedImageCache[composedKey] = dataUrl;
+    setComposedUrl(dataUrl);
+  }, [composedKey]);
 
   useEffect(() => {
     if (!trimmedName) {
@@ -304,10 +308,7 @@ function CoverOptionImageWithName({
         name={trimmedName}
         texts={texts as any}
         className="w-full h-auto block"
-        onRendered={(dataUrl) => {
-          coverComposedImageCache[composedKey] = dataUrl;
-          setComposedUrl(dataUrl);
-        }}
+        onRendered={handleCoverRendered}
       />
     );
   }
@@ -1033,6 +1034,10 @@ export default function PreviewPageWithTopNav() {
   // dedication 完成态：必须用户点过 Submit 才算完成（避免默认寄语导致“已完成”误导）
   const [isDedicationSubmitted, setIsDedicationSubmitted] = useState(false);
 
+  // Giver图片编辑：隐藏的文件输入框 + 本地待裁剪图片（objectURL）
+  const giverFileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingGiverFile, setPendingGiverFile] = React.useState<string | null>(null);
+
   // 当 previewid/bookid 变化时重置缓存，避免跨不同预览复用旧数据
   const p34CacheKey = `${searchParams.get('bookid') || ''}_${searchParams.get('previewid') || ''}`;
 
@@ -1040,6 +1045,17 @@ export default function PreviewPageWithTopNav() {
   useEffect(() => {
     setIsDedicationSubmitted(false);
   }, [p34CacheKey]);
+
+  // 切换到不同 preview/book 时，必须清空本地 giver 图片状态，避免上一单的上传影响下一本书
+  useEffect(() => {
+    setGiverImageUrl(null);
+    setEditField(null);
+    setPendingGiverFile(null);
+    setIsNameOnBookCompleted(false);
+    shouldUploadP34ComposedRef.current = false;
+    p34ComposeUploadInFlightRef.current = false;
+    p34ComposeUploadedRef.current = false;
+  }, [p34CacheKey, setEditField, setGiverImageUrl]);
 
   useEffect(() => {
     p34BaseImageUrlRef.current = null;
@@ -1202,10 +1218,6 @@ export default function PreviewPageWithTopNav() {
       setIsNameOnBookCompleted(true);
     }
   }, [giverImageUrl]);
-  
-  // Giver图片编辑：隐藏的文件输入框
-  const giverFileInputRef = useRef<HTMLInputElement>(null);
-  const [pendingGiverFile, setPendingGiverFile] = React.useState<string | null>(null);
   
   // 处理Giver图片文件选择
   const handleGiverFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
