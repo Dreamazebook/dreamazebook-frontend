@@ -55,6 +55,19 @@ export default function CartItemCard({
 
   const pkgSnapshot = (item as any)?.package_snapshot;
   const pkgName = (item as any)?.package_name || pkgSnapshot?.name?.en || packageCode || "Bundle";
+  const getChristmasPackageDisplayName = (rawName: string, code?: string | null) => {
+    const c = String(code || '').toUpperCase();
+    // 需求：把 “Premium Lay-Flat Hardcover Books x2” 这种长标题改成更短的展示名
+    if (c.includes('PREMIUM_LAYFLAT')) return 'Premium Lay-Flat Set';
+    // 兜底：Hardcover 也统一成更短的展示名（避免同类问题）
+    if (c.includes('HARDCOVER')) return 'Classic Hardcover Set';
+    // 兜底：如果后端直接给了长名字，也用关键词缩短
+    const n = String(rawName || '');
+    if (/premium\s*lay-?flat/i.test(n)) return 'Premium Lay-Flat Set';
+    if (/hardcover/i.test(n)) return 'Classic Hardcover Set';
+    return rawName;
+  };
+  const pkgDisplayName = isChristmasBundle ? getChristmasPackageDisplayName(pkgName, packageCode) : pkgName;
   const pkgDesc = (item as any)?.package_description || pkgSnapshot?.description?.en;
   const pkgCurrency = (item as any)?.currency_code || pkgSnapshot?.currency_code || "USD";
   const pkgBookCount = (item as any)?.package_item_count ?? pkgSnapshot?.book_count;
@@ -112,24 +125,24 @@ export default function CartItemCard({
 
   return (
     <div
-      className={`bg-white ${
-        !isPackage ? "w-full pl-3 opacity-100 rounded" : ""
+      className={`bg-white w-full min-w-0 ${
+        !isPackage ? "pl-3 opacity-100 rounded" : ""
       }`}
     >
       <div
-        className={`flex ${isPackage ? "items-start" : "items-center"} gap-3 ${
+        className={`flex w-full min-w-0 ${isPackage ? "items-start" : "items-center"} gap-3 ${
           !isPackage ? "h-full relative" : ""
         }`}
       >
         {onToggleSelect && selectedItems && !isPackage && (
           <div
-            className={`relative inline-block h-6 w-6 ${
+            className={`relative inline-block h-5 w-5 md:h-6 md:w-6 ${
               isPackage ? "mt-1" : ""
             }`}
           >
             <span
               onClick={() => onToggleSelect(item.id)}
-              className={`absolute top-0 left-0 h-6 w-6 rounded-full border-2 ${
+              className={`absolute top-0 left-0 h-5 w-5 md:h-6 md:w-6 rounded-full border-2 ${
                 selectedItems.includes(item.id)
                   ? "bg-[#012CCE]"
                   : "border-gray-300"
@@ -137,7 +150,7 @@ export default function CartItemCard({
             >
               {selectedItems.includes(item.id) && (
                 <svg
-                  className="w-4 h-4 text-white"
+                  className="w-3 h-3 md:w-4 md:h-4 text-white"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -166,31 +179,44 @@ export default function CartItemCard({
               </div>
 
               <div className="w-full space-y-4 pt-4 pr-6 pb-4 opacity-100 box-border">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-bold">
-                    {item.product_name || item.book_name} | {item.full_name || "Name"}
-                  </h3>
-                  <div className="flex items-center gap-3">
+                {/* 桌面端保持原布局；手机端将价格放到书名下方，删除按钮位置不变 */}
+                <div className="flex flex-col gap-2 md:flex-row md:justify-between md:items-center">
+                  <div className="flex items-center justify-between gap-3 min-w-0">
+                    <h3 className="font-bold truncate min-w-0">
+                      {item.product_name || item.book_name} | {item.full_name || "Name"}
+                    </h3>
+                    <div className="flex items-center gap-3 shrink-0">
+                      {/* 桌面端：价格在右侧（与当前 UI 一致） */}
+                      <div className="hidden md:block">
+                        <DisplayPrice
+                          style="text-[#222222] font-bold"
+                          value={item.total_price}
+                        />
+                      </div>
+                      {onRemoveItem && (
+                        <button
+                          onClick={() => onRemoveItem(item.id)}
+                          className="text-gray-400 hover:text-red-500 cursor-pointer"
+                        >
+                          <svg
+                            width="20"
+                            height="20"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path d="M6 2a2 2 0 00-2 2v1H2.5a.5.5 0 000 1h.548l.764 10.697A2 2 0 005.8 19h8.4a2 2 0 001.988-1.303L16.952 6H17.5a.5.5 0 000-1H15V4a2 2 0 00-2-2H6zm3 13a.5.5 0 01-1 0V8a.5.5 0 011 0v7zm3 0a.5.5 0 01-1 0V8a.5.5 0 011 0v7z" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {/* 手机端：价格在书名下方 */}
+                  <div className="md:hidden">
                     <DisplayPrice
                       style="text-[#222222] font-bold"
                       value={item.total_price}
                     />
-                    {onRemoveItem && (
-                      <button
-                        onClick={() => onRemoveItem(item.id)}
-                        className="text-gray-400 hover:text-red-500 cursor-pointer"
-                      >
-                        <svg
-                          width="20"
-                          height="20"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="M6 2a2 2 0 00-2 2v1H2.5a.5.5 0 000 1h.548l.764 10.697A2 2 0 005.8 19h8.4a2 2 0 001.988-1.303L16.952 6H17.5a.5.5 0 000-1H15V4a2 2 0 00-2-2H6zm3 13a.5.5 0 01-1 0V8a.5.5 0 011 0v7zm3 0a.5.5 0 01-1 0V8a.5.5 0 011 0v7z" />
-                        </svg>
-                      </button>
-                    )}
                   </div>
                 </div>
 
@@ -340,13 +366,14 @@ export default function CartItemCard({
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-3 h-10 pt-4 px-3 opacity-100">
-                <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 h-10 pt-4 px-3 opacity-100 w-full">
+                {/* 左侧：允许收缩，避免长标题把整行撑出屏幕 */}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
                   {onToggleSelect && selectedItems && (
-                    <div className="relative inline-block h-6 w-6">
+                    <div className="relative inline-block h-5 w-5 md:h-6 md:w-6">
                       <span
                         onClick={() => onToggleSelect(item.id)}
-                        className={`absolute top-0 left-0 h-6 w-6 rounded-full border-2 ${
+                        className={`absolute top-0 left-0 h-5 w-5 md:h-6 md:w-6 rounded-full border-2 ${
                           selectedItems.includes(item.id)
                             ? "bg-[#012CCE]"
                             : "border-gray-300"
@@ -354,7 +381,7 @@ export default function CartItemCard({
                       >
                         {selectedItems.includes(item.id) && (
                           <svg
-                            className="w-4 h-4 text-white"
+                            className="w-3 h-3 md:w-4 md:h-4 text-white"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -371,17 +398,15 @@ export default function CartItemCard({
                     </div>
                   )}
                   {isChristmasBundle ? (
-                    <span className="font-medium text-[#222222] text-[18px] leading-[24px] tracking-[0.15px] max-w-[560px]">
-                      {pkgName}
+                    <span className="font-medium text-[#222222] text-[16px] md:text-[18px] leading-[24px] md:leading-[24px] tracking-[0.15px] md:tracking-[0.15px] truncate min-w-0">
+                      {pkgDisplayName}
                     </span>
                   ) : (
                     <img src="/covers/ks.png" alt="KICKSTARTER" className="h-4 object-contain" />
                   )}
                 </div>
 
-                {/* spacer: keep price + delete aligned to the far right */}
-                <div className="flex-1" />
-
+                {/* 圣诞 bundle：总价保持在名称右侧（各端一致），删除按钮位置不变 */}
                 {isChristmasBundle && (
                   <div className="flex items-center justify-end gap-3 shrink-0">
                     <DisplayPrice
@@ -409,6 +434,7 @@ export default function CartItemCard({
                   </button>
                 )}
               </div>
+              {/* 圣诞 bundle：总价已在标题行右侧展示（无需手机端额外一行） */}
               {isKickstarterPackage &&
                 (item.ks_pending || item.subItems?.length === 0) &&
                 item.package_id && (
@@ -483,7 +509,8 @@ export default function CartItemCard({
 
                         return (
                           <div key={pi?.id || `${spuCode}-${pi?.item_index}`} className="flex md:h-[120px] items-center">
-                            <div className="w-[88px] h-[100px] overflow-hidden flex items-center justify-center self-center">
+                            {/* 圣诞 bundle 子项封面：移动端 56x56，桌面端保持原尺寸 */}
+                            <div className="w-14 h-14 md:w-[88px] md:h-[100px] overflow-hidden flex items-center justify-center self-center">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={coverOptionImageUrl || getR2BookCover(spuCode)}
@@ -500,9 +527,15 @@ export default function CartItemCard({
                             <div className="flex-1 min-w-0 py-4 px-6">
                               <div className="flex items-start justify-between">
                                 <div className="min-w-0">
-                                  <p className="text-[18px] font-medium leading-[24px] tracking-[0.15px] text-[#222222] truncate">
+                                  <p className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222] truncate">
                                     {bookName}
                                   </p>
+                                  {/* 手机端：子书价格放到书名下方；桌面端保持右侧显示 */}
+                                  <div className="md:hidden mt-1">
+                                    <span className="text-[18px] font-medium leading-[24px] tracking-[0.15px] text-[#222222]">
+                                      $0 {pkgCurrency}
+                                    </span>
+                                  </div>
                                   {spec && (
                                     <p className="text-[#666666] text-[16px] leading-[24px] tracking-[0.5px] truncate">{spec}</p>
                                   )}
@@ -517,7 +550,7 @@ export default function CartItemCard({
                                   </a>
                                 </div>
 
-                                <div className="shrink-0 text-right">
+                                <div className="hidden md:block shrink-0 text-right">
                                   <span className="text-[18px] font-medium leading-[24px] tracking-[0.15px] text-[#222222]">
                                     $0 {pkgCurrency}
                                   </span>
