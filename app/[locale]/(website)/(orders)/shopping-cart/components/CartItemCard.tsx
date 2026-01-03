@@ -180,9 +180,10 @@ export default function CartItemCard({
 
               <div className="w-full space-y-4 pt-4 pr-6 pb-4 opacity-100 box-border">
                 {/* 桌面端保持原布局；手机端将价格放到书名下方，删除按钮位置不变 */}
-                <div className="flex flex-col gap-2 md:flex-row md:justify-between md:items-center">
-                  <div className="flex items-center justify-between gap-3 min-w-0">
-                    <h3 className="font-bold truncate min-w-0">
+                <div className="flex flex-col gap-2 md:flex-row md:justify-between md:items-center md:w-full">
+                  {/* 手机端：标题允许自动换行，避免过长导致卡片横向溢出；桌面端保持单行 */}
+                  <div className="flex items-start justify-between gap-3 min-w-0 md:w-full md:items-center">
+                    <h3 className="font-bold flex-1 min-w-0 whitespace-normal break-words md:whitespace-nowrap md:truncate">
                       {item.product_name || item.book_name} | {item.full_name || "Name"}
                     </h3>
                     <div className="flex items-center gap-3 shrink-0">
@@ -365,8 +366,9 @@ export default function CartItemCard({
               </div>
             </div>
           ) : (
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-3 h-10 pt-4 px-3 opacity-100 w-full">
+            <div className="flex flex-col md:gap-3 gap-0">
+              {/* bundle 标题行：手机端允许换行，因此不能固定高度 */}
+              <div className="flex items-start gap-3 pt-4 px-3 opacity-100 w-full">
                 {/* 左侧：允许收缩，避免长标题把整行撑出屏幕 */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   {onToggleSelect && selectedItems && (
@@ -398,7 +400,7 @@ export default function CartItemCard({
                     </div>
                   )}
                   {isChristmasBundle ? (
-                    <span className="font-medium text-[#222222] text-[16px] md:text-[18px] leading-[24px] md:leading-[24px] tracking-[0.15px] md:tracking-[0.15px] truncate min-w-0">
+                    <span className="font-medium text-[#222222] text-[16px] md:text-[18px] leading-[20px] md:leading-[24px] tracking-[0.15px] md:tracking-[0.15px] whitespace-normal break-words md:whitespace-nowrap md:truncate min-w-0">
                       {pkgDisplayName}
                     </span>
                   ) : (
@@ -510,12 +512,13 @@ export default function CartItemCard({
                         return (
                           <div key={pi?.id || `${spuCode}-${pi?.item_index}`} className="flex md:h-[120px] items-center">
                             {/* 圣诞 bundle 子项封面：移动端 56x56，桌面端保持原尺寸 */}
-                            <div className="w-14 h-14 md:w-[88px] md:h-[100px] overflow-hidden flex items-center justify-center self-center">
+                            {/* 圣诞 bundle 子项封面：手机端左上对齐（贴顶），桌面端保持居中 */}
+                            <div className="w-14 h-14 md:w-[88px] md:h-[100px] overflow-hidden flex items-start justify-center md:items-center md:justify-center self-start md:self-center pt-3 md:p-0">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={coverOptionImageUrl || getR2BookCover(spuCode)}
                                 alt={bookName}
-                                className="max-w-full max-h-full object-contain block"
+                                className="max-w-full max-h-full object-contain object-left md:object-center block"
                                 onError={(e) => {
                                   try {
                                     (e.currentTarget as HTMLImageElement).src = getR2BookCover(spuCode);
@@ -524,7 +527,7 @@ export default function CartItemCard({
                               />
                             </div>
 
-                            <div className="flex-1 min-w-0 py-4 px-6">
+                            <div className="flex-1 min-w-0 p-3 md:py-4 md:px-6">
                               <div className="flex items-start justify-between">
                                 <div className="min-w-0">
                                   <p className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222] truncate">
@@ -532,7 +535,7 @@ export default function CartItemCard({
                                   </p>
                                   {/* 手机端：子书价格放到书名下方；桌面端保持右侧显示 */}
                                   <div className="md:hidden mt-1">
-                                    <span className="text-[18px] font-medium leading-[24px] tracking-[0.15px] text-[#222222]">
+                                    <span className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222]">
                                       $0 {pkgCurrency}
                                     </span>
                                   </div>
