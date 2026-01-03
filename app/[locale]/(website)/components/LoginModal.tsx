@@ -76,7 +76,7 @@ export default function LoginModal() {
 
   const handleFacebookLogin = () => startOAuth('facebook', setFacebookLoading);
 
-  const handlePostLoginRedirect = () => {    
+  const handlePostLoginRedirect = (defaultPath = '/') => {    
     closeLoginModal();
     const urlRedirect = localStorage.getItem('redirectUrl');
     if (urlRedirect) {
@@ -84,7 +84,7 @@ export default function LoginModal() {
       localStorage.removeItem('redirectUrl');
       router.push(urlRedirect);
     } else {
-      router.push('/');
+      router.push(defaultPath);
     }
   };
 
@@ -101,7 +101,7 @@ export default function LoginModal() {
       const response = await loginAdmin({ email, password });
       if (response?.success) {
         closeLoginModal();
-        router.push('/admin');
+        handlePostLoginRedirect('/admin')
         return true;
       }
     }

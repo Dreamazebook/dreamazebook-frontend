@@ -22,10 +22,12 @@ import OrderStatusLabel from "../../components/component/OrderStatusLabel";
 import OrderTitle from "./components/OrderTitle";
 import AddressEditModal from "../../components/component/AddressEditModal";
 import { useAddressModal } from "@/hooks/useAddressModal";
+import { usePathname, useRouter } from "@/i18n/routing";
 
 const OrderSummary: React.FC = () => {
   const t = useTranslations("orderSummary");
-  const { fetchOrderDetail } = useUserStore();
+  const router = useRouter();
+  const { fetchOrderDetail, user, fetchCurrentUser } = useUserStore();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
 
@@ -70,9 +72,15 @@ const OrderSummary: React.FC = () => {
         payment_intent_id: orderDetail.stripe_payment_intent_id,
       }
     );
+    if (success) {
+      setOrderDetail({...orderDetail, status: data.order.status});
+    }
   };
 
   useEffect(() => {
+    if (!localStorage.getItem('token')) {
+      return router.push(`/login?redirect=/order-summary?orderId=${orderId}`)
+    }
     const fetchSummaryOrder = async (orderId: string) => {
       try {
         const { data, code, message, success } = await fetchOrderDetail(
@@ -90,7 +98,7 @@ const OrderSummary: React.FC = () => {
     };
     if (orderId) {
       fetchSummaryOrder(orderId);
-      getOrderProgress(orderId);
+      // getOrderProgress(orderId);
     }
   }, []);
 

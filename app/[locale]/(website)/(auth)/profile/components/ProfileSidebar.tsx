@@ -79,11 +79,11 @@ export default function ProfileSidebar({
               </div>
             </div>
             <div className="text-sm md:text-lg font-medium text-gray-700 md:hidden">
-              {t("goodMorning")} {user?.name || "User"}
+              {t("goodMorning")} {user?.name || user?.email}
             </div>
           </div>
           <div className="text-sm md:text-lg font-medium text-gray-700 hidden md:block">
-            {t("goodMorning")} {user?.name || "User"}
+            {t("goodMorning")} {user?.name || user?.email}
           </div>
         </div>
       </div>
