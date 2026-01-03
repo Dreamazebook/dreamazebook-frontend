@@ -16,6 +16,17 @@ export default function ProfileSidebar({
   const pathname = usePathname();
   const t = useTranslations("profileSidebar");
 
+  const getTimeGreeting = (): string => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      return "goodMorning";
+    } else if (hour >= 12 && hour < 18) {
+      return "goodAfternoon";
+    } else {
+      return "goodEvening";
+    }
+  };
+
   const navItems = [
     { href: "/profile", translationKey: "home" },
     { href: "/profile/detail", translationKey: "accountDetails" },
@@ -79,11 +90,11 @@ export default function ProfileSidebar({
               </div>
             </div>
             <div className="text-sm md:text-lg font-medium text-gray-700 md:hidden">
-              {t("goodMorning")} {user?.name || user?.email}
+              {t(getTimeGreeting())} {user?.name || user?.email}
             </div>
           </div>
           <div className="text-sm md:text-lg font-medium text-gray-700 hidden md:block">
-            {t("goodMorning")} {user?.name || user?.email}
+            {t(getTimeGreeting())} {user?.name || user?.email}
           </div>
         </div>
       </div>

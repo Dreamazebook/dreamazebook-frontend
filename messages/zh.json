@@ -39,6 +39,8 @@
     "loyalty": "会员积分",
     "logout": "退出登录",
     "goodMorning": "早上好,",
+    "goodAfternoon": "下午好,",
+    "goodEvening": "晚上好,",
     "menu": "菜单",
     "more": "更多",
     "admin": "管理后台"

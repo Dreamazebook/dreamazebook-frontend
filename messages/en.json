@@ -39,6 +39,8 @@
     "loyalty": "Loyalty",
     "logout": "Log out",
     "goodMorning": "Good Morning,",
+    "goodAfternoon": "Good Afternoon,",
+    "goodEvening": "Good Evening,",
     "menu": "Menu",
     "more": "More",
     "admin": "Admin"
