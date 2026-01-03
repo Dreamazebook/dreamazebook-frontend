@@ -290,12 +290,8 @@ const Header = () => {
           />
         </Link>
         <Link
-          href={
-            mounted && user
-              ? "/shopping-cart"
-              : "/login?redirect=/shopping-cart"
-          }
-          className="text-2xl"
+          href="/shopping-cart"
+          className="text-2xl"  
         >
           <Image
             src={"/header/cart.svg"}
