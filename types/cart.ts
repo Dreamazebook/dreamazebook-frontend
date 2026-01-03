@@ -57,6 +57,7 @@ export interface CartItem {
   book_cover: string;
   cover_image: string;
   full_name?: string;
+  recipient_name: string;
   item_type: string;
   // create: 需要新建绘本, edit: 可以编辑已完成的绘本（后端返回）
   mode?: "create" | "edit";
