@@ -443,7 +443,7 @@ export default function CartItemCard({
                   <KickstarterInlineCard packageId={item.package_id} />
                 )}
               {isChristmasBundle && (
-                <div className="px-12 pb-4">
+                <div className="px-9 md:px-12 pb-4">
             
 
                   {/* Books list (already chosen) */}
