@@ -530,7 +530,7 @@ export default function CartItemCard({
                             <div className="flex-1 min-w-0 p-3 md:py-4 md:px-6">
                               <div className="flex items-start justify-between">
                                 <div className="min-w-0">
-                                  <p className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222] truncate">
+                                  <p className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222] whitespace-normal break-words md:whitespace-nowrap md:truncate">
                                     {bookName}
                                   </p>
                                   {/* 手机端：子书价格放到书名下方；桌面端保持右侧显示 */}
