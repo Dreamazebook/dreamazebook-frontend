@@ -373,6 +373,9 @@ export default function PersonalizeApiDrivenPage() {
       // 圣诞 bundle：preview 页面不展示 option tab
       const isHideOptions = searchParams.get('hideOptions') === '1';
       if (isHideOptions) qs.set('hideOptions', '1');
+      // 购物车 create mode：在 preview 页不要预选 Options（封面/装订/礼盒）
+      const skipPrefillOptions = searchParams.get('skipPrefillOptions') === '1';
+      if (skipPrefillOptions) qs.set('skipPrefillOptions', '1');
       // 透传封面类型（圣诞 bundle：用于 preview 默认封面选择）
       const coverType = searchParams.get('cover_type');
       if (coverType) qs.set('cover_type', coverType);

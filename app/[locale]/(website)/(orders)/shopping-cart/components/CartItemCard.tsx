@@ -287,7 +287,8 @@ export default function CartItemCard({
                                   }`
                                 : "";
                               // 关键：把 cart item id 透传给 personalize/preview，用于后续 regenerate-preview 绑定，避免重复新增
-                              url = `/personalize?bookid=${bookId}${ksParams}${fromCartParam}`;
+                              // Create mode从购物车进入：不要在 preview 页预选 Options（仅影响该 create 流程，不影响编辑/其他入口）
+                              url = `/personalize?bookid=${bookId}${ksParams}${fromCartParam}&skipPrefillOptions=1`;
                             } else {
                               url = "/shopping-cart";
                             }

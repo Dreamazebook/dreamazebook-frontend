@@ -1287,6 +1287,8 @@ export default function PreviewPageWithTopNav() {
     if (!bookOptions) return;
     const previewIdParam = searchParams.get('previewid');
     if (!previewIdParam) return;
+    // 仅用于“购物车 create book”流程：不从购物车条目里预选封面/装订/礼盒，避免误导用户
+    if (searchParams.get('skipPrefillOptions') === '1') return;
     (async () => {
       try {
         const res = await api.get(API_CART_LIST) as any;
@@ -3332,8 +3334,11 @@ export default function PreviewPageWithTopNav() {
         return;
       }
 
-      // personalized-products（从购物车编辑进入）不再需要再次 add-to-cart；仅返回购物车
-      if (fromCartItemId) {
+      // 购物车 Create book（create mode）会带 skipPrefillOptions=1：
+      // - 需要用户选择 Options 后，通过 /cart/add 更新当前购物车条目（不走“直接返回”快捷路径）
+      // personalized-products（从购物车编辑进入）仍保持原行为：不再次 add-to-cart；仅返回购物车
+      const skipPrefillOptions = searchParams.get('skipPrefillOptions') === '1';
+      if (fromCartItemId && !skipPrefillOptions) {
         router.push('/shopping-cart');
         return;
       }
