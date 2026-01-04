@@ -99,7 +99,7 @@ export default function ShoppingCartPage() {
           })
         );
         setCartItems(augmented as any);
-        setSelectedItems(augmented.map((item: any) => item.id));
+        //setSelectedItems(augmented.map((item: any) => item.id));
       }
     } catch (err) {
       console.error('Failed to fetch carts:', err);

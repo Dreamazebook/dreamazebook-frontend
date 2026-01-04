@@ -9,37 +9,34 @@ export default function OrderTitle({ status }: OrderTitleProps) {
   const t = useTranslations("orderSummary");
 
   const getStatusTitle = () => {
-    const labelKey = statusLabelMap[status?.toLowerCase()] || "preparationTitle";
-    
-    // Special handling for digital production status
-    if (status?.toLowerCase() === 'processing' || 
-        status?.toLowerCase() === 'ai_processing' || 
-        status?.toLowerCase() === 'ai_completed') {
-      return t("digitalProductionTitle");
-    }
-    
-    // Special handling for in-transit statuses as requested
-    if (status?.toLowerCase() === 'shipping' || 
-        status?.toLowerCase() === 'logistics_confirmed' || 
-        status?.toLowerCase() === 'logistics_shipped') {
-      return t("inTransitTitle");
-    }
-    
-    // Special handling for delivered statuses as requested
-    if (status?.toLowerCase() === 'delivered' || 
-        status?.toLowerCase() === 'completed' || 
-        status?.toLowerCase() === 'logistics_delivered') {
-      return t("deliveredTitle");
-    }
-    
-    // Special handling for closed/refunded statuses as requested
-    if (status?.toLowerCase() === 'cancelled' || 
-        status?.toLowerCase() === 'refunded' || 
-        status?.toLowerCase() === 'closed') {
-      return t("refundedTitle");
-    }
-    
-    return t(`${labelKey}Title`);
+    const statusLower = status?.toLowerCase();
+
+    // Status title mapping for user-friendly messages
+    const statusTitleMapping: { [key: string]: string } = {
+      // Digital production statuses
+      'processing': 'digitalProductionTitle',
+      'ai_processing': 'digitalProductionTitle',
+      'ai_completed': 'digitalProductionTitle',
+      'pdf_confirmed': 'digitalProductionTitle',
+      
+      // In transit statuses
+      'shipping': 'inTransitTitle',
+      'logistics_confirmed': 'inTransitTitle',
+      'logistics_shipped': 'inTransitTitle',
+      
+      // Delivered statuses
+      'delivered': 'deliveredTitle',
+      'completed': 'deliveredTitle',
+      'logistics_delivered': 'deliveredTitle',
+      
+      // Closed/refunded statuses
+      'cancelled': 'refundedTitle',
+      'refunded': 'refundedTitle',
+      'closed': 'refundedTitle',
+    };
+
+    const titleKey = statusTitleMapping[statusLower] || `${statusLabelMap[statusLower]}Title`;
+    return t(titleKey);
   };
 
   const getStatusEmoji = () => {

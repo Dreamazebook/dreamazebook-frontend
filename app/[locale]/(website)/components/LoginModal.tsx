@@ -76,7 +76,7 @@ export default function LoginModal() {
 
   const handleFacebookLogin = () => startOAuth('facebook', setFacebookLoading);
 
-  const handlePostLoginRedirect = () => {    
+  const handlePostLoginRedirect = (defaultPath = '/') => {    
     closeLoginModal();
     const urlRedirect = localStorage.getItem('redirectUrl');
     if (urlRedirect) {
@@ -84,7 +84,7 @@ export default function LoginModal() {
       localStorage.removeItem('redirectUrl');
       router.push(urlRedirect);
     } else {
-      router.push('/');
+      router.push(defaultPath);
     }
   };
 
@@ -101,7 +101,7 @@ export default function LoginModal() {
       const response = await loginAdmin({ email, password });
       if (response?.success) {
         closeLoginModal();
-        router.push('/admin');
+        handlePostLoginRedirect('/admin')
         return true;
       }
     }
@@ -192,7 +192,7 @@ const ModeToggleLinks = () => {
           {t('noAccount')}{' '}
           <button 
             type="button"
-            className="text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+            className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
             onClick={() => setMode('register')}
           >
             {t('createOne')}
@@ -200,7 +200,7 @@ const ModeToggleLinks = () => {
         </span>
         <button 
           type="button"
-          className="text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline text-left"
+          className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline text-left"
           onClick={() => setMode('forgotPassword')}
         >
           {t('forgotPasswordQuestion')}
@@ -216,7 +216,7 @@ const ModeToggleLinks = () => {
           {t('haveAccount')}{' '}
           <button 
             type="button"
-            className="text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+            className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
             onClick={() => setMode('login')}
           >
             {t('login')}
@@ -231,7 +231,7 @@ const ModeToggleLinks = () => {
       <div className="text-sm">
         <button 
           type="button"
-          className="text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+          className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
           onClick={() => setMode('login')}
         >
           {t('backToLogin')}
@@ -308,7 +308,7 @@ return (
           <p className="mt-2">
             <button 
               type="button"
-              className="text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+              className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
               onClick={() => {
                 setMode('login');
                 setResetSent(false);
