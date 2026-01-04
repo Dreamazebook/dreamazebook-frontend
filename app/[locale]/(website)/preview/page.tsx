@@ -21,7 +21,7 @@ import usePreviewStore from '@/stores/previewStore';
 import toast from 'react-hot-toast';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
 import { BaseBook, DetailedBook } from '@/types/book';
-import { API_CART_LIST } from '@/constants/api';
+import { API_CART_LIST, API_CART_UPDATE } from '@/constants/api';
 
 // 封面文字配置缓存：避免在同一会话内反复请求 R2
 const coverTextsCache: Record<string, Array<{
@@ -3429,6 +3429,18 @@ export default function PreviewPageWithTopNav() {
       });
       
       console.debug('[AddToCart] Sending request /cart/add with data:', cartData);
+      // 对“购物车 create book”流程：必须更新原 cart item（否则会出现重复创建两本/两条记录）
+      // PUT /cart/:id 写回 options；仅在其他流程走 /cart/add。
+      if (fromCartItemId && skipPrefillOptions) {
+        await api.put(API_CART_UPDATE(Number(fromCartItemId)), {
+          quantity: 1,
+          cover_style: coverKey,
+          customization_data: cartData.customization_data,
+        });
+        router.push('/shopping-cart');
+        return;
+      }
+
       const response = await api.post('/cart/add', cartData) as ApiResponse<CartAddResponse>;
       console.debug('[AddToCart] Response:', response);
 

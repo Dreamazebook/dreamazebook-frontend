@@ -514,6 +514,27 @@ export default function EditPersonalizedProductPage() {
         return;
       }
 
+      // 把最新的 full_name 写入 preview store / localStorage，避免 preview 页优先使用旧的 store 名字导致“改名无效”
+      try {
+        const userData = {
+          characters: [
+            {
+              full_name: fullName,
+              language: targetLang,
+              gender: genderStr,
+              relationship: relationshipRaw || 'Parent/Guardian',
+              attributes: payload.attributes || {},
+              photo: faceImages?.[0] || '',
+              photos: faceImages || [],
+            },
+          ],
+        };
+        const { setUserData, setBookId } = usePreviewStore.getState();
+        setUserData(userData);
+        setBookId(bookId || '');
+        localStorage.setItem('previewUserData', JSON.stringify(userData));
+      } catch {}
+
       // 不再“再次添加购物车”；跳转到 preview 展示结果，Add to cart 仅返回购物车
       // 重要：圣诞 bundle 需要透传 packageItemId（preview 页会走 /cart/package-items/:id/regenerate-preview）
       router.push(
