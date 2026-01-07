@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { CartItem as CartItemType } from "@/types/cart";
+import { CartItem as CartItemType, getFormatedCover, getFormatedGiftbox } from "@/types/cart";
 import DisplayPrice from "../../../components/component/DisplayPrice";
 import { Link, useRouter } from "@/i18n/routing";
 import { useEffect, useState } from "react";
@@ -222,9 +222,9 @@ export default function CartItemCard({
                 </div>
 
                 <p className='text-[#666666] font-[400] capitalize flex items-center gap-2'>
-                  <span>{item?.customization_data?.attributes?.binding_type || item?.attributes?.binding_type}</span>
+                  <span>{getFormatedCover(item)}</span>
                   <span>|</span>
-                  {(item?.customization_data?.attributes?.giftbox || item?.giftbox_info?.name) && <span>{item?.giftbox_info?.name || 'a festive gift box'}</span>}
+                  <span>{getFormatedGiftbox(item)}</span>
                 </p>
 
                 {/* {(countdown && handleClickEditMessage) ? 
@@ -234,7 +234,7 @@ export default function CartItemCard({
                 } */}
                 
                 {item?.customization_data?.attributes?.gift_message &&
-                <p className={`text-[#666] line-clamp-1 bg-[#f8f8f8] font-[400] p-1 rounded`}>{item?.customization_data?.attributes?.gift_message}</p>
+                <p className={`text-[#666] bg-[#f8f8f8] font-[400] p-2 rounded`}>{item?.customization_data?.attributes?.gift_message}</p>
                 }
 
                 {/* 额外描述合并到装订信息一行展示 */}

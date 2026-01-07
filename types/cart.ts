@@ -113,3 +113,15 @@ export interface CartItems {
   items: CartItem[];
   cart_summary: any;
 }
+
+export const getFormatedCover = (item:CartItem) => {
+  const binding_type = item?.customization_data?.attributes?.binding_type || item?.attributes?.binding_type;
+  if (!binding_type) return 'Soft Cover';
+  return binding_type.split('_').join(' ');
+}
+
+export const getFormatedGiftbox = (item:CartItem) => {
+  const giftboxInfo = item?.customization_data?.attributes?.giftbox || item?.giftbox_info?.name;
+  if (!giftboxInfo) return 'A Festive Gift Box';
+  return giftboxInfo.split('_').join(' ');
+}

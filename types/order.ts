@@ -26,6 +26,15 @@ export interface OrderDetail {
   shipping_cost: number;
   tax_amount: number;
   discount_amount: number;
+  discount_details?: {
+    rate: number;
+    type: string;
+    applied_at: string;
+    percentage: number;
+    description: string;
+    non_package_quantity?: number;
+    non_package_original_total?: number;
+  };
   coupon_code: string;
   notes: string;
   stripe_payment_intent_id: string;
