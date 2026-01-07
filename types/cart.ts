@@ -30,12 +30,21 @@ export interface GiftboxInfo {
   total_premium: number;
   free_quantity: number;
   chargeable_quantity: number;
+  name: string;
 }
 
 export interface CartAttributes {
-  giftbox: string;
   language: string;
-  cover_style: string;
+  binding_type?: string;
+  cover_style?: string;
+  delivery_notes?: string | null;
+  gender?: string;
+  gift_message?: string;
+  giftbox?: string;
+  hair_color?: string;
+  hair_style?: string;
+  replace?: boolean;
+  skin_tone?: string;
 }
 
 export interface FaceImage {
@@ -49,6 +58,7 @@ export interface FaceImage {
 
 export interface CustomizationData {
   face_images: FaceImage[];
+  attributes?: CartAttributes;
 }
 
 export interface CartItem {
