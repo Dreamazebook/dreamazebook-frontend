@@ -13,11 +13,12 @@ const OrderHistoryTextStyle = ({ label, value }: any) => {
 interface OrderSummaryDeliveryProps {
   orderDetail: OrderDetail;
   showShipTo?: boolean;
+  showDate?: boolean;
   bgColor?: string;
   handleClickEditShippingAddress?: () => void;
 }
 
-const OrderSummaryDelivery = ({ orderDetail, handleClickEditShippingAddress, showShipTo = true, bgColor = 'bg-[#F8F8F8]' }: OrderSummaryDeliveryProps) => {
+const OrderSummaryDelivery = ({ orderDetail, handleClickEditShippingAddress, showDate = true, showShipTo = true, bgColor = 'bg-[#F8F8F8]' }: OrderSummaryDeliveryProps) => {
   const t = useTranslations('orderSummaryDelivery');
 
   return (
@@ -35,6 +36,7 @@ const OrderSummaryDelivery = ({ orderDetail, handleClickEditShippingAddress, sho
         </div>
       )}
 
+      {showDate &&
       <div className="flex gap-[12px] mb-1">
         <OrderHistoryTextStyle
           label={t("orderDate")}
@@ -47,7 +49,7 @@ const OrderSummaryDelivery = ({ orderDetail, handleClickEditShippingAddress, sho
             value={formatDate(orderDetail.shipped_at)}
           />
         )}
-      </div>
+      </div>}
 
       <OrderHistoryTextStyle
           label={t("qty")}

@@ -147,7 +147,7 @@ const CheckoutForm: React.FC<{
 
       <h3 className='text-[22px] md:text-[28px] mb-[16px] border-t border-[#E5E5E5] pt-[16px] mt-[16px]'>Delivery Details</h3>
 
-      <OrderSummaryDelivery orderDetail={orderDetail} />
+      <OrderSummaryDelivery orderDetail={orderDetail} showDate={false} />
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

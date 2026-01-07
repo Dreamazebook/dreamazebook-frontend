@@ -88,7 +88,7 @@
     "shipTo": "Ship to",
     "orderDate": "Order date",
     "deliveryDate": "Delivery date",
-    "qty": "Qty"
+    "qty": "Quantity"
   },
   "accountDetails": {
     "title": "Account Details",
@@ -276,14 +276,14 @@
     "continueToDelivery": "Continue to Delivery",
     "estimatedDelivery": "Estimated delivery: {days} business days",
     "continueToPayment": "Continue to Payment",
-    "cardInformation": "Card Information",
-    "completePayment": "Complete Payment",
+    "cardInformation": "Payment Information",
+    "completePayment": "Place Order",
     "processing": "Processing...",
     "paymentSuccess": "Payment succeeded!",
     "paymentProcessing": "Payment processing. We will update you when payment is received.",
     "paymentFailed": "Payment failed. Please try another payment method.",
     "paymentStatusUnknown": "Payment status unknown. Please contact support.",
-    "completePaymentSecure": "Complete your payment with one of our secure checkout methods.",
+    "completePaymentSecure": "Secure checkout. Your payment information is protected",
     "summary": "Summary",
     "couponCode": "Coupon Code: {code}",
     "addresses": "Addresses"
