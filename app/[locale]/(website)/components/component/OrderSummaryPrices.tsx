@@ -1,16 +1,18 @@
 import { OrderDetail } from "@/types/order";
+import {useTranslations} from 'next-intl'
 import DisplayPrice from "./DisplayPrice";
 
 interface OrderSummaryPricesProps {
   orderDetail: OrderDetail;
 }
 
-const OrderSummaryPrices = ({orderDetail}:OrderSummaryPricesProps) => {
+const OrderSummaryPrices = ({ orderDetail }: OrderSummaryPricesProps) => {
+  const t = useTranslations('ShoppingCart');
   const order = orderDetail;
   const total = order?.total_amount || 0;
   const shippingCost = order?.shipping_cost || 0;
   const subtotal = total - shippingCost;
-  const discount = 0; // No discount in the original code
+  const discount = order?.discount_amount || 0;
   const numberItems = order?.items?.length || 0;
 
   return (
@@ -24,10 +26,15 @@ const OrderSummaryPrices = ({orderDetail}:OrderSummaryPricesProps) => {
         <DisplayPrice value={shippingCost} />
       </div>
       {discount > 0 && (
-        <div className="flex justify-between text-sm text-green-600">
-          <p>Discount</p>
+        <div className="flex justify-between text-sm text-[#abd29b]">
+          {order?.discount_details?.description && (
+            <div className="">
+              {t('multiBookDiscount')}{` (${order.discount_details.percentage}%)`}
+            </div>
+          )}
           <DisplayPrice value={-discount} />
         </div>
+
       )}
       <div className="flex justify-between text-base pt-2 border-t border-gray-200">
         <p>Total</p>

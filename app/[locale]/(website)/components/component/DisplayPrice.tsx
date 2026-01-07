@@ -13,7 +13,7 @@ const DisplayPrice = ({value = 0, discount, style}:DisplayPriceProps) => {
   if (typeof value === 'string') {
     formatedValue = parseFloat(value).toFixed(2);
   } else {
-    formatedValue = value.toFixed(2);
+    formatedValue = Math.abs(value).toFixed(2);
   }
 
   if (typeof discount !== 'undefined') {
@@ -25,7 +25,7 @@ const DisplayPrice = ({value = 0, discount, style}:DisplayPriceProps) => {
     );
   }
   return (
-    <span className={`${style || 'text-gray-800'}`}>${formatedValue} USD</span>
+    <span className={`${style || 'text-gray-800'}`}>{value<0 && '-'}${formatedValue} USD</span>
   );
 };
 
