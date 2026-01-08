@@ -313,6 +313,10 @@
     "required": "{field} est requis",
     "invalidEmail": "Adresse email invalide"
   },
+  "addressCard": {
+    "shippingAddress": "Adresse de livraison",
+    "default": "Par défaut"
+  },
   "loginCallback": {
     "title": "Traitement de la connexion",
     "processingCallback": "Vérification de vos informations de connexion...",

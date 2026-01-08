@@ -26,7 +26,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
           <div key={item.id} className="flex items-start">
             <div className="flex-grow">
               <h4 className="text-sm font-medium">{item.spu_code}</h4>
-              <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+              <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
             </div>
             <DisplayPrice value={item.total_price} style='text-sm font-medium' />
           </div>

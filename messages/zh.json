@@ -313,6 +313,10 @@
     "required": "{field}为必填项",
     "invalidEmail": "邮箱地址格式不正确"
   },
+  "addressCard": {
+    "shippingAddress": "收货地址",
+    "default": "默认"
+  },
   "loginCallback": {
     "title": "登录处理中",
     "processingCallback": "正在验证您的登录信息...",
