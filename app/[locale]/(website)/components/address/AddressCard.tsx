@@ -1,4 +1,5 @@
 import { Address, formatAddress } from "@/types/address";
+import { useTranslations } from "next-intl";
 
 interface AddressCardProps {
   style?: string;
@@ -9,19 +10,22 @@ interface AddressCardProps {
 }
 
 export default function AddressCard({ address, handleDeleteAddress,handleEditAddress,handleClickAddress,style }: AddressCardProps) {
+  const t = useTranslations('addressCard');
   return (
     <div className={`p-6 flex justify-between items-start border-b border-gray-200 ${style}`}>
 
       <div className="cursor-pointer text-gray-900" onClick={handleClickAddress ? ()=> handleClickAddress(address) : undefined}>
-        <div className="flex items-center gap-4 mb-3">
+        <div className="flex items-center gap-[16px] mb-3">
           <span className="text-gray-900 font-medium">{address.first_name}</span>
+          <span>|</span>
           <span className="text-gray-900">{address.email}</span>
-          
+
         </div>
+        <p className="text-[16px] font-semibold">{t('shippingAddress')}</p>
         <div className="flex items-center gap-4">
           <span className="text-gray-700">{formatAddress(address)}</span>
           {address?.is_default &&
-            <span className="text-[#666] bg-[#F2F2F2] p-1 rounded-sm text-sm">Default</span>
+            <span className="text-[#666] bg-[#F2F2F2] p-1 rounded-sm text-sm">{t('default')}</span>
           }
         </div>
       </div>

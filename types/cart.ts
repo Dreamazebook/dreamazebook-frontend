@@ -30,12 +30,21 @@ export interface GiftboxInfo {
   total_premium: number;
   free_quantity: number;
   chargeable_quantity: number;
+  name: string;
 }
 
 export interface CartAttributes {
-  giftbox: string;
   language: string;
-  cover_style: string;
+  binding_type?: string;
+  cover_style?: string;
+  delivery_notes?: string | null;
+  gender?: string;
+  gift_message?: string;
+  giftbox?: string;
+  hair_color?: string;
+  hair_style?: string;
+  replace?: boolean;
+  skin_tone?: string;
 }
 
 export interface FaceImage {
@@ -49,6 +58,7 @@ export interface FaceImage {
 
 export interface CustomizationData {
   face_images: FaceImage[];
+  attributes?: CartAttributes;
 }
 
 export interface CartItem {
@@ -102,4 +112,16 @@ export interface CartItem {
 export interface CartItems {
   items: CartItem[];
   cart_summary: any;
+}
+
+export const getFormatedCover = (item:CartItem) => {
+  const binding_type = item?.customization_data?.attributes?.binding_type || item?.attributes?.binding_type;
+  if (!binding_type) return 'Soft Cover';
+  return binding_type.split('_').join(' ');
+}
+
+export const getFormatedGiftbox = (item:CartItem) => {
+  const giftboxInfo = item?.customization_data?.attributes?.giftbox || item?.giftbox_info?.name;
+  if (!giftboxInfo) return 'A Festive Gift Box';
+  return giftboxInfo.split('_').join(' ');
 }

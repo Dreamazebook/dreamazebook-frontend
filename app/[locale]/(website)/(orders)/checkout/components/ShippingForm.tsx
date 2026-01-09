@@ -79,22 +79,33 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
             style="bg-[#F8F8F8]"
             address={orderDetail.shipping_address}
           />
-          {/* Edit Shipping Address link */}
-          {canEditShippingAddress && (
-            <div className="mt-2">
-              <button
-                onClick={() => {
-                  setShowShippingForm(true);
-                  setAddress(orderDetail.shipping_address!);
-                }}
-                className="text-[#012CCE] hover:text-[#012CCE]/80 text-sm font-medium"
-              >
-                {t("editShippingAddress")}
-              </button>
-            </div>
-          )}
         </div>
       )}
+      {/* Edit Shipping Address link */}
+      <div className="flex items-center gap-[32px] mt-2 text-[16px]">
+        {canEditShippingAddress && (
+          <button
+            onClick={() => {
+              setShowShippingForm(true);
+              setAddress(orderDetail.shipping_address!);
+            }}
+            className="text-[#012CCE] hover:text-[#012CCE]/80"
+          >
+            {t("editShippingAddress")}
+          </button>
+        )}
+        {(orderDetail?.shipping_address || !showShippingForm) && (
+          <button
+            className={`cursor-pointer text-[#012CCE]`}
+            onClick={() => {
+              setShowShippingForm(true);
+              setAddress(EMPTY_ADDRESS);
+            }}
+          >
+            {t("addNewAddress")}
+          </button>
+        )}
+      </div>
       {/* 使用新地址选项 */}
       <div className="flex items-center gap-5">
         {/* <div
@@ -107,17 +118,6 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
         >
           {t("changeAddress")}
         </div> */}
-        {(orderDetail?.shipping_address || !showShippingForm) && (
-          <div
-            className={`cursor-pointer text-[#012CCE]`}
-            onClick={() => {
-              setShowShippingForm(true);
-              setAddress(EMPTY_ADDRESS);
-            }}
-          >
-            {t("addNewAddress")}
-          </div>
-        )}
       </div>
 
       {showShippingForm && (
@@ -130,7 +130,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
       )}
 
       <div className="flex items-center justify-between">
-        <label className="ml-2 block text-[#222] font-bold">
+        <label className="block text-[#222] font-bold">
           {t("billingAddressQuestion")}
         </label>
         <div className="flex items-center gap-10">
@@ -168,7 +168,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
 
       <div className="mt-4 flex flex-col justify-center">
         <p className="mb-2 text-center text-[#666]">
-          By clicking Continue, you agree to our{" "}
+          By continuing, you agree to our{" "}
           <Link href={"/terms-and-conditions"} className="text-primary">
             {t("termsAndConditions")}
           </Link>{" "}

@@ -139,19 +139,19 @@ const CheckoutForm: React.FC<{
   return (
     <div className="bg-white p-6 rounded shadow">
 
-      <h3 className='text-[22px] md:text-[28px] mb-[16px]'>Oorder Summary</h3>
+      <h3 className='text-[22px] md:text-[26px] mb-[16px]'>Order Summary</h3>
 
       {orderDetail.items.map((item) => (
         <CartItemCard key={item.id} item={item} />
       ))}
 
-      <h3 className='text-[22px] md:text-[28px] mb-[16px] border-t border-[#E5E5E5] pt-[16px] mt-[16px]'>Payment Information</h3>
+      <h3 className='text-[22px] md:text-[26px] mb-[16px] border-t border-[#E5E5E5] pt-[16px] mt-[16px]'>Order Details</h3>
 
-      <OrderSummaryDelivery orderDetail={orderDetail} />
+      <OrderSummaryDelivery orderDetail={orderDetail} showDate={false} />
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-[22px] md:text-[26px] mb-2">
             {t("cardInformation")}
           </label>
           <div className="border border-gray-300 rounded-md p-4 bg-white w-full">

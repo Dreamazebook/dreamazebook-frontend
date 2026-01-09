@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { CartItem as CartItemType } from "@/types/cart";
+import { CartItem as CartItemType, getFormatedCover, getFormatedGiftbox } from "@/types/cart";
 import DisplayPrice from "../../../components/component/DisplayPrice";
 import { Link, useRouter } from "@/i18n/routing";
 import { useEffect, useState } from "react";
@@ -178,7 +178,7 @@ export default function CartItemCard({
                 />
               </div>
 
-              <div className="w-full space-y-4 pt-4 pr-6 pb-4 opacity-100 box-border">
+              <div className="w-full space-y-1 pt-4 pr-6 pb-4 opacity-100 box-border">
                 {/* 桌面端保持原布局；手机端将价格放到书名下方，删除按钮位置不变 */}
                 <div className="flex flex-col gap-2 md:flex-row md:justify-between md:items-center md:w-full">
                   {/* 手机端：标题允许自动换行，避免过长导致卡片横向溢出；桌面端保持单行 */}
@@ -221,17 +221,21 @@ export default function CartItemCard({
                   </div>
                 </div>
 
-                {/* <p className='text-[#666666] font-[400] capitalize'>
-                {item.binding_type}
-                {(item.binding_type && (item.description || item.edition)) && ' | '}
-                {item.description || item.edition}
-              </p> */}
+                <p className='text-[#666666] font-[400] capitalize flex items-center gap-2'>
+                  <span>{getFormatedCover(item)}</span>
+                  <span>|</span>
+                  <span>{getFormatedGiftbox(item)}</span>
+                </p>
 
                 {/* {(countdown && handleClickEditMessage) ? 
                   <p className="text-sm text-gray-600">You can modify your message within {countdown} <a onClick={()=>handleClickEditMessage(item)} className='text-[#012CCE] cursor-pointer'>Edit</a></p>
                   :
                   <p className={`text-[#666] bg-[#f8f8f8] font-[400] ${item.message?'p-2':''} rounded`}>{item.message}</p>
                 } */}
+                
+                {item?.customization_data?.attributes?.gift_message &&
+                <p className={`text-[#666] bg-[#f8f8f8] font-[400] p-2 rounded`}>{item?.customization_data?.attributes?.gift_message}</p>
+                }
 
                 {/* 额外描述合并到装订信息一行展示 */}
 

@@ -47,7 +47,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
           <>
             <div className="flex justify-between">
               <p className={textColorClass}>
-                {t('subtotal')} ({selectedItems.length} {t('items')})
+                {t('subtotal')} ({selectedItems.length} {selectedItems.length > 1 ? 'items' : 'item'})
               </p>
               <p>${subtotal.toFixed(2)}</p>
             </div>
@@ -57,7 +57,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
             </div>
             {discountInfo?.applicable && discountAmount > 0 && (
               <div className="space-y-2">
-                <div className="flex justify-between text-[#abd29b]">
+                <div className="flex justify-between text-[#16A34A]">
                   <div>
                     <p>{t('multiBookDiscount')}</p>
                   </div>
@@ -69,9 +69,9 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
             )}
           </>
         )}
-        <div className={`border-t pt-3 flex justify-between ${borderColor}`}>
-          <p className={isMobile ? 'font-normal' : ''}>{t('total')}</p>
-          <p className={isMobile ? 'font-md text-lg' : 'font-bold'}>${total.toFixed(2)}</p>
+        <div className={`border-t pt-3 flex font-bold justify-between ${borderColor}`}>
+          <p >{t('total')}</p>
+          <p >${total.toFixed(2)}</p>
         </div>
       </div>
     );

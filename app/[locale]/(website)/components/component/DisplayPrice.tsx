@@ -5,15 +5,13 @@ interface DisplayPriceProps {
 }
 
 const DisplayPrice = ({value = 0, discount, style}:DisplayPriceProps) => {
-  if (typeof value === 'undefined') {
-    return <span className={`${style || 'text-gray-800'}`}>N/A</span>;
-  }
-  
-  let formatedValue = value;
+  let formatedValue: string;
   if (typeof value === 'string') {
-    formatedValue = parseFloat(value).toFixed(2);
+    // Validate string parsing to avoid NaN
+    const parsed = Math.abs(parseFloat(value));
+    formatedValue = Number.isFinite(parsed) ? parsed.toFixed(2) : '0.00';
   } else {
-    formatedValue = value.toFixed(2);
+    formatedValue = Math.abs(value).toFixed(2);
   }
 
   if (typeof discount !== 'undefined') {
@@ -25,7 +23,7 @@ const DisplayPrice = ({value = 0, discount, style}:DisplayPriceProps) => {
     );
   }
   return (
-    <span className={`${style || 'text-gray-800'}`}>${formatedValue} USD</span>
+    <span className={`${style || 'text-gray-800'}`}>{typeof value === 'number' && value < 0 ? '-' : ''}${formatedValue} USD</span>
   );
 };
 

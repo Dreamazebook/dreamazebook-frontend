@@ -65,6 +65,7 @@ function CheckoutPageContent() {
     if (orderDetail) {
       if (orderDetail.shipping_address) {
         setShippingAddress(orderDetail.shipping_address);
+        completeStep(1);
       } else {
         setShowShippingForm(true);
       }
