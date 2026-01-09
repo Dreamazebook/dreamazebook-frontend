@@ -127,6 +127,28 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   const handleGenderChange = (value: 'boy' | 'girl') => {
     onChange('gender', value);
     if (onErrorChange) onErrorChange('gender', '');
+
+    // 性别切换时自动预选发型：
+    // - 仅 PICBOOK_GOODNIGHT3：boy → hair_4，girl → hair_1
+    // - 其他书：boy → hair_1，girl → hair_4
+    // 若后端限制了可选发型（apiHairStyleValues），则优先选择目标值；否则回退到 hair_1 或可选列表首项
+    const availableHairIds =
+      apiHairStyleValues && apiHairStyleValues.length > 0
+        ? Array.from(new Set(apiHairStyleValues.map(v => `hair_${String(v)}`)))
+        : ['hair_1', 'hair_2', 'hair_3', 'hair_4'];
+
+    const isGoodnight3 = String(bookId || '').trim().toUpperCase() === 'PICBOOK_GOODNIGHT3';
+    const preferred =
+      isGoodnight3
+        ? (value === 'boy' ? 'hair_4' : 'hair_1')
+        : (value === 'boy' ? 'hair_1' : 'hair_4');
+    const nextHairstyle =
+      availableHairIds.includes(preferred)
+        ? preferred
+        : (availableHairIds.includes('hair_1') ? 'hair_1' : (availableHairIds[0] || preferred));
+
+    onChange('hairstyle', nextHairstyle);
+    if (onErrorChange) onErrorChange('hairstyle', '');
   };
 
   const handleGenderBlur = () => {
