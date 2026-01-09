@@ -184,7 +184,7 @@ export default function CartItemCard({
                   {/* 手机端：标题允许自动换行，避免过长导致卡片横向溢出；桌面端保持单行 */}
                   <div className="flex items-start justify-between gap-3 min-w-0 md:w-full md:items-center">
                     <h3 className="font-bold flex-1 min-w-0 whitespace-normal break-words md:whitespace-nowrap md:truncate">
-                      {item.product_name || item.book_name} {(item.full_name || item.recipient_name) ? `| ${item.full_name || item.recipient_name}` : ''}
+                      {getOurBookDisplayName(item.spu?.spu_code, item.product_name || item.book_name)} {(item.full_name || item.recipient_name) ? `| ${item.full_name || item.recipient_name}` : ''}
                     </h3>
                     <div className="flex items-center gap-3 shrink-0">
                       {/* 桌面端：价格在右侧（与当前 UI 一致） */}
