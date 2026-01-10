@@ -73,7 +73,7 @@ const OrderSummary: React.FC = () => {
       }
     );
     if (success) {
-      setOrderDetail({...orderDetail, status: data.order.status});
+      setOrderDetail({...orderDetail, status: data.order.status, stripe_receipt_url:data.order.stripe_receipt_url});
     }
   };
 
@@ -268,9 +268,9 @@ const OrderSummary: React.FC = () => {
             {t("actions.downloadInvoice")}
           </a>
           }
-          <button className="bg-[#222] text-white py-2 px-4 rounded hover:opacity-70 cursor-pointer">
+          {/* <button className="bg-[#222] text-white py-2 px-4 rounded hover:opacity-70 cursor-pointer">
             {t("actions.buySame")}
-          </button>
+          </button> */}
         </div>
       </div>
 
