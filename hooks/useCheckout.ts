@@ -32,7 +32,7 @@ export const useCheckout = ({ selectedItems }: UseCheckoutProps) => {
     }
     
     try {
-      const { success, message, data } = await api.post<ApiResponse>(API_ORDER_CREATE, {
+      const { success, code, message, data } = await api.post<ApiResponse>(API_ORDER_CREATE, {
         cart_item_ids: selectedItems,
         payment_method: paymentMethod
       });
@@ -40,8 +40,8 @@ export const useCheckout = ({ selectedItems }: UseCheckoutProps) => {
       if (success) {
         setError('');
         router.push(ORDER_CHECKOUT_URL(data.order.id) + `&paymentMethod=${paymentMethod}`);
-      } else {
-        setError(message || t('checkoutFailed'));
+      } else if (code == 401) {
+        router.push(`/login?redirect=/shopping-cart`);
       }
     } catch (err) {
       setError(t('checkoutFailed'));
