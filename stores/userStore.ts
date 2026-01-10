@@ -39,7 +39,7 @@ interface UserState {
   logout: () => void
   fetchCurrentUser: () => void
   sendResetPasswordLink: (email: string) => Promise<boolean>
-  sendLoginCode: (email: string) => Promise<boolean>
+  sendLoginCode: (email: string) => Promise<ApiResponse<any>>
   verifyLoginCode: (email: string, code: string) => Promise<ApiResponse<UserResponse> | null>
 
   // Kickstarter welcome modal
@@ -202,13 +202,13 @@ const useUserStore = create<UserState>((set,get) => ({
       return false;
     }
   },
-  sendLoginCode: async (email: string): Promise<boolean> => {
+  sendLoginCode: async (email: string): Promise<ApiResponse<any>> => {
     try {
       const response = await api.post<ApiResponse<any>>(API_GET_LOGIN_CODE, { email });
-      return response.success;
+      return response;
     } catch (error) {
       console.error('Send login code error:', error);
-      return false;
+      return { success: false, message: 'Failed to send login code' } as ApiResponse<any>;
     }
   },
   verifyLoginCode: async (email: string, code: string): Promise<ApiResponse<UserResponse> | null> => {

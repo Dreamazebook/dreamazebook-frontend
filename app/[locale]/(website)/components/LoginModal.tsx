@@ -30,6 +30,7 @@ export default function LoginModal() {
   const [codeSent, setCodeSent] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [googleLoading, setGoogleLoading] = useState(false);
   const [facebookLoading, setFacebookLoading] = useState(false);
   const router = useRouter();
@@ -37,6 +38,7 @@ export default function LoginModal() {
 
   useEffect(() => {
     setErrorMessage('');
+    setSuccessMessage('');
     const urlRedirect = searchParams.get('redirect');
     
     // Save URL redirect to localStorage if it exists
@@ -101,10 +103,14 @@ export default function LoginModal() {
   };
 
   const handleSendLoginCode = async (email: string) => {
-    const success = await sendLoginCode(email);
-    setCodeSent(success);
-    if (!success) {
-      setErrorMessage(t('sendCodeFailed'));
+    const response = await sendLoginCode(email);
+    setCodeSent(response.success);
+    if (response.success) {
+      setSuccessMessage(response.message || t('loginCodeSent'));
+      setErrorMessage('');
+    } else {
+      setErrorMessage(response.message || t('sendCodeFailed'));
+      setSuccessMessage('');
     }
   };
 
@@ -161,6 +167,7 @@ export default function LoginModal() {
     e.preventDefault();
     setLoading(true);
     setErrorMessage('');
+    setSuccessMessage('');
 
     try {
       if (mode === 'forgotPassword') {
@@ -251,13 +258,6 @@ const ModeToggleLinks = () => {
             {t('createOne')}
           </button>
         </span>
-        <button 
-          type="button"
-          className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline text-left"
-          onClick={() => setMode('forgotPassword')}
-        >
-          {t('forgotPasswordQuestion')}
-        </button>
       </div>
     );
   }
@@ -393,6 +393,16 @@ return (
           aria-live="polite"
         >
           <p>{errorMessage}</p>
+        </div>
+      )}
+
+      {successMessage && (
+        <div 
+          className="bg-green-50 p-3 rounded-md text-green-700 border border-green-200" 
+          role="status"
+          aria-live="polite"
+        >
+          <p>{successMessage}</p>
         </div>
       )}
 
