@@ -32,9 +32,10 @@ export function formatCartBookTitle(params: {
 
   const fullName = params.fullName || ''
   if (!fullName) return base
-  // 避免重复拼接（部分后端可能已经返回了带名字后缀的 book_name）
+  // 避免重复拼接（部分后端可能已经返回了带名字后缀的 book_name / product_name）
   if (base.includes(fullName)) return base
-  return `${base} - ${fullName}`
+  // 购物车展示风格：用 "|" 作为分隔符（与现有非 bundle 卡片一致）
+  return `${base} | ${fullName}`
 }
 
 
