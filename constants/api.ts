@@ -6,6 +6,9 @@ export const OAUTH_CALLBACK = (provider: string) => `/api/auth/${provider}/callb
 export const API_USER_REGISTER = '/register';
 
 export const API_USER_LOGIN = '/login';
+export const API_GET_LOGIN_CODE = `${API_USER_LOGIN}/send-code`;
+export const API_VERIFY_LOGIN_CODE = `${API_USER_LOGIN}/verify-code`;
+
 export const API_USER_LOGOUT = '/logout';
 
 export const API_USER_SEND_PASSWORD_RESET_EMAIL = '/auth/forgot-password';

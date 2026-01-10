@@ -61,6 +61,11 @@ export interface CustomizationData {
   attributes?: CartAttributes;
 }
 
+export interface SPU {
+  id: number;
+  spu_code: string;
+}
+
 export interface CartItem {
   id: number;
   book_name?: string;
@@ -76,6 +81,7 @@ export interface CartItem {
   sku_name: string;
   spu_id: number;
   spu_code: string;
+  spu?: SPU;
   product_name: string;
   product_image: string | null;
   attributes: CartAttributes;

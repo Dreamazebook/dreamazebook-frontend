@@ -18,12 +18,16 @@ export default function LoginModal() {
     loginAdmin,
     sendResetPasswordLink,
     checkKickstarterStatus,
+    sendLoginCode,
+    verifyLoginCode,
   } = useUserStore();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [code, setCode] = useState('')
   const [mode, setMode] = useState('login');
   const [loading, setLoading] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -96,6 +100,26 @@ export default function LoginModal() {
     }
   };
 
+  const handleSendLoginCode = async (email: string) => {
+    const success = await sendLoginCode(email);
+    setCodeSent(success);
+    if (!success) {
+      setErrorMessage(t('sendCodeFailed'));
+    }
+  };
+
+  const handleVerifyLoginCode = async (email: string, code: string) => {
+    const response = await verifyLoginCode(email, code);
+    if (response?.success) {
+      checkKickstarterStatus();
+      handlePostLoginRedirect();
+      return true;
+    } else {
+      setErrorMessage(t('verifyCodeFailed'));
+      return false;
+    }
+  };
+
   const handleLogin = async (email: string, password: string) => {
     if (email.includes('admin')) {
       const response = await loginAdmin({ email, password });
@@ -141,6 +165,10 @@ export default function LoginModal() {
     try {
       if (mode === 'forgotPassword') {
         await handleForgotPassword(email);
+      } else if (mode === 'codeLogin' && !codeSent) {
+        await handleSendLoginCode(email);
+      } else if (mode === 'codeLogin' && codeSent) {
+        await handleVerifyLoginCode(email, code);
       } else if (mode === 'login') {
         await handleLogin(email, password);
       } else if (mode === 'register') {
@@ -183,6 +211,31 @@ export default function LoginModal() {
     </div>
   </div>
 );
+
+const CodeLoginButton = () => {
+  if (mode === 'login') {
+    return (
+      <div className="pt-2 border-t border-gray-200">
+        <button
+          type="button"
+          onClick={() => {
+            setMode('codeLogin');
+            setCodeSent(false);
+            setCode('');
+            setErrorMessage('');
+          }}
+          className="w-full cursor-pointer flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-50 border border-[#1BA7FF] rounded-md hover:bg-blue-100 transition-colors text-[#1BA7FF] font-medium"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m0 0h6" />
+          </svg>
+          <span>{t('loginWithCode')}</span>
+        </button>
+      </div>
+    );
+  }
+  return null;
+};
 
 const ModeToggleLinks = () => {
   if (mode === 'login' && !resetSent) {
@@ -239,6 +292,39 @@ const ModeToggleLinks = () => {
       </div>
     );
   }
+
+  if (mode === 'codeLogin' && !codeSent) {
+    return (
+      <div className="text-sm">
+        <button 
+          type="button"
+          className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+          onClick={() => setMode('login')}
+        >
+          {t('backToLogin')}
+        </button>
+      </div>
+    );
+  }
+
+  if (mode === 'codeLogin' && codeSent) {
+    return (
+      <div className="text-sm">
+        <button 
+          type="button"
+          className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+          onClick={() => {
+            setMode('codeLogin');
+            setCodeSent(false);
+            setCode('');
+            setEmail('');
+          }}
+        >
+          {t('changeEmail')}
+        </button>
+      </div>
+    );
+  }
   
   return null;
 };
@@ -247,7 +333,7 @@ return (
   <main className="flex flex-col items-center justify-center bg-white p-4 w-96 gap-4" role="main">
     <header className="text-center">
       <h1 className="text-xl font-semibold text-[#222222]">
-        {mode === 'login' ? t('login') : mode === 'register' ? t('register') : t('forgotPassword')}
+        {mode === 'login' ? t('login') : mode === 'register' ? t('register') : mode === 'forgotPassword' ? t('forgotPassword') : t('loginWithCode')}
       </h1>
     </header>
 
@@ -275,7 +361,7 @@ return (
           required
         />
         
-        {mode !== 'forgotPassword' && (
+        {mode !== 'forgotPassword' && mode !== 'codeLogin' && (
           <Input
             id="password"
             label={t('password')}
@@ -283,6 +369,18 @@ return (
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder={t('passwordPlaceholder')}
+            required
+          />
+        )}
+
+        {mode === 'codeLogin' && codeSent && (
+          <Input
+            id="code"
+            label={t('verificationCode')}
+            type="text"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder={t('codeInputPlaceholder')}
             required
           />
         )}
@@ -318,6 +416,13 @@ return (
             </button>
           </p>
         </div>
+      ) : mode === 'codeLogin' && codeSent ? (
+        <>
+          <Button 
+            tl={t('verifyCode')} 
+            isLoading={loading} 
+          />
+        </>
       ) : (
         <Button 
           tl={
@@ -325,7 +430,9 @@ return (
               ? t('login') 
               : mode === 'register' 
                 ? t('register') 
-                : t('sendResetLink')
+                : mode === 'forgotPassword'
+                  ? t('sendResetLink')
+                  : t('sendCode')
           } 
           isLoading={loading} 
         />
@@ -333,6 +440,7 @@ return (
 
       <ModeToggleLinks />
 
+      {mode === 'login' && <CodeLoginButton />}
       {['login','register'].includes(mode) && <OAuthButtons />}
     </form>
   </main>
