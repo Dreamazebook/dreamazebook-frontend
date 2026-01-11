@@ -76,6 +76,7 @@ export interface CartAddRequest {
 export interface CartAddResponse {
   cart_item_id: number;
   message: string;
+  id: number;
 }
 
 // 预览页面相关的类型定义

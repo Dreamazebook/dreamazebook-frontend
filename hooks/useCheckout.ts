@@ -43,7 +43,10 @@ export const useCheckout = ({ selectedItems }: UseCheckoutProps) => {
       } else if (code == 401) {
         router.push(`/login?redirect=/shopping-cart`);
       }
-    } catch (err) {
+    } catch (err:any) {
+      if (err?.status == 401) {
+        return router.push(`/login?redirect=/shopping-cart`);
+      }
       setError(t('checkoutFailed'));
     } finally {
       // Clear the appropriate loading state

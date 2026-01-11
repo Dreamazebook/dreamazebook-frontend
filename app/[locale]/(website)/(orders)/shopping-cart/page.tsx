@@ -3,6 +3,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from '@/i18n/routing';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
@@ -27,6 +28,7 @@ export default function ShoppingCartPage() {
   const [confirmNextUrl, setConfirmNextUrl] = useState<string | null>(null);
   
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { checkKickstarterStatus } = useUserStore();
 
   // 记录被选中的书本 ID，只有被选中的书才会结账
@@ -40,6 +42,7 @@ export default function ShoppingCartPage() {
     discountInfo,
     discountAmount,
     total,
+    itemsCount,
   } = useOrderSummary({ selectedItems });
 
   const {
@@ -113,7 +116,20 @@ export default function ShoppingCartPage() {
     fetchCartList();
     // 同步检查 Kickstarter 套餐状态（用于控制卡片显示）
     checkKickstarterStatus();
-    console.log('mounted')
+    // If URL contains selected_cart_id (single number), add it to selectedItems
+    try {
+      const scid = searchParams.get('selected_cart_id');
+      console.log(scid);
+      if (scid) {
+        const id = parseInt(scid, 10);
+        if (!isNaN(id)) {
+          setSelectedItems(prev => Array.from(new Set([...prev, id])));
+        }
+      }
+    } catch (e) {
+      console.log(e);
+      // ignore malformed param
+    }
   }, []);
 
   const handleToggleSelectItem = (id: number) => {
@@ -281,7 +297,7 @@ export default function ShoppingCartPage() {
             discountInfo={discountInfo}
             discountAmount={discountAmount}
             total={total}
-            selectedItems={selectedItems}
+            itemsCount={itemsCount}
             checkoutLoading={checkoutLoading}
             paypalCheckoutLoading={paypalCheckoutLoading}
             onCheckout={handleCheckout}

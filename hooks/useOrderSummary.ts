@@ -56,6 +56,7 @@ export const useOrderSummary = ({ selectedItems }: UseOrderSummaryProps) => {
     discountInfo,
     discountAmount,
     total,
-    calculateCost
+    calculateCost,
+    itemsCount: calculatedCost?.items_count || 0,
   };
 };

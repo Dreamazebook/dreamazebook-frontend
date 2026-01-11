@@ -9,7 +9,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   discountInfo,
   discountAmount,
   total,
-  selectedItems,
+  itemsCount,
   checkoutLoading,
   paypalCheckoutLoading,
   onCheckout
@@ -47,7 +47,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
           <>
             <div className="flex justify-between">
               <p className={textColorClass}>
-                {t('subtotal')} ({selectedItems.length} {selectedItems.length > 1 ? 'items' : 'item'})
+                {t('subtotal')} ({itemsCount} {itemsCount > 1 ? 'items' : 'item'})
               </p>
               <p>${subtotal.toFixed(2)}</p>
             </div>
@@ -81,14 +81,14 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
     <div className="space-y-3">
       <button
         onClick={() => onCheckout('card')}
-        disabled={selectedItems.length === 0 || checkoutLoading}
+        disabled={itemsCount === 0 || checkoutLoading}
         className="w-full py-3 cursor-pointer bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-400 flex items-center justify-center gap-2"
       >
         {checkoutLoading ? <LoadingSpinner /> : t('checkout')}
       </button>
       <button
         onClick={() => onCheckout('paypal')}
-        disabled={selectedItems.length === 0 || paypalCheckoutLoading}
+        disabled={itemsCount === 0 || paypalCheckoutLoading}
         className="w-full py-3 cursor-pointer bg-[#0070BA] text-white rounded-md hover:bg-[#003087] disabled:bg-blue-300 flex items-center justify-center gap-2"
       >
         {paypalCheckoutLoading ? <LoadingSpinner /> : t('checkoutWithPayPal')}

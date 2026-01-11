@@ -3452,7 +3452,7 @@ export default function PreviewPageWithTopNav() {
         //   toast.success('商品已成功添加到购物车！');
         // }
         // 跳转到购物车页面
-        router.push('/shopping-cart');
+        router.push(`/shopping-cart?selected_cart_id=${response?.data?.id}`);
       } else {
         //toast.error(response.message || (oldPreviewId ? '更新购物车失败' : '添加到购物车失败'));
       }
