@@ -313,7 +313,7 @@ export default function CartItemCard({
                       ))}
 
                     {/* 添加附加产品链接：进入编辑页的附加项标签 */}
-                    {item.status === "pending" && (
+                    {showEditBook && item.status === "pending" && (
                       <a
                         className={`text-sm text-blue-600 hover:underline cursor-pointer truncate max-w-[180px] md:max-w-[260px] ${
                           isAddonLoading ? "opacity-50 cursor-not-allowed" : ""

@@ -142,7 +142,7 @@ const CheckoutForm: React.FC<{
       <h3 className='text-[22px] md:text-[26px] mb-[16px]'>Order Summary</h3>
 
       {orderDetail.items.map((item) => (
-        <CartItemCard key={item.id} item={item} />
+        <CartItemCard key={item.id} item={item} showEditBook={false} />
       ))}
 
       <h3 className='text-[22px] md:text-[26px] mb-[16px] border-t border-[#E5E5E5] pt-[16px] mt-[16px]'>Order Details</h3>
