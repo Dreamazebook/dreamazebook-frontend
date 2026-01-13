@@ -59,6 +59,7 @@ export default function ShoppingCartPage() {
       if (!success) {
         console.error(message);
       }
+      setDefaultCartItem(data?.items);
       if (data?.items) {
         // 为每个 package 拉取其 items 作为子项，便于显示 Create/Edit Book
         const augmented = await Promise.all(
@@ -111,25 +112,21 @@ export default function ShoppingCartPage() {
     }
   };
 
+  const setDefaultCartItem = (items:CartItem[]|undefined) => {
+    const scid = searchParams.get('selected_cart_id');
+    if (scid) {
+      const id = parseInt(scid, 10);
+      setSelectedItems([id]);
+    } else if (items && items?.length) {
+      setSelectedItems([items[0].id]);
+    }
+  }
+
   useEffect(() => {
 
     fetchCartList();
     // 同步检查 Kickstarter 套餐状态（用于控制卡片显示）
     checkKickstarterStatus();
-    // If URL contains selected_cart_id (single number), add it to selectedItems
-    try {
-      const scid = searchParams.get('selected_cart_id');
-      console.log(scid);
-      if (scid) {
-        const id = parseInt(scid, 10);
-        if (!isNaN(id)) {
-          setSelectedItems(prev => Array.from(new Set([...prev, id])));
-        }
-      }
-    } catch (e) {
-      console.log(e);
-      // ignore malformed param
-    }
   }, []);
 
   const handleToggleSelectItem = (id: number) => {

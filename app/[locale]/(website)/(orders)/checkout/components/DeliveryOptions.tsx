@@ -40,7 +40,7 @@ const DeliveryOptions: React.FC<DeliveryOptionsProps> = ({
               <div>
                 <h4 className="font-medium">{name}</h4>
                 <p className="text-sm text-gray-600">{t("estimatedDelivery", {days: estimated_days})}</p>
-                <p className='text-[#999999]'>{description}</p>
+                {/* <p className='text-[#999999]'>{description}</p> */}
               </div>
             </div>
             <DisplayPrice value={cost} />
