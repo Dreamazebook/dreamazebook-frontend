@@ -12,25 +12,13 @@ export default function ProfileSidebar({
 }) {
   const { user, logout } = useUserStore();
   const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const t = useTranslations("profileSidebar");
 
-  const getTimeGreeting = (): string => {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) {
-      return "goodMorning";
-    } else if (hour >= 12 && hour < 18) {
-      return "goodAfternoon";
-    } else {
-      return "goodEvening";
-    }
-  };
-
   const navItems = [
     { href: "/profile", translationKey: "home" },
-    { href: "/profile/detail", translationKey: "accountDetails" },
     { href: "/profile/order-history", translationKey: "orderHistory" },
+    { href: "/profile/detail", translationKey: "accountDetails" },
     // { href: "#", translationKey: "loyalty" },
   ];
 
@@ -41,63 +29,6 @@ export default function ProfileSidebar({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header with colorful letters */}
-      <div className="bg-white p-4">
-        <div className="flex items-center justify-between max-w-[1200px] mx-auto">
-          <div className="flex flex-col md:flex-row items-center w-full">
-            <div className="flex items-center mb-2 md:mb-0">
-              <div className="flex items-center mr-4 md:mr-8">
-                <span className="text-xl md:text-3xl font-bold text-orange-500">
-                  R
-                </span>
-                <span className="text-xl md:text-3xl font-bold text-blue-900">
-                  E
-                </span>
-                <span className="text-xl md:text-3xl font-bold text-green-500">
-                  A
-                </span>
-                <span className="text-xl md:text-3xl font-bold text-purple-400">
-                  D
-                </span>
-                <span className="text-xl md:text-3xl font-bold text-blue-500">
-                  A
-                </span>
-                <span className="text-xl md:text-3xl font-bold text-yellow-400">
-                  Z
-                </span>
-                <span className="text-xl md:text-3xl font-bold text-blue-900">
-                  E
-                </span>
-              </div>
-              <div className="flex items-center">
-                <span className="text-xl md:text-3xl font-bold text-orange-500">
-                  B
-                </span>
-                <span className="text-xl md:text-3xl font-bold text-green-500">
-                  O
-                </span>
-                <div className="w-6 h-6 md:w-8 md:h-8 bg-orange-500 rounded-full flex items-center justify-center mx-1">
-                  <span className="text-white text-sm md:text-xl font-bold">
-                    O
-                  </span>
-                </div>
-                <span className="text-xl md:text-3xl font-bold text-orange-500">
-                  K
-                </span>
-                <span className="text-xl md:text-3xl font-bold text-orange-500">
-                  S
-                </span>
-              </div>
-            </div>
-            <div className="text-sm md:text-lg font-medium text-gray-700 md:hidden">
-              {t(getTimeGreeting())} {user?.name || user?.email}
-            </div>
-          </div>
-          <div className="text-sm md:text-lg font-medium text-gray-700 hidden md:block">
-            {t(getTimeGreeting())} {user?.name || user?.email}
-          </div>
-        </div>
-      </div>
 
       {/* Mobile Horizontal Menu */}
       <div className="md:hidden bg-white overflow-x-auto">
@@ -127,8 +58,8 @@ export default function ProfileSidebar({
         </div>
       </div>
 
-      <div className="max-w-[1200px] mx-auto p-3">
-        <div className="flex gap-4 md:gap-8">
+      <div className="max-w-[1200px] mx-auto">
+        <div className="flex gap-[48px]">
           {/* Desktop Sidebar */}
           <div className="hidden md:block w-56 bg-white rounded-lg shadow-sm p-6">
             <div className="text-center mb-6">
@@ -139,17 +70,17 @@ export default function ProfileSidebar({
                   className="w-full h-full object-cover"
                 />
               </div>
-              <h2 className="text-lg font-semibold text-[#222222]">
-                {user?.name}
+              <h2 className="text-[28px] font-semibold text-[#222222]">
+                {user?.name || user?.email.split('@')[0]}
               </h2>
             </div>
 
-            <nav className="space-y-1">
+            <nav className="space-y-[24px]">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`block px-3 text-center py-2 rounded ${
+                  className={`block px-3 text-center py-2 ${
                     pathname.endsWith(item.href)
                       ? "text-[#012CCE] font-medium text-[18px]"
                       : "text-[#222222] hover:bg-gray-50"

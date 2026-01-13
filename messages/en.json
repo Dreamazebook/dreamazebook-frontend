@@ -71,13 +71,13 @@
   "orderHistoryCard": {
     "shipTo": "Ship to:",
     "orderDate": "Order date:",
-    "deliveryDate": "Delivery date:",
+    "deliveryDate": "Est. Delivery:",
     "qty": "Qty:",
     "downloadInvoice": "Download Invoice",
     "buySame": "Buy the Same",
-    "moreDetails": "More Details",
+    "moreDetails": "View Details",
     "continueToPay": "Complete Payment",
-    "editShippingAddress": "Edit Shipping Address"
+    "editShippingAddress": "Change Shipping Address"
   },
   "latestOrderHistory": {
     "total": "Total",
@@ -87,8 +87,9 @@
   "orderSummaryDelivery": {
     "shipTo": "Ship to",
     "orderDate": "Order date",
-    "deliveryDate": "Delivery date",
-    "qty": "Quantity"
+    "deliveryDate": "Est. Delivery",
+    "qty": "Quantity",
+    "books": "Books"
   },
   "accountDetails": {
     "title": "Account Details",
@@ -206,7 +207,7 @@
     },
     "shippingInfo": {
       "title": "Shipping Address",
-      "deliveryDate": "Delivery Date"
+      "deliveryDate": "Est. Delivery"
     },
     "actions": {
       "downloadInvoice": "Download Invoice",

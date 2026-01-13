@@ -21,32 +21,6 @@ const OrderHistoryCard = ({ orderDetail,showStatus,openModal,openAddressModal }:
   const t = useTranslations("orderHistoryCard");
   return (
     <div className="flex gap-4 p-[12px] md:py-[16px] md:px-[24px] bg-white">
-      {/* Product Images */}
-      {/* <div className="flex-shrink-0">
-        {orderDetail.images ? (
-          <div className="relative">
-            <img
-              src={orderDetail.images[0]}
-              alt="Product"
-              className="w-20 h-20 object-cover"
-            />
-            <img
-              src={orderDetail.images[1]}
-              alt="Product"
-              className="w-20 h-20 object-cover absolute -right-4 -bottom-4"
-            />
-            <div className="absolute -right-6 -bottom-2 text-sm text-gray-500">
-              {orderDetail.extraCount}
-            </div>
-          </div>
-        ) : (
-          <img
-            src={orderDetail.image}
-            alt="Product"
-            className="w-20 h-20 object-cover"
-          />
-        )}
-      </div> */}
 
       {/* Order Details */}
       <div className="flex-1 text-[16px]">
@@ -70,6 +44,8 @@ const OrderHistoryCard = ({ orderDetail,showStatus,openModal,openAddressModal }:
           bgColor="bg-white"
           showShipTo={false}
           orderDetail={orderDetail}
+          noPadding={true}
+          showStatusText={true}
           handleClickEditShippingAddress={openAddressModal ? () => openAddressModal(orderDetail) : undefined}
         />
 

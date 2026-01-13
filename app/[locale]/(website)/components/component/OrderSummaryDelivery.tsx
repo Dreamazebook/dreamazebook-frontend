@@ -1,6 +1,7 @@
 import { formatAddress } from "@/types/address";
-import { formatDate, OrderDetail } from "@/types/order";
+import { formatDate, OrderDetail, getBooksCountFromOrder } from "@/types/order";
 import { useTranslations } from 'next-intl';
+import OrderTitle from "../../(orders)/order-summary/components/OrderTitle";
 
 const OrderHistoryTextStyle = ({ label, value }: any) => {
   return (
@@ -15,14 +16,16 @@ interface OrderSummaryDeliveryProps {
   showShipTo?: boolean;
   showDate?: boolean;
   bgColor?: string;
+  noPadding?: boolean;
+  showStatusText?: boolean;
   handleClickEditShippingAddress?: () => void;
 }
 
-const OrderSummaryDelivery = ({ orderDetail, handleClickEditShippingAddress, showDate = true, showShipTo = true, bgColor = 'bg-[#F8F8F8]' }: OrderSummaryDeliveryProps) => {
+const OrderSummaryDelivery = ({ orderDetail, noPadding=false, showStatusText, handleClickEditShippingAddress, showDate = true, showShipTo = true, bgColor = 'bg-[#F8F8F8]' }: OrderSummaryDeliveryProps) => {
   const t = useTranslations('orderSummaryDelivery');
 
   return (
-    <div className={`text-[#222] mb-4 p-3 space-y-3 ${bgColor}`}>
+    <div className={`text-[#222] mb-4 ${noPadding?'':'p-3'} space-y-3 ${bgColor}`}>
 
       {showShipTo && (
         <div className="flex items-center gap-[12px]">
@@ -51,13 +54,12 @@ const OrderSummaryDelivery = ({ orderDetail, handleClickEditShippingAddress, sho
         )}
       </div>}
 
-      <OrderHistoryTextStyle
-          label={t("qty")}
-          value={orderDetail.items?.reduce(
-            (sum, item) => sum + item.quantity,
-            0
-          )}
-        />
+      <OrderHistoryTextStyle label={t('books')} value={getBooksCountFromOrder(orderDetail)} />
+
+      {showStatusText && (orderDetail.status != 'unpaid') && 
+        <div className="text-[#999999] text-[16px]">
+        <OrderTitle status={orderDetail.status} />
+        </div>}
     </div>
   );
 };

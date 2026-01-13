@@ -106,7 +106,7 @@ const OrderHistory = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-[1200px] mx-auto px-[12px] py-8">
+      <div className="max-w-[1200px] mx-auto py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-normal text-gray-900">{t('title')}</h1>
@@ -114,25 +114,19 @@ const OrderHistory = () => {
 
         {/* Tab Navigation */}
         <div className="relative mb-6">
-          {/* Left Shadow Gradient */}
-          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-          
-          {/* Right Shadow Gradient */}
-          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
-          
           {/* Scrollable Tab Container */}
           <div className="overflow-x-auto scrollbar-hide">
-            <div className="flex border-b border-gray-200 min-w-max">
+            <div className="flex min-w-max gap-[32px]">
               {tabs.map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`
-                    flex-none cursor-pointer px-6 py-3 text-sm whitespace-nowrap
+                    flex-none cursor-pointer text-[16px] whitespace-nowrap
                     transition-colors duration-200
                     ${activeTab === tab.id 
-                      ? 'text-blue-600 border-b-2 border-blue-600 font-medium' 
-                      : 'text-gray-600 hover:text-gray-800 border-b-2 border-transparent'
+                      ? 'text-[#222222] border-b-2 border-primary font-medium' 
+                      : 'text-[#666666] border-b-2 border-transparent'
                     }
                   `}
                 >

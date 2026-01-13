@@ -67,8 +67,6 @@ export default function OrderTitle({ status }: OrderTitleProps) {
   };
 
   return (
-    <span>
-      {getStatusEmoji()} {getStatusTitle()}
-    </span>
+    <>{getStatusTitle()}</>
   );
 }

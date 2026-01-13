@@ -88,7 +88,8 @@
     "shipTo": "配送至",
     "orderDate": "订单日期",
     "deliveryDate": "送达日期",
-    "qty": "数量"
+    "qty": "数量",
+    "books": "书籍"
   },
   "accountDetails": {
     "title": "账户详情",

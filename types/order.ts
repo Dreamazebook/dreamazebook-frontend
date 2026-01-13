@@ -264,3 +264,10 @@ export const statusLabelMap: { [key: string]: string } = {
   refunded: "closed",
   closed: "closed",
 };
+
+export const getBooksCountFromOrder = (orderDetail: OrderDetail) => {
+  if (orderDetail?.discount_details) {
+    return orderDetail?.discount_details.non_package_quantity;
+  }
+  return orderDetail?.items.reduce((acc, item) => acc + item.quantity, 0) || 0;
+}

@@ -88,7 +88,8 @@
     "shipTo": "Expédier à",
     "orderDate": "Date de commande",
     "deliveryDate": "Date de livraison",
-    "qty": "Qté"
+    "qty": "Qté",
+    "books": "Livres"
   },
   "accountDetails": {
     "title": "Détails du compte",

@@ -1,4 +1,4 @@
-import { OrderDetail } from "@/types/order";
+import { OrderDetail, getBooksCountFromOrder } from "@/types/order";
 import {useTranslations} from 'next-intl'
 import DisplayPrice from "./DisplayPrice";
 
@@ -13,7 +13,7 @@ const OrderSummaryPrices = ({ orderDetail }: OrderSummaryPricesProps) => {
   const shippingCost = order?.shipping_cost || 0;
   const subtotal = total - shippingCost;
   const discount = order?.discount_amount || 0;
-  const numberItems = orderDetail?.discount_details?.non_package_quantity || order.items.length || 0;
+  const numberItems = getBooksCountFromOrder(orderDetail);
 
   return (
     <div className="pt-4 space-y-2 text-[16px] text-[#666666]">
