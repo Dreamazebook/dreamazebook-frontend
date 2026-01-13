@@ -18,7 +18,7 @@ const OrderSummaryPrices = ({ orderDetail }: OrderSummaryPricesProps) => {
   return (
     <div className="pt-4 space-y-2 text-[16px] text-[#666666]">
       <div className="flex justify-between">
-        <p className="">Subtotal ({numberItems} {numberItems > 1 ? 'books' : 'book'})</p>
+        <p className="">Subtotal ({numberItems} {numberItems && numberItems > 1 ? 'books' : 'book'})</p>
         <DisplayPrice value={subtotal} />
       </div>
       <div className="flex justify-between">

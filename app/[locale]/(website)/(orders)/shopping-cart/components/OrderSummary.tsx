@@ -47,7 +47,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
           <>
             <div className="flex justify-between">
               <p className={textColorClass}>
-                {t('subtotal')} ({itemsCount} {itemsCount > 1 ? 'books' : 'book'})
+                {t('subtotal')} ({itemsCount} {itemsCount && (itemsCount > 1) ? 'books' : 'book'})
               </p>
               <p>${subtotal.toFixed(2)}</p>
             </div>
