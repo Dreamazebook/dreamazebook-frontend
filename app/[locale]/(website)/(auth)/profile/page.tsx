@@ -2,19 +2,46 @@
 
 import useUserStore from "@/stores/userStore";
 import { Link } from "@/i18n/routing";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import LatestOrderHistory from "./components/LatestOrderHistory";
 import { useTranslations } from 'next-intl';
 
 // Profile Page Component
 export default function ProfilePage() {
-  const {orderList, fetchOrderList} = useUserStore();
+  const {orderList, fetchOrderList, user} = useUserStore();
   const t = useTranslations('profilePage');
-  useEffect(()=>{
+  const tProfileSidebar = useTranslations('profileSidebar');
+  const [greeting, setGreeting] = useState('');
+
+  useEffect(() => {
     fetchOrderList();
-  },[]);
+
+    // Set greeting based on time of day
+    const hour = new Date().getHours();
+    if (hour < 12) {
+      setGreeting(tProfileSidebar('goodMorning'));
+    } else if (hour < 18) {
+      setGreeting(tProfileSidebar('goodAfternoon'));
+    } else {
+      setGreeting(tProfileSidebar('goodEvening'));
+    }
+  }, [tProfileSidebar]);
+
+  // Display user name or email
+  const displayName = user?.name || user?.email || '';
+
   return (
     <div className="space-y-4 md:space-y-6">
+      {/* Greeting Header */}
+      <div className="bg-white rounded shadow-sm p-4 md:p-6">
+        <div className="flex items-center justify-between">
+          <span className="text-gray-900">{greeting}</span>
+          {displayName && (
+            <span className="text-gray-600">{displayName}</span>
+          )}
+        </div>
+      </div>
+
       {/* Order History Section */}
       <div className="bg-white rounded shadow-sm p-4 md:p-6">
         <div className="flex items-center justify-between mb-4">
