@@ -106,7 +106,7 @@ const OrderHistory = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-[1200px] mx-auto py-8">
+      <div className="max-w-[1200px] mx-auto py-8 px-[16px] md:px-0">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-normal text-gray-900">{t('title')}</h1>

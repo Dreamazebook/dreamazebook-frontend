@@ -61,28 +61,36 @@ export default function ProfileSidebar({
       <div className="max-w-[1200px] mx-auto">
         <div className="flex gap-[48px]">
           {/* Desktop Sidebar */}
-          <div className="hidden md:block w-56 bg-white rounded-lg shadow-sm p-6">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-3 overflow-hidden">
+          <div className="hidden relative w-[30%] max-w-[417px] bg-white rounded md:flex flex-col justify-between shadow p-6 h-screen">
+            {/* Background Image */}
+            <div className="absolute inset-0 z-0">
+              <img
+                src="/profile/profile-bg.png"
+                alt="Background"
+                className="w-full"
+              />
+            </div>
+            <div className="text-center mt-[50px]">
+              <div className="w-[120px] h-[120px] rounded mx-auto mb-[24px] overflow-hidden">
+                {/* Avatar */}
                 <img
                   src={user?.avatar || "/favicon-32x32.png"}
                   alt="Augustine"
-                  className="w-full h-full object-cover"
+                  className="relative z-10 w-full h-full object-cover rounded-full border-4 border-white"
                 />
               </div>
               <h2 className="text-[28px] font-semibold text-[#222222]">
                 {user?.name || user?.email.split('@')[0]}
               </h2>
-            </div>
 
-            <nav className="space-y-[24px]">
+              <nav className="flex flex-col gap-[24px] mt-[48px]">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={`block px-3 text-center py-2 ${
                     pathname.endsWith(item.href)
-                      ? "text-[#012CCE] font-medium text-[18px]"
+                      ? "text-[#012CCE] font-medium text-[16px]"
                       : "text-[#222222] hover:bg-gray-50"
                   }`}
                 >
@@ -90,6 +98,7 @@ export default function ProfileSidebar({
                 </Link>
               ))}
             </nav>
+            </div>
 
             <div className="mt-12">
               <button
@@ -102,6 +111,7 @@ export default function ProfileSidebar({
                 {t("logout")}
               </button>
             </div>
+
           </div>
 
           {/* Main Content */}

@@ -26,14 +26,11 @@ export default function GreetingHeader({ className = "" }: GreetingHeaderProps) 
   }, [tProfileSidebar]);
 
   // Display user name or email
-  const displayName = user?.name || user?.email || '';
+  const displayName = user?.name || user?.email?.split('@')[0];
 
   return (
-    <div className={`flex items-center mt-[28px] justify-between ${className}`}>
-      <span className="text-gray-900">{greeting}</span>
-      {displayName && (
-        <span className="text-gray-600">{displayName}</span>
-      )}
+    <div className={`flex items-center mt-[28px] text-[22px] text-[#222] md:text-[28px] justify-between ${className}`}>
+      <span className="">{greeting} {displayName}!</span>
     </div>
   );
 }
