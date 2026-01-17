@@ -2,10 +2,11 @@ import { formatAddress } from "@/types/address";
 import { formatDate, OrderDetail, getBooksCountFromOrder } from "@/types/order";
 import { useTranslations } from 'next-intl';
 import OrderTitle from "../../(orders)/order-summary/components/OrderTitle";
+import { getOurBookDisplayName } from "@/utils/bookNames";
 
 const OrderHistoryTextStyle = ({ label, value }: any) => {
   return (
-    <div className="flex gap-[12px]">
+    <div className="flex gap-[4px]">
       <span className="text-[#999999]">{label}</span>
       {value}
     </div>
@@ -26,6 +27,14 @@ const OrderSummaryDelivery = ({ orderDetail, noPadding=false, showStatusText, ha
 
   return (
     <div className={`text-[#222] mb-4 ${noPadding?'':'p-3'} space-y-3 ${bgColor}`}>
+
+      {orderDetail?.items?.length > 0 && 
+        <div>
+          {orderDetail.items.map((item)=>
+            <OrderHistoryTextStyle key={item.id} label={getOurBookDisplayName(item?.spu?.spu_code)} value={`| ${item?.customization_data?.full_name || ''}`} />
+          )}
+        </div>
+      }
 
       {showShipTo && (
         <div className="flex items-center gap-[12px]">

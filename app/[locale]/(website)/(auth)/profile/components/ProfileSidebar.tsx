@@ -63,13 +63,11 @@ export default function ProfileSidebar({
           {/* Desktop Sidebar */}
           <div className="hidden relative w-[30%] max-w-[417px] bg-white rounded md:flex flex-col justify-between shadow p-6 h-screen">
             {/* Background Image */}
-            <div className="absolute inset-0 z-0">
               <img
                 src="/profile/profile-bg.png"
                 alt="Background"
-                className="w-full"
+                className="w-full absolute inset-0 z-0"
               />
-            </div>
             <div className="text-center mt-[50px]">
               <div className="w-[120px] h-[120px] rounded mx-auto mb-[24px] overflow-hidden">
                 {/* Avatar */}
