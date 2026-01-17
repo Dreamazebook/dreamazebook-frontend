@@ -2089,6 +2089,10 @@ export default function PreviewPageWithTopNav() {
   const coverDesignRef = useRef<HTMLDivElement>(null);
   const bindingRef = useRef<HTMLDivElement>(null);
   const giftBoxRef = useRef<HTMLDivElement>(null);
+  // 封面 R2 URL 构建缓存：避免在 render 中对每个 option 重复计算/重复打 log
+  const coverR2UrlsCacheRef = useRef<Map<string, any>>(new Map());
+  // 显式打开调试：在 URL 上加 ?debugCoverR2=1
+  const debugCoverR2 = process.env.NODE_ENV === 'development' && searchParams.get('debugCoverR2') === '1';
 
   // 监听 URL tab 参数，跳转到指定部分
   useEffect(() => {
@@ -2144,6 +2148,9 @@ export default function PreviewPageWithTopNav() {
     const cropRightHalf = ['1', '2', '3', '4'].includes(coverId);
 
     const key = `${normalizedBookId}_${coverId}`;
+    // render 期间会被多次调用（列表渲染 + 状态变更 + React dev strict mode），这里做缓存
+    const cached = coverR2UrlsCacheRef.current.get(key);
+    if (cached) return cached;
     // 直连 R2 的封面图（用于普通 Image 显示）
     const base = `${folder}/base.webp`;
     // 通过本地 API 代理的封面图（用于 Canvas 叠加名字，避免 CORS 污染）
@@ -2152,8 +2159,16 @@ export default function PreviewPageWithTopNav() {
       normalizedBookId,
     )}/${encodeURIComponent(coverId)}`;
 
-    // 调试日志：检查bookId和封面URL
-    if (process.env.NODE_ENV === 'development') {
+    const result = {
+      key,
+      base,
+      canvasBase,
+      cropRightHalf,
+    };
+    coverR2UrlsCacheRef.current.set(key, result);
+
+    // 调试日志：默认关闭（太吵）；仅在 URL 显式开启 ?debugCoverR2=1 时打印
+    if (debugCoverR2) {
       console.log('[buildCoverR2Urls]', {
         rawBookId,
         normalizedBookId,
@@ -2164,12 +2179,7 @@ export default function PreviewPageWithTopNav() {
       });
     }
 
-    return {
-      key,
-      base,
-      canvasBase,
-      cropRightHalf,
-    };
+    return result;
   };
 
   // 为装订方式构建 Cloudflare R2 图片 URL（hardcover / softcover / premium）
@@ -3338,10 +3348,6 @@ export default function PreviewPageWithTopNav() {
       // - 需要用户选择 Options 后，通过 /cart/add 更新当前购物车条目（不走“直接返回”快捷路径）
       // personalized-products（从购物车编辑进入）仍保持原行为：不再次 add-to-cart；仅返回购物车
       const skipPrefillOptions = searchParams.get('skipPrefillOptions') === '1';
-      if (fromCartItemId && !skipPrefillOptions) {
-        router.push('/shopping-cart');
-        return;
-      }
       // 检查是否所有必要的部分都已完成
       // 允许未填写 giver 也能继续；但 dedication 必须 Submit 后才算完成
       // 圣诞 bundle（hideOptions=1）：不要求 coverDesign/binding/giftBox，否则会被引导去 option tab
@@ -3421,7 +3427,19 @@ export default function PreviewPageWithTopNav() {
         },
       };
 
-      console.log('调用购物车API:', {
+      // 打印将要调用的购物车接口（区分 /cart/add vs /cart/{id} 更新）
+      console.log('调用购物车API:', fromCartItemId ? {
+        url: API_CART_UPDATE(Number(fromCartItemId)),
+        method: 'PUT',
+        fromCartItemId,
+        skipPrefillOptions,
+        data: {
+          quantity: skipPrefillOptions ? 1 : undefined,
+          cover_style: coverKey,
+          binding_type: bindingKey,
+          giftbox: giftKey,
+        },
+      } : {
         url: '/cart/add',
         method: 'POST',
         data: cartData,
@@ -3429,13 +3447,32 @@ export default function PreviewPageWithTopNav() {
       });
       
       console.debug('[AddToCart] Sending request /cart/add with data:', cartData);
-      // 对“购物车 create book”流程：必须更新原 cart item（否则会出现重复创建两本/两条记录）
-      // PUT /cart/:id 写回 options；仅在其他流程走 /cart/add。
-      if (fromCartItemId && skipPrefillOptions) {
+      // 购物车内（包括普通商品 & 详情页 bundle 里的商品）：更新 options 必须用 PUT /cart/{id}
+      // 圣诞 bundle（hideOptions=1）不需要选择 option，且上方已走 regenerate-preview 分支，不在此处理。
+      if (fromCartItemId) {
+        // 兼容不同后端实现：
+        // - 有的实现更新用顶层字段（binding_type/giftbox/gift_message...）
+        // - 有的实现沿用 /cart/add 的 customization_data.attributes
+        const languageKey =
+          (searchParams.get('lang') || displayLang || '').toLowerCase() || undefined;
+        const optionAttrs: any = {
+          ...(coverKey ? { cover_style: coverKey } : {}),
+          ...(bindingKey ? { binding_type: bindingKey } : {}),
+          ...(giftKey ? { giftbox: giftKey } : {}),
+          ...(languageKey ? { language: languageKey } : {}),
+          delivery_notes: '',
+          gift_message: message.trim(),
+          replace: false,
+        };
         await api.put(API_CART_UPDATE(Number(fromCartItemId)), {
-          quantity: 1,
-          cover_style: coverKey,
-          customization_data: cartData.customization_data,
+          ...(skipPrefillOptions ? { quantity: 1 } : {}),
+          ...(coverKey ? { cover_style: coverKey } : {}),
+          // 顶层（最常见的 cart update 结构）
+          ...optionAttrs,
+          // 后端购物车 item 常见存储结构：attributes.{cover_style,binding_type,giftbox,language}
+          attributes: optionAttrs,
+          // 嵌套（与 /cart/add 对齐）
+          customization_data: { attributes: optionAttrs },
         });
         router.push('/shopping-cart');
         return;
