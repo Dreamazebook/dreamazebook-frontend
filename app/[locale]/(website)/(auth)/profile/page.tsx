@@ -4,17 +4,22 @@ import useUserStore from "@/stores/userStore";
 import { Link } from "@/i18n/routing";
 import { useEffect } from "react";
 import LatestOrderHistory from "./components/LatestOrderHistory";
+import GreetingHeader from "./components/GreetingHeader";
 import { useTranslations } from 'next-intl';
 
 // Profile Page Component
 export default function ProfilePage() {
   const {orderList, fetchOrderList} = useUserStore();
   const t = useTranslations('profilePage');
-  useEffect(()=>{
+
+  useEffect(() => {
     fetchOrderList();
-  },[]);
+  }, []);
+
   return (
     <div className="space-y-4 md:space-y-6">
+      <GreetingHeader />
+
       {/* Order History Section */}
       <div className="bg-white rounded shadow-sm p-4 md:p-6">
         <div className="flex items-center justify-between mb-4">
