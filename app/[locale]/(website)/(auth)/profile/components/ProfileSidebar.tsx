@@ -31,8 +31,34 @@ export default function ProfileSidebar({
     <div className="min-h-screen bg-gray-50">
 
       {/* Mobile Horizontal Menu */}
-      <div className="md:hidden bg-white overflow-x-auto">
-        <div className="flex justify-around px-2 py-3 whitespace-nowrap">
+      <div className="md:hidden bg-white overflow-x-auto p-[12px] relative">
+        <img
+          src="/profile/profile-bg.png"
+          alt="Background"
+          className="w-full -mt-[80px] absolute inset-0 z-0"
+        />
+        {/* User Avatar Section */}
+        <div className="flex items-center gap-[24px] mt-[40px] relative z-1">
+        <div className="flex items-center justify-center">
+          {user?.avatar ? (
+            <img
+              src={user.avatar}
+              alt="Avatar"
+              className="w-[80px] h-[80px] rounded-full border-4 border-white object-cover"
+            />
+          ) : (
+            <div className="w-[80px] h-[80px] rounded-full bg-primary text-white flex items-center justify-center text-[32px] font-semibold border-4 border-white">
+              {getUserInitials(user)}
+            </div>
+          )}
+        </div>
+        <div className="text-center mb-4">
+          <h2 className="text-xl font-semibold capitalize text-[#222222]">
+            {getUserName(user)}
+          </h2>
+        </div>
+        </div>
+        <div className="flex justify-around py-[12px] whitespace-nowrap">
           {navItems.map((item) => (
             <Link
               key={item.href}
