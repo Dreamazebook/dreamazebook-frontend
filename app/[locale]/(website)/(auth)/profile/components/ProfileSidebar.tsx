@@ -1,9 +1,9 @@
 "use client";
-import { useState } from "react";
 import { Link } from "@/i18n/routing";
 import { usePathname, useRouter } from "@/i18n/routing";
 import useUserStore from "@/stores/userStore";
 import { useTranslations } from "next-intl";
+import { getUserName } from "@/types/user";
 
 export default function ProfileSidebar({
   children,
@@ -78,7 +78,7 @@ export default function ProfileSidebar({
                 />
               </div>
               <h2 className="text-[28px] font-semibold text-[#222222]">
-                {user?.name || user?.email.split('@')[0]}
+                {getUserName(user)}
               </h2>
 
               <nav className="flex flex-col gap-[24px] mt-[48px]">
