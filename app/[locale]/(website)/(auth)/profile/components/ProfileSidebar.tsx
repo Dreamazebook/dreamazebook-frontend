@@ -70,12 +70,18 @@ export default function ProfileSidebar({
               />
             <div className="text-center mt-[50px]">
               <div className="w-[120px] h-[120px] rounded mx-auto mb-[24px] overflow-hidden">
-                {/* Avatar */}
-                <img
-                  src={user?.avatar || "/favicon-32x32.png"}
-                  alt="Augustine"
-                  className="relative z-10 w-full h-full object-cover rounded-full border-4 border-white"
-                />
+                {/* Avatar or Initials */}
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt="Avatar"
+                    className="relative z-10 w-full h-full object-cover rounded-full border-4 border-white"
+                  />
+                ) : (
+                  <div className="relative z-10 w-full h-full bg-primary text-white rounded-full flex items-center justify-center text-[48px] font-semibold">
+                    {getUserName(user).charAt(0).toUpperCase()}
+                  </div>
+                )}
               </div>
               <h2 className="text-[28px] font-semibold text-[#222222]">
                 {getUserName(user)}
