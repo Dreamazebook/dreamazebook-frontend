@@ -3,7 +3,7 @@ import { Link } from "@/i18n/routing";
 import { usePathname, useRouter } from "@/i18n/routing";
 import useUserStore from "@/stores/userStore";
 import { useTranslations } from "next-intl";
-import { getUserName } from "@/types/user";
+import { getUserName, getUserInitials } from "@/types/user";
 
 export default function ProfileSidebar({
   children,
@@ -79,7 +79,7 @@ export default function ProfileSidebar({
                   />
                 ) : (
                   <div className="relative z-10 w-full h-full bg-primary text-white rounded-full flex items-center justify-center text-[48px] font-semibold">
-                    {getUserName(user).charAt(0).toUpperCase()}
+                    {getUserInitials(user)}
                   </div>
                 )}
               </div>

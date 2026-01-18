@@ -49,3 +49,10 @@ export function getUserName(user: UserType | null): string {
 
   return user.name || user.email.split('@')[0] || '';
 }
+
+export function getUserInitials(user: UserType | null): string {
+  if (!user) return '';
+
+  const userName = getUserName(user);
+  return userName.charAt(0).toUpperCase();
+}
