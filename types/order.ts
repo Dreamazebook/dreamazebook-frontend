@@ -1,8 +1,22 @@
 import { Address } from "@/types/address";
 import { CartItem } from "./cart";
 
-export function formatDate(date: string) {
-  return date.split("T")[0];
+export function formatDate(date: string | null | undefined): string {
+  if (!date) return '';
+
+  const dateObj = new Date(date);
+  if (isNaN(dateObj.getTime())) return '';
+
+  const months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+
+  const month = months[dateObj.getMonth()];
+  const day = dateObj.getDate();
+  const year = dateObj.getFullYear();
+
+  return `${month} ${day}, ${year}`;
 }
 
 export interface OrderDetail {

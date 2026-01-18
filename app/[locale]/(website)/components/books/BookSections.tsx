@@ -6,6 +6,7 @@ import { getBookConfig, BookSection } from './booksConfig';
 import GiftPackagesSection from './GiftPackagesSection';
 import api from '@/utils/api';
 import { useRouter } from '@/i18n/routing';
+import { CartItem } from '@/types/cart';
 
 interface BookSectionsProps {
   book: any;
@@ -116,8 +117,11 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection; bookId: string |
       if (resp?.success === false) {
         throw new Error('batch-add failed');
       }
-      // 加购成功：直接跳转购物车（不弹 toast）
-      router.push('/shopping-cart');
+      if (resp.success && resp?.data.length > 0) {
+        const addedItemIds = resp.data.map((item:any)=>item?.data?.id);
+        // 加购成功：直接跳转购物车（不弹 toast）
+        return router.push(`/shopping-cart?selected_cart_id=${addedItemIds.join(',')}`);
+      }
     } catch (e) {
       console.error('[AddBundleToBag] failed:', e);
     } finally {
