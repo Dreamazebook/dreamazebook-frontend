@@ -34,8 +34,19 @@ export default function LoginModal() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [facebookLoading, setFacebookLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [countdown, setCountdown] = useState(0);
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [countdown]);
 
   useEffect(() => {
     setErrorMessage('');
@@ -107,7 +118,8 @@ export default function LoginModal() {
     const response = await sendLoginCode(email);
     setCodeSent(response.success);
     if (response.success) {
-      setSuccessMessage(response.message || t('loginCodeSent'));
+      setSuccessMessage(`We've sent a 6 digit code to ${email}. It expires in 10 minutes.`);
+      setCountdown(60);
       setErrorMessage('');
     } else {
       setErrorMessage(response.message || t('sendCodeFailed'));
@@ -334,9 +346,26 @@ const ModeToggleLinks = () => {
 
 return (
   <main className="flex flex-col items-center justify-center bg-white p-4 w-96 gap-4" role="main">
-    <header className="text-center">
+    <header className="w-full flex items-center justify-center relative">
+      {mode === 'codeLogin' && codeSent && (
+        <button
+          type="button"
+          onClick={() => {
+            setCodeSent(false);
+            setCode('');
+            setSuccessMessage('');
+            setErrorMessage('');
+            setCountdown(0);
+          }}
+          className="absolute left-0 cursor-pointer text-gray-600 hover:text-gray-800 transition-colors focus:outline-none"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+      )}
       <h1 className="text-xl font-semibold text-[#222222]">
-        {mode === 'login' ? t('login') : mode === 'register' ? t('register') : mode === 'forgotPassword' ? t('forgotPassword') : t('loginWithCode')}
+        {mode === 'login' ? t('login') : mode === 'register' ? t('register') : mode === 'forgotPassword' ? t('forgotPassword') : 'Enter the code'}
       </h1>
     </header>
 
@@ -354,15 +383,17 @@ return (
           />
         )}
 
-        <Input
-          id="email"
-          label={t('email')}
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder={t('emailPlaceholder')}
-          required
-        />
+        {(!codeSent || mode !== 'codeLogin') && (
+          <Input
+            id="email"
+            label={t('email')}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={t('emailPlaceholder')}
+            required
+          />
+        )}
         
         {mode !== 'forgotPassword' && mode !== 'codeLogin' && (
           <div className="relative">
@@ -395,15 +426,61 @@ return (
         )}
 
         {mode === 'codeLogin' && codeSent && (
-          <Input
-            id="code"
-            label={t('verificationCode')}
-            type="text"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder={t('codeInputPlaceholder')}
-            required
-          />
+          <div>
+            {successMessage && (
+              <div
+                className="p-3 text-center"
+                role="status"
+                aria-live="polite"
+              >
+                <p>{successMessage}</p>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              {[0, 1, 2, 3, 4, 5].map((index) => (
+                <input
+                  key={index}
+                  ref={(el) => {
+                    if (el && index === 0) {
+                      (el as HTMLInputElement).addEventListener('paste', (e) => {
+                        e.preventDefault();
+                        const pastedData = e.clipboardData?.getData('text') || '';
+                        const digits = pastedData.replace(/\D/g, '').slice(0, 6);
+                        if (digits.length > 0) {
+                          setCode(digits.padEnd(6, ''));
+                          const inputs = document.querySelectorAll('.code-input');
+                          const nextFocusIndex = Math.min(digits.length, 5);
+                          (inputs[nextFocusIndex] as HTMLInputElement)?.focus();
+                        }
+                      });
+                    }
+                  }}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={code[index] || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value && !/^\d$/.test(value)) return;
+                    const newCode = code.split('');
+                    newCode[index] = value;
+                    setCode(newCode.join(''));
+                    if (value && index < 5) {
+                      (document.querySelectorAll('.code-input')[index + 1] as HTMLInputElement)?.focus();
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Backspace' && !code[index] && index > 0) {
+                      (document.querySelectorAll('.code-input')[index - 1] as HTMLInputElement)?.focus();
+                    }
+                  }}
+                  className="code-input w-12 h-12 text-center text-lg border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1BA7FF] focus:border-[#1BA7FF] outline-none"
+                  required
+                />
+              ))}
+            </div>
+          </div>
         )}
       </fieldset>
 
@@ -414,16 +491,6 @@ return (
           aria-live="polite"
         >
           <p>{errorMessage}</p>
-        </div>
-      )}
-
-      {successMessage && (
-        <div 
-          className="bg-green-50 p-3 rounded-md text-green-700 border border-green-200" 
-          role="status"
-          aria-live="polite"
-        >
-          <p>{successMessage}</p>
         </div>
       )}
 
@@ -449,10 +516,23 @@ return (
         </div>
       ) : mode === 'codeLogin' && codeSent ? (
         <>
-          <Button 
-            tl={t('verifyCode')} 
-            isLoading={loading} 
+          <Button
+            tl={t('verifyCode')}
+            isLoading={loading}
           />
+          <div className="text-center text-sm">
+            {countdown > 0 ? (
+              <span className="text-gray-500">Resend in {countdown}s</span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => handleSendLoginCode(email)}
+                className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+              >
+                Resend code
+              </button>
+            )}
+          </div>
         </>
       ) : (
         <Button 
