@@ -115,8 +115,8 @@ export default function ShoppingCartPage() {
   const setDefaultCartItem = (items:CartItem[]|undefined) => {
     const scid = searchParams.get('selected_cart_id');
     if (scid) {
-      const id = parseInt(scid, 10);
-      setSelectedItems([id]);
+      const ids = scid.split(',');
+      setSelectedItems(ids.map((id)=>parseInt(id, 10)));
     } else if (items && items?.length) {
       setSelectedItems([items[0].id]);
     }

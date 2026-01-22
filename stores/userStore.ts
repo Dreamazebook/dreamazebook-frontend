@@ -4,6 +4,7 @@ import { ApiResponse, UserResponse } from '@/types/api'
 import { create } from 'zustand'
 import { Address } from '@/types/address'
 import { OrderDetail } from '@/types/order'
+import type { UserType, LoginData, RegisterData, GoogleLoginData, FacebookLoginData, KickstarterUserSummary } from '@/types/user'
 
 interface UserState {
   // Modal state
@@ -47,52 +48,6 @@ interface UserState {
   ksSummary: KickstarterUserSummary | null
   checkKickstarterStatus: () => Promise<void>
   closeKickstarterWelcome: () => void
-}
-
-type UserType = {
-  id: string
-  name?: string
-  email: string
-  user_type?: string
-  avatar?: string
-}
-
-type LoginData = {
-  email: string
-  password: string
-}
-
-type RegisterData = {
-  name?: string
-  email: string
-  password: string
-  password_confirmation: string
-}
-
-type GoogleLoginData = {
-  googleId: string
-  email: string
-  name: string
-  picture?: string
-  emailVerified?: boolean
-  idToken: string
-  accessToken: string
-}
-
-type FacebookLoginData = {
-  facebookId: string
-  email: string
-  name: string
-  picture?: string
-  accessToken: string
-}
-
-type KickstarterUserSummary = {
-  has_package: boolean
-  package_id?: number
-  configured_items?: number
-  total_items?: number
-  need_attention?: boolean
 }
 
 const useUserStore = create<UserState>((set,get) => ({

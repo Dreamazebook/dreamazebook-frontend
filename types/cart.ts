@@ -59,6 +59,7 @@ export interface FaceImage {
 export interface CustomizationData {
   face_images: FaceImage[];
   attributes?: CartAttributes;
+  full_name?: string;
 }
 
 export interface SPU {
