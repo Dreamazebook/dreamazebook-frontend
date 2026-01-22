@@ -40,7 +40,8 @@ export async function OPTIONS() {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Guest-Session-Id',
+      'Access-Control-Expose-Headers': 'X-Guest-Session-Id',
     },
   });
 }
@@ -110,7 +111,8 @@ async function handleRequest(
 
     resHeaders.set('Access-Control-Allow-Origin', '*');
     resHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    resHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    resHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Guest-Session-Id');
+    resHeaders.set('Access-Control-Expose-Headers', 'X-Guest-Session-Id');
 
     return new NextResponse(upstreamResp.body, {
       status: upstreamResp.status,

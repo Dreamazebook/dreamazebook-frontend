@@ -1,5 +1,32 @@
 import axios from 'axios';
 
+const GUEST_SESSION_HEADER = 'X-Guest-Session-Id';
+const GUEST_SESSION_STORAGE_KEY = 'guest_session_id';
+let guestSessionIdMemory = null;
+
+const readGuestSessionId = () => {
+    if (guestSessionIdMemory) return guestSessionIdMemory;
+    if (typeof window === 'undefined') return null;
+    try {
+        const v = window.sessionStorage.getItem(GUEST_SESSION_STORAGE_KEY);
+        if (v) guestSessionIdMemory = v;
+        return v;
+    } catch {
+        return null;
+    }
+};
+
+const writeGuestSessionId = (id) => {
+    if (!id || typeof id !== 'string') return;
+    const v = id.trim();
+    if (!v) return;
+    guestSessionIdMemory = v;
+    if (typeof window === 'undefined') return;
+    try {
+        window.sessionStorage.setItem(GUEST_SESSION_STORAGE_KEY, v);
+    } catch {}
+};
+
 // 在客户端使用 /api 代理，在服务器端使用完整 API URL
 const getBaseURL = () => {
     if (typeof window !== 'undefined') {
@@ -49,6 +76,12 @@ const addAuthHeader = (config) => {
             config.headers.Authorization = `Bearer ${SERVER_SIDE_TOKEN}`;
         }
     }
+
+    // 透传 guest session id（无痕/未登录场景下用于访问 preview batch）
+    const guestSessionId = readGuestSessionId();
+    if (guestSessionId) {
+        config.headers[GUEST_SESSION_HEADER] = guestSessionId;
+    }
     return config;
 };
 
@@ -57,6 +90,14 @@ uploadApi.interceptors.request.use(addAuthHeader);
 
 // 响应拦截器
 const handleResponse = (response) => {
+    // axios 会把响应头 key 统一转小写
+    const guestSessionId =
+        response?.headers?.['x-guest-session-id'] ||
+        response?.headers?.[GUEST_SESSION_HEADER] ||
+        response?.headers?.[GUEST_SESSION_HEADER.toLowerCase()];
+    if (guestSessionId) {
+        writeGuestSessionId(Array.isArray(guestSessionId) ? guestSessionId[0] : String(guestSessionId));
+    }
     return response.data;
 };
 
