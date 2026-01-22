@@ -8,6 +8,7 @@ import { getScrollToTopConfig } from './components/scrollToTopConfig';
 import useUserStore from '@/stores/userStore';
 import { useEffect } from 'react';
 import KickstarterWelcomeModal from './components/KickstarterWelcomeModal';
+import LoginModal from './components/LoginModal';
 import { Toaster } from 'react-hot-toast';
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
@@ -19,12 +20,12 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const isPreviewPage = segments.includes("preview");
   const isSelectBookContentPage = segments.includes("select-book-content");
   const isKickstarterConfigPage = segments.includes("kickstarter-config");
-  
+
   // 检查是否在嵌入模式（用于抽屉显示）
   const isEmbedMode = searchParams.get('embed') === 'true';
 
   // 在组件中
-  const { fetchCurrentUser, isLoggedIn, checkKickstarterStatus } = useUserStore();
+  const { fetchCurrentUser, isLoggedIn, checkKickstarterStatus, isLoginModalOpen } = useUserStore();
   
   // 获取当前页面的滚动到顶部按钮配置
   const scrollToTopConfig = getScrollToTopConfig(pathname);
@@ -47,6 +48,11 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
       {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isEmbedMode) && <Header />}
       {children}
       <KickstarterWelcomeModal />
+      {isLoginModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <LoginModal />
+        </div>
+      )}
       {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isKickstarterConfigPage || isEmbedMode) && <Footer />}
       {scrollToTopConfig.enabled && (
         <ScrollToTopButton

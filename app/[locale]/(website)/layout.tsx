@@ -10,7 +10,6 @@ import { notoSansSC } from '@/app/fonts';
 import "../globals.css";
 import 'cropperjs/dist/cropper.css';
 import LayoutWrapper from './LayoutWrapper';
-import LoginModal from './components/LoginModal';
 import LdrsRegistry from './components/LdrsRegistry';
 
 const geistSans = Geist({
@@ -66,7 +65,6 @@ export default async function LocaleLayout({
       >
         <NextIntlClientProvider locale={locale as Locale} messages={messages}>
           <LdrsRegistry />
-          {/* <LoginModal /> */}
           <LayoutWrapper>
             {children}
           </LayoutWrapper>

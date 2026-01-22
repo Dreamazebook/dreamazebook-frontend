@@ -228,10 +228,12 @@ const Header = () => {
                       </button>
                     </>
                   ) : (
-                    <Link
-                      href="/login"
-                      className="flex items-center space-x-3 text-gray-700 hover:text-gray-900"
-                      onClick={() => setIsMobileMenuOpen(false)}
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        toggleLoginModal();
+                      }}
+                      className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 w-full"
                     >
                       <Image
                         src={"/header/profile.svg"}
@@ -240,7 +242,7 @@ const Header = () => {
                         height={24}
                       />
                       <span className="text-lg">Login</span>
-                    </Link>
+                    </button>
                   )}
                 </motion.div>
               </motion.nav>
@@ -299,22 +301,29 @@ const Header = () => {
             className="cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]"
           />
         </Link>
-        <Link
-          className="hidden md:block"
-          href={
-            mounted && user
-              ? user.user_type === "admin"
-                ? "/admin"
-                : "/profile"
-              : "/login"
-          }
-        >
-          <Image
-            src={"/header/profile.svg"}
-            alt="Login"
-            className="cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]"
-          />
-        </Link>
+        {mounted && user ? (
+          <Link
+            className="hidden md:block"
+            href={user.user_type === "admin" ? "/admin" : "/profile"}
+          >
+            <Image
+              src={"/header/profile.svg"}
+              alt="Profile"
+              className="cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]"
+            />
+          </Link>
+        ) : (
+          <button
+            onClick={() => toggleLoginModal()}
+            className="hidden md:block"
+          >
+            <Image
+              src={"/header/profile.svg"}
+              alt="Login"
+              className="cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]"
+            />
+          </button>
+        )}
       </div>
     </header>
   );

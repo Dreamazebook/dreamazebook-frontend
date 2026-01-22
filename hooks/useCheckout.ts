@@ -5,6 +5,7 @@ import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
 import { API_ORDER_CREATE } from '@/constants/api';
 import { ORDER_CHECKOUT_URL } from '@/constants/links';
+import useUserStore from '@/stores/userStore'
 
 interface UseCheckoutProps {
   selectedItems: number[];
@@ -13,6 +14,8 @@ interface UseCheckoutProps {
 export const useCheckout = ({ selectedItems }: UseCheckoutProps) => {
   const router = useRouter();
   const t = useTranslations('ShoppingCart');
+
+  const {openLoginModal} = useUserStore();
   
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [paypalCheckoutLoading, setPaypalCheckoutLoading] = useState(false);
@@ -41,11 +44,12 @@ export const useCheckout = ({ selectedItems }: UseCheckoutProps) => {
         setError('');
         router.push(ORDER_CHECKOUT_URL(data.order.id) + `&paymentMethod=${paymentMethod}`);
       } else if (code == 401) {
-        router.push(`/login?redirect=/shopping-cart`);
+        return openLoginModal();
+        //router.push(`/login?redirect=/shopping-cart`);
       }
     } catch (err:any) {
       if (err?.status == 401) {
-        return router.push(`/login?redirect=/shopping-cart`);
+        return openLoginModal()
       }
       setError(t('checkoutFailed'));
     } finally {

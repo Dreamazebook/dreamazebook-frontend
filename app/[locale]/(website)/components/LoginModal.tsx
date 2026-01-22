@@ -12,6 +12,7 @@ import { OAUTH_REDIRECT } from '@/constants/api'
 export default function LoginModal() {
   const t = useTranslations('LoginModal');
   const {
+    openLoginModal,
     closeLoginModal,
     register,
     login,
@@ -138,6 +139,20 @@ export default function LoginModal() {
       return false;
     }
   };
+
+  // Auto-submit when code reaches 6 digits
+  useEffect(() => {
+    if (code.length === 6 && mode === 'codeLogin' && codeSent) {
+      const submitForm = async () => {
+        setLoading(true);
+        setErrorMessage('');
+        setSuccessMessage('');
+        await handleVerifyLoginCode(email, code);
+        setLoading(false);
+      };
+      submitForm();
+    }
+  }, [code]);
 
   const handleLogin = async (email: string, password: string) => {
     if (email.includes('admin')) {
@@ -345,7 +360,16 @@ const ModeToggleLinks = () => {
 };
 
 return (
-  <main className="flex flex-col items-center justify-center bg-white p-4 w-96 gap-4" role="main">
+  <main className="flex flex-col items-center justify-center bg-white p-4 w-96 gap-4 relative" role="main">
+    <button
+      type="button"
+      onClick={closeLoginModal}
+      className="absolute top-4 right-4 cursor-pointer text-gray-500 hover:text-gray-700 transition-colors focus:outline-none z-10"
+    >
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
     <header className="w-full flex items-center justify-center relative">
       {mode === 'codeLogin' && codeSent && (
         <button
