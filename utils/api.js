@@ -101,8 +101,17 @@ const handleResponse = (response) => {
     return response.data;
 };
 
-const handleError = (error) => {
+const handleError = async (error) => {
     if (error.response) {
+        // 即使是错误响应（如 403），后端也可能回传 X-Guest-Session-Id；此处也要捕获并保存
+        const guestSessionId =
+            error?.response?.headers?.['x-guest-session-id'] ||
+            error?.response?.headers?.[GUEST_SESSION_HEADER] ||
+            error?.response?.headers?.[GUEST_SESSION_HEADER.toLowerCase()];
+        if (guestSessionId) {
+            writeGuestSessionId(Array.isArray(guestSessionId) ? guestSessionId[0] : String(guestSessionId));
+        }
+
         // 服务器返回错误状态码
         console.error('API错误:', {
             status: error.response.status,
@@ -110,6 +119,30 @@ const handleError = (error) => {
             data: error.response.data,
             url: error.config?.url
         });
+
+        // 特判：无痕模式下首次访问 preview batch 可能因 session 不一致返回 403，
+        // 后端同时回传新的 X-Guest-Session-Id。保存后重试一次即可恢复。
+        try {
+            const status = error.response.status;
+            const msg = error?.response?.data?.message;
+            const cfg = error?.config;
+            const shouldRetry =
+                status === 403 &&
+                typeof msg === 'string' &&
+                msg.includes('无权访问该预览批次') &&
+                cfg &&
+                !cfg.__retried_with_guest_session__;
+
+            if (shouldRetry) {
+                cfg.__retried_with_guest_session__ = true;
+                // 确保重试请求一定带上最新的 guest session id
+                const latest = readGuestSessionId();
+                cfg.headers = cfg.headers || {};
+                if (latest) cfg.headers[GUEST_SESSION_HEADER] = latest;
+                return await axios.request(cfg);
+            }
+        } catch {}
+
         if (error.response.status === 401) {
             // 处理未授权错误
             if (typeof window !== 'undefined') {
