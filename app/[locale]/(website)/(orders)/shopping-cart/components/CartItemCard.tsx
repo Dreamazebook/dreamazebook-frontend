@@ -487,14 +487,6 @@ export default function CartItemCard({
                           pi?.customization_data?.cover_type ||
                           pkgDefaultOptions?.cover_type ||
                           ""
-                        // 仅展示装订信息（首字母大写）
-                        const formatBindingLabel = (raw: any) => {
-                          const s = String(raw || '').trim();
-                          if (!s) return '';
-                          const normalized = s.replace(/[_-]+/g, ' ');
-                          return normalized.charAt(0).toUpperCase() + normalized.slice(1);
-                        };
-                        const spec = formatBindingLabel(bindingType);
 
                         // 根据 cover_type 自动展示 cover option 图片：
                         // - personalized → cover_3
@@ -543,21 +535,22 @@ export default function CartItemCard({
 
                             <div className="flex-1 min-w-0 p-3 md:py-4 md:px-6">
                               <div className="flex items-start justify-between">
-                                <div className="min-w-0">
-                                  <p className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222] whitespace-normal break-words md:whitespace-nowrap md:truncate">
-                                    {bookName}
-                                  </p>
-                                  {/* 手机端：子书价格放到书名下方；桌面端保持右侧显示 */}
-                                  <div className="md:hidden mt-1">
-                                    <span className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222]">
-                                      $0 {pkgCurrency}
-                                    </span>
+                                {/* 左侧：桌面端上下 space-between（标题在上，按钮贴底）；移动端保持自然流式 */}
+                                <div className="min-w-0 flex flex-col md:justify-between md:min-h-[72px]">
+                                  <div className="min-w-0">
+                                    <p className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222] whitespace-normal break-words md:whitespace-nowrap md:truncate">
+                                      {bookName}
+                                    </p>
+                                    {/* 手机端：子书价格放到书名下方；桌面端保持右侧显示 */}
+                                    <div className="md:hidden mt-1">
+                                      <span className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222]">
+                                        $0 {pkgCurrency}
+                                      </span>
+                                    </div>
                                   </div>
-                                  {spec && (
-                                    <p className="text-[#666666] text-[16px] leading-[24px] tracking-[0.5px] truncate">{spec}</p>
-                                  )}
+
                                   <a
-                                    className="text-blue-600 text-[14px] leading-[20px] tracking-[0.25px] hover:underline cursor-pointer inline-block mt-2"
+                                    className="text-blue-600 text-[14px] leading-[20px] tracking-[0.25px] hover:underline cursor-pointer inline-block mt-2 md:mt-0"
                                     onClick={(e) => {
                                       e.preventDefault()
                                       router.push(ctaHref)
