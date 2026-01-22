@@ -26,7 +26,7 @@ export default function LoginModal() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [code, setCode] = useState('')
-  const [mode, setMode] = useState('login');
+  const [mode, setMode] = useState('codeLogin');
   const [loading, setLoading] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
   const [resetSent, setResetSent] = useState(false);
@@ -325,13 +325,13 @@ const ModeToggleLinks = () => {
 
   if (mode === 'codeLogin' && !codeSent) {
     return (
-      <div className="text-sm">
-        <button 
+      <div className="text-sm text-center">
+        <button
           type="button"
           className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
           onClick={() => setMode('login')}
         >
-          {t('backToLogin')}
+          Use password instead
         </button>
       </div>
     );
@@ -340,14 +340,15 @@ const ModeToggleLinks = () => {
   if (mode === 'codeLogin' && codeSent) {
     return (
       <div className="text-sm">
-        <button 
+        <button
           type="button"
           className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
           onClick={() => {
-            setMode('codeLogin');
             setCodeSent(false);
             setCode('');
-            setEmail('');
+            setSuccessMessage('');
+            setErrorMessage('');
+            setCountdown(0);
           }}
         >
           {t('changeEmail')}
@@ -360,7 +361,7 @@ const ModeToggleLinks = () => {
 };
 
 return (
-  <main className="flex flex-col items-center justify-center bg-white p-4 w-96 gap-4 relative" role="main">
+  <main className="flex flex-col items-center justify-center bg-white rounded-lg p-4 w-96 gap-4 relative" role="main">
     <button
       type="button"
       onClick={closeLoginModal}
@@ -382,6 +383,7 @@ return (
             setCountdown(0);
           }}
           className="absolute left-0 cursor-pointer text-gray-600 hover:text-gray-800 transition-colors focus:outline-none"
+          title={t('backToLogin')}
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -389,7 +391,7 @@ return (
         </button>
       )}
       <h1 className="text-xl font-semibold text-[#222222]">
-        {mode === 'login' ? t('login') : mode === 'register' ? t('register') : mode === 'forgotPassword' ? t('forgotPassword') : 'Enter the code'}
+        {mode === 'login' ? t('login') : mode === 'register' ? t('register') : mode === 'forgotPassword' ? t('forgotPassword') : 'Welcome to Dreamaze'}
       </h1>
     </header>
 
@@ -576,7 +578,7 @@ return (
       <ModeToggleLinks />
 
       {mode === 'login' && <CodeLoginButton />}
-      {['login','register'].includes(mode) && <OAuthButtons />}
+      <OAuthButtons />
     </form>
   </main>
 )
