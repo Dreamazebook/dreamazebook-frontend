@@ -1030,7 +1030,7 @@ export default function PreviewPageWithTopNav() {
   const p34ComposeUploadInFlightRef = useRef(false);
   const p34ComposeUploadedRef = useRef(false);
   // sidebar「Name on Book」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
-  const [isNameOnBookCompleted, setIsNameOnBookCompleted] = useState(false);
+  const [isNameOnBookCompleted, setIsNameOnBookCompleted] = useState(true);
   // dedication 完成态：必须用户点过 Submit 才算完成（避免默认寄语导致“已完成”误导）
   const [isDedicationSubmitted, setIsDedicationSubmitted] = useState(false);
 
@@ -3232,8 +3232,8 @@ export default function PreviewPageWithTopNav() {
 
   // 各部分的完成状态判断
   const completedSections = {
-    // Name on Book：输入文本或上传图片任一完成即可
-    giver: giver.trim() !== "" || isNameOnBookCompleted,
+    // Name on Book：默认完成状态
+    giver: true,
     // dedication：只有用户点击 Submit（或从后端/购物车回填了真实寄语）才算完成
     dedication: isDedicationSubmitted,
     coverDesign: selectedBookCover !== null,
