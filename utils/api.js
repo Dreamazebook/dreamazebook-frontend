@@ -16,10 +16,21 @@ const readGuestSessionId = () => {
     }
 };
 
-const writeGuestSessionId = (id) => {
+const writeGuestSessionId = (id, options = {}) => {
     if (!id || typeof id !== 'string') return;
     const v = id.trim();
     if (!v) return;
+    const current = readGuestSessionId();
+    const force = !!options.force;
+    if (current && current !== v && !force) {
+        // 避免并发请求在“首次建立 guest session”阶段产生竞争覆盖：
+        // 一旦建立了 guest session id，后续从其他响应头读到不同值时默认不覆盖。
+        // 只有在特定场景（如 preview batch 403）才允许 force 覆盖。
+        if (process.env.NODE_ENV !== 'production') {
+            console.warn('[guest-session] ignore overwrite', { current, incoming: v });
+        }
+        return;
+    }
     guestSessionIdMemory = v;
     if (typeof window === 'undefined') return;
     try {
@@ -103,13 +114,27 @@ const handleResponse = (response) => {
 
 const handleError = async (error) => {
     if (error.response) {
+        const status = error.response.status;
+        const msg = error?.response?.data?.message;
+        const cfg = error?.config;
+        const isPreviewBatch =
+            typeof cfg?.url === 'string' && cfg.url.includes('/preview/batches/');
+        const forceGuestSession =
+            status === 403 &&
+            isPreviewBatch &&
+            typeof msg === 'string' &&
+            msg.includes('无权访问该预览批次');
+
         // 即使是错误响应（如 403），后端也可能回传 X-Guest-Session-Id；此处也要捕获并保存
         const guestSessionId =
             error?.response?.headers?.['x-guest-session-id'] ||
             error?.response?.headers?.[GUEST_SESSION_HEADER] ||
             error?.response?.headers?.[GUEST_SESSION_HEADER.toLowerCase()];
         if (guestSessionId) {
-            writeGuestSessionId(Array.isArray(guestSessionId) ? guestSessionId[0] : String(guestSessionId));
+            writeGuestSessionId(
+                Array.isArray(guestSessionId) ? guestSessionId[0] : String(guestSessionId),
+                { force: forceGuestSession }
+            );
         }
 
         // 服务器返回错误状态码
@@ -123,9 +148,6 @@ const handleError = async (error) => {
         // 特判：无痕模式下首次访问 preview batch 可能因 session 不一致返回 403，
         // 后端同时回传新的 X-Guest-Session-Id。保存后重试一次即可恢复。
         try {
-            const status = error.response.status;
-            const msg = error?.response?.data?.message;
-            const cfg = error?.config;
             const shouldRetry =
                 status === 403 &&
                 typeof msg === 'string' &&

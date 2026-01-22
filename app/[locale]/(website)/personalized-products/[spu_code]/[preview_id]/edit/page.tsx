@@ -116,9 +116,9 @@ export default function EditPersonalizedProductPage() {
     (async () => {
       // 1) 优先尝试从 /products/{spu_code}/preview/batches/{previewId} 获取 options
       try {
-        const base = (process.env.NEXT_PUBLIC_PREVIEW_API_URL || '').replace(/\/$/, '');
         const path = `/products/${bookId}/preview/batches/${previewId}`;
-        const url = base ? `${base}${path}` : path;
+        // 客户端强制走同域 /api 代理，避免跨域下响应头（X-Guest-Session-Id）不可读
+        const url = path;
 
         const res = await api.get(url) as any;
         const batch = res?.data?.batch || res?.batch || {};

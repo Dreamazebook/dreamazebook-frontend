@@ -863,9 +863,9 @@ export default function PreviewPageWithTopNav() {
       // 1. 尝试直接通过 previewId (batchId) 获取预览数据，这是最准确的方式
       if (previewIdParam && bookIdParam) {
         try {
-          const base = (process.env.NEXT_PUBLIC_PREVIEW_API_URL || '').replace(/\/$/, '');
           const path = `/products/${bookIdParam}/preview/batches/${previewIdParam}`;
-          const url = base ? `${base}${path}` : path;
+          // 客户端强制走同域 /api 代理，避免跨域下响应头（X-Guest-Session-Id）不可读导致 guest session 无法续用
+          const url = path;
           console.log('[Preview] Fetching batch directly:', url);
           
           const res = await api.get(url) as ApiResponse<any>;
@@ -1615,9 +1615,9 @@ export default function PreviewPageWithTopNav() {
       setOptionsError(null);
 
       // 改为直接读取产品详情，并从 attributes/pages 派生可选项
-      const base = (process.env.NEXT_PUBLIC_PREVIEW_API_URL || '').replace(/\/$/, '');
       const path = `/products/${encodeURIComponent(String(bookId))}`;
-      const url = base ? `${base}${path}` : path;
+      // 客户端强制走同域 /api 代理
+      const url = path;
       const resp = await api.get(url, { params: { language: displayLang } }) as any;
       const product = resp?.data?.data || resp?.data || {};
 
@@ -2371,9 +2371,9 @@ export default function PreviewPageWithTopNav() {
     console.log('[Polling] Starting batch polling:', { spuCode, batchId });
     batchPollTimerRef.current = window.setInterval(async () => {
       try {
-        const base = (process.env.NEXT_PUBLIC_PREVIEW_API_URL || '').replace(/\/$/, '');
         const path = `/products/${spuCode}/preview/batches/${batchId}`;
-        const url = base ? `${base}${path}` : path;
+        // 客户端强制走同域 /api 代理
+        const url = path;
         console.log('[Polling] Fetching:', url);
         const res = await api.get(url) as ApiResponse<any>;
         console.log('[Polling] Response:', res);
@@ -2559,9 +2559,9 @@ export default function PreviewPageWithTopNav() {
         setIsProcessing(false);
         // 拉取最终结果，确保所有页同步
         try {
-          const base = (process.env.NEXT_PUBLIC_PREVIEW_API_URL || '').replace(/\/$/, '');
           const path = `/products/${spuCode}/preview/batches/${batchId}`;
-          const url = base ? `${base}${path}` : path;
+          // 客户端强制走同域 /api 代理
+          const url = path;
           const res = await api.get(url) as ApiResponse<any>;
           const batch = (res as any)?.data?.batch;
           if (batch) {
@@ -2981,9 +2981,9 @@ export default function PreviewPageWithTopNav() {
                   
                   // 只有在 store 中没有名字时，才从 batch 获取
                   if (!storeName || !storeName.trim()) {
-                    const base = (process.env.NEXT_PUBLIC_PREVIEW_API_URL || '').replace(/\/$/, '');
                     const path = `/products/${spu}/preview/batches/${bid}`;
-                    const url = base ? `${base}${path}` : path;
+                    // 客户端强制走同域 /api 代理
+                    const url = path;
                     api.get(url).then((res: any) => {
                       const batch = res?.data?.batch;
                       if (batch) {
