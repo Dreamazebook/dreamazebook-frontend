@@ -330,6 +330,24 @@ export default function ChristmasPage() {
     setShowBundleModal(true)
   }
 
+  const pushShoppingCartSelectingPackage = async (packageId: number | string) => {
+    try {
+      const cartResp: any = await api.get<ApiResponse<CartItems>>(API_CART_LIST)
+      const cartItems = cartResp?.data?.items || []
+      const pkgItem = Array.isArray(cartItems)
+        ? cartItems.find((it: any) => it?.item_type === 'package' && String(it?.package_id) === String(packageId))
+        : null
+      const cartItemId = pkgItem?.id
+      if (cartItemId) {
+        router.push(`/shopping-cart?selected_cart_id=${cartItemId}`)
+        return
+      }
+    } catch (e) {
+      console.warn('[pushShoppingCartSelectingPackage] failed to find package cart item:', e)
+    }
+    router.push('/shopping-cart')
+  }
+
   const handleAddPackageToCart = async (bundle: Bundle, spuCodes: string[]) => {
     const packageId = PACKAGE_ID_BY_BUNDLE_ID[bundle.id]
     if (!packageId) {
@@ -351,7 +369,7 @@ export default function ChristmasPage() {
         if (packageAlreadyInCart) {
           toast.success('Added to cart')
           setShowBundleModal(false)
-          router.push('/shopping-cart')
+          await pushShoppingCartSelectingPackage(packageId)
           return
         }
       } catch (err) {
@@ -369,7 +387,7 @@ export default function ChristmasPage() {
       if (resp?.success) {
         toast.success('Added to cart')
         setShowBundleModal(false)
-        router.push('/shopping-cart')
+        await pushShoppingCartSelectingPackage(packageId)
         return
       }
       toast.error(resp?.message || 'Failed to add to cart, please try again')
@@ -402,7 +420,11 @@ export default function ChristmasPage() {
             // Kickstarter 套餐需要去配置页；圣诞套装则去购物车
             const pkgCode = cartItems.find((it: any) => it?.item_type === 'package' && it?.package_id === packageId)?.package_code
             const isChristmas = typeof pkgCode === 'string' && pkgCode.startsWith('CHRISTMAS_')
-            router.push(isChristmas ? '/shopping-cart' : `/kickstarter-config/${packageId}`)
+            if (isChristmas) {
+              await pushShoppingCartSelectingPackage(packageId)
+            } else {
+              router.push(`/kickstarter-config/${packageId}`)
+            }
             return
           }
         } catch (err2) {
