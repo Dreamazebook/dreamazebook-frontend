@@ -52,6 +52,8 @@ export default function CartItemCard({
   // 兼容旧数据：无 mode 时用 preview_id 推断
   const effectiveMode = (item as any)?.mode ?? (item.preview_id ? "edit" : "create");
   const isEditMode = effectiveMode === "edit" && !!item.preview_id;
+  // 需求：购物车中 item_type=sku 且 mode=create 的书本不要显示 cover / gift 细节（“Soft Cover | A Festive Gift Box” 那行）
+  const shouldShowCoverGiftDetails = !(item.item_type === "sku" && effectiveMode === "create");
 
   const pkgSnapshot = (item as any)?.package_snapshot;
   const pkgName = (item as any)?.package_name || pkgSnapshot?.name?.en || packageCode || "Bundle";
@@ -230,7 +232,13 @@ export default function CartItemCard({
                   </div>
                 </div>
 
-                <p className='text-[#666666] font-[400] capitalize flex items-center gap-2'>
+                {/* 需求：sku+create 时不展示文案，但要保留占位高度 */}
+                <p
+                  className={`text-[#666666] font-[400] capitalize flex items-center gap-2 ${
+                    shouldShowCoverGiftDetails ? "" : "invisible"
+                  }`}
+                  aria-hidden={!shouldShowCoverGiftDetails}
+                >
                   <span>{getFormatedCover(item)}</span>
                   <span>|</span>
                   <span>{getFormatedGiftbox(item)}</span>
@@ -487,6 +495,10 @@ export default function CartItemCard({
                           pi?.customization_data?.cover_type ||
                           pkgDefaultOptions?.cover_type ||
                           ""
+                        const formatOptionLabel = (raw: string, fallback: string) => {
+                          const s = String(raw || "").trim()
+                          return s ? s.split("_").join(" ") : fallback
+                        }
 
                         // 根据 cover_type 自动展示 cover option 图片：
                         // - personalized → cover_3
@@ -536,7 +548,7 @@ export default function CartItemCard({
                             <div className="flex-1 min-w-0 p-3 md:py-4 md:px-6">
                               <div className="flex items-start justify-between">
                                 {/* 左侧：桌面端上下 space-between（标题在上，按钮贴底）；移动端保持自然流式 */}
-                                <div className="min-w-0 flex flex-col md:justify-between md:min-h-[72px]">
+                                <div className="min-w-0 flex flex-col md:gap-3 md:justify-between md:min-h-[72px]">
                                   <div className="min-w-0">
                                     <p className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222] whitespace-normal break-words md:whitespace-nowrap md:truncate">
                                       {bookName}
@@ -547,6 +559,10 @@ export default function CartItemCard({
                                         $0 {pkgCurrency}
                                       </span>
                                     </div>
+                                    {/* 圣诞 bundle 子书：补充 cover / gift 细节（与普通购物车一致） */}
+                                    <p className="text-[#666666] font-[400] capitalize flex items-center gap-2 mt-1 md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
+                                      <span>{formatOptionLabel(bindingType, "Soft Cover")}</span>
+                                    </p>
                                   </div>
 
                                   <a
