@@ -228,11 +228,8 @@ const Header = () => {
                       </button>
                     </>
                   ) : (
-                    <button
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        toggleLoginModal();
-                      }}
+                    <Link
+                      href="/login"
                       className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 w-full"
                     >
                       <Image
@@ -242,7 +239,7 @@ const Header = () => {
                         height={24}
                       />
                       <span className="text-lg">Login</span>
-                    </button>
+                    </Link>
                   )}
                 </motion.div>
               </motion.nav>
@@ -313,16 +310,16 @@ const Header = () => {
             />
           </Link>
         ) : (
-          <button
-            onClick={() => toggleLoginModal()}
+          <Link
             className="hidden md:block"
+            href="/login"
           >
             <Image
               src={"/header/profile.svg"}
               alt="Login"
               className="cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]"
             />
-          </button>
+          </Link>
         )}
       </div>
     </header>
