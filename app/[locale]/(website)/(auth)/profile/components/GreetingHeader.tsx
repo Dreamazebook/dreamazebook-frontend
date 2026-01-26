@@ -29,7 +29,7 @@ export default function GreetingHeader({ className = "" }: GreetingHeaderProps) 
   const displayName = user?.name || user?.email?.split('@')[0];
 
   return (
-    <div className={`flex items-center mt-[28px] text-[22px] text-[#222] md:text-[28px] justify-between ${className}`}>
+    <div className={`flex items-center text-[22px] text-[#222] md:text-[28px] justify-between ${className}`}>
       <span className="">{greeting} {displayName}!</span>
     </div>
   );

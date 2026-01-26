@@ -145,7 +145,7 @@ export default function ProfileSidebar({
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 min-w-0">{children}</div>
+          <div className="flex-1 min-w-0 p-[12px] md:p-0 mt-[28px]">{children}</div>
         </div>
       </div>
     </div>

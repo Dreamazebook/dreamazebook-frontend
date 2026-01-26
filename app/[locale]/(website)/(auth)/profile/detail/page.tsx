@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import AddressCard from '../../../components/address/AddressCard';
 import AddressCardList from '../../../components/address/AddressCardList';
 import { useTranslations } from 'next-intl';
+
 export default function AccountDetails() {
   const {user, fetchAddresses, addresses} = useUserStore();
   const t = useTranslations('accountDetails');
@@ -49,31 +50,28 @@ export default function AccountDetails() {
     
   };
 
+  const UserDetailField = ({label, value}: {label:string, value:string|undefined}) => (
+    <div className="flex gap-[12px] items-center">
+      <div className="text-[16px] w-[93px] text-[#999999]">{label}</div>
+      <div className="text-[#222222] text-[14px]">{value}</div>
+    </div>
+  );
+
   return (
-    <div className="max-w-4xl mx-auto p-8 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-medium text-gray-900 mb-12">{t('title')}</h1>
-      
+    <div className="min-h-screen">      
       {/* About You Section */}
       <div className="mb-16">
         <div className="flex items-center mb-8">
-          <div className="w-1 h-5 bg-blue-500 mr-3"></div>
-          <h2 className="text-base font-medium text-gray-900">{t('aboutYou')}</h2>
+          <div className="w-1 h-5 bg-primary mr-3"></div>
+          <h2 className="text-[16px] font-medium text-[#222]">{t('aboutYou')}</h2>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="grid grid-cols-2 gap-x-16 gap-y-6 mb-8">
-            <div>
-              <div className="text-sm text-gray-500 mb-2">{t('firstName')}</div>
-              <div className="text-gray-900">{user?.name}</div>
-            </div>
-            <div>
-              <div className="text-sm text-gray-500 mb-2">{t('lastName')}</div>
-              <div className="text-gray-900"></div>
-            </div>
-            <div className="col-span-2">
-              <div className="text-sm text-gray-500 mb-2">{t('emailAddress')}</div>
-              <div className="text-gray-900">{user?.email}</div>
-            </div>
+        <div className="bg-white p-6 rounded">
+
+          <div className="flex flex-col gap-[4px]">
+            <UserDetailField label={t('emailAddress')} value={user?.email} />
+            <UserDetailField label={t('firstName')} value={user?.name} />
+            <UserDetailField label={'Password'} value={'**********'} />
           </div>
           
           <div className="flex justify-center">
@@ -131,7 +129,7 @@ export default function AccountDetails() {
       </div>
 
       {/* Receipt Information Section */}
-      <div>
+      {/* <div>
         <div className="flex items-center mb-8">
           <div className="w-1 h-5 bg-blue-500 mr-3"></div>
           <h2 className="text-base font-medium text-gray-900">{t('receiptInformation')}</h2>
@@ -149,7 +147,8 @@ export default function AccountDetails() {
             </button>
           </div>
         </div>
-      </div>
+      </div> */}
+
     </div>
   );
 }
