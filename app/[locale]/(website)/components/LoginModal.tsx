@@ -16,7 +16,7 @@ import { ModeToggleLinks } from './LoginModal/ModeToggleLinks'
 import { ModalHeader, CloseButton } from './LoginModal/ModalHeader'
 import { FormSubmitSection } from './LoginModal/FormSubmitSection'
 
-export default function LoginModal({ showCloseButton = false }: { showCloseButton?: boolean }) {
+export default function LoginModal({ showCloseButton = false, title = 'Welcome to Dreamaze' }: { showCloseButton?: boolean, title?: string }) {
   const t = useTranslations('LoginModal')
   const { state, updateState, setField, resetMessages, resetCodeFlow } = useLoginState()
   const {
@@ -75,9 +75,9 @@ export default function LoginModal({ showCloseButton = false }: { showCloseButto
       case 'forgotPassword':
         return t('forgotPassword')
       case 'codeLogin':
-        return 'Welcome to Dreamaze'
+        return title;
       default:
-        return 'Welcome to Dreamaze'
+        return title;
     }
   }
 
