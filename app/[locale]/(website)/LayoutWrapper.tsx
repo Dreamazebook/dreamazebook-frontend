@@ -50,7 +50,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
       <KickstarterWelcomeModal />
       {isLoginModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <LoginModal title='Continue'/>
+          <LoginModal title='Continue' description='We’ll email you a secure code to save your order and preview.'/>
         </div>
       )}
       {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isKickstarterConfigPage || isEmbedMode) && <Footer />}

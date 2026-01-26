@@ -2,25 +2,13 @@ import { memo } from 'react'
 
 interface HeaderProps {
   title: string
-  showBackButton: boolean
-  onBackClick: () => void
+  description?: string
 }
 
-export const ModalHeader = memo(({ title, showBackButton, onBackClick }: HeaderProps) => (
-  <header className="w-full flex items-center justify-center relative">
-    {showBackButton && (
-      <button
-        type="button"
-        onClick={onBackClick}
-        className="absolute left-0 cursor-pointer text-gray-600 hover:text-gray-800 transition-colors focus:outline-none"
-        aria-label="Go back"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-    )}
+export const ModalHeader = memo(({ title, description = 'Sign in to access your account' }: HeaderProps) => (
+  <header className="w-full relative text-center">
     <h1 className="text-[28px] text-[#000]">{title}</h1>
+    <p className="text-[14px] text-[#666666]">{description}</p>
   </header>
 ))
 

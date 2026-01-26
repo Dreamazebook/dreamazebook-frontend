@@ -16,7 +16,7 @@ import { ModeToggleLinks } from './LoginModal/ModeToggleLinks'
 import { ModalHeader, CloseButton } from './LoginModal/ModalHeader'
 import { FormSubmitSection } from './LoginModal/FormSubmitSection'
 
-export default function LoginModal({ showCloseButton = false, title = 'Welcome to Dreamaze' }: { showCloseButton?: boolean, title?: string }) {
+export default function LoginModal({ showCloseButton = false, title = 'Welcome to Dreamaze', description = 'Sign in to access your account' }: { showCloseButton?: boolean, title?: string, description?: string }) {
   const t = useTranslations('LoginModal')
   const { state, updateState, setField, resetMessages, resetCodeFlow } = useLoginState()
   const {
@@ -78,6 +78,21 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
         return title;
       default:
         return title;
+    }
+  }
+
+  const getDescriptionByMode = (): string => {
+    switch (state.mode) {
+      case 'login':
+        return '';
+      case 'register':
+        return '';
+      case 'forgotPassword':
+        return 'We’ll email you a link to create a new password.';
+      case 'codeLogin':
+        return description;
+      default:
+        return 'description';
     }
   }
 
@@ -329,12 +344,25 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
 
   return (
     <main className="flex flex-col items-center justify-center bg-white rounded-lg p-4 w-96 gap-4 relative" role="main">
-      {showCloseButton && <CloseButton onClose={closeLoginModal} />}
+      <div className="flex justify-between items-center">
+        {state.mode === 'codeLogin' && state.codeSent && (
+          <button
+            type="button"
+            onClick={resetCodeFlow}
+            className="absolute left-0 cursor-pointer text-gray-600 hover:text-gray-800 transition-colors focus:outline-none"
+            aria-label="Go back"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
+        {showCloseButton && <CloseButton onClose={closeLoginModal} />}
+      </div>
 
       <ModalHeader
         title={getTitleByMode()}
-        showBackButton={state.mode === 'codeLogin' && state.codeSent}
-        onBackClick={resetCodeFlow}
+        description={getDescriptionByMode()}
       />
 
       <form onSubmit={handleSubmit} className="space-y-4 text-[#222222] w-full" noValidate>
