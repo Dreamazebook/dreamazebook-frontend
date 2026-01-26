@@ -1,28 +1,133 @@
 import { memo } from 'react'
-import { LoginMode } from './useLoginState'
 
-interface LinkButtonProps {
-  label: string
-  onClick: () => void
+interface LoginLinksProps {
+  onForgotPassword: () => void
+  onCodeLogin: () => void
+  translations: {
+    forgotPasswordQuestion: string
+    loginWithCode: string
+  }
 }
 
-const LinkButton = memo(({ label, onClick }: LinkButtonProps) => (
-  <button
-    type="button"
-    className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
-    onClick={onClick}
-  >
-    {label}
-  </button>
-))
+interface RegisterLinksProps {
+  onLogin: () => void
+  translations: {
+    haveAccount: string
+    login: string
+  }
+}
 
-LinkButton.displayName = 'LinkButton'
+interface ForgotPasswordLinksProps {
+  onLogin: () => void
+  translations: {
+    backToLogin: string
+    returnToLogin: string
+  }
+}
 
+interface CodeLoginEmailLinksProps {
+  onLogin: () => void
+  translations: {
+    usePasswordInstead: string
+  }
+}
+
+interface CodeLoginCodeLinksProps {
+  onChangeEmail: () => void
+  translations: {
+    changeEmail: string
+  }
+}
+
+// Login Mode Links
+export const LoginLinks = memo(({ onForgotPassword, onCodeLogin, translations }: LoginLinksProps) => {
+  return (
+    <div className="flex flex-col space-y-2 text-sm">
+      <button
+        type="button"
+        className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+        onClick={onForgotPassword}
+      >
+        {translations.forgotPasswordQuestion}
+      </button>
+    </div>
+  )
+})
+LoginLinks.displayName = 'LoginLinks'
+
+// Register Mode Links
+export const RegisterLinks = memo(({ onLogin, translations }: RegisterLinksProps) => {
+  return (
+    <div className="text-sm">
+      <span>
+        {translations.haveAccount}{' '}
+        <button
+          type="button"
+          className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+          onClick={onLogin}
+        >
+          {translations.login}
+        </button>
+      </span>
+    </div>
+  )
+})
+RegisterLinks.displayName = 'RegisterLinks'
+
+// Forgot Password Mode Links
+export const ForgotPasswordLinks = memo(({ onLogin, translations }: ForgotPasswordLinksProps) => {
+  return (
+    <div className="text-sm">
+      <button
+        type="button"
+        className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+        onClick={onLogin}
+      >
+        {translations.backToLogin}
+      </button>
+    </div>
+  )
+})
+ForgotPasswordLinks.displayName = 'ForgotPasswordLinks'
+
+// Code Login - Email Input Links
+export const CodeLoginEmailLinks = memo(({ onLogin, translations }: CodeLoginEmailLinksProps) => {
+  return (
+    <div className="text-sm">
+      <button
+        type="button"
+        className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+        onClick={onLogin}
+      >
+        {translations.usePasswordInstead}
+      </button>
+    </div>
+  )
+})
+CodeLoginEmailLinks.displayName = 'CodeLoginEmailLinks'
+
+// Code Login - Code Input Links
+export const CodeLoginCodeLinks = memo(({ onChangeEmail, translations }: CodeLoginCodeLinksProps) => {
+  return (
+    <div className="text-sm">
+      <button
+        type="button"
+        className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+        onClick={onChangeEmail}
+      >
+        {translations.changeEmail}
+      </button>
+    </div>
+  )
+})
+CodeLoginCodeLinks.displayName = 'CodeLoginCodeLinks'
+
+// Main ModeToggleLinks component that dispatches to appropriate sub-component
 interface ModeToggleLinksProps {
-  mode: LoginMode
+  mode: 'login' | 'register' | 'forgotPassword' | 'codeLogin'
   resetSent: boolean
   codeSent: boolean
-  onModeChange: (mode: LoginMode) => void
+  onModeChange: (mode: any) => void
   onCodeFlowReset: () => void
   translations: {
     forgotPasswordQuestion: string
@@ -42,52 +147,62 @@ export const ModeToggleLinks = memo(({
   onCodeFlowReset,
   translations,
 }: ModeToggleLinksProps) => {
-  if (mode === 'login' && !resetSent) {
+  if (mode === 'login') {
     return (
-      <div className="flex flex-col space-y-2 text-sm">
-        <LinkButton
-          label={translations.forgotPasswordQuestion}
-          onClick={() => onModeChange('forgotPassword')}
-        />
-      </div>
+      <LoginLinks
+        onForgotPassword={() => onModeChange('forgotPassword')}
+        onCodeLogin={() => onModeChange('codeLogin')}
+        translations={{
+          forgotPasswordQuestion: translations.forgotPasswordQuestion,
+          loginWithCode: '',
+        }}
+      />
     )
   }
 
   if (mode === 'register') {
     return (
-      <div className="text-sm">
-        <span>
-          {translations.haveAccount}{' '}
-          <LinkButton label={translations.login} onClick={() => onModeChange('login')} />
-        </span>
-      </div>
+      <RegisterLinks
+        onLogin={() => onModeChange('login')}
+        translations={{
+          haveAccount: translations.haveAccount,
+          login: translations.login,
+        }}
+      />
     )
   }
 
   if (mode === 'forgotPassword' && !resetSent) {
     return (
-      <div className="text-sm">
-        <LinkButton label={translations.backToLogin} onClick={() => onModeChange('login')} />
-      </div>
+      <ForgotPasswordLinks
+        onLogin={() => onModeChange('login')}
+        translations={{
+          backToLogin: translations.backToLogin,
+          returnToLogin: '',
+        }}
+      />
     )
   }
 
   if (mode === 'codeLogin' && !codeSent) {
     return (
-      <div className="text-sm text-center">
-        <LinkButton
-          label={translations.usePasswordInstead}
-          onClick={() => onModeChange('login')}
-        />
-      </div>
+      <CodeLoginEmailLinks
+        onLogin={() => onModeChange('login')}
+        translations={{
+          usePasswordInstead: translations.usePasswordInstead,
+        }}
+      />
     )
   }
 
   if (mode === 'codeLogin' && codeSent) {
     return (
-      <div className="text-sm">
-        <LinkButton label={translations.changeEmail} onClick={onCodeFlowReset} />
-      </div>
+      <CodeLoginCodeLinks
+        onChangeEmail={onCodeFlowReset}
+        translations={{
+          changeEmail: translations.changeEmail,
+        }}
+      />
     )
   }
 

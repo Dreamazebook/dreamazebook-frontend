@@ -233,7 +233,7 @@
   "LoginModal": {
     "login": "Login",
     "register": "Register",
-    "forgotPassword": "Forgot your Password",
+    "forgotPassword": "Enter your email to reset password",
     "loginWithCode": "Use email code instead",
     "name": "Name",
     "email": "Email",

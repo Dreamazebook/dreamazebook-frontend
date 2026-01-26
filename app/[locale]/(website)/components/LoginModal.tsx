@@ -11,10 +11,20 @@ import { useLoginState, type LoginMode } from './LoginModal/useLoginState'
 import { OAuthButtons } from './LoginModal/OAuthButtons'
 import { NameEmailPasswordFields } from './LoginModal/NameEmailPasswordFields'
 import { CodeInputField } from './LoginModal/CodeInputField'
-import { ErrorAlert, SuccessAlert } from './LoginModal/Alerts'
-import { ModeToggleLinks } from './LoginModal/ModeToggleLinks'
+import {
+  LoginLinks,
+  RegisterLinks,
+  ForgotPasswordLinks,
+  CodeLoginEmailLinks,
+  CodeLoginCodeLinks,
+} from './LoginModal/ModeToggleLinks'
 import { ModalHeader, CloseButton } from './LoginModal/ModalHeader'
-import { FormSubmitSection } from './LoginModal/FormSubmitSection'
+import {
+  LoginSubmitSection,
+  RegisterSubmitSection,
+  ForgotPasswordSubmitSection,
+  CodeLoginSubmitSection
+} from './LoginModal/FormSubmitSection'
 
 export default function LoginModal({ showCloseButton = false, title = 'Welcome to Dreamaze', description = 'Sign in to access your account' }: { showCloseButton?: boolean, title?: string, description?: string }) {
   const t = useTranslations('LoginModal')
@@ -54,7 +64,7 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
 
   // Auto-submit when code reaches 6 digits
   useEffect(() => {
-    if (state.code.length === 6 && state.mode === 'codeLogin' && state.codeSent) {
+    if (state.code.length === 6 && state.mode === 'verifyCode') {
       const submitForm = async () => {
         setField('loading', true)
         updateState({ errorMessage: '', successMessage: '' })
@@ -63,7 +73,7 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
       }
       submitForm()
     }
-  }, [state.code, state.mode, state.codeSent])
+  }, [state.code, state.mode])
 
   // Helper: Get title based on mode
   const getTitleByMode = (): string => {
@@ -75,6 +85,7 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
       case 'forgotPassword':
         return t('forgotPassword')
       case 'codeLogin':
+      case 'verifyCode':
         return title;
       default:
         return title;
@@ -88,9 +99,11 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
       case 'register':
         return '';
       case 'forgotPassword':
-        return 'We’ll email you a link to create a new password.';
+        return "We'll email you a link to create a new password.";
       case 'codeLogin':
         return description;
+      case 'verifyCode':
+        return `Enter the 6-digit code sent to ${state.email}`;
       default:
         return 'description';
     }
@@ -98,11 +111,18 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
 
   // Helper: Get button label based on mode
   const getButtonLabelByMode = (): string => {
-    if (state.mode === 'codeLogin' && state.codeSent) return t('verifyCode')
+    if (state.mode === 'verifyCode') return t('verifyCode')
     if (state.mode === 'codeLogin') return t('sendCode')
     if (state.mode === 'forgotPassword') return t('sendResetLink')
     if (state.mode === 'register') return t('register')
     return t('login')
+  }
+
+  const getSuccessMessage = (): string => {
+    if (state.mode === 'forgotPassword' && state.resetSent) {
+      return t('resetPasswordSent')
+    }
+    return state.successMessage || ''
   }
 
   // OAuth handlers
@@ -162,9 +182,9 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
 
   const handleSendLoginCode = async (email: string) => {
     const response = await sendLoginCode(email)
-    updateState({ codeSent: response.success })
     if (response.success) {
       updateState({
+        mode: 'verifyCode',
         successMessage: `We've sent a 6 digit code to ${email}. It expires in 10 minutes.`,
         countdown: 60,
         errorMessage: '',
@@ -234,9 +254,9 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
     try {
       if (state.mode === 'forgotPassword') {
         await handleForgotPassword(state.email)
-      } else if (state.mode === 'codeLogin' && !state.codeSent) {
+      } else if (state.mode === 'codeLogin') {
         await handleSendLoginCode(state.email)
-      } else if (state.mode === 'codeLogin' && state.codeSent) {
+      } else if (state.mode === 'verifyCode') {
         await handleVerifyLoginCode(state.email, state.code)
       } else if (state.mode === 'login') {
         await handleLogin(state.email, state.password)
@@ -251,8 +271,10 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
   const handleModeChange = (newMode: LoginMode) => {
     setField('mode', newMode)
     if (newMode === 'codeLogin') {
-      setField('codeSent', false)
       setField('code', '')
+      setField('successMessage', '')
+      setField('errorMessage', '')
+      setField('countdown', 0)
     }
   }
 
@@ -313,7 +335,7 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
       )
     }
 
-    if (state.mode === 'codeLogin' && !state.codeSent) {
+    if (state.mode === 'codeLogin') {
       return (
         <fieldset className="space-y-4">
           <Input
@@ -329,7 +351,7 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
       )
     }
 
-    if (state.mode === 'codeLogin' && state.codeSent) {
+    if (state.mode === 'verifyCode') {
       return (
         <CodeInputField
           code={state.code}
@@ -345,7 +367,7 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
   return (
     <main className="flex flex-col items-center justify-center bg-white rounded-lg p-4 w-96 gap-4 relative" role="main">
       <div className="flex justify-between items-center">
-        {state.mode === 'codeLogin' && state.codeSent && (
+        {state.mode === 'verifyCode' && (
           <button
             type="button"
             onClick={resetCodeFlow}
@@ -368,46 +390,47 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
       <form onSubmit={handleSubmit} className="space-y-4 text-[#222222] w-full" noValidate>
         {renderFormContent()}
 
-        <FormSubmitSection
-          mode={state.mode}
-          loading={state.loading}
-          resetSent={state.resetSent}
-          codeSent={state.codeSent}
-          countdown={state.countdown}
-          errorMessage={state.errorMessage}
-          successMessage={state.successMessage}
-          buttonLabel={getButtonLabelByMode()}
-          onResendCode={() => handleSendLoginCode(state.email)}
-        >
-          <>
-            <ModeToggleLinks
-              mode={state.mode}
-              resetSent={state.resetSent}
-              codeSent={state.codeSent}
-              onModeChange={handleModeChange}
-              onCodeFlowReset={resetCodeFlow}
+        {/* Login Mode */}
+        {state.mode === 'login' && (
+          <LoginSubmitSection
+            loading={state.loading}
+            errorMessage={state.errorMessage}
+            buttonLabel={getButtonLabelByMode()}
+          >
+            <div className="flex flex-col gap-2">
+              <LoginLinks
+                onForgotPassword={() => handleModeChange('forgotPassword')}
+                onCodeLogin={() => handleModeChange('codeLogin')}
+                translations={{
+                  forgotPasswordQuestion: t('forgotPasswordQuestion'),
+                  loginWithCode: t('loginWithCode'),
+                }}
+              />
+              <OAuthButtons
+                googleLoading={state.googleLoading}
+                facebookLoading={state.facebookLoading}
+                onGoogleClick={handleGoogleLogin}
+                onFacebookClick={handleFacebookLogin}
+                label={t('orContinueWith')}
+              />
+            </div>
+          </LoginSubmitSection>
+        )}
+
+        {/* Register Mode */}
+        {state.mode === 'register' && (
+          <RegisterSubmitSection
+            loading={state.loading}
+            errorMessage={state.errorMessage}
+            buttonLabel={getButtonLabelByMode()}
+          >
+            <RegisterLinks
+              onLogin={() => handleModeChange('login')}
               translations={{
-                forgotPasswordQuestion: t('forgotPasswordQuestion'),
-                backToLogin: t('backToLogin'),
-                login: t('login'),
                 haveAccount: t('haveAccount'),
-                changeEmail: t('changeEmail'),
-                usePasswordInstead: 'Use password instead',
+                login: t('login'),
               }}
             />
-
-            {state.mode === 'login' && (
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => handleModeChange('codeLogin')}
-                  className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
-                >
-                  <span>{t('loginWithCode')}</span>
-                </button>
-              </div>
-            )}
-
             <OAuthButtons
               googleLoading={state.googleLoading}
               facebookLoading={state.facebookLoading}
@@ -415,8 +438,77 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
               onFacebookClick={handleFacebookLogin}
               label={t('orContinueWith')}
             />
-          </>
-        </FormSubmitSection>
+          </RegisterSubmitSection>
+        )}
+
+        {/* Forgot Password Mode */}
+        {state.mode === 'forgotPassword' && (
+          <ForgotPasswordSubmitSection
+            loading={state.loading}
+            errorMessage={state.errorMessage}
+            resetSent={state.resetSent}
+            successMessage={getSuccessMessage()}
+            buttonLabel={getButtonLabelByMode()}
+          >
+            <ForgotPasswordLinks
+              onLogin={() => {
+                handleModeChange('login')
+                setField('resetSent', false)
+              }}
+              translations={{
+                backToLogin: t('backToLogin'),
+                returnToLogin: t('returnToLogin'),
+              }}
+            />
+          </ForgotPasswordSubmitSection>
+        )}
+
+        {/* Code Login Mode - Email Input */}
+        {state.mode === 'codeLogin' && (
+          <CodeLoginSubmitSection
+            loading={state.loading}
+            errorMessage={state.errorMessage}
+            codeSent={false}
+            countdown={0}
+            verifyButtonLabel=""
+            sendButtonLabel={getButtonLabelByMode()}
+            onResendCode={() => handleSendLoginCode(state.email)}
+          >
+            <CodeLoginEmailLinks
+              onLogin={() => handleModeChange('login')}
+              translations={{
+                usePasswordInstead: 'Use password instead',
+              }}
+            />
+            <OAuthButtons
+              googleLoading={state.googleLoading}
+              facebookLoading={state.facebookLoading}
+              onGoogleClick={handleGoogleLogin}
+              onFacebookClick={handleFacebookLogin}
+              label={t('orContinueWith')}
+            />
+          </CodeLoginSubmitSection>
+        )}
+
+        {/* Verify Code Mode - Code Input */}
+        {state.mode === 'verifyCode' && (
+          <CodeLoginSubmitSection
+            loading={state.loading}
+            errorMessage={state.errorMessage}
+            codeSent={true}
+            countdown={state.countdown}
+            verifyButtonLabel={getButtonLabelByMode()}
+            sendButtonLabel=""
+            onResendCode={() => handleSendLoginCode(state.email)}
+          >
+            <CodeLoginCodeLinks
+              onChangeEmail={resetCodeFlow}
+              translations={{
+                changeEmail: t('changeEmail'),
+              }}
+            />
+          </CodeLoginSubmitSection>
+        )}
       </form>
     </main>
   )

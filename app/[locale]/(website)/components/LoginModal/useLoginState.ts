@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 
-export type LoginMode = 'login' | 'register' | 'forgotPassword' | 'codeLogin'
+export type LoginMode = 'login' | 'register' | 'forgotPassword' | 'codeLogin' | 'verifyCode'
 
 export interface FormState {
   name: string
@@ -56,7 +56,7 @@ export const useLoginState = () => {
   const resetCodeFlow = useCallback(() => {
     setState((prev) => ({
       ...prev,
-      codeSent: false,
+      mode: 'codeLogin',
       code: '',
       successMessage: '',
       errorMessage: '',

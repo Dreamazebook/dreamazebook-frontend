@@ -11,7 +11,8 @@ export const API_VERIFY_LOGIN_CODE = `${API_USER_LOGIN}/verify-code`;
 
 export const API_USER_LOGOUT = '/logout';
 
-export const API_USER_SEND_PASSWORD_RESET_EMAIL = '/auth/forgot-password';
+export const API_USER_SEND_PASSWORD_RESET_EMAIL = '/forgot-password';
+export const API_RESET_PASSWORD = '/reset-password';
 
 export const API_USER_CURRENT = '/user/profile';
 export const API_USER_PROFILE = '/user/profile';
