@@ -4,11 +4,16 @@ import { useState } from 'react';
 import { useRouter } from '@/i18n/routing';
 import { API_RESET_PASSWORD } from '@/constants/api';
 import { useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import api from '@/utils/api';
+import Button from '@/app/components/Button';
+import Input from '@/app/components/common/Input';
+import { ModalHeader } from '@/app/[locale]/(website)/components/LoginModal/ModalHeader';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations('LoginModal');
   const token = searchParams.get('token') || '';
 
   const [password, setPassword] = useState('');
@@ -22,15 +27,15 @@ export default function ResetPasswordPage() {
     const errors: string[] = [];
 
     if (password.length < 8) {
-      errors.push('❌ Password must be at least 8 characters.');
+      errors.push(t('passwordMustBeAtLeast8Characters'));
     }
 
     if (!/[A-Z]/.test(password) && !/[0-9]/.test(password)) {
-      errors.push('❌ Password must include at least 1 number or 1 uppercase letter.');
+      errors.push(t('passwordMustIncludeNumberOrUppercase'));
     }
 
     if (password !== confirmPassword) {
-      errors.push('❌ Passwords don\'t match.');
+      errors.push(t('passwordsDontMatch'));
     }
 
     if (errors.length > 0) {
@@ -48,7 +53,7 @@ export default function ResetPasswordPage() {
     e.preventDefault();
 
     if (!token) {
-      setError('Invalid or expired reset token.');
+      setError(t('invalidResetToken'));
       return;
     }
 
@@ -70,7 +75,7 @@ export default function ResetPasswordPage() {
         router.push('/login');
       }, 2000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reset password. Please try again.');
+      setError(err.response?.data?.message || t('resetPasswordFailedMessage'));
       setShakeError(true);
       setTimeout(() => setShakeError(false), 500);
     } finally {
@@ -84,12 +89,12 @@ export default function ResetPasswordPage() {
         <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
           <div className="text-center">
             <h1 className="text-2xl font-semibold text-[#222222] mb-2">
-              Password updated
+              {t('passwordUpdated')}
             </h1>
             <p className="text-gray-600 mb-6">
-              You can now continue to your account.
+              {t('youCanNowContinueToAccount')}
               <br />
-              Redirecting…
+              {t('redirecting')}
             </p>
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1BA7FF]"></div>
           </div>
@@ -101,15 +106,10 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-        <header className="w-full flex items-center justify-center mb-6">
-          <h1 className="text-xl font-semibold text-[#222222]">
-            Set a new password
-          </h1>
-        </header>
-
-        <p className="text-gray-600 text-center mb-6">
-          You’re updating the password for this account.
-        </p>
+        <ModalHeader
+          title={t('setNewPasswordTitle')}
+          description={t('setNewPasswordDescription')}
+        />
 
         {error && (
           <div
@@ -123,47 +123,27 @@ export default function ResetPasswordPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-[#222222] w-full" noValidate>
-          <div>
-            <label htmlFor="password" className="block text-[16px] font-medium text-[#222] mb-1">
-              New Password<span className="text-red-500 ml-1">*</span>
-            </label>
-            <input
-              type="password"
-              id="password"
-              className={`w-full p-3 border rounded-md ${
-                error && error.includes('Password') ? 'border-red-500' : 'border-gray-300'
-              }`}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter new password"
-              required
-            />
-          </div>
+          <Input
+            id="password"
+            label={t('newPassword')}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={t('newPasswordPlaceholder')}
+            required
+          />
 
-          <div>
-            <label htmlFor="confirmPassword" className="block text-[16px] font-medium text-[#222] mb-1">
-              Confirm Password<span className="text-red-500 ml-1">*</span>
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              className={`w-full p-3 border rounded-md ${
-                error && error.includes("don't match") ? 'border-red-500' : 'border-gray-300'
-              }`}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm new password"
-              required
-            />
-          </div>
+          <Input
+            id="confirmPassword"
+            label={t('confirmPassword')}
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder={t('confirmPasswordPlaceholder')}
+            required
+          />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#1BA7FF] hover:bg-[#1689E6] text-white py-3 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Updating...' : 'Update Password'}
-          </button>
+          <Button tl={t('updatePassword')} isLoading={loading} />
         </form>
       </div>
 
