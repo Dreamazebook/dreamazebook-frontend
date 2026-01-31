@@ -353,12 +353,12 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
 
   return (
     <main className="flex flex-col items-center justify-center bg-white rounded-lg p-4 w-96 gap-4 relative" role="main">
-      <div className="flex justify-between items-center">
-        {state.mode === 'verifyCode' && (
+      <div className="flex justify-between items-center w-full">
+        {state.mode !== 'codeLogin' && (
           <button
             type="button"
             onClick={resetCodeFlow}
-            className="absolute left-0 cursor-pointer text-gray-600 hover:text-gray-800 transition-colors focus:outline-none"
+            className="cursor-pointer text-gray-600 hover:text-gray-800 transition-colors focus:outline-none"
             aria-label="Go back"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

@@ -20,8 +20,7 @@ interface RegisterLinksProps {
 interface ForgotPasswordLinksProps {
   onLogin: () => void
   translations: {
-    backToLogin: string
-    returnToLogin: string
+    loginWithCode: string
   }
 }
 
@@ -77,15 +76,13 @@ RegisterLinks.displayName = 'RegisterLinks'
 // Forgot Password Mode Links
 export const ForgotPasswordLinks = memo(({ onLogin, translations }: ForgotPasswordLinksProps) => {
   return (
-    <div className="text-sm">
       <button
         type="button"
-        className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+        className="cursor-pointer text-center w-full text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
         onClick={onLogin}
       >
-        {translations.backToLogin}
+        {translations.loginWithCode}
       </button>
-    </div>
   )
 })
 ForgotPasswordLinks.displayName = 'ForgotPasswordLinks'
@@ -93,15 +90,13 @@ ForgotPasswordLinks.displayName = 'ForgotPasswordLinks'
 // Code Login - Email Input Links
 export const CodeLoginEmailLinks = memo(({ onLogin, translations }: CodeLoginEmailLinksProps) => {
   return (
-    <div className="text-sm">
-      <button
-        type="button"
-        className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
-        onClick={onLogin}
-      >
-        {translations.usePasswordInstead}
-      </button>
-    </div>
+    <button
+      type="button"
+      className="cursor-pointer w-full text-center text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+      onClick={onLogin}
+    >
+      {translations.usePasswordInstead}
+    </button>
   )
 })
 CodeLoginEmailLinks.displayName = 'CodeLoginEmailLinks'
@@ -132,6 +127,7 @@ interface ModeToggleLinksProps {
   translations: {
     forgotPasswordQuestion: string
     backToLogin: string
+    loginWithCode: string
     login: string
     haveAccount: string
     changeEmail: string
@@ -175,10 +171,9 @@ export const ModeToggleLinks = memo(({
   if (mode === 'forgotPassword' && !resetSent) {
     return (
       <ForgotPasswordLinks
-        onLogin={() => onModeChange('login')}
+        onLogin={() => onModeChange('codeLogin')}
         translations={{
-          backToLogin: translations.backToLogin,
-          returnToLogin: '',
+          loginWithCode: translations.loginWithCode,
         }}
       />
     )

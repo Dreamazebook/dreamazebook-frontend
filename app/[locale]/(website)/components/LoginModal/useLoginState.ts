@@ -54,9 +54,14 @@ export const useLoginState = () => {
   }, [])
 
   const resetCodeFlow = useCallback(() => {
+    const backModeMap:{[key: string]: LoginMode} = {
+      'verifyCode': 'codeLogin',
+      'login':'codeLogin',
+      'resetPassword':'codeLogin',
+    };
     setState((prev) => ({
       ...prev,
-      mode: 'codeLogin',
+      mode: backModeMap[prev.mode] || 'codeLogin',
       code: '',
       successMessage: '',
       errorMessage: '',

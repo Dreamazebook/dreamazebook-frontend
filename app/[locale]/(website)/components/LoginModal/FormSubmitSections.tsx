@@ -114,11 +114,17 @@ export const FormSubmitSections = memo(({
           buttonLabel={buttonLabel}
         >
           <ForgotPasswordLinks
-            onLogin={() => onModeChange('login')}
+            onLogin={() => onModeChange('codeLogin')}
             translations={{
-              backToLogin: translations.backToLogin,
-              returnToLogin: translations.returnToLogin,
+              loginWithCode: translations.loginWithCode,
             }}
+          />
+          <OAuthButtons
+            googleLoading={googleLoading}
+            facebookLoading={facebookLoading}
+            onGoogleClick={onGoogleLogin}
+            onFacebookClick={onFacebookLogin}
+            label={translations.orContinueWith}
           />
         </ForgotPasswordSubmitSection>
       )}
