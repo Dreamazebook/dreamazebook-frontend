@@ -8,23 +8,10 @@ import useUserStore from '@/stores/userStore'
 import Input from '@/app/components/common/Input'
 import { OAUTH_REDIRECT } from '@/constants/api'
 import { useLoginState, type LoginMode } from './LoginModal/useLoginState'
-import { OAuthButtons } from './LoginModal/OAuthButtons'
 import { NameEmailPasswordFields } from './LoginModal/NameEmailPasswordFields'
 import { CodeInputField } from './LoginModal/CodeInputField'
-import {
-  LoginLinks,
-  RegisterLinks,
-  ForgotPasswordLinks,
-  CodeLoginEmailLinks,
-  CodeLoginCodeLinks,
-} from './LoginModal/ModeToggleLinks'
 import { ModalHeader, CloseButton } from './LoginModal/ModalHeader'
-import {
-  LoginSubmitSection,
-  RegisterSubmitSection,
-  ForgotPasswordSubmitSection,
-  CodeLoginSubmitSection
-} from './LoginModal/FormSubmitSection'
+import { FormSubmitSections } from './LoginModal/FormSubmitSections'
 
 export default function LoginModal({ showCloseButton = false, title = 'Welcome to Dreamaze', description = 'Sign in to access your account' }: { showCloseButton?: boolean, title?: string, description?: string }) {
   const t = useTranslations('LoginModal')
@@ -390,125 +377,37 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
       <form onSubmit={handleSubmit} className="space-y-4 text-[#222222] w-full" noValidate>
         {renderFormContent()}
 
-        {/* Login Mode */}
-        {state.mode === 'login' && (
-          <LoginSubmitSection
-            loading={state.loading}
-            errorMessage={state.errorMessage}
-            buttonLabel={getButtonLabelByMode()}
-          >
-            <div className="flex flex-col gap-2">
-              <LoginLinks
-                onForgotPassword={() => handleModeChange('forgotPassword')}
-                onCodeLogin={() => handleModeChange('codeLogin')}
-                translations={{
-                  forgotPasswordQuestion: t('forgotPasswordQuestion'),
-                  loginWithCode: t('loginWithCode'),
-                }}
-              />
-              <OAuthButtons
-                googleLoading={state.googleLoading}
-                facebookLoading={state.facebookLoading}
-                onGoogleClick={handleGoogleLogin}
-                onFacebookClick={handleFacebookLogin}
-                label={t('orContinueWith')}
-              />
-            </div>
-          </LoginSubmitSection>
-        )}
-
-        {/* Register Mode */}
-        {state.mode === 'register' && (
-          <RegisterSubmitSection
-            loading={state.loading}
-            errorMessage={state.errorMessage}
-            buttonLabel={getButtonLabelByMode()}
-          >
-            <RegisterLinks
-              onLogin={() => handleModeChange('login')}
-              translations={{
-                haveAccount: t('haveAccount'),
-                login: t('login'),
-              }}
-            />
-            <OAuthButtons
-              googleLoading={state.googleLoading}
-              facebookLoading={state.facebookLoading}
-              onGoogleClick={handleGoogleLogin}
-              onFacebookClick={handleFacebookLogin}
-              label={t('orContinueWith')}
-            />
-          </RegisterSubmitSection>
-        )}
-
-        {/* Forgot Password Mode */}
-        {state.mode === 'forgotPassword' && (
-          <ForgotPasswordSubmitSection
-            loading={state.loading}
-            errorMessage={state.errorMessage}
-            resetSent={state.resetSent}
-            successMessage={getSuccessMessage()}
-            buttonLabel={getButtonLabelByMode()}
-          >
-            <ForgotPasswordLinks
-              onLogin={() => {
-                handleModeChange('login')
-                setField('resetSent', false)
-              }}
-              translations={{
-                backToLogin: t('backToLogin'),
-                returnToLogin: t('returnToLogin'),
-              }}
-            />
-          </ForgotPasswordSubmitSection>
-        )}
-
-        {/* Code Login Mode - Email Input */}
-        {state.mode === 'codeLogin' && (
-          <CodeLoginSubmitSection
-            loading={state.loading}
-            errorMessage={state.errorMessage}
-            codeSent={false}
-            countdown={0}
-            verifyButtonLabel=""
-            sendButtonLabel={getButtonLabelByMode()}
-            onResendCode={() => handleSendLoginCode(state.email)}
-          >
-            <CodeLoginEmailLinks
-              onLogin={() => handleModeChange('login')}
-              translations={{
-                usePasswordInstead: 'Use password instead',
-              }}
-            />
-            <OAuthButtons
-              googleLoading={state.googleLoading}
-              facebookLoading={state.facebookLoading}
-              onGoogleClick={handleGoogleLogin}
-              onFacebookClick={handleFacebookLogin}
-              label={t('orContinueWith')}
-            />
-          </CodeLoginSubmitSection>
-        )}
-
-        {/* Verify Code Mode - Code Input */}
-        {state.mode === 'verifyCode' && (
-          <CodeLoginSubmitSection
-            loading={state.loading}
-            errorMessage={state.errorMessage}
-            codeSent={true}
-            countdown={state.countdown}
-            verifyButtonLabel={getButtonLabelByMode()}
-            sendButtonLabel=""
-            onResendCode={() => handleSendLoginCode(state.email)}
-          >
-            <CodeLoginCodeLinks
-              onChangeEmail={resetCodeFlow}
-              translations={{
-                changeEmail: t('changeEmail'),
-              }}
-            />
-          </CodeLoginSubmitSection>
-        )}
+        <FormSubmitSections
+          mode={state.mode}
+          loading={state.loading}
+          errorMessage={state.errorMessage}
+          resetSent={state.resetSent}
+          successMessage={getSuccessMessage()}
+          countdown={state.countdown}
+          buttonLabel={getButtonLabelByMode()}
+          onModeChange={handleModeChange}
+          onResetCodeFlow={() => {
+            resetCodeFlow()
+            setField('resetSent', false)
+          }}
+          onSendLoginCode={handleSendLoginCode}
+          googleLoading={state.googleLoading}
+          facebookLoading={state.facebookLoading}
+          onGoogleLogin={handleGoogleLogin}
+          onFacebookLogin={handleFacebookLogin}
+          translations={{
+            forgotPasswordQuestion: t('forgotPasswordQuestion'),
+            loginWithCode: t('loginWithCode'),
+            haveAccount: t('haveAccount'),
+            login: t('login'),
+            backToLogin: t('backToLogin'),
+            returnToLogin: t('returnToLogin'),
+            usePasswordInstead: 'Use password instead',
+            changeEmail: t('changeEmail'),
+            orContinueWith: t('orContinueWith'),
+          }}
+          email={state.email}
+        />
       </form>
     </main>
   )
