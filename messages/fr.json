@@ -102,7 +102,12 @@
     "saveChanges": "Enregistrer les modifications",
     "receiptInformation": "Informations de reçu",
     "addNewAddress": "Ajouter une nouvelle adresse",
-    "failedToUpdateProfile": "Échec de la mise à jour du profil"
+    "failedToUpdateProfile": "Échec de la mise à jour du profil",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmez le mot de passe",
+    "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
+    "passwordUpdated": "Mot de passe mis à jour",
+    "updatePassword": "Mettre à jour le mot de passe"
   },
   "HomePage": {
     "empower": "Permettre à chacun de devenir la star de sa propre histoire",

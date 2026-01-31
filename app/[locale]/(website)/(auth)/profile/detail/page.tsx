@@ -1,5 +1,5 @@
 "use client";
-import { API_ADDRESS_LIST, API_USER_PROFILE } from '@/constants/api';
+import { API_ADDRESS_LIST, API_USER_PROFILE, API_RESET_PASSWORD } from '@/constants/api';
 import useUserStore from '@/stores/userStore';
 import { ApiResponse } from '@/types/api';
 import api from '@/utils/api';
@@ -13,17 +13,23 @@ export default function AccountDetails() {
   const t = useTranslations('accountDetails');
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: user?.name || '',
-    lastName: '',
-    email: user?.email || ''
+    password: '',
+    confirmPassword: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      alert(t('passwordsDoNotMatch') || 'Passwords do not match');
+      return;
+    }
+
     try {
-      const { success, message } = await api.put<ApiResponse>(API_USER_PROFILE, formData);
+      const { success, message } = await api.post<ApiResponse>(API_RESET_PASSWORD, { password: formData.password });
       if (success) {
         setIsEditing(false);
+        setFormData({ password: '', confirmPassword: '' });
+        alert(t('passwordUpdated') || 'Password updated');
       } else {
         alert(message);
       }
@@ -85,42 +91,33 @@ export default function AccountDetails() {
           
           {isEditing && (
             <form onSubmit={handleSubmit} className="mt-6">
-              <div className="grid grid-cols-2 gap-x-16 gap-y-6 mb-8">
+              <div className="grid grid-cols-1 gap-y-6 mb-8">
                 <div>
-                  <label className="text-sm text-gray-500 mb-2 block">{t('firstName')}</label>
+                  <label className="text-sm text-gray-500 mb-2 block">{t('newPassword') || 'New password'}</label>
                   <input
-                    type="text"
-                    value={formData.firstName}
-                    onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
                     className="w-full p-2 border border-gray-300 rounded"
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-gray-500 mb-2 block">{t('lastName')}</label>
+                  <label className="text-sm text-gray-500 mb-2 block">{t('confirmPassword') || 'Confirm password'}</label>
                   <input
-                    type="text"
-                    value={formData.lastName}
-                    onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <label className="text-sm text-gray-500 mb-2 block">{t('emailAddress')}</label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
                     className="w-full p-2 border border-gray-300 rounded"
                   />
                 </div>
               </div>
-              
+
               <div className="flex justify-center">
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                  className="px-6 py-2 bg-primary cursor-pointer text-white rounded hover:bg-blue-600 transition-colors"
                 >
-                  {t('saveChanges')}
+                  {t('updatePassword') || 'Update password'}
                 </button>
               </div>
             </form>

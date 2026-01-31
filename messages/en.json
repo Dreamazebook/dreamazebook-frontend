@@ -102,7 +102,12 @@
     "saveChanges": "Save Changes",
     "receiptInformation": "Receipt information",
     "addNewAddress": "Add New Address",
-    "failedToUpdateProfile": "Failed to update profile"
+    "failedToUpdateProfile": "Failed to update profile",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "passwordUpdated": "Password updated",
+    "updatePassword": "Update password"
   },
   "HomePage": {
     "empower": "empower everyone to become the star of their own story",
