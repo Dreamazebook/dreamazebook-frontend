@@ -280,8 +280,7 @@
     "passwordsDontMatch": "❌ 两次输入的密码不一致。",
     "passwordUpdated": "密码已更新",
     "youCanNowContinueToAccount": "您现在可以继续使用您的账户。",
-    "redirecting": "正在重定向…"
-  },
+    "redirecting": "正在重定向…",
     "google": "Google",
     "facebook": "Facebook",
     "loading": "加载中...",
