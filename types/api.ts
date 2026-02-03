@@ -11,6 +11,7 @@ export interface UserResponse {
     name?: string;
     email: string;
     user_type?: string;
+    has_set_password?: boolean;
   };
   token?: string;
 }

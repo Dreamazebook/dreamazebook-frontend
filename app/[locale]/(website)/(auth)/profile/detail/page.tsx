@@ -1,5 +1,5 @@
 "use client";
-import { API_ADDRESS_LIST, API_USER_PROFILE, API_RESET_PASSWORD } from '@/constants/api';
+import { API_ADDRESS_LIST, API_USER_PROFILE, API_USER_RESET_PASSWORD } from '@/constants/api';
 import useUserStore from '@/stores/userStore';
 import { ApiResponse } from '@/types/api';
 import api from '@/utils/api';
@@ -13,22 +13,27 @@ export default function AccountDetails() {
   const t = useTranslations('accountDetails');
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    password: '',
+    currentPassword: '',
+    newPassword: '',
     confirmPassword: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.newPassword !== formData.confirmPassword) {
       alert(t('passwordsDoNotMatch') || 'Passwords do not match');
       return;
     }
 
     try {
-      const { success, message } = await api.post<ApiResponse>(API_RESET_PASSWORD, { password: formData.password });
+      const payload: any = { new_password: formData.newPassword };
+      if (user?.has_set_password) {
+        payload.current_password = formData.currentPassword;
+      }
+      const { success, message } = await api.put<ApiResponse>(API_USER_RESET_PASSWORD, payload);
       if (success) {
         setIsEditing(false);
-        setFormData({ password: '', confirmPassword: '' });
+        setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
         alert(t('passwordUpdated') || 'Password updated');
       } else {
         alert(message);
@@ -92,12 +97,23 @@ export default function AccountDetails() {
           {isEditing && (
             <form onSubmit={handleSubmit} className="mt-6">
               <div className="grid grid-cols-1 gap-y-6 mb-8">
+                {user?.has_set_password && (
+                  <div>
+                    <label className="text-sm text-gray-500 mb-2 block">{t('currentPassword') || 'Current password'}</label>
+                    <input
+                      type="password"
+                      value={formData.currentPassword}
+                      onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </div>
+                )}
                 <div>
                   <label className="text-sm text-gray-500 mb-2 block">{t('newPassword') || 'New password'}</label>
                   <input
                     type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    value={formData.newPassword}
+                    onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
                     className="w-full p-2 border border-gray-300 rounded"
                   />
                 </div>

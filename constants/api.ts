@@ -16,6 +16,7 @@ export const API_RESET_PASSWORD = '/reset-password';
 
 export const API_USER_CURRENT = '/user/profile';
 export const API_USER_PROFILE = '/user/profile';
+export const API_USER_RESET_PASSWORD = '/user/change-password';
 
 export const API_CART_LIST = '/cart';
 export const API_CART_CALCULATE_COST = '/checkout/calculate-cost';

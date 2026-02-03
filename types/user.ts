@@ -4,6 +4,7 @@ export type UserType = {
   email: string;
   user_type?: string;
   avatar?: string;
+  has_set_password?: boolean;
 };
 
 export type LoginData = {
