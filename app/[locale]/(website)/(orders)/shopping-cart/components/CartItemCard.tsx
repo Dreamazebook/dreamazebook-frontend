@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import KickstarterInlineCard from "./KickstarterInlineCard";
 import { getR2BookCover } from "@/utils/bookCovers";
 import { formatCartBookTitle, getOurBookDisplayName } from "@/utils/bookNames";
+import { WEBSITE_CDN_URL } from "@/constants/cdn";
 
 interface CartItemProps {
   showEditBook?: boolean;
@@ -74,6 +75,40 @@ export default function CartItemCard({
   const pkgCurrency = (item as any)?.currency_code || pkgSnapshot?.currency_code || "USD";
   const pkgBookCount = (item as any)?.package_item_count ?? pkgSnapshot?.book_count;
   const pkgDefaultOptions = pkgSnapshot?.default_options || {};
+
+  // R2 真实路径：/christmas/freebies/*（中间没有 website/）
+  const christmasFreebieBaseUrl = `${WEBSITE_CDN_URL}christmas/freebies/`;
+  const christmasFreebies = [
+    {
+      key: "bookmark",
+      name: "Bookmark",
+      imageUrl: `${christmasFreebieBaseUrl}bookmark.png`,
+      count: pkgDefaultOptions?.bookmarks_count ?? null,
+    },
+    {
+      key: "box",
+      name: "Gift box",
+      imageUrl: `${christmasFreebieBaseUrl}box.png`,
+      count: pkgDefaultOptions?.gift_box_count ?? pkgDefaultOptions?.giftbox_count ?? null,
+    },
+    {
+      key: "coloring-book",
+      name: "Coloring book",
+      // 文件名包含空格，必须做 URL 编码
+      imageUrl: `${christmasFreebieBaseUrl}coloring%20book.png`,
+      count:
+        pkgDefaultOptions?.coloring_book_count ??
+        pkgDefaultOptions?.coloring_books_count ??
+        pkgDefaultOptions?.personalized_coloring_books_count ??
+        null,
+    },
+    {
+      key: "sticker",
+      name: "Sticker",
+      imageUrl: `${christmasFreebieBaseUrl}sticker.png`,
+      count: pkgDefaultOptions?.stickers_count ?? null,
+    },
+  ] as const;
 
   useEffect(() => {
     checkAndShowCountdown(item.added_at);
@@ -589,34 +624,56 @@ export default function CartItemCard({
                   </div>
 
                   {/* Gifts */}
-                  <div className="pt-4 border-t border-gray-200 space-y-4">
-                    {/* Gift box (赠品)：按书本数量显示 */}
-                    {/* <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-6 min-w-0">
-                        <div className="w-[72px] h-[72px] rounded overflow-hidden bg-[#F8F8F8] shrink-0">
-                          <img src="/wrap.png" alt="gift box" className="w-full h-full object-cover" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-[22px] font-semibold text-[#222222] truncate">
-                            a festive gift box <span className="text-[#222222]/80">赠品</span>
-                          </p>
-                          <a className="text-blue-600 text-[18px] hover:underline cursor-pointer inline-block mt-2">
-                            details
-                          </a>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-[#666666] text-[18px]">Qty</span>
-                        <input
-                          className="w-16 border border-blue-600 rounded px-2 py-1 text-center"
-                          value={pkgBookCount ?? ""}
-                          readOnly
-                        />
-                      </div>
-                    </div> */}
+                  <div className="space-y-4">
+                    {/* 圣诞 bundle 赠品：沿用子图书 UI（左图 + 标题 + 右侧价格），价格固定为 0 */}
+                    <div className="">
+                      {christmasFreebies.map((g) => {
+                        const qty = Number(g.count);
+                        const label =
+                          Number.isFinite(qty) && qty > 1 ? `${g.name} × ${qty}` : g.name;
+                        return (
+                          <div key={g.key} className="flex items-center">
+                            <div className="w-14 h-14 md:w-[88px] md:h-[100px] overflow-hidden flex items-start justify-center md:items-center md:justify-center self-start md:self-center pt-3 md:p-0">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={g.imageUrl}
+                                alt={label}
+                                className="max-w-full max-h-full object-contain object-left md:object-center block"
+                              />
+                            </div>
+
+                            <div className="flex-1 min-w-0 p-3 md:py-4 md:px-6">
+                              <div className="flex items-start justify-between">
+                                <div className="min-w-0 flex flex-col md:gap-3 md:justify-between md:min-h-[72px]">
+                                  <div className="min-w-0">
+                                    <p className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222] whitespace-normal break-words md:whitespace-nowrap md:truncate">
+                                      {label}
+                                    </p>
+                                    <div className="md:hidden mt-1">
+                                      <span className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222]">
+                                        $0 {pkgCurrency}
+                                      </span>
+                                    </div>
+                                    <p className="text-[#666666] font-[400] capitalize flex items-center gap-2 mt-1 md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
+                                      {/* <span>{tSafe("freebieLabel", "Freebie")}</span> */}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="hidden md:block shrink-0 text-right">
+                                  <span className="text-[18px] font-medium leading-[24px] tracking-[0.15px] text-[#222222]">
+                                    $0 {pkgCurrency}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
 
                     {/* Extra gifts summary */}
-                    <div className="text-[#666666] text-sm space-y-1">
+                    {/* <div className="text-[#666666] text-sm space-y-1">
                       {!!pkgDefaultOptions?.includes_stickers && (
                         <p>Stickers × {pkgDefaultOptions?.stickers_count ?? "-"}</p>
                       )}
@@ -626,7 +683,7 @@ export default function CartItemCard({
                       {!!pkgDefaultOptions?.includes_personalized_cover && (
                         <p>Personalized book cover × {pkgDefaultOptions?.personalized_cover_count ?? "-"}</p>
                       )}
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               )}
