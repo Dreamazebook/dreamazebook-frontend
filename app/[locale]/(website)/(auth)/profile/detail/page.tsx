@@ -6,6 +6,7 @@ import api from '@/utils/api';
 import React, { useEffect, useState } from 'react';
 import AddressCard from '../../../components/address/AddressCard';
 import AddressCardList from '../../../components/address/AddressCardList';
+import PasswordField from '@/app/components/common/PasswordField';
 import { useTranslations } from 'next-intl';
 
 export default function AccountDetails() {
@@ -98,34 +99,31 @@ export default function AccountDetails() {
             <form onSubmit={handleSubmit} className="mt-6">
               <div className="grid grid-cols-1 gap-y-6 mb-8">
                 {user?.has_set_password && (
-                  <div>
-                    <label className="text-sm text-gray-500 mb-2 block">{t('currentPassword') || 'Current password'}</label>
-                    <input
-                      type="password"
-                      value={formData.currentPassword}
-                      onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </div>
+                  <PasswordField
+                    id="currentPassword"
+                    label={t('currentPassword') || 'Current password'}
+                    value={formData.currentPassword}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, currentPassword: e.target.value})}
+                    placeholder=""
+                    required
+                  />
                 )}
-                <div>
-                  <label className="text-sm text-gray-500 mb-2 block">{t('newPassword') || 'New password'}</label>
-                  <input
-                    type="password"
-                    value={formData.newPassword}
-                    onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-500 mb-2 block">{t('confirmPassword') || 'Confirm password'}</label>
-                  <input
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </div>
+                <PasswordField
+                  id="newPassword"
+                  label={t('newPassword') || 'New password'}
+                  value={formData.newPassword}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, newPassword: e.target.value})}
+                  placeholder=""
+                  required
+                />
+                <PasswordField
+                  id="confirmPassword"
+                  label={t('confirmPassword') || 'Confirm password'}
+                  value={formData.confirmPassword}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, confirmPassword: e.target.value})}
+                  placeholder=""
+                  required
+                />
               </div>
 
               <div className="flex justify-center">

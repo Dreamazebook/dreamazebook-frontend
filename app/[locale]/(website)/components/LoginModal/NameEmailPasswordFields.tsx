@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import Input from '@/app/components/common/Input'
-import { PasswordToggleButton } from './PasswordToggleButton'
+import PasswordField from '@/app/components/common/PasswordField'
 
 interface NameEmailPasswordFieldsProps {
   showName?: boolean
@@ -8,10 +8,10 @@ interface NameEmailPasswordFieldsProps {
   onNameChange?: (value: string) => void
   email: string
   onEmailChange: (value: string) => void
-  showPassword: boolean
   password: string
   onPasswordChange: (value: string) => void
-  onPasswordToggle: () => void
+  showPassword?: boolean
+  onPasswordToggle?: () => void
   namePlaceholder?: string
   emailPlaceholder: string
   passwordPlaceholder: string
@@ -26,9 +26,9 @@ export const NameEmailPasswordFields = memo(({
   onNameChange,
   email,
   onEmailChange,
-  showPassword,
   password,
   onPasswordChange,
+  showPassword,
   onPasswordToggle,
   namePlaceholder = '',
   emailPlaceholder,
@@ -60,18 +60,16 @@ export const NameEmailPasswordFields = memo(({
       required
     />
 
-    <div className="relative">
-      <Input
-        id="password"
-        label={passwordLabel}
-        type={showPassword ? 'text' : 'password'}
-        value={password}
-        onChange={(e) => onPasswordChange(e.target.value)}
-        placeholder={passwordPlaceholder}
-        required
-      />
-      <PasswordToggleButton showPassword={showPassword} onToggle={onPasswordToggle} />
-    </div>
+    <PasswordField
+      id="password"
+      label={passwordLabel}
+      value={password}
+      onChange={(e) => onPasswordChange(e.target.value)}
+      placeholder={passwordPlaceholder}
+      required
+      showPassword={showPassword}
+      onPasswordToggle={onPasswordToggle}
+    />
   </fieldset>
 ))
 
