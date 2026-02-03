@@ -280,8 +280,7 @@
     "passwordsDontMatch": "❌ Les mots de passe ne correspondent pas.",
     "passwordUpdated": "Mot de passe mis à jour",
     "youCanNowContinueToAccount": "Vous pouvez maintenant continuer vers votre compte.",
-    "redirecting": "Redirection…"
-  },
+    "redirecting": "Redirection…",
     "google": "Google",
     "facebook": "Facebook",
     "loading": "Chargement...",
