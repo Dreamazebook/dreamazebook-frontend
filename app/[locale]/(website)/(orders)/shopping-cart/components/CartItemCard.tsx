@@ -76,6 +76,35 @@ export default function CartItemCard({
   const pkgBookCount = (item as any)?.package_item_count ?? pkgSnapshot?.book_count;
   const pkgDefaultOptions = pkgSnapshot?.default_options || {};
 
+  // 解析后端可能返回的价格字符串（如 "$29.99" / "29.99" / "USD 29.99"）
+  const parseMoney = (v: any): number | null => {
+    if (v == null) return null;
+    if (typeof v === "number") return Number.isFinite(v) ? v : null;
+    const s = String(v);
+    const m = s.match(/(\d+(?:\.\d+)?)/);
+    if (!m) return null;
+    const n = Number(m[1]);
+    return Number.isFinite(n) ? n : null;
+  };
+  const formatMoney = (n: number, currency: string) => {
+    const num = n.toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1");
+    return `$${num} ${currency || "USD"}`;
+  };
+  const getMarketPrice = (obj: any): number | null => {
+    if (!obj) return null;
+    return (
+      parseMoney(obj?.market_price) ??
+      parseMoney(obj?.pricing?.market_price) ??
+      parseMoney(obj?.default_sku?.market_price) ??
+      parseMoney(obj?.sku?.market_price) ??
+      null
+    );
+  };
+
+  const itemCurrency = (item as any)?.pricing?.currency_code || (item as any)?.currency_code || "USD";
+  const itemMarketPrice = getMarketPrice(item);
+  const pkgMarketPrice = getMarketPrice(item) ?? getMarketPrice(pkgSnapshot);
+
   // R2 真实路径：/christmas/freebies/*（中间没有 website/）
   const christmasFreebieBaseUrl = `${WEBSITE_CDN_URL}christmas/freebies/`;
   const christmasFreebies = [
@@ -235,10 +264,17 @@ export default function CartItemCard({
                     <div className="flex items-center gap-3 shrink-0">
                       {/* 桌面端：价格在右侧（与当前 UI 一致） */}
                       <div className="hidden md:block">
-                        <DisplayPrice
-                          style="text-[#222222] font-bold"
-                          value={item.total_price}
-                        />
+                        <div className="flex items-baseline gap-2">
+                          <DisplayPrice
+                            style="text-[#222222] font-bold"
+                            value={item.total_price}
+                          />
+                          {itemMarketPrice != null && (
+                            <span className="text-[#999999] md:text-[14px] md:leading-[20px]  md:tracking-[0.25px] line-through">
+                              {formatMoney(itemMarketPrice, itemCurrency)}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       {onRemoveItem && (
                         <button
@@ -260,10 +296,17 @@ export default function CartItemCard({
                   </div>
                   {/* 手机端：价格在书名下方 */}
                   <div className="md:hidden">
-                    <DisplayPrice
-                      style="text-[#222222] font-bold"
-                      value={item.total_price}
-                    />
+                    <div className="flex items-baseline gap-2">
+                      <DisplayPrice
+                        style="text-[#222222] font-bold"
+                        value={item.total_price}
+                      />
+                      {itemMarketPrice != null && (
+                        <span className="text-[#999999] line-through text-[14px]">
+                          {formatMoney(itemMarketPrice, itemCurrency)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -468,10 +511,17 @@ export default function CartItemCard({
                 {/* 圣诞 bundle：总价保持在名称右侧（各端一致），删除按钮位置不变 */}
                 {isChristmasBundle && (
                   <div className="flex items-center justify-end gap-3 shrink-0">
-                    <DisplayPrice
-                      style="text-[#222222] font-bold"
-                      value={(item as any)?.total_price ?? item.total_price}
-                    />
+                    <div className="flex items-baseline gap-2">
+                      <DisplayPrice
+                        style="text-[#222222] font-bold"
+                        value={(item as any)?.total_price ?? item.total_price}
+                      />
+                      {pkgMarketPrice != null && (
+                        <span className="text-[#999999] md:text-[14px] md:leading-[20px]  md:tracking-[0.25px] line-through">
+                          {formatMoney(pkgMarketPrice, pkgCurrency)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 )}
                 {onRemoveItem && (
@@ -562,6 +612,12 @@ export default function CartItemCard({
                           // 圣诞 bundle：跳转到 preview 后不展示 option tab
                           : `/personalize?bookid=${spuCode}&hideOptions=1&fromCartItemId=${encodeURIComponent(String(pi?.id ?? ''))}${coverType ? `&cover_type=${encodeURIComponent(coverType)}` : ''}${bindingType ? `&binding_type=${encodeURIComponent(bindingType)}` : ''}`
 
+                        const piMarketPrice = getMarketPrice(pi);
+                        const piBasePrice =
+                          parseMoney(pi?.base_price) ??
+                          parseMoney(pi?.pricing?.base_price) ??
+                          null;
+
                         return (
                           <div key={pi?.id || `${spuCode}-${pi?.item_index}`} className="flex md:h-[120px] items-center">
                             {/* 圣诞 bundle 子项封面：移动端 56x56，桌面端保持原尺寸 */}
@@ -590,9 +646,16 @@ export default function CartItemCard({
                                     </p>
                                     {/* 手机端：子书价格放到书名下方；桌面端保持右侧显示 */}
                                     <div className="md:hidden mt-1">
-                                      <span className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222]">
-                                        $0 {pkgCurrency}
-                                      </span>
+                                      <div className="flex items-baseline gap-2">
+                                        <span className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222]">
+                                          {formatMoney(piBasePrice ?? 0, pkgCurrency)}
+                                        </span>
+                                        {piMarketPrice != null && (
+                                          <span className="text-[#999999] line-through text-[14px] tracking-[0.25px]">
+                                            {formatMoney(piMarketPrice, pkgCurrency)}
+                                          </span>
+                                        )}
+                                      </div>
                                     </div>
                                     {/* 圣诞 bundle 子书：补充 cover / gift 细节（与普通购物车一致） */}
                                     <p className="text-[#666666] font-[400] capitalize flex items-center gap-2 mt-1 md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
@@ -612,9 +675,16 @@ export default function CartItemCard({
                                 </div>
 
                                 <div className="hidden md:block shrink-0 text-right">
-                                  <span className="text-[18px] font-medium leading-[24px] tracking-[0.15px] text-[#222222]">
-                                    $0 {pkgCurrency}
-                                  </span>
+                                  <div className="flex items-baseline gap-2 justify-end">
+                                    <span className="text-[18px] font-medium leading-[24px] tracking-[0.15px] text-[#222222]">
+                                      {formatMoney(piBasePrice ?? 0, pkgCurrency)}
+                                    </span>
+                                    {piMarketPrice != null && (
+                                      <span className="text-[#999999] line-through text-[14px] tracking-[0.25px]">
+                                        {formatMoney(piMarketPrice, pkgCurrency)}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
