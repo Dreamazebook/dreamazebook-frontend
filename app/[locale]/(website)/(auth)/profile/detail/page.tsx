@@ -27,7 +27,7 @@ export default function AccountDetails() {
     }
 
     try {
-      const payload: any = { new_password: formData.newPassword, new_password_confirm: formData.confirmPassword };
+      const payload: any = { new_password: formData.newPassword, new_password_confirmed: formData.confirmPassword };
       if (user?.has_set_password) {
         payload.current_password = formData.currentPassword;
       }
