@@ -41,7 +41,7 @@ const Input: React.FC<InputProps> = ({
       {type === 'select' ? (
         <select
           id={id}
-          className={`w-full p-2 border rounded-md ${error ? 'border-red-500' : 'border-gray-300'}`}
+          className={`w-full p-2 border rounded ${error ? 'border-red-500' : 'border-gray-300'}`}
           value={value}
           onChange={onChange}
           required={required}

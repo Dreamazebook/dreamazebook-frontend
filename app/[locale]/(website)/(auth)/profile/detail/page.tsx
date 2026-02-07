@@ -8,6 +8,7 @@ import AddressCard from '../../../components/address/AddressCard';
 import AddressCardList from '../../../components/address/AddressCardList';
 import PasswordField from '@/app/components/common/PasswordField';
 import { useTranslations } from 'next-intl';
+import Button from '@/app/components/Button';
 
 export default function AccountDetails() {
   const {user, fetchAddresses, addresses} = useUserStore();
@@ -78,9 +79,9 @@ export default function AccountDetails() {
           <h2 className="text-[16px] font-medium text-[#222]">{t('aboutYou')}</h2>
         </div>
         
-        <div className="bg-white p-6 rounded">
+        <div className="bg-white p-[12px] rounded">
 
-          <div className="flex flex-col gap-[4px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-[4px] md:gap-[8px]">
             <UserDetailField label={t('emailAddress')} value={user?.email} />
             <UserDetailField label={t('firstName')} value={user?.name} />
             <UserDetailField label={'Password'} value={'**********'} />
@@ -89,7 +90,7 @@ export default function AccountDetails() {
           <div className="flex justify-center">
             <button 
               onClick={() => setIsEditing(!isEditing)}
-              className="px-6 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition-colors"
+              className="py-2 w-[132px] cursor-pointer border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition-colors"
             >
               {isEditing ? t('cancel') : t('edit')}
             </button>
@@ -126,14 +127,7 @@ export default function AccountDetails() {
                 />
               </div>
 
-              <div className="flex justify-center">
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-primary cursor-pointer text-white rounded hover:bg-blue-600 transition-colors"
-                >
-                  {t('updatePassword') || 'Update password'}
-                </button>
-              </div>
+              <Button tl={t('updatePassword')} />
             </form>
           )}
         </div>
