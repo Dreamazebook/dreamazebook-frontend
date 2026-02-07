@@ -190,16 +190,16 @@ export const ModeToggleLinks = memo(({
     )
   }
 
-  if (mode === 'codeLogin' && codeSent) {
-    return (
-      <CodeLoginCodeLinks
-        onChangeEmail={onCodeFlowReset}
-        translations={{
-          changeEmail: translations.changeEmail,
-        }}
-      />
-    )
-  }
+  // if (mode === 'codeLogin' && codeSent) {
+  //   return (
+  //     <CodeLoginCodeLinks
+  //       onChangeEmail={onCodeFlowReset}
+  //       translations={{
+  //         changeEmail: translations.changeEmail,
+  //       }}
+  //     />
+  //   )
+  // }
 
   return null
 })

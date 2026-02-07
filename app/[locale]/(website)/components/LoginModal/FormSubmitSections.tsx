@@ -167,12 +167,12 @@ export const FormSubmitSections = memo(({
           sendButtonLabel=""
           onResendCode={() => onSendLoginCode(email)}
         >
-          <CodeLoginCodeLinks
+          {/* <CodeLoginCodeLinks
             onChangeEmail={onResetCodeFlow}
             translations={{
               changeEmail: translations.changeEmail,
             }}
-          />
+          /> */}
         </CodeLoginSubmitSection>
       )}
     </>
