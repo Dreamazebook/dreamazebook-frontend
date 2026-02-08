@@ -13,7 +13,7 @@ import { CodeInputField } from './LoginModal/CodeInputField'
 import { ModalHeader, CloseButton } from './LoginModal/ModalHeader'
 import { FormSubmitSections } from './LoginModal/FormSubmitSections'
 
-export default function LoginModal({ showCloseButton = false, title = 'Welcome to Dreamaze', description = 'Sign in to access your account' }: { showCloseButton?: boolean, title?: string, description?: string }) {
+export default function LoginModal({ showCloseButton = false, title = 'Welcome to Dreamaze', description = 'Sign in to access your account', useRedirect = true }: { showCloseButton?: boolean, useRedirect?:boolean, title?: string, description?: string }) {
   const t = useTranslations('LoginModal')
   const { state, updateState, setField, resetMessages, resetCodeFlow } = useLoginState()
   const {
@@ -114,7 +114,10 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
 
   // OAuth handlers
   const handlePostLoginRedirect = (defaultPath = '/') => {
-    closeLoginModal()
+    if (!useRedirect) {
+      closeLoginModal();
+      return;
+    }
     const urlRedirect = localStorage.getItem('redirectUrl')
     if (urlRedirect) {
       localStorage.removeItem('redirectUrl')
@@ -189,10 +192,8 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
     if (response?.success) {
       checkKickstarterStatus()
       handlePostLoginRedirect()
-      return true
     } else {
       updateState({ errorMessage: t('verifyCodeFailed') })
-      return false
     }
   }
 
@@ -200,9 +201,7 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
     if (email.includes('admin')) {
       const response = await loginAdmin({ email, password })
       if (response?.success) {
-        closeLoginModal()
         handlePostLoginRedirect('/admin')
-        return true
       }
     }
 
@@ -210,10 +209,8 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
     if (response?.success) {
       checkKickstarterStatus()
       handlePostLoginRedirect()
-      return true
     } else {
       updateState({ errorMessage: t('loginFailed') })
-      return false
     }
   }
 
