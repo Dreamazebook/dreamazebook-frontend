@@ -9,8 +9,10 @@ import api from "@/utils/api";
 import {
   API_ADMIN_ORDER_DOWNLOAD_IMAGES,
   API_ADMIN_ORDER_ITEM_UPLOAD_FINAL_IMAGE,
+  API_ADMIN_ORDER_RETRY_FACE_SWAP,
 } from "@/constants/api";
 import { ApiResponse } from "@/types/api";
+import Button from "@/app/components/Button";
 
 interface ResultImagesModalProps {
   isOpen: boolean;
@@ -190,6 +192,19 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
     };
     input.click();
   };
+
+  const retryFaceswap = async (itemId: number) => {
+    try {
+      await api.post(API_ADMIN_ORDER_RETRY_FACE_SWAP(orderId), {
+        item_id: itemId,
+      });
+      alert("Faceswap retry triggered successfully");
+      fetchOrderDetail(orderId);
+    } catch (error) {
+      console.error("Failed to retry faceswap:", error);
+      alert("Failed to retry faceswap. Please try again.");
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4">
@@ -506,6 +521,7 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                       {/* Index */}
                       <div className="flex-shrink-0 text-xs text-gray-500">
                         #{index + 1}
+                        <Button tl="Refresh" handleClick={() => retryFaceswap(image.item_id)} />
                       </div>
                     </div>
                   ) : (

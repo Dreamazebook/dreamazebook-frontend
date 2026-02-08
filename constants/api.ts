@@ -57,6 +57,7 @@ export const API_ADMIN_PERMISSIONS = '/admin/permissions';
 
 export const API_ADMIN_ORDERS = '/admin/orders'
 export const API_ADMIN_ORDER_DETAIL = (id: string | number) => `${API_ADMIN_ORDERS}/${id}`
+export const API_ADMIN_ORDER_RETRY_FACE_SWAP = (orderId: string | number) => `${API_ADMIN_ORDER_DETAIL(orderId)}/retry-face-swap`;
 export const API_ADMIN_ORDER_ITEM_UPLOAD_FINAL_IMAGE = (orderId:string|number, itemId:string|number) => `${API_ADMIN_ORDERS}/${orderId}/items/${itemId}/upload-final-images`;
 export const API_ADMIN_ORDER_DETAIL_MANUAL_CONFIRM = (orderId: string | number, itemId: string|number) => `${API_ADMIN_ORDER_DETAIL(orderId)}/items/${itemId}/confirm`
 export const API_ADMIN_ORDER_DOWNLOAD_IMAGES = '/api/admin/orders/download-images'

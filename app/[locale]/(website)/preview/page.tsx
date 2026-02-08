@@ -4898,7 +4898,7 @@ export default function PreviewPageWithTopNav() {
               className={`w-full px-6 py-2 rounded flex items-center justify-center ${
                 isAddingToCart 
                   ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-[#222222] hover:bg-[#333333]'
+                  : 'bg-[#222222] hover:bg-[#333333] cursor-pointer'
               } text-[#F5E3E3]`}
             >
               {isAddingToCart ? (
