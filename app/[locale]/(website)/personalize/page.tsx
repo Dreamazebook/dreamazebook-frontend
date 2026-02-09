@@ -8,6 +8,7 @@ import { IoIosArrowBack } from 'react-icons/io';
 import api from '@/utils/api';
 import SingleCharacterForm1, { SingleCharacterForm1Handle } from '../components/personalize/SingleCharacterForm1';
 import SingleCharacterForm2, { SingleCharacterForm2Handle } from '../components/personalize/SingleCharacterForm2';
+import SingleCharacterForm3, { SingleCharacterForm3Handle } from '../components/personalize/SingleCharacterForm3';
 import { buildProductSchema, extractFieldOptions, resolveSkuPrice } from '@/utils/productAdapter';
 import usePreviewStore from '@/stores/previewStore';
 
@@ -24,6 +25,7 @@ export default function PersonalizeApiDrivenPage() {
     searchParams.get('bookid') ||
     '';
   const mockParam = searchParams.get('mock');
+  const useForm3 = searchParams.get('form3') === '1' || searchParams.get('form') === '3';
   const isKs = searchParams.get('ks') === '1';
   const ksPackageItemId = searchParams.get('package_item_id') || '';
   const ksPackageId = searchParams.get('package_id') || '';
@@ -48,6 +50,7 @@ export default function PersonalizeApiDrivenPage() {
 
   const form1Ref = useRef<SingleCharacterForm1Handle>(null);
   const form2Ref = useRef<SingleCharacterForm2Handle>(null);
+  const form3Ref = useRef<SingleCharacterForm3Handle>(null);
 
   // 跟踪是否正在添加图片（裁剪器是否打开）
   const [isAddingImage, setIsAddingImage] = useState(false);
@@ -218,10 +221,20 @@ export default function PersonalizeApiDrivenPage() {
       setCurrentStep(2);
       // 滚动到顶部
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (formType === 'SINGLE2' && form2Ref.current) {
-      // SINGLE2 表单的处理逻辑类似
-      setCurrentStep(2);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (formType === 'SINGLE2') {
+      if (useForm3 && form3Ref.current) {
+        const validationResult = form3Ref.current.validateForm({ scope: 'step1' });
+        if (!validationResult.isValid) {
+          setTimeout(() => scrollToErrorField(validationResult.firstErrorField), 100);
+          return;
+        }
+        setCurrentStep(2);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        // SINGLE2（Form2）表单的处理逻辑：直接进入第二步
+        setCurrentStep(2);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   };
 
@@ -258,21 +271,21 @@ export default function PersonalizeApiDrivenPage() {
       hairColorRaw = f.hairColor;
       relationshipRaw = (f as any).relationship;
       photosData = (f as any).photos || [];
-    } else if (formType === 'SINGLE2' && form2Ref.current) {
-      const validationResult = form2Ref.current.validateForm();
-      if (!validationResult.isValid) {
-        // 滚动到第一个错误字段
-        setTimeout(() => scrollToErrorField(validationResult.firstErrorField), 100);
+    } else if (formType === 'SINGLE2' && (useForm3 ? !!form3Ref.current : !!form2Ref.current)) {
+      const activeRef = useForm3 ? form3Ref : form2Ref;
+      const validationResult = activeRef.current?.validateForm();
+      if (!validationResult?.isValid) {
+        setTimeout(() => scrollToErrorField(validationResult?.firstErrorField || null), 100);
         return;
       }
-      const f = form2Ref.current.getFormData();
+      const f = activeRef.current!.getFormData();
       fullName = f.fullName;
       genderRaw = f.gender as any;
       skinColorRaw = f.skinColor;
       hairstyleRaw = f.hairstyle;
       hairColorRaw = f.hairColor;
       relationshipRaw = (f as any).relationship;
-      photosData = [];
+      photosData = (f as any).photos || [];
     } else {
       return;
     }
@@ -464,24 +477,45 @@ export default function PersonalizeApiDrivenPage() {
             onCropperOpenChange={handleCropperOpenChange}
           />
         ) : (
-          <SingleCharacterForm2
-            ref={form2Ref}
-            bookId={bookId}
-            initialData={{
-              skinColor: initials.skinColor,
-              hairstyle: initials.hairstyle,
-              hairColor: initials.hairColor,
-            }}
-            apiSkinToneValues={skinToneValues}
-            apiHairStyleValues={hairStyleValues}
-            apiHairColorValues={hairColorValues}
-            uploadOptions={uploadOptions}
-            assetSpuCode={'PICBOOK_GOODNIGHT'}
-          />
+          <>
+            {useForm3 ? (
+              <SingleCharacterForm3
+                ref={form3Ref}
+                bookId={bookId}
+                initialData={{
+                  skinColor: initials.skinColor,
+                  hairstyle: initials.hairstyle,
+                  hairColor: initials.hairColor,
+                }}
+                apiSkinToneValues={skinToneValues}
+                apiHairStyleValues={hairStyleValues}
+                apiHairColorValues={hairColorValues}
+                uploadOptions={uploadOptions}
+                assetSpuCode={'PICBOOK_GOODNIGHT'}
+                currentStep={currentStep}
+                onCropperOpenChange={handleCropperOpenChange}
+              />
+            ) : (
+              <SingleCharacterForm2
+                ref={form2Ref}
+                bookId={bookId}
+                initialData={{
+                  skinColor: initials.skinColor,
+                  hairstyle: initials.hairstyle,
+                  hairColor: initials.hairColor,
+                }}
+                apiSkinToneValues={skinToneValues}
+                apiHairStyleValues={hairStyleValues}
+                apiHairColorValues={hairColorValues}
+                uploadOptions={uploadOptions}
+                assetSpuCode={'PICBOOK_GOODNIGHT'}
+              />
+            )}
+          </>
         )}
         {/* 桌面端按钮 */}
         <div className="hidden md:flex justify-center">
-          {currentStep === 1 && formType === 'SINGLE1' ? (
+          {currentStep === 1 && (formType === 'SINGLE1' || (formType === 'SINGLE2' && useForm3)) ? (
             <button
               type="button"
               onClick={handleNextStep}
@@ -516,7 +550,7 @@ export default function PersonalizeApiDrivenPage() {
       {/* 手机端吸底按钮 */}
       <div className={`fixed bottom-0 left-0 right-0 bg-[#F8F8F8] z-50 md:hidden border-t border-gray-200 transition-transform duration-300 ${isAddingImage ? 'translate-y-full' : ''}`}>
         <div className="flex items-center justify-center h-[76px] px-[12px] py-[16px] gap-[10px]">
-          {currentStep === 1 && formType === 'SINGLE1' ? (
+          {currentStep === 1 && (formType === 'SINGLE1' || (formType === 'SINGLE2' && useForm3)) ? (
             <button
               type="button"
               onClick={handleNextStep}
