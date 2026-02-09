@@ -84,15 +84,15 @@ export default function AccountDetails() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-[4px] md:gap-[8px]">
             <UserDetailField label={t('emailAddress')} value={user?.email} />
             <UserDetailField label={t('firstName')} value={user?.name} />
-            <UserDetailField label={'Password'} value={'**********'} />
+            <UserDetailField label={'Password'} value={user?.has_set_password ? '**********' : t('notSet')} />
           </div>
           
-          <div className="flex justify-center">
+          <div className="flex justify-center mt-6">
             <button 
               onClick={() => setIsEditing(!isEditing)}
-              className="py-2 w-[132px] cursor-pointer border border-gray-300 rounded text-gray-700 hover:bg-gray-50 transition-colors"
+              className="py-2 px-4 w-full md:w-auto cursor-pointer border border-black-300 rounded text-[#222222] hover:bg-gray-50 transition-colors"
             >
-              {isEditing ? t('cancel') : t('edit')}
+              {isEditing ? t('cancel') : user?.has_set_password ? t('editPassword') : t('setPassword')}
             </button>
           </div>
           

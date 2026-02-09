@@ -108,7 +108,10 @@
     "confirmPassword": "Confirmez le mot de passe",
     "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
     "passwordUpdated": "Mot de passe mis à jour",
-    "updatePassword": "Mettre à jour le mot de passe"
+    "updatePassword": "Mettre à jour le mot de passe",
+    "notSet": "Non défini",
+    "setPassword": "Définir un mot de passe (optionnel)",
+    "editPassword": "Modifier le mot de passe"
   },
   "HomePage": {
     "empower": "Permettre à chacun de devenir la star de sa propre histoire",

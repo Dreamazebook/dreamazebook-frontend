@@ -106,7 +106,10 @@
     "confirmPassword": "Confirm password",
     "passwordsDoNotMatch": "Passwords do not match",
     "passwordUpdated": "Password updated",
-    "updatePassword": "Update password"
+    "updatePassword": "Update password",
+    "notSet": "Not Set",
+    "setPassword": "Set a password (optional)",
+    "editPassword": "Change Password"
   },
   "HomePage": {
     "empower": "empower everyone to become the star of their own story",

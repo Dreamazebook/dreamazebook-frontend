@@ -108,7 +108,10 @@
     "confirmPassword": "确认密码",
     "passwordsDoNotMatch": "两次输入的密码不一致",
     "passwordUpdated": "密码已更新",
-    "updatePassword": "更新密码"
+    "updatePassword": "更新密码",
+    "notSet": "未设置",
+    "setPassword": "设置密码（可选）",
+    "editPassword": "修改密码"
   },
   "HomePage": {
     "empower": "让每个人成为自己故事的主角",
