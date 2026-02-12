@@ -67,6 +67,7 @@ export interface OrderDetail {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  delivered_at?: string;
   items: CartItem[];
   shipping_options: {
     options: ShippingOption[];

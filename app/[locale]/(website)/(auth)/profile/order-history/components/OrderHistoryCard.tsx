@@ -48,10 +48,11 @@ const OrderHistoryCard = ({ orderDetail,showStatus,openModal,openAddressModal }:
         />
 
         <div className="flex gap-[32px] font-[16px]">
+          {orderDetail.delivered_at &&
           <StripeReceiptLink
             stripeReceiptUrl={orderDetail.stripe_receipt_url}
             variant="link"
-          />
+          />}
 
           {/* Edit Shipping Address link - only show for orders that can be edited */}
           {orderDetail.permissions.can_update_address_except_country && (
