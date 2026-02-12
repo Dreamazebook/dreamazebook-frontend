@@ -14,6 +14,7 @@ import {
 } from "@/constants/api";
 import OrderSummaryPrices from "../../components/component/OrderSummaryPrices";
 import OrderSummaryDelivery from "../../components/component/OrderSummaryDelivery";
+import StripeReceiptLink from "../../components/component/StripeReceiptLink";
 import CartItemCard from "../shopping-cart/components/CartItemCard";
 import MessageModal from "./components/MessageModal";
 import Image from "next/image";
@@ -263,11 +264,10 @@ const OrderSummary: React.FC = () => {
 
         {/* 操作按钮 */}
         <div className="flex items-center justify-end gap-4 mt-[16px]">
-          {orderDetail?.stripe_receipt_url &&
-          <a href={orderDetail.stripe_receipt_url} target="_blank" className="text-[#222] py-2 border border-[#222] px-4 rounded hover:bg-gray-300">
-            {t("actions.downloadInvoice")}
-          </a>
-          }
+          <StripeReceiptLink
+            stripeReceiptUrl={orderDetail?.stripe_receipt_url}
+            variant="button"
+          />
           {/* <button className="bg-[#222] text-white py-2 px-4 rounded hover:opacity-70 cursor-pointer">
             {t("actions.buySame")}
           </button> */}
