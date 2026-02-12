@@ -8,6 +8,7 @@ import OrderSummaryDelivery from "../../../components/component/OrderSummaryDeli
 import CartItemCard from "../../../(orders)/shopping-cart/components/CartItemCard";
 import { ORDER_CHECKOUT_URL, ORDER_SUMMARY_URL } from "@/constants/links";
 import { useTranslations } from 'next-intl';
+import StripeReceiptLink from "../../../components/component/StripeReceiptLink";
 
 export default function LatestOrderHistory({ orderDetail }:{orderDetail:OrderDetail}) {
   const {order_number,status,total_amount,items, id} = orderDetail;
@@ -35,12 +36,12 @@ export default function LatestOrderHistory({ orderDetail }:{orderDetail:OrderDet
           <span className="text-[#999999]">{t("total")}</span> <DisplayPrice value={total_amount} style="text-2xl font-bold text-[#222222]"/>
         </div>
         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-          <button className="px-4 py-2 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50">
-            {t("downloadInvoice")}
-          </button>
-          <button className="px-4 py-2 bg-gray-900 text-white rounded text-sm font-medium hover:bg-gray-800">
+          {orderDetail.delivered_at &&
+          <StripeReceiptLink stripeReceiptUrl={orderDetail.stripe_receipt_url} variant="button" />
+          }
+          {/* <button className="px-4 py-2 bg-gray-900 text-white rounded text-sm font-medium hover:bg-gray-800">
             {t("buySame")}
-          </button>
+          </button> */}
         </div>
       </div>
     </div>
