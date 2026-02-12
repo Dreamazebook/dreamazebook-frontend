@@ -109,7 +109,10 @@
     "updatePassword": "Update password",
     "notSet": "Not Set",
     "setPassword": "Set a password (optional)",
-    "editPassword": "Change Password"
+    "editPassword": "Change Password",
+    "passwordMustBeAtLeast8Characters": "❌ Password must be at least 8 characters.",
+    "passwordMustIncludeNumberOrUppercase": "❌ Password must include at least 1 number or 1 uppercase letter.",
+    "passwordsDontMatch": "❌ Passwords don't match."
   },
   "HomePage": {
     "empower": "empower everyone to become the star of their own story",

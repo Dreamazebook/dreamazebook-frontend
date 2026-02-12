@@ -111,7 +111,10 @@
     "updatePassword": "更新密码",
     "notSet": "未设置",
     "setPassword": "设置密码（可选）",
-    "editPassword": "修改密码"
+    "editPassword": "更改密码",
+    "passwordMustBeAtLeast8Characters": "❌ 密码必须至少8个字符。",
+    "passwordMustIncludeNumberOrUppercase": "❌ 密码必须包含至少1个数字或1个大写字母。",
+    "passwordsDontMatch": "❌ 两次输入的密码不一致。"
   },
   "HomePage": {
     "empower": "让每个人成为自己故事的主角",

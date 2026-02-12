@@ -391,7 +391,7 @@ const AddressForm = forwardRef<
         error={errors.phone}
         placeholder={t("phoneNumberPlaceholder")}
       >
-        <span className="text-[16px] text-[#999]">{t("phoneHelp")}</span>
+        {/* <span className="text-[16px] text-[#999]">{t("phoneHelp")}</span> */}
       </FormField>
 
       <div className="mt-4 mb-6">

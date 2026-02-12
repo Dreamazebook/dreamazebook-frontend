@@ -5,6 +5,7 @@ import { useRouter } from '@/i18n/routing';
 import { API_RESET_PASSWORD } from '@/constants/api';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { usePasswordValidation } from '@/hooks/usePasswordValidation';
 import api from '@/utils/api';
 import Button from '@/app/components/Button';
 import Input from '@/app/components/common/Input';
@@ -15,6 +16,7 @@ export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const t = useTranslations('LoginModal');
   const token = searchParams.get('token') || '';
+  const { validatePassword } = usePasswordValidation(t);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -22,32 +24,6 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [shakeError, setShakeError] = useState(false);
-
-  const validatePassword = (): boolean => {
-    const errors: string[] = [];
-
-    if (password.length < 8) {
-      errors.push(t('passwordMustBeAtLeast8Characters'));
-    }
-
-    if (!/[A-Z]/.test(password) && !/[0-9]/.test(password)) {
-      errors.push(t('passwordMustIncludeNumberOrUppercase'));
-    }
-
-    if (password !== confirmPassword) {
-      errors.push(t('passwordsDontMatch'));
-    }
-
-    if (errors.length > 0) {
-      setError(errors.join('\n'));
-      setShakeError(true);
-      setTimeout(() => setShakeError(false), 500);
-      return false;
-    }
-
-    setError('');
-    return true;
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +33,11 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (!validatePassword()) {
+    const validation = validatePassword(password, confirmPassword);
+    if (!validation.isValid) {
+      setError(validation.errors.join('\n'));
+      setShakeError(true);
+      setTimeout(() => setShakeError(false), 500);
       return;
     }
 

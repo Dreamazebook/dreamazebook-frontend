@@ -8,24 +8,34 @@ import AddressCard from '../../../components/address/AddressCard';
 import AddressCardList from '../../../components/address/AddressCardList';
 import PasswordField from '@/app/components/common/PasswordField';
 import { useTranslations } from 'next-intl';
+import { usePasswordValidation } from '@/hooks/usePasswordValidation';
 import Button from '@/app/components/Button';
 
 export default function AccountDetails() {
   const {user, fetchAddresses, addresses} = useUserStore();
   const t = useTranslations('accountDetails');
+  const { validatePassword } = usePasswordValidation(t);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.newPassword !== formData.confirmPassword) {
-      alert(t('passwordsDoNotMatch') || 'Passwords do not match');
+    setError('');
+
+    // Validate password rules
+    const validation = validatePassword(formData.newPassword, formData.confirmPassword);
+    if (!validation.isValid) {
+      setError(validation.errors.join('\n'));
       return;
     }
+
+    setLoading(true);
 
     try {
       const payload: any = { new_password: formData.newPassword, new_password_confirmation: formData.confirmPassword };
@@ -38,10 +48,12 @@ export default function AccountDetails() {
         setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
         alert(t('passwordUpdated') || 'Password updated');
       } else {
-        alert(message);
+        setError(message || t('failedToUpdateProfile'));
       }
     } catch (error) {
-      alert(t('failedToUpdateProfile'));
+      setError(t('failedToUpdateProfile'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -98,6 +110,11 @@ export default function AccountDetails() {
           
           {isEditing && (
             <form onSubmit={handleSubmit} className="mt-6">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 whitespace-pre-line">
+                  {error}
+                </div>
+              )}
               <div className="grid grid-cols-1 gap-y-6 mb-8">
                 {user?.has_set_password && (
                   <PasswordField
@@ -127,7 +144,7 @@ export default function AccountDetails() {
                 />
               </div>
 
-              <Button tl={t('updatePassword')} />
+              <Button tl={t('updatePassword')} isLoading={loading} />
             </form>
           )}
         </div>

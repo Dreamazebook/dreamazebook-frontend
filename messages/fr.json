@@ -111,7 +111,10 @@
     "updatePassword": "Mettre à jour le mot de passe",
     "notSet": "Non défini",
     "setPassword": "Définir un mot de passe (optionnel)",
-    "editPassword": "Modifier le mot de passe"
+    "editPassword": "Modifier le mot de passe",
+    "passwordMustBeAtLeast8Characters": "❌ Le mot de passe doit comporter au moins 8 caractères.",
+    "passwordMustIncludeNumberOrUppercase": "❌ Le mot de passe doit contenir au moins 1 chiffre ou 1 majuscule.",
+    "passwordsDontMatch": "❌ Les mots de passe ne correspondent pas."
   },
   "HomePage": {
     "empower": "Permettre à chacun de devenir la star de sa propre histoire",
