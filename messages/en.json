@@ -70,7 +70,7 @@
   },
   "orderHistoryCard": {
     "shipTo": "Ship to:",
-    "orderDate": "Order date:",
+    "orderDate": "Placed on:",
     "deliveryDate": "Est. Delivery:",
     "qty": "Qty:",
     "downloadInvoice": "Download Invoice",
@@ -86,7 +86,7 @@
   },
   "orderSummaryDelivery": {
     "shipTo": "Ship to",
-    "orderDate": "Order date",
+    "orderDate": "Placed on",
     "deliveryDate": "Est. Delivery",
     "qty": "Quantity",
     "books": "Books"

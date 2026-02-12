@@ -7,7 +7,7 @@ import { getOurBookDisplayName } from "@/utils/bookNames";
 const OrderHistoryTextStyle = ({ label, value }: any) => {
   return (
     <div className="flex gap-[4px]">
-      <span className="text-[#999999]">{label}</span>
+      <span className="text-[#999999]">{label}:</span>
       {value}
     </div>
   );
