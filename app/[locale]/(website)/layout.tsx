@@ -38,6 +38,7 @@ const philosopher = Philosopher({
 });
 
 import { sharedMetadata } from '@/components/metadata';
+import { OrganizationSchema, WebsiteSchema } from '@/app/components/StructuredDataSchemas';
 
 export const metadata: Metadata = sharedMetadata;
 
@@ -60,6 +61,10 @@ export default async function LocaleLayout({
   const messages = await getMessages();
   return (
     <html lang={locale}>
+      <head>
+        <OrganizationSchema />
+        <WebsiteSchema />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${roboto.variable} ${philosopher.variable} ${notoSansSC.variable} antialiased`}
       >

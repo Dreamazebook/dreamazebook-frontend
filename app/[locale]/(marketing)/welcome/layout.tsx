@@ -6,6 +6,7 @@ import Script from 'next/script'
 import Footer from '@/app/components/Footer';
 import MetaPixel from '@/app/components/MetaPixel';
 import HotJar from '@/app/components/HotJar';
+import { OrganizationSchema, WebsiteSchema } from '@/app/components/StructuredDataSchemas';
 
 const roboto = Roboto({
   weight: ['400', '700'],
@@ -19,7 +20,20 @@ const GTM_ID = 'GTM-57K5LXBQ'
 
 import { sharedMetadata } from '@/components/metadata';
 
-export const metadata: Metadata = sharedMetadata;
+export const metadata: Metadata = {
+  ...sharedMetadata,
+  title: 'Join Dreamaze | Personalized Children\'s Books',
+  description: 'Join the Dreamaze community and be the first to receive updates about our personalized children\'s books and exclusive offers.',
+  openGraph: {
+    ...sharedMetadata.openGraph,
+    title: 'Join Dreamaze | Personalized Children\'s Books',
+    description: 'Join the Dreamaze community for exclusive offers and updates.',
+    url: 'https://dreamazebook.com/welcome',
+  },
+  alternates: {
+    canonical: 'https://dreamazebook.com/welcome',
+  },
+};
 
 export default function MarketingLayout({
   children,
@@ -28,6 +42,10 @@ export default function MarketingLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <OrganizationSchema />
+        <WebsiteSchema />
+      </head>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="theme-color" content="#ffffff" />
