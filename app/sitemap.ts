@@ -21,19 +21,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // Generate main entries with all languages
   const mainSitemap: MetadataRoute.Sitemap = staticPages.flatMap((page) =>
-    locales.map((locale) => ({
-      url: `${baseUrl}/${locale}${page}`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority:
-        page === ''
-          ? 1.0
-          : page === '/books'
-            ? 0.9
-            : page === '/personalize'
-              ? 0.85
-              : 0.8,
-    }))
+    locales.map((locale) => {
+      const pagePath = page === '' ? '/' : page;
+      return {
+        url: `${baseUrl}/${locale}${pagePath}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly' as const,
+        priority:
+          page === ''
+            ? 1.0
+            : page === '/books'
+              ? 0.9
+              : page === '/personalize'
+                ? 0.85
+                : 0.8,
+      };
+    })
   );
 
   // Add book detail pages (these would typically be fetched from API)
