@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { DREAMAZEBOOK_LOGO, VIP_PERK_FIRST_PICK, VIP_PERK_SAVE_40, VIP_PERK_UNLOCK_GIFT } from "@/constants/cdn";
 
-const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/28EaEW472grs7DQ7wP28800';
+const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/test_28EaEW472grs7DQ7wP28800';
 
 const LAUNCH_PERKS = [
   {
