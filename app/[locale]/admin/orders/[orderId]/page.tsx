@@ -139,18 +139,17 @@ const AdminOrderDetailPage: FC = () => {
 
   const handleGetPdfUrls = async () => {
     try {
-      const { success, data } = await api.get<ApiResponse<{ urls: string[] }>>(API_ADMIN_ORDER_PDF_URLS(orderId));
-      if (success && data && data.urls) {
-        if (data.urls.length > 0) {
-          // Open first PDF in new tab
-          window.open(data.urls[0], '_blank');
-        } else {
-          alert('No PDFs available');
-        }
+      const { success, data } = await api.get<any>(API_ADMIN_ORDER_PDF_URLS(orderId));
+      if (success && data) {
+        return data;
+      } else {
+        alert('No PDFs available');
+        return null;
       }
     } catch (err) {
       console.error('Error fetching PDF URLs:', err);
       alert('Failed to fetch PDF URLs');
+      return null;
     }
   };
 
