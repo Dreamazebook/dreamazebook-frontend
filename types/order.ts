@@ -73,6 +73,7 @@ export interface OrderDetail {
     options: ShippingOption[];
   };
   logistics_data?: LogisticsData;
+  pdf_urls?: string[];
   permissions: {
     can_cancel: boolean;
     can_update_address: boolean;

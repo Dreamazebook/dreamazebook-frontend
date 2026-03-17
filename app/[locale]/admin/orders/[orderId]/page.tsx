@@ -4,7 +4,7 @@ import { FC, useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { OrderDetail } from '@/types/order';
 import api from '@/utils/api';
-import { API_ADMIN_ORDER_DETAIL, API_ADMIN_ORDER_DETAIL_MANUAL_CONFIRM, API_ADMIN_ORDERS } from '@/constants/api';
+import { API_ADMIN_ORDER_DETAIL, API_ADMIN_ORDER_DETAIL_MANUAL_CONFIRM, API_ADMIN_ORDERS, API_ADMIN_ORDER_GENERATE_PDF, API_ADMIN_ORDER_PDF_URLS, API_ADMIN_ORDER_SEND_PREVIEW_PDF } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
 import LoadingState from '../components/LoadingState';
 import ErrorState from '../components/ErrorState';
@@ -122,7 +122,49 @@ const AdminOrderDetailPage: FC = () => {
     } catch (err) {
       console.error('Error confirming order:', err);
     }
-  }
+  };
+
+  const handleGeneratePdf = async () => {
+    try {
+      const { success, data } = await api.post<ApiResponse<OrderDetail>>(API_ADMIN_ORDER_GENERATE_PDF(orderId));
+      if (success && data) {
+        setOrder(data);
+        alert('PDF generated successfully');
+      }
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      alert('Failed to generate PDF');
+    }
+  };
+
+  const handleGetPdfUrls = async () => {
+    try {
+      const { success, data } = await api.get<ApiResponse<{ urls: string[] }>>(API_ADMIN_ORDER_PDF_URLS(orderId));
+      if (success && data && data.urls) {
+        if (data.urls.length > 0) {
+          // Open first PDF in new tab
+          window.open(data.urls[0], '_blank');
+        } else {
+          alert('No PDFs available');
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching PDF URLs:', err);
+      alert('Failed to fetch PDF URLs');
+    }
+  };
+
+  const handleSendPreviewPdf = async () => {
+    try {
+      const { success, message } = await api.post<ApiResponse>(API_ADMIN_ORDER_SEND_PREVIEW_PDF(orderId));
+      if (success) {
+        alert(message || 'Preview PDF sent successfully');
+      }
+    } catch (err) {
+      console.error('Error sending preview PDF:', err);
+      alert('Failed to send preview PDF');
+    }
+  };
 
   const openModal = (item: any) => {
     setSelectedItem(item);
@@ -167,14 +209,17 @@ const AdminOrderDetailPage: FC = () => {
   if (!order) return <ErrorState error="Order not found" />;
 
   return (
-    <OrderDetailProvider 
-      order={order} 
+    <OrderDetailProvider
+      order={order}
       fetchOrderDetail={fetchOrderDetail}
       handleManualConfirm={handleManualConfirm}
       isModalOpen={isModalOpen}
       selectedItem={selectedItem}
       openModal={openModal}
       closeModal={closeModal}
+      handleGeneratePdf={handleGeneratePdf}
+      handleGetPdfUrls={handleGetPdfUrls}
+      handleSendPreviewPdf={handleSendPreviewPdf}
     >
       <div className="bg-gray-50 min-h-screen">
         <OrderDetailHeader 
@@ -199,9 +244,12 @@ const AdminOrderDetailPage: FC = () => {
               {renderTabContent()}
             </div>
 
-            <OrderActions 
+            <OrderActions
               order={order}
               onRefresh={() => fetchOrderDetail(orderId)}
+              handleGeneratePdf={handleGeneratePdf}
+              handleGetPdfUrls={handleGetPdfUrls}
+              handleSendPreviewPdf={handleSendPreviewPdf}
             />
           </div>
         </div>

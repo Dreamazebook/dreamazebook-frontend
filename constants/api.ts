@@ -61,6 +61,9 @@ export const API_ADMIN_ORDER_RETRY_FACE_SWAP = (orderId: string | number) => `${
 export const API_ADMIN_ORDER_ITEM_UPLOAD_FINAL_IMAGE = (orderId:string|number, itemId:string|number) => `${API_ADMIN_ORDERS}/${orderId}/items/${itemId}/upload-final-images`;
 export const API_ADMIN_ORDER_DETAIL_MANUAL_CONFIRM = (orderId: string | number, itemId: string|number) => `${API_ADMIN_ORDER_DETAIL(orderId)}/items/${itemId}/confirm`
 export const API_ADMIN_ORDER_DOWNLOAD_IMAGES = '/api/admin/orders/download-images'
+export const API_ADMIN_ORDER_GENERATE_PDF = (orderId: string | number) => `${API_ADMIN_ORDER_DETAIL(orderId)}/generate-pdf`
+export const API_ADMIN_ORDER_PDF_URLS = (orderId: string | number) => `${API_ADMIN_ORDER_DETAIL(orderId)}/pdf-urls`
+export const API_ADMIN_ORDER_SEND_PREVIEW_PDF = (orderId: string | number) => `${API_ADMIN_ORDER_DETAIL(orderId)}/send-preview-pdf`
 
 
 export const API_ADMIN_LOGSTICS = '/admin/logistics'

@@ -11,6 +11,9 @@ interface OrderDetailContextType {
   selectedItem: any;
   openModal: (item: any) => void;
   closeModal: () => void;
+  handleGeneratePdf: () => void;
+  handleGetPdfUrls: () => void;
+  handleSendPreviewPdf: () => void;
 }
 
 const OrderDetailContext = createContext<OrderDetailContextType | undefined>(undefined);
@@ -24,8 +27,10 @@ interface OrderDetailProviderProps {
   selectedItem: any;
   openModal: (item: any) => void;
   closeModal: () => void;
+  handleGeneratePdf: () => void;
+  handleGetPdfUrls: () => void;
+  handleSendPreviewPdf: () => void;
 }
-
 export const OrderDetailProvider = ({ 
   children, 
   order, 
@@ -34,7 +39,10 @@ export const OrderDetailProvider = ({
   isModalOpen,
   selectedItem,
   openModal,
-  closeModal
+  closeModal,
+  handleGeneratePdf,
+  handleGetPdfUrls,
+  handleSendPreviewPdf,
 }: OrderDetailProviderProps) => {
   return (
     <OrderDetailContext.Provider value={{ 
@@ -44,7 +52,10 @@ export const OrderDetailProvider = ({
       isModalOpen,
       selectedItem,
       openModal,
-      closeModal
+      closeModal,
+      handleGeneratePdf,
+      handleGetPdfUrls,
+      handleSendPreviewPdf,
     }}>
       {children}
     </OrderDetailContext.Provider>
