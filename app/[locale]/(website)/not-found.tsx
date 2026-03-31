@@ -19,7 +19,7 @@ export default function NotFound() {
           {t('description')}
         </p>
         <Button
-          handleClick={() => router.push('/')}
+          onClick={() => router.push('/')}
           className="px-6 py-3 text-lg"
           tl={t('backToHome')}
         />
