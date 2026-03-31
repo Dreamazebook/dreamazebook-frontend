@@ -10,30 +10,42 @@ import SuperStrongEmotionalConnection from "./components/SuperStrongEmotionalCon
 import ExpertlyCrafted from "../components/ExpertlyCrafted";
 import FAQWelcome from "../components/FAQWelcome";
 import {AnimatedSection} from "@/app/components/AnimatedSection";
-import Footer from "../components/Footer";
 import HeroBanner from "../components/HeroBanner";
 import { AboutUs } from "../components/AboutUs";
 import BelovedByEarlyTesters from "../components/BelovedByEarlyTesters";
 import { DREAMAZEBOOK_LOGO, VIP_DISCOUNT, VIP_DISCOUNT_APP } from "@/constants/cdn";
+import Footer from "../components/Footer";
 
+
+// import CountdownBanner from "../components/CountdownBanner";
+// import TestimonialSlider from "./components/TestimonialSlider";
+// import AGiftConnectHearts from "../components/AGiftConnectHearts";
+// import FAQKickstarter from "../components/FAQKickstarter";
 
 export default function LandingPage() {
 
   return (
     <main className="bg-white relative">
       <Image className="absolute top-0 left-4 md:left-10 z-10" src={DREAMAZEBOOK_LOGO} alt="Logo" width={168} height={56} />
+
+      {/* <CountdownBanner />
+
+      <AnimatedSection>
+        <AGiftConnectHearts />
+      </AnimatedSection>
+
+      <AnimatedSection>
+      <TestimonialSlider />
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <FAQKickstarter />
+      </AnimatedSection> */}
+      
       <HeroBanner />
 
       <AnimatedSection>
         <PromotionBanner />
-      </AnimatedSection>
-
-      {/* <AnimatedSection>
-        <ReserveSection redirectUrl={'/en/welcome/success-2'} style={{'--early-access-app':`url(${EARLY_ACCESS_APP})`,'--early-access':`url(${EARLY_ACCESS})`} as React.CSSProperties} cssClass={"text-white bg-(image:--early-access-app) md:bg-(image:--early-access)"} title={"For Families Who Believe in Magic Moments"} btnText={'Join Early & Be Part of the Magic'} desc={'Join a community that cherishes creativity and connection.<br/> Leave your email to be the first to bring this magic to life when we launch on Kickstarter.'} />
-      </AnimatedSection> */}
-
-      <AnimatedSection>
-        <TheOnlyBook />
       </AnimatedSection>
 
       <AnimatedSection>
@@ -43,6 +55,8 @@ export default function LandingPage() {
       <AnimatedSection>
         <EffortlessGifting />
       </AnimatedSection>
+
+      <TheOnlyBook />
 
       <AnimatedSection>
         <SuperStrongEmotionalConnection />
@@ -65,10 +79,6 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <FAQWelcome />
-      </AnimatedSection>
-
-      <AnimatedSection>
         <ReserveSection
           btnId="email_submit_footer"
           redirectUrl={'/en/welcome/success'}
@@ -78,6 +88,8 @@ export default function LandingPage() {
           desc="Be among the first to reserve and lock in our exclusive 40% VIP discount <br/> a once-only offer to reward early supporters who know a good thing when they see it."
           btnText="Reserve Early & Save Big" />
       </AnimatedSection>
+
+      <FAQWelcome />
 
       <Footer />
     </main>

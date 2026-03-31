@@ -1,6 +1,8 @@
+"use client";
 import Button from "@/app/components/Button";
 import {
   DREAMAZEBOOK_LOGO,
+  MORE_MAGIC,
   SUCCESS_LOGO,
   SUCCESS_LOGO_APP,
   SUCCESS_STAR,
@@ -62,15 +64,11 @@ export default function Thankyou() {
         style={
           {
             "--success-logo-app": `url(${SUCCESS_LOGO_APP})`,
-            '--center-height': "calc(100vh - 56px)"
           } as React.CSSProperties
         }
-        className="bg-[#F5E3E3] flex justify-center items-center h-(--center-height) relative bg-(image:--success-logo-app) bg-no-repeat md:bg-none"
+        className="bg-[#F5E3E3] flex justify-center relative bg-(image:--success-logo-app) bg-no-repeat md:bg-none"
       >
-        <div className="bg-white p-10 md:px-[88px] md:pt-12 md:pb-16 text-[#222222] max-w-sm md:max-w-4xl mx-auto relative z-10 md:text-center">
-          <h2 className="font-bold text-[20px] md:text-[40px] text-center">
-            Congrats!
-          </h2>
+        <div className="bg-white p-5 md:p-10 md:px-[88px] md:pt-12 md:pb-16 text-[#222222] max-w-sm md:max-w-4xl mx-auto relative z-10">
           <div className="relative">
             <h2
               style={
@@ -78,62 +76,90 @@ export default function Thankyou() {
                   "--success-underline": `url(${SUCCESS_UNDERLINE})`,
                 } as React.CSSProperties
               }
-              className="font-bold text-center text-nowrap text-[20px] md:text-[40px] bg-no-repeat [background-size:130px] bg-[150px_25px] md:bg-[330px_40px] md:[background-size:250px] bg-(image:--success-underline)"
+              className="font-bold text-center text-nowrap text-[20px] md:text-[40px] bg-no-repeat [background-size:130px] bg-[150px_20px] md:bg-[330px_40px] md:[background-size:250px] bg-(image:--success-underline)"
             >
-              You’re Now Part of the Story
+              Congrats! You’re almost there
             </h2>
             <Image
               src={SUCCESS_STAR}
               alt="Star"
-              width={54}
-              height={51}
-              className="absolute -top-5 -right-5 md:right-25"
+              width={34}
+              height={31}
+              className="absolute -top-5 -right-2 md:right-25"
             />
           </div>
-          <div className="text-[18px] md:text-xl font-light text-left mb-6">
-            <p className=" font-semibold mt-6 mb-3">
-              📩 Keep an Eye on Your Inbox.
-            </p>
+          <div className="text-[18px] md:text-xl font-light text-left my-6">
             <p className=" font-light mb-5">
-              Your gift, previews & launch perks are on the way — look for emails from <b className="font-bold">DreamazeBook</b> (they may land in Promotions).
+              Thanks for signing up for DreamazeBook’s Early Bird list 💛, Your{" "}
+              <b className="font-bold">40% OFF</b> Early Bird deal goes live on{" "}
+              <b className="font-bold">Sept 23, 8AM EST</b>.
             </p>
 
-            <p className="mb-1 font-semibold">🎁  Don’t Miss the Good Stuff — Join the VIP Group!</p>
-            <p className="mb-1 ">Be part of where the real fun happens:</p>
-            <p className="mb-1 "> ✅  Get the most beloved coloring book — <b className="font-bold">FREE!</b></p>
-            <p className="mb-1 ">✅Get first looks at personalized pages</p>
-            <p className="mb-1 ">✅ Unlock <b className="font-bold">VIP-only</b> launch rewards</p>
-          </div>  
+            <p className="mb-1 font-light">
+              Next steps to make sure you don’t miss it:
+            </p>
 
-          <div className="flex justify-center">
-            <Button
-              tl="👉 Join Now — Limited-Time Perks Inside!"
-              className="w-[426px]"
-              target="_blank"
-              url={FACEBOOK_GROUP_URL}
-            />
+            <div className="bg-[#f8f8f8] p-3 mt-6 md:mt-12">
+              <p className="text-[18px] md:text-xl font-bold mb-3 flex items-center gap-2">
+                <span className="bg-[#4099FF] px-2 rounded text-white">1</span>
+                <span>Get Your {KICKSTARTER} Ready</span>
+              </p>
+              <ul className="text-xl font-light mb-3 list-disc ml-6">
+                <li>Bookmark our Kickstarter page now 📌</li>
+                <li>
+                  Don’t have a Kickstarter account yet? Create one today (it
+                  only takes a minute).
+                </li>
+              </ul>
+
+              <div className="flex justify-center">
+                <Button
+                  tl="👉 Set Up My Access"
+                  className="w-full"
+                  target="_blank"
+                  url={KICKSTARTER_URL}
+                />
+              </div>
+
+              <p className="text-[18px] md:text-xl font-bold mt-6 md:mt-12 mb-3 flex items-center gap-2">
+                <span className="bg-[#4099FF] px-2 rounded text-white">2</span>
+                <span>Add to Calendar</span>
+              </p>
+              <ul className="text-xl font-light mb-3 list-disc ml-6">
+                <li>Get a reminder right on your phone.</li>
+              </ul>
+              <div className="flex justify-center">
+                <Button
+                  tl="Add to Calendar"
+                  className="w-full"
+                  url="https://www.addevent.com/event/hV26670576"
+                  target="_blank"
+                />
+              </div>
+            </div>
           </div>
 
-          <p className="text-[18px] md:text-xl font-light mt-6 md:mt-12 mb-3">
-            Follow us on {KICKSTARTER} to get launch alerts
-          </p>
-          <p className="text-xl font-light mb-4">
-            don’t miss our big first-day sale!
+          <p className="text-[18px] md:text-xl font-light mt-6 md:mt-12 mb-3 text-center">
+            ⚡ Only 300 Early Bird spots on Day 1 — once they’re gone, they’re
+            gone!
           </p>
 
-          <div className="flex justify-center">
-            <Button
-              tl="Notify Me for the Big Deal"
-              className="w-[426px]"
-              target="_blank"
-              url={KICKSTARTER_URL}
+          <div className="flex flex-col justify-center gap-4 text-center">
+            <Image
+              src={"/landing-page/bonus.png"}
+              alt="Bonus"
+              width={44}
+              height={44}
+              className="mx-auto"
             />
-          </div>
 
-          {/* <a href='https://www.facebook.com/groups/632313426083796/' target='_blank' className='flex justify-center items-center gap-3'>
-            <Image alt='Facebook' src={SUCCESS_FACEBOOK} width={18} height={18} />
-            <span className='font-bold text-xl text-[#012CCE]'>Dreamaze Book Facebook Club</span>
-          </a> */}
+            <p className="font-bold">BONUS</p>
+            <p>Join our VIP group for behind-the-scenes updates + a free coloring book for your child.</p>
+            <a href={FACEBOOK_GROUP_URL} target="_blank" className="text-[#012CCE] font-semibold">👉 Join VIP - Free Coloring Book Awaits</a>
+
+            <Image src={MORE_MAGIC} alt="More Magic" width={133} height={100} className="mx-auto" />
+
+          </div>
         </div>
         <Image
           src={SUCCESS_LOGO}

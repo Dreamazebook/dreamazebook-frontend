@@ -1,24 +1,23 @@
 import DreamzeImage from "@/app/components/DreamzeImage";
-import Image from 'next/image';
 import { Container } from "./Container";
 import { ContainerTitle } from "./ContainerTitle";
 import { ContainerDesc } from "./ContainerDesc";
-import { STAR, THE_ONLY_BOOK, THE_ONLY_BOOK_FEATURE, THE_ONLY_BOOK_FEATURE_APP, THE_ONLY_BOOK_GIF } from "@/constants/cdn";
+import { THE_ONLY_BOOK, THE_ONLY_BOOK_FEATURE, THE_ONLY_BOOK_FEATURE_APP, THE_ONLY_BOOK_GIF } from "@/constants/cdn";
 
 export default function TheOnlyBook() {
   return (
     <Container cssClass="">
       <div className="max-w-5xl mx-auto px-4 text-center">
         <ContainerTitle cssClass="mb-6">
-          The Only Book<br/>That <span className="text-[#022CCE]">Features</span> Your Child
+          A Gift That Connects Hearts
         </ContainerTitle>
         <ContainerDesc cssClass="mb-3 md:mb-6">
-          Want to see the joy on your child&apos;s face when they realize they&apos;re the hero of their own story?
+          You can even add a personal dedication inside the book — making it a keepsake filled with love.
         </ContainerDesc>
-        <p className="font-bold text-[#222222] text-[16px] md:text-xl mb-8 md:mb-16 flex items-center gap-4 justify-center">
+        {/* <p className="font-bold text-[#222222] text-[16px] md:text-xl mb-8 md:mb-16 flex items-center gap-4 justify-center">
           <span>Dreamazebook is the best choice!</span>
           <Image src={STAR} width={18} height={18} className="md:w-[36px] md:h-[36px]" alt="Star" />
-        </p>
+        </p> */}
 
         <video className="w-full hidden md:block" autoPlay loop muted src={THE_ONLY_BOOK} />
         <div className="md:hidden w-full relative aspect-[2/1]">

@@ -121,3 +121,9 @@ export const HOME_STORIES = (file:string) => `${WEBSITE_CDN_URL}home/Stories_fro
 export const HOME_TOP_PICKS = (file:string) => `${WEBSITE_CDN_URL}home/top_picks_this_month/${file}`;
 
 export const ABOUT_IMAGE = (file:string) => `${WEBSITE_CDN_URL}about-us/${file}`;
+export const COUNTDOWN_BANNER = `${CLOUDFLARE_CDN_URL}countdown-banner.png`;
+export const TESTIMONIAL_BANNER = `${CLOUDFLARE_CDN_URL}testimonial.png`;
+
+
+export const A_GIFT_CONNECT_HEARTS = `${CLOUDFLARE_CDN_URL}a_gift_connect_hearts.webp`;
+export const GERGOE_VIDEO = `${CLOUDFLARE_CDN_URL}geroge.mp4`;
