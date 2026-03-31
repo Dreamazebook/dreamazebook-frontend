@@ -15,6 +15,7 @@ import { AboutUs } from "../components/AboutUs";
 import BelovedByEarlyTesters from "../components/BelovedByEarlyTesters";
 import { DREAMAZEBOOK_LOGO, VIP_DISCOUNT, VIP_DISCOUNT_APP } from "@/constants/cdn";
 import Footer from "../components/Footer";
+import { WELCOME_SUCCESS_URL } from '@/constants/links';
 
 
 // import CountdownBanner from "../components/CountdownBanner";
@@ -49,7 +50,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection btnId="email_submit_mid" redirectUrl={'/en/welcome/success'} cssClass={"bg-[#F5E3E3]"} title={"Let Your Child Shine as the Hero"} desc={'Submit your email to receive updates and exclusive early bird perks'} btnText="Unlock Early Access & Perks!" />
+        <ReserveSection btnId="email_submit_mid" redirectUrl={WELCOME_SUCCESS_URL} cssClass={"bg-[#F5E3E3]"} title={"Let Your Child Shine as the Hero"} desc={'Submit your email to receive updates and exclusive early bird perks'} btnText="Unlock Early Access & Perks!" />
       </AnimatedSection>
 
       <AnimatedSection>
@@ -67,7 +68,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection btnId="email_submit_3rd" redirectUrl={'/en/welcome/success'} cssClass={""} desc="Leave your email now to unlock behind-the-scenes peeks into our creation process — from sketch to storybook." btnText="Sign Up& Shape the Story With Us" />
+        <ReserveSection btnId="email_submit_3rd" redirectUrl={WELCOME_SUCCESS_URL} cssClass={""} desc="Leave your email now to unlock behind-the-scenes peeks into our creation process — from sketch to storybook." btnText="Sign Up& Shape the Story With Us" />
       </AnimatedSection>
 
       <AboutUs />
@@ -81,7 +82,7 @@ export default function LandingPage() {
       <AnimatedSection>
         <ReserveSection
           btnId="email_submit_footer"
-          redirectUrl={'/en/welcome/success'}
+          redirectUrl={WELCOME_SUCCESS_URL}
           style={{'--vip-discount-app':`url(${VIP_DISCOUNT_APP})`,'--vip-discount':`url(${VIP_DISCOUNT})`} as React.CSSProperties}
           //cssClass={"text-white bg-(image:--vip-discount-app) md:bg-(image:--vip-discount)"}
           title={"Your Smartest Save Yet!"}

@@ -17,6 +17,7 @@ import InfiniteScrollLogo from './components/home/InfiniteScrollLogo';
 import StoriesFromRealFamilies from './components/home/StoriesFromRealFamilies';
 import { DEFAULT_GIFT_PACKAGES_CONFIG } from './components/books/giftPackagesData';
 import GiftPackagesSection from './components/books/GiftPackagesSection';
+import { WELCOME_SUCCESS_URL } from '@/constants/links';
 
 // 固定 Our Books 展示顺序：good night, santa, bravery, birthday, melody
 const BOOK_DISPLAY_ORDER_RANK: Record<string, number> = {
@@ -151,7 +152,7 @@ export default function HomePage() {
 
       {/* Newsletter */}
       <AnimatedSection className="bg-black text-white" delay={0.3}>
-        <ReserveSection cssClass='bg-white text-[#222222]' btnId="email_submit_mid" redirectUrl={'/en/welcome/success'} title={"Every child deserves<br class='md:hidden' /> to be the hero."} desc={'Join the Dreamaze circle to get free printables, story samples, and early access gifts.'} btnText="Join Now" />
+        <ReserveSection cssClass='bg-white text-[#222222]' btnId="email_submit_mid" redirectUrl={WELCOME_SUCCESS_URL} title={"Every child deserves<br class='md:hidden' /> to be the hero."} desc={'Join the Dreamaze circle to get free printables, story samples, and early access gifts.'} btnText="Join Now" />
       </AnimatedSection>
 
     </main>

@@ -1,5 +1,6 @@
 import EmailForm from "./EmailForm";
 import { APP_HERO_COVER, DESKTOP_HERO_COVER } from "@/constants/cdn";
+import { WELCOME_SUCCESS_URL } from "@/constants/links";
 import { useState } from "react";
 
 export default function HeroBanner() {
@@ -21,7 +22,7 @@ export default function HeroBanner() {
           {!hideForm && <h3 className="mb-4 font-bold text-[24px]">Reserve a <span className="text-[#012DCE]">Timeless Gift</span> for Your Child !</h3>}
 
           <div className="max-w-lg">
-            <EmailForm btnId="email_submit_header" btnText="Sign up and Save 40%" redirectUrl={'/en/welcome/success'} handleCallBack={()=>setHideForm(true)} />
+            <EmailForm btnId="email_submit_header" btnText="Sign up and Save 40%" redirectUrl={WELCOME_SUCCESS_URL} handleCallBack={()=>setHideForm(true)} />
           </div>
 
           {/* {!hideForm &&

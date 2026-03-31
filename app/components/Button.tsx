@@ -12,8 +12,8 @@ interface ButtonProps {
   onClick?: () => void
 }
 
-export default function Button({tl,id='',isLoading,url,target,icon,leftIcon,onClick,className='w-full'}:ButtonProps) {
-  const buttonStyle = `${className} cursor-pointer font-bold bg-[#FFC023] text-[#222222] px-4 py-3 rounded capitalize disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center`;
+export default function Button({tl,id='',isLoading,url,target,icon,leftIcon,onClick,className=''}:ButtonProps) {
+  const buttonStyle = `${className} w-full cursor-pointer font-bold bg-[#FFC023] text-[#222222] px-4 py-3 rounded capitalize disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center`;
 
   if (url) {
     return (
