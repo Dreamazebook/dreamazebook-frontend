@@ -128,7 +128,7 @@ export default function Reserve() {
           ))}
           </div>
 
-          <Button tl={'Reserve Your Gift Bundle for $1'} url={NEXT_PUBLIC_STRIPE_PAYMENT_LINK} handleClick={handlePayClick} />
+          <Button tl={'Reserve Your Gift Bundle for $1'} url={NEXT_PUBLIC_STRIPE_PAYMENT_LINK} onClick={handlePayClick} />
           <a href={FACEBOOK_GROUP_URL} className="block cursor-pointer w-full p-3 text-center mt-3">Want to learn more? Join the Club!</a>
         </div>
 

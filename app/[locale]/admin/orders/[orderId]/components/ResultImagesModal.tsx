@@ -521,7 +521,7 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                       {/* Index */}
                       <div className="flex-shrink-0 text-xs text-gray-500">
                         #{index + 1}
-                        <Button tl="Refresh" handleClick={() => retryFaceswap(image.item_id)} />
+                        <Button tl="Refresh" onClick={() => retryFaceswap(image.item_id)} />
                       </div>
                     </div>
                   ) : (
