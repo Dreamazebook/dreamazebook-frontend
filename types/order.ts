@@ -202,6 +202,8 @@ export interface ResultImage {
   face_swap_mask_url: string;
   item_id: number;
   page_code: string;
+  can_refresh?: boolean;
+  is_refreshing?: boolean;
 }
 
 export interface ShippingErrors {

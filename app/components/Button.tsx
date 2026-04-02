@@ -9,10 +9,11 @@ interface ButtonProps {
   icon?: string
   target?: string
   leftIcon?: string
+  disabled?: boolean
   onClick?: () => void
 }
 
-export default function Button({tl,id='',isLoading,url,target,icon,leftIcon,onClick,className=''}:ButtonProps) {
+export default function Button({tl,id='',isLoading,url,disabled=false,target,icon,leftIcon,onClick,className=''}:ButtonProps) {
   const buttonStyle = `${className} w-full cursor-pointer font-bold bg-[#FFC023] text-[#222222] px-4 py-3 rounded capitalize disabled:opacity-50 hover:opacity-90 transition-opacity flex justify-center items-center`;
 
   if (url) {
@@ -27,12 +28,12 @@ export default function Button({tl,id='',isLoading,url,target,icon,leftIcon,onCl
   return (
     <button 
       id={id}
-      disabled={isLoading}
+      disabled={isLoading || disabled}
       onClick={onClick}
       className={buttonStyle}
     >
       {isLoading ? (
-        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-5 h-5 border-2 disabled:opacity-50 disabled:cursor-not-allowed border-white border-t-transparent rounded-full animate-spin"></div>
       ) : (
         <>
           {leftIcon && <Image src={leftIcon} className="mr-2" alt="icon" width={28} height={28} />}
