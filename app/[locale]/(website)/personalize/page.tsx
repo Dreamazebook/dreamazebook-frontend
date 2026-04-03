@@ -10,6 +10,7 @@ import SingleCharacterForm1, { SingleCharacterForm1Handle } from '../components/
 import SingleCharacterForm2, { SingleCharacterForm2Handle } from '../components/personalize/SingleCharacterForm2';
 import SingleCharacterForm3, { SingleCharacterForm3Handle } from '../components/personalize/SingleCharacterForm3';
 import { buildProductSchema, extractFieldOptions, resolveSkuPrice } from '@/utils/productAdapter';
+import { mapAgeStageUiToBackend } from '@/utils/mapAgeStageToBackend';
 import usePreviewStore from '@/stores/previewStore';
 
 type AttributeOption = { value: string; label?: string; is_default?: boolean; price_diff?: number | string };
@@ -176,7 +177,6 @@ export default function PersonalizeApiDrivenPage() {
     // 验证第一步的必填字段
     if (formType === 'SINGLE1' && form1Ref.current) {
       // 只验证第一步的字段（不包括 photo、singleChoice 和 multipleChoice）
-      const step1Fields = ['fullName', 'gender', 'skinColor', 'hairstyle', 'hairColor'];
       let hasError = false;
       let firstErrorField: string | null = null;
 
@@ -191,6 +191,12 @@ export default function PersonalizeApiDrivenPage() {
       } else if (!formData.skinColor) {
         hasError = true;
         firstErrorField = 'skinColor';
+      } else if (!formData.ageStage) {
+        hasError = true;
+        firstErrorField = 'ageStage';
+      } else if (!String(formData.fromWhom || '').trim()) {
+        hasError = true;
+        firstErrorField = 'fromWhom';
       } else if (!formData.hairstyle) {
         hasError = true;
         firstErrorField = 'hairstyle';
@@ -255,6 +261,8 @@ export default function PersonalizeApiDrivenPage() {
     let hairColorRaw = '';
     let relationshipRaw: string | undefined;
     let photosData: string[] = [];
+    let ageStageRaw: string | undefined;
+    let fromWhomRaw = '';
 
     if (formType === 'SINGLE1' && form1Ref.current) {
       const validationResult = form1Ref.current.validateForm();
@@ -271,6 +279,8 @@ export default function PersonalizeApiDrivenPage() {
       hairColorRaw = f.hairColor;
       relationshipRaw = (f as any).relationship;
       photosData = (f as any).photos || [];
+      ageStageRaw = f.ageStage;
+      fromWhomRaw = String(f.fromWhom || '').trim();
     } else if (formType === 'SINGLE2' && (useForm3 ? !!form3Ref.current : !!form2Ref.current)) {
       const activeRef = useForm3 ? form3Ref : form2Ref;
       const validationResult = activeRef.current?.validateForm();
@@ -286,6 +296,8 @@ export default function PersonalizeApiDrivenPage() {
       hairColorRaw = f.hairColor;
       relationshipRaw = (f as any).relationship;
       photosData = (f as any).photos || [];
+      ageStageRaw = (f as any).ageStage;
+      fromWhomRaw = String((f as any).fromWhom || '').trim();
     } else {
       return;
     }
@@ -334,6 +346,8 @@ export default function PersonalizeApiDrivenPage() {
         return;
       }
 
+      const ageStageBackend = mapAgeStageUiToBackend(ageStageRaw);
+
       const userData = {
         characters: [
           {
@@ -344,6 +358,8 @@ export default function PersonalizeApiDrivenPage() {
             gender: genderRaw || '',
             gender_code: genderCode,
             relationship: relationshipRaw || undefined,
+            // 赠送人/创作者姓名（书中 Created by）
+            ...(fromWhomRaw ? { giver_name: fromWhomRaw } : {}),
             skincolor: skinColorCode,
             hairstyle: hairstyleCode,
             haircolor: hairColorCode,
@@ -353,6 +369,7 @@ export default function PersonalizeApiDrivenPage() {
               skin_tone: mapSkinToBackend(skinColorRaw),
               hair_style: mapHairstyleToBackend(hairstyleCode),
               hair_color: mapHairColorToBackend(hairColorRaw || hairColorCode),
+              ...(ageStageBackend ? { age_stage: ageStageBackend } : {}),
             },
           },
         ],
@@ -407,6 +424,9 @@ export default function PersonalizeApiDrivenPage() {
             language: ch?.language || selectedLanguage || 'en',
             gender: ch?.gender || '',
             relationship: ch?.relationship || 'Parent/Guardian',
+            ...(String(ch?.giver_name || ch?.created_by || '').trim()
+              ? { giver_name: String(ch?.giver_name || ch?.created_by || '').trim() }
+              : {}),
             attributes: ch?.attributes || {},
             texts: {},
             face_images: faceImages,

@@ -1,7 +1,7 @@
 /** @jsxImportSource react */
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { FaCheck } from 'react-icons/fa';
 import HairstyleSelector from './HairstyleSelector';
@@ -10,6 +10,8 @@ import AvatarCanvas from './AvatarCanvas';
 //import UploadArea from './UploadArea';
 //import useImageUpload from '../../hooks/useImageUpload';
 
+export type AgeStage = '' | 'infant' | 'toddler' | 'preschooler' | 'early_school_age';
+
 export interface BasicInfoData {
   fullName: string;
   gender: '' | 'boy' | 'girl';
@@ -17,6 +19,10 @@ export interface BasicInfoData {
   hairstyle: string;
   hairColor: string;
   photo: { file?: File; path: string } | null;
+  /** 年龄段（SingleCharacterForm1 / Form3 等） */
+  ageStage?: AgeStage;
+  /** 书中 “Created by” 显示名 */
+  fromWhom?: string;
 }
 
 interface BasicInfoFormProps {
@@ -34,7 +40,67 @@ interface BasicInfoFormProps {
   apiHairColorValues?: string[]; // e.g. ["blone","dark"]
   // Optional: override hairstyle icon assets spu code
   assetSpuCode?: string;
+  /** 为 true 时不展示发型/发色选择器，由性别与肤色自动推导（用于 SingleCharacterForm1） */
+  hideHairstyleAndHairColor?: boolean;
+  /** 为 true 时在肤色下方展示 Age stage 与 From whom（SingleCharacterForm1） */
+  showAgeStageAndFromWhom?: boolean;
 }
+
+const FORM1_AGE_OPTIONS: {
+  value: Exclude<AgeStage, '' | 'toddler'>;
+  title: string;
+  range: string;
+  rangeColor: string;
+  image: string;
+}[] = [
+  { value: 'infant', title: 'Infant', range: '0-3 yrs', rangeColor: '#E8890C', image: '/personalize/age-stage/infant.svg' },
+  { value: 'preschooler', title: 'Preschooler', range: '3-6 yrs', rangeColor: '#D4A017', image: '/personalize/age-stage/preschooler.svg' },
+  { value: 'early_school_age', title: 'Early school age', range: '6+', rangeColor: '#3D7AAD', image: '/personalize/age-stage/early-school.svg' },
+];
+
+const mapBackendHairToInternal = (val: string): 'light' | 'brown' | 'dark' => {
+  const s = (val || '').toLowerCase();
+  if (s === 'blone' || s === 'blonde' || s === 'light' || s === 'fair' || s === 'light_brown') return 'light';
+  if (s === 'brown' || s === 'dark_brown' || s === 'original') return 'brown';
+  if (s === 'dark' || s === 'black') return 'dark';
+  return 'light';
+};
+
+/** 肤色（界面 hex）→ Avatar 使用的发色档位 */
+const deriveHairColorFromSkin = (skinHex: string, apiHairColorValues?: string[]): 'light' | 'brown' | 'dark' => {
+  const h = (skinHex || '').toLowerCase();
+  let internal: 'light' | 'brown' | 'dark' = 'light';
+  if (h === '#ffe2cf') internal = 'light';
+  else if (h === '#dcb593') internal = 'brown';
+  else if (h === '#665444') internal = 'dark';
+
+  if (!apiHairColorValues || apiHairColorValues.length === 0) return internal;
+  const allowed = new Set(apiHairColorValues.map(mapBackendHairToInternal));
+  if (allowed.has(internal)) return internal;
+  for (const c of ['light', 'brown', 'dark'] as const) {
+    if (allowed.has(c)) return c;
+  }
+  return internal;
+};
+
+const getDefaultHairstyleForGender = (
+  gender: 'boy' | 'girl',
+  bookId: string,
+  apiHairStyleValues?: string[]
+): string => {
+  const availableHairIds =
+    apiHairStyleValues && apiHairStyleValues.length > 0
+      ? Array.from(new Set(apiHairStyleValues.map(v => `hair_${String(v)}`)))
+      : ['hair_1', 'hair_2', 'hair_3', 'hair_4'];
+
+  const isGoodnight3 = String(bookId || '').trim().toUpperCase() === 'PICBOOK_GOODNIGHT3';
+  const preferred = isGoodnight3
+    ? (gender === 'boy' ? 'hair_4' : 'hair_1')
+    : (gender === 'boy' ? 'hair_1' : 'hair_4');
+  if (availableHairIds.includes(preferred)) return preferred;
+  if (availableHairIds.includes('hair_1')) return 'hair_1';
+  return availableHairIds[0] || preferred;
+};
 
 const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   data,
@@ -47,6 +113,8 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   apiHairStyleValues,
   apiHairColorValues,
   assetSpuCode,
+  hideHairstyleAndHairColor = false,
+  showAgeStageAndFromWhom = false,
 }) => {
   const [showSkinColorTooltip, setShowSkinColorTooltip] = useState(false);
   // 图片上传相关的变量和函数已移至父组件 SingleCharacterForm1 和 SingleCharacterForm2
@@ -128,25 +196,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
     onChange('gender', value);
     if (onErrorChange) onErrorChange('gender', '');
 
-    // 性别切换时自动预选发型：
-    // - 仅 PICBOOK_GOODNIGHT3：boy → hair_4，girl → hair_1
-    // - 其他书：boy → hair_1，girl → hair_4
-    // 若后端限制了可选发型（apiHairStyleValues），则优先选择目标值；否则回退到 hair_1 或可选列表首项
-    const availableHairIds =
-      apiHairStyleValues && apiHairStyleValues.length > 0
-        ? Array.from(new Set(apiHairStyleValues.map(v => `hair_${String(v)}`)))
-        : ['hair_1', 'hair_2', 'hair_3', 'hair_4'];
-
-    const isGoodnight3 = String(bookId || '').trim().toUpperCase() === 'PICBOOK_GOODNIGHT3';
-    const preferred =
-      isGoodnight3
-        ? (value === 'boy' ? 'hair_4' : 'hair_1')
-        : (value === 'boy' ? 'hair_1' : 'hair_4');
-    const nextHairstyle =
-      availableHairIds.includes(preferred)
-        ? preferred
-        : (availableHairIds.includes('hair_1') ? 'hair_1' : (availableHairIds[0] || preferred));
-
+    const nextHairstyle = getDefaultHairstyleForGender(value, bookId, apiHairStyleValues);
     onChange('hairstyle', nextHairstyle);
     if (onErrorChange) onErrorChange('hairstyle', '');
   };
@@ -161,11 +211,33 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   const handleSkinColorSelect = (colorValue: string) => {
     onChange('skinColor', colorValue);
     if (onErrorChange) onErrorChange('skinColor', '');
+    if (hideHairstyleAndHairColor) {
+      const nextHair = deriveHairColorFromSkin(colorValue, apiHairColorValues);
+      onChange('hairColor', nextHair);
+      if (onErrorChange) onErrorChange('hairColor', '');
+    }
   };
 
   const handleSkinColorBlur = () => {
     if (!data.skinColor) {
       if (onErrorChange) onErrorChange('skinColor', 'Please select skin color');
+    }
+  };
+
+  const handleAgeStageSelect = (value: AgeStage) => {
+    onChange('ageStage', value);
+    if (onErrorChange) onErrorChange('ageStage', '');
+  };
+
+  const handleFromWhomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const nextWhom = e.target.value.slice(0, 60);
+    onChange('fromWhom', nextWhom);
+    if (onErrorChange) onErrorChange('fromWhom', '');
+  };
+
+  const handleFromWhomBlur = () => {
+    if (!String(data.fromWhom || '').trim()) {
+      if (onErrorChange) onErrorChange('fromWhom', 'Please enter a name');
     }
   };
 
@@ -193,6 +265,28 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
     }
   };
 
+  // 隐藏发型/发色，与肤色、性别保持派生值一致
+  useEffect(() => {
+    if (!hideHairstyleAndHairColor) return;
+    const nextHair = deriveHairColorFromSkin(data.skinColor, apiHairColorValues);
+    if (nextHair !== data.hairColor) {
+      onChange('hairColor', nextHair);
+      if (onErrorChange) onErrorChange('hairColor', '');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅在肤色/发色不一致时同步，避免把不稳定的 onChange 放进依赖
+  }, [hideHairstyleAndHairColor, data.skinColor, apiHairColorValues, data.hairColor]);
+
+  useEffect(() => {
+    if (!hideHairstyleAndHairColor) return;
+    if (data.gender !== 'boy' && data.gender !== 'girl') return;
+    const nextStyle = getDefaultHairstyleForGender(data.gender, bookId, apiHairStyleValues);
+    if (nextStyle !== data.hairstyle) {
+      onChange('hairstyle', nextStyle);
+      if (onErrorChange) onErrorChange('hairstyle', '');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hideHairstyleAndHairColor, data.gender, data.hairstyle, bookId, apiHairStyleValues]);
+
   // photo 的 onChange（文件上传通常不使用 onBlur，此处仅在 onChange 后清除错误）
   // const handleUploadPhoto = (file: File) => {
   //   onChange('photo', { file, path: '' });
@@ -200,7 +294,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   // };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 md:gap-6">
       {/* 预览图 */}
       <div className="flex justify-center -mt-6 -mb-3 md:-mt-0 md:-mb-0 w-full overflow-hidden">
         <AvatarCanvas
@@ -330,8 +424,65 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         )}
       </div>
 
-      {/* Hairstyle - 某些书籍隐藏（如 bookId === '5'） */}
-      {bookId !== '5' && (
+      {/* Age stage + From whom（仅 SingleCharacterForm1 开启） */}
+      {showAgeStageAndFromWhom && (
+        <>
+          <div id="field-ageStage">
+            <label className="block font-medium text-[#222222]">Age stage</label>
+            <p className="text-[#999999] text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] mt-1 mb-3">
+              Choose the age range this story is made for.
+            </p>
+            <div className="flex gap-2 sm:gap-3 w-full" tabIndex={0}>
+              {FORM1_AGE_OPTIONS.map((opt) => {
+                const selected = data.ageStage === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => handleAgeStageSelect(opt.value)}
+                    className={`flex-1 min-w-0 flex flex-col items-center rounded-lg border-2 bg-[#F8F8F8] px-2 pt-3 pb-3 transition-colors ${
+                      selected ? 'border-[#012CCE]' : 'border-transparent'
+                    }`}
+                  >
+                    <span className="text-[12px] sm:text-[14px] font-medium leading-none mb-2" style={{ color: opt.rangeColor }}>
+                      {opt.range}
+                    </span>
+                    <div className="relative w-full max-w-[108px] aspect-[6/5] mx-auto mb-2">
+                      <Image src={opt.image} alt="" fill className="object-contain" sizes="108px" />
+                    </div>
+                    <span className="text-[13px] sm:text-[14px] font-medium text-[#222222] text-center leading-tight">{opt.title}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {touched.ageStage && errors.ageStage && (
+              <p className="text-red-500 text-sm mt-2">{errors.ageStage}</p>
+            )}
+          </div>
+
+          <div id="field-fromWhom">
+            <label className="block font-medium text-[#222222]">From whom</label>
+            <p className="text-[#999999] text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] mt-1 mb-2">
+              This will appear as Created by inside the book.
+            </p>
+            <input
+              type="text"
+              placeholder="please enter..."
+              className="w-full p-2 border border-[#E5E5E5] rounded text-[#222222] placeholder:text-[#BBBBBB]"
+              value={data.fromWhom ?? ''}
+              onChange={handleFromWhomChange}
+              onBlur={handleFromWhomBlur}
+              maxLength={60}
+            />
+            {touched.fromWhom && errors.fromWhom && (
+              <p className="text-red-500 text-sm mt-1">{errors.fromWhom}</p>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Hairstyle - 某些书籍隐藏（如 bookId === '5'）；SingleCharacterForm1 可通过 hideHairstyleAndHairColor 隐藏 */}
+      {!hideHairstyleAndHairColor && bookId !== '5' && (
         <div id="field-hairstyle">
           <HairstyleSelector
             bookId={bookId}
@@ -348,7 +499,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
       )}
 
       {/* Hair Color - 某些书籍隐藏（如 bookId === '5'） */}
-      {bookId !== '5' && (
+      {!hideHairstyleAndHairColor && bookId !== '5' && (
         <div id="field-hairColor">
           <HairColorSelector
             selectedHairColor={data.hairColor}

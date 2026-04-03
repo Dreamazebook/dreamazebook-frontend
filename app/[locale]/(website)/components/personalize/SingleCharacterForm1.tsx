@@ -1,7 +1,7 @@
 /** @jsxImportSource react */
 'use client';
 
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle, useCallback } from 'react';
 import { FaQuestionCircle } from 'react-icons/fa';
 import { BsCheck } from 'react-icons/bs';
 import { Link } from '@/i18n/routing';
@@ -29,6 +29,8 @@ interface FormErrors {
   fullName?: string;
   gender?: string;
   skinColor?: string;
+  ageStage?: string;
+  fromWhom?: string;
   hairstyle?: string;
   hairColor?: string;
   photo?: string;
@@ -45,6 +47,8 @@ interface SingleCharacterForm1Props {
     skinColor?: string;
     hairstyle?: string;
     hairColor?: string;
+    ageStage?: BasicInfoData['ageStage'];
+    fromWhom?: string;
     photo?: { path: string } | null;
     photos?: string[]; // 支持多张图片初始化
   };
@@ -75,6 +79,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     skinColor: initialData?.skinColor ?? '#FFE2CF',
     hairstyle: initialData?.hairstyle ?? 'hair_1', // 默认选择头发样式1
     hairColor: initialData?.hairColor ?? 'light', // 默认选择浅色头发
+    ageStage: initialData?.ageStage ?? 'infant',
+    fromWhom: initialData?.fromWhom ?? '',
     photo: initialData?.photo ? { path: initialData.photo.path } as any : null,
     singleChoice: '',
     multipleChoice: [],
@@ -155,15 +161,15 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
   }, [images, formData.photo]);
 
   // Update basic info fields
-  const handleBasicInfoChange = (field: keyof BasicInfoData, value: string | { file?: File; path: string } | null) => {
+  const handleBasicInfoChange = useCallback((field: keyof BasicInfoData, value: string | { file?: File; path: string } | null) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setTouched(prev => ({ ...prev, [field]: true }));
-  };
+  }, []);
 
   // Update errors for specific fields
-  const handleErrorChange = (field: keyof BasicInfoData, errorMsg: string) => {
+  const handleErrorChange = useCallback((field: keyof BasicInfoData, errorMsg: string) => {
     setErrors(prev => ({ ...prev, [field]: errorMsg }));
-  };
+  }, []);
 
   // 触发裁剪弹窗：先缓存待处理文件，再逐个进入裁剪
   const handlePhotosUpload = async (files: File[]) => {
@@ -277,8 +283,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
         fullName: true,
         gender: true,
         skinColor: true,
-        hairstyle: true,
-        hairColor: true,
+        ageStage: true,
+        fromWhom: true,
         ...(validateStep2
           ? {
               photo: true,
@@ -294,8 +300,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
         if (!formData.fullName.trim()) newErrors.fullName = 'Please enter the first name';
         if (!formData.gender) newErrors.gender = 'Please select gender';
         if (!formData.skinColor) newErrors.skinColor = 'Please select skin color';
-        if (!formData.hairstyle) newErrors.hairstyle = 'Please select hairstyle';
-        if (!formData.hairColor) newErrors.hairColor = 'Please select hair color';
+        if (!formData.ageStage) newErrors.ageStage = 'Please select an age stage';
+        if (!String(formData.fromWhom || '').trim()) newErrors.fromWhom = 'Please enter a name';
       }
       if (validateStep2) {
         if (!formData.photo) newErrors.photo = 'Please upload a photo';
@@ -362,12 +368,16 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                     skinColor: formData.skinColor,
                     hairstyle: formData.hairstyle,
                     hairColor: formData.hairColor,
+                    ageStage: formData.ageStage,
+                    fromWhom: formData.fromWhom,
                     photo: formData.photo,
                   }}
                   errors={{
                     fullName: errors.fullName,
                     gender: errors.gender,
                     skinColor: errors.skinColor,
+                    ageStage: errors.ageStage,
+                    fromWhom: errors.fromWhom,
                     hairstyle: errors.hairstyle,
                     hairColor: errors.hairColor,
                     photo: errors.photo,
@@ -376,6 +386,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                     fullName: touched.fullName,
                     gender: touched.gender,
                     skinColor: touched.skinColor,
+                    ageStage: touched.ageStage,
+                    fromWhom: touched.fromWhom,
                     hairstyle: touched.hairstyle,
                     hairColor: touched.hairColor,
                     photo: touched.photo,
@@ -387,6 +399,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                   apiHairStyleValues={apiHairStyleValues}
                   apiHairColorValues={apiHairColorValues}
                   assetSpuCode={assetSpuCode}
+                  hideHairstyleAndHairColor
+                  showAgeStageAndFromWhom
                 />
               </>
             )}

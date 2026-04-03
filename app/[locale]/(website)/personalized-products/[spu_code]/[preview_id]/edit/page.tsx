@@ -7,6 +7,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import { Link } from "@/i18n/routing";
 import Image from 'next/image';
 import api from '@/utils/api';
+import { mapAgeStageUiToBackend } from '@/utils/mapAgeStageToBackend';
 import { API_CART_LIST } from '@/constants/api';
 import { CartItems } from '@/types/cart';
 import SingleCharacterForm1, { SingleCharacterForm1Handle } from '@/app/[locale]/(website)/components/personalize/SingleCharacterForm1';
@@ -361,6 +362,8 @@ export default function EditPersonalizedProductPage() {
       let photoData: { file?: File; path: string } | null = null;
       let photosData: string[] = [];
       let relationshipRaw: string | undefined;
+      let giverNameRaw = '';
+      let ageStageUi: string | undefined;
 
       if (formType === 'SINGLE1' && form1Ref.current) {
         const validationResult = form1Ref.current.validateForm({ scope: 'all' });
@@ -377,6 +380,8 @@ export default function EditPersonalizedProductPage() {
         photoData = form1.photo;
         photosData = (form1 as any).photos || [];
         relationshipRaw = (form1 as any).relationship;
+        giverNameRaw = String((form1 as any).fromWhom || '').trim();
+        ageStageUi = (form1 as any).ageStage;
       } else if (formType === 'SINGLE2' && form2Ref.current) {
         const validationResult = form2Ref.current.validateForm();
         if (!validationResult.isValid) {
@@ -478,16 +483,20 @@ export default function EditPersonalizedProductPage() {
 
       const faceImages = (photosData && photosData.length > 0 ? photosData : [photoData.path]).filter(Boolean);
 
+      const ageStageBackend = mapAgeStageUiToBackend(ageStageUi);
+
       const payload = {
         full_name: fullName,
         language: targetLang,
         gender: genderStr,
         relationship: relationshipRaw || 'Parent/Guardian',
+        ...(giverNameRaw ? { giver_name: giverNameRaw } : {}),
         attributes: {
           ...(skinTone ? { skin_tone: skinTone } : {}),
           // 后端校验必填
           hair_style: hairStyle,
           hair_color: hairColor,
+          ...(ageStageBackend ? { age_stage: ageStageBackend } : {}),
         },
         texts: {},
         face_images: faceImages,
@@ -523,6 +532,7 @@ export default function EditPersonalizedProductPage() {
               language: targetLang,
               gender: genderStr,
               relationship: relationshipRaw || 'Parent/Guardian',
+              ...(giverNameRaw ? { giver_name: giverNameRaw } : {}),
               attributes: payload.attributes || {},
               photo: faceImages?.[0] || '',
               photos: faceImages || [],
