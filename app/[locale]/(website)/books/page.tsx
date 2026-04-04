@@ -16,6 +16,7 @@ import WhyFamiliesChooseSection from '../components/books/WhyFamiliesChooseSecti
 import SignUpSection from '../components/books/SignUpSection';
 import { Product } from '@/types/product';
 import { getBooks } from '@/services/bookService';
+import { getBookListDisplayPrice, getBookMarketComparePrice } from '@/utils/bookDisplayPrice';
 
 // 书籍名字覆盖配置（与详情页保持一致）
 const BOOK_NAME_OVERRIDES: Record<string, string> = {
@@ -82,6 +83,7 @@ const StarRating = ({ rating, reviews }: { rating: number; reviews?: number }) =
 export default function BooksPage() {
   const locale = useLocale();
   const t = useTranslations('BooksPage');
+  const tBookDetail = useTranslations('BookDetail');
   const [books, setBooks] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -160,7 +162,7 @@ export default function BooksPage() {
       book,
       index,
       code: getBookCode(book),
-      price: Number((book as any)?.current_price ?? (book as any)?.price ?? 0),
+      price: getBookListDisplayPrice(book),
     }));
 
     switch (sortOption) {
@@ -328,12 +330,18 @@ export default function BooksPage() {
 
                   {/* Price */}
                   <div className="flex items-baseline justify-center gap-1">
-                    {(bestSeller as any)?.market_price && (
-                      <span className="text-[#999999] line-through text-[12px]">${Number((bestSeller as any)?.market_price).toFixed(2)}</span>
-                    )}
-                    <span className="text-[#012CCE] text-[24px] font-medium">
-                      ${Number(((bestSeller as any)?.current_price ?? (bestSeller as any)?.price ?? 0)).toFixed(2)}
-                    </span>
+                    {(() => {
+                      const cur = getBookListDisplayPrice(bestSeller);
+                      const mkt = getBookMarketComparePrice(bestSeller, cur);
+                      return (
+                        <>
+                          {mkt > cur && (
+                            <span className="text-[#999999] line-through text-[12px]">${mkt.toFixed(2)}</span>
+                          )}
+                          <span className="text-[#012CCE] text-[24px] font-medium">${cur.toFixed(2)}</span>
+                        </>
+                      );
+                    })()}
                   </div>
 
                   {/* Personalize Button */}
@@ -341,7 +349,7 @@ export default function BooksPage() {
                     href={`/books/${(bestSeller as any)?.spu_code ?? (bestSeller as any)?.id ?? 'featured'}`} 
                     className="text-[#222222] text-[16px] font-normal hover:underline flex items-center gap-1"
                   >
-                    {t('personalize')} →
+                    {tBookDetail('personalizeButton')} →
                   </Link>
                 </div>
               </div>

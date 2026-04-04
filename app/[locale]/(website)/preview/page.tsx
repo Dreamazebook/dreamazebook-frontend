@@ -2875,11 +2875,22 @@ export default function PreviewPageWithTopNav() {
         const hair_color = mapHairColor(c?.hairColor || c?.haircolor);
         const rawAge = c?.attributes?.age_stage ?? c?.age_stage;
         const age_stage = mapAgeStageUiToBackend(rawAge);
+        const stored = c?.attributes;
+        const birthday =
+          stored && typeof stored.birthday === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(stored.birthday)
+            ? stored.birthday
+            : undefined;
+        const character_traits =
+          Array.isArray(stored?.character_traits) && stored.character_traits.length > 0
+            ? stored.character_traits
+            : undefined;
         return {
           skin_tone,
           hair_style,
           hair_color,
           ...(age_stage ? { age_stage } : {}),
+          ...(birthday ? { birthday } : {}),
+          ...(character_traits ? { character_traits } : {}),
         };
       };
 
@@ -3126,11 +3137,22 @@ export default function PreviewPageWithTopNav() {
             const hair_color = mapHairColor(c?.hairColor || c?.haircolor);
             const rawAge = c?.attributes?.age_stage ?? c?.age_stage;
             const age_stage = mapAgeStageUiToBackend(rawAge);
+            const stored = c?.attributes;
+            const birthday =
+              stored && typeof stored.birthday === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(stored.birthday)
+                ? stored.birthday
+                : undefined;
+            const character_traits =
+              Array.isArray(stored?.character_traits) && stored.character_traits.length > 0
+                ? stored.character_traits
+                : undefined;
             return {
               skin_tone,
               hair_style,
               hair_color,
               ...(age_stage ? { age_stage } : {}),
+              ...(birthday ? { birthday } : {}),
+              ...(character_traits ? { character_traits } : {}),
             };
           };
 
