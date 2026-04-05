@@ -9,6 +9,7 @@ import useMultiImageUpload from '../../hooks/useMultiImageUpload';
 import GiverAvatarCropper from '../../preview/components/GiverAvatarCropper';
 import BirthdayBringThemToLifeStep from './BirthdayBringThemToLifeStep';
 import { isPicbookBirthday } from '@/utils/isPicbookBirthday';
+import { getDefaultAgeStageForPersonalize } from '@/utils/personalizeAgeStagePolicy';
 import { parseBirthDateIso } from '@/utils/birthdayPersonalizeHelpers';
 
 const BIRTHDAY_TRAITS_REQUIRED = 4;
@@ -101,7 +102,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       skinColor: initialData?.skinColor ?? '#FFE2CF',
       hairstyle: initialData?.hairstyle ?? 'hair_1',
       hairColor: initialData?.hairColor ?? 'light',
-      ageStage: initialData?.ageStage ?? 'infant',
+      ageStage: initialData?.ageStage ?? getDefaultAgeStageForPersonalize(bookId),
       fromWhom: initialData?.fromWhom ?? '',
       photo: initialData?.photo ? ({ path: initialData.photo.path } as any) : null,
       photos: [],

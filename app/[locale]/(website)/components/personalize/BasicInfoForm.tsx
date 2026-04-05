@@ -4,6 +4,10 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { FaCheck } from 'react-icons/fa';
+import {
+  getAgeStageMismatchHint,
+  getPersonalizeAgeStagePolicy,
+} from '@/utils/personalizeAgeStagePolicy';
 import HairstyleSelector from './HairstyleSelector';
 import HairColorSelector from './HairColorSelector';
 import AvatarCanvas from './AvatarCanvas';
@@ -117,6 +121,9 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   showAgeStageAndFromWhom = false,
 }) => {
   const [showSkinColorTooltip, setShowSkinColorTooltip] = useState(false);
+  const ageStagePolicy = getPersonalizeAgeStagePolicy(bookId);
+  const ageStageMismatchHint =
+    showAgeStageAndFromWhom ? getAgeStageMismatchHint(ageStagePolicy, data.ageStage) : null;
   // 图片上传相关的变量和函数已移至父组件 SingleCharacterForm1 和 SingleCharacterForm2
   /* 
   const {
@@ -440,7 +447,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                     key={opt.value}
                     type="button"
                     onClick={() => handleAgeStageSelect(opt.value)}
-                    className={`flex-1 min-w-0 flex flex-col items-center rounded-lg border-2 bg-[#F8F8F8] px-2 pt-3 pb-3 transition-colors ${
+                    className={`flex-1 min-w-0 flex flex-col items-center rounded-lg border-1 bg-[#F8F8F8] px-2 pt-3 pb-3 transition-colors ${
                       selected ? 'border-[#012CCE]' : 'border-transparent'
                     }`}
                   >
@@ -455,6 +462,14 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                 );
               })}
             </div>
+            {ageStageMismatchHint && (
+              <div className="px-3 py-2.5 text-[14px] leading-[20px] text-[#444444]">
+                <p className="font-medium text-[#222222]">
+                  <span aria-hidden>⭐</span> {ageStageMismatchHint.headline}
+                </p>
+                <p className="mt-1 text-[#666666]">{ageStageMismatchHint.detail}</p>
+              </div>
+            )}
             {touched.ageStage && errors.ageStage && (
               <p className="text-red-500 text-sm mt-2">{errors.ageStage}</p>
             )}
