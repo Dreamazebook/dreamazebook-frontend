@@ -309,7 +309,7 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                 </svg>
               )}
             </button>
-            {selectedItem.status === "ai_completed" && (
+            {(
               <button
                 onClick={handleConfirm}
                 disabled={isConfirming}
