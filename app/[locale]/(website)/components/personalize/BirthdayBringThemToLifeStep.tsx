@@ -2,6 +2,10 @@
 'use client';
 
 import React from 'react';
+import { TextField } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { FaHeart } from 'react-icons/fa';
 import { BsCheck } from 'react-icons/bs';
 import {
@@ -43,31 +47,36 @@ const BirthdayBringThemToLifeStep: React.FC<BirthdayBringThemToLifeStepProps> = 
   const season: BirthSeason | null = birthDate ? getBirthSeasonFromDate(birthDate) : null;
   const turning = birthDate ? getTurningAgeOnNextBirthday(birthDate) : null;
 
-  const dateInputValue =
-    birthDate && !Number.isNaN(birthDate.getTime())
-      ? `${birthDate.getFullYear()}-${String(birthDate.getMonth() + 1).padStart(2, '0')}-${String(birthDate.getDate()).padStart(2, '0')}`
-      : '';
-
   /* 标题与副标题在 personalize 页顶栏；此处与 BasicInfoForm 字段块对齐 */
   return (
     <div className="flex flex-col gap-3 md:gap-6">
       <div id="field-birthDate">
-        <label className="block font-medium text-[#222222]">Birth date</label>
-        <input
-          type="date"
-          className="w-full p-2 border border-[#E5E5E5] rounded text-[#222222] bg-white placeholder:text-[#BBBBBB] focus:outline-none focus:border-[#012CCE]"
-          value={dateInputValue}
-          max={formatMaxDate()}
-          onChange={(e) => {
-            const v = e.target.value;
-            if (!v) {
-              onBirthDateChange(null);
-              return;
-            }
-            const [y, m, d] = v.split('-').map(Number);
-            onBirthDateChange(new Date(y, m - 1, d));
-          }}
-        />
+        <label className="block mb-2 font-medium text-[#222222]">Birth date</label>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <DatePicker
+            value={birthDate}
+            maxDate={new Date()}
+            onChange={newValue => onBirthDateChange(newValue)}
+            slots={{ textField: TextField }}
+            slotProps={{
+              day: {
+                sx: {
+                  borderRadius: 0,
+
+                  '&.Mui-selected': {
+                    backgroundColor: '#FCF2F2!important',
+                    border: '1px solid #222222',
+                    color: '#222222',
+                  },
+                  '&:hover': {
+                    backgroundColor: '#F8F8F8',
+                  },
+                  '&.MuiPickersDay-today': {},
+                },
+              },
+            }}
+          />
+        </LocalizationProvider>
         {birthDate && season !== null && turning !== null && (
           <p className={`${HELPER} mt-2 mb-0`}>
             Turning <span className="text-[#222222] font-medium">{turning}</span>
@@ -122,10 +131,5 @@ const BirthdayBringThemToLifeStep: React.FC<BirthdayBringThemToLifeStepProps> = 
     </div>
   );
 };
-
-function formatMaxDate(): string {
-  const t = new Date();
-  return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
-}
 
 export default BirthdayBringThemToLifeStep;
