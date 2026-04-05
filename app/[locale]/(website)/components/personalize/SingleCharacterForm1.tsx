@@ -115,6 +115,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     });
     const [errors, setErrors] = useState<FormErrors>({});
     const [touched, setTouched] = useState<{ [K in keyof PersonalizeFormData]?: boolean }>({});
+    const [traitsHintFlashNonce, setTraitsHintFlashNonce] = useState(0);
     const [isCropperOpen, setIsCropperOpen] = useState(false);
     const [pendingFiles, setPendingFiles] = useState<File[]>([]);
     const [currentCropIndex, setCurrentCropIndex] = useState(0);
@@ -308,6 +309,10 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
           nextTouched.birthDate = true;
           nextTouched.personalityTraitIds = true;
           runBirthdayValidation(formData, newErrors);
+          const n = formData.personalityTraitIds?.length ?? 0;
+          if (n !== BIRTHDAY_TRAITS_REQUIRED) {
+            setTraitsHintFlashNonce(v => v + 1);
+          }
         } else {
           runStep1Validation(formData, newErrors);
           if (isBirthdayBook) {
@@ -359,7 +364,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
           return { ...prev, personalityTraitIds: cur.filter(x => x !== id) };
         }
         if (cur.length >= BIRTHDAY_TRAITS_REQUIRED) {
-          return prev;
+          return { ...prev, personalityTraitIds: [...cur.slice(1), id] };
         }
         return { ...prev, personalityTraitIds: [...cur, id] };
       });
@@ -430,6 +435,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                   traitsError={errors.personalityTraits}
                   birthDateTouched={touched.birthDate}
                   traitsTouched={touched.personalityTraitIds}
+                  traitsSelectHintFlashNonce={traitsHintFlashNonce}
                 />
               )}
 

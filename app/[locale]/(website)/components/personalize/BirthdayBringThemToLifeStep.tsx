@@ -1,7 +1,7 @@
 /** @jsxImportSource react */
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { TextField } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -32,6 +32,8 @@ export interface BirthdayBringThemToLifeStepProps {
   traitsError?: string;
   birthDateTouched?: boolean;
   traitsTouched?: boolean;
+  /** 递增时触发「Select 4…」提示闪烁（用于 Next step 校验未选满） */
+  traitsSelectHintFlashNonce?: number;
 }
 
 const BirthdayBringThemToLifeStep: React.FC<BirthdayBringThemToLifeStepProps> = ({
@@ -43,9 +45,27 @@ const BirthdayBringThemToLifeStep: React.FC<BirthdayBringThemToLifeStepProps> = 
   traitsError,
   birthDateTouched,
   traitsTouched,
+  traitsSelectHintFlashNonce = 0,
 }) => {
+  const traitsHintRef = useRef<HTMLParagraphElement>(null);
+  const lastTraitsFlashNonce = useRef(0);
+
   const season: BirthSeason | null = birthDate ? getBirthSeasonFromDate(birthDate) : null;
   const turning = birthDate ? getTurningAgeOnNextBirthday(birthDate) : null;
+
+  useEffect(() => {
+    if (traitsSelectHintFlashNonce <= 0 || traitsSelectHintFlashNonce === lastTraitsFlashNonce.current) return;
+    lastTraitsFlashNonce.current = traitsSelectHintFlashNonce;
+    const el = traitsHintRef.current;
+    if (!el) return;
+    el.classList.remove('personality-traits-hint-flash');
+    void el.offsetWidth;
+    el.classList.add('personality-traits-hint-flash');
+    const onEnd = () => el.classList.remove('personality-traits-hint-flash');
+    el.addEventListener('animationend', onEnd, { once: true });
+    const t = window.setTimeout(onEnd, 2200);
+    return () => window.clearTimeout(t);
+  }, [traitsSelectHintFlashNonce]);
 
   /* 标题与副标题在 personalize 页顶栏；此处与 BasicInfoForm 字段块对齐 */
   return (
@@ -79,11 +99,11 @@ const BirthdayBringThemToLifeStep: React.FC<BirthdayBringThemToLifeStepProps> = 
         </LocalizationProvider>
         {birthDate && season !== null && turning !== null && (
           <p className={`${HELPER} mt-2 mb-0`}>
-            Turning <span className="text-[#222222] font-medium">{turning}</span>
+            Turning <span>[{turning}]</span>
             <span className="mx-1">•</span>
             Born in{' '}
-            <span className="text-[#222222] font-medium">
-              {birthSeasonLabel(season)} {birthSeasonEmoji(season)}
+            <span>
+              [{birthSeasonLabel(season)}] {birthSeasonEmoji(season)}
             </span>
           </p>
         )}
@@ -94,7 +114,9 @@ const BirthdayBringThemToLifeStep: React.FC<BirthdayBringThemToLifeStepProps> = 
 
       <div id="field-personalityTraits">
         <label className="block font-medium text-[#222222]">Personality traits</label>
-        <p className={`${HELPER} mt-1 mb-3`}>Select 4 that best describe your child</p>
+        <p ref={traitsHintRef} className={`${HELPER} mt-1 mb-3`}>
+          Select 4 that best describe your child
+        </p>
         <div className="grid grid-cols-2 gap-2 sm:gap-3">
           {BIRTHDAY_PERSONALITY_TRAITS.map((trait) => {
             const selected = selectedTraitIds.includes(trait.id);
@@ -103,20 +125,24 @@ const BirthdayBringThemToLifeStep: React.FC<BirthdayBringThemToLifeStepProps> = 
                 key={trait.id}
                 type="button"
                 onClick={() => onToggleTrait(trait.id)}
-                className={`relative text-left rounded-lg border-2 bg-[#F8F8F8] px-2 pt-3 pb-3 min-h-[88px] transition-colors ${
-                  selected ? 'border-[#012CCE]' : 'border-transparent'
+                className={`relative text-left rounded-[4px] border-1 px-[16px] py-[8px] min-h-[64px] ${
+                  selected
+                    ? 'border-[#000000] bg-[#FCF2F2]'
+                    : 'border-transparent bg-[#F8F8F8]'
                 }`}
               >
-                {selected && <FaHeart className="text-[#E85A5A] w-4 h-4 mb-1" aria-hidden />}
-                <div className="text-[13px] sm:text-[14px] font-medium leading-tight text-[#222222]">
-                  {trait.label}
+                <div className="flex items-center gap-2">
+                  {selected && <FaHeart className="text-[#CF0F02] w-4 h-4" aria-hidden />}
+                  <span className="text-[18px] tracking-[0.15px] font-medium text-[#222222]">
+                    {trait.label}
+                  </span>
                 </div>
                 {selected && (
-                  <div className="text-[12px] text-[#666666] mt-1 leading-snug">{trait.description}</div>
+                  <div className="text-[16px] tracking-[0.5px] font-normal text-[#666666]">{trait.description}</div>
                 )}
                 {selected && (
                   <span
-                    className="absolute bottom-2 right-2 bg-black text-white flex items-center justify-center rounded-sm"
+                    className="absolute bottom-0 right-0 bg-black text-white flex items-center justify-center rounded-tl-[4px]"
                     style={{ width: '20px', height: '16px' }}
                   >
                     <BsCheck className="w-3.5 h-3.5" />
