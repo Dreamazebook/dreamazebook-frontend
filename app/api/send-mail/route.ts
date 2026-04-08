@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import FormData from 'form-data'
-import Mailgun from 'mailgun.js'
 import { HELLO_EMAIL } from '@/constants/text'
 
 interface ContactFormData {
@@ -38,18 +36,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Initialize Mailgun
-    const mailgun = new Mailgun(FormData)
-    const mg = mailgun.client({ username: 'api', key: mailgunSecret, url: "https://api.eu.mailgun.net" })
-
-    // Compose email
-    const messageData = {
-      from: `noreply@${mailgunDomain}`,
-      to: HELLO_EMAIL,
-      //to: 'weisen.li@hotmail.com',
-      'h:Reply-To': email,
-      subject: `New Contact Request: ${subject}`,
-      html: `
+    // Prepare email data
+    const params = new URLSearchParams()
+    params.append('from', `noreply@${mailgunDomain}`)
+    params.append('to', 'weisen.li@hotmail.com')
+    params.append('h:Reply-To', email)
+    params.append('subject', `New Contact Request: ${subject}`)
+    params.append('html', `
         <html>
           <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
             <h2 style="color: #2563eb;">New Contact Request from Dreamaze Book</h2>
@@ -78,8 +71,8 @@ export async function POST(request: NextRequest) {
             </p>
           </body>
         </html>
-      `,
-      text: `
+      `)
+    params.append('text', `
 New Contact Request from Dreamaze Book
 
 Customer Information:
@@ -95,17 +88,30 @@ ${message}
 
 ---
 This email was sent from the Dreamaze Book contact form.
-      `
+      `)
+
+    // Send email via Mailgun API
+    const auth = Buffer.from(`api:${mailgunSecret}`).toString('base64')
+    const response = await fetch(`https://api.eu.mailgun.net/v3/${mailgunDomain}/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: params.toString()
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to send email')
     }
 
-    // Send email via Mailgun
-    const response = await mg.messages.create(mailgunDomain, messageData)
+    const data = await response.json()
 
     return NextResponse.json(
       {
         success: true,
         message: 'Email sent successfully',
-        messageId: response.id
+        messageId: data.id
       },
       { status: 200 }
     )
