@@ -13,10 +13,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
     "@formatjs/intl-localematcher": "^0.5.9",
-    "@heroicons/react": "^2.2.0",
     "@mui/material": "^6.4.6",
     "@mui/x-date-pickers": "^7.27.1",
     "@stripe/react-stripe-js": "^3.1.1",
