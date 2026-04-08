@@ -27,6 +27,7 @@ export interface OrderDetail {
     name: string;
     email: string;
   };
+  can_generate_pdf: boolean;
   order_number: string;
   total_amount: number;
   currency_code: string;
@@ -201,6 +202,8 @@ export interface ResultImage {
   face_swap_mask_url: string;
   item_id: number;
   page_code: string;
+  can_refresh?: boolean;
+  is_refreshing?: boolean;
 }
 
 export interface ShippingErrors {

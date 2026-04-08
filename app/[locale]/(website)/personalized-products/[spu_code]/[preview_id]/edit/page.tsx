@@ -7,11 +7,14 @@ import { IoIosArrowBack } from "react-icons/io";
 import { Link } from "@/i18n/routing";
 import Image from 'next/image';
 import api from '@/utils/api';
+import { mapAgeStageUiToBackend } from '@/utils/mapAgeStageToBackend';
 import { API_CART_LIST } from '@/constants/api';
 import { CartItems } from '@/types/cart';
 import SingleCharacterForm1, { SingleCharacterForm1Handle } from '@/app/[locale]/(website)/components/personalize/SingleCharacterForm1';
 import SingleCharacterForm2, { SingleCharacterForm2Handle } from '@/app/[locale]/(website)/components/personalize/SingleCharacterForm2';
 import usePreviewStore from '@/stores/previewStore';
+import { isPicbookBirthday } from '@/utils/isPicbookBirthday';
+import { formatBirthDateIso, mapPersonalityTraitIdsToCharacterTraits } from '@/utils/birthdayPersonalizeHelpers';
 
 interface ApiResponse<T=any> { success: boolean; code: number; message: string; data: T }
 interface DetailedBook { character_count: number }
@@ -57,6 +60,7 @@ export default function EditPersonalizedProductPage() {
   const pathname = usePathname();
   const router = useRouter();
   const bookId = params.spu_code as string;
+  const birthdayBook = isPicbookBirthday(bookId);
   const previewId = params.preview_id as string; // preview_id 是 UUID 字符串，不是数字
   const currentLang = (pathname.match(/^\/(en|zh|fr)\b/)?.[1] as 'en'|'zh'|'fr') || 'en';
 
@@ -316,9 +320,29 @@ export default function EditPersonalizedProductPage() {
   const renderForm = () => {
     if (isLoading) return <SkeletonLoader />;
     if (!formType) return null;
-    if (formType === 'SINGLE1') return <SingleCharacterForm1 ref={form1Ref} initialData={initialData} bookId={bookId} currentStep={currentStep} defaultConsentChecked />;
+    const form1Asset = birthdayBook ? 'PICBOOK_BIRTHDAY' : 'PICBOOK_GOODNIGHT';
+    if (formType === 'SINGLE1')
+      return (
+        <SingleCharacterForm1
+          ref={form1Ref}
+          initialData={initialData}
+          bookId={bookId}
+          currentStep={currentStep}
+          defaultConsentChecked
+          assetSpuCode={form1Asset}
+        />
+      );
     if (formType === 'SINGLE2') return <SingleCharacterForm2 ref={form2Ref} initialData={initialData} bookId={bookId} />;
-    return <SingleCharacterForm1 ref={form1Ref} initialData={initialData} bookId={bookId} currentStep={currentStep} defaultConsentChecked />;
+    return (
+      <SingleCharacterForm1
+        ref={form1Ref}
+        initialData={initialData}
+        bookId={bookId}
+        currentStep={currentStep}
+        defaultConsentChecked
+        assetSpuCode={form1Asset}
+      />
+    );
   };
 
   const handleContinue = async () => {
@@ -352,6 +376,18 @@ export default function EditPersonalizedProductPage() {
         }
       }
 
+      if (birthdayBook && formType === 'SINGLE1' && currentStep === 2 && form1Ref.current) {
+        const validationResult = form1Ref.current.validateForm({ scope: 'stepBirthday' });
+        if (!validationResult.isValid) {
+          stop();
+          return;
+        }
+        setCurrentStep(3);
+        window.scrollTo(0, 0);
+        stop();
+        return;
+      }
+
       // Step 2 (或单步表单) 提交处理
       let fullName: string;
       let genderRaw: '' | 'boy' | 'girl';
@@ -361,6 +397,8 @@ export default function EditPersonalizedProductPage() {
       let photoData: { file?: File; path: string } | null = null;
       let photosData: string[] = [];
       let relationshipRaw: string | undefined;
+      let giverNameRaw = '';
+      let ageStageUi: string | undefined;
 
       if (formType === 'SINGLE1' && form1Ref.current) {
         const validationResult = form1Ref.current.validateForm({ scope: 'all' });
@@ -377,6 +415,8 @@ export default function EditPersonalizedProductPage() {
         photoData = form1.photo;
         photosData = (form1 as any).photos || [];
         relationshipRaw = (form1 as any).relationship;
+        giverNameRaw = String((form1 as any).fromWhom || '').trim();
+        ageStageUi = (form1 as any).ageStage;
       } else if (formType === 'SINGLE2' && form2Ref.current) {
         const validationResult = form2Ref.current.validateForm();
         if (!validationResult.isValid) {
@@ -478,16 +518,35 @@ export default function EditPersonalizedProductPage() {
 
       const faceImages = (photosData && photosData.length > 0 ? photosData : [photoData.path]).filter(Boolean);
 
+      const ageStageBackend = mapAgeStageUiToBackend(ageStageUi);
+
+      const form1Snap = formType === 'SINGLE1' && form1Ref.current ? form1Ref.current.getFormData() : null;
+      const birthDate = form1Snap?.birthDate && !Number.isNaN(form1Snap.birthDate.getTime()) ? form1Snap.birthDate : null;
+      const birthdayStr = birthDate ? formatBirthDateIso(birthDate) : undefined;
+      const traitUiIds =
+        birthdayBook && Array.isArray(form1Snap?.personalityTraitIds) ? form1Snap!.personalityTraitIds! : [];
+      const characterTraits =
+        traitUiIds.length === 4 ? mapPersonalityTraitIdsToCharacterTraits(traitUiIds) : [];
+      const characterTraitsOk = characterTraits.length === 4;
+
       const payload = {
         full_name: fullName,
         language: targetLang,
         gender: genderStr,
         relationship: relationshipRaw || 'Parent/Guardian',
+        ...(giverNameRaw ? { giver_name: giverNameRaw } : {}),
         attributes: {
           ...(skinTone ? { skin_tone: skinTone } : {}),
           // 后端校验必填
           hair_style: hairStyle,
           hair_color: hairColor,
+          ...(ageStageBackend ? { age_stage: ageStageBackend } : {}),
+          ...(birthdayBook && birthdayStr
+            ? {
+                birthday: birthdayStr,
+                ...(characterTraitsOk ? { character_traits: characterTraits } : {}),
+              }
+            : {}),
         },
         texts: {},
         face_images: faceImages,
@@ -523,6 +582,7 @@ export default function EditPersonalizedProductPage() {
               language: targetLang,
               gender: genderStr,
               relationship: relationshipRaw || 'Parent/Guardian',
+              ...(giverNameRaw ? { giver_name: giverNameRaw } : {}),
               attributes: payload.attributes || {},
               photo: faceImages?.[0] || '',
               photos: faceImages || [],
@@ -559,7 +619,9 @@ export default function EditPersonalizedProductPage() {
           <a 
             onClick={(e) => {
               e.preventDefault();
-              if (currentStep === 2) {
+              if (birthdayBook && currentStep === 3) {
+                setCurrentStep(2);
+              } else if (currentStep === 2) {
                 setCurrentStep(1);
               } else {
                 router.push(`/shopping-cart`);
@@ -583,7 +645,9 @@ export default function EditPersonalizedProductPage() {
         <a 
           onClick={(e) => {
             e.preventDefault();
-            if (currentStep === 2) {
+            if (birthdayBook && currentStep === 3) {
+              setCurrentStep(2);
+            } else if (currentStep === 2) {
               setCurrentStep(1);
             } else {
               router.push(`/shopping-cart`);
@@ -591,7 +655,8 @@ export default function EditPersonalizedProductPage() {
           }}
           className="hidden sm:flex items-center text-sm cursor-pointer"
         >
-          <span className="mr-2">←</span> {currentStep === 2 ? 'Back' : 'Back to shopping cart'}
+          <span className="mr-2">←</span>{' '}
+          {currentStep === 2 || (birthdayBook && currentStep === 3) ? 'Back' : 'Back to shopping cart'}
         </a>
       </div>
 

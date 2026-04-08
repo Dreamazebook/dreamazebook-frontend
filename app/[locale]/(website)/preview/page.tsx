@@ -18,6 +18,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import useImageUpload from '../hooks/useImageUpload';
 import useUserStore from '@/stores/userStore';
 import usePreviewStore from '@/stores/previewStore';
+import { mapAgeStageUiToBackend } from '@/utils/mapAgeStageToBackend';
 import toast from 'react-hot-toast';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
 import { BaseBook, DetailedBook } from '@/types/book';
@@ -2872,7 +2873,25 @@ export default function PreviewPageWithTopNav() {
           return 'dark';
         };
         const hair_color = mapHairColor(c?.hairColor || c?.haircolor);
-        return { skin_tone, hair_style, hair_color };
+        const rawAge = c?.attributes?.age_stage ?? c?.age_stage;
+        const age_stage = mapAgeStageUiToBackend(rawAge);
+        const stored = c?.attributes;
+        const birthday =
+          stored && typeof stored.birthday === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(stored.birthday)
+            ? stored.birthday
+            : undefined;
+        const character_traits =
+          Array.isArray(stored?.character_traits) && stored.character_traits.length > 0
+            ? stored.character_traits
+            : undefined;
+        return {
+          skin_tone,
+          hair_style,
+          hair_color,
+          ...(age_stage ? { age_stage } : {}),
+          ...(birthday ? { birthday } : {}),
+          ...(character_traits ? { character_traits } : {}),
+        };
       };
 
       // gender: 后端期望字符串 boy/girl
@@ -2886,6 +2905,7 @@ export default function PreviewPageWithTopNav() {
         return null;
       };
       const genderStr = mapGenderToString(character?.gender);
+      const giverNameTop = String(character?.giver_name || character?.created_by || '').trim();
 
       const apiRequestData = {
         picbook_id: bookId,
@@ -2898,6 +2918,7 @@ export default function PreviewPageWithTopNav() {
         full_name: character?.full_name,
         language: character?.language || 'en', // 默认英语
         gender: genderStr,
+        ...(giverNameTop ? { giver_name: giverNameTop } : {}),
         skincolor: character?.skincolor || 1, // 默认值
         attributes: toBackendAttrs(character)
       };
@@ -3114,7 +3135,25 @@ export default function PreviewPageWithTopNav() {
               return 'dark';
             };
             const hair_color = mapHairColor(c?.hairColor || c?.haircolor);
-            return { skin_tone, hair_style, hair_color };
+            const rawAge = c?.attributes?.age_stage ?? c?.age_stage;
+            const age_stage = mapAgeStageUiToBackend(rawAge);
+            const stored = c?.attributes;
+            const birthday =
+              stored && typeof stored.birthday === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(stored.birthday)
+                ? stored.birthday
+                : undefined;
+            const character_traits =
+              Array.isArray(stored?.character_traits) && stored.character_traits.length > 0
+                ? stored.character_traits
+                : undefined;
+            return {
+              skin_tone,
+              hair_style,
+              hair_color,
+              ...(age_stage ? { age_stage } : {}),
+              ...(birthday ? { birthday } : {}),
+              ...(character_traits ? { character_traits } : {}),
+            };
           };
 
           // gender & relationship: 后端期望字符串
@@ -3128,6 +3167,7 @@ export default function PreviewPageWithTopNav() {
           };
           const genderStr = mapGenderToString(character?.gender, (character as any)?.gender_code);
           const relationshipStr = character?.relationship || null;
+          const giverNameTop2 = String(character?.giver_name || character?.created_by || '').trim();
 
           const apiRequestData = {
             picbook_id: bookId,
@@ -3141,6 +3181,7 @@ export default function PreviewPageWithTopNav() {
             language: character?.language,
             gender: genderStr,
             relationship: relationshipStr,
+            ...(giverNameTop2 ? { giver_name: giverNameTop2 } : {}),
             skincolor: character?.skincolor,
             attributes: toBackendAttrs2(character)
           };
@@ -3315,6 +3356,8 @@ export default function PreviewPageWithTopNav() {
           const hairStyle = attrs?.hair_style || attrs?.hairStyle;
           const hairColor = attrs?.hair_color || attrs?.hairColor;
           const skinTone = attrs?.skin_tone || attrs?.skinTone;
+          const ageStagePayload = mapAgeStageUiToBackend(attrs?.age_stage);
+          const giverNameCart = String(character?.giver_name || character?.created_by || '').trim();
           const photos = Array.isArray(character?.photos) ? character.photos : (character?.photo ? [character.photo] : []);
 
           const payload: any = {
@@ -3322,10 +3365,12 @@ export default function PreviewPageWithTopNav() {
             language,
             gender,
             relationship,
+            ...(giverNameCart ? { giver_name: giverNameCart } : {}),
             attributes: {
               ...(skinTone ? { skin_tone: skinTone } : {}),
               ...(hairStyle ? { hair_style: hairStyle } : {}),
               ...(hairColor ? { hair_color: hairColor } : {}),
+              ...(ageStagePayload ? { age_stage: ageStagePayload } : {}),
             },
             texts: {},
             face_images: photos.filter(Boolean),

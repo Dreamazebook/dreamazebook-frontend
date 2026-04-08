@@ -10,7 +10,10 @@ import SingleCharacterForm1, { SingleCharacterForm1Handle } from '../components/
 import SingleCharacterForm2, { SingleCharacterForm2Handle } from '../components/personalize/SingleCharacterForm2';
 import SingleCharacterForm3, { SingleCharacterForm3Handle } from '../components/personalize/SingleCharacterForm3';
 import { buildProductSchema, extractFieldOptions, resolveSkuPrice } from '@/utils/productAdapter';
+import { mapAgeStageUiToBackend } from '@/utils/mapAgeStageToBackend';
 import usePreviewStore from '@/stores/previewStore';
+import { isPicbookBirthday } from '@/utils/isPicbookBirthday';
+import { formatBirthDateIso, mapPersonalityTraitIdsToCharacterTraits } from '@/utils/birthdayPersonalizeHelpers';
 
 type AttributeOption = { value: string; label?: string; is_default?: boolean; price_diff?: number | string };
 type Attribute = { name: string; options: AttributeOption[]; default?: string };
@@ -32,6 +35,7 @@ export default function PersonalizeApiDrivenPage() {
   const router = useRouter();
   const pathname = usePathname();
   const locale = pathname.split('/')[1] || 'en';
+  const isBirthdayPersonalize = isPicbookBirthday(bookId);
 
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -141,6 +145,10 @@ export default function PersonalizeApiDrivenPage() {
     fetchConfig();
   }, [bookId, locale, mockParam]);
 
+  useEffect(() => {
+    setCurrentStep(1);
+  }, [bookId]);
+
   // 处理裁剪器状态变化
   const handleCropperOpenChange = (isOpen: boolean) => {
     setIsAddingImage(isOpen);
@@ -173,54 +181,67 @@ export default function PersonalizeApiDrivenPage() {
 
   // 手机端：处理下一步按钮点击
   const handleNextStep = () => {
-    // 验证第一步的必填字段
     if (formType === 'SINGLE1' && form1Ref.current) {
-      // 只验证第一步的字段（不包括 photo、singleChoice 和 multipleChoice）
-      const step1Fields = ['fullName', 'gender', 'skinColor', 'hairstyle', 'hairColor'];
-      let hasError = false;
-      let firstErrorField: string | null = null;
+      if (currentStep === 1) {
+        let hasError = false;
+        let firstErrorField: string | null = null;
 
-      // 手动验证第一步的字段
-      const formData = form1Ref.current.getFormData();
-      if (!formData.fullName?.trim()) {
-        hasError = true;
-        firstErrorField = 'fullName';
-      } else if (!formData.gender) {
-        hasError = true;
-        firstErrorField = 'gender';
-      } else if (!formData.skinColor) {
-        hasError = true;
-        firstErrorField = 'skinColor';
-      } else if (!formData.hairstyle) {
-        hasError = true;
-        firstErrorField = 'hairstyle';
-      } else if (!formData.hairColor) {
-        hasError = true;
-        firstErrorField = 'hairColor';
-      }
+        const formData = form1Ref.current.getFormData();
+        if (!formData.fullName?.trim()) {
+          hasError = true;
+          firstErrorField = 'fullName';
+        } else if (!formData.gender) {
+          hasError = true;
+          firstErrorField = 'gender';
+        } else if (!formData.skinColor) {
+          hasError = true;
+          firstErrorField = 'skinColor';
+        } else if (!formData.ageStage) {
+          hasError = true;
+          firstErrorField = 'ageStage';
+        } else if (!String(formData.fromWhom || '').trim()) {
+          hasError = true;
+          firstErrorField = 'fromWhom';
+        } else if (!formData.hairstyle) {
+          hasError = true;
+          firstErrorField = 'hairstyle';
+        } else if (!formData.hairColor) {
+          hasError = true;
+          firstErrorField = 'hairColor';
+        }
 
-      if (hasError && firstErrorField) {
-        // 触发表单验证以显示错误信息（仅第一步字段）
-        form1Ref.current.validateForm({ scope: 'step1' });
-        // 滚动到错误字段
-        setTimeout(() => {
-          const elementId = firstErrorField === 'photo' ? 'upload-area-photo' : `field-${firstErrorField}`;
-          const element = document.getElementById(elementId);
-          if (element) {
-            const isMobile = window.innerWidth < 768;
-            const stickyBarHeight = isMobile ? 76 : 0;
-            const headerHeight = 56;
-            const offset = stickyBarHeight + headerHeight + 20;
-            const elementPosition = element.getBoundingClientRect().top;
-            const offsetPosition = elementPosition + window.pageYOffset - offset;
-            window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-          }
-        }, 100);
+        if (hasError && firstErrorField) {
+          form1Ref.current.validateForm({ scope: 'step1' });
+          setTimeout(() => {
+            const elementId = firstErrorField === 'photo' ? 'upload-area-photo' : `field-${firstErrorField}`;
+            const element = document.getElementById(elementId);
+            if (element) {
+              const isMobile = window.innerWidth < 768;
+              const stickyBarHeight = isMobile ? 76 : 0;
+              const headerHeight = 56;
+              const offset = stickyBarHeight + headerHeight + 20;
+              const elementPosition = element.getBoundingClientRect().top;
+              const offsetPosition = elementPosition + window.pageYOffset - offset;
+              window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+            }
+          }, 100);
+          return;
+        }
+        setCurrentStep(2);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
-      setCurrentStep(2);
-      // 滚动到顶部
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      if (isBirthdayPersonalize && currentStep === 2) {
+        const validationResult = form1Ref.current.validateForm({ scope: 'stepBirthday' });
+        if (!validationResult.isValid) {
+          setTimeout(() => scrollToErrorField(validationResult.firstErrorField), 100);
+          return;
+        }
+        setCurrentStep(3);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
     } else if (formType === 'SINGLE2') {
       if (useForm3 && form3Ref.current) {
         const validationResult = form3Ref.current.validateForm({ scope: 'step1' });
@@ -242,8 +263,11 @@ export default function PersonalizeApiDrivenPage() {
     // 防止重复提交
     if (isSubmitting) return;
 
-    // 如果在第一步，先进入第二步
     if (currentStep === 1) {
+      handleNextStep();
+      return;
+    }
+    if (formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 2) {
       handleNextStep();
       return;
     }
@@ -255,6 +279,8 @@ export default function PersonalizeApiDrivenPage() {
     let hairColorRaw = '';
     let relationshipRaw: string | undefined;
     let photosData: string[] = [];
+    let ageStageRaw: string | undefined;
+    let fromWhomRaw = '';
 
     if (formType === 'SINGLE1' && form1Ref.current) {
       const validationResult = form1Ref.current.validateForm();
@@ -271,6 +297,8 @@ export default function PersonalizeApiDrivenPage() {
       hairColorRaw = f.hairColor;
       relationshipRaw = (f as any).relationship;
       photosData = (f as any).photos || [];
+      ageStageRaw = f.ageStage;
+      fromWhomRaw = String(f.fromWhom || '').trim();
     } else if (formType === 'SINGLE2' && (useForm3 ? !!form3Ref.current : !!form2Ref.current)) {
       const activeRef = useForm3 ? form3Ref : form2Ref;
       const validationResult = activeRef.current?.validateForm();
@@ -286,6 +314,8 @@ export default function PersonalizeApiDrivenPage() {
       hairColorRaw = f.hairColor;
       relationshipRaw = (f as any).relationship;
       photosData = (f as any).photos || [];
+      ageStageRaw = (f as any).ageStage;
+      fromWhomRaw = String((f as any).fromWhom || '').trim();
     } else {
       return;
     }
@@ -334,6 +364,17 @@ export default function PersonalizeApiDrivenPage() {
         return;
       }
 
+      const ageStageBackend = mapAgeStageUiToBackend(ageStageRaw);
+
+      const f1 = formType === 'SINGLE1' && form1Ref.current ? form1Ref.current.getFormData() : null;
+      const birthDate = f1?.birthDate && !Number.isNaN(f1.birthDate.getTime()) ? f1.birthDate : null;
+      const birthdayStr = birthDate ? formatBirthDateIso(birthDate) : undefined;
+      const traitUiIds =
+        isBirthdayPersonalize && Array.isArray(f1?.personalityTraitIds) ? f1!.personalityTraitIds! : [];
+      const characterTraits =
+        traitUiIds.length === 4 ? mapPersonalityTraitIdsToCharacterTraits(traitUiIds) : [];
+      const characterTraitsOk = characterTraits.length === 4;
+
       const userData = {
         characters: [
           {
@@ -344,6 +385,8 @@ export default function PersonalizeApiDrivenPage() {
             gender: genderRaw || '',
             gender_code: genderCode,
             relationship: relationshipRaw || undefined,
+            // 赠送人/创作者姓名（书中 Created by）
+            ...(fromWhomRaw ? { giver_name: fromWhomRaw } : {}),
             skincolor: skinColorCode,
             hairstyle: hairstyleCode,
             haircolor: hairColorCode,
@@ -353,6 +396,13 @@ export default function PersonalizeApiDrivenPage() {
               skin_tone: mapSkinToBackend(skinColorRaw),
               hair_style: mapHairstyleToBackend(hairstyleCode),
               hair_color: mapHairColorToBackend(hairColorRaw || hairColorCode),
+              ...(ageStageBackend ? { age_stage: ageStageBackend } : {}),
+              ...(isBirthdayPersonalize && birthdayStr
+                ? {
+                    birthday: birthdayStr,
+                    ...(characterTraitsOk ? { character_traits: characterTraits } : {}),
+                  }
+                : {}),
             },
           },
         ],
@@ -407,6 +457,9 @@ export default function PersonalizeApiDrivenPage() {
             language: ch?.language || selectedLanguage || 'en',
             gender: ch?.gender || '',
             relationship: ch?.relationship || 'Parent/Guardian',
+            ...(String(ch?.giver_name || ch?.created_by || '').trim()
+              ? { giver_name: String(ch?.giver_name || ch?.created_by || '').trim() }
+              : {}),
             attributes: ch?.attributes || {},
             texts: {},
             face_images: faceImages,
@@ -458,7 +511,18 @@ export default function PersonalizeApiDrivenPage() {
       </div>
 
       <div className="mx-auto pb-20 md:pb-0">
-        <h1 className="text-[22px] leading-[28px] text-center pt-3 md:pt-0 md:my-6 my-0">Who are you making this book for?</h1>
+        {isBirthdayPersonalize && formType === 'SINGLE1' && currentStep === 2 ? (
+          <div className="text-center pt-3 md:pt-0 md:my-6 my-0">
+            <h1 className="text-[22px] leading-[28px] text-[#222222]">Bring them to life</h1>
+            <p className="text-[#999999] text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] mt-2 max-w-xl mx-auto px-4">
+              Tell us a little more — we&apos;ll turn it into their story.
+            </p>
+          </div>
+        ) : (
+          <h1 className="text-[22px] leading-[28px] text-center pt-3 md:pt-0 md:my-6 my-0">
+            Who are you making this book for?
+          </h1>
+        )}
         {formType === 'SINGLE1' ? (
           <SingleCharacterForm1
             ref={form1Ref}
@@ -472,7 +536,7 @@ export default function PersonalizeApiDrivenPage() {
             apiHairStyleValues={hairStyleValues}
             apiHairColorValues={hairColorValues}
             uploadOptions={uploadOptions}
-            assetSpuCode={'PICBOOK_GOODNIGHT'}
+            assetSpuCode={isBirthdayPersonalize ? 'PICBOOK_BIRTHDAY' : 'PICBOOK_GOODNIGHT'}
             currentStep={currentStep}
             onCropperOpenChange={handleCropperOpenChange}
           />
@@ -515,14 +579,19 @@ export default function PersonalizeApiDrivenPage() {
         )}
         {/* 桌面端按钮 */}
         <div className="hidden md:flex justify-center">
-          {currentStep === 1 && (formType === 'SINGLE1' || (formType === 'SINGLE2' && useForm3)) ? (
+          {(currentStep === 1 && (formType === 'SINGLE1' || (formType === 'SINGLE2' && useForm3))) ||
+          (formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 2) ? (
             <button
               type="button"
               onClick={handleNextStep}
-              style={{ width: '180px' }}
+              style={{ width: '220px' }}
               className="bg-black text-[#F5E3E3] py-3  text-[16px] leading-[24px] tracking-[0.5px] mb-16 rounded hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
             >
-              Next Step (1/2)
+              {formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 1
+                ? 'Next Step (1/3)'
+                : formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 2
+                  ? 'Next Step (2/3)'
+                  : 'Next Step (1/2)'}
             </button>
           ) : (
             <button
@@ -550,13 +619,18 @@ export default function PersonalizeApiDrivenPage() {
       {/* 手机端吸底按钮 */}
       <div className={`fixed bottom-0 left-0 right-0 bg-[#F8F8F8] z-50 md:hidden border-t border-gray-200 transition-transform duration-300 ${isAddingImage ? 'translate-y-full' : ''}`}>
         <div className="flex items-center justify-center h-[76px] px-[12px] py-[16px] gap-[10px]">
-          {currentStep === 1 && (formType === 'SINGLE1' || (formType === 'SINGLE2' && useForm3)) ? (
+          {(currentStep === 1 && (formType === 'SINGLE1' || (formType === 'SINGLE2' && useForm3))) ||
+          (formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 2) ? (
             <button
               type="button"
               onClick={handleNextStep}
               className="w-full bg-black text-[#F5E3E3] h-[44px] rounded hover:bg-gray-800 transition-colors text-[16px] leading-[24px] tracking-[0.5px] flex items-center justify-center gap-2"
             >
-              Next Step (1/2)
+              {formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 1
+                ? 'Next Step (1/3)'
+                : formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 2
+                  ? 'Next Step (2/3)'
+                  : 'Next Step (1/2)'}
             </button>
           ) : (
             <button

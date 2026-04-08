@@ -4,14 +4,14 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
-import BasicInfoForm, { BasicInfoData } from './BasicInfoForm';
+import BasicInfoForm, { BasicInfoData, AgeStage } from './BasicInfoForm';
 import MultiImageUpload from './MultiImageUpload';
 import useMultiImageUpload from '../../hooks/useMultiImageUpload';
 // Date of Birth 组件已移除
 import GiverAvatarCropper from '../../preview/components/GiverAvatarCropper';
 
 export interface PersonalizeFormData3 extends BasicInfoData {
-  ageStage: '' | 'infant' | 'toddler' | 'preschooler' | 'early_school_age';
+  ageStage: AgeStage;
   photos: string[]; // 添加多图片支持
   relationship?: string; // Relationship to the child
   consent?: boolean; // Consent checkbox
@@ -90,6 +90,7 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
     hairColor: initialData?.hairColor ?? 'light', // 默认选择浅色头发
     photo: initialData?.photo ? ({ path: initialData.photo.path } as any) : null,
     ageStage: '',
+    fromWhom: '',
     photos: [],
     relationship: 'Parent/Guardian',
     consent: !!defaultConsentChecked,

@@ -309,7 +309,7 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                 </svg>
               )}
             </button>
-            {selectedItem.status === "ai_completed" && (
+            {(
               <button
                 onClick={handleConfirm}
                 disabled={isConfirming}
@@ -521,7 +521,7 @@ const ResultImagesModal: FC<ResultImagesModalProps> = ({
                       {/* Index */}
                       <div className="flex-shrink-0 text-xs text-gray-500">
                         #{index + 1}
-                        <Button tl="Refresh" onClick={() => retryFaceswap(image.item_id)} />
+                        <Button disabled={!image.can_refresh || image.is_refreshing} tl="Refresh" onClick={() => retryFaceswap(image.item_id)} />
                       </div>
                     </div>
                   ) : (

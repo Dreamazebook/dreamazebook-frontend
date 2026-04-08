@@ -62,6 +62,23 @@ body {
   }
 }
 
+/* Personality traits 步骤：Next step 未选满 4 项时提示文案闪烁 */
+@keyframes personality-traits-hint-flash {
+  0%,
+  100% {
+    opacity: 1;
+    color: rgb(153 153 153);
+  }
+  50% {
+    opacity: 0.25;
+    color: rgb(207 10 2);
+  }
+}
+
+.personality-traits-hint-flash {
+  animation: personality-traits-hint-flash 0.42s ease-in-out 4;
+}
+
 /* 详情页 Meet Author 区域在超大屏下拉高高度 */
 @media (min-width: 1800px) {
   .meet-author-section {

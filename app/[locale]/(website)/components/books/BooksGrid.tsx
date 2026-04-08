@@ -2,6 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
+import { getBookListDisplayPrice } from '@/utils/bookDisplayPrice';
 
 // 书籍名字覆盖配置（与详情页保持一致）
 const BOOK_NAME_OVERRIDES: Record<string, string> = {
@@ -18,6 +19,7 @@ interface BooksGridProps {
 
 const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
   const t = useTranslations('BooksPage');
+  const tDetail = useTranslations('BookDetail');
   if (!books || books.length === 0) return null;
 
   const getCoverUrl = (id: string, isHover: boolean = false, isMobile: boolean = false) => {
@@ -62,7 +64,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
         const mobileCoverUrl = getCoverUrl(String(idOrCode), false, true);
         const defaultCoverUrl = getCoverUrl(String(idOrCode), false, false);
         const hoverCoverUrl = getCoverUrl(String(idOrCode), true, false);
-        const priceVal = (book as any)?.current_price ?? (book as any)?.price ?? 0;
+        const priceVal = getBookListDisplayPrice(book);
         const desc = (book as any)?.description ?? (book as any)?.desc ?? '';
         // 仅对我们人工插入的“new-books-coming”卡片做 coming soon 判定
         // （不要用 price===0 来判断，避免误伤真实 0 元商品或数据异常）
@@ -146,7 +148,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
               )}
               {!isComingSoon && (
                 <button className="hidden group-hover:inline-flex text-[#222222] text-sm items-center gap-2">
-                  {t('personalize')}
+                  {tDetail('personalizeButton')}
                   <svg width="18" height="10" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M1 5H17M17 5L12.5 1M17 5L12.5 9" stroke="#222222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
