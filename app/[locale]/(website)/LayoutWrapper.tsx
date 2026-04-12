@@ -10,6 +10,7 @@ import { useEffect } from 'react';
 import KickstarterWelcomeModal from './components/KickstarterWelcomeModal';
 import LoginModal from './components/LoginModal';
 import { Toaster } from 'react-hot-toast';
+import TopBanner from '@/app/components/TopBanner';
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const segments = useSelectedLayoutSegments();
@@ -45,6 +46,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
   return (
     <>
+      <TopBanner />
       {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isEmbedMode) && <Header />}
       {children}
       <KickstarterWelcomeModal />

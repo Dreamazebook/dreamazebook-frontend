@@ -119,8 +119,9 @@ const AdminOrderDetailPage: FC = () => {
         setSelectedItem(null);
         setOrder(data);
       }
-    } catch (err) {
+    } catch (err:any) {
       console.error('Error confirming order:', err);
+      alert('Failed to confirm order: ' + err?.response?.data?.message);
     }
   };
 

@@ -17,6 +17,7 @@ export default function DreamzeImage({src,alt,cssClass='',style,unoptimized=fals
       fill 
       loading="lazy" 
       unoptimized={unoptimized}
+      sizes="(max-width: 768px) 100vw, 100vw"
     />
   )
 }

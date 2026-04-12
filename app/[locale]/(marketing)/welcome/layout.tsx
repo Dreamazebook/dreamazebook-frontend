@@ -6,6 +6,7 @@ import Script from 'next/script'
 import Footer from '@/app/components/Footer';
 import MetaPixel from '@/app/components/MetaPixel';
 import HotJar from '@/app/components/HotJar';
+import TopBanner from '@/app/components/TopBanner';
 import { OrganizationSchema, WebsiteSchema } from '@/app/components/StructuredDataSchemas';
 
 const roboto = Roboto({
@@ -73,6 +74,7 @@ export default function MarketingLayout({
             style={{ display: 'none', visibility: 'hidden' }}
           />
         </noscript>
+        <TopBanner />
         {children}
         <Footer/>
         <TermlyCMP websiteUUID={'6886d96b-3a64-44f3-9388-e4bbed70d8c3'} autoBlock={undefined} masterConsentsOrigin={undefined} />

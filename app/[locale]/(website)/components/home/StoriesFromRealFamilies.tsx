@@ -44,24 +44,21 @@ export default function StoriesFromRealFamilies() {
         // First try muted (browsers allow muted autoplay)
         video.muted = true;
         await video.play();
-        console.log('Auto-play started (muted) when video entered viewport');
         
         // Then try to unmute after playing starts
         setTimeout(() => {
           video.muted = false;
           video.volume = 0.5;
-          console.log('Video unmuted after starting');
         }, 100);
       } catch (err) {
-        console.log('Muted auto-play failed, trying with volume:', err);
+        console.error('Muted auto-play failed, trying with volume:', err);
         // Fallback: try with volume if muted fails
         try {
           video.muted = false;
           video.volume = 0.5;
           await video.play();
-          console.log('Auto-play started with volume when video entered viewport');
         } catch (err2) {
-          console.log('All auto-play attempts failed (user interaction required):', err2);
+          console.error('All auto-play attempts failed (user interaction required):', err2);
         }
       }
     };
@@ -72,10 +69,8 @@ export default function StoriesFromRealFamilies() {
         const entry = entries[0];
         
         if (entry.isIntersecting) {
-          console.log('Video entered viewport, attempting auto-play');
           attemptPlay();
         } else {
-          console.log('Video left viewport, pausing');
           video.pause();
         }
       },
@@ -94,8 +89,6 @@ export default function StoriesFromRealFamilies() {
   const handleVideoClick = () => {
     const video = videoRef.current;
     if (!video) return;
-
-    console.log('Video clicked, paused:', video.paused, 'ended:', video.ended);
     
     if (video.paused || video.ended) {
       // Set volume and play the video
@@ -104,15 +97,13 @@ export default function StoriesFromRealFamilies() {
       
       if (playPromise !== undefined) {
         playPromise.then(() => {
-          console.log('Video play successful');
         }).catch(err => {
-          console.log('Play failed:', err);
+          console.error('Play failed:', err);
         });
       }
     } else {
       // Pause the video
       video.pause();
-      console.log('Video paused');
     }
   };
 
