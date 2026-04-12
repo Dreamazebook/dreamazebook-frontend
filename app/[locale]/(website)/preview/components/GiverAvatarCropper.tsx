@@ -281,7 +281,8 @@ export default function GiverAvatarCropper({
               background={false}
               autoCropArea={1}
               checkOrientation={true}
-              aspectRatio={aspectRatio as any}
+              // Cropper.js：aspectRatio 默认为 NaN（即自由裁剪）
+              aspectRatio={(typeof aspectRatio === 'number' ? aspectRatio : Number.NaN) as any}
               zoomable
               movable
               rotatable

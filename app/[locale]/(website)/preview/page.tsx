@@ -901,6 +901,9 @@ export default function PreviewPageWithTopNav() {
                     page_number: bp.sort_order ?? idx + 1,
                     // 保留后端原始 image_url（很多情况下它才是“未叠字/未合成”的底图）
                     raw_image_url: bp.image_url,
+                    // 后端 stage 字段：用于前端“纯底图”选择
+                    base_stage_url: bp.base_stage_url,
+                    final_stage_url: bp.final_stage_url,
                     // 分层模型：后端可选返回 p3-4 giver 图片数据（URL 或 data URL）
                     giver_data: bp.giver_data,
                     // 分层模型：后端可选返回“纯底图”（无 dedication / 无 giver）
@@ -1063,7 +1066,8 @@ export default function PreviewPageWithTopNav() {
     p34GiverDataRef.current = null;
   }, [p34CacheKey]);
 
-  // 首次拿到 previewData 后，记录 p3-4 的基础图（优先用 base_image_url；否则退回 image_url）
+  // 首次拿到 previewData 后，记录 p3-4 的“纯底图”（尽量不含 dedication / 不含 giver）
+  // 目的：后续每次用 Canvas 叠加 giver / dedication 时，都从同一张干净底图开始重绘，避免“在已合成图上继续覆盖”导致残影/比例问题。
   useEffect(() => {
     if (p34BaseImageUrlRef.current) return;
     const pages = (previewData as any)?.preview_data;
@@ -1072,12 +1076,8 @@ export default function PreviewPageWithTopNav() {
       const code = String(p?.page_code || '');
       return code === 'p3-4' || code === 'p3-p4';
     });
-    // p3-4 的“底图”必须保证：
-    // - 不包含 dedication 文本（避免二次渲染叠字）
-    // - 但需要包含“最新 giver 图片”（从 personalized-products 或 preview 更新 giver 后）
-    // 因此优先使用后端提供的 base_image_url（约定为“无 dedication 的基础图”，但包含 giver），
-    // 若后端缺失则退回 raw/image_url 兜底。
-    const base = p34?.base_image_url || p34?.raw_image_url || p34?.image_url;
+    // “纯底图”只使用后端的 base_stage_url（对应 base stage）。
+    const base = (p34 as any)?.base_stage_url;
     if (typeof base === 'string' && base.trim()) {
       p34BaseImageUrlRef.current = base;
     }
@@ -1123,7 +1123,7 @@ export default function PreviewPageWithTopNav() {
       return;
     }
 
-    // 上传前兜底：如果还没缓存过基础图，先从当前 previewData 里抓一次，避免后续 image_url 被覆盖成“已合成图”
+    // 上传前兜底：如果还没缓存过纯底图，先从当前 previewData 里抓一次，避免后续 image_url 被覆盖成“已合成图”
     if (!p34BaseImageUrlRef.current) {
       const pages = (previewData as any)?.preview_data;
       if (Array.isArray(pages)) {
@@ -1131,7 +1131,7 @@ export default function PreviewPageWithTopNav() {
           const code = String(p?.page_code || '');
           return code === 'p3-4' || code === 'p3-p4';
         });
-        const base = p34?.raw_image_url || p34?.base_image_url || p34?.image_url;
+        const base = (p34 as any)?.base_stage_url;
         if (typeof base === 'string' && base.trim()) {
           p34BaseImageUrlRef.current = base;
         }
@@ -1197,9 +1197,8 @@ export default function PreviewPageWithTopNav() {
             }),
           } as any;
         });
-        if (baseUrl) {
-          p34BaseImageUrlRef.current = baseUrl;
-        }
+        // 注意：p34BaseImageUrlRef 缓存的是“纯底图”（template/raw），不要用返回的 base_image_url 覆盖；
+        // base_image_url 可能包含历史 giver，若再叠加新的 giver（比例不同）会出现边缘残影。
         shouldUploadP34ComposedRef.current = false;
         p34ComposeUploadedRef.current = true;
         setIsNameOnBookCompleted(true);
@@ -2428,6 +2427,8 @@ export default function PreviewPageWithTopNav() {
                   page_code: bp.page_code,
                   page_number: bp.sort_order ?? idx + 1,
                   raw_image_url: bp.image_url,
+                  base_stage_url: bp.base_stage_url,
+                  final_stage_url: bp.final_stage_url,
                   giver_data: bp.giver_data,
                   template_image_url: bp.template_image_url || bp.template_url,
                   image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
@@ -2459,6 +2460,8 @@ export default function PreviewPageWithTopNav() {
                   page_code: bp.page_code,
                   page_number: bp.sort_order ?? idx + 1,
                   raw_image_url: bp.image_url,
+                  base_stage_url: bp.base_stage_url,
+                  final_stage_url: bp.final_stage_url,
                   giver_data: bp.giver_data,
                   template_image_url: bp.template_image_url || bp.template_url,
                   image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
@@ -2484,6 +2487,8 @@ export default function PreviewPageWithTopNav() {
               page_code: bp.page_code,
               page_number: ((bp.sort_order != null ? Number(bp.sort_order) : idx) + 1),
               raw_image_url: bp.image_url,
+              base_stage_url: bp.base_stage_url,
+              final_stage_url: bp.final_stage_url,
               giver_data: bp.giver_data,
               template_image_url: bp.template_image_url || bp.template_url,
               image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
@@ -2684,6 +2689,8 @@ export default function PreviewPageWithTopNav() {
                       // 分层模型：后端可选返回 giver/template 信息
                       giver_data: data?.giver_data ?? p.giver_data,
                       template_image_url: (data?.template_image_url || data?.template_url) ?? p.template_image_url,
+                      base_stage_url: data?.base_stage_url ?? (p as any).base_stage_url,
+                      final_stage_url: data?.final_stage_url ?? (p as any).final_stage_url,
                       base_only: data?.base_only ?? p.base_only,
                       final_image_url: data?.final_image_url ?? p.final_image_url,
                       base_image_url: data?.base_image_url ?? p.base_image_url,
@@ -3963,24 +3970,18 @@ export default function PreviewPageWithTopNav() {
                         String(p34FinalRaw).trim() !== String(p34BaseOrImageRaw).trim();
                       const p34FinalSrc = p34PreferFinal ? buildImageUrl(String(p34FinalRaw || '')) : null;
                       // p3-4 分层模型：
-                      // - 底图：优先 template_image_url（严格无 dedication）；否则退回 base_image_url（后端应保证无 dedication）；再退回 raw/image_url
+                      // - 底图：只使用 base_stage_url（后端 base stage 纯底图）。
                       const p34TemplateRaw = isGiverDedicationPage
-                        ? ((page as any).template_image_url || (page as any).base_image_url || p34BaseImageUrlRef.current || (page as any).raw_image_url || (page as any).image_url)
+                        ? ((page as any).base_stage_url || p34BaseImageUrlRef.current)
                         : null;
                       const p34BaseSrc = isGiverDedicationPage
-                        ? buildImageUrl(String(p34TemplateRaw || (page as any).image_url || ''))
+                        ? buildImageUrl(String(p34TemplateRaw || ''))
                         : src;
                       // giver 图：优先使用用户本次上传（giverImageUrl），否则用后端保存的 giver_data（URL / data URL）
                       const p34GiverOverlaySrc = isGiverDedicationPage
                         ? (giverImageUrl || (page as any).giver_data || null)
                         : giverImageUrl;
                       const upperBookId = (searchParams.get('bookid') || '').toUpperCase();
-                      const giverImageAspectRatio =
-                        upperBookId === 'PICBOOK_BRAVEY'
-                          ? 1050 / 840
-                          : (upperBookId === 'PICBOOK_GOODNIGHT3' || upperBookId === 'PICBOOK_SANTA')
-                              ? 695 / 640
-                              : 1;
                       const giverImageScale =
                         upperBookId === 'PICBOOK_BRAVEY'
                           ? 1.2
@@ -4040,7 +4041,6 @@ export default function PreviewPageWithTopNav() {
                               giverText={giver}
                               dedicationText={dedication}
                               giverImageUrl={p34GiverOverlaySrc}
-                              giverImageAspectRatio={giverImageAspectRatio}
                               giverImageScale={giverImageScale}
                               onRendered={uploadP34ComposedImage}
                               leftBelow={(
@@ -4119,7 +4119,6 @@ export default function PreviewPageWithTopNav() {
                                     giverText={giver}
                                     dedicationText={dedication}
                                     giverImageUrl={p34GiverOverlaySrc}
-                                    giverImageAspectRatio={giverImageAspectRatio}
                                     giverImageScale={giverImageScale}
                                     onRendered={uploadP34ComposedImage}
                                   />
@@ -4742,29 +4741,6 @@ export default function PreviewPageWithTopNav() {
                 {(() => {
                   // 获取bookId（spu）
                   const bookId = searchParams.get('bookid');
-                  const upperBookId = (bookId || '').toUpperCase();
-                  const giverCropConfig: {
-                    aspectRatio: number;
-                    maxSize?: number;
-                    outputSize?: { width: number; height: number };
-                  } = (() => {
-                    if (upperBookId === 'PICBOOK_BRAVEY') {
-                      return {
-                        aspectRatio: 1050 / 840,
-                        outputSize: { width: 1050, height: 840 },
-                      };
-                    }
-                    if (upperBookId === 'PICBOOK_GOODNIGHT3' || upperBookId === 'PICBOOK_SANTA') {
-                      return {
-                        aspectRatio: 695 / 640,
-                        outputSize: { width: 695, height: 640 },
-                      };
-                    }
-                    return {
-                      aspectRatio: 1,
-                      maxSize: 1024,
-                    };
-                  })();
                   // 找到显示giver的页面（通常是第二页，idx === 1）
                   const displayedPages = previewData?.preview_data?.filter((p: any) => !(p as any).is_cover) || [];
                   const giverPage = displayedPages.length > 1 ? displayedPages[1] : displayedPages[0];
@@ -4775,9 +4751,8 @@ export default function PreviewPageWithTopNav() {
                   
                   return (
                     <GiverAvatarCropper
-                      aspectRatio={giverCropConfig.aspectRatio}
-                      maxSize={giverCropConfig.maxSize}
-                      outputSize={giverCropConfig.outputSize}
+                      // 预览页扉页图片：不限制裁剪框比例；导出不固定输出比例，避免在用户选择自由比例时发生拉伸变形
+                      maxSize={1600}
                       exportMime="image/jpeg"
                       exportQuality={0.92}
                       spu={bookId || undefined}
