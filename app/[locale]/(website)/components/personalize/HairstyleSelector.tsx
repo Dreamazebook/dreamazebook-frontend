@@ -39,7 +39,8 @@ const HairstyleSelector: React.FC<HairstyleSelectorProps> = ({
 
   // 规范化 bookId：将 PICBOOK_GOODNIGHT3 统一视为 PICBOOK_GOODNIGHT
   const normalizeBookId = (id: string): string => {
-    return id === 'PICBOOK_GOODNIGHT3' ? 'PICBOOK_GOODNIGHT' : id;
+    if (id === 'PICBOOK_GOODNIGHT3') return 'PICBOOK_GOODNIGHT';
+    return id;
   };
   
   // 优先用当前书籍 id 对应的公共资源，如不存在则回退到指定 spu 资源

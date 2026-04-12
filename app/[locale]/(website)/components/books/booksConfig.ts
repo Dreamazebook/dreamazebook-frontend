@@ -246,7 +246,139 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
     id: 'PICBOOK_GOODNIGHT',
     ...GOODNIGHT_BASE_CONFIG,
   },
-  
+
+  'PICBOOK_MOM': {
+    id: 'PICBOOK_MOM',
+    specifications: [
+      { label: 'Best for ages 3+' },
+      { label: '20 × 20 cm hardcover' },
+      { label: '32 pages' },
+      { label: 'Printed and dispatched in 2–4 working days' },
+    ],
+    faqs: [
+      {
+        question: 'How is the book personalized?',
+        answer:
+          "- Add Mama's name or special title (Mama, Mommy, Mum, etc.)\n- Add your child's name or nickname\n- Upload a photo of Mama and your child\n- Upload your child's drawing of Mama\n- Add a dedication — printed on the first page\n- Choose your cover and gift options\n- Place your order — preview before printing",
+      },
+      {
+        question: 'Why families love it?',
+        answer:
+          "In this touching story, Mama is seen through the eyes of her child — her smile, her hands, her hugs, and all the little things that make her feel like home.\nThe child's own drawings and words make the story feel especially personal, helping Mama see herself the way her little one does: loving, comforting, fun, and unforgettable.\nMore than a Mother's Day gift, it's a beautiful way to encourage children to express love and appreciation for the people who matter most. It can even inspire meaningful conversations about other family members too — like Daddy or siblings.",
+      },
+      {
+        question: 'Reading tips for parents',
+        answer:
+          '- Pause and ask simple questions, like "Is Mama like this?" or "What does Mama do that makes you happy?"\n- Encourage your child to describe Mama in their own words.\n- Encourage your child to share little memories or moments inspired by the book.\n- Talk about other family members too — "How would you describe Daddy?"\n- After reading, give each other a hug, touch each other\'s hands, nose and talk about how they feel warm, soft, and safe.',
+      },
+    ],
+    sections: [
+      {
+        type: 'behind-story',
+        title: 'Love, Through Your Child’s Eyes',
+        paragraphs: [
+          'To a child, Mama is not just Mama.',
+          'She is comfort, warmth, laughter, and home.',
+          'This book helps children put their love into words — turning all the warmth they notice and feel into a personal love language.',
+          'And perhaps this book is only the beginning.',
+          'When love is spoken out loud, it quickly flows through the whole family.',
+        ],
+        authorImage:
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-behind.jpg',
+      },
+      {
+        type: 'toddler-favorites',
+        title: 'Keep the Love Growing',
+        description: `Turn one meaningful book into a collection of family memories.
+These titles are often chosen together to celebrate love, comfort, and connection throughout the family.`,
+        className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
+        bundleImage:
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bundle.png',
+        bundleImageMobile:
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bundle-mobile.png',
+        books: [
+          {
+            title: 'Good Night to You',
+            subtitle: 'Gentle bedtime comfort',
+            coverImage: '',
+            price: '$79',
+            backgroundColor: '#4A90E2',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_1.png',
+            spuCode: 'PICBOOK_GOODNIGHT',
+          },
+          {
+            title: 'The Way I See You, Mama',
+            subtitle: 'A keepsake full of love',
+            coverImage: '',
+            price: '$79',
+            backgroundColor: '#E8B4BC',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-behind.jpg',
+            spuCode: 'PICBOOK_MOM',
+          },
+          {
+            title: "You're Brave in Many Ways",
+            subtitle: 'Everyday courage and confidence',
+            coverImage: '',
+            price: '$79',
+            backgroundColor: '#FFD700',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_2.png',
+            spuCode: 'PICBOOK_BRAVEY',
+          },
+          {
+            title: 'Birthday Book for You',
+            subtitle: 'Special day keepsake',
+            coverImage: '',
+            price: '$79',
+            backgroundColor: '#FF6B6B',
+            backgroundImage: '',
+            spuCode: 'PICBOOK_BIRTHDAY',
+          },
+        ],
+        originalPrice: '$316',
+        discountedPrice: '$268.6',
+        buttonText: 'add 4 books to bag',
+      },
+      {
+        type: 'why-personalized',
+        title: '4 Ways to Help Your Child Feel Truly Loved',
+        className: 'py-[48px] mx-auto md:w-full md:px-0 md:h-[860px] md:pt-[88px] md:pb-[128px]',
+        items: [
+          {
+            title: 'Notice the little things',
+            description:
+              'Children feel deeply loved when you notice their drawings, ideas, questions, and efforts — not just the big achievements.',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-1.png',
+          },
+          {
+            title: 'Use specific words',
+            description:
+              'Instead of only saying “good job,” try “I love how kind you were,” or “You worked so hard on this.” It helps children feel truly seen.',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-2.png',
+          },
+          {
+            title: 'Create small family rituals',
+            description:
+              'A bedtime cuddle, a special goodbye hug, or reading together every night can become the moments children remember forever.',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-3.png',
+          },
+          {
+            title: 'Say love out loud',
+            description:
+              'Children never get tired of hearing “I love you,” “I’m proud of you,” and “I’m so happy you’re mine.”',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-4.png',
+          },
+        ],
+      },
+    ],
+  },
+
   // You're Brave in Many Ways 书籍配置（兼容新版与旧版 ID）
   'PICBOOK_BRAVEY': {
     id: 'PICBOOK_BRAVEY',

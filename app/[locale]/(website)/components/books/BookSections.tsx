@@ -71,9 +71,13 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection; bookId: string |
   // 发送到购物车时的 spu_code 规范化：PICBOOK_GOODNIGHT -> PICBOOK_GOODNIGHT3
   const normalizeSpuCodeForCart = (spuCode: string) => (spuCode === 'PICBOOK_GOODNIGHT' ? 'PICBOOK_GOODNIGHT3' : spuCode);
 
-  // 需求指定：PICBOOK_BRAVEY / PICBOOK_GOODNIGHT 的 bundle 都是 GOODNIGHT + BRAVEY
+  // 需求指定：PICBOOK_BRAVEY / PICBOOK_GOODNIGHT 的 bundle 都是 GOODNIGHT + BRAVEY（PICBOOK_MOM 使用下方 section 内配置的 4 本书）
   const forcedBundleSpuCodes = useMemo(() => {
-    if (normalizedBookId === 'PICBOOK_BRAVEY' || normalizedBookId === 'PICBOOK_GOODNIGHT' || normalizedBookId === 'PICBOOK_GOODNIGHT3') {
+    if (
+      normalizedBookId === 'PICBOOK_BRAVEY' ||
+      normalizedBookId === 'PICBOOK_GOODNIGHT' ||
+      normalizedBookId === 'PICBOOK_GOODNIGHT3'
+    ) {
       return ['PICBOOK_GOODNIGHT', 'PICBOOK_BRAVEY'];
     }
     return null;
@@ -89,11 +93,11 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection; bookId: string |
   const bundleSpuCodes = forcedBundleSpuCodes ?? sectionBundleSpuCodes;
   const bundleSpuCodesForCart = useMemo(() => {
     // 去重：例如同时出现 GOODNIGHT 与 GOODNIGHT3 时，最终只发 GOODNIGHT3
-    // 过滤掉不允许添加的 PICBOOK_BIRTHDAY（所有详情页都过滤）
+    // 默认过滤 PICBOOK_BIRTHDAY；PICBOOK_MOM 详情页的 4 本套装需包含 Birthday
     return Array.from(new Set(bundleSpuCodes.map(normalizeSpuCodeForCart))).filter(
-      code => code !== 'PICBOOK_BIRTHDAY'
+      code => normalizedBookId === 'PICBOOK_MOM' || code !== 'PICBOOK_BIRTHDAY'
     );
-  }, [bundleSpuCodes]);
+  }, [bundleSpuCodes, normalizedBookId]);
 
   const handleAddBundleToBag = async () => {
     if (isAdding) return;
@@ -265,11 +269,12 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection; bookId: string |
             {section.buttonText && (
               <button
                 type="button"
-                onClick={
-                  section.buttonText.trim().toLowerCase() === 'add bundle to bag'
+                onClick={(() => {
+                  const b = section.buttonText.trim().toLowerCase();
+                  return b === 'add bundle to bag' || b === 'add 4 books to bag'
                     ? handleAddBundleToBag
-                    : undefined
-                }
+                    : undefined;
+                })()}
                 disabled={isAdding}
                 className={`bg-black text-[#F5E3E3] px-8 py-3 rounded-[4px] hover:bg-gray-800 transition-colors ${
                   isAdding ? 'opacity-75 cursor-wait pointer-events-none' : ''
@@ -517,11 +522,12 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection; bookId: string |
           {section.buttonText && (
             <button
               type="button"
-              onClick={
-                section.buttonText.trim().toLowerCase() === 'add bundle to bag'
+              onClick={(() => {
+                const b = section.buttonText.trim().toLowerCase();
+                return b === 'add bundle to bag' || b === 'add 4 books to bag'
                   ? handleAddBundleToBag
-                  : undefined
-              }
+                  : undefined;
+              })()}
               disabled={isAdding}
               className={`bg-black text-[#F5E3E3] px-8 py-3 rounded-[4px] hover:bg-gray-800 transition-colors ${
                 isAdding ? 'opacity-75 cursor-wait pointer-events-none' : ''

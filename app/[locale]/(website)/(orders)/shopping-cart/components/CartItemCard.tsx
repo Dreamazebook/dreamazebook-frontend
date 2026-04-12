@@ -588,7 +588,8 @@ export default function CartItemCard({
                         // 根据 cover_type 自动展示 cover option 图片：
                         // - personalized → cover_3
                         // - 其他/缺省 → cover_1
-                        const normalizeSpuForCover = (spu: string) => (spu === 'PICBOOK_GOODNIGHT3' ? 'PICBOOK_GOODNIGHT' : spu);
+                        const normalizeSpuForCover = (spu: string) =>
+  spu === 'PICBOOK_GOODNIGHT3' ? 'PICBOOK_GOODNIGHT' : spu;
                         const coverId =
                           String(coverType || '').toLowerCase().includes('personalized') ? '3' : '1';
                         const coverOptionImageUrl =

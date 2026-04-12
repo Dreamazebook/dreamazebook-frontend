@@ -7,6 +7,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const bookTitles: Record<string, string> = {
     PICBOOK_GOODNIGHT3: 'Good Night to You',
     PICBOOK_GOODNIGHT: 'Good Night to You',
+    PICBOOK_MOM: 'The Way I See You, Mama',
     PICBOOK_BRAVEY: "Little One, You're Brave in Many Ways",
     PICBOOK_BIRTHDAY: 'Birthday Book for You',
     PICBOOK_SANTA: "Santa's Letter for You",
@@ -18,6 +19,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       'Introduce your little one to a world of peaceful dreams with Good Night to You. A personalized story that sparks imagination while creating the perfect, soothing atmosphere for sleep.',
     PICBOOK_GOODNIGHT:
       'Introduce your little one to a world of peaceful dreams. A personalized story that sparks imagination while creating the perfect, soothing atmosphere for sleep.',
+    PICBOOK_MOM:
+      "Celebrate the love between a child and their mama. A personalized keepsake woven with photos, your child's drawings, and words from the heart.",
     PICBOOK_BRAVEY:
       "Even the smallest acts of bravery make a big difference. A personalized story that celebrates courage and nurtures confidence in all its forms.",
     PICBOOK_BIRTHDAY:

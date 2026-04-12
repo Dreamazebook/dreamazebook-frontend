@@ -8,6 +8,7 @@ import { WEBSITE_CDN_URL } from '@/constants/cdn';
 // 书籍名字覆盖配置（与详情页保持一致）
 const BOOK_NAME_OVERRIDES: Record<string, string> = {
   PICBOOK_GOODNIGHT3: 'Good Night to You',
+  PICBOOK_MOM: 'The Way I See You, Mama',
   PICBOOK_BRAVEY: "Little One, You're Brave in Many Ways",
   PICBOOK_BIRTHDAY: 'Birthday Book for You',
   PICBOOK_MELODY: 'Your Melody',

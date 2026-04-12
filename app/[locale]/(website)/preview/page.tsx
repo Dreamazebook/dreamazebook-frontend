@@ -211,7 +211,7 @@ function CoverOptionImageWithName({
 
   useEffect(() => {
     let upperBookId = (bookId || '').toUpperCase();
-    // 与其他页面保持一致，PICBOOK_GOODNIGHT3 资源使用 PICBOOK_GOODNIGHT 目录
+    // PICBOOK_GOODNIGHT3 资源目录与 PICBOOK_GOODNIGHT 一致
     if (upperBookId === 'PICBOOK_GOODNIGHT3') {
       upperBookId = 'PICBOOK_GOODNIGHT';
     }
@@ -1352,7 +1352,6 @@ export default function PreviewPageWithTopNav() {
   useEffect(() => {
     const bookIdParam = searchParams.get('bookid');
     let upperBookId = (bookIdParam || '').toUpperCase();
-    // 与其他页面保持一致，PICBOOK_GOODNIGHT3 资源使用 PICBOOK_GOODNIGHT 目录
     if (upperBookId === 'PICBOOK_GOODNIGHT3') {
       upperBookId = 'PICBOOK_GOODNIGHT';
     }
@@ -2136,7 +2135,6 @@ export default function PreviewPageWithTopNav() {
       return null;
     }
     let normalizedBookId = String(rawBookId).trim();
-    // 与其他页面保持一致，PICBOOK_GOODNIGHT3 资源使用 PICBOOK_GOODNIGHT 目录
     if (normalizedBookId === 'PICBOOK_GOODNIGHT3') {
       normalizedBookId = 'PICBOOK_GOODNIGHT';
     }
@@ -3570,6 +3568,8 @@ export default function PreviewPageWithTopNav() {
     
     if (bookIdUpper.includes('GOODNIGHT')) {
       templateType = 'goodnight';
+    } else if (bookIdUpper === 'PICBOOK_MOM') {
+      templateType = 'goodnight';
     } else if (bookIdUpper.includes('SANTA') || bookIdUpper.includes('SANTALETTER')) {
       templateType = 'santa';
     } else if (bookIdUpper.includes('BRAVE') || bookIdUpper.includes('BRAVEY')) {
@@ -3792,7 +3792,6 @@ export default function PreviewPageWithTopNav() {
                         : String(activeOption.id);
                       // 仅当配置对应当前封面时启用
                       let expectedBookId = (searchParams.get('bookid') || '').toUpperCase();
-                      // 与其他页面保持一致，PICBOOK_GOODNIGHT3 资源使用 PICBOOK_GOODNIGHT 目录
                       if (expectedBookId === 'PICBOOK_GOODNIGHT3') {
                         expectedBookId = 'PICBOOK_GOODNIGHT';
                       }
@@ -3985,7 +3984,9 @@ export default function PreviewPageWithTopNav() {
                       const giverImageScale =
                         upperBookId === 'PICBOOK_BRAVEY'
                           ? 1.2
-                          : (upperBookId === 'PICBOOK_GOODNIGHT3' || upperBookId === 'PICBOOK_SANTA')
+                          : (upperBookId === 'PICBOOK_GOODNIGHT3' ||
+                              upperBookId === 'PICBOOK_MOM' ||
+                              upperBookId === 'PICBOOK_SANTA')
                               ? 0.7
                               : undefined;
                       // 如果是“曾经编辑过的书”，后端会返回 p3-4 的 final_image_url。

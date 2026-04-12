@@ -22,6 +22,60 @@ export interface BookReviewData {
   keywords?: Keyword[]; // 关键词数组（可选）
 }
 
+const PICBOOK_MOM_REVIEW_DATA: BookReviewData = {
+  title: 'Loved by parents · 5.0 / 5.0',
+  rating: 5.0,
+  reviewsCount: 5,
+  keywords: [
+    { keyword: 'Made mama cry', count: 5 },
+    { keyword: 'heartfelt gift', count: 12 },
+    { keyword: "child's drawing inside", count: 8 },
+    { keyword: 'family keepsake', count: 6 },
+  ],
+  reviews: [
+    {
+      reviewer_name: 'Sarah M., London',
+      rating: 5,
+      comment:
+        "When I opened the book and saw my daughter's little drawing of me inside, I honestly cried. It felt so personal and full of love.",
+      pagepic:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/reviews/avatars/renee-london.jpg',
+    },
+    {
+      reviewer_name: 'Lauren P., California',
+      rating: 5,
+      comment:
+        'My son loved pointing at every page and saying, "That\'s you and me, Mama!" Such a beautiful way to hear how your child sees you.',
+      pagepic:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/reviews/avatars/amanda-california.jpg',
+    },
+    {
+      reviewer_name: 'Megan C., Dublin',
+      rating: 5,
+      comment:
+        "The illustrations are gorgeous, and adding my child's own artwork made it feel so unique. This is more than a book—it's a memory we'll keep forever.",
+      pagepic:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/hadjer-london.jpg',
+    },
+    {
+      reviewer_name: 'Natalie F., Brisbane',
+      rating: 5,
+      comment:
+        'Reading this together gave us such a sweet moment to talk, hug, and laugh. It made me realize how closely my child notices every little thing about me.',
+      pagepic:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/michale-sydney.jpg',
+    },
+    {
+      reviewer_name: 'Olivia K., Seattle',
+      rating: 5,
+      comment:
+        "I bought this as a Mother's Day gift for myself, but honestly it's something I would want any time of year. It made me feel so loved and seen.",
+      pagepic:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/julia-new-york.jpg',
+    },
+  ],
+};
+
 const GOODNIGHT_REVIEW_DATA: BookReviewData = {
   title: "What Parents Are Saying",
   rating: 5.0, // 平均评分
@@ -73,6 +127,7 @@ export const BOOK_REVIEWS_DATA: Record<string | number, BookReviewData> = {
   // Good Night 书籍的评论数据（兼容新版与旧版 ID）
   'PICBOOK_GOODNIGHT3': GOODNIGHT_REVIEW_DATA,
   'PICBOOK_GOODNIGHT': GOODNIGHT_REVIEW_DATA,
+  'PICBOOK_MOM': PICBOOK_MOM_REVIEW_DATA,
   
   // You're Brave in Many Ways 书籍的评论数据（兼容新版与旧版 ID）
   'PICBOOK_BRAVEY': {

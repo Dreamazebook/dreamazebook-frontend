@@ -21,6 +21,7 @@ import { getBookListDisplayPrice, getBookMarketComparePrice } from '@/utils/book
 // 书籍名字覆盖配置（与详情页保持一致）
 const BOOK_NAME_OVERRIDES: Record<string, string> = {
   PICBOOK_GOODNIGHT3: 'Good Night to You',
+  PICBOOK_MOM: 'The Way I See You, Mama',
   PICBOOK_BRAVEY: "Little One, You're Brave in Many Ways",
   PICBOOK_BIRTHDAY: 'Birthday Book for You',
   PICBOOK_SANTA: "Santa's Letter for You",
@@ -30,6 +31,7 @@ const BOOK_NAME_OVERRIDES: Record<string, string> = {
 const BOOK_DISPLAY_ORDER_RANK: Record<string, number> = {
   PICBOOK_GOODNIGHT3: 0,
   PICBOOK_GOODNIGHT: 0,
+  PICBOOK_MOM: 0,
   PICBOOK_SANTA: 1,
   PICBOOK_BRAVEY: 2,
   PICBOOK_BIRTHDAY: 3,

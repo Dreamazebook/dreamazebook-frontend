@@ -36,6 +36,11 @@ export default function PersonalizeApiDrivenPage() {
   const pathname = usePathname();
   const locale = pathname.split('/')[1] || 'en';
   const isBirthdayPersonalize = isPicbookBirthday(bookId);
+  const personalizeAvatarAssetSpu = isBirthdayPersonalize
+    ? 'PICBOOK_BIRTHDAY'
+    : String(bookId || '').trim().toUpperCase() === 'PICBOOK_MOM'
+      ? 'PICBOOK_MOM'
+      : 'PICBOOK_GOODNIGHT';
 
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -536,7 +541,7 @@ export default function PersonalizeApiDrivenPage() {
             apiHairStyleValues={hairStyleValues}
             apiHairColorValues={hairColorValues}
             uploadOptions={uploadOptions}
-            assetSpuCode={isBirthdayPersonalize ? 'PICBOOK_BIRTHDAY' : 'PICBOOK_GOODNIGHT'}
+            assetSpuCode={personalizeAvatarAssetSpu}
             currentStep={currentStep}
             onCropperOpenChange={handleCropperOpenChange}
           />
@@ -555,7 +560,7 @@ export default function PersonalizeApiDrivenPage() {
                 apiHairStyleValues={hairStyleValues}
                 apiHairColorValues={hairColorValues}
                 uploadOptions={uploadOptions}
-                assetSpuCode={'PICBOOK_GOODNIGHT'}
+                assetSpuCode={personalizeAvatarAssetSpu}
                 currentStep={currentStep}
                 onCropperOpenChange={handleCropperOpenChange}
               />
@@ -572,7 +577,7 @@ export default function PersonalizeApiDrivenPage() {
                 apiHairStyleValues={hairStyleValues}
                 apiHairColorValues={hairColorValues}
                 uploadOptions={uploadOptions}
-                assetSpuCode={'PICBOOK_GOODNIGHT'}
+                assetSpuCode={personalizeAvatarAssetSpu}
               />
             )}
           </>

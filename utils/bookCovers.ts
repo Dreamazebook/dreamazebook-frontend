@@ -6,6 +6,8 @@ const R2_BOOK_COVERS: Record<string, string> = {
     'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_SANTA.png',
   PICBOOK_GOODNIGHT:
     'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_GOODNIGHT.png',
+  PICBOOK_MOM:
+    'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_MOM.png',
   PICBOOK_BRAVEY:
     'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_BRAVEY.png',
   PICBOOK_BIRTHDAY:

@@ -27,6 +27,7 @@ const BOOK_DISPLAY_ORDER_RANK: Record<string, number> = {
   PICBOOK_BRAVEY: 2,
   PICBOOK_BIRTHDAY: 3,
   PICBOOK_MELODY: 4,
+  PICBOOK_MOM: 5
 };
 
 const getBookCode = (book: any): string =>

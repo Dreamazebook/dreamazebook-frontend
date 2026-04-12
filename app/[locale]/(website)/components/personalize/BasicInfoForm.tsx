@@ -100,7 +100,8 @@ const getDefaultHairstyleForGender = (
       ? Array.from(new Set(apiHairStyleValues.map(v => `hair_${String(v)}`)))
       : ['hair_1', 'hair_2', 'hair_3', 'hair_4'];
 
-  const isGoodnight3 = String(bookId || '').trim().toUpperCase() === 'PICBOOK_GOODNIGHT3';
+  const bid = String(bookId || '').trim().toUpperCase();
+  const isGoodnight3 = bid === 'PICBOOK_GOODNIGHT3';
   const preferred = isGoodnight3
     ? (gender === 'boy' ? 'hair_4' : 'hair_1')
     : (gender === 'boy' ? 'hair_1' : 'hair_4');
