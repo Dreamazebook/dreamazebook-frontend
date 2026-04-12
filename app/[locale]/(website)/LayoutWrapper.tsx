@@ -46,7 +46,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
   return (
     <>
-      <TopBanner />
+      {!isPreviewPage && <TopBanner />}
       {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isEmbedMode) && <Header />}
       {children}
       <KickstarterWelcomeModal />
