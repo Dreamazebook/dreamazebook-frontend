@@ -8,6 +8,11 @@ import {
   getAgeStageMismatchHint,
   getPersonalizeAgeStagePolicy,
 } from '@/utils/personalizeAgeStagePolicy';
+import {
+  PERSONALIZE_AGE_RANGE_0_3,
+  PERSONALIZE_AGE_RANGE_3_6,
+  PERSONALIZE_AGE_RANGE_6_PLUS,
+} from '@/constants/cdn';
 import HairstyleSelector from './HairstyleSelector';
 import HairColorSelector from './HairColorSelector';
 import AvatarCanvas from './AvatarCanvas';
@@ -53,13 +58,11 @@ interface BasicInfoFormProps {
 const FORM1_AGE_OPTIONS: {
   value: Exclude<AgeStage, '' | 'toddler'>;
   title: string;
-  range: string;
-  rangeColor: string;
   image: string;
 }[] = [
-  { value: 'infant', title: 'Infant', range: '0-3 yrs', rangeColor: '#E8890C', image: '/personalize/age-stage/infant.svg' },
-  { value: 'preschooler', title: 'Preschooler', range: '3-6 yrs', rangeColor: '#D4A017', image: '/personalize/age-stage/preschooler.svg' },
-  { value: 'early_school_age', title: 'Early school age', range: '6+', rangeColor: '#3D7AAD', image: '/personalize/age-stage/early-school.svg' },
+  { value: 'infant', title: 'Infant', image: PERSONALIZE_AGE_RANGE_0_3 },
+  { value: 'preschooler', title: 'Preschooler', image: PERSONALIZE_AGE_RANGE_3_6 },
+  { value: 'early_school_age', title: 'Early school age', image: PERSONALIZE_AGE_RANGE_6_PLUS },
 ];
 
 const mapBackendHairToInternal = (val: string): 'light' | 'brown' | 'dark' => {
@@ -447,17 +450,14 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
                     key={opt.value}
                     type="button"
                     onClick={() => handleAgeStageSelect(opt.value)}
-                    className={`flex-1 min-w-0 flex flex-col items-center rounded-lg border-1 bg-[#F8F8F8] px-2 pt-3 pb-3 transition-colors ${
-                      selected ? 'border-[#012CCE]' : 'border-transparent'
+                    className={`flex-1 min-w-0 flex flex-col items-center rounded-[4px] border-1 bg-[#F5F5F7] p-2 transition-colors ${
+                      selected ? 'border-[#012CCE] bg-transparent' : 'border-transparent bg-[#F5F5F7]'
                     }`}
                   >
-                    <span className="text-[12px] sm:text-[14px] font-medium leading-none mb-2" style={{ color: opt.rangeColor }}>
-                      {opt.range}
-                    </span>
-                    <div className="relative w-full max-w-[108px] aspect-[6/5] mx-auto mb-2">
+                    <div className="relative w-full max-w-[170px] aspect-[6/5] mx-auto mb-2">
                       <Image src={opt.image} alt="" fill className="object-contain" sizes="108px" />
                     </div>
-                    <span className="text-[13px] sm:text-[14px] font-medium text-[#222222] text-center leading-tight">{opt.title}</span>
+                    <span className="text-[16px] tracking-[0.5px] sm:text-[14px] text-[#222222] text-center leading-[24px]">{opt.title}</span>
                   </button>
                 );
               })}

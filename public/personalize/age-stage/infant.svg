@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100" fill="none">
-  <rect width="120" height="100" rx="8" fill="#F5F5F5"/>
-  <ellipse cx="60" cy="78" rx="28" ry="8" fill="#E8E8E8"/>
-  <!-- crawling baby mock -->
-  <circle cx="52" cy="38" r="14" fill="#FFB366" stroke="#E8890C" stroke-width="2"/>
-  <path d="M40 52 Q38 62 45 68 L55 72 Q62 68 58 58" fill="#FF9F43" stroke="#E8890C" stroke-width="1.5"/>
-  <ellipse cx="68" cy="60" rx="10" ry="6" fill="#FF9F43" stroke="#E8890C" stroke-width="1.5"/>
-</svg>
