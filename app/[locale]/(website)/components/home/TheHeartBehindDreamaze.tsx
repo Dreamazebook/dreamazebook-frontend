@@ -126,27 +126,21 @@ function TheHeartBehindDreamaze() {
           </p>
 
         {/* Image Gallery - auto-scrolling marquee left-to-right */}
-        <div className="overflow-hidden">
-          {/* Wrapper to apply pause-on-hover */}
-          <div className="relative">
+        <div className="overflow-hidden relative">
             {/* Track: duplicated content for seamless loop */}
-            <div
-              className="flex gap-4 items-center animate-marquee"
-              style={{
-                animationDuration: '38s', // adjust this to change speed (lower = faster)
-                animationTimingFunction: 'linear',
-                animationIterationCount: 'infinite',
-              }}
-            >
-              {/** First mapped copy **/}
-              <MediaItemsList items={mediaItems} keyPrefix="first" />
+          <div
+            className="flex gap-4 items-center animate-marquee"
+            style={{
+              animationDuration: '38s', // adjust this to change speed (lower = faster)
+              animationTimingFunction: 'linear',
+              animationIterationCount: 'infinite',
+            }}
+          >
+            {/** First mapped copy **/}
+            <MediaItemsList items={mediaItems} keyPrefix="first" />
 
-              {/** Second mapped copy (duplicate) **/}
-              <MediaItemsList items={mediaItems} keyPrefix="second" />
-            </div>
-
-            {/* Pause on hover overlay */}
-            <div className="absolute inset-0" style={{ pointerEvents: 'none' }} />
+            {/** Second mapped copy (duplicate) **/}
+            <MediaItemsList items={mediaItems} keyPrefix="second" />
           </div>
         </div>
 
