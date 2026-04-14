@@ -1,7 +1,5 @@
 // Import Swiper React components
 import { Swiper, SwiperSlide, Autoplay } from '@/utils/swiper';
-// Import Swiper styles
-import 'swiper/css';
 import { useEffect } from 'react';
 import { Container } from '../../components/Container';
 import { ContainerTitle } from '../../components/ContainerTitle';
