@@ -148,14 +148,13 @@ const TopPickThisMonth = () => {
 
           <div className="space-y-[16px]">
             <h2 className="text-[18px] font-semibold text-[#222222]">
-              Santa's Letter For You
+              The Way I See You, Mama
             </h2>
 
             <p className="text-[14px] text-left text-[#222222] md:text-[16px] text-[#666666] leading-relaxed">
-              Watch your child's eyes light up as Santa writes directly to them.<br/>
-              This story reveals the good deeds, hopes, and holiday magic Santa has
-              seen in your little one.<br/>
-              A heartfelt keepsake that turns Christmas into a memory they'll cherish.
+              Have you ever wondered how your child sees you through their eyes?<br/>
+              From Mama’s smile to her hugs and gentle hands, this book captures all the little things your child loves most about you.<br/>
+              You can even include your child’s own drawings to create a keepsake full of love and memories.
             </p>
 
             <div className="flex gap-1 justify-center lg:justify-start pt-2">
@@ -165,7 +164,7 @@ const TopPickThisMonth = () => {
             </div>
           </div>
 
-          <Link href={BOOK_DETAIL_URL('PICBOOK_SANTA')} className="text-[16px] text-[#222222] justify-center md:justify-start font-medium flex items-center mx-auto md:ml-0 gap-2 cursor-pointer hover:text-primary transition-colors duration-200 mt-4 md:mt-20">
+          <Link href={BOOK_DETAIL_URL('PICBOOK_MOM')} className="text-[16px] text-[#222222] justify-center md:justify-start font-medium flex items-center mx-auto md:ml-0 gap-2 cursor-pointer hover:text-primary transition-colors duration-200 mt-4 md:mt-20">
             Personalize This Book
             <Image alt='Personalize' src="/images/common/arrow-black.svg" className="w-5 h-5" />
           </Link>

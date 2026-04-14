@@ -7,7 +7,6 @@ import TheHeartBehindDreamaze from './components/home/TheHeartBehindDreamaze';
 import LastingMemorial from './components/home/LastingMemorial';
 import Slideshow from './components/home/SlideShow';
 import ReserveSection from '../(marketing)/components/ReserveSection';
-import GiftPackage from './components/home/GiftPackage';
 import { Product } from '@/types/product';
 import { getBooks } from '@/services/bookService';
 import BooksGrid from './components/books/BooksGrid';
