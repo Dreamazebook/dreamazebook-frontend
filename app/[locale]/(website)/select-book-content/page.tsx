@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { IoIosArrowUp, IoIosArrowDown } from 'react-icons/io';
+import { IoIosArrowUp, IoIosArrowDown } from '@/utils/icons';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { BaseBook } from '@/types/book';

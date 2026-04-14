@@ -6,8 +6,7 @@ import { TextField } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { FaHeart } from 'react-icons/fa';
-import { BsCheck } from 'react-icons/bs';
+import { FaHeart,BsCheck } from '@/utils/icons';
 import {
   BIRTHDAY_PERSONALITY_TRAITS,
   birthSeasonEmoji,

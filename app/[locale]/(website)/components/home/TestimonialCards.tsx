@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaArrowRight as ArrowRight, FaChevronLeft as ChevronLeft, FaChevronRight as ChevronRight } from 'react-icons/fa';
+import { ArrowRight, ChevronLeft, ChevronRight } from '@/utils/icons';
 
 interface Testimonial {
   id: number;

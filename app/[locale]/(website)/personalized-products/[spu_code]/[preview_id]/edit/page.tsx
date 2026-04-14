@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from '@/i18n/routing';
 import { useParams } from 'next/navigation';
-import { IoIosArrowBack } from "react-icons/io";
+import { IoIosArrowBack } from "@/utils/icons";
 import { Link } from "@/i18n/routing";
 import Image from 'next/image';
 import api from '@/utils/api';

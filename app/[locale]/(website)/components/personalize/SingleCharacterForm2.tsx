@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import Image from 'next/image';
-import { FaQuestionCircle } from 'react-icons/fa';
+import { FaQuestionCircle } from '@/utils/icons';
 import BasicInfoForm, { BasicInfoData } from './BasicInfoForm';
 import MultiImageUpload from './MultiImageUpload';
 import Sidebar from './Sidebar';

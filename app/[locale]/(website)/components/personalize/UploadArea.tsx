@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import Image from 'next/image';
-import { FaRegTrashAlt } from 'react-icons/fa';
+import { FaRegTrashAlt } from '@/utils/icons';
 
 interface UploadAreaProps {
   imageUrl: string | null;

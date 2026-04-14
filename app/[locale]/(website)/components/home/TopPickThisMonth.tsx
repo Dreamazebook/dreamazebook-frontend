@@ -3,7 +3,7 @@ import { BOOK_DETAIL_URL } from '@/constants/links';
 import { Link } from '@/i18n/routing';
 import { useState, useEffect, useRef } from 'react';
 
-import { FaStar as Star, FaArrowRight as ArrowRight } from 'react-icons/fa';
+import { Star } from '@/utils/icons';
 import Image from '../common/Image';
 
 const TopPickThisMonth = () => {
