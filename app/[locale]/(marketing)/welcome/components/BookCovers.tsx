@@ -1,5 +1,4 @@
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Pagination, Navigation } from 'swiper/modules';
+import { Swiper, SwiperSlide, Autoplay, Pagination, Navigation } from '@/utils/swiper';
 import 'swiper/css';
 import DreamzeImage from "@/app/components/DreamzeImage"
 import { useEffect, useRef } from 'react';
