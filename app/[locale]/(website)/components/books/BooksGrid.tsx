@@ -4,6 +4,7 @@ import { Link } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import { getBookListDisplayPrice } from '@/utils/bookDisplayPrice';
 import { WEBSITE_CDN_URL } from '@/constants/cdn';
+import Button from '@/app/components/Button';
 
 // 书籍名字覆盖配置（与详情页保持一致）
 const BOOK_NAME_OVERRIDES: Record<string, string> = {
@@ -172,7 +173,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
                   {name}
                 </h3>
                 {desc && !isComingSoon && (
-                  <p className="hidden group-hover:block text-[#666666] text-sm text-center px-4 line-clamp-3 transition-opacity">
+                  <p className="group-hover:block text-[#666666] text-sm text-center px-4 line-clamp-3 transition-opacity">
                     {desc}
                   </p>
                 )}
@@ -187,12 +188,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
                 </p>
               )}
               {!isComingSoon && (
-                <button className="hidden group-hover:inline-flex text-[#222222] text-sm items-center gap-2">
-                  {tDetail('personalizeButton')}
-                  <svg width="18" height="10" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 5H17M17 5L12.5 1M17 5L12.5 9" stroke="#222222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
+                <Button tl={tDetail('personalizeButton')} className="hidden group-hover:inline-flex items-center bg-[#222222] text-white w-auto" />
               )}
               {isComingSoon && (
                 <button className="hidden group-hover:inline-flex text-[#222222] text-sm items-center gap-2">
