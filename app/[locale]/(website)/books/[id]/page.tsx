@@ -55,6 +55,12 @@ const BOOK_DETAIL_OVERRIDES: Record<
       'Introduce your little one to a world of peaceful dreams with Good Night to You. As they embark on a magical journey after falling asleep, each animal they encounter serves as a gentle reminder of the beauty and calmness of bedtime. This personalized story sparks imagination while creating the perfect, soothing atmosphere for sleep, making it a cherished part of any bedtime routine.',
     tags: [{ tname: 'Bedtime Story' }, { tname: 'Imaginative Journey' }],
   },
+  PICBOOK_MOM: {
+    name: 'The Way I See You, Mama',
+    description:
+      "Celebrate the love between a child and their mama with The Way I See You, Mama. Told through a child's eyes, this heartfelt story explores all the little things that make Mama special — from her warm hugs and gentle hands to the way she makes the world feel safe and full of love. With personalized details and your child's own drawings woven into the story, this book becomes a deeply meaningful keepsake for both mother and child.",
+    tags: [{ tname: "Mother's Day Gift" }, { tname: 'Family Bonding' }],
+  },
   PICBOOK_BRAVEY: {
     name: "Little One, You're Brave in Many Ways",
     description:
@@ -163,8 +169,7 @@ const BookDetailPage = () => {
       
       // 异步加载 gallery 资源（通过 API 中转 Cloudflare index.json），不阻塞页面显示
       try {
-        // Good Night 系列的静态资源实际存放在 PICBOOK_GOODNIGHT 目录下，
-        // 这里做一次规范化，其他书籍依旧使用原有 ID。
+        // Good Night3 的静态 gallery 实际存放在 PICBOOK_GOODNIGHT 目录下
         const galleryId =
           String(normalizedId) === 'PICBOOK_GOODNIGHT3'
             ? 'PICBOOK_GOODNIGHT'

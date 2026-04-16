@@ -95,33 +95,31 @@ export default function SlideShow() {
               }
             />
 
-            <div className="absolute inset-0 flex z-10 max-w-[1200px] mx-auto w-full">
-              <div
-                className={`slide-content flex flex-col justify-end md:justify-center w-full p-[24px] ${slide.color}`}
+            <div
+              className={`absolute inset-0 z-10 max-w-[1200px] mx-auto w-full slide-content flex flex-col justify-end md:justify-center w-full p-[24px] ${slide.color}`}
+            >
+              <h1 className="text-[36px] md:text-[64px] font-semibold md:font-bold leading-[44px] md:leading-[88px]">
+                {slide.title.map((line, i) => (
+                  <span key={i}>
+                    <span className={`inline-block`}>{line}</span>
+                    {i < slide.title.length - 1 && <br />}
+                  </span>
+                ))}
+              </h1>
+              <p className="text-[16px] text-[#333333] mt-[12px]">
+                {slide.description}
+              </p>
+              <Link
+                href={BOOKS_URL}
+                className={`mt-5 md:mt-30 w-full md:w-[160px] inline-flex justify-center md:justify-between items-center bg-[#222222] gap-2 text-[16px] text-white px-4   py-3 rounded hover:gap-4 transition-all duration-300 group`}
               >
-                <h1 className="text-[36px] md:text-[64px] font-semibold md:font-bold leading-[44px] md:leading-[88px]">
-                  {slide.title.map((line, i) => (
-                    <span key={i}>
-                      <span className={`inline-block`}>{line}</span>
-                      {i < slide.title.length - 1 && <br />}
-                    </span>
-                  ))}
-                </h1>
-                <p className="text-[16px] text-[#333333] mt-[12px]">
-                  {slide.description}
-                </p>
-                <Link
-                  href={BOOKS_URL}
-                  className={`mt-5 md:mt-30 w-full md:w-[160px] inline-flex justify-center md:justify-between items-center bg-[#222222] gap-2 text-[16px] text-white px-4   py-3 rounded hover:gap-4 transition-all duration-300 group`}
-                >
-                  {slide.buttonText}
-                  <Image
-                    src="/images/common/arrow-white.svg"
-                    alt="Arrow"
-                    className="w-5 h-5 group-hover:translate-x-1 transition-transform"
-                  />
-                </Link>
-              </div>
+                {slide.buttonText}
+                <Image
+                  src="/images/common/arrow-white.svg"
+                  alt="Arrow"
+                  className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                />
+              </Link>
             </div>
           </div>
         ))}

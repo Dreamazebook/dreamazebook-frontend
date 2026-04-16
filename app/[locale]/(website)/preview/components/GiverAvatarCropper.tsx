@@ -6,7 +6,7 @@ import type { ReactCropperElement } from 'react-cropper';
 import type { AxiosResponse } from 'axios';
 import { uploadApi } from '@/utils/api.js';
 import api from '@/utils/api';
-import { MdRotateLeft, MdRotateRight, MdFlip, MdRefresh } from 'react-icons/md';
+import { MdRotateLeft, MdRotateRight, MdFlip, MdRefresh } from '@/utils/icons';
 
 type Props = {
   // 预览页：返回已上传到后端的图片 URL
@@ -281,7 +281,8 @@ export default function GiverAvatarCropper({
               background={false}
               autoCropArea={1}
               checkOrientation={true}
-              aspectRatio={aspectRatio as any}
+              // Cropper.js：aspectRatio 默认为 NaN（即自由裁剪）
+              aspectRatio={(typeof aspectRatio === 'number' ? aspectRatio : Number.NaN) as any}
               zoomable
               movable
               rotatable

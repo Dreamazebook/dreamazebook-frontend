@@ -1,3 +1,4 @@
+import { HOME_PACKAGES } from '@/constants/cdn';
 import { BookSection } from './booksConfig';
 
 // Gift Package 数据接口
@@ -35,33 +36,33 @@ export const DEFAULT_GIFT_PACKAGES_CONFIG: GiftPackagesConfig = {
   giftPackages: [
     {
       id: 1,
-      quantity: 'x2',
-      title: 'Side by Side Set',
+      quantity: 'x3',
+      title: 'Growing Together Set',
       description: 'Perfect for siblings or friends',
-      discount: '10%',
+      discount: '20%',
       extras: 'holiday extras',
-      width: 148,
-      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/ready_to_gift_packages/pic_1.webp'
+      width: 165,
+      image: HOME_PACKAGES('package-3.png')
     },
     {
       id: 2,
-      quantity: 'x3',
-      title: 'Growing Together Set',
+      quantity: 'x4',
+      title: 'Family Keepsake Set',
       description: 'One story for each child to feel seen',
-      discount: '15%',
+      discount: '20%',
       extras: 'free personalized cover',
-      width: 148,
-      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/ready_to_gift_packages/pic_2.webp'
+      width: 165,
+      image: HOME_PACKAGES('package-4.png')
     },
     {
       id: 3,
-      quantity: 'x4',
-      title: 'Holiday Sharing Set',
-      description: 'A joyful gift for holiday gatherings.',
+      quantity: 'x5',
+      title: 'Growing Up Collection',
+      description: 'Capture every chapter of childhood.',
       discount: '20%',
       extras: 'premium festive wrapping',
-      width: 160,
-      image: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/ready_to_gift_packages/pic_3.webp'
+      width: 165,
+      image: HOME_PACKAGES('package-5.png')
     }
   ]
 };

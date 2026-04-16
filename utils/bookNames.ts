@@ -3,6 +3,7 @@ const normalizeSpu = (spu: string) => (spu === 'PICBOOK_GOODNIGHT3' ? 'PICBOOK_G
 // Our Books 页面展示用的标准书名（用于购物车映射）
 const OUR_BOOK_NAMES_BY_SPU: Record<string, string> = {
   PICBOOK_GOODNIGHT: 'Good Night to You',
+  PICBOOK_MOM: 'The Way I See You, Mama',
   PICBOOK_BRAVEY: "Little One, You're Brave in Many Ways",
   PICBOOK_BIRTHDAY: 'Birthday Book for You',
   PICBOOK_SANTA: "Santa's Letter for You",

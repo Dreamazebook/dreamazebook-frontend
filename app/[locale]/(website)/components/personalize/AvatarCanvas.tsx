@@ -34,7 +34,8 @@ interface PageProperties {
 
 // 规范化 bookId：将 PICBOOK_GOODNIGHT3 统一视为 PICBOOK_GOODNIGHT
 const normalizeBookId = (id: string): string => {
-  return id === 'PICBOOK_GOODNIGHT3' ? 'PICBOOK_GOODNIGHT' : id;
+  if (id === 'PICBOOK_GOODNIGHT3') return 'PICBOOK_GOODNIGHT';
+  return id;
 };
 
 const isPicbookMelody = (id: string): boolean => id === 'PICBOOK_MELODY';

@@ -43,6 +43,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const bookIds = [
     'PICBOOK_GOODNIGHT3',
     'PICBOOK_GOODNIGHT',
+    'PICBOOK_MOM',
     'PICBOOK_SANTA',
     'PICBOOK_BRAVEY',
     'PICBOOK_BIRTHDAY',

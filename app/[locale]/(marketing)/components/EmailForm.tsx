@@ -122,7 +122,7 @@ export default function EmailForm({btnText, handleCallBack, btnId='', redirectUr
           className='w-full text-black caret-[#999999] bg-[#00000008] p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500' 
           aria-label="Email address"
         />
-        <Button className="text-[16px]" id={btnId} tl={btnText||'Reserve and Save 40%'} isLoading={isLoading} />
+        <Button id={btnId} tl={btnText||'Reserve and Save 40%'} isLoading={isLoading} />
       </form>
 
 

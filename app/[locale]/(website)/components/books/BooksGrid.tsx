@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import { getBookListDisplayPrice } from '@/utils/bookDisplayPrice';
+import { WEBSITE_CDN_URL } from '@/constants/cdn';
+import Button from '@/app/components/Button';
 
 // 书籍名字覆盖配置（与详情页保持一致）
 const BOOK_NAME_OVERRIDES: Record<string, string> = {
   PICBOOK_GOODNIGHT3: 'Good Night to You',
+  PICBOOK_MOM: 'The Way I See You, Mama',
   PICBOOK_BRAVEY: "Little One, You're Brave in Many Ways",
   PICBOOK_BIRTHDAY: 'Birthday Book for You',
   PICBOOK_MELODY: 'Your Melody',
@@ -17,13 +20,48 @@ interface BooksGridProps {
   books: any[];
 }
 
+// Book Card Image Component with error handling
+// use to fix Cross-Origin Read Blocking (CORB) blocked a cross-origin response.
+const BookCoverImage: React.FC<{
+  src: string;
+  alt: string;
+  className?: string;
+  style?: React.CSSProperties;
+  priority?: boolean;
+}> = ({ src, alt, className, style, priority = false }) => {
+  const [imgSrc, setImgSrc] = useState(src);
+  const [hasError, setHasError] = useState(false);
+
+  return (
+    <Image
+      src={imgSrc}
+      alt={alt}
+      fill
+      className={className}
+      style={style}
+      unoptimized
+      priority={priority}
+      onError={() => {
+        if (!hasError) {
+          setHasError(true);
+          // Try without unoptimized - some images may need optimization pipeline
+          const optimizedSrc = imgSrc.includes('?')
+            ? imgSrc
+            : `${imgSrc}?v=${Date.now()}`;
+          setImgSrc(optimizedSrc);
+        }
+      }}
+    />
+  );
+};
+
 const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
   const t = useTranslations('BooksPage');
   const tDetail = useTranslations('BookDetail');
   if (!books || books.length === 0) return null;
 
   const getCoverUrl = (id: string, isHover: boolean = false, isMobile: boolean = false) => {
-    const baseUrl = 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/catalog';
+    const baseUrl = `${WEBSITE_CDN_URL}catalog`;
     let coverType: string;
     if (isHover) {
       coverType = 'cover-hover.png';
@@ -73,32 +111,35 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
         const cardContent = (
           <div className="flex flex-col md:relative w-full min-h-[355px] book-card-height overflow-hidden mx-auto bg-[#F3F3F3] transition-colors duration-300 group-hover:bg-[#E0E4EF]">
             {/* 图片容器 */}
-            <div className="relative w-full flex-shrink-0">
+            <div className="relative w-full flex-shrink-0" style={{ height: 'calc(100% - 80px)' }}>
               {/* Mobile Cover：贴顶，宽度等于容器，高度自适应 */}
-              <img
-                src={mobileCoverUrl}
-                alt={String(name || 'Product image')}
-                className="block md:hidden w-full h-auto object-contain object-top transition-opacity duration-300 group-hover:opacity-0"
-                style={{ objectPosition: 'top' }}
-              />
+              <div className="block md:hidden relative w-full h-full">
+                <BookCoverImage
+                  src={mobileCoverUrl}
+                  alt={String(name || 'Product image')}
+                  className="object-contain object-top transition-opacity duration-300 group-hover:opacity-0"
+                  style={{ objectPosition: 'top' }}
+                />
+              </div>
               {/* Default Cover (Desktop)：贴顶，宽度等于容器，高度自适应 */}
-              <img
-                src={defaultCoverUrl}
-                alt={String(name || 'Product image')}
-                className="hidden md:block w-full h-auto object-contain object-top transition-opacity duration-300 group-hover:opacity-0"
-                style={{ objectPosition: 'top' }}
-              />
+              <div className="hidden md:block relative w-full h-full">
+                <BookCoverImage
+                  src={defaultCoverUrl}
+                  alt={String(name || 'Product image')}
+                  className="object-contain object-top transition-opacity duration-300 group-hover:opacity-0"
+                  style={{ objectPosition: 'top' }}
+                  priority={idx < 3}
+                />
+              </div>
               {/* Hover Cover (Desktop only)：同样贴顶，宽度等于容器 */}
-              <img
-                src={hoverCoverUrl}
-                alt={String(name || 'Product image')}
-                className="hidden md:block w-full h-auto object-contain object-top opacity-0 group-hover:opacity-100 transition-opacity duration-300 absolute inset-x-0 top-0"
-                style={{ objectPosition: 'top' }}
-                onError={(e) => {
-                  const target = e.currentTarget as HTMLImageElement;
-                  target.src = defaultCoverUrl;
-                }}
-              />
+              <div className="hidden md:block absolute inset-x-0 top-0 w-full h-full">
+                <BookCoverImage
+                  src={hoverCoverUrl}
+                  alt={String(name || 'Product image')}
+                  className="object-contain object-top opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{ objectPosition: 'top' }}
+                />
+              </div>
             </div>
             
             {/* Mobile: 标题和价格在图片下方 */}
@@ -132,7 +173,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
                   {name}
                 </h3>
                 {desc && !isComingSoon && (
-                  <p className="hidden group-hover:block text-[#666666] text-sm text-center px-4 line-clamp-3 transition-opacity">
+                  <p className="group-hover:block text-[#666666] text-sm text-center px-4 line-clamp-3 transition-opacity">
                     {desc}
                   </p>
                 )}
@@ -147,12 +188,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
                 </p>
               )}
               {!isComingSoon && (
-                <button className="hidden group-hover:inline-flex text-[#222222] text-sm items-center gap-2">
-                  {tDetail('personalizeButton')}
-                  <svg width="18" height="10" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 5H17M17 5L12.5 1M17 5L12.5 9" stroke="#222222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
+                <Button tl={tDetail('personalizeButton')} className="hidden group-hover:inline-flex items-center bg-[#222222] text-white w-auto" />
               )}
               {isComingSoon && (
                 <button className="hidden group-hover:inline-flex text-[#222222] text-sm items-center gap-2">

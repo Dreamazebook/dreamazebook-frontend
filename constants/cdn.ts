@@ -111,6 +111,9 @@ export const VIP_PERK_FIRST_PICK = `${CLOUDFLARE_CDN_URL}vip-perk-first-pick.png
 
 
 export const WEBSITE_CDN_URL = 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/';
+export const PERSONALIZE_AGE_RANGE_0_3 = `${WEBSITE_CDN_URL}assets/personalize/options/age-range/0-3.png`;
+export const PERSONALIZE_AGE_RANGE_3_6 = `${WEBSITE_CDN_URL}assets/personalize/options/age-range/3-6.png`;
+export const PERSONALIZE_AGE_RANGE_6_PLUS = `${WEBSITE_CDN_URL}assets/personalize/options/age-range/6+.png`;
 export const HOME_IMAGE = (file:string) => `${WEBSITE_CDN_URL}home/${file}`;
 export const HOME_HERO = (file:string) => `${WEBSITE_CDN_URL}home/hero/${file}`;
 export const HOME_BOOKS = (file:string) => `${WEBSITE_CDN_URL}home/books/${file}`;

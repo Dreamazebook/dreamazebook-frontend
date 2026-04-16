@@ -15,6 +15,8 @@ export function getPersonalizeAgeStagePolicy(bookId: string | undefined | null):
     .toUpperCase();
   if (!u) return 'full';
 
+  if (u === 'PICBOOK_MOM') return 'three_plus';
+
   if (u.includes('MELODY')) return 'zero_to_three';
 
   if (u.includes('BIRTHDAY')) return 'three_plus';

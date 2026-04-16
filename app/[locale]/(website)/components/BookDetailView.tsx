@@ -388,7 +388,8 @@ export default function BookDetailView({
                   const mkt = getBookMarketComparePrice(book, cur);
                   return (
                     <>
-                      <span className="text-[#012CCE] text-[36px] leading-[44px] font-medium">${cur.toFixed(2)}</span>
+                      <span className="text-[#012CCE] text-[33px] leading-[44px] font-medium">From</span>
+                      <span className="text-[#012CCE] text-[36px] leading-[44px] font-semibold">${cur.toFixed(2)}</span>
                       {mkt > cur && (
                         <span className="text-gray-400 text-[16px] leading-[24px] tracking-[0.15px] line-through">
                           ${mkt.toFixed(2)}

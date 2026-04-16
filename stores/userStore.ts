@@ -34,7 +34,6 @@ interface UserState {
   login: (userData: LoginData) => Promise<ApiResponse<UserResponse> | null>
   loginAdmin: (userData: LoginData) => Promise<ApiResponse<UserResponse> | null>
   register: (userData: RegisterData) => Promise<ApiResponse<UserResponse> | null>
-  loginWithGoogle: () => void
   loginWithGoogleToken: (userData: GoogleLoginData) => Promise<ApiResponse<UserResponse> | null>
   loginWithFacebookToken: (userData: FacebookLoginData) => Promise<ApiResponse<UserResponse> | null>
   logout: () => void
@@ -294,10 +293,6 @@ const useUserStore = create<UserState>((set,get) => ({
       localStorage.removeItem('token');
       set({ user: null, isLoggedIn: false });
     }
-  },
-  loginWithGoogle: () => {
-    // This is handled client-side in LoginModal
-    // The actual OAuth flow is initiated directly from the component
   },
   loginWithGoogleToken: async (userData: GoogleLoginData): Promise<ApiResponse<UserResponse> | null> => {
     try {

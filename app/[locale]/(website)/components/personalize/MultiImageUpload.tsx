@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
 import Image from 'next/image';
-import { FaRegTrashAlt } from 'react-icons/fa';
-import { IoCloudUploadOutline } from "react-icons/io5";
+import { IoCloudUploadOutline, FaRegTrashAlt } from '@/utils/icons';
 import type { UploadedImage } from '../../hooks/useMultiImageUpload';
 
 interface MultiImageUploadProps {
