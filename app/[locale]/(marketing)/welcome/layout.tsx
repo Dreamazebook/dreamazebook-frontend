@@ -1,5 +1,6 @@
 import { Roboto } from 'next/font/google'
 import TermlyCMP from '@/app/components/TermlyCMP';
+//@ts-ignore
 import '../../globals.css';
 import type { Metadata } from 'next'
 import Script from 'next/script'
@@ -46,8 +47,6 @@ export default function MarketingLayout({
       <head>
         <OrganizationSchema />
         <WebsiteSchema />
-      </head>
-      <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="theme-color" content="#ffffff" />
         <meta name="facebook-domain-verification" content="r1wooxab1pn2flmpl27wopu6s81r4w" />
