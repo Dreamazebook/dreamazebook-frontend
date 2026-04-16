@@ -8,20 +8,41 @@ import Image from '../common/Image';
 
 const TopPickThisMonth = () => {
   const images = [
-    HOME_TOP_PICKS('card_1.webp'),
-    HOME_TOP_PICKS('card_2.webp'),
-    HOME_TOP_PICKS('card_3.webp'),
+    HOME_TOP_PICKS('card-1.png'),
+    HOME_TOP_PICKS('card-2.png'),
+    HOME_TOP_PICKS('card-3.png'),
+  ];
+
+  const images_mobile = [
+    HOME_TOP_PICKS('card-1-mobile.png'),
+    HOME_TOP_PICKS('card-2-mobile.png'),
+    HOME_TOP_PICKS('card-3-mobile.png'),
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     setIsClient(true);
+
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const handleMediaChange = (event: MediaQueryListEvent) => {
+      setIsMobile(event.matches);
+    };
+
+    setIsMobile(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handleMediaChange);
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleMediaChange);
+    };
   }, []);
+
+  const imagesToShow = isMobile ? images_mobile : images;
 
   useEffect(() => {
     // 清除之前的定时器
@@ -40,17 +61,17 @@ const TopPickThisMonth = () => {
       setIsAnimating(true);
       // 0.5秒动画结束后切换到下一张
       setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % images.length);
-        setIsAnimating(false);
-      }, 500);
-    }, 3000);
+          setCurrentIndex((prev) => (prev + 1) % imagesToShow.length);
+          setIsAnimating(false);
+        }, 500);
+      }, 3000);
 
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [currentIndex, isHovered, isAnimating, images.length]);
+      return () => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+      };
+    }, [currentIndex, isHovered, isAnimating, imagesToShow.length]);
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -89,9 +110,9 @@ const TopPickThisMonth = () => {
             }} />
 
             {/* 主卡片层 */}
-            {images.map((image, index) => {
+            {imagesToShow.map((image, index) => {
               const isActive = index === currentIndex;
-              const isNext = index === (currentIndex + 1) % images.length;
+              const isNext = index === (currentIndex + 1) % imagesToShow.length;
 
               // 只显示当前图片和下一张图片
               if (!isActive && !isNext) {

@@ -41,8 +41,8 @@ export const DEFAULT_GIFT_PACKAGES_CONFIG: GiftPackagesConfig = {
       description: 'Perfect for siblings or friends',
       discount: '20%',
       extras: 'holiday extras',
-      width: 148,
-      image: HOME_PACKAGES('pic_1.webp')
+      width: 165,
+      image: HOME_PACKAGES('package-3.png')
     },
     {
       id: 2,
@@ -51,8 +51,8 @@ export const DEFAULT_GIFT_PACKAGES_CONFIG: GiftPackagesConfig = {
       description: 'One story for each child to feel seen',
       discount: '20%',
       extras: 'free personalized cover',
-      width: 148,
-      image: HOME_PACKAGES('pic_2.webp')
+      width: 165,
+      image: HOME_PACKAGES('package-4.png')
     },
     {
       id: 3,
@@ -61,8 +61,8 @@ export const DEFAULT_GIFT_PACKAGES_CONFIG: GiftPackagesConfig = {
       description: 'Capture every chapter of childhood.',
       discount: '20%',
       extras: 'premium festive wrapping',
-      width: 160,
-      image: HOME_PACKAGES('pic_3.webp')
+      width: 165,
+      image: HOME_PACKAGES('package-5.png')
     }
   ]
 };
