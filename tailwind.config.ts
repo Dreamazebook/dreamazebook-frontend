@@ -10,7 +10,17 @@ export default {
     './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      keyframes: {
+        'dreamaze-gradient-flow': {
+          '0%': { backgroundPosition: '0% 50%' },
+          '100%': { backgroundPosition: '100% 50%' },
+        },
+      },
+      animation: {
+        'dreamaze-gradient-flow': 'dreamaze-gradient-flow 2.5s linear infinite',
+      },
+    },
   },
   plugins: [],
 } satisfies Config
