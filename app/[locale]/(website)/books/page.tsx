@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { Link, usePathname } from "@/i18n/routing";
-import { FaStar, FaStarHalf, FaSearch } from 'react-icons/fa';
+import { FaStar, FaStarHalf, FaSearch } from '@/utils/icons';
 import { useSearchParams } from 'next/navigation';
 
 import { useLocale } from 'next-intl';

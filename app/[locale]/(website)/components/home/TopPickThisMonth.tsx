@@ -3,25 +3,46 @@ import { BOOK_DETAIL_URL } from '@/constants/links';
 import { Link } from '@/i18n/routing';
 import { useState, useEffect, useRef } from 'react';
 
-import { FaStar as Star, FaArrowRight as ArrowRight } from 'react-icons/fa';
+import { Star } from '@/utils/icons';
 import Image from '../common/Image';
 
 const TopPickThisMonth = () => {
   const images = [
-    HOME_TOP_PICKS('card_1.webp'),
-    HOME_TOP_PICKS('card_2.webp'),
-    HOME_TOP_PICKS('card_3.webp'),
+    HOME_TOP_PICKS('card-1.png'),
+    HOME_TOP_PICKS('card-2.png'),
+    HOME_TOP_PICKS('card-3.png'),
+  ];
+
+  const images_mobile = [
+    HOME_TOP_PICKS('card-1-mobile.png'),
+    HOME_TOP_PICKS('card-2-mobile.png'),
+    HOME_TOP_PICKS('card-3-mobile.png'),
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     setIsClient(true);
+
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const handleMediaChange = (event: MediaQueryListEvent) => {
+      setIsMobile(event.matches);
+    };
+
+    setIsMobile(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handleMediaChange);
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleMediaChange);
+    };
   }, []);
+
+  const imagesToShow = isMobile ? images_mobile : images;
 
   useEffect(() => {
     // 清除之前的定时器
@@ -40,17 +61,17 @@ const TopPickThisMonth = () => {
       setIsAnimating(true);
       // 0.5秒动画结束后切换到下一张
       setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % images.length);
-        setIsAnimating(false);
-      }, 500);
-    }, 3000);
+          setCurrentIndex((prev) => (prev + 1) % imagesToShow.length);
+          setIsAnimating(false);
+        }, 500);
+      }, 3000);
 
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [currentIndex, isHovered, isAnimating, images.length]);
+      return () => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+      };
+    }, [currentIndex, isHovered, isAnimating, imagesToShow.length]);
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -89,9 +110,9 @@ const TopPickThisMonth = () => {
             }} />
 
             {/* 主卡片层 */}
-            {images.map((image, index) => {
+            {imagesToShow.map((image, index) => {
               const isActive = index === currentIndex;
-              const isNext = index === (currentIndex + 1) % images.length;
+              const isNext = index === (currentIndex + 1) % imagesToShow.length;
 
               // 只显示当前图片和下一张图片
               if (!isActive && !isNext) {
@@ -148,14 +169,13 @@ const TopPickThisMonth = () => {
 
           <div className="space-y-[16px]">
             <h2 className="text-[18px] font-semibold text-[#222222]">
-              Santa's Letter For You
+              The Way I See You, Mama
             </h2>
 
             <p className="text-[14px] text-left text-[#222222] md:text-[16px] text-[#666666] leading-relaxed">
-              Watch your child's eyes light up as Santa writes directly to them.<br/>
-              This story reveals the good deeds, hopes, and holiday magic Santa has
-              seen in your little one.<br/>
-              A heartfelt keepsake that turns Christmas into a memory they'll cherish.
+              Have you ever wondered how your child sees you through their eyes?<br/>
+              From Mama’s smile to her hugs and gentle hands, this book captures all the little things your child loves most about you.<br/>
+              You can even include your child’s own drawings to create a keepsake full of love and memories.
             </p>
 
             <div className="flex gap-1 justify-center lg:justify-start pt-2">
@@ -165,7 +185,7 @@ const TopPickThisMonth = () => {
             </div>
           </div>
 
-          <Link href={BOOK_DETAIL_URL('PICBOOK_SANTA')} className="text-[16px] text-[#222222] justify-center md:justify-start font-medium flex items-center mx-auto md:ml-0 gap-2 cursor-pointer hover:text-primary transition-colors duration-200 mt-4 md:mt-20">
+          <Link href={BOOK_DETAIL_URL('PICBOOK_MOM')} className="text-[16px] text-[#222222] justify-center md:justify-start font-medium flex items-center mx-auto md:ml-0 gap-2 cursor-pointer hover:text-primary transition-colors duration-200 mt-4 md:mt-20">
             Personalize This Book
             <Image alt='Personalize' src="/images/common/arrow-black.svg" className="w-5 h-5" />
           </Link>

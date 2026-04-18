@@ -26,34 +26,26 @@ function WhatMakesDreamazeDifferent() {
   ];
 
   return (
-    <div className="bg-white py-[64px] px-[24px] md:py-[88px]">
-      <div className="max-w-[1000px] mx-auto space-y-[24px] md:space-y-[48px]">
-        <h1 className="text-[24px] md:text-[40px] font-medium text-center leading-tight text-gray-900">
-          What Makes Dreamaze Different
-        </h1>
+    <div className="py-[64px] px-[24px] md:py-[88px] max-w-[1000px] mx-auto space-y-[24px] md:space-y-[48px]">
+      <h1 className="text-[24px] md:text-[40px] font-medium text-center leading-tight text-gray-900">
+        What Makes Dreamaze Different
+      </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px]">
-          {features.map((feature, index) => {
-            return (
-              <div key={index} className="flex md:flex-col items-center gap-3 md:text-center md:bg-[#F8F8F8] p-1 md:p-8 rounded">
-                <Image src={feature.icon} alt={feature.title} className="w-15 h-15 md:w-24 md:h-24 bg-gray-50 rounded md:mb-6" />
-                <div>
-                  <h3 className="text-[16px] md:text-[18px] font-medium text-[#222222] md:mb-3">{feature.title}</h3>
-                  <p className="text-[#666666] text-[16px] leading-relaxed">{feature.description}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="flex justify-center">
-          <div className="w-px h-18 bg-[#CCCCCC]"></div>
-        </div>
-
-        <div className="flex justify-center">
-          <Image src={HOME_DIFFERENT('divider.webp')} alt="divider" className="w-[185px] md:w-[329px]" />
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px]">
+        {features.map((feature, index) => 
+          <div key={index} className="flex md:flex-col items-center gap-3 md:text-center md:bg-[#F8F8F8] p-1 md:p-8 rounded">
+            <Image src={feature.icon} alt={feature.title} className="w-15 h-15 md:w-24 md:h-24 bg-gray-50 rounded md:mb-6" />
+            <div>
+              <h3 className="text-[16px] md:text-[18px] font-medium text-[#222222] md:mb-3">{feature.title}</h3>
+              <p className="text-[#666666] text-[16px] leading-relaxed">{feature.description}</p>
+            </div>
+          </div>
+        )}
       </div>
+
+      <div className="w-px h-18 bg-[#CCCCCC] mx-auto"></div>
+
+      <Image src={HOME_DIFFERENT('divider.webp')} alt="divider" className="w-[185px] md:w-[329px] mx-auto" />
     </div>
   );
 }

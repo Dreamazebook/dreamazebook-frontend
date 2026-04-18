@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { FaCheck } from 'react-icons/fa';
+import { FaCheck } from '@/utils/icons';
 import {
   getAgeStageMismatchHint,
   getPersonalizeAgeStagePolicy,

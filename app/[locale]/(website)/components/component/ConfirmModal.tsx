@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react';
-import { IoCloseOutline } from "react-icons/io5";
+import { IoCloseOutline } from "@/utils/icons";
 
 interface ConfirmModalProps {
   open: boolean;

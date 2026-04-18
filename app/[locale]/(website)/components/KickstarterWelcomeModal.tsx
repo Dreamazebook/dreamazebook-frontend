@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import useUserStore from '@/stores/userStore'
 import { useRouter } from '@/i18n/routing'
-import { IoCloseOutline } from "react-icons/io5";
+import { IoCloseOutline } from "@/utils/icons";
 
 export default function KickstarterWelcomeModal() {
   const { showKickstarterWelcome, closeKickstarterWelcome, ksSummary } = useUserStore()

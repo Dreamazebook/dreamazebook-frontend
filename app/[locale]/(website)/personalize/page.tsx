@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { usePathname, Link, useRouter } from '@/i18n/routing';
 import Image from 'next/image';
-import { IoIosArrowBack } from 'react-icons/io';
+import { IoIosArrowBack } from '@/utils/icons';
 import api from '@/utils/api';
 import SingleCharacterForm1, { SingleCharacterForm1Handle } from '../components/personalize/SingleCharacterForm1';
 import SingleCharacterForm2, { SingleCharacterForm2Handle } from '../components/personalize/SingleCharacterForm2';

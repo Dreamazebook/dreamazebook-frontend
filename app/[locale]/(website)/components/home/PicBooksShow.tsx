@@ -1,6 +1,6 @@
 import { HOME_IMAGE } from '@/constants/cdn';
 import React from 'react';
-import { FaStar as Star, FaArrowRight as ArrowRight } from 'react-icons/fa';
+import { Star, ArrowRight } from '@/utils/icons';
 
 export default function SantaLetterHero() {
   return (
