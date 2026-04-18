@@ -351,7 +351,7 @@ These titles are often chosen together to celebrate love, comfort, and connectio
             description:
               'Children feel deeply loved when you notice their drawings, ideas, questions, and efforts — not just the big achievements.',
             backgroundImage:
-              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-1.png',
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-4.png',
           },
           {
             title: 'Use specific words',
@@ -365,14 +365,14 @@ These titles are often chosen together to celebrate love, comfort, and connectio
             description:
               'A bedtime cuddle, a special goodbye hug, or reading together every night can become the moments children remember forever.',
             backgroundImage:
-              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-3.png',
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-1.png',
           },
           {
             title: 'Say love out loud',
             description:
               'Children never get tired of hearing “I love you,” “I’m proud of you,” and “I’m so happy you’re mine.”',
             backgroundImage:
-              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-4.png',
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-3.png',
           },
         ],
       },

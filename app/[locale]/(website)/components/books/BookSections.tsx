@@ -1066,7 +1066,7 @@ const WhyPersonalizedSection: React.FC<{ section: BookSection }> = ({ section })
             {/* 文案 */}
             <div className="relative z-10 flex flex-col md:absolute md:left-9 md:top-16 md:right-9 md:bottom-12 md:gap-6 gap-3">
               <h3 className="text-[#222222] text-[18px] md:text-[16px] font-medium">{item.title}</h3>
-              <p className="text-[#666666] text-[14px] md:text-[16px] font-normal leading-[22px]">{item.description}</p>
+              <p className="text-[#666666] text-[14px] md:text-[16px] tracking-[0.5px] font-normal leading-[24px]">{item.description}</p>
             </div>
           </div>
         ))}
