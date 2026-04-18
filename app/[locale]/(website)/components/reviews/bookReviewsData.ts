@@ -39,7 +39,7 @@ const PICBOOK_MOM_REVIEW_DATA: BookReviewData = {
       comment:
         "When I opened the book and saw my daughter's little drawing of me inside, I honestly cried. It felt so personal and full of love.",
       pagepic:
-        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/reviews/avatars/renee-london.jpg',
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_MOM/reviews/avatars/sarah-london.jpg',
     },
     {
       reviewer_name: 'Lauren P., California',
@@ -47,7 +47,7 @@ const PICBOOK_MOM_REVIEW_DATA: BookReviewData = {
       comment:
         'My son loved pointing at every page and saying, "That\'s you and me, Mama!" Such a beautiful way to hear how your child sees you.',
       pagepic:
-        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/reviews/avatars/amanda-california.jpg',
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_MOM/reviews/avatars/lauren-california.jpg',
     },
     {
       reviewer_name: 'Megan C., Dublin',
@@ -55,7 +55,7 @@ const PICBOOK_MOM_REVIEW_DATA: BookReviewData = {
       comment:
         "The illustrations are gorgeous, and adding my child's own artwork made it feel so unique. This is more than a book—it's a memory we'll keep forever.",
       pagepic:
-        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/hadjer-london.jpg',
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_MOM/reviews/avatars/megan-dublin.jpg',
     },
     {
       reviewer_name: 'Natalie F., Brisbane',
@@ -63,7 +63,7 @@ const PICBOOK_MOM_REVIEW_DATA: BookReviewData = {
       comment:
         'Reading this together gave us such a sweet moment to talk, hug, and laugh. It made me realize how closely my child notices every little thing about me.',
       pagepic:
-        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/michale-sydney.jpg',
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_MOM/reviews/avatars/natalie-brisbane.jpg',
     },
     {
       reviewer_name: 'Olivia K., Seattle',
@@ -71,7 +71,7 @@ const PICBOOK_MOM_REVIEW_DATA: BookReviewData = {
       comment:
         "I bought this as a Mother's Day gift for myself, but honestly it's something I would want any time of year. It made me feel so loved and seen.",
       pagepic:
-        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/reviews/avatars/julia-new-york.jpg',
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_MOM/reviews/avatars/olivia-seattle.jpg',
     },
   ],
 };
