@@ -17,6 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/return-policy',
     '/personalize',
     '/christmas',
+    '/mothers-day',
   ];
 
   // Generate main entries with all languages

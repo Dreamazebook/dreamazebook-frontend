@@ -1,9 +1,10 @@
 import { HOME_SPARKS } from '@/constants/cdn';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from '../common/Image';
 
 interface MediaItem {
   src: string;
+  mobileSrc?: string; // Optional mobile-specific source
   alt: string;
   showStar: boolean;
   type: 'image' | 'video';
@@ -17,6 +18,17 @@ interface MediaItemProps {
 
 // Reusable component to render individual media items
 function MediaItemComponent({ item, keyPrefix, index }: MediaItemProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const imageSrc = isMobile && item.mobileSrc ? item.mobileSrc : item.src;
+
   return (
     <div key={`${keyPrefix}-${index}`} className="w-[240px] h-[180px] md:w-[480px] md:h-[360px] flex-shrink-0 overflow-hidden rounded relative">
       {item.type === 'video' ? (
@@ -29,7 +41,7 @@ function MediaItemComponent({ item, keyPrefix, index }: MediaItemProps) {
           playsInline
         />
       ) : (
-        <Image src={item.src} alt={item.alt} className="w-full h-full object-cover" />
+        <Image src={imageSrc} alt={item.alt} className="w-full h-full object-cover" />
       )}
     </div>
   );
@@ -61,24 +73,28 @@ function TheHeartBehindDreamaze() {
     },
     {
       src: HOME_SPARKS('1.png'),
+      mobileSrc: HOME_SPARKS('1-mobile.jpg'),
       alt: 'Child reading books',
       showStar: false,
       type: 'image',
     },
     {
       src: HOME_SPARKS('2.png'),
+      mobileSrc: HOME_SPARKS('2-mobile.jpg'),
       alt: 'Young person reading magazine',
       showStar: true,
       type: 'image',
     },
     {
       src: HOME_SPARKS('3.png'),
+      mobileSrc: HOME_SPARKS('3-mobile.jpg'),
       alt: 'Person reading with coffee',
       showStar: false,
       type: 'image',
     },
     {
       src: HOME_SPARKS('4.png'),
+      mobileSrc: HOME_SPARKS('4-mobile.jpg'),
       alt: 'Child reading with parent',
       showStar: true,
       type: 'image',
@@ -91,6 +107,7 @@ function TheHeartBehindDreamaze() {
     },
     {
       src: HOME_SPARKS('5.png'),
+      mobileSrc: HOME_SPARKS('5-mobile.jpg'),
       alt: 'Child reading book outdoors',
       showStar: false,
       type: 'image',

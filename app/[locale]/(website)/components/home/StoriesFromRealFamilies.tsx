@@ -17,14 +17,14 @@ const testimonials: Testimonial[] = [
     quote: "Children are more expressive when they see themselves in a book. This helps support language development and confidence. I highly recommend it for parents and educators alike.",
     author: "Anna Peterson",
     role: "Early Childhood Speech Therapist",
-    image: HOME_STORIES('anna-peterson.png'),
+    image: HOME_STORIES('anna-peterson.webp'),
   },
   {
     id: 2,
     quote: "I bought one for each child. What surprised me most was how personalized each felt — not just name. The pages feel like they understand who my kids are. That's rare and incredibly special.",
     author: "Sophie Bernard",
     role: "Mom of siblings, ages 2 & 6",
-    image: HOME_STORIES('sophie-bernard.png'),
+    image: HOME_STORIES('sophie-bernard.webp'),
     bookImage: "/book-preview.jpg"
   }
 ];

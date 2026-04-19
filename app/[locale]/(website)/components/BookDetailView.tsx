@@ -216,8 +216,8 @@ export default function BookDetailView({
 
   return (
     <div className={`min-h-screen bg-white ${roboto.className}`}>
-      <div className="grid grid-cols-1 md:grid-cols-2">
-        <div className="relative h-fit">
+      <div className="grid grid-cols-1 min-w-0 md:grid-cols-2">
+        <div className="relative min-w-0 h-fit">
           {/* 手机端：左右滑动查看图片，宽度自适应 + 1:1 正方形比例 */}
           <div className="block md:hidden w-full">
             <div className="relative w-full max-w-[480px] mx-auto aspect-square">
@@ -341,19 +341,19 @@ export default function BookDetailView({
         </div>
 
         {/* 右侧：桌面端固定（sticky），手机端正常跟随页面滚动，避免出现双滚动条 */}
-        <div className="md:sticky md:top-0 md:h-screen md:overflow-y-auto">
-          <div className="max-w-xl mx-auto md:p-12 px-3 py-2 min-h-0 flex flex-col gap-6">
+        <div className="min-w-0 md:sticky md:top-0 md:h-screen md:overflow-y-auto md:overflow-x-hidden">
+          <div className="max-w-xl mx-auto w-full min-w-0 md:p-12 px-3 py-2 min-h-0 flex flex-col gap-6">
             <div className="flex flex-col md:gap-3 gap-2">
-              <h1 className="md:text-[36px] text-[24px] md:leading-[44px] leading-[32px] font-normal">{(book as any)?.name ?? (book as any)?.default_name}</h1>
-              <div className="flex items-center gap-4">
-                <div className="flex gap-[6px]">
+              <h1 className="md:text-[36px] text-[24px] md:leading-[44px] leading-[32px] font-normal break-words">{(book as any)?.name ?? (book as any)?.default_name}</h1>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <div className="flex shrink-0 gap-[6px]">
                   {[...Array(5)].map((_, i) => (
                     <Image key={i} src="/star.svg" alt="star" width={15} height={15} className="w-[15px] h-[15px] md:w-5 md:h-5" />
                   ))}
                 </div>
-                <div className="flex flex-row gap-2">
+                <div className="flex min-w-0 flex-row flex-wrap gap-2">
                   {tags && tags.map((tag, index) => (
-                    <span key={index} className="text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[#666666] bg-[#F2F2F2] px-2 rounded">{tag.tname}</span>
+                    <span key={index} className="text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[#666666] bg-[#F2F2F2] px-2 rounded break-words">{tag.tname}</span>
                   ))}
                 </div>
               </div>
@@ -379,17 +379,17 @@ export default function BookDetailView({
 
             {/* 语言选择已隐藏，默认使用英文 */}
 
-            {/* 价格和按钮 - 桌面端显示，手机端隐藏（手机端使用贴底栏） */}
+            {/* 价格和按钮 - 桌面端显示，手机端隐藏（手机端使用贴底栏）；窄宽时换行避免溢出 */}
             {!hidePriceAndButton && (
-            <div className="hidden md:flex items-end justify-between gap-8">
-              <div className="flex items-baseline gap-3">
+            <div className="hidden md:flex w-full min-w-0 flex-wrap items-end justify-between gap-x-4 gap-y-3">
+              <div className="flex min-w-0 flex-wrap items-baseline gap-2">
                 {(() => {
                   const cur = getBookListDisplayPrice(book);
                   const mkt = getBookMarketComparePrice(book, cur);
                   return (
                     <>
-                      <span className="text-[#012CCE] text-[33px] leading-[44px] font-medium">From</span>
-                      <span className="text-[#012CCE] text-[36px] leading-[44px] font-semibold">${cur.toFixed(2)}</span>
+                      <span className="text-[#012CCE] lg:text-[30px] text-[26px] leading-[44px] font-medium">From</span>
+                      <span className="text-[#012CCE] lg:text-[33px] text-[28px] leading-[44px] font-semibold">${cur.toFixed(2)}</span>
                       {mkt > cur && (
                         <span className="text-gray-400 text-[16px] leading-[24px] tracking-[0.15px] line-through">
                           ${mkt.toFixed(2)}
@@ -399,46 +399,44 @@ export default function BookDetailView({
                   );
                 })()}
               </div>
-              <div className="flex flex-col">
-                <Link
-                  href={`${primaryButtonHref}${primaryButtonHref.includes('?') ? '&' : '?'}language=${encodeURIComponent(selectedLanguage)}`}
-                  onClick={(e) => {
-                    setIsLoading(true);
-                    onPrimaryClick?.(e, selectedLanguage);
-                  }}
-                  className={`bg-[#222222] text-[#F5E3E3] w-[243px] h-[44px] px-4 py-3 rounded-[4px] hover:bg-gray-800 transition-colors text-base font-medium flex items-center justify-center ${
-                    isLoading ? 'opacity-75 cursor-wait pointer-events-none' : ''
-                  }`}
-                >
-                  {isLoading ? (
-                    <>
-                      <svg
-                        className="animate-spin h-5 w-5 mr-2"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Loading...
-                    </>
-                  ) : (
-                    primaryButtonLabel
-                  )}
-                </Link>
-              </div>
+              <Link
+                href={`${primaryButtonHref}${primaryButtonHref.includes('?') ? '&' : '?'}language=${encodeURIComponent(selectedLanguage)}`}
+                onClick={(e) => {
+                  setIsLoading(true);
+                  onPrimaryClick?.(e, selectedLanguage);
+                }}
+                className={`bg-[#222222] text-[#F5E3E3] box-border h-[44px] min-h-[44px] inline-flex w-[min(100%,203px)] shrink-0 items-center justify-center px-4 py-3 text-center text-base font-medium rounded-[4px] hover:bg-gray-800 transition-colors ${
+                  isLoading ? 'opacity-75 cursor-wait pointer-events-none' : ''
+                }`}
+              >
+                {isLoading ? (
+                  <>
+                    <svg
+                      className="animate-spin h-5 w-5 mr-2"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Loading...
+                  </>
+                ) : (
+                  primaryButtonLabel
+                )}
+              </Link>
             </div>
             )}
 
@@ -458,20 +456,20 @@ export default function BookDetailView({
                       <span className="text-2xl flex-shrink-0">{openFaq === num ? '-' : '+'}</span>
                     </button>
                     {openFaq === num && (
-                      <div className="text-[#222222] mt-4 pb-4 md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[14px] leading-[20px] tracking-[0.25px]">
+                      <div className="min-w-0 break-words text-[#222222] mt-4 pb-4 md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[14px] leading-[20px] tracking-[0.25px]">
                         {faq.answer.split('\n').map((line, i) => {
                           // 如果行以 "- " 开头，渲染为 bullet point
                           if (line.trim().startsWith('- ')) {
                             return (
-                              <div key={i} className="flex items-start mb-2">
-                                <span className="mr-2">•</span>
-                                <span>{line.trim().substring(2)}</span>
+                              <div key={i} className="flex min-w-0 items-start gap-2 mb-2">
+                                <span className="shrink-0">•</span>
+                                <span className="min-w-0 break-words">{line.trim().substring(2)}</span>
                               </div>
                             );
                           }
                           // 普通文本行
                           return line.trim() ? (
-                            <div key={i} className={i > 0 && !faq.answer.split('\n')[i - 1].trim().startsWith('- ') ? 'mt-2' : ''}>
+                            <div key={i} className={`min-w-0 break-words ${i > 0 && !faq.answer.split('\n')[i - 1].trim().startsWith('- ') ? 'mt-2' : ''}`}>
                               {line}
                             </div>
                           ) : null;

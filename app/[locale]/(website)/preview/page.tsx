@@ -12,6 +12,7 @@ import { LoaderCircle } from 'lucide-react';
 import GiverDedicationCanvas from './components/GiverDedicationCanvas';
 import GiverAvatarCropper from './components/GiverAvatarCropper';
 import CoverNameCanvas from './components/CoverNameCanvas';
+import { DreamazeFaceSwapLoadingBar } from './components/DreamazeFaceSwapLoadingBar';
 import api from '@/utils/api';
 import echo from '@/app/config/echo';
 import { useTranslations, useLocale } from 'next-intl';
@@ -419,15 +420,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                 </div>
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
                   {overlayMode === 'progress' ? (
-                    <div className="text-center" style={{ width: 240 }}>
-                      <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
-                        <div
-                          className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
-                          style={{ width: `${Math.round(progress)}%` }}
-                        />
-                      </div>
-                      <p className="text-gray-700 mt-2 text-sm">{Math.round(progress)}%</p>
-                    </div>
+                    <DreamazeFaceSwapLoadingBar progress={progress} />
                   ) : (
                     <div className="text-center">
                       <MirageLoader size="60" speed="2.5" color="blue" />
@@ -480,15 +473,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                 </div>
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
                   {overlayMode === 'progress' ? (
-                    <div className="text-center" style={{ width: 240 }}>
-                      <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
-                        <div
-                          className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
-                          style={{ width: `${Math.round(progress)}%` }}
-                        />
-                      </div>
-                      <p className="text-gray-700 mt-2 text-sm">{Math.round(progress)}%</p>
-                    </div>
+                    <DreamazeFaceSwapLoadingBar progress={progress} />
                   ) : (
                     <div className="text-center">
                       <MirageLoader size="60" speed="2.5" color="blue" />
@@ -551,15 +536,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
           />
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
             {overlayMode === 'progress' ? (
-              <div className="text-center" style={{ width: 240 }}>
-                <div className="bg-gray-200 rounded-full overflow-hidden" style={{ width: 240, height: 8 }}>
-                  <div
-                    className="w-full h-full bg-[#012CCE] transition-[width] duration-200 ease-out"
-                    style={{ width: `${Math.round(progress)}%` }}
-                  />
-                </div>
-                <p className="text-gray-700 mt-2 text-sm">{Math.round(progress)}%</p>
-              </div>
+              <DreamazeFaceSwapLoadingBar progress={progress} />
             ) : (
               <div className="text-center">
                 <MirageLoader size="60" speed="2.5" color="blue" />
@@ -612,6 +589,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
     prev.src === next.src &&
     prev.viewMode === next.viewMode &&
     prev.showOverlay === next.showOverlay &&
+    prev.overlayMode === next.overlayMode &&
     Math.round(prev.progress) === Math.round(next.progress) &&
     prev.content === next.content &&
     prev.customOverlayContent === next.customOverlayContent
@@ -1531,7 +1509,7 @@ export default function PreviewPageWithTopNav() {
       .filter((p: any) => !!p.has_face_swap)
       .sort((a: any, b: any) => Number(a.page_number) - Number(b.page_number));
 
-    const step = 98 / 900; // 3 分钟线性到 98%
+    const step = 98 / 300; // 3 分钟线性到 98%
 
     // 遍历每页：仅当上一页 final 已出现时，才启动下一页进度；
     // 若该页仅有 base（无 final）但未轮到它，则显示 loading（由 overlayMode 控制）
@@ -4283,11 +4261,11 @@ export default function PreviewPageWithTopNav() {
               )}
               
               {/* 当没有封面选项时的提示 */}
-              {!isLoadingOptions && !optionsError && bookOptions && (!bookOptions.cover_options || bookOptions.cover_options.length === 0) && (
+              {/* {!isLoadingOptions && !optionsError && bookOptions && (!bookOptions.cover_options || bookOptions.cover_options.length === 0) && (
                 <div className="text-center py-8">
                   <p className="text-gray-500">暂无封面选项可用</p>
                 </div>
-              )}
+              )} */}
               
               {/* 临时封面选项 - 当API数据有问题时使用 */}
               {!isLoadingOptions && (optionsError || !bookOptions || !bookOptions.cover_options || bookOptions.cover_options.length === 0) && (

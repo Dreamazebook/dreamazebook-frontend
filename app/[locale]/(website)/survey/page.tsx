@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Image from 'next/image'
+import { WEBSITE_CDN_URL } from '@/constants/cdn'
 
 export default function SurveyPage() {
   const [formData, setFormData] = useState({
@@ -216,7 +217,7 @@ export default function SurveyPage() {
           <div className="absolute inset-0 z-[5] pointer-events-none bg-gradient-overlay" />
           <div className="relative w-full h-full">
             <Image
-              src="https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/assets/survey/bg.png"
+              src={`${WEBSITE_CDN_URL}assets/survey/bg.png`}
               alt="Child reading"
               fill
               className="object-contain object-right translate-x-[-325px] translate-y-[300px] scale-[2.5] md:translate-y-[300px] md:translate-x-[200px] md:scale-[2.5] lg:translate-y-[140px] lg:-translate-x-[200px] lg:scale-[1.5]"

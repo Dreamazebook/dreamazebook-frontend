@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
+import { PICBOOK_MELODY_PERSONALIZE_AVATAR } from '@/constants/cdn';
 
 interface AvatarCanvasProps {
   bookId: string;
@@ -38,9 +39,7 @@ const normalizeBookId = (id: string): string => {
   return id;
 };
 
-const isPicbookMelody = (id: string): boolean => id === 'PICBOOK_MELODY';
-
-/** MELODY：按肤色选整图，无 layer_skin + 滤镜 */
+/** MELODY：按肤色选整图（CDN 静态 PNG，不用 Canvas） */
 const melodyCompositeFilename = (skinColor: string): string => {
   const h = (skinColor || '').toUpperCase();
   if (h === '#DCB593') return 'layer_tan.png';
@@ -48,7 +47,23 @@ const melodyCompositeFilename = (skinColor: string): string => {
   return 'layer_white.png';
 };
 
-const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
+const MelodyPersonalizeAvatar: React.FC<Pick<AvatarCanvasProps, 'skinColor' | 'width' | 'height'>> = ({
+  skinColor,
+  width,
+  height,
+}) => (
+  <img
+    src={PICBOOK_MELODY_PERSONALIZE_AVATAR(melodyCompositeFilename(skinColor))}
+    alt=""
+    className="rounded-lg h-[180px] md:h-[220px] w-auto block m-0 max-w-full"
+    width={width}
+    height={height}
+    loading="eager"
+    decoding="async"
+  />
+);
+
+const AvatarCanvasImpl: React.FC<AvatarCanvasProps> = ({
   bookId,
   skinColor,
   hairstyle,
@@ -71,11 +86,6 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
   useEffect(() => {
     let cancelled = false;
     const loadPageProperties = async () => {
-      if (isPicbookMelody(bookId)) {
-        setPageProperties({});
-        setIsLoading(false);
-        return;
-      }
       setIsLoading(true);
       const cacheBuster = `ts=${Date.now()}`;
       const candidatePaths = [
@@ -153,18 +163,6 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
     const loadBg = async () => {
       try {
         const ts = Date.now();
-        if (isPicbookMelody(bookId)) {
-          const src = `/products/picbooks/PICBOOK_MELODY/avatar/${melodyCompositeFilename(skinColor)}?ts=${ts}`;
-          try {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            await new Promise((res, rej) => { img.onload = res as any; img.onerror = rej; img.src = src; });
-            const w = (img as any).naturalWidth || img.width;
-            const h = (img as any).naturalHeight || img.height;
-            if (!cancelled && w > 0 && h > 0) setBgAspect(w / h);
-          } catch {}
-          return;
-        }
         // 对于 birthday 书籍，根据性别选择不同的背景图层
         const candidates: string[] = [];
         if (bookId === 'PICBOOK_BIRTHDAY') {
@@ -195,7 +193,7 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
     };
     loadBg();
     return () => { cancelled = true; };
-  }, [bookId, gender, normalizedBookId, skinColor]);
+  }, [bookId, gender, normalizedBookId]);
 
   // 标准像素级滤镜处理
   // 复用脚本中的 normalizeNumber 与 applyFilterToImageData
@@ -353,7 +351,6 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
     // 旧版本在真正落盘前会被丢弃，避免“叠影/双重头像”问题
     const currentVersion = ++drawVersionRef.current;
     const isBirthday = bookId === 'PICBOOK_BIRTHDAY';
-    const isMelody = isPicbookMelody(bookId);
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -471,16 +468,6 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
         console.log(`${layerName} composited to main canvas at`, { dx, dy, destW, destH });
       };
 
-      if (isMelody) {
-        const ts = Date.now();
-        await drawLayerWithFilter(
-          [`/products/picbooks/PICBOOK_MELODY/avatar/${melodyCompositeFilename(skinColor)}?ts=${ts}`],
-          null,
-          'MELODY_COMPOSITE'
-        );
-        return;
-      }
-
       // 0. 背景层（最底层，不应用滤镜）
       {
         const ts = Date.now();
@@ -565,15 +552,10 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       hasPageProperties: !!pageProperties 
     });
     
-    const isMelody = bookId === 'PICBOOK_MELODY';
-    // 确保有默认值也能正常工作（MELODY 仅依赖肤色合成图）
-    const hasValidParams = !isLoading && (
-      isMelody
-        ? !!(skinColor || '#FFE2CF')
-        : (skinColor || '#FFE2CF') &&
-          (hairstyle || 'hair_1') &&
-          (hairColor || 'light')
-    );
+    const hasValidParams = !isLoading &&
+      (skinColor || '#FFE2CF') &&
+      (hairstyle || 'hair_1') &&
+      (hairColor || 'light');
     
     if (hasValidParams) {
       drawAvatar();
@@ -599,6 +581,19 @@ const AvatarCanvas: React.FC<AvatarCanvasProps> = ({
       className="rounded-lg h-[180px] md:h-[220px] w-auto block m-0"
     />
   );
+};
+
+const AvatarCanvas: React.FC<AvatarCanvasProps> = (props) => {
+  if (props.bookId === 'PICBOOK_MELODY') {
+    return (
+      <MelodyPersonalizeAvatar
+        skinColor={props.skinColor}
+        width={props.width}
+        height={props.height}
+      />
+    );
+  }
+  return <AvatarCanvasImpl {...props} />;
 };
 
 export default AvatarCanvas;

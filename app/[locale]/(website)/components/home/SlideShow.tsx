@@ -10,7 +10,7 @@ const slides = [
     title: ["A Storybook Where", "Your Child Is the Hero"],
     color: "text-primary",
     buttonText: "Create Yours",
-    image: HOME_HERO("hero_mobile.png"),
+    image: HOME_HERO("hero_mobile.jpg"),
     image_desktop: HOME_HERO("hero.webp"),
     description: "Be seen. Be loved. Be celebrated",
   },
