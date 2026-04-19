@@ -61,7 +61,7 @@ const Header = () => {
   };
 
   return (
-    <header className="relative z-50 max-w-[1200px] mx-auto flex items-center justify-between p-[12px] md:p-[24px] bg-white md:bg-transparent">
+    <header className="relative z-50 max-w-[1200px] mx-auto flex items-center justify-between px-[12px] pb-[12px] pt-4 md:px-[24px] md:pb-[24px] bg-white md:bg-transparent">
       <button
         className="text-2xl md:hidden z-50"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
