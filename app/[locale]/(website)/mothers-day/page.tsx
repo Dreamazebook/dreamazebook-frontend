@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { Link } from '@/i18n/routing';
 import TheWayTheySeeYouMama from './TheWayTheySeeYouMama';
 import RecipeSection from './RecipeSection';
+import AFewPagesMamaNeverForget from './AFewPagesMamaNeverForget';
 
 const MOM_BOOK_ID = 'PICBOOK_MOM';
 
@@ -74,6 +75,7 @@ export default function MothersDayPage() {
 
       <TheWayTheySeeYouMama />
       <RecipeSection />
+      <AFewPagesMamaNeverForget />
     </main>
   );
 }
