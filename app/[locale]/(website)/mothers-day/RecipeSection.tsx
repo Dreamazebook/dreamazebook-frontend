@@ -9,6 +9,7 @@ const TILED_BG =
   'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/mothers-day/%E5%BA%95%E5%9B%BE.jpg';
 
 const BG_TILE_WIDTH_PX = 640;
+const FINAL_TOUCH_HEART_IMAGE = '爱心.png';
 
 type HighlightItem = { id: string; type: string; src: string };
 type MothersDayIndex = { highlights?: HighlightItem[] };
@@ -184,9 +185,17 @@ export default async function RecipeSection() {
                       aria-hidden
                     />
                     <div
-                      className={`${aLittleMonster.className} text-[15px] md:text-[28px] text-[#222222]`}
+                      className={`${aLittleMonster.className} flex min-w-0 items-center gap-1 text-[15px] md:gap-1.5 md:text-[28px]`}
                     >
-                      Final Touch
+                      <span className="text-[#222222]">Final Touch</span>
+                      <Image
+                        src={assetUrl(FINAL_TOUCH_HEART_IMAGE)}
+                        alt=""
+                        width={32}
+                        height={32}
+                        className="h-[0.95em] w-[0.95em] shrink-0 object-contain pointer-events-none select-none"
+                        unoptimized
+                      />
                     </div>
                   </div>
                   <div className="mt-1 text-[13px] md:text-[18px] md:leading-[28px] text-[#222222] space-y-1">

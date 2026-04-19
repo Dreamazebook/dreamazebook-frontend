@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import Image from 'next/image'
 import { Link } from '@/i18n/routing';
+import BundlePromotionBlock from '../christmas/BundlePromotionBlock';
 import TheWayTheySeeYouMama from './TheWayTheySeeYouMama';
 import RecipeSection from './RecipeSection';
 import AFewPagesMamaNeverForget from './AFewPagesMamaNeverForget';
+import { MOTHERS_DAY_BUNDLE_PROMO } from './mothersDayBundlePromo';
 
 const MOM_BOOK_ID = 'PICBOOK_MOM';
 
@@ -76,6 +78,10 @@ export default function MothersDayPage() {
       <TheWayTheySeeYouMama />
       <RecipeSection />
       <AFewPagesMamaNeverForget />
+
+      <div className="bg-[#FCF2F2]">
+        <BundlePromotionBlock {...MOTHERS_DAY_BUNDLE_PROMO} />
+      </div>
     </main>
   );
 }
