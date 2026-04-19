@@ -17,6 +17,7 @@ import CartHeader from './components/CartHeader';
 import CartItemList from './components/CartItemList';
 import ConfirmModal from '../../components/component/ConfirmModal';
 import OrderSummary from './components/OrderSummary';
+import ShippingProgressBanner from './components/ShippingProgressBanner';
 import useUserStore from '@/stores/userStore';
 
 export default function ShoppingCartPage() {
@@ -283,6 +284,8 @@ export default function ShoppingCartPage() {
                     }
                   }}
                 />
+
+                <ShippingProgressBanner itemsCount={itemsCount} />
               </div>
             )}
           </div>
