@@ -27,9 +27,10 @@ const menuItems = [
     isActive: (pathname: string) => pathname?.includes("/books"),
   },
   {
-    label: "Christmas Special",
-    href: "/christmas",
-    isActive: (pathname: string) => pathname === "/christmas",
+    label: "Mother's Day",
+    href: "/mothers-day",
+    isActive: (pathname: string) =>
+      pathname === "/mothers-day" || pathname?.endsWith("/mothers-day"),
   },
   {
     label: "About Us",
