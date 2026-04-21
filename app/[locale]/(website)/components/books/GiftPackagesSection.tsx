@@ -14,10 +14,7 @@ const GiftPackagesSection: React.FC<GiftPackagesSectionProps> = ({
   const packages = section.giftPackages || [];
   const bannerImage = section.bannerImage;
   const bannerTitle = section.bannerTitle || 'Ready-to-Gift Packages';
-  const bannerDescription = section.bannerDescription || [
-    'Handpicked bundles with books + keepsakes - beautifully wrapped for effortless gifting.',
-    'Create your own perfect gift set'
-  ];
+  const bannerDescription = section.bannerDescription;
   const waveImage = section.waveImage;
   return (
     <div className={`bg-[#FFF7F9] ${section.className || ''}`}>
@@ -36,7 +33,7 @@ const GiftPackagesSection: React.FC<GiftPackagesSectionProps> = ({
             <h1 className="text-4xl md:text-[40px] md:leading-[60px] font-medium mb-6">
               {bannerTitle}
             </h1>
-            {bannerDescription.map((desc, index) => (
+            {bannerDescription && bannerDescription.map((desc, index) => (
               <p 
                 key={index} 
                 className={`text-base md:text-[18px] leading-[28px] ${index === 0 ? '' : ''} leading-relaxed`}
