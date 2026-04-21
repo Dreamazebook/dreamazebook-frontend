@@ -251,6 +251,7 @@ export default function ShoppingCartPage() {
             ) : (
               <div className="w-full box-border flex flex-col gap-[12px] pr-[16px] pl-[16px] pt-4 lg:pt-0 lg:pr-16 lg:pb-[64px] lg:pl-[120px] opacity-100">
                 <CartItemList
+                  itemsCount={itemsCount}
                   items={cartItems}
                   selectedItems={selectedItems}
                   onQuantityChange={handleQuantityChange}

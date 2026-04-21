@@ -13,6 +13,7 @@ import { WEBSITE_CDN_URL } from "@/constants/cdn";
 
 interface CartItemProps {
   showEditBook?: boolean;
+  itemsCount: number;
   item: CartItemType;
   selectedItems?: number[];
   onQuantityChange?: (id: number, delta: number) => void;
@@ -23,6 +24,7 @@ interface CartItemProps {
 }
 
 export default function CartItemCard({
+  itemsCount,
   isSubItem = false,
   showEditBook,
   item,
@@ -196,7 +198,7 @@ export default function CartItemCard({
       }`}
     >
       <div
-        className={`flex w-full min-w-0 ${isPackage ? "items-start" : "items-center"} gap-3 ${
+        className={`flex w-full min-w-0 ${isPackage ? "items-start" : "items-center"} gap-1 md:gap-3 ${
           !isPackage ? "h-full relative" : ""
         }`}
       >
@@ -265,15 +267,18 @@ export default function CartItemCard({
                       {/* 桌面端：价格在右侧（与当前 UI 一致） */}
                       <div className="hidden md:block">
                         <div className="flex items-baseline gap-2">
+                          {(itemsCount >= 3) && 
+                          <span className="bg-[#FFE5E5] py-1 rounded px-2">save 20%</span>
+                          }
                           <DisplayPrice
                             style="text-[#222222] font-bold"
                             value={item.total_price}
                           />
-                          {itemMarketPrice != null && (
+                          {/* {itemMarketPrice != null && (
                             <span className="text-[#999999] md:text-[14px] md:leading-[20px]  md:tracking-[0.25px] line-through">
                               {formatMoney(itemMarketPrice, itemCurrency)}
                             </span>
-                          )}
+                          )} */}
                         </div>
                       </div>
                       {onRemoveItem && (
@@ -296,16 +301,19 @@ export default function CartItemCard({
                   </div>
                   {/* 手机端：价格在书名下方 */}
                   <div className="md:hidden">
-                    <div className="flex items-baseline gap-2">
+                    <div className="flex items-baseline gap-1 whitespace-nowrap">
                       <DisplayPrice
                         style="text-[#222222] font-bold"
                         value={item.total_price}
                       />
-                      {itemMarketPrice != null && (
+                      {/* {itemMarketPrice != null && (
                         <span className="text-[#999999] line-through text-[14px]">
                           {formatMoney(itemMarketPrice, itemCurrency)}
                         </span>
-                      )}
+                      )} */}
+                      {(itemsCount >= 3) && 
+                        <span className="bg-[#FFE5E5] py-1 rounded px-2">save 20%</span>
+                      }
                     </div>
                   </div>
                 </div>
@@ -765,6 +773,7 @@ export default function CartItemCard({
             <div className="mt-3 ml-[2.5rem]">
               {item.subItems.map((sub, idx) => (
                 <CartItemCard
+                  itemsCount={itemsCount}
                   key={sub.id}
                   item={sub}
                   isSubItem={true}

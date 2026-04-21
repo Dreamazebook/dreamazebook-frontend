@@ -12,6 +12,7 @@ interface SubItem {
 
 interface CartItemListProps {
   items: CartItem[];
+  itemsCount: number;
   selectedItems: number[];
   onQuantityChange: (id: number, delta: number) => void;
   onRemoveItem: (id: number) => void;
@@ -21,6 +22,7 @@ interface CartItemListProps {
 
 const CartItemList: React.FC<CartItemListProps> = ({
   items,
+  itemsCount,
   selectedItems,
   onQuantityChange,
   onRemoveItem,
@@ -30,7 +32,7 @@ const CartItemList: React.FC<CartItemListProps> = ({
   return (
     <div className="flex flex-col gap-4">
       {items.map(item => (
-        <CartItemCard key={item.id} item={item} showEditBook={true} selectedItems={selectedItems} onQuantityChange={onQuantityChange} onRemoveItem={onRemoveItem} onToggleSelect={onToggleSelect} handleClickEditMessage={onClickEditBook as any} />
+        <CartItemCard itemsCount={itemsCount} key={item.id} item={item} showEditBook={true} selectedItems={selectedItems} onQuantityChange={onQuantityChange} onRemoveItem={onRemoveItem} onToggleSelect={onToggleSelect} handleClickEditMessage={onClickEditBook as any} />
       ))}
     </div>
   );
