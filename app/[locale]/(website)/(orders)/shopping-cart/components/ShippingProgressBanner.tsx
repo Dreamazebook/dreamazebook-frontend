@@ -10,7 +10,7 @@ export default function ShippingProgressBanner({ itemsCount }: ShippingProgressB
   let message = 'Add 1 more book to get free shipping';
 
   if (itemsCount >= 2) {
-    message = 'You’ve unlocked free shipping 🎉,Add 1 more book to save 20%'
+    message = 'You’ve unlocked free shipping 🎉 Add 1 more book to save 20%'
   }
 
   return (

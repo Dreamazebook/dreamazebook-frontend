@@ -27,10 +27,10 @@ export interface GiftPackagesConfig {
 export const DEFAULT_GIFT_PACKAGES_CONFIG: GiftPackagesConfig = {
   type: 'gift-packages',
   bannerImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/top_picks_this_month/banner.webp',
-  bannerTitle: 'Ready-to-Gift Packages',
+  bannerTitle: 'Ready-to-Gift Bundles',
   bannerDescription: [
-    'Handpicked bundles with books + keepsakes - beautifully wrapped for effortless gifting.',
-    'Create your own perfect gift set'
+    'Books, keepsakes, and beautiful gift boxes — all packed and ready to give.',
+    'Create a gift they\'ll treasure.'
   ],
   waveImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/home/top_picks_this_month/wave_2.webp',
   giftPackages: [
