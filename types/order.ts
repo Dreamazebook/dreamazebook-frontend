@@ -47,7 +47,7 @@ export interface OrderDetail {
     applied_at: string;
     percentage: number;
     description: string;
-    non_package_quantity?: number;
+    normal_books_count?: number;
     non_package_original_total?: number;
   };
   coupon_code: string;
@@ -286,7 +286,7 @@ export const statusLabelMap: { [key: string]: string } = {
 
 export const getBooksCountFromOrder = (orderDetail: OrderDetail) => {
   if (orderDetail?.discount_details) {
-    return orderDetail?.discount_details.non_package_quantity;
+    return orderDetail?.discount_details.normal_books_count;
   }
   return orderDetail?.items.reduce((acc, item) => acc + item.quantity, 0) || 0;
 }

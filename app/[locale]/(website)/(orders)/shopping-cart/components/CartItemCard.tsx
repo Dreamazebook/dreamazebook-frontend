@@ -13,7 +13,7 @@ import { WEBSITE_CDN_URL } from "@/constants/cdn";
 
 interface CartItemProps {
   showEditBook?: boolean;
-  itemsCount: number;
+  itemsCount?: number;
   item: CartItemType;
   selectedItems?: number[];
   onQuantityChange?: (id: number, delta: number) => void;
@@ -267,7 +267,7 @@ export default function CartItemCard({
                       {/* 桌面端：价格在右侧（与当前 UI 一致） */}
                       <div className="hidden md:block">
                         <div className="flex items-baseline gap-2">
-                          {(itemsCount >= 3) && 
+                          {(itemsCount && itemsCount >= 3) && 
                           <span className="bg-[#FFE5E5] py-1 rounded px-2">save 20%</span>
                           }
                           <DisplayPrice
@@ -311,7 +311,7 @@ export default function CartItemCard({
                           {formatMoney(itemMarketPrice, itemCurrency)}
                         </span>
                       )} */}
-                      {(itemsCount >= 3) && 
+                      {(itemsCount && itemsCount >= 3) && 
                         <span className="bg-[#FFE5E5] py-1 rounded px-2">save 20%</span>
                       }
                     </div>

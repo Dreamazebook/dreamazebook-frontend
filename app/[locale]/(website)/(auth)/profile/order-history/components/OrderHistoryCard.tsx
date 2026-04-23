@@ -1,20 +1,13 @@
-import { formatAddress } from "@/types/address";
 import { OrderDetail } from "@/types/order";
 import DisplayPrice from "../../../../components/component/DisplayPrice";
-import { formatDate } from "@/app/[locale]/admin/orders/utils";
 import { Link } from "@/i18n/routing";
 import OrderStatusLabel from "../../../../components/component/OrderStatusLabel";
-import { ORDER_CHECKOUT_URL, ORDER_SUMMARY_URL } from "@/constants/links";
-import useOrderStatus from "../../../../hooks/useOrderStatus";
+import { getOrderLink } from "@/constants/links";
 import { useTranslations } from "next-intl";
 import OrderSummaryDelivery from "@/app/[locale]/(website)/components/component/OrderSummaryDelivery";
 import StripeReceiptLink from "@/app/[locale]/(website)/components/component/StripeReceiptLink";
 
 const OrderHistoryCard = ({ orderDetail,showStatus,openModal,openAddressModal }: { orderDetail: OrderDetail,showStatus:Boolean, openModal:(orderDetail:OrderDetail)=>void, openAddressModal:(orderDetail:OrderDetail)=>void }) => {
-  const orderDetailLink =
-    orderDetail.payment_status === "paid"
-      ? ORDER_SUMMARY_URL(orderDetail.id)
-      : ORDER_CHECKOUT_URL(orderDetail.id);
 
   const t = useTranslations("orderHistoryCard");
   return (
@@ -25,7 +18,7 @@ const OrderHistoryCard = ({ orderDetail,showStatus,openModal,openAddressModal }:
         <div className="flex justify-between items-start mb-2 flex-wrap">
           <div className="flex items-center gap-[12px]">
             <Link
-              href={orderDetailLink}
+              href={getOrderLink(orderDetail)}
               className="text-[#222] font-medium text-[18px]"
             >
               #{orderDetail.order_number}
@@ -70,7 +63,7 @@ const OrderHistoryCard = ({ orderDetail,showStatus,openModal,openAddressModal }:
           </button>
           :
           <Link
-            href={orderDetailLink}
+            href={getOrderLink(orderDetail)}
             className="text-primary hover:underline flex items-center gap-1"
           >
             {t("moreDetails")}
