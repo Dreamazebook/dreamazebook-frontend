@@ -107,6 +107,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
         // 仅对我们人工插入的“new-books-coming”卡片做 coming soon 判定
         // （不要用 price===0 来判断，避免误伤真实 0 元商品或数据异常）
         const isComingSoon = idOrCode === 'new-books-coming';
+        const categories = book.marketing_tags || [];
         
         const cardContent = (
           <div className="flex flex-col md:relative w-full min-h-[355px] book-card-height overflow-hidden mx-auto bg-[#F3F3F3] transition-colors duration-300 group-hover:bg-[#E0E4EF]">
@@ -147,9 +148,14 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
               <h3 className="text-[#222222] text-[18px] font-medium text-center px-4 line-clamp-2">
                 {name}
               </h3>
+              {/* {desc && !isComingSoon && (
+                <p className="group-hover:block text-[#666666] text-sm text-center px-4 line-clamp-3 transition-opacity">
+                  {desc}
+                </p>
+              )} */}
               {!isComingSoon ? (
-                <p className="text-[#222222] text-[18px]">
-                  ${Number(priceVal).toFixed(2)}
+                <p className="text-[#222222] flex gap-2 items-center text-[18px] group-hover:font-medium">
+                  <span className="text-[18px]">From ${book.current_price}</span><span className="line-through text-[#999] text-[16px]">${Number(priceVal).toFixed(2)}</span>
                 </p>
               ) : (
                 <div className="flex flex-col items-center gap-2 px-4">
@@ -178,9 +184,12 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
                   </p>
                 )}
               </div>
+              <div className="text-[#666666] text-[16px] flex justify-center items-center gap-[10px]">
+                {categories.map((c:string)=><span className="bg-[#F3F6FF66] p-1" key={c}>{c}</span>)}
+              </div>
               {!isComingSoon ? (
-                <p className="text-[#222222] text-[18px] group-hover:font-medium">
-                  ${Number(priceVal).toFixed(2)}
+                <p className="text-[#222222] flex gap-2 items-center text-[18px] group-hover:font-medium">
+                  <span className="text-[18px]">From ${book.current_price}</span><span className="line-through text-[#999] text-[16px]">${Number(priceVal).toFixed(2)}</span>
                 </p>
               ) : (
                 <p className="text-[#666666] text-[16px] text-center px-4">
