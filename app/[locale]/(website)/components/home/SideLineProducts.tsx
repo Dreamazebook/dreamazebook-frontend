@@ -1,4 +1,4 @@
-import { ArrowRight, ChevronLeft, ChevronRight } from '@/utils/icons';
+import { ArrowRight } from '@/utils/icons';
 import React from "react";
 
 const navigationDots = [

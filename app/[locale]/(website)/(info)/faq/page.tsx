@@ -136,13 +136,10 @@ export default function FAQPage() {
         {/* Header Section */}
         <div className="text-center mb-16 space-y-6">
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8">
-            FAQ's
+            Hi, we'd like to help!
           </h1>
           
           <div className="max-w-2xl mx-auto space-y-4 text-gray-700">
-            <h2 className="text-2xl font-semibold text-gray-900">
-              Hi, we'd like to help!
-            </h2>
             <p className="text-lg leading-relaxed">
               Welcome — we're so glad our paths have crossed!
             </p>
