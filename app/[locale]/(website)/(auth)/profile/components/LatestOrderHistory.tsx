@@ -12,7 +12,7 @@ import StripeReceiptLink from "../../../components/component/StripeReceiptLink";
 
 export default function LatestOrderHistory({ orderDetail }:{orderDetail:OrderDetail}) {
   const {order_number,status,total_amount,items, id} = orderDetail;
-  const t = useTranslations('latestOrderHistory');
+  const t = useTranslations('orderHistoryCard');
 
   return (
     <div key={order_number} className="">
@@ -40,7 +40,7 @@ export default function LatestOrderHistory({ orderDetail }:{orderDetail:OrderDet
           <StripeReceiptLink stripeReceiptUrl={orderDetail.stripe_receipt_url} variant="button" />
           }
           <Link href={getOrderLink(orderDetail)} className="px-4 py-2 bg-gray-900 text-white rounded text-sm font-medium hover:bg-gray-800">
-            {t("buySame")}
+            {t("moreDetails")}
           </Link>
         </div>
       </div>

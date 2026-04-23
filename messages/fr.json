@@ -77,12 +77,8 @@
     "buySame": "Acheter le même",
     "moreDetails": "Plus de détails",
     "continueToPay": "Continuer à payer",
-    "editShippingAddress": "Modifier l'adresse de livraison"
-  },
-  "latestOrderHistory": {
     "total": "Total",
-    "downloadInvoice": "Télécharger la facture",
-    "buySame": "Acheter le même"
+    "editShippingAddress": "Modifier l'adresse de livraison"
   },
   "orderSummaryDelivery": {
     "shipTo": "Expédier à",
