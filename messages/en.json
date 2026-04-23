@@ -77,12 +77,8 @@
     "buySame": "Buy the Same",
     "moreDetails": "View Details",
     "continueToPay": "Complete Payment",
-    "editShippingAddress": "Change Shipping Address"
-  },
-  "latestOrderHistory": {
-    "total": "Total",
-    "downloadInvoice": "Download Invoice",
-    "buySame": "Buy the Same"
+    "editShippingAddress": "Change Shipping Address",
+    "total": "Total"
   },
   "orderSummaryDelivery": {
     "shipTo": "Ship to",

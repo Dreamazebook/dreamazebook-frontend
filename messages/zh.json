@@ -77,12 +77,8 @@
     "buySame": "购买相同",
     "moreDetails": "更多详情",
     "continueToPay": "继续支付",
-    "editShippingAddress": "编辑收货地址"
-  },
-  "latestOrderHistory": {
     "total": "总计",
-    "downloadInvoice": "下载发票",
-    "buySame": "购买相同"
+    "editShippingAddress": "编辑收货地址"
   },
   "orderSummaryDelivery": {
     "shipTo": "配送至",
