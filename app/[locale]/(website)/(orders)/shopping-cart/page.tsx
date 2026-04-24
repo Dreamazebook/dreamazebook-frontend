@@ -104,7 +104,9 @@ export default function ShoppingCartPage() {
           })
         );
         setCartItems(augmented as any);
-        //setSelectedItems(augmented.map((item: any) => item.id));
+        if (data?.selection?.cart_item_ids.length > 0) {
+          setSelectedItems(data.selection.cart_item_ids);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch carts:', err);
