@@ -267,18 +267,19 @@ export default function CartItemCard({
                       {/* 桌面端：价格在右侧（与当前 UI 一致） */}
                       <div className="hidden md:block">
                         <div className="flex items-baseline gap-2">
-                          {(itemsCount && itemsCount >= 3) && 
+                          {(itemsCount != 0 && itemsCount && itemsCount >= 3) && 
                           <span className="bg-[#FFE5E5] py-1 rounded px-2">save 20%</span>
                           }
                           <DisplayPrice
                             style="text-[#222222] font-bold"
                             value={item.total_price}
                           />
-                          {/* {itemMarketPrice != null && (
-                            <span className="text-[#999999] md:text-[14px] md:leading-[20px]  md:tracking-[0.25px] line-through">
-                              {formatMoney(itemMarketPrice, itemCurrency)}
-                            </span>
-                          )} */}
+                          {item.original_total_price != null && (
+                            <DisplayPrice
+                              style="text-[#999999] md:text-[14px] md:leading-[20px]  md:tracking-[0.25px] line-through"
+                              value={item.original_total_price}
+                            />
+                          )}
                         </div>
                       </div>
                       {onRemoveItem && (
@@ -306,12 +307,13 @@ export default function CartItemCard({
                         style="text-[#222222] font-bold"
                         value={item.total_price}
                       />
-                      {/* {itemMarketPrice != null && (
-                        <span className="text-[#999999] line-through text-[14px]">
-                          {formatMoney(itemMarketPrice, itemCurrency)}
-                        </span>
-                      )} */}
-                      {(itemsCount && itemsCount >= 3) && 
+                      {item.original_total_price && (
+                        <DisplayPrice
+                          style="text-[#999999] line-through text-[14px]"
+                          value={item.original_total_price}
+                        />
+                      )}
+                      {(itemsCount != 0 && itemsCount && itemsCount >= 3) && 
                         <span className="bg-[#FFE5E5] py-1 rounded px-2">save 20%</span>
                       }
                     </div>
