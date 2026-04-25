@@ -124,7 +124,7 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
     handleDrop,
     getUploadedPaths,
     initializeWithUrls,
-  } = useMultiImageUpload(uploadOptions?.maxImages ?? 3, { allowedTypes: uploadOptions?.allowedTypes, maxFileSize: uploadOptions?.maxFileSize });
+  } = useMultiImageUpload(uploadOptions?.maxImages ?? 1, { allowedTypes: uploadOptions?.allowedTypes, maxFileSize: uploadOptions?.maxFileSize });
 
   // 书籍2的品质选择移至 select-book-content 页面
 
@@ -177,7 +177,7 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
   // Handle multiple photos upload（与书籍1一致，增加裁剪逻辑）
   const handlePhotosUpload = async (files: File[]) => {
     if (!files || files.length === 0) return;
-    const maxImages = uploadOptions?.maxImages ?? 3;
+    const maxImages = uploadOptions?.maxImages ?? 1;
     const remainingSlots = maxImages - images.length;
     if (remainingSlots <= 0) return;
 
@@ -422,7 +422,7 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
                   uploadProgress={uploadProgress}
                   error={uploadError}
                   isDragging={isDragging}
-                  maxImages={uploadOptions?.maxImages ?? 3}
+                  maxImages={uploadOptions?.maxImages ?? 1}
                   onImageUpload={handlePhotosUpload}
                   onImageDelete={handlePhotoDelete}
                   onDragEnter={handleDragEnter}

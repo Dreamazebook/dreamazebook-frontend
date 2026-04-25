@@ -135,7 +135,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       handleDrop,
       getUploadedPaths,
       initializeWithUrls,
-    } = useMultiImageUpload(uploadOptions?.maxImages ?? 3, {
+    } = useMultiImageUpload(uploadOptions?.maxImages ?? 1, {
       allowedTypes: uploadOptions?.allowedTypes,
       maxFileSize: uploadOptions?.maxFileSize,
     });
@@ -183,7 +183,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
 
     const handlePhotosUpload = async (files: File[]) => {
       if (!files || files.length === 0) return;
-      const maxImages = uploadOptions?.maxImages ?? 3;
+      const maxImages = uploadOptions?.maxImages ?? 1;
       const remainingSlots = maxImages - images.length;
       if (remainingSlots <= 0) return;
 
@@ -447,7 +447,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                     uploadProgress={uploadProgress}
                     error={uploadError}
                     isDragging={isDragging}
-                    maxImages={uploadOptions?.maxImages ?? 3}
+                    maxImages={uploadOptions?.maxImages ?? 1}
                     onImageUpload={handlePhotosUpload}
                     onImageDelete={handlePhotoDelete}
                     onDragEnter={handleDragEnter}
