@@ -1633,14 +1633,21 @@ export default function PreviewPageWithTopNav() {
 
       const binding_options = (bindingAttr?.options || []).map((o: any, idx: number) => {
         const optionKey = String(o?.value || '').toLowerCase();
-        // 根据 option_key 设置描述
+        const labelLower = String(o?.label || '').toLowerCase();
+        // 与 buildBindingImageUrl 一致：先 premium，再 hard，再 soft。否则如 PREMIUM_HARDCOVER 会误匹配为经典精装文案。
+        const keyForDesc = `${optionKey} ${labelLower}`;
         let description: string | null = null;
-        if (optionKey.includes('soft') || optionKey.includes('paper')) {
+        if (
+          keyForDesc.includes('premium') ||
+          (keyForDesc.includes('lay') && keyForDesc.includes('flat')) ||
+          /lay-?\s*flat|layflat|butterfly/i.test(String(o?.label || o?.value))
+        ) {
+          description =
+            'Luxurious lay-flat pages for immersive reading.\nA treasure to cherish.';
+        } else if (keyForDesc.includes('hard') || keyForDesc.includes('classic') || /hard ?cover|精装/i.test(keyForDesc)) {
+          description = 'Sturdy and elegant.\nPerfect for gifting.';
+        } else if (keyForDesc.includes('soft') || keyForDesc.includes('paper') || /soft-?cover|软封|平装/i.test(keyForDesc)) {
           description = 'Light, flexible, and easy to take';
-        } else if (optionKey.includes('hard')) {
-          description = 'Sturdy and elegant — a keepsake to cherish.';
-        } else if (optionKey.includes('premium')) {
-          description = 'Luxurious lay-flat design for panoramic reading — a treasure to cherish.';
         }
         
         return {
@@ -4431,7 +4438,9 @@ export default function PreviewPageWithTopNav() {
                       })()}
                     </p>
                     {option.description && (
-                    <p className="text-sm text-gray-500 text-center mb-4">{option.description}</p>
+                    <p className="text-sm text-gray-500 text-center mb-4 whitespace-pre-line">
+                      {option.description}
+                    </p>
                     )}
                     <div className="flex items-center justify-center mt-auto space-x-2 mb-2">
                       {/* 左侧圆形选中框 */}
