@@ -470,7 +470,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
               <div className="space-y-4">
                 <div id="field-relationship">
                   <label className="block mb-2 font-medium text-[#222222] text-[16px] leading-[24px] tracking-[0.15px]">
-                    What is your relationship to the child?
+                    What is your relationship to them?
                   </label>
                   <div className="relative">
                     <select

@@ -528,7 +528,7 @@ export default function PersonalizeApiDrivenPage() {
           </div>
         ) : (
           <h1 className="text-[22px] leading-[28px] text-center pt-3 md:pt-0 md:my-6 my-0">
-            Who are you making this book for?
+            Tell Us About Your Child
           </h1>
         )}
         {formType === 'SINGLE1' ? (
