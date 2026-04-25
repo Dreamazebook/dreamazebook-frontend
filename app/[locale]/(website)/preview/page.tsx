@@ -8,7 +8,6 @@ import { create } from 'zustand';
 import TopNavBarWithTabs from '../components/TopNavBarWithTabs';
 
 import Image from 'next/image';
-import { LoaderCircle } from 'lucide-react';
 import GiverDedicationCanvas from './components/GiverDedicationCanvas';
 import GiverAvatarCropper from './components/GiverAvatarCropper';
 import CoverNameCanvas from './components/CoverNameCanvas';
@@ -1487,6 +1486,42 @@ export default function PreviewPageWithTopNav() {
     if (!id || Number.isNaN(id)) return null;
     return id;
   }, [previewData?.preview_data]);
+
+  // 第一张非封面预览 = 内页首图（扉页/第一页）：图一可显示即收起顶部的 “coming to life” 行（不等到整批完成）
+  const firstContentPageId = useMemo(() => {
+    const pages = (previewData?.preview_data ?? []).filter((p: any) => !(p as any).is_cover);
+    const first = pages[0];
+    const id = first ? Number((first as any).page_id) : null;
+    if (!id || Number.isNaN(id)) return null;
+    return id;
+  }, [previewData?.preview_data]);
+  const [isFirstContentPageLoaded, setIsFirstContentPageLoaded] = useState(false);
+  const firstContentPageIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (firstContentPageIdRef.current !== firstContentPageId) {
+      firstContentPageIdRef.current = firstContentPageId;
+      setIsFirstContentPageLoaded(false);
+    }
+  }, [firstContentPageId]);
+
+  const showStoryComingLine = useMemo(
+    () =>
+      !isCompleted &&
+      !isFirstContentPageLoaded &&
+      (isProcessing || isProcessingLike),
+    [isCompleted, isFirstContentPageLoaded, isProcessing, isProcessingLike],
+  );
+  const [comingLifeDotPhase, setComingLifeDotPhase] = useState(0);
+  useEffect(() => {
+    if (!showStoryComingLine) {
+      setComingLifeDotPhase(0);
+      return;
+    }
+    const t = window.setInterval(() => {
+      setComingLifeDotPhase((d) => (d + 1) % 4);
+    }, 400);
+    return () => clearInterval(t);
+  }, [showStoryComingLine]);
 
   useEffect(() => {
     if (titlePageIdRef.current !== titlePageId) {
@@ -3722,7 +3757,7 @@ export default function PreviewPageWithTopNav() {
             
             {/* 书籍封面 */}
             <div className="flex flex-col items-center w-full max-w-3xl">
-              <div className={`w-full flex justify-center ${isProcessing ? 'mb-4' : 'mb-8'}`}>
+              <div className={`w-full flex justify-center ${showStoryComingLine ? 'mb-4' : 'mb-8'}`}>
                 {(() => {
                   // 尝试获取当前选中的封面：
                   // - 如果用户已选择封面，则使用选中的封面；
@@ -3868,15 +3903,18 @@ export default function PreviewPageWithTopNav() {
                   );
                 })()}
               </div>
-              {isProcessing && (
-                <div className="mb-8 flex flex-col items-center gap-2" role="status" aria-live="polite">
-                  <LoaderCircle
-                    size={48}
-                    className="animate-spin"
-                    style={{ color: '#C9CCD3', animationDuration: '1.5s' }}
-                    aria-label="loading"
-                  />
-                  <p className="text-base font-medium text-[#C9CCD3]">Your story is coming to life…</p>
+              {showStoryComingLine && (
+                <div
+                  className="mb-8 flex min-h-[1.5rem] flex-col items-center justify-center"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <p className="text-center text-base font-medium text-[#C9CCD3]">
+                    <span>Your story is coming to life</span>
+                    <span className="inline-block w-[3ch] text-left font-mono">
+                      {'.'.repeat(comingLifeDotPhase)}
+                    </span>
+                  </p>
                 </div>
               )}
             </div>
@@ -4113,6 +4151,9 @@ export default function PreviewPageWithTopNav() {
                               )
                             ) : undefined}
                             onImageLoaded={(loadedPageId) => {
+                              if (firstContentPageId && loadedPageId === firstContentPageId) {
+                                setIsFirstContentPageLoaded(true);
+                              }
                               if (titlePageId && loadedPageId === titlePageId) {
                                 setIsTitlePageLoaded(true);
                               }
