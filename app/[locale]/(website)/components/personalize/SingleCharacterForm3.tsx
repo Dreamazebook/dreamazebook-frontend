@@ -378,7 +378,7 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
                 />
 
                 <div id="field-ageStage">
-                  <label className="block mb-[2px] font-medium">Age stage</label>
+                  <label className="block mb-[2px] font-medium">Your Child's Age</label>
                   <p className="text-[#999999] text-[14px] leading-[20px] tracking-[0.5px] mb-1 md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
                     Choose the age range this story is made for.
                   </p>

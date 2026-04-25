@@ -319,7 +319,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         />
       </div>
       <p className="text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[#999999]">
-        Customize a look close to your child — we'll tailor every detail with their photo later.
+        This cute avatar is just the beginning — your child's photo is where the magic happens.
       </p>
 
       {/* First name */}
@@ -439,7 +439,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
       {showAgeStageAndFromWhom && (
         <>
           <div id="field-ageStage">
-            <label className="block font-medium text-[#222222]">Age stage</label>
+            <label className="block font-medium text-[#222222]">Your Child's Age</label>
             <p className="text-[#999999] text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] mt-1 mb-3">
               Choose the age range this story is made for.
             </p>

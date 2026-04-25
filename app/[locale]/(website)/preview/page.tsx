@@ -4119,7 +4119,7 @@ export default function PreviewPageWithTopNav() {
                 </div>
                 {isTitlePageLoaded && (
                   <p className="text-center text-[#999999] mt-8 whitespace-pre-line">
-                    {`This is your personalized title page.\nYour full book preview will be emailed within 48 hours.`}
+                    {`This is a sneak peek of the story.\nComplete your order to receive the full book preview within 48 hours.`}
                   </p>
                 )}
               </div>

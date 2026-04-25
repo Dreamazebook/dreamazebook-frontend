@@ -18,9 +18,9 @@ export const MOTHERS_DAY_BUNDLE_PROMO: Pick<
     four: 'Family Keepsake Set',
     classics: 'Growing Up Collection',
   },
-  introTitle: "Gift More Love This Mother's Day",
+  introTitle: "More Stories, More Memories",
   introSubtitle: 'Choose any stories you love, bundle joy for the whole family.',
-  faqTitle: "Mother's Day Package FAQ",
+  faqTitle: "Gift Bundle FAQ",
   faqs: [
     {
       q: 'Can I choose which stories go into my package?',
