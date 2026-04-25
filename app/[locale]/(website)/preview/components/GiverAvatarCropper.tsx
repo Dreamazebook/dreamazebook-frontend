@@ -46,6 +46,21 @@ type Props = {
    * - 'file'：不调用后端上传，仅返回裁剪后的 File（Personalize 使用）
    */
   resultMode?: 'specialUpload' | 'file';
+  /**
+   * 弹层标题/副标题：个人化表单与预览扉页 giver 上传文案不同
+   */
+  uiVariant?: 'personalize' | 'openingPage';
+};
+
+const CROPPER_COPY: Record<'personalize' | 'openingPage', { title: string; subtitle: string }> = {
+  personalize: {
+    title: 'Add image',
+    subtitle: 'Please crop the image and keep only the head for best results.',
+  },
+  openingPage: {
+    title: 'Add a Photo for the Opening Page of Your Book',
+    subtitle: 'Spark beautiful memories from the very first page.',
+  },
 };
 
 // 复制 hooks 内部的地址规范化逻辑，便于将后端 path 转为可访问 URL
@@ -86,7 +101,9 @@ export default function GiverAvatarCropper({
   initialSrc,
   onDoneFile,
   resultMode = 'specialUpload',
+  uiVariant = 'openingPage',
 }: Props) {
+  const { title: headerTitle, subtitle: headerSubtitle } = CROPPER_COPY[uiVariant];
   const [src, setSrc] = useState<string | undefined>(initialSrc);
   const cropperRef = useRef<ReactCropperElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -252,8 +269,8 @@ export default function GiverAvatarCropper({
       {src && (
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-2">
-            <h2 className="text-lg font-semibold">Add a Photo for the Opening Page of Your Book</h2>
-            <p className="text-gray-500">Spark beautiful memories from the very first page.</p>
+            <h2 className="text-lg font-semibold">{headerTitle}</h2>
+            <p className="text-gray-500">{headerSubtitle}</p>
           </div>
           <button className="text-xl text-gray-500 hover:text-gray-700" onClick={onCancel}>&#x2715;</button>
         </div>

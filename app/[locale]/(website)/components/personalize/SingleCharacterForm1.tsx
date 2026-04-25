@@ -541,6 +541,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
             <div className="bg-white w-[860px] max-w-[95vw] rounded-sm pt-6 pr-6 pb-4 pl-6 flex flex-col gap-4">
               <GiverAvatarCropper
                 resultMode="file"
+                uiVariant="personalize"
                 initialSrc={pendingPreviewUrl}
                 aspectRatio={1}
                 maxSize={1024}

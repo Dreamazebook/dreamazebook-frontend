@@ -1478,7 +1478,7 @@ export default function PreviewPageWithTopNav() {
   const isGenerating = isProcessingLike && (queuePos === null || queuePos === 0);
   const isCompleted = faceSwapStatus === 'completed';
 
-  // 扉页（标题页）：约定为预览列表里第二张“非封面”页（index=1）
+  // 扉页（标题页）：约定为预览列表里第二张“非封面”页（index=1）；仅一页时退化为该页
   const titlePageId = useMemo(() => {
     const pages = (previewData?.preview_data ?? []).filter((p: any) => !(p as any).is_cover);
     const candidate = pages[1] || pages[0];
@@ -1487,29 +1487,13 @@ export default function PreviewPageWithTopNav() {
     return id;
   }, [previewData?.preview_data]);
 
-  // 第一张非封面预览 = 内页首图（扉页/第一页）：图一可显示即收起顶部的 “coming to life” 行（不等到整批完成）
-  const firstContentPageId = useMemo(() => {
-    const pages = (previewData?.preview_data ?? []).filter((p: any) => !(p as any).is_cover);
-    const first = pages[0];
-    const id = first ? Number((first as any).page_id) : null;
-    if (!id || Number.isNaN(id)) return null;
-    return id;
-  }, [previewData?.preview_data]);
-  const [isFirstContentPageLoaded, setIsFirstContentPageLoaded] = useState(false);
-  const firstContentPageIdRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (firstContentPageIdRef.current !== firstContentPageId) {
-      firstContentPageIdRef.current = firstContentPageId;
-      setIsFirstContentPageLoaded(false);
-    }
-  }, [firstContentPageId]);
-
+  // 顶部 “Your story is coming to life…” 在该扉页图 onLoad 后隐藏（不等到整批完成）
   const showStoryComingLine = useMemo(
     () =>
       !isCompleted &&
-      !isFirstContentPageLoaded &&
+      !isTitlePageLoaded &&
       (isProcessing || isProcessingLike),
-    [isCompleted, isFirstContentPageLoaded, isProcessing, isProcessingLike],
+    [isCompleted, isTitlePageLoaded, isProcessing, isProcessingLike],
   );
   const [comingLifeDotPhase, setComingLifeDotPhase] = useState(0);
   useEffect(() => {
@@ -4151,9 +4135,6 @@ export default function PreviewPageWithTopNav() {
                               )
                             ) : undefined}
                             onImageLoaded={(loadedPageId) => {
-                              if (firstContentPageId && loadedPageId === firstContentPageId) {
-                                setIsFirstContentPageLoaded(true);
-                              }
                               if (titlePageId && loadedPageId === titlePageId) {
                                 setIsTitlePageLoaded(true);
                               }
@@ -4780,6 +4761,7 @@ export default function PreviewPageWithTopNav() {
                   
                   return (
                     <GiverAvatarCropper
+                      uiVariant="openingPage"
                       // 预览页扉页图片：不限制裁剪框比例；导出不固定输出比例，避免在用户选择自由比例时发生拉伸变形
                       maxSize={1600}
                       exportMime="image/jpeg"
