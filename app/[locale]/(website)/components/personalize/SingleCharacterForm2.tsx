@@ -424,7 +424,6 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
               resultMode="file"
               uiVariant="personalize"
               initialSrc={pendingPreviewUrl}
-              aspectRatio={1}
               maxSize={1024}
               exportMime="image/jpeg"
               exportQuality={0.92}

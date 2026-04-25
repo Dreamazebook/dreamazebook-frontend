@@ -543,7 +543,6 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                 resultMode="file"
                 uiVariant="personalize"
                 initialSrc={pendingPreviewUrl}
-                aspectRatio={1}
                 maxSize={1024}
                 exportMime="image/jpeg"
                 exportQuality={0.92}

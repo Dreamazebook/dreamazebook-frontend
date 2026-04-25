@@ -135,16 +135,15 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
       {/* 图片要求示例 - 左右布局 */}
       <div className="flex flex-row gap-4 mb-6 bg-[#F8F8F8] py-3 px-4 rounded-[4px]">
         {/* 左侧：示例图片 */}
-        <div className="flex-shrink-0">
-          <div className="w-[102px] md:w-[80px] aspect-square rounded-[4px] overflow-hidden bg-gray-100">
-            <Image
-              src="/personalize/face.png"
-              alt="Example photo"
-              width={200}
-              height={200}
-              className="w-full h-full object-cover rounded-lg"
-            />
-          </div>
+        <div className="flex-shrink-0 max-w-[102px] md:max-w-[80px]">
+          <Image
+            src="/personalize/face.png"
+            alt="Example photo"
+            width={200}
+            height={200}
+            className="w-full h-auto object-contain rounded-[4px] bg-gray-100"
+            sizes="(max-width: 768px) 80px, 102px"
+          />
         </div>
         
         {/* 右侧：指南列表 */}
@@ -243,37 +242,33 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
           }`}
         >
           {images.map((image, index) => (
-            <div key={image.id} className="relative w-full min-w-0">
-              <div className="relative bg-gray-100 rounded overflow-hidden aspect-square w-full">
-                <Image
+            <div
+              key={image.id}
+              className={`relative flex min-w-0 w-full ${
+                isSingle ? 'justify-start' : 'justify-center'
+              }`}
+            >
+              <div className="relative inline-block max-w-full">
+                <img
                   src={image.previewUrl}
                   alt={`Uploaded image ${index + 1}`}
-                  fill
-                  sizes={isSingle ? '128px' : '(max-width: 640px) 80px, 100px'}
-                  unoptimized
-                  style={{
-                    objectFit: 'cover',
-                  }}
-                  className="rounded-lg"
+                  className="block h-auto w-auto max-h-[240px] max-w-full rounded-lg bg-gray-100 object-contain"
                 />
-                
-                {/* 上传中的loading动画 */}
                 {image.isUploading && (
-                  <div 
-                    className="absolute inset-0 rounded flex items-center justify-center z-10"
+                  <div
+                    className="absolute inset-0 z-10 flex items-center justify-center rounded-lg"
                     style={{ backgroundColor: 'rgba(248, 248, 248, 0.4)' }}
                   >
-                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#012CCE] border-t-transparent"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#012CCE] border-t-transparent" />
                   </div>
                 )}
-                
                 <button
                   onClick={(e) => {
-                    e.stopPropagation(); // 阻止事件冒泡
+                    e.stopPropagation();
                     onImageDelete(image.id);
                   }}
                   type="button"
-                  className="absolute top-0 right-0 bg-white shadow-md flex items-center justify-center"
+                  className="absolute top-0 right-0 z-20 flex items-center justify-center bg-white shadow-md"
                   style={{
                     width: '24px',
                     height: '24px',

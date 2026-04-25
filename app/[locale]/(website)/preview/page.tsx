@@ -994,6 +994,11 @@ export default function PreviewPageWithTopNav() {
   // 扉页（标题页）展示完成后显示提示文案
   const [isTitlePageLoaded, setIsTitlePageLoaded] = useState(false);
   const titlePageIdRef = useRef<number | null>(null);
+  // 顶部 “Your story is coming to life…”：
+  // - 在 p3-4 还没出现在 preview_data 之前保持显示
+  // - 只有当 p3-4 出现且该页图片 onLoad 后才隐藏
+  const [isStoryComingTargetPageLoaded, setIsStoryComingTargetPageLoaded] = useState(false);
+  const storyComingTargetPageIdRef = useRef<number | null>(null);
 
   // 为 Others 标签页添加局部状态，用于记录选中的选项
   const [selectedBookCover, setSelectedBookCover] = React.useState<number | null>(null);
@@ -1477,6 +1482,7 @@ export default function PreviewPageWithTopNav() {
   const isQueued = isProcessingLike && queuePos !== null && queuePos > 0;
   const isGenerating = isProcessingLike && (queuePos === null || queuePos === 0);
   const isCompleted = faceSwapStatus === 'completed';
+  const isFailed = faceSwapStatus === 'failed';
 
   // 扉页（标题页）：约定为预览列表里第二张“非封面”页（index=1）；仅一页时退化为该页
   const titlePageId = useMemo(() => {
@@ -1487,13 +1493,33 @@ export default function PreviewPageWithTopNav() {
     return id;
   }, [previewData?.preview_data]);
 
-  // 顶部 “Your story is coming to life…” 在该扉页图 onLoad 后隐藏（不等到整批完成）
+  // p3-4：与下方 isGiverDedication 一致，用 page_code 定位
+  const p34PageId = useMemo(() => {
+    const pages = previewData?.preview_data ?? [];
+    const p = pages.find((x: any) => {
+      const c = String(x?.page_code || '');
+      return c === 'p3-4' || c === 'p3-p4';
+    });
+    const id = p ? Number((p as any).page_id) : null;
+    if (!id || Number.isNaN(id)) return null;
+    return id;
+  }, [previewData?.preview_data]);
+
+  // 目标页：仅以 p3-4 为准（不再回退到其它页），避免 p3-4 尚未出现时提示提前消失
+  const pageIdForStoryComingHide = p34PageId;
+
+  // 顶部 “Your story is coming to life…”：
+  // - p3-4 未出现：继续显示
+  // - p3-4 已出现但未加载完成：继续显示
+  // - p3-4 已加载完成：隐藏
+  // - 批次 completed/failed：隐藏（避免 p3-4 永远不出现导致卡住）
   const showStoryComingLine = useMemo(
     () =>
       !isCompleted &&
-      !isTitlePageLoaded &&
+      !isFailed &&
+      (!pageIdForStoryComingHide || !isStoryComingTargetPageLoaded) &&
       (isProcessing || isProcessingLike),
-    [isCompleted, isTitlePageLoaded, isProcessing, isProcessingLike],
+    [isCompleted, isFailed, pageIdForStoryComingHide, isStoryComingTargetPageLoaded, isProcessing, isProcessingLike],
   );
   const [comingLifeDotPhase, setComingLifeDotPhase] = useState(0);
   useEffect(() => {
@@ -1513,6 +1539,12 @@ export default function PreviewPageWithTopNav() {
       setIsTitlePageLoaded(false);
     }
   }, [titlePageId]);
+  useEffect(() => {
+    if (storyComingTargetPageIdRef.current !== pageIdForStoryComingHide) {
+      storyComingTargetPageIdRef.current = pageIdForStoryComingHide;
+      setIsStoryComingTargetPageLoaded(false);
+    }
+  }, [pageIdForStoryComingHide]);
   useEffect(() => {
     // 仅当从无到有或 URL 变化时触发 loading，避免重复置为 true 导致闪烁
     setIsCoverLoading((prev) => {
@@ -4135,6 +4167,9 @@ export default function PreviewPageWithTopNav() {
                               )
                             ) : undefined}
                             onImageLoaded={(loadedPageId) => {
+                              if (pageIdForStoryComingHide && loadedPageId === pageIdForStoryComingHide) {
+                                setIsStoryComingTargetPageLoaded(true);
+                              }
                               if (titlePageId && loadedPageId === titlePageId) {
                                 setIsTitlePageLoaded(true);
                               }
