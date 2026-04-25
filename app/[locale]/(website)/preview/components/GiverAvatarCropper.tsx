@@ -252,8 +252,8 @@ export default function GiverAvatarCropper({
       {src && (
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-2">
-            <h2 className="text-lg font-semibold">Add image</h2>
-            <p className="text-gray-500">Please crop the image and keep only the head for best results.</p>
+            <h2 className="text-lg font-semibold">Add a Photo for the Opening Page of Your Book</h2>
+            <p className="text-gray-500">Spark beautiful memories from the very first page.</p>
           </div>
           <button className="text-xl text-gray-500 hover:text-gray-700" onClick={onCancel}>&#x2715;</button>
         </div>
