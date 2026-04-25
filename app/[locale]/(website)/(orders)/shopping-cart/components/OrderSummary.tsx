@@ -57,11 +57,11 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
             </div>
             {discountInfo?.applicable && discountAmount > 0 && (
               <div className="space-y-2">
-                <div className="flex justify-between text-[#16A34A]">
+                <div className="flex justify-between text-primary">
                   <div>
-                    <p>{t('multiBookDiscount')}</p>
+                    <p>{t(itemsCount>1?'multiBookDiscount':'discount')}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right font-bold">
                     <p>-${discountAmount.toFixed(2)} ({discountInfo.percentage}%)</p>
                   </div>
                 </div>

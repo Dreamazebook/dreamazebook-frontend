@@ -107,11 +107,12 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
         // 仅对我们人工插入的“new-books-coming”卡片做 coming soon 判定
         // （不要用 price===0 来判断，避免误伤真实 0 元商品或数据异常）
         const isComingSoon = idOrCode === 'new-books-coming';
+        const categories = book.marketing_tags || [];
         
         const cardContent = (
           <div className="flex flex-col md:relative w-full min-h-[355px] book-card-height overflow-hidden mx-auto bg-[#F3F3F3] transition-colors duration-300 group-hover:bg-[#E0E4EF]">
             {/* 图片容器 */}
-            <div className="relative w-full flex-shrink-0" style={{ height: 'calc(100% - 80px)' }}>
+            <div className="relative w-full flex-shrink-0 h-[285px] md:h-[480px]">
               {/* Mobile Cover：贴顶，宽度等于容器，高度自适应 */}
               <div className="block md:hidden relative w-full h-full">
                 <BookCoverImage
@@ -143,13 +144,18 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
             </div>
             
             {/* Mobile: 标题和价格在图片下方 */}
-            <div className="flex md:hidden flex-col items-center gap-3 pt-4 pb-4">
+            {/* <div className="flex md:hidden flex-col items-center gap-2 pt-4 pb-4">
               <h3 className="text-[#222222] text-[18px] font-medium text-center px-4 line-clamp-2">
                 {name}
               </h3>
+              {desc && !isComingSoon && (
+                <p className="group-hover:block text-[#666666] text-sm text-center px-4 line-clamp-3 transition-opacity">
+                  {desc}
+                </p>
+              )}
               {!isComingSoon ? (
-                <p className="text-[#222222] text-[18px]">
-                  ${Number(priceVal).toFixed(2)}
+                <p className="text-[#222222] flex gap-2 items-center text-[18px] group-hover:font-medium">
+                  <span className="text-[18px]">From ${book.current_price}</span><span className="line-through text-[#999] text-[16px]">${Number(priceVal).toFixed(2)}</span>
                 </p>
               ) : (
                 <div className="flex flex-col items-center gap-2 px-4">
@@ -164,10 +170,10 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
                   </span>
                 </div>
               )}
-            </div>
+            </div> */}
 
             {/* Desktop: Overlay - name and price floated over image */}
-            <div className="hidden md:flex absolute inset-x-0 bottom-0 pt-12 pb-8 lg:pt-20 lg:pb-16 flex-col items-center z-20 transform transition-transform duration-300 gap-3 group-hover:gap-6 translate-y-[-48px] group-hover:translate-y-0">
+            <div className="flex md:absolute inset-x-0 bottom-0 pt-12 pb-8 lg:pt-20 lg:pb-16 flex-col items-center z-20 transform transition-transform duration-300 gap-2 group-hover:gap-3 translate-y-[-48px] group-hover:translate-y-0">
               <div className="flex flex-col items-center gap-1">
                 <h3 className="text-[#222222] text-[18px] font-medium text-center px-4 line-clamp-2">
                   {name}
@@ -178,9 +184,12 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
                   </p>
                 )}
               </div>
+              <div className="md:hidden group-hover:flex text-[#666666] text-[16px] flex justify-center items-center gap-[10px]">
+                {categories.map((c:string)=><span className="bg-[#F3F6FF66] p-1" key={c}>{c}</span>)}
+              </div>
               {!isComingSoon ? (
-                <p className="text-[#222222] text-[18px] group-hover:font-medium">
-                  ${Number(priceVal).toFixed(2)}
+                <p className="text-[#222222] flex gap-2 items-center text-[18px] group-hover:font-medium">
+                  <span className="text-[18px]">From ${book.final_unit_price}</span><span className="line-through text-[#999] text-[16px]">${Number(priceVal).toFixed(2)}</span>
                 </p>
               ) : (
                 <p className="text-[#666666] text-[16px] text-center px-4">
@@ -188,10 +197,10 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
                 </p>
               )}
               {!isComingSoon && (
-                <Button tl={tDetail('personalizeButton')} className="hidden group-hover:inline-flex items-center bg-[#222222] text-white w-auto" />
+                <Button tl={tDetail('personalizeButton')} className="md:hidden group-hover:inline-flex items-center bg-[#222222] text-white w-auto" />
               )}
               {isComingSoon && (
-                <button className="hidden group-hover:inline-flex text-[#222222] text-sm items-center gap-2">
+                <button className="md:hidden group-hover:inline-flex text-[#222222] text-sm items-center gap-2">
                   Fill it out
                   <svg width="18" height="10" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M1 5H17M17 5L12.5 1M17 5L12.5 9" stroke="#222222" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -227,7 +236,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
       </div>
       <style jsx>{`
         .book-card-height {
-          height: 375px;
+          height: 500px;
         }
 
         @media (min-width: 768px) {

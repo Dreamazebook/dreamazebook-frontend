@@ -13,7 +13,7 @@ const OrderSummaryPrices = ({ orderDetail }: OrderSummaryPricesProps) => {
   const shippingCost = order?.shipping_cost || 0;
   const subtotal = total - shippingCost;
   const discount = order?.discount_amount || 0;
-  const numberItems = getBooksCountFromOrder(orderDetail);
+  const numberItems = getBooksCountFromOrder(orderDetail) || 1;
 
   return (
     <div className="pt-4 space-y-2 text-[16px] text-[#666666]">
@@ -29,10 +29,10 @@ const OrderSummaryPrices = ({ orderDetail }: OrderSummaryPricesProps) => {
         <div className="flex justify-between text-[#16A34A]">
           {order?.discount_details?.description && (
             <div className="">
-              {t('multiBookDiscount')}{` (${order.discount_details.percentage}%)`}
+              {numberItems>1?t('multiBookDiscount'):t('discount')}{` (${order.discount_details.percentage}%)`}
             </div>
           )}
-          <DisplayPrice style="text-[#16A34A]" value={-discount} />
+          <DisplayPrice style="text-primary font-bold" value={-discount} />
         </div>
 
       )}

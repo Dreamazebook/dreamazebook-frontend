@@ -17,6 +17,7 @@ import CartHeader from './components/CartHeader';
 import CartItemList from './components/CartItemList';
 import ConfirmModal from '../../components/component/ConfirmModal';
 import OrderSummary from './components/OrderSummary';
+import ShippingProgressBanner from './components/ShippingProgressBanner';
 import useUserStore from '@/stores/userStore';
 
 export default function ShoppingCartPage() {
@@ -103,7 +104,9 @@ export default function ShoppingCartPage() {
           })
         );
         setCartItems(augmented as any);
-        //setSelectedItems(augmented.map((item: any) => item.id));
+        if (data?.selection?.cart_item_ids.length > 0) {
+          setSelectedItems(data.selection.cart_item_ids);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch carts:', err);
@@ -250,6 +253,7 @@ export default function ShoppingCartPage() {
             ) : (
               <div className="w-full box-border flex flex-col gap-[12px] pr-[16px] pl-[16px] pt-4 lg:pt-0 lg:pr-16 lg:pb-[64px] lg:pl-[120px] opacity-100">
                 <CartItemList
+                  itemsCount={itemsCount}
                   items={cartItems}
                   selectedItems={selectedItems}
                   onQuantityChange={handleQuantityChange}
@@ -283,6 +287,8 @@ export default function ShoppingCartPage() {
                     }
                   }}
                 />
+
+                <ShippingProgressBanner itemsCount={itemsCount} />
               </div>
             )}
           </div>

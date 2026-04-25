@@ -163,14 +163,14 @@ export default function ShippingEstimator() {
                         <div className="flex items-center gap-3 mb-2">
                           <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                           <div className="font-semibold text-lg text-gray-900">{opt.name || opt.code}</div>
-                          {opt.is_trackable && (
+                          {/* {opt.is_trackable && (
                             <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
                               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                               </svg>
                               Trackable
                             </span>
-                          )}
+                          )} */}
                         </div>
                         
                         {opt.description && (
