@@ -363,6 +363,15 @@ const useStore = create<{
   setEditField: (field: 'giver' | 'dedication' | null) => set({ editField: field }),
 }));
 
+/** 单页换脸/预览失败（如队列爆满）时蒙版内一句提示 */
+function PageRenderFailedOverlay({ message }: { message: string }) {
+  return (
+    <div className="absolute inset-0 z-20 flex items-center justify-center rounded-lg bg-white/90 px-4">
+      <p className="max-w-md text-center text-sm text-gray-800 leading-relaxed">{message}</p>
+    </div>
+  );
+}
+
 // 记忆化的单页预览组件，尽量只在相关 props 变化时重渲染
 const PreviewPageItem = React.memo(function PreviewPageItem({
   pageId,
@@ -382,11 +391,12 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   viewMode: 'single' | 'double';
   showOverlay: boolean;
   progress: number;
-  overlayMode?: 'progress' | 'loading';
+  overlayMode?: 'progress' | 'loading' | 'failed';
   content?: string | null;
   customOverlayContent?: React.ReactNode;
   onImageLoaded?: (pageId: number) => void;
 }) {
+  const t = useTranslations('Preview');
   const notifiedRef = useRef(false);
   const handleImageLoad = () => {
     if (notifiedRef.current) return;
@@ -418,7 +428,9 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                   />
                 </div>
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-                  {overlayMode === 'progress' ? (
+                  {overlayMode === 'failed' ? (
+                    <PageRenderFailedOverlay message={t('pageRenderFailedMessage')} />
+                  ) : overlayMode === 'progress' ? (
                     <DreamazeFaceSwapLoadingBar progress={progress} />
                   ) : (
                     <div className="text-center">
@@ -471,7 +483,9 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                   />
                 </div>
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-                  {overlayMode === 'progress' ? (
+                  {overlayMode === 'failed' ? (
+                    <PageRenderFailedOverlay message={t('pageRenderFailedMessage')} />
+                  ) : overlayMode === 'progress' ? (
                     <DreamazeFaceSwapLoadingBar progress={progress} />
                   ) : (
                     <div className="text-center">
@@ -534,7 +548,9 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
             onLoadingComplete={() => handleImageLoad()}
           />
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-            {overlayMode === 'progress' ? (
+            {overlayMode === 'failed' ? (
+              <PageRenderFailedOverlay message={t('pageRenderFailedMessage')} />
+            ) : overlayMode === 'progress' ? (
               <DreamazeFaceSwapLoadingBar progress={progress} />
             ) : (
               <div className="text-center">
@@ -1216,6 +1232,8 @@ export default function PreviewPageWithTopNav() {
 
   // 添加 options 状态
   const [bookOptions, setBookOptions] = useState<BookOptions | null>(null);
+  // cover 缩略图统一比例：以 cover_1 的真实图片宽高比为准（用于让 cover_3/4 与 cover_1 同高）
+  const [coverThumbAspectRatio, setCoverThumbAspectRatio] = useState<number | null>(null);
 
   // 圣诞 bundle：自动预选默认封面/装订（不让 Add to cart 引导去 option tab）
   useEffect(() => {
@@ -2215,6 +2233,47 @@ export default function PreviewPageWithTopNav() {
 
     return result;
   };
+
+  // 计算 cover_1 的真实宽高比，用于 cover_3/4 缩略图容器固定同高
+  useEffect(() => {
+    try {
+      const bookId = searchParams.get('bookid');
+      if (!bookId) return;
+      if (!bookOptions?.cover_options || bookOptions.cover_options.length === 0) return;
+
+      // 找 cover_1（兼容 option_key / id）
+      const cover1 =
+        bookOptions.cover_options.find((o) => String(o.option_key || '').toLowerCase().includes('cover_1')) ||
+        bookOptions.cover_options.find((o) => String(o.option_key || '') === '1') ||
+        bookOptions.cover_options.find((o) => String(o.id) === '1') ||
+        null;
+      if (!cover1) return;
+
+      const urls = buildCoverR2Urls(bookId, cover1);
+      const src = urls?.canvasBase || urls?.base;
+      if (!src) return;
+
+      let cancelled = false;
+      const img = new (window as any).Image();
+      img.onload = () => {
+        if (cancelled) return;
+        const w = Number(img.naturalWidth || img.width || 0);
+        const h = Number(img.naturalHeight || img.height || 0);
+        if (!w || !h) return;
+        const ratio = w / h;
+        if (!Number.isFinite(ratio) || ratio <= 0) return;
+        setCoverThumbAspectRatio(ratio);
+      };
+      img.onerror = () => {};
+      img.src = src;
+
+      return () => {
+        cancelled = true;
+      };
+    } catch {
+      // ignore
+    }
+  }, [bookOptions?.cover_options, searchParams]);
 
   // 为装订方式构建 Cloudflare R2 图片 URL（hardcover / softcover / premium）
   const buildBindingImageUrl = (option: BindingOption) => {
@@ -3982,8 +4041,10 @@ export default function PreviewPageWithTopNav() {
                     // 后端不再返回 base_only：以字段是否存在来判断
                     const hasBase = !!(page as any).base_image_url || !!page.image_url;
                     const hasFinal = !!(page as any).final_image_url;
-                    const needsOverlay = hasSwap && hasBase && !hasFinal;
-                    const isSwapping = needsOverlay;
+                    const pageFailed = String((page as any).status || '').toLowerCase() === 'failed';
+                    // 换脸页失败：不要无限 loading，用 PageRenderFailedOverlay
+                    const needsProcessingOverlay = hasSwap && hasBase && !hasFinal && !pageFailed;
+                    const isSwapping = needsProcessingOverlay;
                     const progress = Math.round(pageProgress[page.page_id] ?? 0);
                     // 展示策略：当 final 与 base/image 不同（说明最终图已更新）时优先展示 final；
                     // 否则展示 base/image（例如 create 流程里 final 可能为空或等同于 base）
@@ -3993,11 +4054,12 @@ export default function PreviewPageWithTopNav() {
                     const displayUrlRaw = preferFinal ? finalUrlRaw : (baseOrImageUrlRaw || finalUrlRaw || '');
                     const src = buildImageUrl(String(displayUrlRaw || ''));
                     const isReplaceablePage = replaceableTextPageIds.has(page.page_id) || replaceableTextPageNumbers.has(page.page_number);
-                    // 轮到该页前（progress 为 0）显示 loading；开始后显示进度
-                    const overlayMode = (progress > 0 ? 'progress' : 'loading');
-                      // 仅在 p3-4（有的书返回 p3-p4）页面渲染 Giver & Dedication
-                      const pageCode = String((page as any).page_code || '');
-                      const isGiverDedicationPage = pageCode === 'p3-4' || pageCode === 'p3-p4';
+                    // 仅在 p3-4（有的书返回 p3-p4）页面渲染 Giver & Dedication
+                    const pageCode = String((page as any).page_code || '');
+                    const isGiverDedicationPage = pageCode === 'p3-4' || pageCode === 'p3-p4';
+                    // 轮到该页前（progress 为 0）显示 loading；开始后显示进度；失败页显示说明
+                    const overlayMode = pageFailed ? 'failed' : (progress > 0 ? 'progress' : 'loading');
+
                       // p3-4 展示策略同上：只有当 final 与 base/image 不同，才默认展示 final。
                       // 这样 edited book 能展示历史最终图；create book（final==base 或无 final）则会走 Canvas 展示默认寄语。
                       const p34FinalRaw = (page as any).final_image_url || '';
@@ -4036,6 +4098,32 @@ export default function PreviewPageWithTopNav() {
 
                       // 单页模式：p3-4 默认展示 final；编辑时切换到 Canvas
                       if (isGiverDedicationPage && viewMode === 'single') {
+                        if (pageFailed) {
+                          return (
+                            <div key={page.page_id} ref={giverRef} className="w-full flex flex-col items-center">
+                              <div className="w-full max-w-5xl">
+                                <PreviewPageItem
+                                  pageId={page.page_id}
+                                  pageNumber={page.page_number}
+                                  src={src}
+                                  viewMode="single"
+                                  showOverlay
+                                  progress={0}
+                                  overlayMode="failed"
+                                  content={page.content}
+                                  onImageLoaded={(loadedPageId) => {
+                                    if (pageIdForStoryComingHide && loadedPageId === pageIdForStoryComingHide) {
+                                      setIsStoryComingTargetPageLoaded(true);
+                                    }
+                                    if (titlePageId && loadedPageId === titlePageId) {
+                                      setIsTitlePageLoaded(true);
+                                    }
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        }
                         if (p34FinalSrc && !p34HasLocalChanges) {
                           return (
                             <div key={page.page_id} ref={giverRef} className="w-full flex flex-col items-center">
@@ -4146,11 +4234,11 @@ export default function PreviewPageWithTopNav() {
                             pageNumber={page.page_number}
                             src={(p34FinalSrc && isGiverDedicationPage && !p34HasLocalChanges) ? p34FinalSrc : src}
                             viewMode={viewMode}
-                            showOverlay={isSwapping}
+                            showOverlay={isSwapping || pageFailed}
                             progress={progress}
                             overlayMode={overlayMode as any}
                             content={page.content}
-                            customOverlayContent={isGiverDedicationPage ? (
+                            customOverlayContent={pageFailed ? undefined : (isGiverDedicationPage ? (
                               (p34FinalSrc && !p34HasLocalChanges) ? p34ButtonsOverlay : (
                                 <div className="w-full h-full relative">
                                   <GiverDedicationCanvas
@@ -4166,7 +4254,7 @@ export default function PreviewPageWithTopNav() {
                                   {p34ButtonsOverlay}
                                 </div>
                               )
-                            ) : undefined}
+                            ) : undefined)}
                             onImageLoaded={(loadedPageId) => {
                               if (pageIdForStoryComingHide && loadedPageId === pageIdForStoryComingHide) {
                                 setIsStoryComingTargetPageLoaded(true);
@@ -4269,6 +4357,52 @@ export default function PreviewPageWithTopNav() {
                                 baseSrc={canvasBase}
                                 cropRightHalf={cropRightHalf}
                                 recipient={recipient}
+                              />
+                            </div>
+                          );
+                        }
+
+                        // cover_3 / cover_4：缩略图来自后端 preview；外框与 cover_1 相同宽高比，宽图沿右侧裁切
+                        if (coverId === '3' || coverId === '4') {
+                          const target = `cover_${coverId}`;
+                          const coverPage = (previewData?.preview_data || []).find((p: any) => {
+                            const code = String((p as any)?.page_code || '').toLowerCase().replace(/-/g, '_');
+                            return code === target;
+                          });
+                          const raw =
+                            (coverPage as any)?.final_image_url ||
+                            (coverPage as any)?.image_url ||
+                            (coverPage as any)?.base_image_url ||
+                            '';
+                          const backendSrc = raw ? buildImageUrl(String(raw)) : '';
+                          // 以 cover_1 的真实宽高比为准，确保 cover_3/4 与 cover_1 同高
+                          const ratio = coverThumbAspectRatio ?? (cropRightHalf ? 2 : 1);
+
+                          if (!backendSrc) {
+                            return (
+                              <div
+                                className="relative w-full mb-2 overflow-hidden"
+                                style={{ aspectRatio: String(ratio) }}
+                              >
+                                <div className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center gap-2">
+                                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+                                  <p className="text-sm text-gray-600">loading...</p>
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div
+                              className="relative w-full mb-2 overflow-hidden"
+                              style={{ aspectRatio: String(ratio) }}
+                            >
+                              <OptimizedImage
+                                src={backendSrc}
+                                alt={`Cover ${option.id} - ${option.name}`}
+                                width={cropRightHalf ? 400 : 200}
+                                height={200}
+                                className="absolute inset-0 h-full w-full object-cover object-right"
                               />
                             </div>
                           );
