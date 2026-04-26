@@ -195,7 +195,7 @@ const GOODNIGHT_BASE_CONFIG: Omit<BookConfig, 'id'> = {
         // 2 本：goodnight + mom（与定价表一致）
         originalPrice: '$99.9',
         discountedPrice: '$89.9',
-        buttonText: 'add bundle to bag',
+        buttonText: 'add 2 books to bag',
       },
       {
         type: 'why-personalized',
@@ -324,7 +324,7 @@ These titles are often chosen together to celebrate love, comfort, and connectio
         ],
         originalPrice: '$154.9',
         discountedPrice: '$123.9',
-        buttonText: 'add bundle to bag',
+        buttonText: 'add 3 books to bag',
       },
       {
         type: 'why-personalized',
@@ -437,7 +437,7 @@ These titles are often chosen together to celebrate love, comfort, and connectio
         ],
         originalPrice: '$159.9',
         discountedPrice: '$127.9',
-        buttonText: 'add bundle to bag',
+        buttonText: 'add 3 books to bag',
       },
       {
         type: 'tips',
@@ -649,7 +649,7 @@ These titles are often chosen together to celebrate love, comfort, and connectio
         ],
         originalPrice: '$109.9',
         discountedPrice: '$98.9',
-        buttonText: 'add bundle to bag',
+        buttonText: 'add 2 books to bag',
       },
       {
         type: 'faq',
@@ -737,7 +737,7 @@ These titles are often chosen together to celebrate love, comfort, and connectio
         ],
         originalPrice: '$99.9',
         discountedPrice: '$89.9',
-        buttonText: 'add bundle to bag',
+        buttonText: 'add 2 books to bag',
       },
       {
         type: 'faq',

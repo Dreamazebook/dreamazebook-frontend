@@ -13,6 +13,10 @@ interface BookSectionsProps {
   bookId: string | number;
 }
 
+/** 与 booksConfig toddler-favorites 的「add N books to bag」一致 */
+const isAddBooksBundleCta = (buttonText: string) =>
+  /^add \d+ books to bag$/i.test(buttonText.trim());
+
 // Behind the Story Section 组件
 const BehindStorySection: React.FC<{ section: BookSection }> = ({ section }) => {
   // 处理段落：优先使用 paragraphs，如果没有则从 content 按换行符分割
@@ -267,12 +271,7 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection; bookId: string |
             {section.buttonText && (
               <button
                 type="button"
-                onClick={(() => {
-                  const b = section.buttonText.trim().toLowerCase();
-                  return b === 'add bundle to bag' || b === 'add 4 books to bag'
-                    ? handleAddBundleToBag
-                    : undefined;
-                })()}
+                onClick={isAddBooksBundleCta(section.buttonText) ? handleAddBundleToBag : undefined}
                 disabled={isAdding}
                 className={`bg-black text-[#F5E3E3] px-8 py-3 rounded-[4px] hover:bg-gray-800 transition-colors ${
                   isAdding ? 'opacity-75 cursor-wait pointer-events-none' : ''
@@ -520,12 +519,7 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection; bookId: string |
           {section.buttonText && (
             <button
               type="button"
-              onClick={(() => {
-                const b = section.buttonText.trim().toLowerCase();
-                return b === 'add bundle to bag' || b === 'add 4 books to bag'
-                  ? handleAddBundleToBag
-                  : undefined;
-              })()}
+              onClick={isAddBooksBundleCta(section.buttonText) ? handleAddBundleToBag : undefined}
               disabled={isAdding}
               className={`bg-black text-[#F5E3E3] px-8 py-3 rounded-[4px] hover:bg-gray-800 transition-colors ${
                 isAdding ? 'opacity-75 cursor-wait pointer-events-none' : ''

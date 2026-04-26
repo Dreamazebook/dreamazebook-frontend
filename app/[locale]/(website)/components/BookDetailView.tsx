@@ -8,7 +8,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { roboto } from '@/app/fonts'
 import useUserStore from '@/stores/userStore'
 import { getBookConfig } from './books/booksConfig'
-import { getBookListDisplayPrice, getBookMarketComparePrice } from '@/utils/bookDisplayPrice'
+import { getBookDetailFinalUnitPrice, getBookDetailOriginalUnitPrice } from '@/utils/bookDisplayPrice'
 
 interface PagePic { id: number; pagenum: number; pagepic: string }
 
@@ -384,15 +384,15 @@ export default function BookDetailView({
             <div className="hidden md:flex w-full min-w-0 flex-wrap items-end justify-between gap-x-4 gap-y-3">
               <div className="flex min-w-0 flex-wrap items-baseline gap-2">
                 {(() => {
-                  const cur = getBookListDisplayPrice(book);
-                  const mkt = getBookMarketComparePrice(book, cur);
+                  const finalPrice = getBookDetailFinalUnitPrice(book);
+                  const originalPrice = getBookDetailOriginalUnitPrice(book, finalPrice);
                   return (
                     <>
                       <span className="text-[#012CCE] lg:text-[30px] text-[26px] leading-[44px] font-medium">From</span>
-                      <span className="text-[#012CCE] lg:text-[33px] text-[28px] leading-[44px] font-semibold">${cur.toFixed(2)}</span>
-                      {mkt > cur && (
+                      <span className="text-[#012CCE] lg:text-[33px] text-[28px] leading-[44px] font-semibold">${finalPrice.toFixed(2)}</span>
+                      {originalPrice > finalPrice && (
                         <span className="text-gray-400 text-[16px] leading-[24px] tracking-[0.15px] line-through">
-                          ${mkt.toFixed(2)}
+                          ${originalPrice.toFixed(2)}
                         </span>
                       )}
                     </>
