@@ -294,7 +294,7 @@ export default function ShoppingCartPage() {
                   }}
                 />
 
-                <ShippingProgressBanner itemsCount={itemsCount} />
+                <ShippingProgressBanner itemsCount={selectedItems.length} />
               </div>
             )}
           </div>
