@@ -3590,6 +3590,7 @@ export default function PreviewPageWithTopNav() {
   //寄语
   const MAX_LINES = 10;
   const MAX_CHARS = 300;
+  const DEDICATION_CHAR_WARN = 280;
   const defaultName = (recipient && recipient.trim()) ? recipient : "User"; // 使用 Full name 作为默认名
   // 默认寄语按预览语言（来自 personalize 传入的 ?lang）选择
   const selectedLang = (searchParams.get('lang') || 'en').toLowerCase();
@@ -4869,17 +4870,33 @@ export default function PreviewPageWithTopNav() {
                     <textarea
                       rows={10}
                       value={message}
+                      maxLength={MAX_CHARS}
                       onChange={handleMessageChange}
                       placeholder="Please enter your message..."
                       className="w-full p-2 border border-[#E5E5E5] placeholder-[#999999] rounded focus:outline-none ring-0 resize-none"
                     />
-                    <div className="flex justify-end space-x-4 text-[#999999] text-sm">
-                      <span>
-                        {message.length}/{MAX_CHARS} left
-                      </span>
-                      <span>
-                        {message.split('\n').length}/{MAX_LINES} line
-                      </span>
+                    <div className="flex flex-col items-end gap-1 mt-1">
+                      <div className="flex justify-end space-x-4 text-sm">
+                        <span
+                          className={
+                            message.length >= MAX_CHARS
+                              ? 'text-red-600'
+                              : message.length >= DEDICATION_CHAR_WARN
+                                ? 'text-amber-600'
+                                : 'text-[#999999]'
+                          }
+                        >
+                          {message.length}/{MAX_CHARS} left
+                        </span>
+                        <span className="text-[#999999]">
+                          {message.split('\n').length}/{MAX_LINES} line
+                        </span>
+                      </div>
+                      {message.length >= MAX_CHARS && (
+                        <p className="text-red-600 text-xs text-right max-w-full">
+                          Limit reached, please shorten your message
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
