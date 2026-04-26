@@ -146,7 +146,7 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
     try {
       const url = await fetchOAuthRedirect(provider)
       if (url) {
-        window.location.href = url
+        return window.location.href = url
       } else {
         updateState({ errorMessage: t(`${provider.toLowerCase()}OAuthError`) })
       }

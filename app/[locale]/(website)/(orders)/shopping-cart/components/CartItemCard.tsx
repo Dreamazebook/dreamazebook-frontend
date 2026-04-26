@@ -376,6 +376,7 @@ export default function CartItemCard({
                           {isEditLoading ? "Loading..." : t("editBook")}
                         </a>
                       ) : (
+                        <>
                         <a
                           className={`text-sm text-blue-600 hover:underline cursor-pointer ${
                             isPackage ? "mt-2" : ""
@@ -408,6 +409,9 @@ export default function CartItemCard({
                         >
                           {tSafe("createBook", "Create book")}
                         </a>
+
+                        <span className="text-[#CF0F02] text-[14px]">Create your personalized book before ordering.</span>
+                        </>
                       ))}
 
                     {/* 添加附加产品链接：进入编辑页的附加项标签 */}

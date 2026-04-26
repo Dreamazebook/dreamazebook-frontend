@@ -40,7 +40,7 @@ export default function LatestOrderHistory({ orderDetail }:{orderDetail:OrderDet
           <StripeReceiptLink stripeReceiptUrl={orderDetail.stripe_receipt_url} variant="button" />
           }
           <Link href={getOrderLink(orderDetail)} className="px-4 py-2 bg-gray-900 text-white rounded text-sm font-medium hover:bg-gray-800">
-            {t("moreDetails")}
+            {orderDetail.payment_status === 'paid' ? t("moreDetails") : t("completePayment")}
           </Link>
         </div>
       </div>
