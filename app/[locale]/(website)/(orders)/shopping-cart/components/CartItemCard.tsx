@@ -140,6 +140,9 @@ export default function CartItemCard({
     },
   ] as const;
 
+  const showDiscountLabel = item.is_selected_for_checkout && itemsCount != 0 && itemsCount && itemsCount >= 3;
+  const pricetoShow = item.is_selected_for_checkout ? item.total_price : item.original_total_price;
+
   useEffect(() => {
     checkAndShowCountdown(item.added_at);
     return () => {
@@ -266,12 +269,12 @@ export default function CartItemCard({
                       {/* 桌面端：价格在右侧（与当前 UI 一致） */}
                       <div className="hidden md:block">
                         <div className="flex items-baseline gap-2">
-                          {(itemsCount != 0 && itemsCount && itemsCount >= 3) && 
+                          {showDiscountLabel && 
                           <span className="bg-[#FFE5E5] py-1 rounded px-2">save 20%</span>
                           }
                           <DisplayPrice
                             style="text-[#222222] font-bold"
-                            value={item.is_selected_for_checkout ? item.total_price : item.original_total_price}
+                            value={pricetoShow}
                           />
                           {/* {item.original_total_price != null && (
                             <DisplayPrice
@@ -304,7 +307,7 @@ export default function CartItemCard({
                     <div className="flex items-baseline gap-1 whitespace-nowrap">
                       <DisplayPrice
                         style="text-[#222222] font-bold"
-                        value={item.is_selected_for_checkout ? item.total_price : item.original_total_price}
+                        value={pricetoShow}
                       />
                       {/* {item.original_total_price && (
                         <DisplayPrice
@@ -312,7 +315,7 @@ export default function CartItemCard({
                           value={item.original_total_price}
                         />
                       )} */}
-                      {(itemsCount != 0 && itemsCount && itemsCount >= 3) && 
+                      {showDiscountLabel && 
                         <span className="bg-[#FFE5E5] py-1 rounded px-2">save 20%</span>
                       }
                     </div>
