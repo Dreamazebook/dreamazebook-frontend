@@ -244,7 +244,7 @@ export default function CartItemCard({
                 <img
                   src={item.cover_image || item.book_cover || "/home-page/cover.png"}
                   alt={item.product_name || item.sku_code}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-right"
                 />
               </div>
 
