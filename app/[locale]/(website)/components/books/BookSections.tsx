@@ -71,14 +71,10 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection; bookId: string |
   // 发送到购物车时的 spu_code 规范化：PICBOOK_GOODNIGHT -> PICBOOK_GOODNIGHT3
   const normalizeSpuCodeForCart = (spuCode: string) => (spuCode === 'PICBOOK_GOODNIGHT' ? 'PICBOOK_GOODNIGHT3' : spuCode);
 
-  // 需求指定：PICBOOK_BRAVEY / PICBOOK_GOODNIGHT 的 bundle 都是 GOODNIGHT + BRAVEY（PICBOOK_MOM 使用下方 section 内配置的 4 本书）
+  // Goodnight 详情页：套装为 GOODNIGHT + MOM；加购与展示一致。其余详情页按 section.books 全套加购。
   const forcedBundleSpuCodes = useMemo(() => {
-    if (
-      normalizedBookId === 'PICBOOK_BRAVEY' ||
-      normalizedBookId === 'PICBOOK_GOODNIGHT' ||
-      normalizedBookId === 'PICBOOK_GOODNIGHT3'
-    ) {
-      return ['PICBOOK_GOODNIGHT', 'PICBOOK_BRAVEY'];
+    if (normalizedBookId === 'PICBOOK_GOODNIGHT' || normalizedBookId === 'PICBOOK_GOODNIGHT3') {
+      return ['PICBOOK_GOODNIGHT', 'PICBOOK_MOM'];
     }
     return null;
   }, [normalizedBookId]);
@@ -93,11 +89,13 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection; bookId: string |
   const bundleSpuCodes = forcedBundleSpuCodes ?? sectionBundleSpuCodes;
   const bundleSpuCodesForCart = useMemo(() => {
     // 去重：例如同时出现 GOODNIGHT 与 GOODNIGHT3 时，最终只发 GOODNIGHT3
-    // 默认过滤 PICBOOK_BIRTHDAY；PICBOOK_MOM 详情页的 4 本套装需包含 Birthday
-    return Array.from(new Set(bundleSpuCodes.map(normalizeSpuCodeForCart))).filter(
-      code => normalizedBookId === 'PICBOOK_MOM' || code !== 'PICBOOK_BIRTHDAY'
-    );
-  }, [bundleSpuCodes, normalizedBookId]);
+    // 仅在 Goodnight 强制两本套装时排除 Birthday（详情区若展示多本，加购仍按 forced 两本）
+    const normalized = Array.from(new Set(bundleSpuCodes.map(normalizeSpuCodeForCart)));
+    if (forcedBundleSpuCodes) {
+      return normalized.filter(code => code !== 'PICBOOK_BIRTHDAY');
+    }
+    return normalized;
+  }, [bundleSpuCodes, forcedBundleSpuCodes]);
 
   const handleAddBundleToBag = async () => {
     if (isAdding) return;
