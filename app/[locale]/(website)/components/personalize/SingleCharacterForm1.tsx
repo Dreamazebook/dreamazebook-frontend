@@ -135,7 +135,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       handleDrop,
       getUploadedPaths,
       initializeWithUrls,
-    } = useMultiImageUpload(uploadOptions?.maxImages ?? 3, {
+    } = useMultiImageUpload(uploadOptions?.maxImages ?? 1, {
       allowedTypes: uploadOptions?.allowedTypes,
       maxFileSize: uploadOptions?.maxFileSize,
     });
@@ -183,7 +183,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
 
     const handlePhotosUpload = async (files: File[]) => {
       if (!files || files.length === 0) return;
-      const maxImages = uploadOptions?.maxImages ?? 3;
+      const maxImages = uploadOptions?.maxImages ?? 1;
       const remainingSlots = maxImages - images.length;
       if (remainingSlots <= 0) return;
 
@@ -447,7 +447,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                     uploadProgress={uploadProgress}
                     error={uploadError}
                     isDragging={isDragging}
-                    maxImages={uploadOptions?.maxImages ?? 3}
+                    maxImages={uploadOptions?.maxImages ?? 1}
                     onImageUpload={handlePhotosUpload}
                     onImageDelete={handlePhotoDelete}
                     onDragEnter={handleDragEnter}
@@ -470,7 +470,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
               <div className="space-y-4">
                 <div id="field-relationship">
                   <label className="block mb-2 font-medium text-[#222222] text-[16px] leading-[24px] tracking-[0.15px]">
-                    What is your relationship to the child?
+                    What is your relationship to them?
                   </label>
                   <div className="relative">
                     <select
@@ -541,8 +541,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
             <div className="bg-white w-[860px] max-w-[95vw] rounded-sm pt-6 pr-6 pb-4 pl-6 flex flex-col gap-4">
               <GiverAvatarCropper
                 resultMode="file"
+                uiVariant="personalize"
                 initialSrc={pendingPreviewUrl}
-                aspectRatio={1}
                 maxSize={1024}
                 exportMime="image/jpeg"
                 exportQuality={0.92}

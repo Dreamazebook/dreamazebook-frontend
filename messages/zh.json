@@ -236,7 +236,8 @@
   "Preview": {
     "queueTip": "图书预览正在排队生成中，您当前排在第{pos}/{tot}位。您可以先前往 Others 标签页选择其他信息",
     "queueTipNoPos": "图书预览正在排队生成中。您可以先前往 Others 标签页选择其他信息",
-    "selectOptions": "您可以先选择 {options}"
+    "selectOptions": "您可以先选择 {options}",
+    "pageRenderFailedMessage": "当前使用人数较多，请几分钟后再试。"
   },
   "LoginModal": {
     "login": "登录",

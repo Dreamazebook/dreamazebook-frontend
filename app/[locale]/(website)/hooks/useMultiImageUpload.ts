@@ -37,7 +37,7 @@ interface UploadOptions {
   maxFileSize?: number; // bytes
 }
 
-const useMultiImageUpload = (maxImages: number = 3, options: UploadOptions = {}) => {
+const useMultiImageUpload = (maxImages: number = 1, options: UploadOptions = {}) => {
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);

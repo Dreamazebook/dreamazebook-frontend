@@ -236,7 +236,8 @@
   "Preview": {
     "queueTip": "L'aperçu du livre est actuellement dans la file d'attente pour la génération. Vous êtes actuellement à la position {pos}/{tot}. Vous pouvez passer à l'onglet Others.",
     "queueTipNoPos": "L'aperçu du livre est actuellement dans la file d'attente pour la génération. Vous pouvez passer à l'onglet Others.",
-    "selectOptions": "Vous pouvez d'abord sélectionner {options}"
+    "selectOptions": "Vous pouvez d'abord sélectionner {options}",
+    "pageRenderFailedMessage": "Trop de personnes créent un aperçu en ce moment. Réessayez dans quelques minutes."
   },
   "LoginModal": {
     "login": "Connexion",

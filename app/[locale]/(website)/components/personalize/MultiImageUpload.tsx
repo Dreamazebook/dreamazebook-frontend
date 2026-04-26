@@ -24,7 +24,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
   uploadProgress,
   error,
   isDragging,
-  maxImages = 3,
+  maxImages = 1,
   onImageUpload,
   onImageDelete,
   onDragEnter,
@@ -96,6 +96,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
   };
 
   const canUploadMore = images.length < maxImages;
+  const isSingle = maxImages <= 1;
 
   return (
     <div className="space-y-4">
@@ -103,7 +104,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
       <div className="">
         <div className="flex items-center mb-2">
           <label className="block font-medium text-[#222222] text-[16px] leading-[24px] tracking-[0.15px]">
-            Upload 1-3 Clear Photos
+            {isSingle ? 'Upload a Clear Photo' : `Upload 1–${maxImages} Clear Photos`}
           </label>
           <span className="text-gray-400 inline-flex items-center group relative font-normal ml-2">
             <div 
@@ -114,8 +115,10 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
             </div>
             <div className={`${showTooltip ? 'block' : 'hidden'} md:group-hover:block absolute left-1/2 transform -translate-x-1/2 bottom-6 w-64 p-2 bg-white text-gray-800 text-sm rounded shadow-lg z-10 backdrop-blur`}>
               <p>
-                Upload a photo so we can create a unique image of you.
-                Photos are only generated from user images. We have an independent database to ensure that your privacy will not be leaked.
+                Upload a clear photo so we can create a unique image of you.
+                {isSingle
+                  ? ' Your image is only used for this book; we use secure storage to help protect your privacy.'
+                  : ' Photos are only generated from user images. We have an independent database to ensure that your privacy will not be leaked.'}
               </p>
               {/* 箭头 */}
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white"></div>
@@ -123,23 +126,24 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
           </span>
         </div>
         <p className="text-[#999999] text-[16px] leading-[24px] tracking-[0.5px] mb-4">
-          To get the best result, please use photos that meet the following:
+          {isSingle
+            ? 'To get the best result, please use a photo that meets the following:'
+            : 'To get the best result, please use photos that meet the following:'}
         </p>
       </div>
 
       {/* 图片要求示例 - 左右布局 */}
       <div className="flex flex-row gap-4 mb-6 bg-[#F8F8F8] py-3 px-4 rounded-[4px]">
         {/* 左侧：示例图片 */}
-        <div className="flex-shrink-0">
-          <div className="w-[102px] md:w-[80px] aspect-square rounded-[4px] overflow-hidden bg-gray-100">
-            <Image
-              src="/personalize/face.png"
-              alt="Example photo"
-              width={200}
-              height={200}
-              className="w-full h-full object-cover rounded-lg"
-            />
-          </div>
+        <div className="flex-shrink-0 max-w-[102px] md:max-w-[80px]">
+          <Image
+            src="/personalize/face.png"
+            alt="Example photo"
+            width={200}
+            height={200}
+            className="w-full h-auto object-contain rounded-[4px] bg-gray-100"
+            sizes="(max-width: 768px) 80px, 102px"
+          />
         </div>
         
         {/* 右侧：指南列表 */}
@@ -161,7 +165,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
         </div>
       </div>
 
-      {/* 上传区域 - 始终显示，满三张时禁用 */}
+      {/* 上传区域 - 始终显示，达到张数上限时禁用 */}
       <div
         id="upload-area-photo"
         className={`rounded p-4 gap-1 text-center transition-colors ${error ? 'h-[148px]' : 'h-[120px]'} flex flex-col items-center justify-center relative ${
@@ -202,7 +206,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
                   {/* 主要文字 */}
                   <div className="">
                     <p className={`text-[#222222] text-base ${canUploadMore ? 'text-[#012CCE]' : 'text-[#999999] cursor-not-allowed'}`}>
-                      Drag your file(s) here or{' '}
+                      {isSingle ? 'Drag your file here or ' : 'Drag your file(s) here or '}
                       <button
                           type="button"
                           onClick={(e) => {
@@ -230,39 +234,41 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
 
       {/* 已上传的图片显示 */}
       {images.length > 0 && (
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        <div
+          className={`grid gap-2 sm:gap-3 mb-4 ${
+            isSingle
+              ? 'grid-cols-1 w-28 sm:w-32'
+              : 'grid-cols-3 w-full max-w-[280px] sm:max-w-xs mx-auto'
+          }`}
+        >
           {images.map((image, index) => (
-            <div key={image.id} className="relative">
-              <div className="relative bg-gray-100 rounded overflow-hidden aspect-square w-full">
-                <Image
+            <div
+              key={image.id}
+              className={`relative flex min-w-0 w-full ${
+                isSingle ? 'justify-start' : 'justify-center'
+              }`}
+            >
+              <div className="relative inline-block max-w-full">
+                <img
                   src={image.previewUrl}
                   alt={`Uploaded image ${index + 1}`}
-                  fill
-                  sizes="(min-width: 768px) 33vw, 33vw"
-                  unoptimized
-                  style={{
-                    objectFit: 'cover',
-                  }}
-                  className="rounded-lg"
+                  className="block h-auto w-auto max-h-[240px] max-w-full rounded-lg bg-gray-100 object-contain"
                 />
-                
-                {/* 上传中的loading动画 */}
                 {image.isUploading && (
-                  <div 
-                    className="absolute inset-0 rounded flex items-center justify-center z-10"
+                  <div
+                    className="absolute inset-0 z-10 flex items-center justify-center rounded-lg"
                     style={{ backgroundColor: 'rgba(248, 248, 248, 0.4)' }}
                   >
-                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#012CCE] border-t-transparent"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#012CCE] border-t-transparent" />
                   </div>
                 )}
-                
                 <button
                   onClick={(e) => {
-                    e.stopPropagation(); // 阻止事件冒泡
+                    e.stopPropagation();
                     onImageDelete(image.id);
                   }}
                   type="button"
-                  className="absolute top-0 right-0 bg-white shadow-md flex items-center justify-center"
+                  className="absolute top-0 right-0 z-20 flex items-center justify-center bg-white shadow-md"
                   style={{
                     width: '24px',
                     height: '24px',
@@ -287,7 +293,9 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
       {/* Toast 提示 */}
       {showToast && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg shadow-lg z-50">
-          Upload up to 3 pictures
+          {isSingle
+            ? 'You can only upload 1 photo'
+            : `You can only upload up to ${maxImages} photos`}
         </div>
       )}
 
@@ -295,7 +303,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
       <input
         ref={fileInputRef}
         type="file"
-        multiple
+        multiple={!isSingle}
         accept="image/*"
         className="hidden"
         onChange={handleFileSelect}

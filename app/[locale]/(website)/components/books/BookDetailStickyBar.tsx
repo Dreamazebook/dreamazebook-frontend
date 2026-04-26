@@ -3,7 +3,7 @@
 import { Link } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import React from 'react';
-import { getBookListDisplayPrice, getBookMarketComparePrice } from '@/utils/bookDisplayPrice';
+import { getBookDetailFinalUnitPrice, getBookDetailOriginalUnitPrice } from '@/utils/bookDisplayPrice';
 
 interface BookDetailStickyBarProps {
   book: any;
@@ -23,9 +23,10 @@ export default function BookDetailStickyBar({
   const t = useTranslations('BookDetail');
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const display = getBookListDisplayPrice(book);
-  const currentPrice = display.toFixed(2);
-  const marketPrice = getBookMarketComparePrice(book, display).toFixed(2);
+  const finalUnit = getBookDetailFinalUnitPrice(book);
+  const originalUnit = getBookDetailOriginalUnitPrice(book, finalUnit);
+  const currentPrice = finalUnit.toFixed(2);
+  const marketPrice = originalUnit.toFixed(2);
 
   const buttonLabel = primaryButtonLabel || t('personalizeButton');
 
@@ -40,7 +41,7 @@ export default function BookDetailStickyBar({
         <div className="flex items-center justify-between gap-6">
           <div className="flex items-baseline gap-2 flex-shrink-0">
             <span className="text-[#012CCE] text-[24px] leading-none">${currentPrice}</span>
-            {Number(marketPrice) > Number(currentPrice) && (
+            {originalUnit > finalUnit && (
               <span className="text-[#999999] line-through text-[14px] tracking-[0.25px]">${marketPrice}</span>
             )}
           </div>

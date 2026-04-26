@@ -71,6 +71,11 @@ export default function PersonalizeApiDrivenPage() {
         if (FRONTEND_PREVIEW) {
           // 预览模式
           setFormType(bookId === '2' ? 'SINGLE2' : 'SINGLE1');
+          setUploadOptions({
+            allowedTypes: ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'],
+            maxFileSize: 20 * 1024 * 1024,
+            maxImages: 1,
+          });
           setLoading(false);
           return;
         }
@@ -134,11 +139,9 @@ export default function PersonalizeApiDrivenPage() {
 
         // Upload constraints
         try {
-          const cfg = product?.customization_config || {};
-          const allowed = ['image/jpeg','image/png','image/jpg','image/webp'];
+          const allowed = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
           const maxSize = 20 * 1024 * 1024; // 20MB
-          const maxFiles = typeof cfg?.max_face_images === 'number' ? cfg.max_face_images : 3;
-          setUploadOptions({ allowedTypes: allowed, maxFileSize: maxSize, maxImages: maxFiles });
+          setUploadOptions({ allowedTypes: allowed, maxFileSize: maxSize, maxImages: 1 });
         } catch {}
       } catch (e) {
         setFormType(bookId === '2' ? 'SINGLE2' : 'SINGLE1');
@@ -525,7 +528,7 @@ export default function PersonalizeApiDrivenPage() {
           </div>
         ) : (
           <h1 className="text-[22px] leading-[28px] text-center pt-3 md:pt-0 md:my-6 my-0">
-            Who are you making this book for?
+            Tell Us About Your Child
           </h1>
         )}
         {formType === 'SINGLE1' ? (

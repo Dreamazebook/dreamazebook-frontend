@@ -124,7 +124,7 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
     handleDrop,
     getUploadedPaths,
     initializeWithUrls,
-  } = useMultiImageUpload(uploadOptions?.maxImages ?? 3, { allowedTypes: uploadOptions?.allowedTypes, maxFileSize: uploadOptions?.maxFileSize });
+  } = useMultiImageUpload(uploadOptions?.maxImages ?? 1, { allowedTypes: uploadOptions?.allowedTypes, maxFileSize: uploadOptions?.maxFileSize });
 
   // 书籍2的品质选择移至 select-book-content 页面
 
@@ -177,7 +177,7 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
   // Handle multiple photos upload（与书籍1一致，增加裁剪逻辑）
   const handlePhotosUpload = async (files: File[]) => {
     if (!files || files.length === 0) return;
-    const maxImages = uploadOptions?.maxImages ?? 3;
+    const maxImages = uploadOptions?.maxImages ?? 1;
     const remainingSlots = maxImages - images.length;
     if (remainingSlots <= 0) return;
 
@@ -378,7 +378,7 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
                 />
 
                 <div id="field-ageStage">
-                  <label className="block mb-[2px] font-medium">Age stage</label>
+                  <label className="block mb-[2px] font-medium">Your Child's Age</label>
                   <p className="text-[#999999] text-[14px] leading-[20px] tracking-[0.5px] mb-1 md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
                     Choose the age range this story is made for.
                   </p>
@@ -422,7 +422,7 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
                   uploadProgress={uploadProgress}
                   error={uploadError}
                   isDragging={isDragging}
-                  maxImages={uploadOptions?.maxImages ?? 3}
+                  maxImages={uploadOptions?.maxImages ?? 1}
                   onImageUpload={handlePhotosUpload}
                   onImageDelete={handlePhotoDelete}
                   onDragEnter={handleDragEnter}
@@ -445,7 +445,7 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
               {/* Relationship to the child */}
               <div id="field-relationship">
                 <label className="block mb-2 font-medium text-[#222222] text-[16px] leading-[24px] tracking-[0.15px]">
-                  What is your relationship to the child?
+                  What is your relationship to them?
                 </label>
                 <div className="relative">
                   <select
@@ -514,8 +514,8 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
           <div className="bg-white w-[860px] max-w-[95vw] rounded-sm pt-6 pr-6 pb-4 pl-6 flex flex-col gap-4">
             <GiverAvatarCropper
               resultMode="file"
+              uiVariant="personalize"
               initialSrc={pendingPreviewUrl}
-              aspectRatio={1}
               maxSize={1024}
               exportMime="image/jpeg"
               exportQuality={0.92}

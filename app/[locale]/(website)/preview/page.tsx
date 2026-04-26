@@ -8,7 +8,6 @@ import { create } from 'zustand';
 import TopNavBarWithTabs from '../components/TopNavBarWithTabs';
 
 import Image from 'next/image';
-import { LoaderCircle } from 'lucide-react';
 import GiverDedicationCanvas from './components/GiverDedicationCanvas';
 import GiverAvatarCropper from './components/GiverAvatarCropper';
 import CoverNameCanvas from './components/CoverNameCanvas';
@@ -364,6 +363,15 @@ const useStore = create<{
   setEditField: (field: 'giver' | 'dedication' | null) => set({ editField: field }),
 }));
 
+/** 单页换脸/预览失败（如队列爆满）时蒙版内一句提示 */
+function PageRenderFailedOverlay({ message }: { message: string }) {
+  return (
+    <div className="absolute inset-0 z-20 flex items-center justify-center rounded-lg bg-white/90 px-4">
+      <p className="max-w-md text-center text-sm text-gray-800 leading-relaxed">{message}</p>
+    </div>
+  );
+}
+
 // 记忆化的单页预览组件，尽量只在相关 props 变化时重渲染
 const PreviewPageItem = React.memo(function PreviewPageItem({
   pageId,
@@ -383,11 +391,12 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   viewMode: 'single' | 'double';
   showOverlay: boolean;
   progress: number;
-  overlayMode?: 'progress' | 'loading';
+  overlayMode?: 'progress' | 'loading' | 'failed';
   content?: string | null;
   customOverlayContent?: React.ReactNode;
   onImageLoaded?: (pageId: number) => void;
 }) {
+  const t = useTranslations('Preview');
   const notifiedRef = useRef(false);
   const handleImageLoad = () => {
     if (notifiedRef.current) return;
@@ -419,7 +428,9 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                   />
                 </div>
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-                  {overlayMode === 'progress' ? (
+                  {overlayMode === 'failed' ? (
+                    <PageRenderFailedOverlay message={t('pageRenderFailedMessage')} />
+                  ) : overlayMode === 'progress' ? (
                     <DreamazeFaceSwapLoadingBar progress={progress} />
                   ) : (
                     <div className="text-center">
@@ -472,7 +483,9 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                   />
                 </div>
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-                  {overlayMode === 'progress' ? (
+                  {overlayMode === 'failed' ? (
+                    <PageRenderFailedOverlay message={t('pageRenderFailedMessage')} />
+                  ) : overlayMode === 'progress' ? (
                     <DreamazeFaceSwapLoadingBar progress={progress} />
                   ) : (
                     <div className="text-center">
@@ -535,7 +548,9 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
             onLoadingComplete={() => handleImageLoad()}
           />
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-            {overlayMode === 'progress' ? (
+            {overlayMode === 'failed' ? (
+              <PageRenderFailedOverlay message={t('pageRenderFailedMessage')} />
+            ) : overlayMode === 'progress' ? (
               <DreamazeFaceSwapLoadingBar progress={progress} />
             ) : (
               <div className="text-center">
@@ -995,6 +1010,11 @@ export default function PreviewPageWithTopNav() {
   // 扉页（标题页）展示完成后显示提示文案
   const [isTitlePageLoaded, setIsTitlePageLoaded] = useState(false);
   const titlePageIdRef = useRef<number | null>(null);
+  // 顶部 “Your story is coming to life…”：
+  // - 在 p3-4 还没出现在 preview_data 之前保持显示
+  // - 只有当 p3-4 出现且该页图片 onLoad 后才隐藏
+  const [isStoryComingTargetPageLoaded, setIsStoryComingTargetPageLoaded] = useState(false);
+  const storyComingTargetPageIdRef = useRef<number | null>(null);
 
   // 为 Others 标签页添加局部状态，用于记录选中的选项
   const [selectedBookCover, setSelectedBookCover] = React.useState<number | null>(null);
@@ -1212,6 +1232,8 @@ export default function PreviewPageWithTopNav() {
 
   // 添加 options 状态
   const [bookOptions, setBookOptions] = useState<BookOptions | null>(null);
+  // cover 缩略图统一比例：以 cover_1 的真实图片宽高比为准（用于让 cover_3/4 与 cover_1 同高）
+  const [coverThumbAspectRatio, setCoverThumbAspectRatio] = useState<number | null>(null);
 
   // 圣诞 bundle：自动预选默认封面/装订（不让 Add to cart 引导去 option tab）
   useEffect(() => {
@@ -1478,8 +1500,9 @@ export default function PreviewPageWithTopNav() {
   const isQueued = isProcessingLike && queuePos !== null && queuePos > 0;
   const isGenerating = isProcessingLike && (queuePos === null || queuePos === 0);
   const isCompleted = faceSwapStatus === 'completed';
+  const isFailed = faceSwapStatus === 'failed';
 
-  // 扉页（标题页）：约定为预览列表里第二张“非封面”页（index=1）
+  // 扉页（标题页）：约定为预览列表里第二张“非封面”页（index=1）；仅一页时退化为该页
   const titlePageId = useMemo(() => {
     const pages = (previewData?.preview_data ?? []).filter((p: any) => !(p as any).is_cover);
     const candidate = pages[1] || pages[0];
@@ -1488,12 +1511,58 @@ export default function PreviewPageWithTopNav() {
     return id;
   }, [previewData?.preview_data]);
 
+  // p3-4：与下方 isGiverDedication 一致，用 page_code 定位
+  const p34PageId = useMemo(() => {
+    const pages = previewData?.preview_data ?? [];
+    const p = pages.find((x: any) => {
+      const c = String(x?.page_code || '');
+      return c === 'p3-4' || c === 'p3-p4';
+    });
+    const id = p ? Number((p as any).page_id) : null;
+    if (!id || Number.isNaN(id)) return null;
+    return id;
+  }, [previewData?.preview_data]);
+
+  // 目标页：仅以 p3-4 为准（不再回退到其它页），避免 p3-4 尚未出现时提示提前消失
+  const pageIdForStoryComingHide = p34PageId;
+
+  // 顶部 “Your story is coming to life…”：
+  // - p3-4 未出现：继续显示
+  // - p3-4 已出现但未加载完成：继续显示
+  // - p3-4 已加载完成：隐藏
+  // - 批次 completed/failed：隐藏（避免 p3-4 永远不出现导致卡住）
+  const showStoryComingLine = useMemo(
+    () =>
+      !isCompleted &&
+      !isFailed &&
+      (!pageIdForStoryComingHide || !isStoryComingTargetPageLoaded) &&
+      (isProcessing || isProcessingLike),
+    [isCompleted, isFailed, pageIdForStoryComingHide, isStoryComingTargetPageLoaded, isProcessing, isProcessingLike],
+  );
+  const [comingLifeDotPhase, setComingLifeDotPhase] = useState(0);
+  useEffect(() => {
+    if (!showStoryComingLine) {
+      setComingLifeDotPhase(0);
+      return;
+    }
+    const t = window.setInterval(() => {
+      setComingLifeDotPhase((d) => (d + 1) % 4);
+    }, 400);
+    return () => clearInterval(t);
+  }, [showStoryComingLine]);
+
   useEffect(() => {
     if (titlePageIdRef.current !== titlePageId) {
       titlePageIdRef.current = titlePageId;
       setIsTitlePageLoaded(false);
     }
   }, [titlePageId]);
+  useEffect(() => {
+    if (storyComingTargetPageIdRef.current !== pageIdForStoryComingHide) {
+      storyComingTargetPageIdRef.current = pageIdForStoryComingHide;
+      setIsStoryComingTargetPageLoaded(false);
+    }
+  }, [pageIdForStoryComingHide]);
   useEffect(() => {
     // 仅当从无到有或 URL 变化时触发 loading，避免重复置为 true 导致闪烁
     setIsCoverLoading((prev) => {
@@ -1633,14 +1702,21 @@ export default function PreviewPageWithTopNav() {
 
       const binding_options = (bindingAttr?.options || []).map((o: any, idx: number) => {
         const optionKey = String(o?.value || '').toLowerCase();
-        // 根据 option_key 设置描述
+        const labelLower = String(o?.label || '').toLowerCase();
+        // 与 buildBindingImageUrl 一致：先 premium，再 hard，再 soft。否则如 PREMIUM_HARDCOVER 会误匹配为经典精装文案。
+        const keyForDesc = `${optionKey} ${labelLower}`;
         let description: string | null = null;
-        if (optionKey.includes('soft') || optionKey.includes('paper')) {
+        if (
+          keyForDesc.includes('premium') ||
+          (keyForDesc.includes('lay') && keyForDesc.includes('flat')) ||
+          /lay-?\s*flat|layflat|butterfly/i.test(String(o?.label || o?.value))
+        ) {
+          description =
+            'Luxurious lay-flat pages for immersive reading.\nA treasure to cherish.';
+        } else if (keyForDesc.includes('hard') || keyForDesc.includes('classic') || /hard ?cover|精装/i.test(keyForDesc)) {
+          description = 'Sturdy and elegant.\nPerfect for gifting.';
+        } else if (keyForDesc.includes('soft') || keyForDesc.includes('paper') || /soft-?cover|软封|平装/i.test(keyForDesc)) {
           description = 'Light, flexible, and easy to take';
-        } else if (optionKey.includes('hard')) {
-          description = 'Sturdy and elegant — a keepsake to cherish.';
-        } else if (optionKey.includes('premium')) {
-          description = 'Luxurious lay-flat design for panoramic reading — a treasure to cherish.';
         }
         
         return {
@@ -2157,6 +2233,47 @@ export default function PreviewPageWithTopNav() {
 
     return result;
   };
+
+  // 计算 cover_1 的真实宽高比，用于 cover_3/4 缩略图容器固定同高
+  useEffect(() => {
+    try {
+      const bookId = searchParams.get('bookid');
+      if (!bookId) return;
+      if (!bookOptions?.cover_options || bookOptions.cover_options.length === 0) return;
+
+      // 找 cover_1（兼容 option_key / id）
+      const cover1 =
+        bookOptions.cover_options.find((o) => String(o.option_key || '').toLowerCase().includes('cover_1')) ||
+        bookOptions.cover_options.find((o) => String(o.option_key || '') === '1') ||
+        bookOptions.cover_options.find((o) => String(o.id) === '1') ||
+        null;
+      if (!cover1) return;
+
+      const urls = buildCoverR2Urls(bookId, cover1);
+      const src = urls?.canvasBase || urls?.base;
+      if (!src) return;
+
+      let cancelled = false;
+      const img = new (window as any).Image();
+      img.onload = () => {
+        if (cancelled) return;
+        const w = Number(img.naturalWidth || img.width || 0);
+        const h = Number(img.naturalHeight || img.height || 0);
+        if (!w || !h) return;
+        const ratio = w / h;
+        if (!Number.isFinite(ratio) || ratio <= 0) return;
+        setCoverThumbAspectRatio(ratio);
+      };
+      img.onerror = () => {};
+      img.src = src;
+
+      return () => {
+        cancelled = true;
+      };
+    } catch {
+      // ignore
+    }
+  }, [bookOptions?.cover_options, searchParams]);
 
   // 为装订方式构建 Cloudflare R2 图片 URL（hardcover / softcover / premium）
   const buildBindingImageUrl = (option: BindingOption) => {
@@ -3532,6 +3649,7 @@ export default function PreviewPageWithTopNav() {
   //寄语
   const MAX_LINES = 10;
   const MAX_CHARS = 300;
+  const DEDICATION_CHAR_WARN = 280;
   const defaultName = (recipient && recipient.trim()) ? recipient : "User"; // 使用 Full name 作为默认名
   // 默认寄语按预览语言（来自 personalize 传入的 ?lang）选择
   const selectedLang = (searchParams.get('lang') || 'en').toLowerCase();
@@ -3715,7 +3833,7 @@ export default function PreviewPageWithTopNav() {
             
             {/* 书籍封面 */}
             <div className="flex flex-col items-center w-full max-w-3xl">
-              <div className={`w-full flex justify-center ${isProcessing ? 'mb-4' : 'mb-8'}`}>
+              <div className={`w-full flex justify-center ${showStoryComingLine ? 'mb-4' : 'mb-8'}`}>
                 {(() => {
                   // 尝试获取当前选中的封面：
                   // - 如果用户已选择封面，则使用选中的封面；
@@ -3861,15 +3979,18 @@ export default function PreviewPageWithTopNav() {
                   );
                 })()}
               </div>
-              {isProcessing && (
-                <div className="mb-8 flex flex-col items-center gap-2" role="status" aria-live="polite">
-                  <LoaderCircle
-                    size={48}
-                    className="animate-spin"
-                    style={{ color: '#C9CCD3', animationDuration: '1.5s' }}
-                    aria-label="loading"
-                  />
-                  <p className="text-base font-medium text-[#C9CCD3]">Your story is coming to life…</p>
+              {showStoryComingLine && (
+                <div
+                  className="mb-8 flex min-h-[1.5rem] flex-col items-center justify-center"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <p className="text-center text-base font-medium text-[#C9CCD3]">
+                    <span>Your story is coming to life</span>
+                    <span className="inline-block w-[3ch] text-left font-mono">
+                      {'.'.repeat(comingLifeDotPhase)}
+                    </span>
+                  </p>
                 </div>
               )}
             </div>
@@ -3920,8 +4041,10 @@ export default function PreviewPageWithTopNav() {
                     // 后端不再返回 base_only：以字段是否存在来判断
                     const hasBase = !!(page as any).base_image_url || !!page.image_url;
                     const hasFinal = !!(page as any).final_image_url;
-                    const needsOverlay = hasSwap && hasBase && !hasFinal;
-                    const isSwapping = needsOverlay;
+                    const pageFailed = String((page as any).status || '').toLowerCase() === 'failed';
+                    // 换脸页失败：不要无限 loading，用 PageRenderFailedOverlay
+                    const needsProcessingOverlay = hasSwap && hasBase && !hasFinal && !pageFailed;
+                    const isSwapping = needsProcessingOverlay;
                     const progress = Math.round(pageProgress[page.page_id] ?? 0);
                     // 展示策略：当 final 与 base/image 不同（说明最终图已更新）时优先展示 final；
                     // 否则展示 base/image（例如 create 流程里 final 可能为空或等同于 base）
@@ -3931,11 +4054,12 @@ export default function PreviewPageWithTopNav() {
                     const displayUrlRaw = preferFinal ? finalUrlRaw : (baseOrImageUrlRaw || finalUrlRaw || '');
                     const src = buildImageUrl(String(displayUrlRaw || ''));
                     const isReplaceablePage = replaceableTextPageIds.has(page.page_id) || replaceableTextPageNumbers.has(page.page_number);
-                    // 轮到该页前（progress 为 0）显示 loading；开始后显示进度
-                    const overlayMode = (progress > 0 ? 'progress' : 'loading');
-                      // 仅在 p3-4（有的书返回 p3-p4）页面渲染 Giver & Dedication
-                      const pageCode = String((page as any).page_code || '');
-                      const isGiverDedicationPage = pageCode === 'p3-4' || pageCode === 'p3-p4';
+                    // 仅在 p3-4（有的书返回 p3-p4）页面渲染 Giver & Dedication
+                    const pageCode = String((page as any).page_code || '');
+                    const isGiverDedicationPage = pageCode === 'p3-4' || pageCode === 'p3-p4';
+                    // 轮到该页前（progress 为 0）显示 loading；开始后显示进度；失败页显示说明
+                    const overlayMode = pageFailed ? 'failed' : (progress > 0 ? 'progress' : 'loading');
+
                       // p3-4 展示策略同上：只有当 final 与 base/image 不同，才默认展示 final。
                       // 这样 edited book 能展示历史最终图；create book（final==base 或无 final）则会走 Canvas 展示默认寄语。
                       const p34FinalRaw = (page as any).final_image_url || '';
@@ -3974,6 +4098,32 @@ export default function PreviewPageWithTopNav() {
 
                       // 单页模式：p3-4 默认展示 final；编辑时切换到 Canvas
                       if (isGiverDedicationPage && viewMode === 'single') {
+                        if (pageFailed) {
+                          return (
+                            <div key={page.page_id} ref={giverRef} className="w-full flex flex-col items-center">
+                              <div className="w-full max-w-5xl">
+                                <PreviewPageItem
+                                  pageId={page.page_id}
+                                  pageNumber={page.page_number}
+                                  src={src}
+                                  viewMode="single"
+                                  showOverlay
+                                  progress={0}
+                                  overlayMode="failed"
+                                  content={page.content}
+                                  onImageLoaded={(loadedPageId) => {
+                                    if (pageIdForStoryComingHide && loadedPageId === pageIdForStoryComingHide) {
+                                      setIsStoryComingTargetPageLoaded(true);
+                                    }
+                                    if (titlePageId && loadedPageId === titlePageId) {
+                                      setIsTitlePageLoaded(true);
+                                    }
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        }
                         if (p34FinalSrc && !p34HasLocalChanges) {
                           return (
                             <div key={page.page_id} ref={giverRef} className="w-full flex flex-col items-center">
@@ -4084,11 +4234,11 @@ export default function PreviewPageWithTopNav() {
                             pageNumber={page.page_number}
                             src={(p34FinalSrc && isGiverDedicationPage && !p34HasLocalChanges) ? p34FinalSrc : src}
                             viewMode={viewMode}
-                            showOverlay={isSwapping}
+                            showOverlay={isSwapping || pageFailed}
                             progress={progress}
                             overlayMode={overlayMode as any}
                             content={page.content}
-                            customOverlayContent={isGiverDedicationPage ? (
+                            customOverlayContent={pageFailed ? undefined : (isGiverDedicationPage ? (
                               (p34FinalSrc && !p34HasLocalChanges) ? p34ButtonsOverlay : (
                                 <div className="w-full h-full relative">
                                   <GiverDedicationCanvas
@@ -4104,8 +4254,11 @@ export default function PreviewPageWithTopNav() {
                                   {p34ButtonsOverlay}
                                 </div>
                               )
-                            ) : undefined}
+                            ) : undefined)}
                             onImageLoaded={(loadedPageId) => {
+                              if (pageIdForStoryComingHide && loadedPageId === pageIdForStoryComingHide) {
+                                setIsStoryComingTargetPageLoaded(true);
+                              }
                               if (titlePageId && loadedPageId === titlePageId) {
                                 setIsTitlePageLoaded(true);
                               }
@@ -4119,7 +4272,7 @@ export default function PreviewPageWithTopNav() {
                 </div>
                 {isTitlePageLoaded && (
                   <p className="text-center text-[#999999] mt-8 whitespace-pre-line">
-                    {`This is your personalized title page.\nYour full book preview will be emailed within 48 hours.`}
+                    {`This is a sneak peek of the story.\nComplete your order to receive the full book preview within 48 hours.`}
                   </p>
                 )}
               </div>
@@ -4204,6 +4357,52 @@ export default function PreviewPageWithTopNav() {
                                 baseSrc={canvasBase}
                                 cropRightHalf={cropRightHalf}
                                 recipient={recipient}
+                              />
+                            </div>
+                          );
+                        }
+
+                        // cover_3 / cover_4：缩略图来自后端 preview；外框与 cover_1 相同宽高比，宽图沿右侧裁切
+                        if (coverId === '3' || coverId === '4') {
+                          const target = `cover_${coverId}`;
+                          const coverPage = (previewData?.preview_data || []).find((p: any) => {
+                            const code = String((p as any)?.page_code || '').toLowerCase().replace(/-/g, '_');
+                            return code === target;
+                          });
+                          const raw =
+                            (coverPage as any)?.final_image_url ||
+                            (coverPage as any)?.image_url ||
+                            (coverPage as any)?.base_image_url ||
+                            '';
+                          const backendSrc = raw ? buildImageUrl(String(raw)) : '';
+                          // 以 cover_1 的真实宽高比为准，确保 cover_3/4 与 cover_1 同高
+                          const ratio = coverThumbAspectRatio ?? (cropRightHalf ? 2 : 1);
+
+                          if (!backendSrc) {
+                            return (
+                              <div
+                                className="relative w-full mb-2 overflow-hidden"
+                                style={{ aspectRatio: String(ratio) }}
+                              >
+                                <div className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center gap-2">
+                                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+                                  <p className="text-sm text-gray-600">loading...</p>
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div
+                              className="relative w-full mb-2 overflow-hidden"
+                              style={{ aspectRatio: String(ratio) }}
+                            >
+                              <OptimizedImage
+                                src={backendSrc}
+                                alt={`Cover ${option.id} - ${option.name}`}
+                                width={cropRightHalf ? 400 : 200}
+                                height={200}
+                                className="absolute inset-0 h-full w-full object-cover object-right"
                               />
                             </div>
                           );
@@ -4431,7 +4630,9 @@ export default function PreviewPageWithTopNav() {
                       })()}
                     </p>
                     {option.description && (
-                    <p className="text-sm text-gray-500 text-center mb-4">{option.description}</p>
+                    <p className="text-sm text-gray-500 text-center mb-4 whitespace-pre-line">
+                      {option.description}
+                    </p>
                     )}
                     <div className="flex items-center justify-center mt-auto space-x-2 mb-2">
                       {/* 左侧圆形选中框 */}
@@ -4730,6 +4931,7 @@ export default function PreviewPageWithTopNav() {
                   
                   return (
                     <GiverAvatarCropper
+                      uiVariant="openingPage"
                       // 预览页扉页图片：不限制裁剪框比例；导出不固定输出比例，避免在用户选择自由比例时发生拉伸变形
                       maxSize={1600}
                       exportMime="image/jpeg"
@@ -4780,8 +4982,8 @@ export default function PreviewPageWithTopNav() {
                 })()}
               </div>
             ) : (
-              // 寄语弹窗
-              <div className="bg-white w-[600px] h-[464px] rounded-sm pt-6 pr-6 pb-3 pl-6 flex flex-col gap-7">
+              // 寄语弹窗：不设死高，提示文案出现时白框随之增高；过高时在弹窗内滚动，避免 Submit 挤出
+              <div className="bg-white w-[600px] max-w-[95vw] min-h-[464px] max-h-[90vh] overflow-y-auto rounded-sm pt-6 pr-6 pb-3 pl-6 flex flex-col gap-7">
                 {/* 标题、关闭按钮和填写区域 */}
                 <div className="w-full flex flex-col gap-3">
                   <div className="flex items-center justify-between">
@@ -4802,22 +5004,38 @@ export default function PreviewPageWithTopNav() {
                     <textarea
                       rows={10}
                       value={message}
+                      maxLength={MAX_CHARS}
                       onChange={handleMessageChange}
                       placeholder="Please enter your message..."
                       className="w-full p-2 border border-[#E5E5E5] placeholder-[#999999] rounded focus:outline-none ring-0 resize-none"
                     />
-                    <div className="flex justify-end space-x-4 text-[#999999] text-sm">
-                      <span>
-                        {message.length}/{MAX_CHARS} left
-                      </span>
-                      <span>
-                        {message.split('\n').length}/{MAX_LINES} line
-                      </span>
+                    <div className="flex flex-col items-end gap-1 mt-1">
+                      <div className="flex justify-end space-x-4 text-sm">
+                        <span
+                          className={
+                            message.length >= MAX_CHARS
+                              ? 'text-red-600'
+                              : message.length >= DEDICATION_CHAR_WARN
+                                ? 'text-amber-600'
+                                : 'text-[#999999]'
+                          }
+                        >
+                          {message.length}/{MAX_CHARS} left
+                        </span>
+                        <span className="text-[#999999]">
+                          {message.split('\n').length}/{MAX_LINES} line
+                        </span>
+                      </div>
+                      {message.length >= MAX_CHARS && (
+                        <p className="text-red-600 text-xs text-right max-w-full">
+                          Limit reached, please shorten your message
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
                 {/* 保存按钮 */}
-                <div className="flex justify-end">
+                <div className="flex justify-end mt-auto">
                   <button
                     className="bg-[#222222] text-[#F5E3E3] py-2 px-4 rounded-sm"
                     onClick={() => {

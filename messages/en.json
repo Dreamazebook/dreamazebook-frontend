@@ -234,7 +234,8 @@
   "Preview": {
     "queueTip": "Book preview is currently in the queue for generation. You are currently at position {pos}/{tot}. You can proceed to select Others tab.",
     "queueTipNoPos": "Book preview is currently in the queue for generation. You can proceed to select Others tab.",
-    "selectOptions": "You can proceed to select {options}"
+    "selectOptions": "You can proceed to select {options}",
+    "pageRenderFailedMessage": "Too many people are creating previews right now. Please try again in a few minutes."
   },
   "LoginModal": {
     "login": "Login",

@@ -1,5 +1,12 @@
 import React from 'react';
+import { WEBSITE_CDN_URL } from '@/constants/cdn';
 import { DEFAULT_GIFT_PACKAGES_CONFIG } from './giftPackagesData';
+
+/** 与 CDN 目录一致：products/picbooks/{PICBOOK_*}/bundle.png */
+const picbookBundlePng = (picbookId: string) =>
+  `${WEBSITE_CDN_URL}products/picbooks/${picbookId}/bundle.png`;
+const picbookBundleMobilePng = (picbookId: string) =>
+  `${WEBSITE_CDN_URL}products/picbooks/${picbookId}/bundle-mobile.png`;
 
 // 定义书籍section的类型
 export interface BookSection {
@@ -161,45 +168,34 @@ const GOODNIGHT_BASE_CONFIG: Omit<BookConfig, 'id'> = {
         description: `Make storytime more meaningful with books toddlers love to hear again and again.
  These titles are often chosen together for ages 2–5.`,
         className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
-      bundleImage:
-        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bundle.png',
-      bundleImageMobile:
-        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bundle-mobile.png',
+      bundleImage: picbookBundlePng('PICBOOK_GOODNIGHT'),
+      bundleImageMobile: picbookBundleMobilePng('PICBOOK_GOODNIGHT'),
         books: [
           {
             title: 'Goodnight to You',
             subtitle: 'Gentle bedtime routine',
             coverImage: '', // 需要添加实际图片URL
-            price: '$79',
+            price: '$49.99',
             backgroundColor: '#4A90E2', // 蓝色背景
           backgroundImage:
             'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_1.png',
             spuCode: 'PICBOOK_GOODNIGHT',
           },
           {
-            title: "You're Brave in Many Ways",
-            subtitle: 'Everyday courage',
-            coverImage: '', // 需要添加实际图片URL
-            price: '$79',
-            backgroundColor: '#FFD700', // 黄色背景
-          backgroundImage:
-            'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_2.png',
-            spuCode: 'PICBOOK_BRAVEY',
-          },
-          {
-            title: 'Birthday Book for You',
-            subtitle: 'Special day keepsake',
-            coverImage: '', // 需要添加实际图片URL
-            price: '$79',
-            backgroundColor: '#FF6B6B',
-            backgroundImage: '',
-            spuCode: 'PICBOOK_BIRTHDAY',
+            title: 'The Way I See You, Mama',
+            subtitle: 'A keepsake full of love',
+            coverImage: '',
+            price: '$49.99',
+            backgroundColor: '#E8B4BC',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-behind.jpg',
+            spuCode: 'PICBOOK_MOM',
           },
         ],
-        // 3 本档
-        originalPrice: '$237',
-        discountedPrice: '$201.4',
-        buttonText: 'add bundle to bag',
+        // 2 本：goodnight + mom（与定价表一致）
+        originalPrice: '$99.9',
+        discountedPrice: '$89.9',
+        buttonText: 'add 2 books to bag',
       },
       {
         type: 'why-personalized',
@@ -292,16 +288,14 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
         description: `Turn one meaningful book into a collection of family memories.
 These titles are often chosen together to celebrate love, comfort, and connection throughout the family.`,
         className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
-        bundleImage:
-          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bundle.png',
-        bundleImageMobile:
-          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bundle-mobile.png',
+        bundleImage: picbookBundlePng('PICBOOK_MOM'),
+        bundleImageMobile: picbookBundleMobilePng('PICBOOK_MOM'),
         books: [
           {
             title: 'Good Night to You',
             subtitle: 'Gentle bedtime comfort',
             coverImage: '',
-            price: '$79',
+            price: '$49.99',
             backgroundColor: '#4A90E2',
             backgroundImage:
               'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_1.png',
@@ -311,7 +305,7 @@ These titles are often chosen together to celebrate love, comfort, and connectio
             title: 'The Way I See You, Mama',
             subtitle: 'A keepsake full of love',
             coverImage: '',
-            price: '$79',
+            price: '$49.99',
             backgroundColor: '#E8B4BC',
             backgroundImage:
               'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-behind.jpg',
@@ -321,25 +315,16 @@ These titles are often chosen together to celebrate love, comfort, and connectio
             title: "You're Brave in Many Ways",
             subtitle: 'Everyday courage and confidence',
             coverImage: '',
-            price: '$79',
+            price: '$54.99',
             backgroundColor: '#FFD700',
             backgroundImage:
               'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_2.png',
             spuCode: 'PICBOOK_BRAVEY',
           },
-          {
-            title: 'Birthday Book for You',
-            subtitle: 'Special day keepsake',
-            coverImage: '',
-            price: '$79',
-            backgroundColor: '#FF6B6B',
-            backgroundImage: '',
-            spuCode: 'PICBOOK_BIRTHDAY',
-          },
         ],
-        originalPrice: '$316',
-        discountedPrice: '$268.6',
-        buttonText: 'add 4 books to bag',
+        originalPrice: '$154.9',
+        discountedPrice: '$123.9',
+        buttonText: 'add 3 books to bag',
       },
       {
         type: 'why-personalized',
@@ -417,33 +402,42 @@ These titles are often chosen together to celebrate love, comfort, and connectio
         title: 'The Perfect Sibling Gift',
         description: 'For families with one big kid and one little one',
         className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
-        bundleImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bundle.png',
-        bundleImageMobile: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BRAVEY/bundle-mobile.png',
+        bundleImage: picbookBundlePng('PICBOOK_BRAVEY'),
+        bundleImageMobile: picbookBundleMobilePng('PICBOOK_BRAVEY'),
         books: [
           {
             title: 'Goodnight to You',
             subtitle: 'Gentle bedtime routine',
             coverImage: '', // 需要添加实际图片URL
-            price: '$79',
+            price: '$49.99',
             backgroundColor: '#4A90E2', // 蓝色背景
             backgroundImage:
               'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_1.png',
             spuCode: 'PICBOOK_GOODNIGHT',
           },
           {
+            title: 'Birthday Book for You',
+            subtitle: 'Special day keepsake',
+            coverImage: '',
+            price: '$54.99',
+            backgroundColor: '#FF6B6B',
+            backgroundImage: '',
+            spuCode: 'PICBOOK_BIRTHDAY',
+          },
+          {
             title: "Little One, You're Brave in Many Ways",
             subtitle: 'A confidence-building story',
             coverImage: '', // 需要添加实际图片URL
-            price: '$79',
+            price: '$54.99',
             backgroundColor: '#FFD700', // 黄色背景
             backgroundImage:
               'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_2.png',
             spuCode: 'PICBOOK_BRAVEY',
           },
         ],
-        originalPrice: '$158',
-        discountedPrice: '$142.2',
-        buttonText: 'add bundle to bag',
+        originalPrice: '$159.9',
+        discountedPrice: '$127.9',
+        buttonText: 'add 3 books to bag',
       },
       {
         type: 'tips',
@@ -631,31 +625,31 @@ These titles are often chosen together to celebrate love, comfort, and connectio
         title: 'Celebrate birthdays with courage.',
         description: 'Mark each milestone with joy and courage.',
         className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
-        bundleImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/bundle.png',
-        bundleImageMobile: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_BIRTHDAY/bundle-mobile.png',
+        bundleImage: picbookBundlePng('PICBOOK_BIRTHDAY'),
+        bundleImageMobile: picbookBundleMobilePng('PICBOOK_BIRTHDAY'),
         books: [
-          {
-            title: "You're Brave in Many Ways",
-            subtitle: 'Everyday courage',
-            coverImage: '',
-            price: '$79',
-            backgroundColor: '#FFD700',
-            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_2.png',
-            spuCode: 'PICBOOK_BRAVEY',
-          },
           {
             title: 'Birthday Book for You',
             subtitle: 'Special day keepsake',
             coverImage: '',
-            price: '$79',
+            price: '$54.99',
             backgroundColor: '#FF6B6B',
             backgroundImage: '',
             spuCode: 'PICBOOK_BIRTHDAY',
           },
+          {
+            title: "You're Brave in Many Ways",
+            subtitle: 'Everyday courage',
+            coverImage: '',
+            price: '$54.99',
+            backgroundColor: '#FFD700',
+            backgroundImage: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_2.png',
+            spuCode: 'PICBOOK_BRAVEY',
+          },
         ],
-        originalPrice: '$158',
-        discountedPrice: '$142.2',
-        buttonText: 'add bundle to bag',
+        originalPrice: '$109.9',
+        discountedPrice: '$98.9',
+        buttonText: 'add 2 books to bag',
       },
       {
         type: 'faq',
@@ -712,6 +706,38 @@ These titles are often chosen together to celebrate love, comfort, and connectio
           'When I draw, I imagine how adorable it will be to see young readers interact with the instruments on each page.',
           "My hope is that this blessing book will bring joy, wonder, and a sense of music into every child's heart.",
         ],
+      },
+      {
+        type: 'toddler-favorites',
+        title: 'A gentle pair for baby’s first library',
+        description: 'Name-to-melody magic meets a calming bedtime favorite — two board-friendly keepsakes loved together.',
+        className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
+        bundleImage: picbookBundlePng('PICBOOK_MELODY'),
+        bundleImageMobile: picbookBundleMobilePng('PICBOOK_MELODY'),
+        books: [
+          {
+            title: 'Goodnight to You',
+            subtitle: 'Gentle bedtime routine',
+            coverImage: '',
+            price: '$49.99',
+            backgroundColor: '#4A90E2',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/toddler_book_1.png',
+            spuCode: 'PICBOOK_GOODNIGHT',
+          },
+          {
+            title: 'Your Melody',
+            subtitle: 'A blessing in every letter',
+            coverImage: '',
+            price: '$49.99',
+            backgroundColor: '#E8B4BC',
+            backgroundImage: '',
+            spuCode: 'PICBOOK_MELODY',
+          },
+        ],
+        originalPrice: '$99.9',
+        discountedPrice: '$89.9',
+        buttonText: 'add 2 books to bag',
       },
       {
         type: 'faq',
