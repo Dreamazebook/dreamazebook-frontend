@@ -446,7 +446,7 @@ export default function CartItemCard({
                   </div>
                 </div>
 
-                {onQuantityChange && (
+                {/* {onQuantityChange && (
                   <div className="inline-flex items-center border rounded-md">
                     <button
                       onClick={() => onQuantityChange(item.id, -1)}
@@ -471,7 +471,7 @@ export default function CartItemCard({
                       +
                     </button>
                   </div>
-                )}
+                )} */}
               </div>
             </div>
           ) : (
