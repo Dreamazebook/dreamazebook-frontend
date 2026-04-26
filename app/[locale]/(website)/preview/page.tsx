@@ -4848,8 +4848,8 @@ export default function PreviewPageWithTopNav() {
                 })()}
               </div>
             ) : (
-              // 寄语弹窗
-              <div className="bg-white w-[600px] h-[464px] rounded-sm pt-6 pr-6 pb-3 pl-6 flex flex-col gap-7">
+              // 寄语弹窗：不设死高，提示文案出现时白框随之增高；过高时在弹窗内滚动，避免 Submit 挤出
+              <div className="bg-white w-[600px] max-w-[95vw] min-h-[464px] max-h-[90vh] overflow-y-auto rounded-sm pt-6 pr-6 pb-3 pl-6 flex flex-col gap-7">
                 {/* 标题、关闭按钮和填写区域 */}
                 <div className="w-full flex flex-col gap-3">
                   <div className="flex items-center justify-between">
@@ -4901,7 +4901,7 @@ export default function PreviewPageWithTopNav() {
                   </div>
                 </div>
                 {/* 保存按钮 */}
-                <div className="flex justify-end">
+                <div className="flex justify-end mt-auto">
                   <button
                     className="bg-[#222222] text-[#F5E3E3] py-2 px-4 rounded-sm"
                     onClick={() => {
