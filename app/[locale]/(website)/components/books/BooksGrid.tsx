@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
-import { getBookListDisplayPrice } from '@/utils/bookDisplayPrice';
+import { getBookDetailFinalUnitPrice, getBookDetailOriginalUnitPrice } from '@/utils/bookDisplayPrice';
 import { WEBSITE_CDN_URL } from '@/constants/cdn';
 import Button from '@/app/components/Button';
 
@@ -102,7 +102,8 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
         const mobileCoverUrl = getCoverUrl(String(idOrCode), false, true);
         const defaultCoverUrl = getCoverUrl(String(idOrCode), false, false);
         const hoverCoverUrl = getCoverUrl(String(idOrCode), true, false);
-        const priceVal = getBookListDisplayPrice(book);
+        const finalUnit = getBookDetailFinalUnitPrice(book);
+        const originalUnit = getBookDetailOriginalUnitPrice(book, finalUnit);
         const desc = (book as any)?.description ?? (book as any)?.desc ?? '';
         // 仅对我们人工插入的“new-books-coming”卡片做 coming soon 判定
         // （不要用 price===0 来判断，避免误伤真实 0 元商品或数据异常）
@@ -189,7 +190,10 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
               </div>
               {!isComingSoon ? (
                 <p className="text-[#222222] flex gap-2 items-center text-[18px] group-hover:font-medium">
-                  <span className="text-[18px]">From ${book.final_unit_price}</span><span className="line-through text-[#999] text-[16px]">${Number(priceVal).toFixed(2)}</span>
+                  <span className="text-[18px]">From ${finalUnit.toFixed(2)}</span>
+                  {originalUnit > finalUnit && (
+                    <span className="line-through text-[#999] text-[16px]">${originalUnit.toFixed(2)}</span>
+                  )}
                 </p>
               ) : (
                 <p className="text-[#666666] text-[16px] text-center px-4">
