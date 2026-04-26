@@ -44,7 +44,7 @@ export default function ShoppingCartPage() {
     discountAmount,
     total,
     itemsCount,
-  } = useOrderSummary({ selectedItems });
+  } = useOrderSummary({ selectedItems, onCartItemsUpdate: setCartItems });
 
   const {
     checkoutLoading,
@@ -142,6 +142,12 @@ export default function ShoppingCartPage() {
         return [...prev, id];
       }
     });
+    // Toggle is_selected_for_checkout on the cart item
+    setCartItems(prev => prev.map(item =>
+      item.id === id
+        ? { ...item, is_selected_for_checkout: !item.is_selected_for_checkout }
+        : item
+    ));
   };
 
   // 移除主商品及其附加项

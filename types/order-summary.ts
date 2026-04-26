@@ -1,3 +1,5 @@
+import { CartItem } from "./cart";
+
 export interface OrderSummaryProps {
   calculatingCost: boolean;
   subtotal: number;
@@ -19,6 +21,9 @@ export interface DiscountInfo {
 }
 
 export interface CalculatedCost {
+  cart: {
+    items: CartItem[];
+  },
   original_subtotal: number;
   shipping: number;
   total_amount: number;

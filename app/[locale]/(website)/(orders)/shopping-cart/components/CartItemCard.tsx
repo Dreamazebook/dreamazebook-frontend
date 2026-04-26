@@ -1,14 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { CartItem as CartItemType, getFormatedCover, getFormatedGiftbox } from "@/types/cart";
 import DisplayPrice from "../../../components/component/DisplayPrice";
-import { Link, useRouter } from "@/i18n/routing";
+import { useRouter } from "@/i18n/routing";
 import { useEffect, useState } from "react";
 import KickstarterInlineCard from "./KickstarterInlineCard";
 import { getR2BookCover } from "@/utils/bookCovers";
-import { formatCartBookTitle, getOurBookDisplayName } from "@/utils/bookNames";
+import { getOurBookDisplayName } from "@/utils/bookNames";
 import { WEBSITE_CDN_URL } from "@/constants/cdn";
 
 interface CartItemProps {
@@ -272,14 +271,14 @@ export default function CartItemCard({
                           }
                           <DisplayPrice
                             style="text-[#222222] font-bold"
-                            value={item.total_price}
+                            value={item.is_selected_for_checkout ? item.total_price : item.original_total_price}
                           />
-                          {item.original_total_price != null && (
+                          {/* {item.original_total_price != null && (
                             <DisplayPrice
                               style="text-[#999999] md:text-[14px] md:leading-[20px]  md:tracking-[0.25px] line-through"
                               value={item.original_total_price}
                             />
-                          )}
+                          )} */}
                         </div>
                       </div>
                       {onRemoveItem && (
@@ -305,14 +304,14 @@ export default function CartItemCard({
                     <div className="flex items-baseline gap-1 whitespace-nowrap">
                       <DisplayPrice
                         style="text-[#222222] font-bold"
-                        value={item.total_price}
+                        value={item.is_selected_for_checkout ? item.total_price : item.original_total_price}
                       />
-                      {item.original_total_price && (
+                      {/* {item.original_total_price && (
                         <DisplayPrice
                           style="text-[#999999] line-through text-[14px]"
                           value={item.original_total_price}
                         />
-                      )}
+                      )} */}
                       {(itemsCount != 0 && itemsCount && itemsCount >= 3) && 
                         <span className="bg-[#FFE5E5] py-1 rounded px-2">save 20%</span>
                       }

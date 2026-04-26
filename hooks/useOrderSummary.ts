@@ -3,12 +3,14 @@ import api from '@/utils/api';
 import { API_CART_CALCULATE_COST } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
 import { CalculatedCost } from '@/types/order-summary';
+import { CartItem } from '@/types/cart';
 
 interface UseOrderSummaryProps {
   selectedItems: number[];
+  onCartItemsUpdate?: (items: CartItem[]) => void;
 }
 
-export const useOrderSummary = ({ selectedItems }: UseOrderSummaryProps) => {
+export const useOrderSummary = ({ selectedItems, onCartItemsUpdate }: UseOrderSummaryProps) => {
   const [calculatedCost, setCalculatedCost] = useState<CalculatedCost | null>(null);
   const [calculatingCost, setCalculatingCost] = useState(false);
 
@@ -27,6 +29,10 @@ export const useOrderSummary = ({ selectedItems }: UseOrderSummaryProps) => {
 
       if (success && data) {
         setCalculatedCost(data);
+        // Update cart items if available in response
+        if (data?.cart?.items && onCartItemsUpdate) {
+          onCartItemsUpdate(data.cart.items);
+        }
       } else {
         alert(message);
       }

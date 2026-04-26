@@ -98,8 +98,9 @@ export interface CartItem {
   };
   giftbox_info: GiftboxInfo;
   unit_price: number;
+  is_selected_for_checkout: boolean;
   total_price: number;
-  original_total_price?: number;
+  original_total_price: number;
   is_available: boolean;
   stock_quantity: number;
   added_at: string;
