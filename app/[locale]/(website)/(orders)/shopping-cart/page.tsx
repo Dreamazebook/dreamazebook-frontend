@@ -209,7 +209,7 @@ export default function ShoppingCartPage() {
     return (
       <div className="min-h-screen bg-[#F8F8F8] pb-40 lg:pb-0">
         <div className="w-full box-border flex flex-col gap-[12px] pr-[64px] pb-[64px] pl-[120px] opacity-100 pt-12">
-          <OAuthCallbackContent />
+          <OAuthCallbackContent onSuccess={fetchCartList} />
         </div>
       </div>
     );

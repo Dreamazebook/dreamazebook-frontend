@@ -7,7 +7,11 @@ import { useTranslations } from 'next-intl';
 import { OAUTH_CALLBACK } from '@/constants/api';
 import useUserStore from '@/stores/userStore';
 
-export default function OAuthCallbackContent() {
+export default function OAuthCallbackContent({
+  onSuccess,
+}: {
+  onSuccess?: () => void;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const t = useTranslations('loginCallback');
@@ -59,6 +63,9 @@ export default function OAuthCallbackContent() {
         setLoginUserToken(responseData);
         localStorage.removeItem('redirectUrl');
         localStorage.removeItem('oauthProvider');
+        if (onSuccess) {
+          onSuccess();
+        }
         setTimeout(() => {
           router.push(redirectUrl);
         }, 2000);
