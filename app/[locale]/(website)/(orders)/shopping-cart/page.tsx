@@ -18,6 +18,7 @@ import CartItemList from './components/CartItemList';
 import ConfirmModal from '../../components/component/ConfirmModal';
 import OrderSummary from './components/OrderSummary';
 import ShippingProgressBanner from './components/ShippingProgressBanner';
+import OAuthCallbackContent from './components/OAuthCallbackContent';
 import useUserStore from '@/stores/userStore';
 
 export default function ShoppingCartPage() {
@@ -31,6 +32,9 @@ export default function ShoppingCartPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { checkKickstarterStatus } = useUserStore();
+
+  // Check if this is an OAuth callback
+  const isOAuthCallback = searchParams.get('code') !== null;
 
   // 记录被选中的书本 ID，只有被选中的书才会结账
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
@@ -199,6 +203,17 @@ export default function ShoppingCartPage() {
   };
 
   
+
+  // Show OAuth callback content if processing OAuth login
+  if (isOAuthCallback) {
+    return (
+      <div className="min-h-screen bg-[#F8F8F8] pb-40 lg:pb-0">
+        <div className="w-full box-border flex flex-col gap-[12px] pr-[64px] pb-[64px] pl-[120px] opacity-100 pt-12">
+          <OAuthCallbackContent />
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
