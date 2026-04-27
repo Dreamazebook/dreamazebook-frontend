@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from '@/i18n/routing';
+import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/routing';
 import { OAUTH_CALLBACK } from '@/constants/api';
 import useUserStore from '@/stores/userStore';
 
@@ -12,121 +11,89 @@ export default function OAuthCallbackContent({
 }: {
   onSuccess?: () => void;
 }) {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const t = useTranslations('loginCallback');
+  const router = useRouter();
 
   const { setLoginUserToken } = useUserStore();
 
-  const [loading, setLoading] = useState(true);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const processOAuthCallback = async () => {
-    try {
-      const code = searchParams.get('code');
-      const oauthError = searchParams.get('error');
-      const errorDescription = searchParams.get('error_description');
-
-      if (oauthError) {
-        setError(t("oauthError", { error: oauthError }));
-        if (errorDescription) {
-          setError(prev => prev + ` - ${errorDescription}`);
-        }
-        setLoading(false);
-        return;
-      }
-
-      if (!code) {
-        setError(t("noAuthorizationCode"));
-        setLoading(false);
-        return;
-      }
-
-      const provider = localStorage.getItem('oauthProvider') || 'google';
-
-      const response = await fetch(OAUTH_CALLBACK(provider) + `?code=${code}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      });
-
-      const responseData = await response.json();
-
-      setLoading(false);
-
-      if (responseData.success) {
-        setSuccess(true);
-        const redirectUrl = localStorage.getItem('redirectUrl') || '/shopping-cart';
-        setLoginUserToken(responseData);
-        localStorage.removeItem('redirectUrl');
-        localStorage.removeItem('oauthProvider');
-        if (onSuccess) {
-          onSuccess();
-        }
-        setTimeout(() => {
-          router.push(redirectUrl);
-        }, 2000);
-      } else {
-        setError(t("authenticationFailed"));
-      }
-
-    } catch (err: any) {
-      console.error('OAuth callback error:', err);
-      setError(err.message || t("failedToProcessCallback"));
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const processOAuthCallback = async () => {
+      try {
+        const code = searchParams.get('code');
+        const oauthError = searchParams.get('error');
+
+        if (oauthError) {
+          console.error('OAuth error:', oauthError);
+          return;
+        }
+
+        if (!code) {
+          console.error('No authorization code');
+          return;
+        }
+
+        const provider = localStorage.getItem('oauthProvider') || 'google';
+
+        const response = await fetch(OAUTH_CALLBACK(provider) + `?code=${code}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        });
+
+        const responseData = await response.json();
+
+        if (responseData.success) {
+          const redirectUrl = localStorage.getItem('redirectUrl') || '/shopping-cart';
+          setLoginUserToken(responseData);
+          localStorage.removeItem('redirectUrl');
+          localStorage.removeItem('oauthProvider');
+          if (onSuccess) {
+            onSuccess();
+          }
+          router.push(redirectUrl);
+        }
+      } catch (err: any) {
+        console.error('OAuth callback error:', err);
+      }
+    };
+
     processOAuthCallback();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="bg-white rounded-xl p-6 shadow-sm text-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mb-4"></div>
-        <p className="text-lg text-gray-600">{t("processingCallback")}</p>
-        <p className="text-sm text-gray-500 mt-2">{t("extractingCode")}</p>
-      </div>
-    );
-  }
+  return (
+    <div className="min-h-screen bg-gray-50 py-6">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="lg:w-2/3">
+            <div className="bg-white rounded-xl p-6 shadow-sm space-y-4">
+              {[...Array(3)].map((_, index) => (
+                <div key={index} className="flex gap-4 p-4 border-b border-gray-200">
+                  <div className="w-24 h-24 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/4 animate-pulse"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-  if (error) {
-    return (
-      <div className="bg-white rounded-xl p-6 shadow-sm text-center">
-        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
+          <div className="lg:w-1/3">
+            <div className="bg-white rounded p-6 shadow-sm space-y-4">
+              <div className="h-6 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+              <div className="space-y-3">
+                <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+              </div>
+              <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
         </div>
-        <h2 className="text-2xl font-semibold text-red-600 mb-4">{t("error")}</h2>
-        <p className="text-gray-600 mb-6">{error}</p>
-        <button
-          onClick={() => router.push('/login')}
-          className="bg-black text-white px-6 py-2 rounded-md hover:bg-gray-800 transition-colors"
-        >
-          {t("backToLogin")}
-        </button>
       </div>
-    );
-  }
-
-  if (success) {
-    return (
-      <div className="bg-white rounded-xl p-6 shadow-sm text-center">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-        </div>
-        <h2 className="text-2xl font-semibold text-green-600 mb-4">{t("loginSuccessful")}</h2>
-        <p className="text-gray-600">{t("redirectingToDashboard")}</p>
-      </div>
-    );
-  }
-
-  return null;
+    </div>
+  );
 }

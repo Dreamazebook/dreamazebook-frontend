@@ -202,54 +202,9 @@ export default function ShoppingCartPage() {
     }
   };
 
-  
 
-  // Show OAuth callback content if processing OAuth login
-  if (isOAuthCallback) {
-    return (
-      <div className="min-h-screen bg-[#F8F8F8] pb-40 lg:pb-0">
-        <div className="w-full box-border flex flex-col gap-[12px] pr-[64px] pb-[64px] pl-[120px] opacity-100 pt-12">
-          <OAuthCallbackContent onSuccess={fetchCartList} />
-        </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-6">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col lg:flex-row gap-6">
-            <div className="lg:w-2/3">
-              <div className="bg-white rounded-xl p-6 shadow-sm space-y-4">
-                {[...Array(3)].map((_, index) => (
-                  <div key={index} className="flex gap-4 p-4 border-b border-gray-200">
-                    <div className="w-24 h-24 bg-gray-200 rounded animate-pulse"></div>
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/4 animate-pulse"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="lg:w-1/3">
-              <div className="bg-white rounded p-6 shadow-sm space-y-4">
-                <div className="h-6 bg-gray-200 rounded w-1/2 animate-pulse"></div>
-                <div className="space-y-3">
-                  <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
-                </div>
-                <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+  if (loading || isOAuthCallback) {
+    return <OAuthCallbackContent onSuccess={fetchCartList} />;
   }
 
   return (
