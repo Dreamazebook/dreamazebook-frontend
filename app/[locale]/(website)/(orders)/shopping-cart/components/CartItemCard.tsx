@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { CartItem as CartItemType, getFormatedCover, getFormatedGiftbox } from "@/types/cart";
+import { CartItem as CartItemType, getCartCoverRatio, getFormatedCover, getFormatedGiftbox } from "@/types/cart";
 import DisplayPrice from "../../../components/component/DisplayPrice";
 import { useRouter } from "@/i18n/routing";
 import { useEffect, useState } from "react";
@@ -20,6 +20,7 @@ interface CartItemProps {
   onToggleSelect?: (id: number) => void;
   handleClickEditMessage?: (orderItem: any) => Promise<void> | void;
   isSubItem?: boolean;
+  flash?: boolean;
 }
 
 export default function CartItemCard({
@@ -32,6 +33,7 @@ export default function CartItemCard({
   onRemoveItem,
   onToggleSelect,
   handleClickEditMessage,
+  flash = false,
 }: CartItemProps) {
   const t = useTranslations("ShoppingCart");
   const tSafe = (key: string, fallback: string) =>
@@ -195,9 +197,9 @@ export default function CartItemCard({
 
   return (
     <div
-      className={`bg-white w-full min-w-0 ${
+      className={`bg-white w-full min-w-0 transition-opacity duration-300 ${
         !isPackage ? "pl-3 opacity-100 rounded" : ""
-      }`}
+      } ${flash ? 'animate-flash' : ''}`}
     >
       <div
         className={`flex w-full min-w-0 ${isPackage ? "items-start" : "items-center"} gap-1 md:gap-3 ${
@@ -240,7 +242,7 @@ export default function CartItemCard({
         <div className="flex-1">
           {item.item_type !== "package" ? (
             <div className="flex items-center gap-4 h-full relative">
-              <div className="w-20 h-22 rounded overflow-hidden">
+              <div className={`${getCartCoverRatio(item)} w-40 rounded`}>
                 <img
                   src={item.cover_image || item.book_cover || "/home-page/cover.png"}
                   alt={item.product_name || item.sku_code}

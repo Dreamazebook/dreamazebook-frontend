@@ -28,6 +28,7 @@ export default function ShoppingCartPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmContent, setConfirmContent] = useState<React.ReactNode>(null);
   const [confirmNextUrl, setConfirmNextUrl] = useState<string | null>(null);
+  const [flashItemId, setFlashItemId] = useState<number | null>(null);
   
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -136,6 +137,28 @@ export default function ShoppingCartPage() {
     checkKickstarterStatus();
   }, []);
 
+  // Find first item needing "Create book" and scroll to it when checkout fails
+  useEffect(() => {
+    if (error && error.includes('Create')) {
+      const needsCreateItem = cartItems.find((item: any) => {
+        const effectiveMode = item.mode ?? (item.preview_id ? 'edit' : 'create');
+        return effectiveMode === 'create' && selectedItems.includes(item.id);
+      });
+      
+      if (needsCreateItem) {
+        setFlashItemId(needsCreateItem.id);
+        setTimeout(() => {
+          const element = document.getElementById(`cart-item-${needsCreateItem.id}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
+        // Remove flash after animation
+        setTimeout(() => setFlashItemId(null), 1600);
+      }
+    }
+  }, [error, cartItems, selectedItems]);
+
   const handleToggleSelectItem = (id: number) => {
     setSelectedItems(prev => {
       if (prev.includes(id)) {
@@ -211,7 +234,7 @@ export default function ShoppingCartPage() {
     <div className="min-h-screen bg-[#F8F8F8] pb-40 lg:pb-0">
       <div className="w-full">
         {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded text-center">
             {error}
           </div>
         )}
@@ -235,6 +258,7 @@ export default function ShoppingCartPage() {
                   onQuantityChange={handleQuantityChange}
                   onRemoveItem={handleRemoveItem}
                   onToggleSelect={handleToggleSelectItem}
+                  flashItemId={flashItemId}
                   onClickEditBook={async (ci) => {
                     try {
                       // Use existing cart items state instead of fetching entire cart

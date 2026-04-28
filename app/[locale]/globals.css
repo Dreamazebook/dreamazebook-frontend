@@ -85,3 +85,17 @@ body {
     height: 800px;
   }
 }
+
+/* 购物车 Checkout 失败时需要创建书籍的卡片闪烁效果 */
+@keyframes flash-opacity {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-flash {
+  animation: flash-opacity 0.4s ease-in-out 2;
+}

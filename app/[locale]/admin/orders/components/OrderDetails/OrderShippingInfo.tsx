@@ -1,6 +1,6 @@
 'use client';
 
-import { OrderDetail, ShippingOption } from '@/types/order';
+import { OrderDetail, ShippingOption, getShippingOptions } from '@/types/order';
 import DisplayPrice from '@/app/[locale]/(website)/components/component/DisplayPrice';
 
 interface OrderShippingInfoProps {
@@ -8,10 +8,8 @@ interface OrderShippingInfoProps {
 }
 
 export default function OrderShippingInfo({ order }: OrderShippingInfoProps) {
-  let shippingOption:ShippingOption|undefined = undefined;
-  if (order.shipping_options) {
-    shippingOption = order?.shipping_options.options.find((option) => option.code === order.shipping_method);
-  }
+  const shippingOptions = getShippingOptions(order.shipping_options);
+  const shippingOption = shippingOptions.find((option) => option.code === order.shipping_method);
   return (
     <div className="border-t border-gray-200 py-4 mb-6">
       <h4 className="text-md font-medium text-gray-900 mb-3">配送信息</h4>

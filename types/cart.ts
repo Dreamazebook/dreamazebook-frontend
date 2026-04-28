@@ -135,3 +135,16 @@ export const getFormatedGiftbox = (item:CartItem) => {
   if (!giftboxInfo) return 'A Festive Gift Box';
   return giftboxInfo.split('_').join(' ');
 }
+
+export const getCartCoverRatio = (item:CartItem) => {
+  const SPU_COVER_RATIO: Record<string, string> = {
+    PICBOOK_GOODNIGHT3: 'aspect-[3541/2551]',
+    PICBOOK_GOODNIGHT: 'aspect-[3541/2551]',
+    PICBOOK_SANTA: 'aspect-[3541/2551]',
+    PICBOOK_BRAVEY: 'aspect-[2398/2433]',
+    PICBOOK_BIRTHDAY: 'aspect-[2398/2433]',
+    PICBOOK_MELODY: 'aspect-[3541/2551]',
+    PICBOOK_MOM: 'aspect-[3541/2551]'
+  };
+  return SPU_COVER_RATIO[item.spu_code] || 'aspect-[3541/2551]';
+}
