@@ -199,7 +199,7 @@ export default function CartItemCard({
     <div
       className={`bg-white w-full min-w-0 transition-opacity duration-300 ${
         !isPackage ? "pl-3 opacity-100 rounded" : ""
-      } ${flash ? 'animate-flash' : ''}`}
+      } ${flash ? 'animate-flash m-[-3px]' : ''}`}
     >
       <div
         className={`flex w-full min-w-0 ${isPackage ? "items-start" : "items-center"} gap-1 md:gap-3 ${
@@ -411,8 +411,6 @@ export default function CartItemCard({
                         >
                           {tSafe("createBook", "Create book")}
                         </a>
-
-                        <span className="text-[#CF0F02] text-[14px]">Create your personalized book before ordering.</span>
                         </>
                       ))}
 

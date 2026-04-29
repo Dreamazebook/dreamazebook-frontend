@@ -137,14 +137,16 @@ export const getFormatedGiftbox = (item:CartItem) => {
 }
 
 export const getCartCoverRatio = (item:CartItem) => {
+  const RATIO_1 = 'aspect-[3541/2551]';
+  const RATIO_2 = 'aspect-[2398/2433]';
   const SPU_COVER_RATIO: Record<string, string> = {
-    PICBOOK_GOODNIGHT3: 'aspect-[3541/2551]',
-    PICBOOK_GOODNIGHT: 'aspect-[3541/2551]',
-    PICBOOK_SANTA: 'aspect-[3541/2551]',
-    PICBOOK_BRAVEY: 'aspect-[2398/2433]',
-    PICBOOK_BIRTHDAY: 'aspect-[2398/2433]',
-    PICBOOK_MELODY: 'aspect-[3541/2551]',
-    PICBOOK_MOM: 'aspect-[3541/2551]'
+    PICBOOK_GOODNIGHT3: RATIO_2,
+    PICBOOK_GOODNIGHT: RATIO_2,
+    PICBOOK_SANTA: RATIO_2,
+    PICBOOK_BRAVEY: RATIO_1,
+    PICBOOK_BIRTHDAY: RATIO_1,
+    PICBOOK_MELODY: RATIO_2,
+    PICBOOK_MOM: RATIO_2
   };
-  return SPU_COVER_RATIO[item.spu_code] || 'aspect-[3541/2551]';
+  return SPU_COVER_RATIO[item.spu_code] || RATIO_1;
 }
