@@ -7,7 +7,7 @@ import { ApiResponse } from '@/types/api';
 import { API_ORDER_SHIPPING_METHODS } from '@/constants/api';
 import DisplayPrice from '../../../components/component/DisplayPrice';
 import NextStepButton from './NextStepButton';
-import { OrderDetail, ShippingOption } from '@/types/order';
+import { OrderDetail, ShippingOption, getShippingOptions } from '@/types/order';
 
 interface DeliveryOptionsProps {
   orderDetail: OrderDetail;
@@ -24,7 +24,7 @@ const DeliveryOptions: React.FC<DeliveryOptionsProps> = ({
   return (
     <>
       <div className="space-y-4 mb-6">
-        {orderDetail?.shipping_options?.options.map(({code, cost, name, description, type, estimated_days})=>
+        {getShippingOptions(orderDetail.shipping_options).map(({code, cost, name, description, type, estimated_days})=>
         <div 
           key={type}
           className={`border rounded-lg p-4 cursor-pointer ${orderDetail.shipping_method === code ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}

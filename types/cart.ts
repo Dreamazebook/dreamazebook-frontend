@@ -98,8 +98,9 @@ export interface CartItem {
   };
   giftbox_info: GiftboxInfo;
   unit_price: number;
+  is_selected_for_checkout: boolean;
   total_price: number;
-  original_total_price?: number;
+  original_total_price: number;
   is_available: boolean;
   stock_quantity: number;
   added_at: string;
@@ -133,4 +134,19 @@ export const getFormatedGiftbox = (item:CartItem) => {
   const giftboxInfo = item?.customization_data?.attributes?.giftbox || item?.giftbox_info?.name;
   if (!giftboxInfo) return 'A Festive Gift Box';
   return giftboxInfo.split('_').join(' ');
+}
+
+export const getCartCoverRatio = (item:CartItem) => {
+  const RATIO_1 = 'aspect-[3541/2551]';
+  const RATIO_2 = 'aspect-[2398/2433]';
+  const SPU_COVER_RATIO: Record<string, string> = {
+    PICBOOK_GOODNIGHT3: RATIO_2,
+    PICBOOK_GOODNIGHT: RATIO_2,
+    PICBOOK_SANTA: RATIO_2,
+    PICBOOK_BRAVEY: RATIO_1,
+    PICBOOK_BIRTHDAY: RATIO_1,
+    PICBOOK_MELODY: RATIO_2,
+    PICBOOK_MOM: RATIO_2
+  };
+  return SPU_COVER_RATIO[item.spu_code] || RATIO_1;
 }

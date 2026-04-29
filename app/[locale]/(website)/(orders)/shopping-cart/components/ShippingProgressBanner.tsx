@@ -5,7 +5,7 @@ interface ShippingProgressBannerProps {
 }
 
 export default function ShippingProgressBanner({ itemsCount }: ShippingProgressBannerProps) {
-  if (itemsCount > 2) {
+  if (itemsCount ===0 || itemsCount > 2) {
     return null;
   }
   let message = 'Add 1 more book to get free shipping';

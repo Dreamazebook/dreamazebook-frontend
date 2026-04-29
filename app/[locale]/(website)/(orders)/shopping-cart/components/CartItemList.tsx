@@ -18,6 +18,7 @@ interface CartItemListProps {
   onRemoveItem: (id: number) => void;
   onToggleSelect: (id: number) => void;
   onClickEditBook?: (item: CartItem) => void;
+  flashItemId?: number | null;
 }
 
 const CartItemList: React.FC<CartItemListProps> = ({
@@ -28,11 +29,24 @@ const CartItemList: React.FC<CartItemListProps> = ({
   onRemoveItem,
   onToggleSelect,
   onClickEditBook,
+  flashItemId,
 }) => {
   return (
     <div className="flex flex-col gap-4">
       {items.map(item => (
-        <CartItemCard itemsCount={itemsCount} key={item.id} item={item} showEditBook={true} selectedItems={selectedItems} onQuantityChange={onQuantityChange} onRemoveItem={onRemoveItem} onToggleSelect={onToggleSelect} handleClickEditMessage={onClickEditBook as any} />
+        <div id={`cart-item-${item.id}`} key={item.id}>
+          <CartItemCard 
+            itemsCount={itemsCount} 
+            item={item} 
+            showEditBook={true} 
+            selectedItems={selectedItems} 
+            onQuantityChange={onQuantityChange} 
+            onRemoveItem={onRemoveItem} 
+            onToggleSelect={onToggleSelect} 
+            handleClickEditMessage={onClickEditBook as any}
+            flash={flashItemId === item.id}
+          />
+        </div>
       ))}
     </div>
   );

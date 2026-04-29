@@ -25,6 +25,7 @@ import toast from 'react-hot-toast';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
 import { BaseBook, DetailedBook } from '@/types/book';
 import { API_CART_LIST, API_CART_UPDATE } from '@/constants/api';
+import DisplayPrice from '../components/component/DisplayPrice';
 
 // 封面文字配置缓存：避免在同一会话内反复请求 R2
 const coverTextsCache: Record<string, Array<{
@@ -4666,9 +4667,8 @@ export default function PreviewPageWithTopNav() {
                           });
                         }
                         
-                        return formatOptionPrice(
-                          totalPrice,
-                          option.currency_code || (bookInfo as any)?.currencycode || (bookInfo as any)?.variant?.currencycode,
+                        return (
+                          <DisplayPrice value={totalPrice} discount={(totalPrice*0.9).toFixed(2)} />
                         );
                       })()}
                     </p>

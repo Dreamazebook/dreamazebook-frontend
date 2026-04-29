@@ -19,6 +19,13 @@ export function formatDate(date: string | null | undefined): string {
   return `${month} ${day}, ${year}`;
 }
 
+export type ShippingOptions = ShippingOption[] | { options: ShippingOption[] };
+
+export const getShippingOptions = (shipping_options?: ShippingOptions): ShippingOption[] => {
+  if (!shipping_options) return [];
+  return Array.isArray(shipping_options) ? shipping_options : shipping_options.options || [];
+};
+
 export interface OrderDetail {
   id: number;
   user_id: number;
@@ -70,9 +77,7 @@ export interface OrderDetail {
   deleted_at: string | null;
   delivered_at?: string;
   items: CartItem[];
-  shipping_options: {
-    options: ShippingOption[];
-  };
+  shipping_options: ShippingOptions;
   logistics_data?: LogisticsData;
   pdf_urls?: string[];
   permissions: {

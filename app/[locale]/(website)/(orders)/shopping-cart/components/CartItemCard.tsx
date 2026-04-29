@@ -1,14 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { CartItem as CartItemType, getFormatedCover, getFormatedGiftbox } from "@/types/cart";
+import { CartItem as CartItemType, getCartCoverRatio, getFormatedCover, getFormatedGiftbox } from "@/types/cart";
 import DisplayPrice from "../../../components/component/DisplayPrice";
-import { Link, useRouter } from "@/i18n/routing";
+import { useRouter } from "@/i18n/routing";
 import { useEffect, useState } from "react";
 import KickstarterInlineCard from "./KickstarterInlineCard";
 import { getR2BookCover } from "@/utils/bookCovers";
-import { formatCartBookTitle, getOurBookDisplayName } from "@/utils/bookNames";
+import { getOurBookDisplayName } from "@/utils/bookNames";
 import { WEBSITE_CDN_URL } from "@/constants/cdn";
 import { getBirthdayCoverSeasonFromCharacterLike } from "@/utils/birthdayPersonalizeHelpers";
 
@@ -22,6 +21,7 @@ interface CartItemProps {
   onToggleSelect?: (id: number) => void;
   handleClickEditMessage?: (orderItem: any) => Promise<void> | void;
   isSubItem?: boolean;
+  flash?: boolean;
 }
 
 export default function CartItemCard({
@@ -34,6 +34,7 @@ export default function CartItemCard({
   onRemoveItem,
   onToggleSelect,
   handleClickEditMessage,
+  flash = false,
 }: CartItemProps) {
   const t = useTranslations("ShoppingCart");
   const tSafe = (key: string, fallback: string) =>
@@ -142,6 +143,9 @@ export default function CartItemCard({
     },
   ] as const;
 
+  const showDiscountLabel = item.is_selected_for_checkout && itemsCount != 0 && itemsCount && itemsCount >= 3;
+  const pricetoShow = item.is_selected_for_checkout ? item.total_price : item.original_total_price;
+
   useEffect(() => {
     checkAndShowCountdown(item.added_at);
     return () => {
@@ -194,9 +198,9 @@ export default function CartItemCard({
 
   return (
     <div
-      className={`bg-white w-full min-w-0 ${
+      className={`bg-white w-full min-w-0 transition-opacity duration-300 ${
         !isPackage ? "pl-3 opacity-100 rounded" : ""
-      }`}
+      } ${flash ? 'animate-flash m-[-3px]' : ''}`}
     >
       <div
         className={`flex w-full min-w-0 ${isPackage ? "items-start" : "items-center"} gap-1 md:gap-3 ${
@@ -239,11 +243,11 @@ export default function CartItemCard({
         <div className="flex-1">
           {item.item_type !== "package" ? (
             <div className="flex items-center gap-4 h-full relative">
-              <div className="w-20 h-22 rounded overflow-hidden">
+              <div className={`${getCartCoverRatio(item)} w-40 rounded`}>
                 <img
                   src={item.cover_image || item.book_cover || "/home-page/cover.png"}
                   alt={item.product_name || item.sku_code}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-right"
                 />
               </div>
 
@@ -268,19 +272,19 @@ export default function CartItemCard({
                       {/* 桌面端：价格在右侧（与当前 UI 一致） */}
                       <div className="hidden md:block">
                         <div className="flex items-baseline gap-2">
-                          {(itemsCount != 0 && itemsCount && itemsCount >= 3) && 
+                          {showDiscountLabel && 
                           <span className="bg-[#FFE5E5] py-1 rounded px-2">save 20%</span>
                           }
                           <DisplayPrice
                             style="text-[#222222] font-bold"
-                            value={item.total_price}
+                            value={pricetoShow}
                           />
-                          {item.original_total_price != null && (
+                          {/* {item.original_total_price != null && (
                             <DisplayPrice
                               style="text-[#999999] md:text-[14px] md:leading-[20px]  md:tracking-[0.25px] line-through"
                               value={item.original_total_price}
                             />
-                          )}
+                          )} */}
                         </div>
                       </div>
                       {onRemoveItem && (
@@ -306,15 +310,15 @@ export default function CartItemCard({
                     <div className="flex items-baseline gap-1 whitespace-nowrap">
                       <DisplayPrice
                         style="text-[#222222] font-bold"
-                        value={item.total_price}
+                        value={pricetoShow}
                       />
-                      {item.original_total_price && (
+                      {/* {item.original_total_price && (
                         <DisplayPrice
                           style="text-[#999999] line-through text-[14px]"
                           value={item.original_total_price}
                         />
-                      )}
-                      {(itemsCount != 0 && itemsCount && itemsCount >= 3) && 
+                      )} */}
+                      {showDiscountLabel && 
                         <span className="bg-[#FFE5E5] py-1 rounded px-2">save 20%</span>
                       }
                     </div>
@@ -375,6 +379,7 @@ export default function CartItemCard({
                           {isEditLoading ? "Loading..." : t("editBook")}
                         </a>
                       ) : (
+                        <>
                         <a
                           className={`text-sm text-blue-600 hover:underline cursor-pointer ${
                             isPackage ? "mt-2" : ""
@@ -407,6 +412,7 @@ export default function CartItemCard({
                         >
                           {tSafe("createBook", "Create book")}
                         </a>
+                        </>
                       ))}
 
                     {/* 添加附加产品链接：进入编辑页的附加项标签 */}
@@ -448,7 +454,7 @@ export default function CartItemCard({
                   </div>
                 </div>
 
-                {onQuantityChange && (
+                {/* {onQuantityChange && (
                   <div className="inline-flex items-center border rounded-md">
                     <button
                       onClick={() => onQuantityChange(item.id, -1)}
@@ -473,7 +479,7 @@ export default function CartItemCard({
                       +
                     </button>
                   </div>
-                )}
+                )} */}
               </div>
             </div>
           ) : (

@@ -153,7 +153,7 @@ const OrdersTable: FC<OrdersTableProps> = ({
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {isWithin48Hours(order.created_at) ? (
+                  {order.payment_status !== 'pending' && isWithin48Hours(order.created_at) ? (
                     <div>
                       <div className="text-xs text-gray-400 mb-1">{formatDate(order.created_at)}</div>
                       <CountdownTimer createdAt={order.created_at} />
@@ -161,9 +161,11 @@ const OrdersTable: FC<OrdersTableProps> = ({
                   ) : (
                     <div>
                       <div>{formatDate(order.created_at)}</div>
-                      <div className="text-xs text-red-700 bg-red-100 px-2 py-1 rounded mt-1 inline-block">
-                        处理超时
-                      </div>
+                      {order.payment_status === 'pending' && (
+                        <div className="text-xs text-gray-400 mt-1">
+                          待支付
+                        </div>
+                      )}
                     </div>
                   )}
                 </td>

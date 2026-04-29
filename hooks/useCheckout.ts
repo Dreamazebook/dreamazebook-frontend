@@ -51,7 +51,7 @@ export const useCheckout = ({ selectedItems }: UseCheckoutProps) => {
       if (err?.status == 401) {
         return openLoginModal()
       }
-      setError(t('checkoutFailed'));
+      setError('Almost there — tap “Create book” to continue ✨');
     } finally {
       // Clear the appropriate loading state
       if (paymentMethod === 'paypal') {

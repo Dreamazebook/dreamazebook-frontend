@@ -1,6 +1,6 @@
 interface DisplayPriceProps {
   value: number | string;
-  discount?: number | undefined;
+  discount?: number | string | undefined;
   style?: string;
 }
 

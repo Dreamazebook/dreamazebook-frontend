@@ -78,7 +78,8 @@
     "moreDetails": "View Details",
     "continueToPay": "Complete Payment",
     "editShippingAddress": "Change Shipping Address",
-    "total": "Total"
+    "total": "Total",
+    "completePayment": "Complete Payment"
   },
   "orderSummaryDelivery": {
     "shipTo": "Ship to",

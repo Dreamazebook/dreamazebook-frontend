@@ -18,6 +18,7 @@ import CartItemList from './components/CartItemList';
 import ConfirmModal from '../../components/component/ConfirmModal';
 import OrderSummary from './components/OrderSummary';
 import ShippingProgressBanner from './components/ShippingProgressBanner';
+import OAuthCallbackContent from './components/OAuthCallbackContent';
 import useUserStore from '@/stores/userStore';
 
 export default function ShoppingCartPage() {
@@ -27,10 +28,14 @@ export default function ShoppingCartPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmContent, setConfirmContent] = useState<React.ReactNode>(null);
   const [confirmNextUrl, setConfirmNextUrl] = useState<string | null>(null);
+  const [flashItemId, setFlashItemId] = useState<number | null>(null);
   
   const router = useRouter();
   const searchParams = useSearchParams();
   const { checkKickstarterStatus } = useUserStore();
+
+  // Check if this is an OAuth callback
+  const isOAuthCallback = searchParams.get('code') !== null;
 
   // 记录被选中的书本 ID，只有被选中的书才会结账
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
@@ -44,7 +49,7 @@ export default function ShoppingCartPage() {
     discountAmount,
     total,
     itemsCount,
-  } = useOrderSummary({ selectedItems });
+  } = useOrderSummary({ selectedItems, onCartItemsUpdate: setCartItems });
 
   const {
     checkoutLoading,
@@ -132,6 +137,28 @@ export default function ShoppingCartPage() {
     checkKickstarterStatus();
   }, []);
 
+  // Find first item needing "Create book" and scroll to it when checkout fails
+  useEffect(() => {
+    if (error && error.includes('Create')) {
+      const needsCreateItem = cartItems.find((item: any) => {
+        const effectiveMode = item.mode ?? (item.preview_id ? 'edit' : 'create');
+        return effectiveMode === 'create' && selectedItems.includes(item.id);
+      });
+      
+      if (needsCreateItem) {
+        setFlashItemId(needsCreateItem.id);
+        setTimeout(() => {
+          const element = document.getElementById(`cart-item-${needsCreateItem.id}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
+        // Remove flash after animation
+        setTimeout(() => setFlashItemId(null), 1600);
+      }
+    }
+  }, [error, cartItems, selectedItems]);
+
   const handleToggleSelectItem = (id: number) => {
     setSelectedItems(prev => {
       if (prev.includes(id)) {
@@ -142,6 +169,12 @@ export default function ShoppingCartPage() {
         return [...prev, id];
       }
     });
+    // Toggle is_selected_for_checkout on the cart item
+    setCartItems(prev => prev.map(item =>
+      item.id === id
+        ? { ...item, is_selected_for_checkout: !item.is_selected_for_checkout }
+        : item
+    ));
   };
 
   // 移除主商品及其附加项
@@ -192,50 +225,16 @@ export default function ShoppingCartPage() {
     }
   };
 
-  
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-6">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col lg:flex-row gap-6">
-            <div className="lg:w-2/3">
-              <div className="bg-white rounded-xl p-6 shadow-sm space-y-4">
-                {[...Array(3)].map((_, index) => (
-                  <div key={index} className="flex gap-4 p-4 border-b border-gray-200">
-                    <div className="w-24 h-24 bg-gray-200 rounded animate-pulse"></div>
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/4 animate-pulse"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="lg:w-1/3">
-              <div className="bg-white rounded p-6 shadow-sm space-y-4">
-                <div className="h-6 bg-gray-200 rounded w-1/2 animate-pulse"></div>
-                <div className="space-y-3">
-                  <div className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
-                </div>
-                <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+  if (loading || isOAuthCallback) {
+    return <OAuthCallbackContent onSuccess={fetchCartList} />;
   }
 
   return (
     <div className="min-h-screen bg-[#F8F8F8] pb-40 lg:pb-0">
       <div className="w-full">
         {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded text-center">
             {error}
           </div>
         )}
@@ -259,6 +258,7 @@ export default function ShoppingCartPage() {
                   onQuantityChange={handleQuantityChange}
                   onRemoveItem={handleRemoveItem}
                   onToggleSelect={handleToggleSelectItem}
+                  flashItemId={flashItemId}
                   onClickEditBook={async (ci) => {
                     try {
                       // Use existing cart items state instead of fetching entire cart
@@ -288,7 +288,7 @@ export default function ShoppingCartPage() {
                   }}
                 />
 
-                <ShippingProgressBanner itemsCount={itemsCount} />
+                <ShippingProgressBanner itemsCount={selectedItems.length} />
               </div>
             )}
           </div>
