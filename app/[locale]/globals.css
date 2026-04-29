@@ -92,10 +92,11 @@ body {
     opacity: 1;
   }
   50% {
-    opacity: 0.7;
+    opacity: 0.3;
   }
 }
 
 .animate-flash {
-  animation: flash-opacity 0.4s ease-in-out 2;
+  animation: flash-opacity 1.5s ease-in-out infinite;
+  border-radius: 12px;
 }

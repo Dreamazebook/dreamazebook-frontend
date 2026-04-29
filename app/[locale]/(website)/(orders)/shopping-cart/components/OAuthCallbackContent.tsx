@@ -28,7 +28,7 @@ export default function OAuthCallbackContent({
         }
 
         if (!code) {
-          console.error('No authorization code');
+          // console.error('No authorization code');
           return;
         }
 
