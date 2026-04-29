@@ -73,6 +73,8 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
         family: 'Caslon Antique',
         urls: { normal: '/fonts/CaslonAntique-Regular.ttf', bold: '/fonts/CaslonAntique-Bold.ttf' },
       },
+      // PICBOOK_MELODY 等封面 page_properties 常用
+      marcellus: { family: 'Marcellus', urls: { normal: '/fonts/Marcellus-Regular.ttf' } },
       notosanssc: { family: 'Noto Sans SC', urls: { normal: '/fonts/NotoSansSC-Regular.ttf' } },
       alittlemonster: { family: 'ALittleMonster', urls: { normal: '/fonts/ALittleMonster.ttf' } },
     };
@@ -82,6 +84,7 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
       if (!key) return null;
       if (key.includes('batamy')) return fontRegistry.batamy;
       if (key.includes('caslonantique') || key === 'caslon') return fontRegistry.caslonantique;
+      if (key.includes('marcellus')) return fontRegistry.marcellus;
       if (key.includes('notosanssc') || key.includes('notosans')) return fontRegistry.notosanssc;
       if (key.includes('alittlemonster')) return fontRegistry.alittlemonster;
       return null;

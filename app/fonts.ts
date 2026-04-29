@@ -39,3 +39,9 @@ export const caslonAntique = localFont({
   display: 'swap',
   variable: '--font-caslon-antique',
 });
+
+export const marcellus = localFont({
+  src: '../public/fonts/Marcellus-Regular.ttf',
+  display: 'swap',
+  variable: '--font-marcellus',
+});
