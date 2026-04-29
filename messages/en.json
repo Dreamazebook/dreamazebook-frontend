@@ -233,6 +233,9 @@
     "noOrderIdError": "No order ID provided. Please check your order details."
   },
   "Preview": {
+    "storyPreparing": "Preparing your story",
+    "storyAhead": "{count, plural, one {# book ahead of you} other {# books ahead of you}}",
+    "storyYourTurn": "It's your turn! 🎉",
     "queueTip": "Book preview is currently in the queue for generation. You are currently at position {pos}/{tot}. You can proceed to select Others tab.",
     "queueTipNoPos": "Book preview is currently in the queue for generation. You can proceed to select Others tab.",
     "selectOptions": "You can proceed to select {options}",

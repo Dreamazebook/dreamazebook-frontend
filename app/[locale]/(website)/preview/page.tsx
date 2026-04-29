@@ -1029,7 +1029,8 @@ export default function PreviewPageWithTopNav() {
   // 扉页（标题页）展示完成后显示提示文案
   const [isTitlePageLoaded, setIsTitlePageLoaded] = useState(false);
   const titlePageIdRef = useRef<number | null>(null);
-  // 顶部 “Your story is coming to life…”：
+  // 顶部队列提示（原 “Your story is coming to life…”）：
+  // - 依据 batch.queue.preview_pending 展示「Preparing / N books ahead / It’s your turn」
   // - 在 p3-4 还没出现在 preview_data 之前保持显示
   // - 只有当 p3-4 出现且该页图片 onLoad 后才隐藏
   const [isStoryComingTargetPageLoaded, setIsStoryComingTargetPageLoaded] = useState(false);
@@ -1545,11 +1546,7 @@ export default function PreviewPageWithTopNav() {
   // 目标页：仅以 p3-4 为准（不再回退到其它页），避免 p3-4 尚未出现时提示提前消失
   const pageIdForStoryComingHide = p34PageId;
 
-  // 顶部 “Your story is coming to life…”：
-  // - p3-4 未出现：继续显示
-  // - p3-4 已出现但未加载完成：继续显示
-  // - p3-4 已加载完成：隐藏
-  // - 批次 completed/failed：隐藏（避免 p3-4 永远不出现导致卡住）
+  // 顶部队列文案：在 p3-4 未就绪前显示；completed/failed 时隐藏。
   const showStoryComingLine = useMemo(
     () =>
       !isCompleted &&
@@ -1558,17 +1555,53 @@ export default function PreviewPageWithTopNav() {
       (isProcessing || isProcessingLike),
     [isCompleted, isFailed, pageIdForStoryComingHide, isStoryComingTargetPageLoaded, isProcessing, isProcessingLike],
   );
-  const [comingLifeDotPhase, setComingLifeDotPhase] = useState(0);
+  /** 服务端 batch.queue.preview_pending（排在当前批次前的预览任务数） */
+  const previewPendingFromBatch = useMemo(() => {
+    const raw = (previewData as any)?.queue_info?.preview_pending;
+    if (typeof raw !== 'number' || Number.isNaN(raw)) return null;
+    return Math.max(0, Math.floor(Number(raw)));
+  }, [(previewData as any)?.queue_info?.preview_pending]);
+  /** 用于 UI 展示的「前方还有几本」，在服务端的值下降时阶梯递减，给用户推进感 */
+  const [displayedPreviewPending, setDisplayedPreviewPending] = useState<number | null>(null);
+  useEffect(() => {
+    const n = previewPendingFromBatch;
+    if (n === null) {
+      setDisplayedPreviewPending(null);
+      return;
+    }
+    setDisplayedPreviewPending((curr) => {
+      if (curr === null) return n;
+      if (n > curr) return n;
+      return curr;
+    });
+  }, [previewPendingFromBatch]);
+  useEffect(() => {
+    if (displayedPreviewPending === null || previewPendingFromBatch === null) return;
+    if (displayedPreviewPending <= previewPendingFromBatch) return;
+    const t = window.setTimeout(() => {
+      setDisplayedPreviewPending((d) => (typeof d === 'number' ? d - 1 : d));
+    }, 380);
+    return () => clearTimeout(t);
+  }, [displayedPreviewPending, previewPendingFromBatch]);
+  /** 点为 1、2、3 个循环浮现 */
+  const [comingLifeDotPhase, setComingLifeDotPhase] = useState(1);
   useEffect(() => {
     if (!showStoryComingLine) {
-      setComingLifeDotPhase(0);
+      setComingLifeDotPhase(1);
       return;
     }
     const t = window.setInterval(() => {
-      setComingLifeDotPhase((d) => (d + 1) % 4);
-    }, 400);
+      setComingLifeDotPhase((d) => (d >= 3 ? 1 : d + 1));
+    }, 450);
     return () => clearInterval(t);
   }, [showStoryComingLine]);
+
+  const isStoryQueueYourTurnBanner =
+    showStoryComingLine &&
+    previewPendingFromBatch !== null &&
+    displayedPreviewPending !== null &&
+    previewPendingFromBatch === 0 &&
+    displayedPreviewPending === 0;
 
   useEffect(() => {
     if (titlePageIdRef.current !== titlePageId) {
@@ -1977,6 +2010,23 @@ export default function PreviewPageWithTopNav() {
       // 若已经完成，忽略后续队列广播，避免 UI 回退
       if (faceSwapStatusRef.current === 'completed') {
         return;
+      }
+      const qpMerged =
+        e?.preview_pending ??
+        e?.data?.preview_pending ??
+        e?.queue?.preview_pending ??
+        e?.data?.queue?.preview_pending;
+      if (qpMerged !== undefined && qpMerged !== null && qpMerged !== '') {
+        const qp = Math.max(0, parseInt(String(qpMerged), 10));
+        if (!Number.isNaN(qp)) {
+          setPreviewData((prev) => {
+            if (!prev) return prev as PreviewResponse | null;
+            return {
+              ...prev,
+              queue_info: { ...(((prev as any).queue_info) || {}), preview_pending: qp },
+            } as PreviewResponse;
+          });
+        }
       }
       // 文档标准字段：queue_position, total_queue_length
       const position = e?.queue_position ?? e?.position ?? e?.data?.queue_position ?? e?.data?.position;
@@ -4023,16 +4073,27 @@ export default function PreviewPageWithTopNav() {
               </div>
               {showStoryComingLine && (
                 <div
-                  className="mb-8 flex min-h-[1.5rem] flex-col items-center justify-center"
+                  className="mb-8 flex min-h-[1.5rem] flex-col items-center justify-center gap-2"
                   role="status"
                   aria-live="polite"
                 >
-                  <p className="text-center text-base font-medium text-[#C9CCD3]">
-                    <span>Your story is coming to life</span>
-                    <span className="inline-block w-[3ch] text-left font-mono">
-                      {'.'.repeat(comingLifeDotPhase)}
-                    </span>
-                  </p>
+                  {isStoryQueueYourTurnBanner ? (
+                    <p className="text-center text-lg font-semibold text-[#8E92A7]">{t('storyYourTurn')}</p>
+                  ) : (
+                    <>
+                      <p className="text-center text-base font-medium text-[#C9CCD3]">
+                        <span>{t('storyPreparing')}</span>
+                        <span className="inline-block w-[3ch] text-left font-mono">
+                          {'.'.repeat(comingLifeDotPhase)}
+                        </span>
+                      </p>
+                      {previewPendingFromBatch !== null &&
+                        displayedPreviewPending !== null &&
+                        displayedPreviewPending > 0 && (
+                          <p className="text-center text-sm text-[#AAB0BF]">{t('storyAhead', { count: displayedPreviewPending })}</p>
+                        )}
+                    </>
+                  )}
                 </div>
               )}
             </div>

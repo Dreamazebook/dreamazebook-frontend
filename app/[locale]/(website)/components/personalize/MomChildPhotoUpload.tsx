@@ -20,6 +20,7 @@ export interface MomChildPhotoUploadProps {
 }
 
 const SLOT_LABELS: [string, string] = ['For Mom', 'For Child'];
+const SLOT_PLACEHOLDER_SRC: [string, string] = ['/personalize/mom.png', '/personalize/face.png'];
 
 const MomChildPhotoUpload: React.FC<MomChildPhotoUploadProps> = ({
   slots,
@@ -130,7 +131,7 @@ const MomChildPhotoUpload: React.FC<MomChildPhotoUploadProps> = ({
               >
                 <div className="mb-2 flex-shrink-0 pointer-events-none">
                   <Image
-                    src="/personalize/face.png"
+                    src={SLOT_PLACEHOLDER_SRC[slotIndex]}
                     alt=""
                     width={72}
                     height={72}
