@@ -6,10 +6,20 @@ export interface CoverTextProperty {
   type?: string;
   font?: string;
   fontWeight?: string;
+  font_weight?: string;
   fontSize?: number;
+  font_size?: number;
   color?: string;
+  theme_colors?: Record<string, { color?: string }>;
   position?: { x: number; y: number };
   alignment?: string;
+  shadow_blur?: number;
+  shadow_color?: string;
+  shadow_opacity?: number;
+  shadow_offset_x?: number;
+  shadow_offset_y?: number;
+  stroke_color?: string;
+  stroke_width?: number;
 }
 
 interface CoverNameCanvasProps {
@@ -56,6 +66,43 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
       // 兼容 JSON 中可能出现的 'Bold' / '700'
       if (w === 'bold' || w === '700' || w === '800' || w === '900') return 'bold';
       return 'normal';
+    };
+
+    const getTextFontSize = (t: CoverTextProperty) =>
+      typeof t.fontSize === 'number'
+        ? t.fontSize
+        : typeof t.font_size === 'number'
+          ? t.font_size
+          : 70;
+
+    const getTextFontWeight = (t: CoverTextProperty) => t.fontWeight || t.font_weight;
+
+    const getCoverThemeKey = () => {
+      const raw = src.toLowerCase();
+      if (raw.includes('season=autumn') || raw.includes('/autumn.webp')) return 'autumn';
+      if (raw.includes('season=winter') || raw.includes('/winter.webp')) return 'winter';
+      if (raw.includes('season=spring') || raw.includes('/spring.webp')) return 'spring';
+      if (raw.includes('season=summer') || raw.includes('/summer.webp')) return 'summer';
+      return '';
+    };
+
+    const resolveTextColor = (t: CoverTextProperty) => {
+      if (t.color) return t.color;
+      const themeKey = getCoverThemeKey();
+      const themeColors = t.theme_colors || {};
+      return (
+        themeColors[themeKey]?.color ||
+        ((themeKey === 'spring' || themeKey === 'summer') ? themeColors.green?.color : undefined) ||
+        '#0c1f3e'
+      );
+    };
+
+    const getDynamicTextValue = (type: string | undefined, rawName: string) => {
+      const trimmed = rawName.trim();
+      if (type === 'dynamic_possessive') {
+        return trimmed.endsWith('s') ? `${trimmed}'` : `${trimmed}'s`;
+      }
+      return trimmed;
     };
 
     type KnownFont = {
@@ -195,31 +242,32 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
         const fontScale = nameCharCount > 10 ? 0.92 : 1;
 
         // 确保涉及到的字体在绘制前已加载（否则 Canvas 会先用 fallback 字体渲染）
-        const dynamicTexts = texts.filter((t) => t && t.type === 'dynamic');
+        const dynamicTexts = texts.filter((t) => t && (t.type === 'dynamic' || t.type === 'dynamic_possessive'));
         await Promise.all(
           dynamicTexts.map((t) => {
-            const rawSize = typeof t.fontSize === 'number' ? t.fontSize : 70;
+            const rawSize = getTextFontSize(t);
             const fontSizePx = rawSize * (300 / 72) * fontScale;
-            const fontWeight = normalizeFontWeight(t.fontWeight);
+            const fontWeight = normalizeFontWeight(getTextFontWeight(t));
             return ensureFontReady(t.font, fontWeight, fontSizePx);
           }),
         );
         if (cancelled) return;
 
-        // 只处理 type === 'dynamic' 的配置
+        // 处理动态名字文本
         texts.forEach((t) => {
-          if (!t || t.type !== 'dynamic') return;
+          if (!t || (t.type !== 'dynamic' && t.type !== 'dynamic_possessive')) return;
           const pos = t.position || { x: 0, y: 0 };
           const x = pos.x || 0;
           const y = pos.y || 0;
+          const textValue = getDynamicTextValue(t.type, name);
 
-          ctx.fillStyle = t.color || '#0c1f3e';
+          ctx.fillStyle = resolveTextColor(t);
           // page_properties 中的 fontSize 按 300dpi 下的 pt 存储，这里换算为像素：
           // px = pt * 300 / 72
-          const rawSize = typeof t.fontSize === 'number' ? t.fontSize : 70;
+          const rawSize = getTextFontSize(t);
           const fontSizePx = rawSize * (300 / 72) * fontScale;
           const fontFamily = resolveFontFamily(t.font);
-          const fontWeight = normalizeFontWeight(t.fontWeight);
+          const fontWeight = normalizeFontWeight(getTextFontWeight(t));
           ctx.font = `${fontWeight} ${fontSizePx}px ${fontFamily}`;
 
           const alignment = (t.alignment || 'left').toLowerCase();
@@ -232,7 +280,33 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
           }
           ctx.textBaseline = 'top';
 
-          ctx.fillText(name, x, y);
+          const shadowBlur = Number(t.shadow_blur || 0);
+          if (shadowBlur > 0) {
+            ctx.shadowBlur = shadowBlur;
+            ctx.shadowColor = t.shadow_color || 'rgba(0,0,0,0.25)';
+            ctx.shadowOffsetX = Number(t.shadow_offset_x || 0);
+            ctx.shadowOffsetY = Number(t.shadow_offset_y || 0);
+            if (t.shadow_opacity != null && t.shadow_color) {
+              const alpha = Math.max(0, Math.min(1, Number(t.shadow_opacity)));
+              ctx.globalAlpha = alpha;
+              ctx.fillText(textValue, x, y);
+              ctx.globalAlpha = 1;
+              ctx.shadowBlur = 0;
+              ctx.shadowOffsetX = 0;
+              ctx.shadowOffsetY = 0;
+            }
+          }
+
+          const strokeWidth = Number(t.stroke_width || 0);
+          if (strokeWidth > 0 && t.stroke_color) {
+            ctx.lineWidth = strokeWidth;
+            ctx.strokeStyle = t.stroke_color;
+            ctx.strokeText(textValue, x, y);
+          }
+          ctx.fillText(textValue, x, y);
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
         });
 
         // 通知外部：当前封面已完成合成，返回 DataURL 以便缓存（避免重复绘制）

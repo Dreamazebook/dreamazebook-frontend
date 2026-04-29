@@ -20,6 +20,7 @@ import useUserStore from '@/stores/userStore';
 import usePreviewStore from '@/stores/previewStore';
 import { mapAgeStageUiToBackend } from '@/utils/mapAgeStageToBackend';
 import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
+import { getBirthdayCoverSeasonFromCharacterLike } from '@/utils/birthdayPersonalizeHelpers';
 import toast from 'react-hot-toast';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
 import { BaseBook, DetailedBook } from '@/types/book';
@@ -35,6 +36,20 @@ const coverTextsCache: Record<string, Array<{
   position?: { x: number; y: number };
   alignment?: string;
 }> | null> = {};
+
+const normalizeCoverTexts = (json: any): Array<any> => {
+  const raw = Array.isArray(json?.text)
+    ? json.text
+    : Array.isArray(json?.elements)
+      ? json.elements
+      : [];
+
+  return raw.map((t: any) => ({
+    ...t,
+    fontSize: typeof t?.fontSize === 'number' ? t.fontSize : t?.font_size,
+    fontWeight: t?.fontWeight ?? t?.font_weight,
+  }));
+};
 
 // 叠字后封面的 DataURL 缓存：避免每次进入 Tab 都重新用 Canvas 合成
 const coverComposedImageCache: Record<string, string> = {};
@@ -249,7 +264,7 @@ function CoverOptionImageWithName({
           return;
         }
         const json = await res.json();
-        const arr: Array<any> = Array.isArray(json?.text) ? json.text : [];
+        const arr = normalizeCoverTexts(json);
         if (!cancelled) {
           const next = arr.length ? arr : null;
           coverTextsCache[cacheKey] = next;
@@ -275,7 +290,7 @@ function CoverOptionImageWithName({
   const upperBookId = (bookId || '').toUpperCase();
   const rawCoverKey = option.option_key || String(option.id);
   const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(option.id);
-  const composedKey = `${upperBookId}_${coverId}_${trimmedName}`;
+  const composedKey = `${upperBookId}_${coverId}_${trimmedName}_${baseSrc}`;
   const handleCoverRendered = useCallback((dataUrl: string) => {
     coverComposedImageCache[composedKey] = dataUrl;
     setComposedUrl(dataUrl);
@@ -722,6 +737,8 @@ export default function PreviewPageWithTopNav() {
     setGiverImageUrl,
     setEditField,
   } = useStore();
+
+  const previewStoreUserData = usePreviewStore((s) => s.userData);
 
   // KS 流程：通过查询参数关闭 Others 标签
   const isKs = searchParams.get('ks') === '1';
@@ -1431,7 +1448,7 @@ export default function PreviewPageWithTopNav() {
           return;
         }
         const json = await res.json();
-        const texts: Array<any> = Array.isArray(json?.text) ? json.text : [];
+        const texts = normalizeCoverTexts(json);
         if (!texts.length) {
           setCoverTextConfig(null);
           return;
@@ -2197,36 +2214,56 @@ export default function PreviewPageWithTopNav() {
     const rawCoverKey = option.option_key || String(option.id);
     const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(option.id);
 
+    const isBirthdaySeasonalCover =
+      normalizedBookId === 'PICBOOK_BIRTHDAY' && (coverId === '1' || coverId === '2');
+
+    let birthdaySeason: ReturnType<typeof getBirthdayCoverSeasonFromCharacterLike> | null = null;
+    if (isBirthdaySeasonalCover) {
+      try {
+        let ch: any = null;
+        const store = usePreviewStore.getState().userData as any;
+        if (store?.characters?.[0]) ch = store.characters[0];
+        if (!ch) {
+          const ls = localStorage.getItem('previewUserData');
+          if (ls) ch = JSON.parse(ls)?.characters?.[0];
+        }
+        birthdaySeason = getBirthdayCoverSeasonFromCharacterLike(ch);
+      } catch {
+        birthdaySeason = 'spring';
+      }
+    }
+
     const folder = `${baseDomain}/${encodeURIComponent(normalizedBookId)}/covers/cover_${encodeURIComponent(coverId)}`;
     const cropRightHalf = ['1', '2', '3', '4'].includes(coverId);
 
-    const key = `${normalizedBookId}_${coverId}`;
-    // render 期间会被多次调用（列表渲染 + 状态变更 + React dev strict mode），这里做缓存
-    const cached = coverR2UrlsCacheRef.current.get(key);
+    const cacheKey = `${normalizedBookId}_${coverId}_${birthdaySeason ?? 'base'}`;
+    const cached = coverR2UrlsCacheRef.current.get(cacheKey);
     if (cached) return cached;
-    // 直连 R2 的封面图（用于普通 Image 显示）
-    const base = `${folder}/base.webp`;
-    // 通过本地 API 代理的封面图（用于 Canvas 叠加名字，避免 CORS 污染）
-    // 注意：线上（Netlify）存在 query 缓存键异常的情况，改为 path 参数，避免 coverId/bookId 被忽略
-    const canvasBase = `/api/cover-base-image/${encodeURIComponent(
-      normalizedBookId,
-    )}/${encodeURIComponent(coverId)}`;
+
+    const baseFile = birthdaySeason ? `${birthdaySeason}.webp` : 'base.webp';
+    const base = `${folder}/${baseFile}`;
+    const canvasBase =
+      birthdaySeason != null
+        ? `/api/cover-base-image/${encodeURIComponent(normalizedBookId)}/${encodeURIComponent(
+            coverId,
+          )}?season=${encodeURIComponent(birthdaySeason)}`
+        : `/api/cover-base-image/${encodeURIComponent(normalizedBookId)}/${encodeURIComponent(coverId)}`;
 
     const result = {
-      key,
+      key: cacheKey,
       base,
       canvasBase,
       cropRightHalf,
     };
-    coverR2UrlsCacheRef.current.set(key, result);
+    coverR2UrlsCacheRef.current.set(cacheKey, result);
 
-    // 调试日志：默认关闭（太吵）；仅在 URL 显式开启 ?debugCoverR2=1 时打印
     if (debugCoverR2) {
       console.log('[buildCoverR2Urls]', {
         rawBookId,
         normalizedBookId,
         coverId,
         base,
+        birthdaySeason,
         optionKey: option.option_key,
         optionImageUrl: option.image_url,
       });
@@ -2274,7 +2311,7 @@ export default function PreviewPageWithTopNav() {
     } catch {
       // ignore
     }
-  }, [bookOptions?.cover_options, searchParams]);
+  }, [bookOptions?.cover_options, searchParams, previewStoreUserData]);
 
   // 为装订方式构建 Cloudflare R2 图片 URL（hardcover / softcover / premium）
   const buildBindingImageUrl = (option: BindingOption) => {
@@ -4088,11 +4125,13 @@ export default function PreviewPageWithTopNav() {
                         : giverImageUrl;
                       const upperBookId = (searchParams.get('bookid') || '').toUpperCase();
                       const giverImageScale =
-                        upperBookId === 'PICBOOK_BRAVEY'
+                        upperBookId === 'PICBOOK_BRAVEY' ||
+                        upperBookId === 'PICBOOK_BIRTHDAY'
                           ? 1.2
                           : (upperBookId === 'PICBOOK_GOODNIGHT3' ||
                               upperBookId === 'PICBOOK_MOM' ||
-                              upperBookId === 'PICBOOK_SANTA')
+                              upperBookId === 'PICBOOK_SANTA' ||
+                              upperBookId === 'PICBOOK_MELODY')
                               ? 0.7
                               : undefined;
                       // 如果是“曾经编辑过的书”，后端会返回 p3-4 的 final_image_url。
