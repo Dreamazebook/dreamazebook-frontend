@@ -19,6 +19,7 @@ import useImageUpload from '../hooks/useImageUpload';
 import useUserStore from '@/stores/userStore';
 import usePreviewStore from '@/stores/previewStore';
 import { mapAgeStageUiToBackend } from '@/utils/mapAgeStageToBackend';
+import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
 import toast from 'react-hot-toast';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
 import { BaseBook, DetailedBook } from '@/types/book';
@@ -3007,20 +3008,20 @@ export default function PreviewPageWithTopNav() {
       const genderStr = mapGenderToString(character?.gender);
       const giverNameTop = String(character?.giver_name || character?.created_by || '').trim();
 
+      const fb = buildPicbookPreviewFacePayload(bookId, faceImages.filter(Boolean));
+
       const apiRequestData = {
         picbook_id: bookId,
-        // 新接口：face_images 为对象数组，包含 filename/mime/data（data URL）
-        face_images: faceImages.map((dataUrl: string, idx: number) => ({
-          filename: `face_${idx + 1}.jpg`,
-          mime: dataUrl?.slice(5, dataUrl.indexOf(';'))?.replace('data:', '') || 'image/jpeg',
-          data: dataUrl,
-        })),
+        face_images: fb.face_images,
         full_name: character?.full_name,
         language: character?.language || 'en', // 默认英语
         gender: genderStr,
         ...(giverNameTop ? { giver_name: giverNameTop } : {}),
         skincolor: character?.skincolor || 1, // 默认值
-        attributes: toBackendAttrs(character)
+        attributes: {
+          ...toBackendAttrs(character),
+          ...fb.faceAttributes,
+        },
       };
       
       // 添加详细的调试日志
@@ -3269,21 +3270,21 @@ export default function PreviewPageWithTopNav() {
           const relationshipStr = character?.relationship || null;
           const giverNameTop2 = String(character?.giver_name || character?.created_by || '').trim();
 
+          const fb = buildPicbookPreviewFacePayload(bookId, faceImages.filter(Boolean));
+
           const apiRequestData = {
             picbook_id: bookId,
-            // 新接口：face_images（data URL 列表转对象）
-            face_images: faceImages.map((dataUrl: string, idx: number) => ({
-              filename: `face_${idx + 1}.jpg`,
-              mime: dataUrl?.slice(5, dataUrl.indexOf(';'))?.replace('data:', '') || 'image/jpeg',
-              data: dataUrl,
-            })),
+            face_images: fb.face_images,
             full_name: character?.full_name,
             language: character?.language,
             gender: genderStr,
             relationship: relationshipStr,
             ...(giverNameTop2 ? { giver_name: giverNameTop2 } : {}),
             skincolor: character?.skincolor,
-            attributes: toBackendAttrs2(character)
+            attributes: {
+              ...toBackendAttrs2(character),
+              ...fb.faceAttributes,
+            },
           };
           
           // 添加详细的调试日志
@@ -3460,20 +3461,23 @@ export default function PreviewPageWithTopNav() {
           const giverNameCart = String(character?.giver_name || character?.created_by || '').trim();
           const photos = Array.isArray(character?.photos) ? character.photos : (character?.photo ? [character.photo] : []);
 
+          const fb = buildPicbookPreviewFacePayload(searchParams.get('bookid') || '', photos.filter(Boolean));
+
           const payload: any = {
             full_name: fullName,
             language,
             gender,
             relationship,
             ...(giverNameCart ? { giver_name: giverNameCart } : {}),
+            face_images: fb.face_images,
             attributes: {
               ...(skinTone ? { skin_tone: skinTone } : {}),
               ...(hairStyle ? { hair_style: hairStyle } : {}),
               ...(hairColor ? { hair_color: hairColor } : {}),
               ...(ageStagePayload ? { age_stage: ageStagePayload } : {}),
+              ...fb.faceAttributes,
             },
             texts: {},
-            face_images: photos.filter(Boolean),
           };
 
           // 圣诞 bundle：fromCartItemId 实际是 packageItemId（cart.items[].items[].id），需要调用新的接口

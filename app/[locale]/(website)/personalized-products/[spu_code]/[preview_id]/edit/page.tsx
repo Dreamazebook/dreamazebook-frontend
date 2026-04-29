@@ -15,6 +15,7 @@ import SingleCharacterForm2, { SingleCharacterForm2Handle } from '@/app/[locale]
 import usePreviewStore from '@/stores/previewStore';
 import { isPicbookBirthday } from '@/utils/isPicbookBirthday';
 import { formatBirthDateIso, mapPersonalityTraitIdsToCharacterTraits } from '@/utils/birthdayPersonalizeHelpers';
+import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
 
 interface ApiResponse<T=any> { success: boolean; code: number; message: string; data: T }
 interface DetailedBook { character_count: number }
@@ -529,12 +530,15 @@ export default function EditPersonalizedProductPage() {
         traitUiIds.length === 4 ? mapPersonalityTraitIdsToCharacterTraits(traitUiIds) : [];
       const characterTraitsOk = characterTraits.length === 4;
 
+      const fb = buildPicbookPreviewFacePayload(bookId, faceImages);
+
       const payload = {
         full_name: fullName,
         language: targetLang,
         gender: genderStr,
         relationship: relationshipRaw || 'Parent/Guardian',
         ...(giverNameRaw ? { giver_name: giverNameRaw } : {}),
+        face_images: fb.face_images,
         attributes: {
           ...(skinTone ? { skin_tone: skinTone } : {}),
           // 后端校验必填
@@ -547,9 +551,9 @@ export default function EditPersonalizedProductPage() {
                 ...(characterTraitsOk ? { character_traits: characterTraits } : {}),
               }
             : {}),
+          ...fb.faceAttributes,
         },
         texts: {},
-        face_images: faceImages,
       };
 
       let nextPreviewId: string = String(previewId);

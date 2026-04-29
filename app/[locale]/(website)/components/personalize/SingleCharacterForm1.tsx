@@ -5,10 +5,13 @@ import React, { useState, useEffect, forwardRef, useImperativeHandle, useCallbac
 import { Link } from '@/i18n/routing';
 import BasicInfoForm, { BasicInfoData } from './BasicInfoForm';
 import MultiImageUpload from './MultiImageUpload';
+import MomChildPhotoUpload from './MomChildPhotoUpload';
 import useMultiImageUpload from '../../hooks/useMultiImageUpload';
+import { useMomChildPhotoSlots } from '../../hooks/useMomChildPhotoSlots';
 import GiverAvatarCropper from '../../preview/components/GiverAvatarCropper';
 import BirthdayBringThemToLifeStep from './BirthdayBringThemToLifeStep';
 import { isPicbookBirthday } from '@/utils/isPicbookBirthday';
+import { isPicbookMom } from '@/utils/isPicbookMom';
 import { getDefaultAgeStageForPersonalize } from '@/utils/personalizeAgeStagePolicy';
 import { parseBirthDateIso } from '@/utils/birthdayPersonalizeHelpers';
 
@@ -94,6 +97,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     ref
   ) => {
     const isBirthdayBook = isPicbookBirthday(bookId);
+    const isMomBook = isPicbookMom(bookId);
     const photoStep = isBirthdayBook ? 3 : 2;
 
     const [formData, setFormData] = useState<PersonalizeFormData>({
@@ -120,6 +124,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     const [pendingFiles, setPendingFiles] = useState<File[]>([]);
     const [currentCropIndex, setCurrentCropIndex] = useState(0);
     const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
+    const [pendingMomSlot, setPendingMomSlot] = useState<0 | 1 | null>(null);
+    const [momSlotDrag, setMomSlotDrag] = useState<[boolean, boolean]>([false, false]);
 
     const {
       images,
@@ -140,6 +146,20 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       maxFileSize: uploadOptions?.maxFileSize,
     });
 
+    const {
+      slots: momSlots,
+      isUploading: momUploading,
+      uploadProgress: momUploadProgress,
+      error: momUploadError,
+      uploadToSlot,
+      clearSlot: clearMomSlot,
+      getMomChildPaths,
+      initializeWithUrls: initializeMomSlotsWithUrls,
+    } = useMomChildPhotoSlots({
+      allowedTypes: uploadOptions?.allowedTypes,
+      maxFileSize: uploadOptions?.maxFileSize,
+    });
+
     useEffect(() => {
       const photosToInit =
         initialData?.photos && initialData.photos.length > 0
@@ -148,7 +168,16 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
             ? [initialData.photo.path]
             : [];
 
-      if (photosToInit.length > 0) {
+      if (photosToInit.length === 0) return;
+
+      if (isMomBook) {
+        initializeMomSlotsWithUrls(photosToInit.slice(0, 2));
+        const childPath = photosToInit[1] || photosToInit[0];
+        if (childPath) {
+          handleBasicInfoChange('photo', { path: childPath });
+          handleErrorChange('photo', '');
+        }
+      } else {
         initializeWithUrls(photosToInit);
         const firstPhoto = photosToInit[0];
         if (firstPhoto) {
@@ -157,9 +186,10 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
         }
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initialData?.photo?.path, initialData?.photos]);
+    }, [initialData?.photo?.path, initialData?.photos, isMomBook]);
 
     useEffect(() => {
+      if (isMomBook) return;
       const firstUploaded = images.find(img => (img as any).dataUrl || (img as any).uploadedFilePath);
       const picked = (firstUploaded as any)?.dataUrl || (firstUploaded as any)?.uploadedFilePath;
 
@@ -170,7 +200,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
         handleBasicInfoChange('photo', null);
         handleErrorChange('photo', 'Please upload a photo');
       }
-    }, [images, formData.photo]);
+    }, [images, formData.photo, isMomBook]);
 
     const handleBasicInfoChange = useCallback((field: keyof BasicInfoData, value: string | { file?: File; path: string } | null) => {
       setFormData(prev => ({ ...prev, [field]: value }));
@@ -180,6 +210,47 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     const handleErrorChange = useCallback((field: keyof BasicInfoData, errorMsg: string) => {
       setErrors(prev => ({ ...prev, [field]: errorMsg }));
     }, []);
+
+    const handleMomSlotFileChosen = (slot: 0 | 1, file: File) => {
+      setPendingMomSlot(slot);
+      setPendingFiles([file]);
+      if (pendingPreviewUrl) {
+        URL.revokeObjectURL(pendingPreviewUrl);
+      }
+      setPendingPreviewUrl(URL.createObjectURL(file));
+      setIsCropperOpen(true);
+      onCropperOpenChange?.(true);
+    };
+
+    const handleMomSlotDragEnter = (slot: 0 | 1, e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setMomSlotDrag(d => {
+        const n: [boolean, boolean] = [d[0], d[1]];
+        n[slot] = true;
+        return n;
+      });
+    };
+
+    const handleMomSlotDragLeave = (slot: 0 | 1, e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setMomSlotDrag(d => {
+        const n: [boolean, boolean] = [d[0], d[1]];
+        n[slot] = false;
+        return n;
+      });
+    };
+
+    const handleMomSlotDragOver = (_slot: 0 | 1, e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    const handleMomSlotDrop = (slot: 0 | 1, e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setMomSlotDrag([false, false]);
+      const f = e.dataTransfer.files?.[0];
+      if (f) handleMomSlotFileChosen(slot, f);
+    };
 
     const handlePhotosUpload = async (files: File[]) => {
       if (!files || files.length === 0) return;
@@ -201,6 +272,23 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     };
 
     const handleCroppedFile = async (file: File) => {
+      if (isMomBook && pendingMomSlot !== null) {
+        const path = await uploadToSlot(pendingMomSlot, file);
+        setTouched(prev => ({ ...prev, photo: true }));
+        if (path) {
+          handleErrorChange('photo', '');
+        }
+        setPendingMomSlot(null);
+        setIsCropperOpen(false);
+        onCropperOpenChange?.(false);
+        setPendingFiles([]);
+        if (pendingPreviewUrl) {
+          URL.revokeObjectURL(pendingPreviewUrl);
+          setPendingPreviewUrl(null);
+        }
+        return;
+      }
+
       const newlyUploadedPaths = await handleImageUpload([file]);
 
       if (newlyUploadedPaths.length > 0 && !formData.photo) {
@@ -239,6 +327,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       setIsCropperOpen(false);
       onCropperOpenChange?.(false);
       setPendingFiles([]);
+      setPendingMomSlot(null);
       if (pendingPreviewUrl) {
         URL.revokeObjectURL(pendingPreviewUrl);
         setPendingPreviewUrl(null);
@@ -263,9 +352,24 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     };
 
     useEffect(() => {
+      if (isMomBook) return;
       const uploadedPaths = getUploadedPaths();
       setFormData(prev => ({ ...prev, photos: uploadedPaths }));
-    }, [getUploadedPaths]);
+    }, [getUploadedPaths, isMomBook]);
+
+    useEffect(() => {
+      if (!isMomBook) return;
+      const [m, c] = getMomChildPaths();
+      setFormData(prev => ({
+        ...prev,
+        photo: c ? ({ path: c } as any) : m ? ({ path: m } as any) : null,
+        photos: m && c ? [m, c] : [],
+      }));
+      if (m && c) {
+        handleErrorChange('photo', '');
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isMomBook, momSlots]);
 
     const runStep1Validation = (form: PersonalizeFormData, newErrors: FormErrors) => {
       if (!form.fullName.trim()) newErrors.fullName = 'Please enter the first name';
@@ -286,7 +390,14 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     };
 
     const runFinalValidation = (form: PersonalizeFormData, newErrors: FormErrors) => {
-      if (!form.photo) newErrors.photo = 'Please upload a photo';
+      if (isMomBook) {
+        const [m, c] = getMomChildPaths();
+        if (!m || !c) {
+          newErrors.photo = 'Please upload a photo for both Mom and Child';
+        }
+      } else if (!form.photo) {
+        newErrors.photo = 'Please upload a photo';
+      }
       if (!form.relationship) newErrors.relationship = 'Please select your relationship to the child';
       if (!form.consent) newErrors.consent = 'Please confirm your consent';
     };
@@ -333,6 +444,14 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       },
       formData,
       getFormData() {
+        if (isMomBook) {
+          const [m, c] = getMomChildPaths();
+          return {
+            ...formData,
+            photo: c ? ({ path: c } as any) : m ? ({ path: m } as any) : null,
+            photos: m && c ? [m, c] : [],
+          } as PersonalizeFormData;
+        }
         const currentPaths = getUploadedPaths();
         return {
           ...formData,
@@ -441,20 +560,36 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
 
               {currentStep === photoStep && (
                 <div id="field-photo">
-                  <MultiImageUpload
-                    images={images as any}
-                    isUploading={isUploading}
-                    uploadProgress={uploadProgress}
-                    error={uploadError}
-                    isDragging={isDragging}
-                    maxImages={uploadOptions?.maxImages ?? 1}
-                    onImageUpload={handlePhotosUpload}
-                    onImageDelete={handlePhotoDelete}
-                    onDragEnter={handleDragEnter}
-                    onDragLeave={handleDragLeave}
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
-                  />
+                  {isMomBook ? (
+                    <MomChildPhotoUpload
+                      slots={momSlots}
+                      isUploading={momUploading}
+                      uploadProgress={momUploadProgress}
+                      error={momUploadError}
+                      slotDragging={momSlotDrag}
+                      onSlotDragEnter={handleMomSlotDragEnter}
+                      onSlotDragLeave={handleMomSlotDragLeave}
+                      onSlotDragOver={handleMomSlotDragOver}
+                      onSlotDrop={handleMomSlotDrop}
+                      onSlotFileChosen={handleMomSlotFileChosen}
+                      onDeleteSlot={clearMomSlot}
+                    />
+                  ) : (
+                    <MultiImageUpload
+                      images={images as any}
+                      isUploading={isUploading}
+                      uploadProgress={uploadProgress}
+                      error={uploadError}
+                      isDragging={isDragging}
+                      maxImages={uploadOptions?.maxImages ?? 1}
+                      onImageUpload={handlePhotosUpload}
+                      onImageDelete={handlePhotoDelete}
+                      onDragEnter={handleDragEnter}
+                      onDragLeave={handleDragLeave}
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
+                    />
+                  )}
                   {touched.photo && errors.photo && (
                     <p className="text-red-500 text-sm mt-1">{errors.photo}</p>
                   )}
