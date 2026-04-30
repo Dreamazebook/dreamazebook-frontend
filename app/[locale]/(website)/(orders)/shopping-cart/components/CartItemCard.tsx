@@ -9,6 +9,7 @@ import KickstarterInlineCard from "./KickstarterInlineCard";
 import { getR2BookCover } from "@/utils/bookCovers";
 import { getOurBookDisplayName } from "@/utils/bookNames";
 import { WEBSITE_CDN_URL } from "@/constants/cdn";
+import { getBirthdayCoverSeasonFromCharacterLike } from "@/utils/birthdayPersonalizeHelpers";
 
 interface CartItemProps {
   showEditBook?: boolean;
@@ -608,11 +609,22 @@ export default function CartItemCard({
   spu === 'PICBOOK_GOODNIGHT3' ? 'PICBOOK_GOODNIGHT' : spu;
                         const coverId =
                           String(coverType || '').toLowerCase().includes('personalized') ? '3' : '1';
+                        const attrsBundle = (pi?.customization_data?.attributes || {}) as Record<string, unknown>;
+                        const birthdaySeasonForCover =
+                          String(normalizeSpuForCover(String(spuCode || ''))).toUpperCase() === 'PICBOOK_BIRTHDAY' &&
+                          ['1', '2'].includes(String(coverId))
+                            ? getBirthdayCoverSeasonFromCharacterLike({
+                                birthday: attrsBundle?.birthday as string | undefined,
+                                birthSeason: attrsBundle?.birth_season as string | undefined,
+                                attributes: attrsBundle,
+                              })
+                            : null;
+                        const coverBaseFile = birthdaySeasonForCover ? `${birthdaySeasonForCover}.webp` : 'base.webp';
                         const coverOptionImageUrl =
                           spuCode
                             ? `https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/${encodeURIComponent(
                                 normalizeSpuForCover(String(spuCode)),
-                              )}/covers/cover_${encodeURIComponent(coverId)}/base.webp`
+                              )}/covers/cover_${encodeURIComponent(coverId)}/${coverBaseFile}`
                             : '';
 
                         // 圣诞 bundle 子项：preview_id 可能在 customization_data.preview_id（而不是顶层 preview_id）

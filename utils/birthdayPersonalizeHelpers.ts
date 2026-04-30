@@ -9,6 +9,17 @@ export function getBirthSeasonFromDate(d: Date): BirthSeason {
   return 'winter';
 }
 
+/** 预览/购物车：从角色对象解析封面用季节（spring～winter） */
+export function getBirthdayCoverSeasonFromCharacterLike(ch: any | null | undefined): BirthSeason {
+  if (!ch) return 'spring';
+  const iso = ch.birthday || ch.attributes?.birthday;
+  const d = parseBirthDateIso(typeof iso === 'string' ? iso : '');
+  if (d) return getBirthSeasonFromDate(d);
+  const raw = String(ch.birthSeason || ch.attributes?.birth_season || '').toLowerCase();
+  if (raw === 'spring' || raw === 'summer' || raw === 'autumn' || raw === 'winter') return raw;
+  return 'spring';
+}
+
 export function birthSeasonLabel(season: BirthSeason): string {
   switch (season) {
     case 'spring':

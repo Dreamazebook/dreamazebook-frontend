@@ -19,6 +19,8 @@ import useImageUpload from '../hooks/useImageUpload';
 import useUserStore from '@/stores/userStore';
 import usePreviewStore from '@/stores/previewStore';
 import { mapAgeStageUiToBackend } from '@/utils/mapAgeStageToBackend';
+import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
+import { getBirthdayCoverSeasonFromCharacterLike } from '@/utils/birthdayPersonalizeHelpers';
 import toast from 'react-hot-toast';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
 import { BaseBook, DetailedBook } from '@/types/book';
@@ -35,6 +37,20 @@ const coverTextsCache: Record<string, Array<{
   position?: { x: number; y: number };
   alignment?: string;
 }> | null> = {};
+
+const normalizeCoverTexts = (json: any): Array<any> => {
+  const raw = Array.isArray(json?.text)
+    ? json.text
+    : Array.isArray(json?.elements)
+      ? json.elements
+      : [];
+
+  return raw.map((t: any) => ({
+    ...t,
+    fontSize: typeof t?.fontSize === 'number' ? t.fontSize : t?.font_size,
+    fontWeight: t?.fontWeight ?? t?.font_weight,
+  }));
+};
 
 // 叠字后封面的 DataURL 缓存：避免每次进入 Tab 都重新用 Canvas 合成
 const coverComposedImageCache: Record<string, string> = {};
@@ -249,7 +265,7 @@ function CoverOptionImageWithName({
           return;
         }
         const json = await res.json();
-        const arr: Array<any> = Array.isArray(json?.text) ? json.text : [];
+        const arr = normalizeCoverTexts(json);
         if (!cancelled) {
           const next = arr.length ? arr : null;
           coverTextsCache[cacheKey] = next;
@@ -275,7 +291,7 @@ function CoverOptionImageWithName({
   const upperBookId = (bookId || '').toUpperCase();
   const rawCoverKey = option.option_key || String(option.id);
   const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(option.id);
-  const composedKey = `${upperBookId}_${coverId}_${trimmedName}`;
+  const composedKey = `${upperBookId}_${coverId}_${trimmedName}_${baseSrc}`;
   const handleCoverRendered = useCallback((dataUrl: string) => {
     coverComposedImageCache[composedKey] = dataUrl;
     setComposedUrl(dataUrl);
@@ -723,6 +739,8 @@ export default function PreviewPageWithTopNav() {
     setEditField,
   } = useStore();
 
+  const previewStoreUserData = usePreviewStore((s) => s.userData);
+
   // KS 流程：通过查询参数关闭 Others 标签
   const isKs = searchParams.get('ks') === '1';
   // 圣诞 bundle：通过查询参数关闭 Others(Options) 标签
@@ -1011,7 +1029,8 @@ export default function PreviewPageWithTopNav() {
   // 扉页（标题页）展示完成后显示提示文案
   const [isTitlePageLoaded, setIsTitlePageLoaded] = useState(false);
   const titlePageIdRef = useRef<number | null>(null);
-  // 顶部 “Your story is coming to life…”：
+  // 顶部队列提示（原 “Your story is coming to life…”）：
+  // - 依据 batch.queue.preview_pending 展示「Preparing / N books ahead / It’s your turn」
   // - 在 p3-4 还没出现在 preview_data 之前保持显示
   // - 只有当 p3-4 出现且该页图片 onLoad 后才隐藏
   const [isStoryComingTargetPageLoaded, setIsStoryComingTargetPageLoaded] = useState(false);
@@ -1431,7 +1450,7 @@ export default function PreviewPageWithTopNav() {
           return;
         }
         const json = await res.json();
-        const texts: Array<any> = Array.isArray(json?.text) ? json.text : [];
+        const texts = normalizeCoverTexts(json);
         if (!texts.length) {
           setCoverTextConfig(null);
           return;
@@ -1527,11 +1546,7 @@ export default function PreviewPageWithTopNav() {
   // 目标页：仅以 p3-4 为准（不再回退到其它页），避免 p3-4 尚未出现时提示提前消失
   const pageIdForStoryComingHide = p34PageId;
 
-  // 顶部 “Your story is coming to life…”：
-  // - p3-4 未出现：继续显示
-  // - p3-4 已出现但未加载完成：继续显示
-  // - p3-4 已加载完成：隐藏
-  // - 批次 completed/failed：隐藏（避免 p3-4 永远不出现导致卡住）
+  // 顶部队列文案：在 p3-4 未就绪前显示；completed/failed 时隐藏。
   const showStoryComingLine = useMemo(
     () =>
       !isCompleted &&
@@ -1540,17 +1555,53 @@ export default function PreviewPageWithTopNav() {
       (isProcessing || isProcessingLike),
     [isCompleted, isFailed, pageIdForStoryComingHide, isStoryComingTargetPageLoaded, isProcessing, isProcessingLike],
   );
-  const [comingLifeDotPhase, setComingLifeDotPhase] = useState(0);
+  /** 服务端 batch.queue.preview_pending（排在当前批次前的预览任务数） */
+  const previewPendingFromBatch = useMemo(() => {
+    const raw = (previewData as any)?.queue_info?.preview_pending;
+    if (typeof raw !== 'number' || Number.isNaN(raw)) return null;
+    return Math.max(0, Math.floor(Number(raw)));
+  }, [(previewData as any)?.queue_info?.preview_pending]);
+  /** 用于 UI 展示的「前方还有几本」，在服务端的值下降时阶梯递减，给用户推进感 */
+  const [displayedPreviewPending, setDisplayedPreviewPending] = useState<number | null>(null);
+  useEffect(() => {
+    const n = previewPendingFromBatch;
+    if (n === null) {
+      setDisplayedPreviewPending(null);
+      return;
+    }
+    setDisplayedPreviewPending((curr) => {
+      if (curr === null) return n;
+      if (n > curr) return n;
+      return curr;
+    });
+  }, [previewPendingFromBatch]);
+  useEffect(() => {
+    if (displayedPreviewPending === null || previewPendingFromBatch === null) return;
+    if (displayedPreviewPending <= previewPendingFromBatch) return;
+    const t = window.setTimeout(() => {
+      setDisplayedPreviewPending((d) => (typeof d === 'number' ? d - 1 : d));
+    }, 380);
+    return () => clearTimeout(t);
+  }, [displayedPreviewPending, previewPendingFromBatch]);
+  /** 点为 1、2、3 个循环浮现 */
+  const [comingLifeDotPhase, setComingLifeDotPhase] = useState(1);
   useEffect(() => {
     if (!showStoryComingLine) {
-      setComingLifeDotPhase(0);
+      setComingLifeDotPhase(1);
       return;
     }
     const t = window.setInterval(() => {
-      setComingLifeDotPhase((d) => (d + 1) % 4);
-    }, 400);
+      setComingLifeDotPhase((d) => (d >= 3 ? 1 : d + 1));
+    }, 450);
     return () => clearInterval(t);
   }, [showStoryComingLine]);
+
+  const isStoryQueueYourTurnBanner =
+    showStoryComingLine &&
+    previewPendingFromBatch !== null &&
+    displayedPreviewPending !== null &&
+    previewPendingFromBatch === 0 &&
+    displayedPreviewPending === 0;
 
   useEffect(() => {
     if (titlePageIdRef.current !== titlePageId) {
@@ -1960,6 +2011,23 @@ export default function PreviewPageWithTopNav() {
       if (faceSwapStatusRef.current === 'completed') {
         return;
       }
+      const qpMerged =
+        e?.preview_pending ??
+        e?.data?.preview_pending ??
+        e?.queue?.preview_pending ??
+        e?.data?.queue?.preview_pending;
+      if (qpMerged !== undefined && qpMerged !== null && qpMerged !== '') {
+        const qp = Math.max(0, parseInt(String(qpMerged), 10));
+        if (!Number.isNaN(qp)) {
+          setPreviewData((prev) => {
+            if (!prev) return prev as PreviewResponse | null;
+            return {
+              ...prev,
+              queue_info: { ...(((prev as any).queue_info) || {}), preview_pending: qp },
+            } as PreviewResponse;
+          });
+        }
+      }
       // 文档标准字段：queue_position, total_queue_length
       const position = e?.queue_position ?? e?.position ?? e?.data?.queue_position ?? e?.data?.position;
       const totalFromDoc = e?.total_queue_length ?? e?.data?.total_queue_length;
@@ -2197,36 +2265,56 @@ export default function PreviewPageWithTopNav() {
     const rawCoverKey = option.option_key || String(option.id);
     const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(option.id);
 
+    const isBirthdaySeasonalCover =
+      normalizedBookId === 'PICBOOK_BIRTHDAY' && (coverId === '1' || coverId === '2');
+
+    let birthdaySeason: ReturnType<typeof getBirthdayCoverSeasonFromCharacterLike> | null = null;
+    if (isBirthdaySeasonalCover) {
+      try {
+        let ch: any = null;
+        const store = usePreviewStore.getState().userData as any;
+        if (store?.characters?.[0]) ch = store.characters[0];
+        if (!ch) {
+          const ls = localStorage.getItem('previewUserData');
+          if (ls) ch = JSON.parse(ls)?.characters?.[0];
+        }
+        birthdaySeason = getBirthdayCoverSeasonFromCharacterLike(ch);
+      } catch {
+        birthdaySeason = 'spring';
+      }
+    }
+
     const folder = `${baseDomain}/${encodeURIComponent(normalizedBookId)}/covers/cover_${encodeURIComponent(coverId)}`;
     const cropRightHalf = ['1', '2', '3', '4'].includes(coverId);
 
-    const key = `${normalizedBookId}_${coverId}`;
-    // render 期间会被多次调用（列表渲染 + 状态变更 + React dev strict mode），这里做缓存
-    const cached = coverR2UrlsCacheRef.current.get(key);
+    const cacheKey = `${normalizedBookId}_${coverId}_${birthdaySeason ?? 'base'}`;
+    const cached = coverR2UrlsCacheRef.current.get(cacheKey);
     if (cached) return cached;
-    // 直连 R2 的封面图（用于普通 Image 显示）
-    const base = `${folder}/base.webp`;
-    // 通过本地 API 代理的封面图（用于 Canvas 叠加名字，避免 CORS 污染）
-    // 注意：线上（Netlify）存在 query 缓存键异常的情况，改为 path 参数，避免 coverId/bookId 被忽略
-    const canvasBase = `/api/cover-base-image/${encodeURIComponent(
-      normalizedBookId,
-    )}/${encodeURIComponent(coverId)}`;
+
+    const baseFile = birthdaySeason ? `${birthdaySeason}.webp` : 'base.webp';
+    const base = `${folder}/${baseFile}`;
+    const canvasBase =
+      birthdaySeason != null
+        ? `/api/cover-base-image/${encodeURIComponent(normalizedBookId)}/${encodeURIComponent(
+            coverId,
+          )}?season=${encodeURIComponent(birthdaySeason)}`
+        : `/api/cover-base-image/${encodeURIComponent(normalizedBookId)}/${encodeURIComponent(coverId)}`;
 
     const result = {
-      key,
+      key: cacheKey,
       base,
       canvasBase,
       cropRightHalf,
     };
-    coverR2UrlsCacheRef.current.set(key, result);
+    coverR2UrlsCacheRef.current.set(cacheKey, result);
 
-    // 调试日志：默认关闭（太吵）；仅在 URL 显式开启 ?debugCoverR2=1 时打印
     if (debugCoverR2) {
       console.log('[buildCoverR2Urls]', {
         rawBookId,
         normalizedBookId,
         coverId,
         base,
+        birthdaySeason,
         optionKey: option.option_key,
         optionImageUrl: option.image_url,
       });
@@ -2274,7 +2362,7 @@ export default function PreviewPageWithTopNav() {
     } catch {
       // ignore
     }
-  }, [bookOptions?.cover_options, searchParams]);
+  }, [bookOptions?.cover_options, searchParams, previewStoreUserData]);
 
   // 为装订方式构建 Cloudflare R2 图片 URL（hardcover / softcover / premium）
   const buildBindingImageUrl = (option: BindingOption) => {
@@ -3008,20 +3096,20 @@ export default function PreviewPageWithTopNav() {
       const genderStr = mapGenderToString(character?.gender);
       const giverNameTop = String(character?.giver_name || character?.created_by || '').trim();
 
+      const fb = buildPicbookPreviewFacePayload(bookId, faceImages.filter(Boolean));
+
       const apiRequestData = {
         picbook_id: bookId,
-        // 新接口：face_images 为对象数组，包含 filename/mime/data（data URL）
-        face_images: faceImages.map((dataUrl: string, idx: number) => ({
-          filename: `face_${idx + 1}.jpg`,
-          mime: dataUrl?.slice(5, dataUrl.indexOf(';'))?.replace('data:', '') || 'image/jpeg',
-          data: dataUrl,
-        })),
+        face_images: fb.face_images,
         full_name: character?.full_name,
         language: character?.language || 'en', // 默认英语
         gender: genderStr,
         ...(giverNameTop ? { giver_name: giverNameTop } : {}),
         skincolor: character?.skincolor || 1, // 默认值
-        attributes: toBackendAttrs(character)
+        attributes: {
+          ...toBackendAttrs(character),
+          ...fb.faceAttributes,
+        },
       };
       
       // 添加详细的调试日志
@@ -3270,21 +3358,21 @@ export default function PreviewPageWithTopNav() {
           const relationshipStr = character?.relationship || null;
           const giverNameTop2 = String(character?.giver_name || character?.created_by || '').trim();
 
+          const fb = buildPicbookPreviewFacePayload(bookId, faceImages.filter(Boolean));
+
           const apiRequestData = {
             picbook_id: bookId,
-            // 新接口：face_images（data URL 列表转对象）
-            face_images: faceImages.map((dataUrl: string, idx: number) => ({
-              filename: `face_${idx + 1}.jpg`,
-              mime: dataUrl?.slice(5, dataUrl.indexOf(';'))?.replace('data:', '') || 'image/jpeg',
-              data: dataUrl,
-            })),
+            face_images: fb.face_images,
             full_name: character?.full_name,
             language: character?.language,
             gender: genderStr,
             relationship: relationshipStr,
             ...(giverNameTop2 ? { giver_name: giverNameTop2 } : {}),
             skincolor: character?.skincolor,
-            attributes: toBackendAttrs2(character)
+            attributes: {
+              ...toBackendAttrs2(character),
+              ...fb.faceAttributes,
+            },
           };
           
           // 添加详细的调试日志
@@ -3461,20 +3549,23 @@ export default function PreviewPageWithTopNav() {
           const giverNameCart = String(character?.giver_name || character?.created_by || '').trim();
           const photos = Array.isArray(character?.photos) ? character.photos : (character?.photo ? [character.photo] : []);
 
+          const fb = buildPicbookPreviewFacePayload(searchParams.get('bookid') || '', photos.filter(Boolean));
+
           const payload: any = {
             full_name: fullName,
             language,
             gender,
             relationship,
             ...(giverNameCart ? { giver_name: giverNameCart } : {}),
+            face_images: fb.face_images,
             attributes: {
               ...(skinTone ? { skin_tone: skinTone } : {}),
               ...(hairStyle ? { hair_style: hairStyle } : {}),
               ...(hairColor ? { hair_color: hairColor } : {}),
               ...(ageStagePayload ? { age_stage: ageStagePayload } : {}),
+              ...fb.faceAttributes,
             },
             texts: {},
-            face_images: photos.filter(Boolean),
           };
 
           // 圣诞 bundle：fromCartItemId 实际是 packageItemId（cart.items[].items[].id），需要调用新的接口
@@ -3982,16 +4073,27 @@ export default function PreviewPageWithTopNav() {
               </div>
               {showStoryComingLine && (
                 <div
-                  className="mb-8 flex min-h-[1.5rem] flex-col items-center justify-center"
+                  className="mb-8 flex min-h-[1.5rem] flex-col items-center justify-center gap-2"
                   role="status"
                   aria-live="polite"
                 >
-                  <p className="text-center text-base font-medium text-[#C9CCD3]">
-                    <span>Your story is coming to life</span>
-                    <span className="inline-block w-[3ch] text-left font-mono">
-                      {'.'.repeat(comingLifeDotPhase)}
-                    </span>
-                  </p>
+                  {isStoryQueueYourTurnBanner ? (
+                    <p className="text-center text-lg font-semibold text-[#8E92A7]">{t('storyYourTurn')}</p>
+                  ) : (
+                    <>
+                      <p className="text-center text-base font-medium text-[#C9CCD3]">
+                        <span>{t('storyPreparing')}</span>
+                        <span className="inline-block w-[3ch] text-left font-mono">
+                          {'.'.repeat(comingLifeDotPhase)}
+                        </span>
+                      </p>
+                      {previewPendingFromBatch !== null &&
+                        displayedPreviewPending !== null &&
+                        displayedPreviewPending > 0 && (
+                          <p className="text-center text-sm text-[#AAB0BF]">{t('storyAhead', { count: displayedPreviewPending })}</p>
+                        )}
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -4085,11 +4187,13 @@ export default function PreviewPageWithTopNav() {
                         : giverImageUrl;
                       const upperBookId = (searchParams.get('bookid') || '').toUpperCase();
                       const giverImageScale =
-                        upperBookId === 'PICBOOK_BRAVEY'
+                        upperBookId === 'PICBOOK_BRAVEY' ||
+                        upperBookId === 'PICBOOK_BIRTHDAY'
                           ? 1.2
                           : (upperBookId === 'PICBOOK_GOODNIGHT3' ||
                               upperBookId === 'PICBOOK_MOM' ||
-                              upperBookId === 'PICBOOK_SANTA')
+                              upperBookId === 'PICBOOK_SANTA' ||
+                              upperBookId === 'PICBOOK_MELODY')
                               ? 0.7
                               : undefined;
                       // 如果是“曾经编辑过的书”，后端会返回 p3-4 的 final_image_url。

@@ -41,6 +41,7 @@ const philosopher = Philosopher({
 
 import { sharedMetadata } from '@/components/metadata';
 import { OrganizationSchema, WebsiteSchema } from '@/app/components/StructuredDataSchemas';
+import MetaPixel from '@/app/components/MetaPixel';
 
 export const metadata: Metadata = sharedMetadata;
 
@@ -66,6 +67,7 @@ export default async function LocaleLayout({
       <head>
         <OrganizationSchema />
         <WebsiteSchema />
+        <MetaPixel />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${roboto.variable} ${philosopher.variable} ${notoSansSC.variable} antialiased`}

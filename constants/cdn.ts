@@ -111,9 +111,17 @@ export const VIP_PERK_FIRST_PICK = `${CLOUDFLARE_CDN_URL}vip-perk-first-pick.png
 
 
 export const WEBSITE_CDN_URL = 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/';
-/** PICBOOK_MELODY 个性化预览头像（layer_white / layer_tan / layer_black） */
-export const PICBOOK_MELODY_PERSONALIZE_AVATAR = (filename: string) =>
-  `${WEBSITE_CDN_URL}products/picbooks/PICBOOK_MELODY/personalize/avatars/${filename}`;
+
+/** 与 avatar 资源目录一致：PICBOOK_GOODNIGHT3 → PICBOOK_GOODNIGHT */
+export const normalizePicbookAssetId = (id: string): string => {
+  const u = String(id || '').trim().toUpperCase();
+  if (u === 'PICBOOK_GOODNIGHT3') return 'PICBOOK_GOODNIGHT';
+  return u;
+};
+
+/** 个性化页预览头像：products/picbooks/{SPU}/personalize/avatars/{filename}（静态 PNG，与 Melody 相同方式，不用 Canvas） */
+export const PICBOOK_PERSONALIZE_AVATAR_URL = (bookId: string, filename: string) =>
+  `${WEBSITE_CDN_URL}products/picbooks/${normalizePicbookAssetId(bookId)}/personalize/avatars/${filename}`;
 export const PERSONALIZE_AGE_RANGE_0_3 = `${WEBSITE_CDN_URL}assets/personalize/options/age-range/0-3.png`;
 export const PERSONALIZE_AGE_RANGE_3_6 = `${WEBSITE_CDN_URL}assets/personalize/options/age-range/3-6.png`;
 export const PERSONALIZE_AGE_RANGE_6_PLUS = `${WEBSITE_CDN_URL}assets/personalize/options/age-range/6+.png`;

@@ -70,32 +70,44 @@ export async function GET(req: NextRequest) {
   const folder = `${R2_BASE}/products/picbooks/${encodeURIComponent(
     normalizedBookId,
   )}/covers/cover_${encodeURIComponent(coverId)}`;
-  const imageUrl = `${folder}/base.webp`;
+
+  const seasonRaw = (searchParams.get('season') || '').toLowerCase();
+  const seasonalAllowed = new Set(['spring', 'summer', 'autumn', 'winter']);
+  const useSeasonalPicbook =
+    normalizedBookId === 'PICBOOK_BIRTHDAY' &&
+    (coverId === '1' || coverId === '2') &&
+    seasonalAllowed.has(seasonRaw);
+
+  const candidates = useSeasonalPicbook
+    ? [`${folder}/${seasonRaw}.webp`, `${folder}/base.webp`]
+    : [`${folder}/base.webp`];
 
   try {
-    const res = await fetch(imageUrl, { cache: 'no-store' });
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: 'base.webp not found on R2' },
-        { status: res.status },
-      );
+    let lastStatus = 404;
+    for (const imageUrl of candidates) {
+      const res = await fetch(imageUrl, { cache: 'no-store' });
+      if (res.ok) {
+        const arrayBuffer = await res.arrayBuffer();
+        return new NextResponse(arrayBuffer, {
+          status: 200,
+          headers: {
+            'Content-Type':
+              res.headers.get('Content-Type') ?? 'image/webp',
+            'Cache-Control': 'no-store, max-age=0',
+            Pragma: 'no-cache',
+            Expires: '0',
+          },
+        });
+      }
+      lastStatus = res.status;
     }
-
-    const arrayBuffer = await res.arrayBuffer();
-    return new NextResponse(arrayBuffer, {
-      status: 200,
-      headers: {
-        'Content-Type':
-          res.headers.get('Content-Type') ?? 'image/webp',
-        // 禁用所有缓存，避免线上出现“不同 query 返回同一张图”的问题
-        'Cache-Control': 'no-store, max-age=0',
-        Pragma: 'no-cache',
-        Expires: '0',
-      },
-    });
+    return NextResponse.json(
+      { error: 'cover image not found on R2' },
+      { status: lastStatus || 404 },
+    );
   } catch (err) {
     return NextResponse.json(
-      { error: 'Failed to fetch base.webp from R2' },
+      { error: 'Failed to fetch cover image from R2' },
       { status: 500 },
     );
   }

@@ -234,6 +234,9 @@
     "noOrderIdError": "未提供订单 ID。请检查您的订单详情。"
   },
   "Preview": {
+    "storyPreparing": "正在为你的故事做准备",
+    "storyAhead": "前方还有 {count} 本书在排队",
+    "storyYourTurn": "轮到你了！🎉",
     "queueTip": "图书预览正在排队生成中，您当前排在第{pos}/{tot}位。您可以先前往 Others 标签页选择其他信息",
     "queueTipNoPos": "图书预览正在排队生成中。您可以先前往 Others 标签页选择其他信息",
     "selectOptions": "您可以先选择 {options}",

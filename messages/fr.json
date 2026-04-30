@@ -234,6 +234,9 @@
     "noOrderIdError": "Aucun identifiant de commande fourni. Veuillez vérifier les détails de votre commande."
   },
   "Preview": {
+    "storyPreparing": "Préparation de votre histoire",
+    "storyAhead": "{count, plural, one {# livre avant vous} other {# livres avant vous}}",
+    "storyYourTurn": "C'est votre tour ! 🎉",
     "queueTip": "L'aperçu du livre est actuellement dans la file d'attente pour la génération. Vous êtes actuellement à la position {pos}/{tot}. Vous pouvez passer à l'onglet Others.",
     "queueTipNoPos": "L'aperçu du livre est actuellement dans la file d'attente pour la génération. Vous pouvez passer à l'onglet Others.",
     "selectOptions": "Vous pouvez d'abord sélectionner {options}",

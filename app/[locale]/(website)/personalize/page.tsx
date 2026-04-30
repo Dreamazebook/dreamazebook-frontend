@@ -14,6 +14,8 @@ import { mapAgeStageUiToBackend } from '@/utils/mapAgeStageToBackend';
 import usePreviewStore from '@/stores/previewStore';
 import { isPicbookBirthday } from '@/utils/isPicbookBirthday';
 import { formatBirthDateIso, mapPersonalityTraitIdsToCharacterTraits } from '@/utils/birthdayPersonalizeHelpers';
+import { isPicbookMom } from '@/utils/isPicbookMom';
+import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
 
 type AttributeOption = { value: string; label?: string; is_default?: boolean; price_diff?: number | string };
 type Attribute = { name: string; options: AttributeOption[]; default?: string };
@@ -36,6 +38,7 @@ export default function PersonalizeApiDrivenPage() {
   const pathname = usePathname();
   const locale = pathname.split('/')[1] || 'en';
   const isBirthdayPersonalize = isPicbookBirthday(bookId);
+  const isMomBookPersonalize = isPicbookMom(bookId);
   const personalizeAvatarAssetSpu = isBirthdayPersonalize
     ? 'PICBOOK_BIRTHDAY'
     : String(bookId || '').trim().toUpperCase() === 'PICBOOK_MOM'
@@ -74,7 +77,7 @@ export default function PersonalizeApiDrivenPage() {
           setUploadOptions({
             allowedTypes: ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'],
             maxFileSize: 20 * 1024 * 1024,
-            maxImages: 1,
+            maxImages: isMomBookPersonalize ? 2 : 1,
           });
           setLoading(false);
           return;
@@ -141,7 +144,11 @@ export default function PersonalizeApiDrivenPage() {
         try {
           const allowed = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
           const maxSize = 20 * 1024 * 1024; // 20MB
-          setUploadOptions({ allowedTypes: allowed, maxFileSize: maxSize, maxImages: 1 });
+          setUploadOptions({
+            allowedTypes: allowed,
+            maxFileSize: maxSize,
+            maxImages: isMomBookPersonalize ? 2 : 1,
+          });
         } catch {}
       } catch (e) {
         setFormType(bookId === '2' ? 'SINGLE2' : 'SINGLE1');
@@ -334,7 +341,9 @@ export default function PersonalizeApiDrivenPage() {
     try {
       const FRONTEND_PREVIEW = process.env.NEXT_PUBLIC_FRONTEND_PREVIEW === 'true' || mockParam === '1';
       if ((!photosData || photosData.length === 0) && FRONTEND_PREVIEW) {
-        photosData = ['/personalize/face.png'];
+        photosData = isMomBookPersonalize
+          ? ['/personalize/face.png', '/personalize/face.png']
+          : ['/personalize/face.png'];
       }
 
       const genderCode = genderRaw === 'boy' ? 1 : genderRaw === 'girl' ? 2 : 0;
@@ -398,7 +407,7 @@ export default function PersonalizeApiDrivenPage() {
             skincolor: skinColorCode,
             hairstyle: hairstyleCode,
             haircolor: hairColorCode,
-            photo: photosData[0] || '',
+            photo: (isMomBookPersonalize ? photosData[1] : photosData[0]) || '',
             photos: photosData,
             attributes: {
               skin_tone: mapSkinToBackend(skinColorRaw),
@@ -411,6 +420,7 @@ export default function PersonalizeApiDrivenPage() {
                     ...(characterTraitsOk ? { character_traits: characterTraits } : {}),
                   }
                 : {}),
+              ...buildPicbookPreviewFacePayload(bookId || '', photosData).faceAttributes,
             },
           },
         ],
@@ -460,6 +470,7 @@ export default function PersonalizeApiDrivenPage() {
         try {
           const ch: any = (userData as any)?.characters?.[0] || {};
           const faceImages = (Array.isArray(ch?.photos) ? ch.photos : (ch?.photo ? [ch.photo] : [])).filter(Boolean);
+          const fb = buildPicbookPreviewFacePayload(bookId || '', faceImages);
           const payload: any = {
             full_name: ch?.full_name || '',
             language: ch?.language || selectedLanguage || 'en',
@@ -468,9 +479,12 @@ export default function PersonalizeApiDrivenPage() {
             ...(String(ch?.giver_name || ch?.created_by || '').trim()
               ? { giver_name: String(ch?.giver_name || ch?.created_by || '').trim() }
               : {}),
-            attributes: ch?.attributes || {},
+            face_images: fb.face_images,
+            attributes: {
+              ...(ch?.attributes || {}),
+              ...fb.faceAttributes,
+            },
             texts: {},
-            face_images: faceImages,
           };
 
           const resp: any = await api.post<any>(
@@ -526,6 +540,10 @@ export default function PersonalizeApiDrivenPage() {
               Tell us a little more — we&apos;ll turn it into their story.
             </p>
           </div>
+        ) : isMomBookPersonalize && formType === 'SINGLE1' && currentStep === 2 ? (
+          <h1 className="text-[22px] leading-[28px] text-center pt-3 md:pt-0 md:my-6 my-0 text-[#222222]">
+            Upload photos of Mom and child
+          </h1>
         ) : (
           <h1 className="text-[22px] leading-[28px] text-center pt-3 md:pt-0 md:my-6 my-0">
             Tell Us About Your Child
