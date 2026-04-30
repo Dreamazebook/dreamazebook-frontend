@@ -7,16 +7,13 @@ import type {
 const R2_MOTHERS_DAY =
   'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/mothers-day'
 
-const R2_CHRISTMAS_BUNDLE_ASSETS = 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/christmas'
-
-// 与圣诞页同源的套餐图，按册数择近使用（母亲节专用主图可后续换 R2）
 const MD_IMG = {
-  threeClassic: `${R2_CHRISTMAS_BUNDLE_ASSETS}/bundle-storytime-classic.png`,
-  threePremium: `${R2_CHRISTMAS_BUNDLE_ASSETS}/bundle-storytime-premium.png`,
-  fourClassic: `${R2_CHRISTMAS_BUNDLE_ASSETS}/bundle-celebration-classic.png`,
-  fourPremium: `${R2_CHRISTMAS_BUNDLE_ASSETS}/bundle-celebration-premium.png`,
-  fiveClassic: `${R2_CHRISTMAS_BUNDLE_ASSETS}/bundle-celebration-classic.png`,
-  fivePremium: `${R2_CHRISTMAS_BUNDLE_ASSETS}/bundle-celebration-premium.png`,
+  threeClassic: `${R2_MOTHERS_DAY}/set-3-classic-hardcover.webp`,
+  threePremium: `${R2_MOTHERS_DAY}/set-3-premium-layflat.webp`,
+  fourClassic: `${R2_MOTHERS_DAY}/set-4-classic-hardcover.webp`,
+  fourPremium: `${R2_MOTHERS_DAY}/set-4-premium-layflat.webp`,
+  fiveClassic: `${R2_MOTHERS_DAY}/set-5-classic-hardcover.webp`,
+  fivePremium: `${R2_MOTHERS_DAY}/set-5-premium-layflat.webp`,
 } as const
 
 const mdBundle1Classic: Bundle = {
