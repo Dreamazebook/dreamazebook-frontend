@@ -105,7 +105,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
   ) => {
     const isBirthdayBook = isPicbookBirthday(bookId);
     const isMomBook = isPicbookMom(bookId);
-    const photoStep = isBirthdayBook ? 3 : 2;
+    /** 最后一页为上传图：生日书与 Mom 书均为第 3 步；中间步可插书别定制（Mom 第 2 步文案等） */
+    const photoStep = isBirthdayBook || isMomBook ? 3 : 2;
 
     const [formData, setFormData] = useState<PersonalizeFormData>({
       fullName: initialData?.fullName ?? '',
@@ -590,7 +591,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                 />
               )}
 
-              {isMomBook && currentStep === 3 && (
+              {isMomBook && currentStep === 2 && (
                 <div className="space-y-6">
                   <div id="field-momCallsMe">
                     <label className="block font-semibold text-[#222222] text-[16px] leading-[24px] tracking-[0.15px] mb-1">

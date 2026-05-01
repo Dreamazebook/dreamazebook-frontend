@@ -259,7 +259,7 @@ export default function PersonalizeApiDrivenPage() {
       }
 
       if (isMomBookPersonalize && currentStep === 2) {
-        const validationResult = form1Ref.current.validateForm({ scope: 'stepMomPhotos' });
+        const validationResult = form1Ref.current.validateForm({ scope: 'stepMomLove' });
         if (!validationResult.isValid) {
           setTimeout(() => scrollToErrorField(validationResult.firstErrorField), 100);
           return;
@@ -294,6 +294,10 @@ export default function PersonalizeApiDrivenPage() {
       return;
     }
     if (formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 2) {
+      handleNextStep();
+      return;
+    }
+    if (formType === 'SINGLE1' && isMomBookPersonalize && currentStep === 2) {
       handleNextStep();
       return;
     }
@@ -558,15 +562,15 @@ export default function PersonalizeApiDrivenPage() {
             </p>
           </div>
         ) : isMomBookPersonalize && formType === 'SINGLE1' && currentStep === 2 ? (
-          <h1 className="text-[22px] leading-[28px] text-center pt-3 md:pt-0 md:my-6 my-0 text-[#222222]">
-            Upload photos of Mom and child
-          </h1>
-        ) : isMomBookPersonalize && formType === 'SINGLE1' && currentStep === 3 ? (
           <h1 className="text-[28px] leading-[36px] text-center pt-3 md:pt-0 md:my-6 my-0 text-[#222222]">
             From your child, with love
           </h1>
+        ) : isMomBookPersonalize && formType === 'SINGLE1' && currentStep === 3 ? (
+          <h1 className="text-[28px] leading-[36px] text-center pt-3 md:pt-0 md:my-6 my-0 text-[#222222]">
+            Upload photos of Mom and child
+          </h1>
         ) : (
-          <h1 className="text-[22px] leading-[28px] text-center pt-3 md:pt-0 md:my-6 my-0">
+          <h1 className="text-[28px] leading-[36px] text-center pt-3 md:pt-0 md:my-6 my-0">
             Tell Us About Your Child
           </h1>
         )}

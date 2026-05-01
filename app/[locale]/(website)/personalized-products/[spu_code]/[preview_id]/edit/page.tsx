@@ -397,7 +397,7 @@ export default function EditPersonalizedProductPage() {
       }
 
       if (momBook && formType === 'SINGLE1' && currentStep === 2 && form1Ref.current) {
-        const validationResult = form1Ref.current.validateForm({ scope: 'stepMomPhotos' });
+        const validationResult = form1Ref.current.validateForm({ scope: 'stepMomLove' });
         if (!validationResult.isValid) {
           stop();
           return;
