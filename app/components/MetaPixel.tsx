@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import Script from 'next/script'
 
-const PIXEL_ID = '1762268274349138';
+const PIXEL_ID = '2031074071095770';
 
 const FacebookPixel = () => {
   return (

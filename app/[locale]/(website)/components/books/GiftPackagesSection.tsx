@@ -95,7 +95,7 @@ const GiftPackagesSection: React.FC<GiftPackagesSectionProps> = ({
 
               {/* CTA Button */}
               <Link 
-                href={BOOKS_URL} 
+                href={`/mothers-day#bundle-promo`} 
                 className="inline-flex cursor-pointer items-center gap-2 text-[#222222] hover:text-primary transition-colors group text-[16px]"
               >
                 <span>Choose Books</span>
