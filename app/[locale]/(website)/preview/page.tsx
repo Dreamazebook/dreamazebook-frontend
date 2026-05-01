@@ -3752,12 +3752,12 @@ export default function PreviewPageWithTopNav() {
     const bookIdUpper = (bookIdParam || bookId || '').toUpperCase();
     
     // 根据bookId判断书籍类型
-    let templateType: 'goodnight' | 'santa' | 'bravery' | 'birthday' | 'default' = 'default';
+    let templateType: 'goodnight' | 'santa' | 'bravery' | 'birthday' | 'mama' | 'default' = 'default';
     
     if (bookIdUpper.includes('GOODNIGHT')) {
       templateType = 'goodnight';
     } else if (bookIdUpper === 'PICBOOK_MOM') {
-      templateType = 'goodnight';
+      templateType = 'mama';
     } else if (bookIdUpper.includes('SANTA') || bookIdUpper.includes('SANTALETTER')) {
       templateType = 'santa';
     } else if (bookIdUpper.includes('BRAVE') || bookIdUpper.includes('BRAVEY')) {
@@ -3778,6 +3778,8 @@ export default function PreviewPageWithTopNav() {
           return `亲爱的${name}，\n  我为你不断尝试而感到骄傲，即使面对新事物或感到害怕时也是如此。\n  你拥有最温柔的心和最勇敢的精神——永远不要忘记你有多么了不起！`;
         case 'birthday':
           return `亲爱的${name}，\n  又一年充满欢笑、成长和喜悦的美好时光！\n  你让每一天都因为你的存在而变得特别。祝你生日快乐，愿未来的回忆充满魔法般的精彩。`;
+        case 'mama':
+          return `我最亲爱的妈妈——\n谢谢你无尽的爱、温暖的拥抱，以及你每天为我做的点点滴滴。\n你让我的世界感到安全、快乐，充满魔力。\n我爱你，千言万语也说不尽。💛`;
         default:
           return `亲爱的${name}，\n  这个世界充满了令人惊喜与奇妙的角落等待你去探索。愿你的每一天都充满发现、冒险与喜悦！`;
       }
@@ -3792,6 +3794,8 @@ export default function PreviewPageWithTopNav() {
           return `Dear ${name},\nI'm so proud of how you keep trying, even when things feel new or scary.\nYou have the gentlest heart and the bravest spirit — never forget how amazing you are!`;
         case 'birthday':
           return `Dear ${name},\nAnother wonderful year of laughter, growth, and joy!\nYou make every day special just by being you. Wishing you the happiest birthday and magical memories ahead.`;
+        case 'mama':
+          return `To my dearest mama —\nthank you for your endless love, your warm hugs, and all the little things you do every day.\nYou make my world feel safe, happy, and full of magic.\nI love you more than words can say. 💛`;
         default:
           return `Dear ${name},\n  The world is full of wonderful, surprising places to explore. May your days be full of discoveries, adventure and joy!`;
       }
