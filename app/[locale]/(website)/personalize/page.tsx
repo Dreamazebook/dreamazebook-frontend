@@ -556,21 +556,21 @@ export default function PersonalizeApiDrivenPage() {
       <div className="mx-auto pb-20 md:pb-0">
         {isBirthdayPersonalize && formType === 'SINGLE1' && currentStep === 2 ? (
           <div className="text-center pt-3 md:pt-0 md:my-6 my-0">
-            <h1 className="text-[28px] leading-[36px] text-[#222222]">Bring them to life</h1>
+            <h1 className="text-[22px] leading-[28px] md:text-[28px] md:leading-[36px] text-[#222222]">Bring them to life</h1>
             <p className="text-[#999999] text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] mt-2 max-w-xl mx-auto px-4">
               Tell us a little more — we&apos;ll turn it into their story.
             </p>
           </div>
         ) : isMomBookPersonalize && formType === 'SINGLE1' && currentStep === 2 ? (
-          <h1 className="text-[28px] leading-[36px] text-center pt-3 md:pt-0 md:my-6 my-0 text-[#222222]">
+          <h1 className="text-[22px] leading-[28px] md:text-[28px] md:leading-[36px] text-center pt-3 md:pt-0 md:my-6 my-0 text-[#222222]">
             From your child, with love
           </h1>
         ) : isMomBookPersonalize && formType === 'SINGLE1' && currentStep === 3 ? (
-          <h1 className="text-[28px] leading-[36px] text-center pt-3 md:pt-0 md:my-6 my-0 text-[#222222]">
+          <h1 className="text-[22px] leading-[28px] md:text-[28px] md:leading-[36px] text-center pt-3 md:pt-0 md:my-6 my-0 text-[#222222]">
             Upload photos of Mom and child
           </h1>
         ) : (
-          <h1 className="text-[28px] leading-[36px] text-center pt-3 md:pt-0 md:my-6 my-0">
+          <h1 className="text-[22px] leading-[28px] md:text-[28px] md:leading-[36px] text-center pt-3 md:pt-0 md:my-6 my-0">
             Tell Us About Your Child
           </h1>
         )}
