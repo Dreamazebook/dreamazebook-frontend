@@ -79,7 +79,7 @@ export default function MothersDayPage() {
       <RecipeSection />
       <AFewPagesMamaNeverForget />
 
-      <div className="bg-[#FCF2F2]">
+      <div className="bg-[#FCF2F2] overflow-hidden" id="bundle-promo">
         <BundlePromotionBlock {...MOTHERS_DAY_BUNDLE_PROMO} />
       </div>
     </main>
