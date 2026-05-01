@@ -935,7 +935,12 @@ export default function PreviewPageWithTopNav() {
         const cartRes = await api.get(API_CART_LIST) as any;
         // 修正：优先尝试 data.items，兼容旧的 data.cart_items
         const items = cartRes?.data?.items || cartRes?.data?.cart_items || cartRes?.cart_items || [];
-        const match = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
+        const fromCartItemIdParam = searchParams.get('fromCartItemId');
+        const matchByCartItemId = fromCartItemIdParam
+          ? items.find((ci: any) => String(ci.id) === String(fromCartItemIdParam))
+          : null;
+        const matchByPreviewId = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
+        const match = matchByCartItemId || matchByPreviewId;
         const pv = match?.preview;
         
         if (match) {
@@ -1288,7 +1293,12 @@ export default function PreviewPageWithTopNav() {
         const res = await api.get(API_CART_LIST) as any;
         const items = res?.data?.items || res?.data?.cart_items || res?.cart_items || [];
         if (!Array.isArray(items) || items.length === 0) return;
-        const match = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
+        const fromCartItemIdParam = searchParams.get('fromCartItemId');
+        const matchByCartItemId = fromCartItemIdParam
+          ? items.find((ci: any) => String(ci.id) === String(fromCartItemIdParam))
+          : null;
+        const matchByPreviewId = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
+        const match = matchByCartItemId || matchByPreviewId;
         const pv = match?.preview;
         if (!pv && !match) return;
 
