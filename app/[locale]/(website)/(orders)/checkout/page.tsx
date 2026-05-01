@@ -17,6 +17,10 @@ import { useCheckoutSteps } from "./hooks/useCheckoutSteps";
 import { useShippingAddress } from "./hooks/useShippingAddress";
 import { useShippingMethod } from "./hooks/useShippingMethod";
 import { CheckoutProvider } from "./context/CheckoutContext";
+import { fbTrack, getContentIdBySpu } from "@/utils/track";
+
+// Track InitiateCheckout only once per page load
+let initiateCheckoutTracked = false;
 
 function CheckoutPageContent() {
   const t = useTranslations("checkoutPage");
@@ -77,6 +81,24 @@ function CheckoutPageContent() {
         orderDetail.billing_address?.street
       ) {
         setNeedsBillingAddress(true);
+      }
+
+      // Track InitiateCheckout when checkout page loads
+      if (!initiateCheckoutTracked) {
+        initiateCheckoutTracked = true;
+        const content_ids = orderDetail.items.map((item: any) => getContentIdBySpu(item.spu_code)).filter(Boolean);
+        const contents = orderDetail.items.map((item: any) => ({
+          id: getContentIdBySpu(item.spu_code),
+          quantity: item.quantity || 1
+        })).filter(item => item.id);
+
+        fbTrack('InitiateCheckout', {
+          value: orderDetail.total_amount,
+          currency: 'USD',
+          content_ids,
+          content_type: 'product',
+          contents
+        });
       }
     }
   }, [orderDetail]);

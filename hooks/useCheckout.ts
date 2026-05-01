@@ -1,25 +1,48 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
-import { API_ORDER_CREATE } from '@/constants/api';
+import { API_ORDER_CREATE, API_CART_LIST } from '@/constants/api';
 import { ORDER_CHECKOUT_URL } from '@/constants/links';
-import useUserStore from '@/stores/userStore'
+import useUserStore from '@/stores/userStore';
+import { fbTrackCustom, getContentIdBySpu } from '@/utils/track';
 
 interface UseCheckoutProps {
   selectedItems: number[];
 }
 
+// Track CheckoutAttempt only once per session
+let checkoutAttemptTracked = false;
+
 export const useCheckout = ({ selectedItems }: UseCheckoutProps) => {
   const router = useRouter();
   const t = useTranslations('ShoppingCart');
 
-  const {openLoginModal} = useUserStore();
+  const {openLoginModal, isLoggedIn} = useUserStore();
   
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [paypalCheckoutLoading, setPaypalCheckoutLoading] = useState(false);
   const [error, setError] = useState<string | undefined>('');
+
+  // Helper to build tracking data from cart items
+  const getCartTrackingData = useCallback(async () => {
+    try {
+      const { data } = await api.get<ApiResponse<any>>(API_CART_LIST);
+      const items = data?.items || [];
+      const selectedCartItems = items.filter((item: any) => selectedItems.includes(item.id));
+      
+      const content_ids = selectedCartItems.map((item: any) => getContentIdBySpu(item.spu_code)).filter(Boolean);
+      const contents = selectedCartItems.map((item: any) => ({
+        id: getContentIdBySpu(item.spu_code),
+        quantity: item.quantity || 1
+      })).filter((item: { id?: string }) => item.id);
+
+      return { content_ids, contents };
+    } catch (err) {
+      return { content_ids: [], contents: [] };
+    }
+  }, [selectedItems]);
 
   const handleCheckout = async (paymentMethod: 'card' | 'paypal' = 'card') => {
     if (selectedItems.length === 0) {
@@ -42,6 +65,22 @@ export const useCheckout = ({ selectedItems }: UseCheckoutProps) => {
       
       if (success) {
         setError('');
+        
+        // Track CheckoutAttempt for guests (only once per session)
+        if (!isLoggedIn && !checkoutAttemptTracked) {
+          checkoutAttemptTracked = true;
+          const { content_ids, contents } = await getCartTrackingData();
+          const orderTotal = data.order?.total_amount || 0;
+          fbTrackCustom('CheckoutAttempt', {
+            is_logged_in: false,
+            value: orderTotal,
+            currency: 'USD',
+            content_ids,
+            content_type: 'product',
+            contents
+          });
+        }
+        
         router.push(ORDER_CHECKOUT_URL(data.order.id) + `&paymentMethod=${paymentMethod}`);
       } else if (code == 401) {
         return openLoginModal();
@@ -51,7 +90,7 @@ export const useCheckout = ({ selectedItems }: UseCheckoutProps) => {
       if (err?.status == 401) {
         return openLoginModal()
       }
-      setError('Almost there — tap “Create book” to continue ✨');
+      setError('Almost there — tap "Create book" to continue ✨');
     } finally {
       // Clear the appropriate loading state
       if (paymentMethod === 'paypal') {

@@ -17,6 +17,10 @@ import { isPicbookBirthday } from '@/utils/isPicbookBirthday';
 import { isPicbookMom } from '@/utils/isPicbookMom';
 import { formatBirthDateIso, mapPersonalityTraitIdsToCharacterTraits } from '@/utils/birthdayPersonalizeHelpers';
 import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
+import { fbTrack, getContentIdBySpu } from '@/utils/track';
+
+// Track ViewContent only once per page load
+let viewContentTracked = false;
 
 interface ApiResponse<T=any> { success: boolean; code: number; message: string; data: T }
 interface DetailedBook { character_count: number }
@@ -117,6 +121,24 @@ export default function EditPersonalizedProductPage() {
     fetchBook();
     return () => { ignore = true };
   }, [bookId]);
+
+  // Track ViewContent when editor page loads
+  useEffect(() => {
+    if (!viewContentTracked && !isLoading && formType) {
+      viewContentTracked = true;
+      const contentId = getContentIdBySpu(bookId);
+      
+      if (contentId) {
+        fbTrack('ViewContent', {
+          content_name: 'editor_open',
+          content_category: 'book',
+          content_ids: [contentId],
+          content_type: 'product',
+          contents: [{ id: contentId }]
+        });
+      }
+    }
+  }, [isLoading, formType, bookId]);
 
   // 从 preview/batches/{previewId} 或购物车中查找初始数据，用于回填个性化表单
   useEffect(() => {
