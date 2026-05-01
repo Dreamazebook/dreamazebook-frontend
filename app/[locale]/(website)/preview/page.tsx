@@ -12,6 +12,7 @@ import GiverDedicationCanvas from './components/GiverDedicationCanvas';
 import GiverAvatarCropper from './components/GiverAvatarCropper';
 import CoverNameCanvas from './components/CoverNameCanvas';
 import { DreamazeFaceSwapLoadingBar } from './components/DreamazeFaceSwapLoadingBar';
+import DreamazeLogoRainbowLoader from './components/DreamazeLogoRainbowLoader';
 import api from '@/utils/api';
 import echo from '@/app/config/echo';
 import { useTranslations, useLocale } from 'next-intl';
@@ -55,6 +56,20 @@ const normalizeCoverTexts = (json: any): Array<any> => {
 
 // 叠字后封面的 DataURL 缓存：避免每次进入 Tab 都重新用 Canvas 合成
 const coverComposedImageCache: Record<string, string> = {};
+
+const hasMeaningfulFinalImage = (page: any): boolean => {
+  const finalRaw = String(page?.final_image_url || '').trim();
+  if (!finalRaw) return false;
+  const imageRaw = String(page?.image_url || '').trim();
+  const baseRaw = String(page?.base_image_url || '').trim();
+  const compareBase = baseRaw || (imageRaw && imageRaw !== finalRaw ? imageRaw : '');
+  return !compareBase || finalRaw !== compareBase;
+};
+
+const getPreviewDisplayImageRaw = (page: any): string => {
+  if (hasMeaningfulFinalImage(page)) return String(page?.final_image_url || '');
+  return String(page?.base_image_url || page?.image_url || page?.final_image_url || '');
+};
 
 // 自定义图片组件，支持Next.js Image和原生img的回退
 const OptimizedImage = ({ src, alt, width, height, className, style, onError, onLoad, onLoadingComplete, fallbackSrc, ...props }: {
@@ -162,44 +177,6 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
 };
 
 // 通过全局注册组件 LdrsRegistry 统一注册，无需在此处重复注册
-
-// 使用 React.createElement 创建 l-mirage 组件（带降级方案，避免部分浏览器出现蓝色问号占位）
-const MirageLoader = ({ size = "60", speed = "2.5", color = "blue", style = {} }: {
-  size?: string;
-  speed?: string;
-  color?: string;
-  style?: React.CSSProperties;
-}) => {
-  const [isMirageReady, setIsMirageReady] = React.useState(false);
-  React.useEffect(() => {
-    try {
-      if (typeof window !== 'undefined' && 'customElements' in window) {
-        setIsMirageReady(!!customElements.get('l-mirage'));
-      }
-    } catch {}
-  }, []);
-
-  // 独立的 WebSocket 订阅：依赖 echo 和 user.id，确保用户信息晚到也能订阅
-  // 已移动到主组件中，避免在此处无法访问到 user 和页面状态
-
-  if (isMirageReady) {
-    return React.createElement('l-mirage', { size, speed, color, style });
-  }
-  // 降级到简易 CSS spinner，保证在不支持 web component 的环境下也有正常的加载态
-  const numericSize = parseInt(size, 10) || 60;
-  return (
-    <div
-      className="animate-spin rounded-full border-b-2"
-      style={{
-        width: numericSize,
-        height: numericSize,
-        borderColor: color,
-        ...style,
-      }}
-      aria-label="loading"
-    />
-  );
-};
 
 // Others 标签页中封面选项用的图片组件：
 // 如果当前封面在 R2 上存在 page_properties.json，则使用 Canvas 叠加名字；否则回退为普通图片
@@ -452,8 +429,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                     <DreamazeFaceSwapLoadingBar progress={progress} />
                   ) : (
                     <div className="text-center">
-                      <MirageLoader size="60" speed="2.5" color="blue" />
-                      <p className="text-gray-600 mt-2">loading...</p>
+                      <DreamazeLogoRainbowLoader size={60} />
                     </div>
                   )}
                 </div>
@@ -507,8 +483,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                     <DreamazeFaceSwapLoadingBar progress={progress} />
                   ) : (
                     <div className="text-center">
-                      <MirageLoader size="60" speed="2.5" color="blue" />
-                      <p className="text-gray-600 mt-2">loading...</p>
+                      <DreamazeLogoRainbowLoader size={60} />
                     </div>
                   )}
                 </div>
@@ -572,8 +547,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
               <DreamazeFaceSwapLoadingBar progress={progress} />
             ) : (
               <div className="text-center">
-                <MirageLoader size="60" speed="2.5" color="blue" />
-                <p className="text-gray-600 mt-2">loading...</p>
+                <DreamazeLogoRainbowLoader size={60} />
               </div>
             )}
           </div>
@@ -1640,7 +1614,7 @@ export default function PreviewPageWithTopNav() {
       const p = pages[i];
       const pid = Number(p.page_id);
       const hasBase = !!(p as any).base_image_url || !!p.image_url;
-      const hasFinal = !!(p as any).final_image_url;
+      const hasFinal = hasMeaningfulFinalImage(p);
 
       if (hasFinal) {
         // 本页完成：清理定时器并置 100
@@ -4058,8 +4032,7 @@ export default function PreviewPageWithTopNav() {
                     <div className="relative w-full max-w-[400px]">
                       {isCoverLoading && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-lg z-10">
-                          <MirageLoader size="60" speed="2.5" color="blue" />
-                          <p className="text-gray-600 mt-2">loading...</p>
+                          <DreamazeLogoRainbowLoader size={60} />
                         </div>
                       )}
                       <OptimizedImage
@@ -4084,8 +4057,7 @@ export default function PreviewPageWithTopNav() {
                     <div className="relative w-full max-w-[400px]">
                       {isLoadingBookInfo && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-lg z-10">
-                          <MirageLoader size="60" speed="2.5" color="blue" />
-                          <p className="text-gray-600 mt-2">loading...</p>
+                          <DreamazeLogoRainbowLoader size={60} />
                         </div>
                       )}
                       <Image
@@ -4172,7 +4144,7 @@ export default function PreviewPageWithTopNav() {
                     const hasSwap = !!page.has_face_swap;
                     // 后端不再返回 base_only：以字段是否存在来判断
                     const hasBase = !!(page as any).base_image_url || !!page.image_url;
-                    const hasFinal = !!(page as any).final_image_url;
+                    const hasFinal = hasMeaningfulFinalImage(page);
                     const pageFailed = String((page as any).status || '').toLowerCase() === 'failed';
                     // 换脸页失败：不要无限 loading，用 PageRenderFailedOverlay
                     const needsProcessingOverlay = hasSwap && hasBase && !hasFinal && !pageFailed;
@@ -4180,10 +4152,7 @@ export default function PreviewPageWithTopNav() {
                     const progress = Math.round(pageProgress[page.page_id] ?? 0);
                     // 展示策略：当 final 与 base/image 不同（说明最终图已更新）时优先展示 final；
                     // 否则展示 base/image（例如 create 流程里 final 可能为空或等同于 base）
-                    const baseOrImageUrlRaw = (page as any).image_url || (page as any).base_image_url || '';
-                    const finalUrlRaw = (page as any).final_image_url || '';
-                    const preferFinal = !!finalUrlRaw && !!baseOrImageUrlRaw && String(finalUrlRaw).trim() !== String(baseOrImageUrlRaw).trim();
-                    const displayUrlRaw = preferFinal ? finalUrlRaw : (baseOrImageUrlRaw || finalUrlRaw || '');
+                    const displayUrlRaw = getPreviewDisplayImageRaw(page);
                     const src = buildImageUrl(String(displayUrlRaw || ''));
                     const isReplaceablePage = replaceableTextPageIds.has(page.page_id) || replaceableTextPageNumbers.has(page.page_number);
                     // 仅在 p3-4（有的书返回 p3-p4）页面渲染 Giver & Dedication
@@ -4194,14 +4163,10 @@ export default function PreviewPageWithTopNav() {
 
                       // p3-4 展示策略同上：只有当 final 与 base/image 不同，才默认展示 final。
                       // 这样 edited book 能展示历史最终图；create book（final==base 或无 final）则会走 Canvas 展示默认寄语。
-                      const p34FinalRaw = (page as any).final_image_url || '';
-                      const p34BaseOrImageRaw = (page as any).image_url || (page as any).base_image_url || '';
-                      const p34PreferFinal =
-                        isGiverDedicationPage &&
-                        !!p34FinalRaw &&
-                        !!p34BaseOrImageRaw &&
-                        String(p34FinalRaw).trim() !== String(p34BaseOrImageRaw).trim();
-                      const p34FinalSrc = p34PreferFinal ? buildImageUrl(String(p34FinalRaw || '')) : null;
+                      const p34FinalSrc =
+                        isGiverDedicationPage && hasMeaningfulFinalImage(page)
+                          ? buildImageUrl(String((page as any).final_image_url || ''))
+                          : null;
                       // p3-4 分层模型：
                       // - 底图：只使用 base_stage_url（后端 base stage 纯底图）。
                       const p34TemplateRaw = isGiverDedicationPage
@@ -4232,7 +4197,7 @@ export default function PreviewPageWithTopNav() {
 
                       // 单页模式：p3-4 默认展示 final；编辑时切换到 Canvas
                       if (isGiverDedicationPage && viewMode === 'single') {
-                        if (pageFailed) {
+                        if (isSwapping || pageFailed) {
                           return (
                             <div key={page.page_id} ref={giverRef} className="w-full flex flex-col items-center">
                               <div className="w-full max-w-5xl">
@@ -4241,9 +4206,9 @@ export default function PreviewPageWithTopNav() {
                                   pageNumber={page.page_number}
                                   src={src}
                                   viewMode="single"
-                                  showOverlay
-                                  progress={0}
-                                  overlayMode="failed"
+                                  showOverlay={isSwapping || pageFailed}
+                                  progress={progress}
+                                  overlayMode={overlayMode as any}
                                   content={page.content}
                                   onImageLoaded={(loadedPageId) => {
                                     if (pageIdForStoryComingHide && loadedPageId === pageIdForStoryComingHide) {
@@ -4503,14 +4468,17 @@ export default function PreviewPageWithTopNav() {
                             const code = String((p as any)?.page_code || '').toLowerCase().replace(/-/g, '_');
                             return code === target;
                           });
-                          const raw =
-                            (coverPage as any)?.final_image_url ||
-                            (coverPage as any)?.image_url ||
-                            (coverPage as any)?.base_image_url ||
-                            '';
+                          const raw = coverPage ? getPreviewDisplayImageRaw(coverPage) : '';
                           const backendSrc = raw ? buildImageUrl(String(raw)) : '';
                           // 以 cover_1 的真实宽高比为准，确保 cover_3/4 与 cover_1 同高
                           const ratio = coverThumbAspectRatio ?? (cropRightHalf ? 2 : 1);
+                          const coverHasSwap = !!(coverPage as any)?.has_face_swap;
+                          const coverHasBase = !!(coverPage as any)?.base_image_url || !!(coverPage as any)?.image_url;
+                          const coverFailed = String((coverPage as any)?.status || '').toLowerCase() === 'failed';
+                          const coverNeedsOverlay =
+                            coverHasSwap && coverHasBase && !hasMeaningfulFinalImage(coverPage) && !coverFailed;
+                          const coverProgress = coverPage ? Math.round(pageProgress[(coverPage as any).page_id] ?? 0) : 0;
+                          const coverOverlayMode = coverFailed ? 'failed' : (coverProgress > 0 ? 'progress' : 'loading');
 
                           if (!backendSrc) {
                             return (
@@ -4519,8 +4487,7 @@ export default function PreviewPageWithTopNav() {
                                 style={{ aspectRatio: String(ratio) }}
                               >
                                 <div className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center gap-2">
-                                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
-                                  <p className="text-sm text-gray-600">loading...</p>
+                                  <DreamazeLogoRainbowLoader size={42} />
                                 </div>
                               </div>
                             );
@@ -4538,6 +4505,24 @@ export default function PreviewPageWithTopNav() {
                                 height={200}
                                 className="absolute inset-0 h-full w-full object-cover object-right"
                               />
+                              {(coverNeedsOverlay || coverFailed) && (
+                                <div
+                                  className="absolute inset-0 z-10 flex items-center justify-center bg-white/70"
+                                  style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}
+                                >
+                                  {coverOverlayMode === 'failed' ? (
+                                    <PageRenderFailedOverlay message={t('pageRenderFailedMessage')} />
+                                  ) : coverOverlayMode === 'progress' ? (
+                                    <div className="scale-[0.7]">
+                                      <DreamazeFaceSwapLoadingBar progress={coverProgress} />
+                                    </div>
+                                  ) : (
+                                    <div className="text-center">
+                                      <DreamazeLogoRainbowLoader size={42} />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           );
                         }
