@@ -257,6 +257,17 @@ export default function PersonalizeApiDrivenPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
+
+      if (isMomBookPersonalize && currentStep === 2) {
+        const validationResult = form1Ref.current.validateForm({ scope: 'stepMomPhotos' });
+        if (!validationResult.isValid) {
+          setTimeout(() => scrollToErrorField(validationResult.firstErrorField), 100);
+          return;
+        }
+        setCurrentStep(3);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
     } else if (formType === 'SINGLE2') {
       if (useForm3 && form3Ref.current) {
         const validationResult = form3Ref.current.validateForm({ scope: 'step1' });
@@ -420,6 +431,12 @@ export default function PersonalizeApiDrivenPage() {
                     ...(characterTraitsOk ? { character_traits: characterTraits } : {}),
                   }
                 : {}),
+              ...(isMomBookPersonalize && f1
+                ? {
+                    mom_calls_me: String(f1.momCallsMe ?? '').trim(),
+                    mom_makes_best: String(f1.momMakesBest ?? '').trim(),
+                  }
+                : {}),
               ...buildPicbookPreviewFacePayload(bookId || '', photosData).faceAttributes,
             },
           },
@@ -544,6 +561,10 @@ export default function PersonalizeApiDrivenPage() {
           <h1 className="text-[22px] leading-[28px] text-center pt-3 md:pt-0 md:my-6 my-0 text-[#222222]">
             Upload photos of Mom and child
           </h1>
+        ) : isMomBookPersonalize && formType === 'SINGLE1' && currentStep === 3 ? (
+          <h1 className="text-[28px] leading-[36px] text-center pt-3 md:pt-0 md:my-6 my-0 text-[#222222]">
+            From your child, with love
+          </h1>
         ) : (
           <h1 className="text-[22px] leading-[28px] text-center pt-3 md:pt-0 md:my-6 my-0">
             Tell Us About Your Child
@@ -606,7 +627,8 @@ export default function PersonalizeApiDrivenPage() {
         {/* 桌面端按钮 */}
         <div className="hidden md:flex justify-center">
           {(currentStep === 1 && (formType === 'SINGLE1' || (formType === 'SINGLE2' && useForm3))) ||
-          (formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 2) ? (
+          (formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 2) ||
+          (formType === 'SINGLE1' && isMomBookPersonalize && currentStep === 2) ? (
             <button
               type="button"
               onClick={handleNextStep}
@@ -617,7 +639,11 @@ export default function PersonalizeApiDrivenPage() {
                 ? 'Next Step (1/3)'
                 : formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 2
                   ? 'Next Step (2/3)'
-                  : 'Next Step (1/2)'}
+                  : formType === 'SINGLE1' && isMomBookPersonalize && currentStep === 1
+                    ? 'Next Step (1/3)'
+                    : formType === 'SINGLE1' && isMomBookPersonalize && currentStep === 2
+                      ? 'Next Step (2/3)'
+                      : 'Next Step (1/2)'}
             </button>
           ) : (
             <button
@@ -646,7 +672,8 @@ export default function PersonalizeApiDrivenPage() {
       <div className={`fixed bottom-0 left-0 right-0 bg-[#F8F8F8] z-50 md:hidden border-t border-gray-200 transition-transform duration-300 ${isAddingImage ? 'translate-y-full' : ''}`}>
         <div className="flex items-center justify-center h-[76px] px-[12px] py-[16px] gap-[10px]">
           {(currentStep === 1 && (formType === 'SINGLE1' || (formType === 'SINGLE2' && useForm3))) ||
-          (formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 2) ? (
+          (formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 2) ||
+          (formType === 'SINGLE1' && isMomBookPersonalize && currentStep === 2) ? (
             <button
               type="button"
               onClick={handleNextStep}
@@ -656,7 +683,11 @@ export default function PersonalizeApiDrivenPage() {
                 ? 'Next Step (1/3)'
                 : formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 2
                   ? 'Next Step (2/3)'
-                  : 'Next Step (1/2)'}
+                  : formType === 'SINGLE1' && isMomBookPersonalize && currentStep === 1
+                    ? 'Next Step (1/3)'
+                    : formType === 'SINGLE1' && isMomBookPersonalize && currentStep === 2
+                      ? 'Next Step (2/3)'
+                      : 'Next Step (1/2)'}
             </button>
           ) : (
             <button
