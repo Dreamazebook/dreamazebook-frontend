@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import type { CSSProperties } from 'react';
 
 /** 灰字轨（半透明白/黑叠色） */
 const LOADING_SVG = '/images/preview/DREAMAZE-loading.svg';
@@ -21,8 +22,53 @@ type Props = {
   progress: number;
 };
 
+type WordmarkProps = {
+  className?: string;
+  style?: CSSProperties;
+};
+
 /**
- * 换脸进度：灰色字轨来自 DREAMAZE-loading.svg；彩色层用不透明剪影作 mask（data URL），避免半透轨道把颜色压灰。
+ * 等待态：只显示彩虹映射到 DREAMAZE 轮廓内的横向循环流动，不渲染灰色字轨/浮雕底图。
+ */
+export function DreamazeWordmarkRainbowLoader({ className = '', style }: WordmarkProps) {
+  const maskImage = useMemo(() => `url("${buildSilhouetteMaskDataUrl()}")`, []);
+
+  return (
+    <>
+      <style>{`
+        @keyframes dreamaze-wordmark-rainbow-flow {
+          0% { background-position: 200% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+      `}</style>
+      <div
+        className={`relative inline-block h-[29px] max-w-full leading-none ${className}`}
+        style={style}
+      >
+        <div
+          className="pointer-events-none absolute inset-0 motion-reduce:animate-none"
+          style={{
+            animation: 'dreamaze-wordmark-rainbow-flow 3.5s linear infinite',
+            backgroundImage: FLOW_GRADIENT,
+            backgroundSize: '300% 100%',
+            WebkitMaskImage: maskImage,
+            maskImage,
+            WebkitMaskSize: '100% 100%',
+            maskSize: '100% 100%',
+            WebkitMaskRepeat: 'no-repeat',
+            maskRepeat: 'no-repeat',
+            WebkitMaskPosition: 'center',
+            maskPosition: 'center',
+          }}
+          aria-hidden
+        />
+      </div>
+    </>
+  );
+}
+
+/**
+ * 换脸进度：保持原进度效果，灰色字轨 + 已完成部分的流动彩虹映射。
  */
 export function DreamazeFaceSwapLoadingBar({ progress }: Props) {
   const pct = Math.min(100, Math.max(0, Math.round(progress)));
@@ -48,7 +94,7 @@ export function DreamazeFaceSwapLoadingBar({ progress }: Props) {
             backgroundImage: FLOW_GRADIENT,
             backgroundSize: '200% 100%',
             WebkitMaskImage: maskImage,
-            maskImage: maskImage,
+            maskImage,
             WebkitMaskSize: '100% 100%',
             maskSize: '100% 100%',
             WebkitMaskRepeat: 'no-repeat',
@@ -61,7 +107,7 @@ export function DreamazeFaceSwapLoadingBar({ progress }: Props) {
           aria-hidden
         />
       </div>
-      <p className="text-gray-700 mt-2 text-sm">{pct}%</p>
+      <p className="mt-2 text-sm text-gray-700">{pct}%</p>
     </div>
   );
 }

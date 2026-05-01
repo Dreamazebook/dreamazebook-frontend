@@ -12,6 +12,7 @@ import GiverDedicationCanvas from './components/GiverDedicationCanvas';
 import GiverAvatarCropper from './components/GiverAvatarCropper';
 import CoverNameCanvas from './components/CoverNameCanvas';
 import { DreamazeFaceSwapLoadingBar } from './components/DreamazeFaceSwapLoadingBar';
+import DreamazeLogoRainbowLoader from './components/DreamazeLogoRainbowLoader';
 import api from '@/utils/api';
 import echo from '@/app/config/echo';
 import { useTranslations, useLocale } from 'next-intl';
@@ -161,44 +162,6 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
 };
 
 // 通过全局注册组件 LdrsRegistry 统一注册，无需在此处重复注册
-
-// 使用 React.createElement 创建 l-mirage 组件（带降级方案，避免部分浏览器出现蓝色问号占位）
-const MirageLoader = ({ size = "60", speed = "2.5", color = "blue", style = {} }: {
-  size?: string;
-  speed?: string;
-  color?: string;
-  style?: React.CSSProperties;
-}) => {
-  const [isMirageReady, setIsMirageReady] = React.useState(false);
-  React.useEffect(() => {
-    try {
-      if (typeof window !== 'undefined' && 'customElements' in window) {
-        setIsMirageReady(!!customElements.get('l-mirage'));
-      }
-    } catch {}
-  }, []);
-
-  // 独立的 WebSocket 订阅：依赖 echo 和 user.id，确保用户信息晚到也能订阅
-  // 已移动到主组件中，避免在此处无法访问到 user 和页面状态
-
-  if (isMirageReady) {
-    return React.createElement('l-mirage', { size, speed, color, style });
-  }
-  // 降级到简易 CSS spinner，保证在不支持 web component 的环境下也有正常的加载态
-  const numericSize = parseInt(size, 10) || 60;
-  return (
-    <div
-      className="animate-spin rounded-full border-b-2"
-      style={{
-        width: numericSize,
-        height: numericSize,
-        borderColor: color,
-        ...style,
-      }}
-      aria-label="loading"
-    />
-  );
-};
 
 // Others 标签页中封面选项用的图片组件：
 // 如果当前封面在 R2 上存在 page_properties.json，则使用 Canvas 叠加名字；否则回退为普通图片
@@ -451,8 +414,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                     <DreamazeFaceSwapLoadingBar progress={progress} />
                   ) : (
                     <div className="text-center">
-                      <MirageLoader size="60" speed="2.5" color="blue" />
-                      <p className="text-gray-600 mt-2">loading...</p>
+                      <DreamazeLogoRainbowLoader size={60} />
                     </div>
                   )}
                 </div>
@@ -506,8 +468,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                     <DreamazeFaceSwapLoadingBar progress={progress} />
                   ) : (
                     <div className="text-center">
-                      <MirageLoader size="60" speed="2.5" color="blue" />
-                      <p className="text-gray-600 mt-2">loading...</p>
+                      <DreamazeLogoRainbowLoader size={60} />
                     </div>
                   )}
                 </div>
@@ -571,8 +532,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
               <DreamazeFaceSwapLoadingBar progress={progress} />
             ) : (
               <div className="text-center">
-                <MirageLoader size="60" speed="2.5" color="blue" />
-                <p className="text-gray-600 mt-2">loading...</p>
+                <DreamazeLogoRainbowLoader size={60} />
               </div>
             )}
           </div>
@@ -4033,8 +3993,7 @@ export default function PreviewPageWithTopNav() {
                     <div className="relative w-full max-w-[400px]">
                       {isCoverLoading && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-lg z-10">
-                          <MirageLoader size="60" speed="2.5" color="blue" />
-                          <p className="text-gray-600 mt-2">loading...</p>
+                          <DreamazeLogoRainbowLoader size={60} />
                         </div>
                       )}
                       <OptimizedImage
@@ -4059,8 +4018,7 @@ export default function PreviewPageWithTopNav() {
                     <div className="relative w-full max-w-[400px]">
                       {isLoadingBookInfo && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-lg z-10">
-                          <MirageLoader size="60" speed="2.5" color="blue" />
-                          <p className="text-gray-600 mt-2">loading...</p>
+                          <DreamazeLogoRainbowLoader size={60} />
                         </div>
                       )}
                       <Image
