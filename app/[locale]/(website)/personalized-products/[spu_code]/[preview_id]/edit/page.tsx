@@ -14,8 +14,13 @@ import SingleCharacterForm1, { SingleCharacterForm1Handle } from '@/app/[locale]
 import SingleCharacterForm2, { SingleCharacterForm2Handle } from '@/app/[locale]/(website)/components/personalize/SingleCharacterForm2';
 import usePreviewStore from '@/stores/previewStore';
 import { isPicbookBirthday } from '@/utils/isPicbookBirthday';
+import { isPicbookMom } from '@/utils/isPicbookMom';
 import { formatBirthDateIso, mapPersonalityTraitIdsToCharacterTraits } from '@/utils/birthdayPersonalizeHelpers';
 import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
+import { fbTrack, getContentIdBySpu } from '@/utils/track';
+
+// Track ViewContent only once per page load
+let viewContentTracked = false;
 
 interface ApiResponse<T=any> { success: boolean; code: number; message: string; data: T }
 interface DetailedBook { character_count: number }
@@ -62,6 +67,7 @@ export default function EditPersonalizedProductPage() {
   const router = useRouter();
   const bookId = params.spu_code as string;
   const birthdayBook = isPicbookBirthday(bookId);
+  const momBook = isPicbookMom(bookId);
   const previewId = params.preview_id as string; // preview_id 是 UUID 字符串，不是数字
   const currentLang = (pathname.match(/^\/(en|zh|fr)\b/)?.[1] as 'en'|'zh'|'fr') || 'en';
 
@@ -115,6 +121,24 @@ export default function EditPersonalizedProductPage() {
     fetchBook();
     return () => { ignore = true };
   }, [bookId]);
+
+  // Track ViewContent when editor page loads
+  useEffect(() => {
+    if (!viewContentTracked && !isLoading && formType) {
+      viewContentTracked = true;
+      const contentId = getContentIdBySpu(bookId);
+      
+      if (contentId) {
+        fbTrack('ViewContent', {
+          content_name: 'editor_open',
+          content_category: 'book',
+          content_ids: [contentId],
+          content_type: 'product',
+          contents: [{ id: contentId }]
+        });
+      }
+    }
+  }, [isLoading, formType, bookId]);
 
   // 从 preview/batches/{previewId} 或购物车中查找初始数据，用于回填个性化表单
   useEffect(() => {
@@ -180,6 +204,8 @@ export default function EditPersonalizedProductPage() {
             photos: faceImages,
             ...(hairstyle ? { hairstyle } : {}),
             ...(hairColor ? { hairColor } : {}),
+            ...(typeof attrs.mom_calls_me === 'string' ? { momCallsMe: attrs.mom_calls_me } : {}),
+            ...(typeof attrs.mom_makes_best === 'string' ? { momMakesBest: attrs.mom_makes_best } : {}),
           });
 
           const lang = batch.language;
@@ -267,6 +293,7 @@ export default function EditPersonalizedProductPage() {
           }
         }
 
+        const cartAttrs = (p as any)?.attributes || (item as any)?.attributes || {};
         setInitialData({
           fullName: p?.recipient_name || p?.full_name || (item as any)?.full_name || '',
           gender,
@@ -277,6 +304,8 @@ export default function EditPersonalizedProductPage() {
           // 预填hairstyle和hairColor（如果存在）
           ...(hairstyle ? { hairstyle } : {}),
           ...(hairColor ? { hairColor } : {}),
+          ...(typeof cartAttrs.mom_calls_me === 'string' ? { momCallsMe: cartAttrs.mom_calls_me } : {}),
+          ...(typeof cartAttrs.mom_makes_best === 'string' ? { momMakesBest: cartAttrs.mom_makes_best } : {}),
         });
         
         const lang = p?.language || (item as any)?.language || (item as any)?.attributes?.language;
@@ -321,7 +350,7 @@ export default function EditPersonalizedProductPage() {
   const renderForm = () => {
     if (isLoading) return <SkeletonLoader />;
     if (!formType) return null;
-    const form1Asset = birthdayBook ? 'PICBOOK_BIRTHDAY' : 'PICBOOK_GOODNIGHT';
+    const form1Asset = birthdayBook ? 'PICBOOK_BIRTHDAY' : momBook ? 'PICBOOK_MOM' : 'PICBOOK_GOODNIGHT';
     if (formType === 'SINGLE1')
       return (
         <SingleCharacterForm1
@@ -379,6 +408,18 @@ export default function EditPersonalizedProductPage() {
 
       if (birthdayBook && formType === 'SINGLE1' && currentStep === 2 && form1Ref.current) {
         const validationResult = form1Ref.current.validateForm({ scope: 'stepBirthday' });
+        if (!validationResult.isValid) {
+          stop();
+          return;
+        }
+        setCurrentStep(3);
+        window.scrollTo(0, 0);
+        stop();
+        return;
+      }
+
+      if (momBook && formType === 'SINGLE1' && currentStep === 2 && form1Ref.current) {
+        const validationResult = form1Ref.current.validateForm({ scope: 'stepMomLove' });
         if (!validationResult.isValid) {
           stop();
           return;
@@ -551,6 +592,12 @@ export default function EditPersonalizedProductPage() {
                 ...(characterTraitsOk ? { character_traits: characterTraits } : {}),
               }
             : {}),
+          ...(momBook && form1Snap
+            ? {
+                mom_calls_me: String(form1Snap.momCallsMe ?? '').trim(),
+                mom_makes_best: String(form1Snap.momMakesBest ?? '').trim(),
+              }
+            : {}),
           ...fb.faceAttributes,
         },
         texts: {},
@@ -625,6 +672,8 @@ export default function EditPersonalizedProductPage() {
               e.preventDefault();
               if (birthdayBook && currentStep === 3) {
                 setCurrentStep(2);
+              } else if (momBook && currentStep === 3) {
+                setCurrentStep(2);
               } else if (currentStep === 2) {
                 setCurrentStep(1);
               } else {
@@ -651,6 +700,8 @@ export default function EditPersonalizedProductPage() {
             e.preventDefault();
             if (birthdayBook && currentStep === 3) {
               setCurrentStep(2);
+            } else if (momBook && currentStep === 3) {
+              setCurrentStep(2);
             } else if (currentStep === 2) {
               setCurrentStep(1);
             } else {
@@ -660,7 +711,9 @@ export default function EditPersonalizedProductPage() {
           className="hidden sm:flex items-center text-sm cursor-pointer"
         >
           <span className="mr-2">←</span>{' '}
-          {currentStep === 2 || (birthdayBook && currentStep === 3) ? 'Back' : 'Back to shopping cart'}
+          {currentStep === 2 || (birthdayBook && currentStep === 3) || (momBook && currentStep === 3)
+            ? 'Back'
+            : 'Back to shopping cart'}
         </a>
       </div>
 

@@ -24,10 +24,13 @@ export interface PersonalizeFormData extends BasicInfoData {
   /** PICBOOK_BIRTHDAY：生日与特质 */
   birthDate?: Date | null;
   personalityTraitIds?: string[];
+  /** PICBOOK_MOM：孩子视角文案 */
+  momCallsMe?: string;
+  momMakesBest?: string;
 }
 
 export interface SingleCharacterForm1Handle {
-  validateForm: (options?: { scope?: 'step1' | 'stepBirthday' | 'all' }) => {
+  validateForm: (options?: { scope?: 'step1' | 'stepBirthday' | 'stepMomLove' | 'stepMomPhotos' | 'all' }) => {
     isValid: boolean;
     firstErrorField: string | null;
   };
@@ -49,6 +52,8 @@ interface FormErrors {
   consent?: string;
   birthDate?: string;
   personalityTraits?: string;
+  momCallsMe?: string;
+  momMakesBest?: string;
 }
 
 interface SingleCharacterForm1Props {
@@ -64,6 +69,8 @@ interface SingleCharacterForm1Props {
     photos?: string[];
     birthDate?: string;
     personalityTraitIds?: string[];
+    momCallsMe?: string;
+    momMakesBest?: string;
   };
   bookId?: string;
   defaultConsentChecked?: boolean;
@@ -98,7 +105,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
   ) => {
     const isBirthdayBook = isPicbookBirthday(bookId);
     const isMomBook = isPicbookMom(bookId);
-    const photoStep = isBirthdayBook ? 3 : 2;
+    /** 最后一页为上传图：生日书与 Mom 书均为第 3 步；中间步可插书别定制（Mom 第 2 步文案等） */
+    const photoStep = isBirthdayBook || isMomBook ? 3 : 2;
 
     const [formData, setFormData] = useState<PersonalizeFormData>({
       fullName: initialData?.fullName ?? '',
@@ -116,6 +124,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       personalityTraitIds: initialData?.personalityTraitIds?.length
         ? [...initialData.personalityTraitIds]
         : [],
+      momCallsMe: initialData?.momCallsMe ?? '',
+      momMakesBest: initialData?.momMakesBest ?? '',
     });
     const [errors, setErrors] = useState<FormErrors>({});
     const [touched, setTouched] = useState<{ [K in keyof PersonalizeFormData]?: boolean }>({});
@@ -389,6 +399,15 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       }
     };
 
+    const runMomLoveValidation = (form: PersonalizeFormData, newErrors: FormErrors) => {
+      if (!String(form.momCallsMe || '').trim()) {
+        newErrors.momCallsMe = 'Please add what Mama calls them';
+      }
+      if (!String(form.momMakesBest || '').trim()) {
+        newErrors.momMakesBest = 'Please add what Mama makes best';
+      }
+    };
+
     const runFinalValidation = (form: PersonalizeFormData, newErrors: FormErrors) => {
       if (isMomBook) {
         const [m, c] = getMomChildPaths();
@@ -403,7 +422,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     };
 
     useImperativeHandle(ref, () => ({
-      validateForm(options?: { scope?: 'step1' | 'stepBirthday' | 'all' }) {
+      validateForm(options?: { scope?: 'step1' | 'stepBirthday' | 'stepMomLove' | 'stepMomPhotos' | 'all' }) {
         const scope = options?.scope ?? 'all';
         const newErrors: FormErrors = {};
         const nextTouched: { [K in keyof PersonalizeFormData]?: boolean } = {
@@ -424,12 +443,26 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
           if (n !== BIRTHDAY_TRAITS_REQUIRED) {
             setTraitsHintFlashNonce(v => v + 1);
           }
+        } else if (scope === 'stepMomLove') {
+          nextTouched.momCallsMe = true;
+          nextTouched.momMakesBest = true;
+          runMomLoveValidation(formData, newErrors);
+        } else if (scope === 'stepMomPhotos') {
+          nextTouched.photo = true;
+          nextTouched.relationship = true;
+          nextTouched.consent = true;
+          runFinalValidation(formData, newErrors);
         } else {
           runStep1Validation(formData, newErrors);
           if (isBirthdayBook) {
             nextTouched.birthDate = true;
             nextTouched.personalityTraitIds = true;
             runBirthdayValidation(formData, newErrors);
+          }
+          if (isMomBook) {
+            nextTouched.momCallsMe = true;
+            nextTouched.momMakesBest = true;
+            runMomLoveValidation(formData, newErrors);
           }
           nextTouched.photo = true;
           nextTouched.relationship = true;
@@ -556,6 +589,58 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                   traitsTouched={touched.personalityTraitIds}
                   traitsSelectHintFlashNonce={traitsHintFlashNonce}
                 />
+              )}
+
+              {isMomBook && currentStep === 2 && (
+                <div className="space-y-6">
+                  <div id="field-momCallsMe">
+                    <label className="block font-semibold text-[#222222] text-[16px] leading-[24px] tracking-[0.15px] mb-1">
+                      Mama calls me
+                    </label>
+                    <p className="text-[#999999] text-[14px] leading-[20px] mb-2">
+                      lily, sweetie pie, little bear...
+                    </p>
+                    <input
+                      type="text"
+                      value={formData.momCallsMe ?? ''}
+                      onChange={e => {
+                        setFormData(prev => ({ ...prev, momCallsMe: e.target.value }));
+                        setTouched(prev => ({ ...prev, momCallsMe: true }));
+                        setErrors(prev => ({ ...prev, momCallsMe: '' }));
+                      }}
+                      onBlur={() => setTouched(prev => ({ ...prev, momCallsMe: true }))}
+                      className="w-full px-3 py-2.5 border border-[#E5E5E5] rounded text-[#222222] text-[16px] focus:outline-none focus:border-[#012CCE]"
+                      autoComplete="off"
+                    />
+                    {touched.momCallsMe && errors.momCallsMe && (
+                      <p className="text-red-500 text-sm mt-1">{errors.momCallsMe}</p>
+                    )}
+                  </div>
+                  <div id="field-momMakesBest">
+                    <label className="block text-[#222222] text-[16px] leading-[24px] tracking-[0.15px] mb-1">
+                      <span className="font-semibold">Mama makes the best</span>
+                      <span className="font-normal text-[#999999]"> (1–3 words works best)</span>
+                    </label>
+                    <p className="text-[#999999] text-[14px] leading-[20px] mb-2">
+                      pancakes, stories, lego...
+                    </p>
+                    <input
+                      type="text"
+                      value={formData.momMakesBest ?? ''}
+                      onChange={e => {
+                        setFormData(prev => ({ ...prev, momMakesBest: e.target.value }));
+                        setTouched(prev => ({ ...prev, momMakesBest: true }));
+                        setErrors(prev => ({ ...prev, momMakesBest: '' }));
+                      }}
+                      onBlur={() => setTouched(prev => ({ ...prev, momMakesBest: true }))}
+                      className="w-full px-3 py-2.5 border border-[#E5E5E5] rounded text-[#222222] text-[16px] focus:outline-none focus:border-[#012CCE]"
+                      autoComplete="off"
+                    />
+                    {touched.momMakesBest && errors.momMakesBest && (
+                      <p className="text-red-500 text-sm mt-1">{errors.momMakesBest}</p>
+                    )}
+                  </div>
+                </div>
               )}
 
               {currentStep === photoStep && (

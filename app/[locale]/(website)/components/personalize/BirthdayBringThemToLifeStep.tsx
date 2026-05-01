@@ -78,6 +78,26 @@ const BirthdayBringThemToLifeStep: React.FC<BirthdayBringThemToLifeStepProps> = 
             onChange={newValue => onBirthDateChange(newValue)}
             slots={{ textField: TextField }}
             slotProps={{
+              textField: {
+                fullWidth: true,
+                sx: {
+                  width: '100%',
+                  '& .MuiOutlinedInput-root': {
+                    minHeight: 52,
+                    fontSize: '16px',
+                    borderRadius: '4px',
+                    '& .MuiOutlinedInput-input': {
+                      padding: '14px 16px',
+                    },
+                    '& fieldset': { borderColor: '#E5E5E5' },
+                    '&:hover fieldset': { borderColor: '#E5E5E5' },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#012CCE',
+                      borderWidth: '1px',
+                    },
+                  },
+                },
+              },
               day: {
                 sx: {
                   borderRadius: 0,
