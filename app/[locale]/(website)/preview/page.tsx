@@ -724,6 +724,41 @@ export default function PreviewPageWithTopNav() {
   const coverTypeParam = (searchParams.get('cover_type') || '').toLowerCase();
   const preferCover3AsDefault = isHideOptions && coverTypeParam === 'personalized';
   const bindingTypeParam = (searchParams.get('binding_type') || '').toLowerCase();
+  const getFirstNonEmptyString = (...values: any[]) => {
+    for (const value of values) {
+      if (typeof value === 'string' && value.trim()) return value;
+    }
+    return '';
+  };
+  const getCartGiftMessage = (item: any) =>
+    getFirstNonEmptyString(
+      item?.attributes?.gift_message,
+      item?.customization_data?.attributes?.gift_message,
+      item?.preview?.attributes?.gift_message,
+      item?.preview?.message,
+      item?.preview?.dedication,
+      item?.message,
+    );
+  const findCartItemForPreview = (items: any[], previewId?: string | null, fromCartItemId?: string | null) => {
+    const stack = [...items];
+    while (stack.length > 0) {
+      const item = stack.shift();
+      if (!item) continue;
+      if (fromCartItemId && String(item.id) === String(fromCartItemId)) return item;
+      const itemPreviewId =
+        item.preview_id ||
+        item.customization_data?.preview_id ||
+        item.preview?.preview_id ||
+        null;
+      if (previewId && String(itemPreviewId) === String(previewId)) return item;
+      const children = [
+        ...(Array.isArray(item.items) ? item.items : []),
+        ...(Array.isArray(item.subItems) ? item.subItems : []),
+      ];
+      stack.push(...children);
+    }
+    return null;
+  };
   // 手机端底部状态面板（点击右侧箭头展开）
   const [mobileStatusOpen, setMobileStatusOpen] = React.useState(false);
 
@@ -767,15 +802,12 @@ export default function PreviewPageWithTopNav() {
     (async () => {
       try {
         const res = await api.get(API_CART_LIST) as any;
-        const items = res?.data?.cart_items || res?.cart_items || [];
+        const items = res?.data?.items || res?.data?.cart_items || res?.cart_items || [];
         if (!Array.isArray(items) || items.length === 0) return;
-        // 优先用 previewid 匹配
-        let match = null as any;
-        if (previewIdParam) {
-          match = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
-        }
+        const fromCartItemIdParam = searchParams.get('fromCartItemId');
+        const match = findCartItemForPreview(items, previewIdParam, fromCartItemIdParam);
         if (!match) return;
-        const msg = match?.preview?.message || match?.preview?.dedication;
+        const msg = getCartGiftMessage(match);
         console.debug('预填购物车留言命中:', { previewIdParam, hasMatch: !!match, msgExists: typeof msg === 'string' && !!msg.trim() });
         // 仅当当前 message 还是默认文案时覆盖，避免用户已编辑被覆盖
         if (typeof msg === 'string' && msg.trim()) {
@@ -936,11 +968,7 @@ export default function PreviewPageWithTopNav() {
         // 修正：优先尝试 data.items，兼容旧的 data.cart_items
         const items = cartRes?.data?.items || cartRes?.data?.cart_items || cartRes?.cart_items || [];
         const fromCartItemIdParam = searchParams.get('fromCartItemId');
-        const matchByCartItemId = fromCartItemIdParam
-          ? items.find((ci: any) => String(ci.id) === String(fromCartItemIdParam))
-          : null;
-        const matchByPreviewId = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
-        const match = matchByCartItemId || matchByPreviewId;
+        const match = findCartItemForPreview(items, previewIdParam, fromCartItemIdParam);
         const pv = match?.preview;
         
         if (match) {
@@ -956,7 +984,7 @@ export default function PreviewPageWithTopNav() {
                 console.log('[Preview] Set recipient from cart (fallback):', rname);
               }
             }
-            const msg = match?.preview?.message || match?.preview?.dedication || match?.message;
+            const msg = getCartGiftMessage(match);
             if (msg) {
                setMessage(msg);
                setDedication(msg);
@@ -1044,7 +1072,7 @@ export default function PreviewPageWithTopNav() {
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam === 'giftBox' || tabParam === 'addons') return;
+    if (tabParam === 'giftBox' || tabParam === 'addons' || tabParam === 'giftOptions' || tabParam === 'options') return;
     setActiveTab('Book preview');
   }, [p34CacheKey, searchParams, setActiveTab]);
 
@@ -2209,6 +2237,11 @@ export default function PreviewPageWithTopNav() {
   // 监听 URL tab 参数，跳转到指定部分
   useEffect(() => {
     const tabParam = searchParams.get('tab');
+    if (!hideOthers && (tabParam === 'giftOptions' || tabParam === 'options')) {
+      setActiveTab('Others');
+      setActiveSection('coverDesign');
+      return;
+    }
     if (!hideOthers && (tabParam === 'giftBox' || tabParam === 'addons')) {
       setActiveTab('Others');
       // 延迟滚动以确保 DOM 渲染
@@ -2219,7 +2252,7 @@ export default function PreviewPageWithTopNav() {
         }
       }, 300);
     }
-  }, [searchParams, setActiveTab, setActiveSection]);
+  }, [hideOthers, searchParams, setActiveTab, setActiveSection]);
   
   // 构建图片URL的辅助函数（移除 public/ 前缀，优先使用站内相对路径）
   const buildImageUrl = (imagePath: string) => {
@@ -3277,6 +3310,15 @@ export default function PreviewPageWithTopNav() {
 
         const parsedUserData = JSON.parse(userData);
         console.log('开始处理用户数据:', parsedUserData);
+        const savedGiftMessage = getFirstNonEmptyString(
+          parsedUserData?.characters?.[0]?.attributes?.gift_message,
+          parsedUserData?.characters?.[0]?.gift_message,
+        );
+        if (savedGiftMessage) {
+          setMessage(savedGiftMessage);
+          setDedication(savedGiftMessage);
+          setIsDedicationSubmitted(true);
+        }
 
         setIsProcessing(true);
         console.log('开始处理用户数据...');

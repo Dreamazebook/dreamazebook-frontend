@@ -264,7 +264,7 @@ export default function ShoppingCartPage() {
                       // Use existing cart items state instead of fetching entire cart
                       const current = cartItems.find((it: any) => it.id === ci.id);
                       const remaining = current?.remaining_previews;
-                      const url = `/personalized-products/${ci.spu_code}/${ci.preview_id}/edit`;
+                      const url = `/personalized-products/${ci.spu_code}/${ci.preview_id}/edit?fromCartItemId=${encodeURIComponent(String(ci.id))}`;
 
                       if (remaining && typeof remaining.remaining_previews === 'number') {
                         const desc = (
@@ -282,7 +282,7 @@ export default function ShoppingCartPage() {
                         router.push(url);
                       }
                     } catch (e) {
-                      const url = `/personalized-products/${ci.spu_code}/${ci.preview_id}/edit`;
+                      const url = `/personalized-products/${ci.spu_code}/${ci.preview_id}/edit?fromCartItemId=${encodeURIComponent(String(ci.id))}`;
                       router.push(url);
                     }
                   }}

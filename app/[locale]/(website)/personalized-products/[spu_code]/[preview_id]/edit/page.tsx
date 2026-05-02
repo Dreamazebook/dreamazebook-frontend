@@ -266,6 +266,7 @@ export default function EditPersonalizedProductPage() {
           const faceImages = extractFaceImageUrls(options.face_images, attrs.face_images);
           const birthDate = normalizeBirthDate(attrs.birthday_context?.birthday);
           const personalityTraitIds = normalizeBirthdayTraitIds(attrs.birthday_context?.selected_traits);
+          const giftMessage = String(attrs.gift_message || '').trim();
 
           setInitialData({
             fullName,
@@ -280,6 +281,7 @@ export default function EditPersonalizedProductPage() {
             ...(fromWhom ? { fromWhom } : {}),
             ...(birthDate ? { birthDate } : {}),
             ...(personalityTraitIds.length ? { personalityTraitIds } : {}),
+            ...(giftMessage ? { giftMessage } : {}),
             ...(typeof attrs.mom_calls_me === 'string' ? { momCallsMe: attrs.mom_calls_me } : {}),
             ...(typeof attrs.mom_makes_best === 'string' ? { momMakesBest: attrs.mom_makes_best } : {}),
           });
@@ -365,6 +367,14 @@ export default function EditPersonalizedProductPage() {
         const fromWhom = String((p as any)?.giver_name || (item as any)?.giver_name || cartAttrs.giver_name || cartAttrs.from_whom || cartAttrs.created_by || '').trim();
         const birthDate = normalizeBirthDate(cartAttrs.birthday_context?.birthday);
         const personalityTraitIds = normalizeBirthdayTraitIds(cartAttrs.birthday_context?.selected_traits);
+        const giftMessage = String(
+          (item as any)?.attributes?.gift_message ||
+          (item as any)?.customization_data?.attributes?.gift_message ||
+          cartAttrs.gift_message ||
+          (p as any)?.message ||
+          (p as any)?.dedication ||
+          ''
+        ).trim();
         setInitialData({
           fullName: p?.recipient_name || p?.full_name || (item as any)?.full_name || cartAttrs.full_name || '',
           gender,
@@ -379,6 +389,7 @@ export default function EditPersonalizedProductPage() {
           ...(fromWhom ? { fromWhom } : {}),
           ...(birthDate ? { birthDate } : {}),
           ...(personalityTraitIds.length ? { personalityTraitIds } : {}),
+          ...(giftMessage ? { giftMessage } : {}),
           ...(typeof cartAttrs.mom_calls_me === 'string' ? { momCallsMe: cartAttrs.mom_calls_me } : {}),
           ...(typeof cartAttrs.mom_makes_best === 'string' ? { momMakesBest: cartAttrs.mom_makes_best } : {}),
         });
@@ -652,6 +663,7 @@ export default function EditPersonalizedProductPage() {
       const characterTraitsOk = characterTraits.length === 4;
 
       const fb = buildPicbookPreviewFacePayload(bookId, faceImages);
+      const giftMessage = String((initialData as any)?.giftMessage || (initialData as any)?.gift_message || '').trim();
 
       const payload = {
         full_name: fullName,
@@ -666,6 +678,7 @@ export default function EditPersonalizedProductPage() {
           hair_style: hairStyle,
           hair_color: hairColor,
           ...(ageStageBackend ? { age_stage: ageStageBackend } : {}),
+          ...(giftMessage ? { gift_message: giftMessage } : {}),
           ...(birthdayBook && birthdayStr
             ? {
                 birthday: birthdayStr,
@@ -714,6 +727,7 @@ export default function EditPersonalizedProductPage() {
               gender: genderStr,
               relationship: relationshipRaw || 'Parent/Guardian',
               ...(giverNameRaw ? { giver_name: giverNameRaw } : {}),
+              ...(giftMessage ? { gift_message: giftMessage } : {}),
               attributes: payload.attributes || {},
               photo: faceImages?.[0] || '',
               photos: faceImages || [],
