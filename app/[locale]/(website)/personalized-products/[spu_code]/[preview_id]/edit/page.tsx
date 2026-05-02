@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from '@/i18n/routing';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { IoIosArrowBack } from "@/utils/icons";
 import { Link } from "@/i18n/routing";
 import Image from 'next/image';
@@ -59,12 +59,14 @@ const SkeletonLoader = () => (
 
 export default function EditPersonalizedProductPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
   const bookId = params.spu_code as string;
   const birthdayBook = isPicbookBirthday(bookId);
   const momBook = isPicbookMom(bookId);
   const previewId = params.preview_id as string; // preview_id 是 UUID 字符串，不是数字
+  const fromCartItemIdParam = searchParams.get('fromCartItemId');
   const currentLang = (pathname.match(/^\/(en|zh|fr)\b/)?.[1] as 'en'|'zh'|'fr') || 'en';
 
   const normalizeGender = (v: any): '' | 'boy' | 'girl' => {
@@ -252,7 +254,11 @@ export default function EditPersonalizedProductPage() {
       try {
         const { data } = await api.get<ApiResponse<CartItems>>(`${API_CART_LIST}`);
         const items: any[] = Array.isArray((data as any)?.items) ? (data as any).items : [];
-        const item = items.find((ci: any) => String(ci.preview_id) === String(previewId));
+        const itemByCartItemId = fromCartItemIdParam
+          ? items.find((ci: any) => String(ci.id) === String(fromCartItemIdParam))
+          : null;
+        const itemByPreviewId = items.find((ci: any) => String(ci.preview_id) === String(previewId));
+        const item = itemByCartItemId || itemByPreviewId;
         if (item?.id) setCartItemId(Number(item.id));
         // 圣诞 bundle：preview_id 可能在 package.items[].customization_data.preview_id
         if (!item) {
@@ -260,6 +266,7 @@ export default function EditPersonalizedProductPage() {
             const subItems: any[] = Array.isArray((pkg as any)?.items) ? (pkg as any).items : [];
             const match = subItems.find(
               (pi: any) =>
+                (fromCartItemIdParam && String(pi?.id) === String(fromCartItemIdParam)) ||
                 String(pi?.preview_id || pi?.customization_data?.preview_id) === String(previewId),
             );
             if (match?.id) {
@@ -337,7 +344,7 @@ export default function EditPersonalizedProductPage() {
         setIsLoading(false);
       }
     })();
-  }, [bookId, previewId, currentLang]);
+  }, [bookId, previewId, fromCartItemIdParam, currentLang]);
 
   // 无论初始数据来自 batch 还是 cart，都需要 cartItemId；这里再兜底取一次
   useEffect(() => {
@@ -346,13 +353,18 @@ export default function EditPersonalizedProductPage() {
       try {
         const { data } = await api.get<ApiResponse<CartItems>>(`${API_CART_LIST}`);
         const items: any[] = Array.isArray((data as any)?.items) ? (data as any).items : [];
-        const item = items.find((ci: any) => String(ci.preview_id) === String(previewId));
+        const itemByCartItemId = fromCartItemIdParam
+          ? items.find((ci: any) => String(ci.id) === String(fromCartItemIdParam))
+          : null;
+        const itemByPreviewId = items.find((ci: any) => String(ci.preview_id) === String(previewId));
+        const item = itemByCartItemId || itemByPreviewId;
         if (item?.id) setCartItemId(Number(item.id));
         if (!item) {
           for (const pkg of items) {
             const subItems: any[] = Array.isArray((pkg as any)?.items) ? (pkg as any).items : [];
             const match = subItems.find(
               (pi: any) =>
+                (fromCartItemIdParam && String(pi?.id) === String(fromCartItemIdParam)) ||
                 String(pi?.preview_id || pi?.customization_data?.preview_id) === String(previewId),
             );
             if (match?.id) {
@@ -363,7 +375,7 @@ export default function EditPersonalizedProductPage() {
         }
       } catch {}
     })();
-  }, [cartItemId, packageItemId, previewId]);
+  }, [cartItemId, packageItemId, previewId, fromCartItemIdParam]);
 
   const renderForm = () => {
     if (isLoading) return <SkeletonLoader />;
