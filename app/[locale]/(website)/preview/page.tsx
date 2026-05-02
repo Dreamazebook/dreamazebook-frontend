@@ -1754,7 +1754,7 @@ export default function PreviewPageWithTopNav() {
           /lay-?\s*flat|layflat|butterfly/i.test(String(o?.label || o?.value))
         ) {
           description =
-            'Luxurious lay-flat pages for immersive reading.\nA treasure to cherish.';
+            'Luxurious lay-flat pages for\nimmersive reading.\nA treasure to cherish.';
         } else if (keyForDesc.includes('hard') || keyForDesc.includes('classic') || /hard ?cover|精装/i.test(keyForDesc)) {
           description = 'Sturdy and elegant.\nPerfect for gifting.';
         } else if (keyForDesc.includes('soft') || keyForDesc.includes('paper') || /soft-?cover|软封|平装/i.test(keyForDesc)) {
