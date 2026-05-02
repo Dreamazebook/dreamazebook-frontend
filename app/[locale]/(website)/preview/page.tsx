@@ -1042,6 +1042,12 @@ export default function PreviewPageWithTopNav() {
   // 当 previewid/bookid 变化时重置缓存，避免跨不同预览复用旧数据
   const p34CacheKey = `${searchParams.get('bookid') || ''}_${searchParams.get('previewid') || ''}`;
 
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'giftBox' || tabParam === 'addons') return;
+    setActiveTab('Book preview');
+  }, [p34CacheKey, searchParams, setActiveTab]);
+
   // 切换到不同 preview 时重置 Submit 状态（后续若从后端/购物车回填到真实寄语，会再置为 true）
   useEffect(() => {
     setIsDedicationSubmitted(false);
