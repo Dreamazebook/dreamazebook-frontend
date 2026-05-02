@@ -15,7 +15,11 @@ import SingleCharacterForm2, { SingleCharacterForm2Handle } from '@/app/[locale]
 import usePreviewStore from '@/stores/previewStore';
 import { isPicbookBirthday } from '@/utils/isPicbookBirthday';
 import { isPicbookMom } from '@/utils/isPicbookMom';
-import { formatBirthDateIso, mapPersonalityTraitIdsToCharacterTraits } from '@/utils/birthdayPersonalizeHelpers';
+import {
+  BIRTHDAY_PERSONALITY_TRAITS,
+  formatBirthDateIso,
+  mapPersonalityTraitIdsToCharacterTraits,
+} from '@/utils/birthdayPersonalizeHelpers';
 import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
 
 interface ApiResponse<T=any> { success: boolean; code: number; message: string; data: T }
@@ -116,6 +120,44 @@ export default function EditPersonalizedProductPage() {
     const s = String(v).trim();
     if (!s) return '';
     return s.startsWith('hair_') ? s : `hair_${s}`;
+  };
+
+  const normalizeBirthDate = (v: any): string => {
+    if (typeof v !== 'string') return '';
+    const s = v.trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+  };
+
+  const normalizeBirthdayTraitIds = (...sources: any[]): string[] => {
+    const ids = new Set(BIRTHDAY_PERSONALITY_TRAITS.map(t => t.id));
+    const result: string[] = [];
+    const push = (value: any) => {
+      if (!value) return;
+      if (typeof value === 'string') {
+        const s = value.trim();
+        if (!s) return;
+        if (s.startsWith('[')) {
+          try {
+            push(JSON.parse(s));
+            return;
+          } catch {}
+        }
+        const traitsMatch = s.match(/^traits_(\d+)$/);
+        if (traitsMatch) {
+          const trait = BIRTHDAY_PERSONALITY_TRAITS[Number(traitsMatch[1]) - 1];
+          if (trait && !result.includes(trait.id)) result.push(trait.id);
+          return;
+        }
+        if (ids.has(s as any) && !result.includes(s)) result.push(s);
+        return;
+      }
+      if (Array.isArray(value)) {
+        value.forEach(push);
+      }
+    };
+
+    sources.forEach(push);
+    return result;
   };
 
   const normalizeHairColor = (v: any): string => {
@@ -222,6 +264,8 @@ export default function EditPersonalizedProductPage() {
           const ageStage = normalizeAgeStage(attrs.age_stage ?? options.age_stage);
           const fromWhom = String(options.giver_name ?? attrs.giver_name ?? attrs.from_whom ?? attrs.created_by ?? '').trim();
           const faceImages = extractFaceImageUrls(options.face_images, attrs.face_images);
+          const birthDate = normalizeBirthDate(attrs.birthday_context?.birthday);
+          const personalityTraitIds = normalizeBirthdayTraitIds(attrs.birthday_context?.selected_traits);
 
           setInitialData({
             fullName,
@@ -234,6 +278,8 @@ export default function EditPersonalizedProductPage() {
             ...(hairColor ? { hairColor } : {}),
             ...(ageStage ? { ageStage } : {}),
             ...(fromWhom ? { fromWhom } : {}),
+            ...(birthDate ? { birthDate } : {}),
+            ...(personalityTraitIds.length ? { personalityTraitIds } : {}),
             ...(typeof attrs.mom_calls_me === 'string' ? { momCallsMe: attrs.mom_calls_me } : {}),
             ...(typeof attrs.mom_makes_best === 'string' ? { momMakesBest: attrs.mom_makes_best } : {}),
           });
@@ -317,6 +363,8 @@ export default function EditPersonalizedProductPage() {
 
         const ageStage = normalizeAgeStage((p as any)?.age_stage || (item as any)?.age_stage || cartAttrs.age_stage);
         const fromWhom = String((p as any)?.giver_name || (item as any)?.giver_name || cartAttrs.giver_name || cartAttrs.from_whom || cartAttrs.created_by || '').trim();
+        const birthDate = normalizeBirthDate(cartAttrs.birthday_context?.birthday);
+        const personalityTraitIds = normalizeBirthdayTraitIds(cartAttrs.birthday_context?.selected_traits);
         setInitialData({
           fullName: p?.recipient_name || p?.full_name || (item as any)?.full_name || cartAttrs.full_name || '',
           gender,
@@ -329,6 +377,8 @@ export default function EditPersonalizedProductPage() {
           ...(hairColor ? { hairColor } : {}),
           ...(ageStage ? { ageStage } : {}),
           ...(fromWhom ? { fromWhom } : {}),
+          ...(birthDate ? { birthDate } : {}),
+          ...(personalityTraitIds.length ? { personalityTraitIds } : {}),
           ...(typeof cartAttrs.mom_calls_me === 'string' ? { momCallsMe: cartAttrs.mom_calls_me } : {}),
           ...(typeof cartAttrs.mom_makes_best === 'string' ? { momMakesBest: cartAttrs.mom_makes_best } : {}),
         });

@@ -3965,6 +3965,70 @@ export default function PreviewPageWithTopNav() {
 
                   if (coverUrls) {
                     const { base, canvasBase, cropRightHalf } = coverUrls;
+                    const rawCoverKey = activeOption?.option_key || String(activeOption?.id || '');
+                    const activeCoverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(activeOption?.id || '');
+
+                    // Make it personal 顶部封面：cover_3/4 也使用后端 preview 页，这样排队/换脸中状态与 Options tab 保持一致。
+                    if (activeCoverId === '3' || activeCoverId === '4') {
+                      const target = `cover_${activeCoverId}`;
+                      const coverPage = (previewData?.preview_data || []).find((p: any) => {
+                        const code = String((p as any)?.page_code || '').toLowerCase().replace(/-/g, '_');
+                        return code === target;
+                      });
+                      const raw = coverPage ? getPreviewDisplayImageRaw(coverPage) : '';
+                      const backendSrc = raw ? buildImageUrl(String(raw)) : '';
+                      const ratio = coverThumbAspectRatio ?? (cropRightHalf ? 2 : 1);
+                      const coverHasSwap = !!(coverPage as any)?.has_face_swap;
+                      const coverHasBase = !!(coverPage as any)?.base_image_url || !!(coverPage as any)?.image_url;
+                      const coverFailed = String((coverPage as any)?.status || '').toLowerCase() === 'failed';
+                      const coverNeedsOverlay =
+                        coverHasSwap && coverHasBase && !hasMeaningfulFinalImage(coverPage) && !coverFailed;
+                      const coverProgress = coverPage ? Math.round(pageProgress[(coverPage as any).page_id] ?? 0) : 0;
+                      const coverOverlayMode = coverFailed ? 'failed' : (coverProgress > 0 ? 'progress' : 'loading');
+
+                      return (
+                        <div
+                          className="relative w-full max-w-[400px] overflow-hidden rounded-lg shadow-md"
+                          style={{ aspectRatio: String(ratio) }}
+                        >
+                          {backendSrc ? (
+                            <OptimizedImage
+                              src={backendSrc}
+                              alt="Book Cover"
+                              width={cropRightHalf ? 400 : 200}
+                              height={200}
+                              priority
+                              className="absolute inset-0 h-full w-full object-cover object-right"
+                            />
+                          ) : (
+                            <Image
+                              src={base}
+                              alt="Book Cover"
+                              width={400}
+                              height={400}
+                              priority
+                              className={`absolute inset-0 h-full w-full object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
+                            />
+                          )}
+                          {(!backendSrc || coverNeedsOverlay || coverFailed) && (
+                            <div
+                              className="absolute inset-0 z-10 flex items-center justify-center bg-white/70"
+                              style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}
+                            >
+                              {coverOverlayMode === 'failed' ? (
+                                <PageRenderFailedOverlay message={t('pageRenderFailedMessage')} />
+                              ) : coverOverlayMode === 'progress' ? (
+                                <DreamazeFaceSwapLoadingBar progress={coverProgress} />
+                              ) : (
+                                <div className="text-center">
+                                  <DreamazeLogoRainbowLoader size={60} />
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
 
                     // 通用：如果当前封面在 R2 上有 page_properties.json，使用 Canvas 在封面图上绘制用户名
                     if (activeOption && coverTextConfig && recipient && recipient.trim()) {
