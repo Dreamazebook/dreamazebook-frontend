@@ -247,7 +247,7 @@ const useUserStore = create<UserState>((set,get) => ({
       set({isLoggedIn:true, user:userResponse.user});
       localStorage.setItem('token', userResponse.token);
       // Track LoginSuccess
-      fbTrackCustom('LoginSuccess', {});
+      fbTrackCustom('LoginSuccess', {login_method: 'token'});
     }
   },
   login: async (userData): Promise<ApiResponse<UserResponse> | null> => {
