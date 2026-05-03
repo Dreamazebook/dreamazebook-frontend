@@ -25,7 +25,7 @@ export const fbTrack = (
   eventName: string,
   options?: FacebookEventParams
 ): void => {
-  if (typeof window !== 'undefined' && (window as any).fbq) {
+  if (typeof window !== undefined && (window as any).fbq) {
     (window as any).fbq('track', eventName, options)
   }
 }
@@ -35,7 +35,7 @@ export const fbTrackCustom = (
   eventName: string,
   options?: FacebookEventParams
 ): void => {
-  if (typeof window !== 'undefined' && (window as any).fbq) {
+  if (typeof window !== undefined && (window as any).fbq) {
     (window as any).fbq('trackCustom', eventName, options)
   }
 }
