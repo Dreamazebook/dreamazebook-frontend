@@ -1180,9 +1180,9 @@ export default function PreviewPageWithTopNav() {
   const [previewData, setPreviewData] = useState<PreviewResponse | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
-  // 扉页（标题页）展示完成后显示提示文案
-  const [isTitlePageLoaded, setIsTitlePageLoaded] = useState(false);
-  const titlePageIdRef = useRef<number | null>(null);
+  // p7-8 展示完成后显示 sneak peek 提示文案
+  const [isSneakPeekNoticePageLoaded, setIsSneakPeekNoticePageLoaded] = useState(false);
+  const sneakPeekNoticePageIdRef = useRef<number | null>(null);
   // 顶部队列提示（原 “Your story is coming to life…”）：
   // - 依据 batch.queue.preview_pending 展示「Preparing / N books ahead / It’s your turn」
   // - 在 p3-4 还没出现在 preview_data 之前保持显示
@@ -1808,10 +1808,13 @@ export default function PreviewPageWithTopNav() {
   const isCompleted = faceSwapStatus === 'completed';
   const isFailed = faceSwapStatus === 'failed';
 
-  // 扉页（标题页）：约定为预览列表里第二张“非封面”页（index=1）；仅一页时退化为该页
-  const titlePageId = useMemo(() => {
-    const pages = (previewData?.preview_data ?? []).filter((p: any) => !(p as any).is_cover);
-    const candidate = pages[1] || pages[0];
+  // 底部 sneak peek 提示：等 p7-8 这张预览图加载完成后再展示
+  const sneakPeekNoticePageId = useMemo(() => {
+    const pages = previewData?.preview_data ?? [];
+    const candidate = pages.find((p: any) => {
+      const code = String(p?.page_code || '');
+      return code === 'p7-8' || code === 'p7-p8';
+    });
     const id = candidate ? Number((candidate as any).page_id) : null;
     if (!id || Number.isNaN(id)) return null;
     return id;
@@ -1890,11 +1893,11 @@ export default function PreviewPageWithTopNav() {
     displayedPreviewPending === 0;
 
   useEffect(() => {
-    if (titlePageIdRef.current !== titlePageId) {
-      titlePageIdRef.current = titlePageId;
-      setIsTitlePageLoaded(false);
+    if (sneakPeekNoticePageIdRef.current !== sneakPeekNoticePageId) {
+      sneakPeekNoticePageIdRef.current = sneakPeekNoticePageId;
+      setIsSneakPeekNoticePageLoaded(false);
     }
-  }, [titlePageId]);
+  }, [sneakPeekNoticePageId]);
   useEffect(() => {
     if (storyComingTargetPageIdRef.current !== pageIdForStoryComingHide) {
       storyComingTargetPageIdRef.current = pageIdForStoryComingHide;
@@ -4643,8 +4646,8 @@ export default function PreviewPageWithTopNav() {
                                     if (pageIdForStoryComingHide && loadedPageId === pageIdForStoryComingHide) {
                                       setIsStoryComingTargetPageLoaded(true);
                                     }
-                                    if (titlePageId && loadedPageId === titlePageId) {
-                                      setIsTitlePageLoaded(true);
+                                    if (sneakPeekNoticePageId && loadedPageId === sneakPeekNoticePageId) {
+                                      setIsSneakPeekNoticePageLoaded(true);
                                     }
                                   }}
                                 />
@@ -4820,8 +4823,8 @@ export default function PreviewPageWithTopNav() {
                               if (pageIdForStoryComingHide && loadedPageId === pageIdForStoryComingHide) {
                                 setIsStoryComingTargetPageLoaded(true);
                               }
-                              if (titlePageId && loadedPageId === titlePageId) {
-                                setIsTitlePageLoaded(true);
+                              if (sneakPeekNoticePageId && loadedPageId === sneakPeekNoticePageId) {
+                                setIsSneakPeekNoticePageLoaded(true);
                               }
                             }}
                           />
@@ -4836,7 +4839,7 @@ export default function PreviewPageWithTopNav() {
                   });
                   })()}
                 </div>
-                {isTitlePageLoaded && (
+                {isSneakPeekNoticePageLoaded && (
                   <p className="text-center text-[#999999] mt-8 whitespace-pre-line">
                     {`This is a sneak peek of the story.\nComplete your order to receive the full book preview within 48 hours.`}
                   </p>
