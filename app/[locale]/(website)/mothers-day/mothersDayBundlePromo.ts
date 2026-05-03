@@ -128,15 +128,15 @@ const MOTHERS_DAY_BUNDLE_GROUPS: BundleGroup[] = [
 ]
 
 /**
- * 与圣诞默认相同的 package_id 槽位，便于接现有加购接口；若后端有独立母亲节套餐，请只改此映射与后台对齐。
+ * 母亲节页面复用圣诞 bundle package_id 槽位，与后台 package 配置保持一致。
  */
 const MOTHERS_DAY_PACKAGE_IDS: Record<string, number> = {
-  'trio-classic': 1,
-  'trio-premium': 2,
-  'four-classic': 3,
-  'four-premium': 4,
-  'christmas-classic': 5,
-  'christmas-premium': 6,
+  'trio-classic': 3, // CHRISTMAS_HARDCOVER_X3
+  'trio-premium': 4, // CHRISTMAS_PREMIUM_LAYFLAT_X3
+  'four-classic': 5, // CHRISTMAS_HARDCOVER_X4
+  'four-premium': 6, // CHRISTMAS_PREMIUM_LAYFLAT_X4
+  'christmas-classic': 17, // CHRISTMAS_HARDCOVER_X5
+  'christmas-premium': 18, // CHRISTMAS_PREMIUM_LAYFLAT_X5
 }
 
 export const MOTHERS_DAY_BUNDLE_PROMO: Pick<

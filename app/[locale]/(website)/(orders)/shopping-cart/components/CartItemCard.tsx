@@ -120,12 +120,6 @@ export default function CartItemCard({
       count: pkgDefaultOptions?.bookmarks_count ?? null,
     },
     {
-      key: "box",
-      name: "Gift box",
-      imageUrl: `${christmasFreebieBaseUrl}box.png`,
-      count: pkgDefaultOptions?.gift_box_count ?? pkgDefaultOptions?.giftbox_count ?? null,
-    },
-    {
       key: "coloring-book",
       name: "Coloring book",
       // 文件名包含空格，必须做 URL 编码
@@ -141,6 +135,12 @@ export default function CartItemCard({
       name: "Sticker",
       imageUrl: `${christmasFreebieBaseUrl}sticker.png`,
       count: pkgDefaultOptions?.stickers_count ?? null,
+    },
+    {
+      key: "box",
+      name: "Gift box",
+      imageUrl: `${christmasFreebieBaseUrl}box.png`,
+      count: pkgDefaultOptions?.gift_box_count ?? pkgDefaultOptions?.giftbox_count ?? null,
     },
   ] as const;
 
@@ -765,6 +765,9 @@ export default function CartItemCard({
                     <div className="">
                       {christmasFreebies.map((g) => {
                         const qty = Number(g.count);
+                        if (g.key === "coloring-book" && (!Number.isFinite(qty) || qty <= 0)) {
+                          return null;
+                        }
                         const label =
                           Number.isFinite(qty) && qty > 1 ? `${g.name} × ${qty}` : g.name;
                         return (
