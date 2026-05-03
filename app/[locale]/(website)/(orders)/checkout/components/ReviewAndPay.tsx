@@ -20,6 +20,7 @@ import { ORDER_SUMMARY_URL } from '@/constants/links';
 import OrderSummaryDelivery from '../../../components/component/OrderSummaryDelivery';
 import OrderSummary from './OrderSummary';
 import CartItemCard from '../../shopping-cart/components/CartItemCard';
+import { fbTrackCustom, fbTrack, getContentIdBySpu } from '@/utils/track';
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
@@ -75,6 +76,21 @@ const CheckoutForm: React.FC<{
       return;
     }
 
+    // Track PlaceOrder intent when user clicks Place Order button
+    const content_ids = orderDetail.items.map((item: any) => getContentIdBySpu(item.spu_code)).filter(Boolean);
+    const contents = orderDetail.items.map((item: any) => ({
+      id: getContentIdBySpu(item.spu_code),
+      quantity: item.quantity || 1
+    })).filter(item => item.id);
+
+    fbTrackCustom('PlaceOrder', {
+      value: orderDetail.total_amount,
+      currency: 'USD',
+      content_ids,
+      content_type: 'product',
+      contents
+    });
+
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       redirect: 'if_required',
@@ -99,6 +115,15 @@ const CheckoutForm: React.FC<{
             payment_intent_id: orderDetail.stripe_payment_intent_id
           });
           if (success) {
+            // Track Purchase after successful payment
+            fbTrack('Purchase', {
+              value: orderDetail.total_amount,
+              currency: 'USD',
+              content_ids,
+              content_type: 'product',
+              contents,
+              order_id: orderDetail.order_number
+            });
             router.push(ORDER_SUMMARY_URL(orderDetail.id));
           } else {
             setMessage(t("errorLoadingOrder"));

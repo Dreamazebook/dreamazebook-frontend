@@ -27,6 +27,7 @@ import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiRespo
 import { BaseBook, DetailedBook } from '@/types/book';
 import { API_CART_LIST, API_CART_UPDATE } from '@/constants/api';
 import DisplayPrice from '../components/component/DisplayPrice';
+import { fbTrack, getContentIdBySpu } from '@/utils/track';
 
 // 封面文字配置缓存：避免在同一会话内反复请求 R2
 const coverTextsCache: Record<string, Array<{
@@ -4039,6 +4040,21 @@ export default function PreviewPageWithTopNav() {
           // 嵌套（与 /cart/add 对齐）
           customization_data: { attributes: optionAttrs },
         });
+        
+        // Track AddToCart for updated cart item (fromCartItemId path)
+        const contentId = getContentIdBySpu(bookInfo?.spu_code || '');
+        
+        if (contentId) {
+          const cartValue = 0;
+          fbTrack('AddToCart', {
+            value: cartValue,
+            currency: 'USD',
+            content_ids: [contentId],
+            content_type: 'product',
+            contents: [{ id: contentId, quantity: 1 }]
+          });
+        }
+        
         router.push('/shopping-cart');
         return;
       }
@@ -4047,12 +4063,21 @@ export default function PreviewPageWithTopNav() {
       console.debug('[AddToCart] Response:', response);
 
       if (response.success) {
-        // 根据是否有 old_preview_id 显示不同的成功消息
-        // if (oldPreviewId) {
-        //   toast.success('购物车已更新！');
-        // } else {
-        //   toast.success('商品已成功添加到购物车！');
-        // }
+        // Track AddToCart for successful cart addition
+        const contentId = getContentIdBySpu(bookInfo?.spu_code || '');
+        
+        if (contentId) {
+          const cartValue = 0;
+          
+          fbTrack('AddToCart', {
+            value: cartValue,
+            currency: 'USD',
+            content_ids: [contentId],
+            content_type: 'product',
+            contents: [{ id: contentId, quantity: 1 }]
+          });
+        }
+        
         // 跳转到购物车页面
         router.push(`/shopping-cart?selected_cart_id=${response?.data?.id}`);
       } else {

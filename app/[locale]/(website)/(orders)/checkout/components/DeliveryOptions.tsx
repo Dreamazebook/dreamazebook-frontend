@@ -8,6 +8,7 @@ import { API_ORDER_SHIPPING_METHODS } from '@/constants/api';
 import DisplayPrice from '../../../components/component/DisplayPrice';
 import NextStepButton from './NextStepButton';
 import { OrderDetail, ShippingOption, getShippingOptions } from '@/types/order';
+import { fbTrackCustom } from '@/utils/track';
 
 interface DeliveryOptionsProps {
   orderDetail: OrderDetail;
@@ -52,7 +53,11 @@ const DeliveryOptions: React.FC<DeliveryOptionsProps> = ({
       <div className="mt-6 flex justify-center">
         <NextStepButton
           disabled={orderDetail.shipping_method === null}
-          handleOnClick={handleNextFromDelivery}
+          handleOnClick={() => {
+            // Track CheckoutStepComplete for shipping step
+            fbTrackCustom('CheckoutStepComplete', { step: 'shipping' });
+            handleNextFromDelivery();
+          }}
         >{t("continueToPayment")}</NextStepButton>
       </div>
     </>
