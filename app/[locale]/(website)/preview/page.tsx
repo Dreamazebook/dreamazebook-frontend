@@ -71,6 +71,152 @@ const getPreviewDisplayImageRaw = (page: any): string => {
   return String(page?.base_image_url || page?.image_url || page?.final_image_url || '');
 };
 
+const normalizePreviewPageCode = (pageCode: unknown): string =>
+  String(pageCode || '').trim().toLowerCase().replace(/_/g, '-');
+
+const MOM_COMPOSITE_PAGE_CODES = new Set(['p5-6', 'p5-p6', 'p27-28', 'p27-p28']);
+const MOM_COMPOSITE_IMAGE_PLACEMENTS: Record<'p5-6' | 'p27-28', { x: number; y: number; width: number; height: number }> = {
+  'p5-6': { x: 2902, y: 718, width: 1315, height: 840 },
+  'p27-28': { x: 1106, y: 639, width: 908, height: 580 },
+};
+
+const isMomCompositePageCode = (pageCode: unknown): boolean =>
+  MOM_COMPOSITE_PAGE_CODES.has(normalizePreviewPageCode(pageCode));
+
+const toMomCompositeUploadPageCode = (pageCode: unknown): 'p5-6' | 'p27-28' | null => {
+  const normalized = normalizePreviewPageCode(pageCode);
+  if (normalized === 'p5-6' || normalized === 'p5-p6') return 'p5-6';
+  if (normalized === 'p27-28' || normalized === 'p27-p28') return 'p27-28';
+  return null;
+};
+
+type MomCompositePreviewPage = PreviewPage & {
+  page_code?: string;
+  status?: string;
+  base_image_url?: string;
+  final_image_url?: string;
+  composite_image_url?: string;
+};
+
+type MomCompositePreviewData = Omit<PreviewResponse, 'preview_data'> & {
+  batch_id?: string;
+  status?: string;
+  preview_data?: MomCompositePreviewPage[];
+};
+
+type MomCompositeUploadResponse = {
+  data?: {
+    image_url?: string;
+    final_image_url?: string;
+    composite_image_url?: string;
+  };
+  image_url?: string;
+  final_image_url?: string;
+  composite_image_url?: string;
+};
+
+const buildCanvasSafeImageUrl = (src: string): string => {
+  if (!src) return src;
+  if (src.startsWith('/') || src.startsWith('blob:') || src.startsWith('data:')) return src;
+  try {
+    const url = new URL(src, typeof window !== 'undefined' ? window.location.href : undefined);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return src;
+    const urlStr = url.toString();
+    let hash = 2166136261;
+    for (let i = 0; i < urlStr.length; i++) {
+      hash ^= urlStr.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return `/api/image-proxy/${(hash >>> 0).toString(16)}?url=${encodeURIComponent(urlStr)}`;
+  } catch {
+    return src;
+  }
+};
+
+const loadCanvasImage = (src: string): Promise<HTMLImageElement> =>
+  new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+    img.src = buildCanvasSafeImageUrl(src);
+  });
+
+const fileToDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === 'string' && result.startsWith('data:')) {
+        resolve(result);
+      } else {
+        reject(new Error('Invalid image data'));
+      }
+    };
+    reader.onerror = () => reject(reader.error || new Error('Failed to read image'));
+    reader.readAsDataURL(file);
+  });
+
+const normalizePreviewImageUrlForCanvas = (imagePath: string): string => {
+  if (!imagePath) return imagePath;
+  if (imagePath.startsWith('http') || imagePath.startsWith('data:') || imagePath.startsWith('blob:')) {
+    try {
+      return imagePath.startsWith('http') ? encodeURI(imagePath) : imagePath;
+    } catch {
+      return imagePath;
+    }
+  }
+  let normalized = imagePath.trim();
+  if (normalized.startsWith('/public/')) {
+    normalized = normalized.replace(/^\/public\//, '/');
+  } else if (normalized.startsWith('public/')) {
+    normalized = normalized.replace(/^public\//, '');
+    if (!normalized.startsWith('/')) normalized = '/' + normalized;
+  }
+  if (!normalized.startsWith('/')) normalized = '/' + normalized;
+  return normalized;
+};
+
+const computeCenteredCropForAspectRatio = (
+  naturalWidth: number,
+  naturalHeight: number,
+  aspectRatio: number,
+): { sx: number; sy: number; sw: number; sh: number } => {
+  const safeAspect = Number.isFinite(aspectRatio) && aspectRatio > 0 ? aspectRatio : 1;
+  const currentAspect = naturalWidth / naturalHeight;
+  if (currentAspect > safeAspect) {
+    const sw = Math.floor(naturalHeight * safeAspect);
+    return { sx: Math.floor((naturalWidth - sw) / 2), sy: 0, sw, sh: naturalHeight };
+  }
+  const sh = Math.floor(naturalWidth / safeAspect);
+  return { sx: 0, sy: Math.floor((naturalHeight - sh) / 2), sw: naturalWidth, sh };
+};
+
+const composeMomCompositeImage = async (
+  baseImageUrl: string,
+  overlayFile: File,
+  placement: { x: number; y: number; width: number; height: number },
+): Promise<string> => {
+  const overlayDataUrl = await fileToDataUrl(overlayFile);
+  const [baseImage, overlayImage] = await Promise.all([
+    loadCanvasImage(baseImageUrl),
+    loadCanvasImage(overlayDataUrl),
+  ]);
+  const canvas = document.createElement('canvas');
+  canvas.width = baseImage.naturalWidth || baseImage.width;
+  canvas.height = baseImage.naturalHeight || baseImage.height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Failed to create canvas context');
+
+  ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
+  const { sx, sy, sw, sh } = computeCenteredCropForAspectRatio(
+    overlayImage.naturalWidth || overlayImage.width,
+    overlayImage.naturalHeight || overlayImage.height,
+    placement.width / placement.height,
+  );
+  ctx.drawImage(overlayImage, sx, sy, sw, sh, placement.x, placement.y, placement.width, placement.height);
+  return canvas.toDataURL('image/png');
+};
+
 // 自定义图片组件，支持Next.js Image和原生img的回退
 const OptimizedImage = ({ src, alt, width, height, className, style, onError, onLoad, onLoadingComplete, fallbackSrc, ...props }: {
   src: string;
@@ -725,6 +871,41 @@ export default function PreviewPageWithTopNav() {
   const coverTypeParam = (searchParams.get('cover_type') || '').toLowerCase();
   const preferCover3AsDefault = isHideOptions && coverTypeParam === 'personalized';
   const bindingTypeParam = (searchParams.get('binding_type') || '').toLowerCase();
+  const getFirstNonEmptyString = (...values: any[]) => {
+    for (const value of values) {
+      if (typeof value === 'string' && value.trim()) return value;
+    }
+    return '';
+  };
+  const getCartGiftMessage = (item: any) =>
+    getFirstNonEmptyString(
+      item?.attributes?.gift_message,
+      item?.customization_data?.attributes?.gift_message,
+      item?.preview?.attributes?.gift_message,
+      item?.preview?.message,
+      item?.preview?.dedication,
+      item?.message,
+    );
+  const findCartItemForPreview = (items: any[], previewId?: string | null, fromCartItemId?: string | null) => {
+    const stack = [...items];
+    while (stack.length > 0) {
+      const item = stack.shift();
+      if (!item) continue;
+      if (fromCartItemId && String(item.id) === String(fromCartItemId)) return item;
+      const itemPreviewId =
+        item.preview_id ||
+        item.customization_data?.preview_id ||
+        item.preview?.preview_id ||
+        null;
+      if (previewId && String(itemPreviewId) === String(previewId)) return item;
+      const children = [
+        ...(Array.isArray(item.items) ? item.items : []),
+        ...(Array.isArray(item.subItems) ? item.subItems : []),
+      ];
+      stack.push(...children);
+    }
+    return null;
+  };
   // 手机端底部状态面板（点击右侧箭头展开）
   const [mobileStatusOpen, setMobileStatusOpen] = React.useState(false);
 
@@ -768,15 +949,12 @@ export default function PreviewPageWithTopNav() {
     (async () => {
       try {
         const res = await api.get(API_CART_LIST) as any;
-        const items = res?.data?.cart_items || res?.cart_items || [];
+        const items = res?.data?.items || res?.data?.cart_items || res?.cart_items || [];
         if (!Array.isArray(items) || items.length === 0) return;
-        // 优先用 previewid 匹配
-        let match = null as any;
-        if (previewIdParam) {
-          match = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
-        }
+        const fromCartItemIdParam = searchParams.get('fromCartItemId');
+        const match = findCartItemForPreview(items, previewIdParam, fromCartItemIdParam);
         if (!match) return;
-        const msg = match?.preview?.message || match?.preview?.dedication;
+        const msg = getCartGiftMessage(match);
         console.debug('预填购物车留言命中:', { previewIdParam, hasMatch: !!match, msgExists: typeof msg === 'string' && !!msg.trim() });
         // 仅当当前 message 还是默认文案时覆盖，避免用户已编辑被覆盖
         if (typeof msg === 'string' && msg.trim()) {
@@ -936,7 +1114,8 @@ export default function PreviewPageWithTopNav() {
         const cartRes = await api.get(API_CART_LIST) as any;
         // 修正：优先尝试 data.items，兼容旧的 data.cart_items
         const items = cartRes?.data?.items || cartRes?.data?.cart_items || cartRes?.cart_items || [];
-        const match = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
+        const fromCartItemIdParam = searchParams.get('fromCartItemId');
+        const match = findCartItemForPreview(items, previewIdParam, fromCartItemIdParam);
         const pv = match?.preview;
         
         if (match) {
@@ -952,7 +1131,7 @@ export default function PreviewPageWithTopNav() {
                 console.log('[Preview] Set recipient from cart (fallback):', rname);
               }
             }
-            const msg = match?.preview?.message || match?.preview?.dedication || match?.message;
+            const msg = getCartGiftMessage(match);
             if (msg) {
                setMessage(msg);
                setDedication(msg);
@@ -1001,9 +1180,9 @@ export default function PreviewPageWithTopNav() {
   const [previewData, setPreviewData] = useState<PreviewResponse | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
-  // 扉页（标题页）展示完成后显示提示文案
-  const [isTitlePageLoaded, setIsTitlePageLoaded] = useState(false);
-  const titlePageIdRef = useRef<number | null>(null);
+  // p7-8 展示完成后显示 sneak peek 提示文案
+  const [isSneakPeekNoticePageLoaded, setIsSneakPeekNoticePageLoaded] = useState(false);
+  const sneakPeekNoticePageIdRef = useRef<number | null>(null);
   // 顶部队列提示（原 “Your story is coming to life…”）：
   // - 依据 batch.queue.preview_pending 展示「Preparing / N books ahead / It’s your turn」
   // - 在 p3-4 还没出现在 preview_data 之前保持显示
@@ -1034,9 +1213,21 @@ export default function PreviewPageWithTopNav() {
   // Giver图片编辑：隐藏的文件输入框 + 本地待裁剪图片（objectURL）
   const giverFileInputRef = useRef<HTMLInputElement>(null);
   const [pendingGiverFile, setPendingGiverFile] = React.useState<string | null>(null);
+  const momDrawingFileInputRef = useRef<HTMLInputElement>(null);
+  const activeMomDrawingPageCodeRef = useRef<'p5-6' | 'p27-28' | null>(null);
+  const [pendingMomDrawingFile, setPendingMomDrawingFile] = React.useState<string | null>(null);
+  const [activeMomDrawingPageCode, setActiveMomDrawingPageCode] = React.useState<'p5-6' | 'p27-28' | null>(null);
+  const [momDrawingUploadingPageCode, setMomDrawingUploadingPageCode] = React.useState<'p5-6' | 'p27-28' | null>(null);
+  const [uploadedMomDrawingPageCodes, setUploadedMomDrawingPageCodes] = React.useState<Set<string>>(() => new Set());
 
   // 当 previewid/bookid 变化时重置缓存，避免跨不同预览复用旧数据
   const p34CacheKey = `${searchParams.get('bookid') || ''}_${searchParams.get('previewid') || ''}`;
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'giftBox' || tabParam === 'addons' || tabParam === 'giftOptions' || tabParam === 'options') return;
+    setActiveTab('Book preview');
+  }, [p34CacheKey, searchParams, setActiveTab]);
 
   // 切换到不同 preview 时重置 Submit 状态（后续若从后端/购物车回填到真实寄语，会再置为 true）
   useEffect(() => {
@@ -1048,6 +1239,11 @@ export default function PreviewPageWithTopNav() {
     setGiverImageUrl(null);
     setEditField(null);
     setPendingGiverFile(null);
+    setPendingMomDrawingFile(null);
+    setActiveMomDrawingPageCode(null);
+    activeMomDrawingPageCodeRef.current = null;
+    setMomDrawingUploadingPageCode(null);
+    setUploadedMomDrawingPageCodes(new Set());
     setIsNameOnBookCompleted(false);
     shouldUploadP34ComposedRef.current = false;
     p34ComposeUploadInFlightRef.current = false;
@@ -1225,6 +1421,116 @@ export default function PreviewPageWithTopNav() {
     }
   }, []);
 
+  const handleMomDrawingFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    const targetPageCode = activeMomDrawingPageCodeRef.current || activeMomDrawingPageCode;
+    if (!file || !targetPageCode) return;
+    const url = URL.createObjectURL(file);
+    setActiveMomDrawingPageCode(targetPageCode);
+    setPendingMomDrawingFile(url);
+    if (momDrawingFileInputRef.current) {
+      momDrawingFileInputRef.current.value = '';
+    }
+  }, [activeMomDrawingPageCode]);
+
+  const closeMomDrawingCropper = useCallback(() => {
+    if (pendingMomDrawingFile) {
+      URL.revokeObjectURL(pendingMomDrawingFile);
+    }
+    setPendingMomDrawingFile(null);
+    setActiveMomDrawingPageCode(null);
+    activeMomDrawingPageCodeRef.current = null;
+  }, [pendingMomDrawingFile]);
+
+  const uploadMomCompositeImage = useCallback(async (pageCode: 'p5-6' | 'p27-28', file: File) => {
+    const spu = (searchParams.get('bookid') || '').toUpperCase();
+    const previewForMom = previewData as MomCompositePreviewData | null;
+    const batchId = previewForMom?.batch_id || searchParams.get('previewid');
+
+    if (spu !== 'PICBOOK_MOM' || !batchId) {
+      console.warn('[Mom Composite] skip upload: invalid book or missing batch_id', { spu, batchId, pageCode });
+      return;
+    }
+
+    const targetPage = previewForMom?.preview_data?.find(
+      (p) => toMomCompositeUploadPageCode(p?.page_code) === pageCode,
+    );
+    const isFaceSwapReady = Boolean(
+      previewForMom?.status === 'completed' ||
+      faceSwapStatusRef.current === 'completed' ||
+      String(targetPage?.status || '').toLowerCase() === 'completed',
+    );
+    if (!targetPage || !isFaceSwapReady) {
+      toast.error('Please wait until face swap is complete before uploading.');
+      return;
+    }
+    const placement = MOM_COMPOSITE_IMAGE_PLACEMENTS[pageCode];
+    const baseImageRaw = getPreviewDisplayImageRaw(targetPage);
+    if (!baseImageRaw) {
+      toast.error('Page image is not ready yet.');
+      return;
+    }
+
+    setMomDrawingUploadingPageCode(pageCode);
+    try {
+      const dataUrl = await composeMomCompositeImage(
+        normalizePreviewImageUrlForCanvas(String(baseImageRaw)),
+        file,
+        placement,
+      );
+
+      const resp = await api.post(
+        `/products/PICBOOK_MOM/pages/${pageCode}/upload-composite-image`,
+        {
+          batch_id: batchId,
+          data: dataUrl,
+        },
+        { timeout: 120000 },
+      ) as MomCompositeUploadResponse;
+      const imageUrl =
+        resp?.data?.image_url ||
+        resp?.image_url ||
+        resp?.data?.final_image_url ||
+        resp?.final_image_url ||
+        resp?.data?.composite_image_url ||
+        resp?.composite_image_url ||
+        '';
+
+      if (imageUrl) {
+        setPreviewData((prev) => {
+          const prevWithMom = prev as MomCompositePreviewData | null;
+          if (!prevWithMom?.preview_data) return prev;
+          return {
+            ...prevWithMom,
+            preview_data: prevWithMom.preview_data.map((p) => {
+              const uploadPageCode = toMomCompositeUploadPageCode(p?.page_code);
+              return uploadPageCode === pageCode
+                ? {
+                    ...p,
+                    image_url: imageUrl,
+                    final_image_url: imageUrl,
+                    composite_image_url: imageUrl,
+                  }
+                : p;
+            }),
+          } as PreviewResponse;
+        });
+        setUploadedMomDrawingPageCodes((prev) => {
+          const next = new Set(prev);
+          next.add(pageCode);
+          return next;
+        });
+      } else {
+        console.warn('[Mom Composite] uploaded but no image_url in response', resp);
+      }
+    } catch (e) {
+      console.error('[Mom Composite] upload failed', e);
+      toast.error('Upload failed, please try again.');
+    } finally {
+      setMomDrawingUploadingPageCode(null);
+    }
+  }, [previewData, searchParams]);
+
   // 添加 options 状态
   const [bookOptions, setBookOptions] = useState<BookOptions | null>(null);
   // cover 缩略图统一比例：以 cover_1 的真实图片宽高比为准（用于让 cover_3/4 与 cover_1 同高）
@@ -1289,7 +1595,12 @@ export default function PreviewPageWithTopNav() {
         const res = await api.get(API_CART_LIST) as any;
         const items = res?.data?.items || res?.data?.cart_items || res?.cart_items || [];
         if (!Array.isArray(items) || items.length === 0) return;
-        const match = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
+        const fromCartItemIdParam = searchParams.get('fromCartItemId');
+        const matchByCartItemId = fromCartItemIdParam
+          ? items.find((ci: any) => String(ci.id) === String(fromCartItemIdParam))
+          : null;
+        const matchByPreviewId = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
+        const match = matchByCartItemId || matchByPreviewId;
         const pv = match?.preview;
         if (!pv && !match) return;
 
@@ -1497,10 +1808,13 @@ export default function PreviewPageWithTopNav() {
   const isCompleted = faceSwapStatus === 'completed';
   const isFailed = faceSwapStatus === 'failed';
 
-  // 扉页（标题页）：约定为预览列表里第二张“非封面”页（index=1）；仅一页时退化为该页
-  const titlePageId = useMemo(() => {
-    const pages = (previewData?.preview_data ?? []).filter((p: any) => !(p as any).is_cover);
-    const candidate = pages[1] || pages[0];
+  // 底部 sneak peek 提示：等 p7-8 这张预览图加载完成后再展示
+  const sneakPeekNoticePageId = useMemo(() => {
+    const pages = previewData?.preview_data ?? [];
+    const candidate = pages.find((p: any) => {
+      const code = String(p?.page_code || '');
+      return code === 'p7-8' || code === 'p7-p8';
+    });
     const id = candidate ? Number((candidate as any).page_id) : null;
     if (!id || Number.isNaN(id)) return null;
     return id;
@@ -1579,11 +1893,11 @@ export default function PreviewPageWithTopNav() {
     displayedPreviewPending === 0;
 
   useEffect(() => {
-    if (titlePageIdRef.current !== titlePageId) {
-      titlePageIdRef.current = titlePageId;
-      setIsTitlePageLoaded(false);
+    if (sneakPeekNoticePageIdRef.current !== sneakPeekNoticePageId) {
+      sneakPeekNoticePageIdRef.current = sneakPeekNoticePageId;
+      setIsSneakPeekNoticePageLoaded(false);
     }
-  }, [titlePageId]);
+  }, [sneakPeekNoticePageId]);
   useEffect(() => {
     if (storyComingTargetPageIdRef.current !== pageIdForStoryComingHide) {
       storyComingTargetPageIdRef.current = pageIdForStoryComingHide;
@@ -1739,7 +2053,7 @@ export default function PreviewPageWithTopNav() {
           /lay-?\s*flat|layflat|butterfly/i.test(String(o?.label || o?.value))
         ) {
           description =
-            'Luxurious lay-flat pages for immersive reading.\nA treasure to cherish.';
+            'Luxurious lay-flat pages for\nimmersive reading.\nA treasure to cherish.';
         } else if (keyForDesc.includes('hard') || keyForDesc.includes('classic') || /hard ?cover|精装/i.test(keyForDesc)) {
           description = 'Sturdy and elegant.\nPerfect for gifting.';
         } else if (keyForDesc.includes('soft') || keyForDesc.includes('paper') || /soft-?cover|软封|平装/i.test(keyForDesc)) {
@@ -2139,6 +2453,23 @@ export default function PreviewPageWithTopNav() {
 
   // 占位数组移除，使用 API 返回的 binding_options 与 gift_box_options
 
+  const isMomBook = (searchParams.get('bookid') || '').toUpperCase() === 'PICBOOK_MOM';
+  const hasMomCompositePages = useMemo(
+    () => isMomBook,
+    [isMomBook],
+  );
+  const isMomDrawingCompleted = useMemo(() => {
+    if (!isMomBook || !hasMomCompositePages) return false;
+    const pages = (previewData as MomCompositePreviewData | null)?.preview_data || [];
+    const targetCodes = new Set(
+      pages
+        .map((p) => toMomCompositeUploadPageCode(p?.page_code))
+        .filter((code): code is 'p5-6' | 'p27-28' => Boolean(code)),
+    );
+    if (targetCodes.size === 0) return false;
+    return Array.from(targetCodes).every((code) => uploadedMomDrawingPageCodes.has(code));
+  }, [hasMomCompositePages, isMomBook, previewData?.preview_data, uploadedMomDrawingPageCodes]);
+
   // 定义侧边栏各项，并为每个项配置默认图标和完成后的图标
   const sidebarItemsAll = [
     { id: "giver", label: "Name on Book", 
@@ -2153,6 +2484,14 @@ export default function PreviewPageWithTopNav() {
           <path d="M17.8188 13.2969C18.0788 14.3398 18.0788 15.2523 17.6888 16.2952C17.4289 17.3381 16.909 18.2506 16.1291 18.9025C15.7392 19.2935 15.3492 19.5543 14.8293 19.815C14.3094 20.0757 13.7895 20.3364 13.1396 20.4668C12.6197 20.5972 11.9698 20.7275 11.3199 20.7275H8.20039V12.3844C7.29054 12.254 6.51066 12.1236 5.86077 11.7326C5.34085 11.4718 4.82094 11.0808 4.30102 10.6897C3.78111 10.2986 3.39117 9.77713 3.13121 9.25569C2.74128 8.73424 2.48132 8.08243 2.35134 7.43062C2.22136 6.77881 2.09138 6.127 2.09138 5.47519C2.09138 4.56266 2.22136 3.65013 2.6113 2.7376C3.26119 2.86796 3.91109 3.12868 4.56098 3.51977C5.21088 3.91085 5.73079 4.30194 6.12073 4.82339C6.25071 3.78049 6.64064 2.86796 7.16056 2.08579C7.68047 1.30362 8.33037 0.521447 9.11024 0C9.89011 0.521447 10.67 1.30362 11.1899 2.08579C11.7098 2.99832 11.9698 3.91085 12.0998 4.95375C12.6197 4.4323 13.1396 4.04121 13.6595 3.65013C14.3094 3.25904 14.9593 2.99832 15.6092 2.86796C15.9991 3.65013 16.1291 4.56266 16.1291 5.47519C16.1291 6.127 15.9991 6.77881 15.8691 7.43062C15.7392 8.08243 15.4792 8.60388 15.0893 9.25569C14.6993 9.77713 14.3094 10.2986 13.9195 10.6897C13.3995 11.0808 12.8796 11.4718 12.3597 11.7326C11.9698 11.9933 11.5798 12.1236 11.0599 12.254C10.67 12.3844 10.1501 12.5147 9.76014 12.5147V18.5114C9.89011 17.8596 10.1501 17.3381 10.54 16.8167C10.9299 16.2952 11.3199 15.7738 11.8398 15.2523C12.2297 14.8612 12.6197 14.4702 13.1396 14.2094C13.6595 13.9487 14.1794 13.688 14.6993 13.5576L16.2591 13.1665C16.779 13.1665 17.2989 13.2969 17.8188 13.2969ZM0.141699 13.2969C1.18153 13.0362 2.22136 13.1665 3.13121 13.4273C4.17104 13.688 5.0809 14.2094 5.86077 14.9916C6.25071 15.3827 6.51066 15.7738 6.77062 16.2952C7.03058 16.8167 7.29054 17.2078 7.42052 17.7292C7.55049 18.2506 7.68047 18.7721 7.68047 19.2935C7.68047 19.815 7.68047 20.3364 7.55049 20.8579C6.51066 21.1186 5.60081 20.9882 4.56098 20.7275C3.52115 20.3364 2.6113 19.815 1.83142 19.0328C1.05155 18.2506 0.531636 17.3381 0.271678 16.4256C0.0117201 15.3827 -0.118259 14.3398 0.141699 13.2969Z" fill="currentColor"/>
         </svg>
     },
+    ...(hasMomCompositePages ? [{
+      id: "momDrawing",
+      label: "Your Drawing",
+      icon:
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14.9 1.4a2.6 2.6 0 0 1 3.7 3.7L7.1 16.6 2 18l1.4-5.1L14.9 1.4Zm2.1 1.5a.55.55 0 0 0-.78 0L5.2 13.92l-.48 1.76 1.76-.48L17.5 4.18a.55.55 0 0 0 0-.78l-.5-.5ZM2 3.5A1.5 1.5 0 0 1 3.5 2H10a1 1 0 1 1 0 2H4v12h12v-6a1 1 0 1 1 2 0v6.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 2 16.5v-13Z" fill="currentColor"/>
+        </svg>
+    }] : []),
     {
       id: "coverDesign",
       label: "Cover Design",
@@ -2177,12 +2516,13 @@ export default function PreviewPageWithTopNav() {
 
   // 圣诞 bundle：不展示 Options 相关的侧边栏信息与状态（Cover Design / Book Format / Add Extras）
   const sidebarItems = isHideOptions
-    ? sidebarItemsAll.filter((it) => it.id === 'giver' || it.id === 'dedication')
+    ? sidebarItemsAll.filter((it) => it.id === 'giver' || it.id === 'dedication' || it.id === 'momDrawing')
     : sidebarItemsAll;
 
   // 为每个部分创建 ref（用于滚动定位）
   const giverRef = useRef<HTMLDivElement>(null);
   const dedicationRef = useRef<HTMLDivElement>(null);
+  const momDrawingRef = useRef<HTMLDivElement>(null);
   const coverDesignRef = useRef<HTMLDivElement>(null);
   const bindingRef = useRef<HTMLDivElement>(null);
   const giftBoxRef = useRef<HTMLDivElement>(null);
@@ -2194,6 +2534,11 @@ export default function PreviewPageWithTopNav() {
   // 监听 URL tab 参数，跳转到指定部分
   useEffect(() => {
     const tabParam = searchParams.get('tab');
+    if (!hideOthers && (tabParam === 'giftOptions' || tabParam === 'options')) {
+      setActiveTab('Others');
+      setActiveSection('coverDesign');
+      return;
+    }
     if (!hideOthers && (tabParam === 'giftBox' || tabParam === 'addons')) {
       setActiveTab('Others');
       // 延迟滚动以确保 DOM 渲染
@@ -2204,7 +2549,7 @@ export default function PreviewPageWithTopNav() {
         }
       }, 300);
     }
-  }, [searchParams, setActiveTab, setActiveSection]);
+  }, [hideOthers, searchParams, setActiveTab, setActiveSection]);
   
   // 构建图片URL的辅助函数（移除 public/ 前缀，优先使用站内相对路径）
   const buildImageUrl = (imagePath: string) => {
@@ -3262,6 +3607,15 @@ export default function PreviewPageWithTopNav() {
 
         const parsedUserData = JSON.parse(userData);
         console.log('开始处理用户数据:', parsedUserData);
+        const savedGiftMessage = getFirstNonEmptyString(
+          parsedUserData?.characters?.[0]?.attributes?.gift_message,
+          parsedUserData?.characters?.[0]?.gift_message,
+        );
+        if (savedGiftMessage) {
+          setMessage(savedGiftMessage);
+          setDedication(savedGiftMessage);
+          setIsDedicationSubmitted(true);
+        }
 
         setIsProcessing(true);
         console.log('开始处理用户数据...');
@@ -3424,6 +3778,7 @@ export default function PreviewPageWithTopNav() {
     switch(sectionId) {
       case "giver": ref = giverRef; break;
       case "dedication": ref = dedicationRef; break;
+      case "momDrawing": ref = momDrawingRef; break;
       case "coverDesign": ref = coverDesignRef; break;
       case "binding": ref = bindingRef; break;
       case "giftBox": ref = giftBoxRef; break;
@@ -3441,6 +3796,7 @@ export default function PreviewPageWithTopNav() {
     giver: true,
     // dedication：只有用户点击 Submit（或从后端/购物车回填了真实寄语）才算完成
     dedication: isDedicationSubmitted,
+    momDrawing: isMomDrawingCompleted,
     coverDesign: selectedBookCover !== null,
     binding: selectedBinding !== null,
     giftBox: selectedGiftBox !== null,
@@ -3567,6 +3923,7 @@ export default function PreviewPageWithTopNav() {
       const incompleteSections = Object.entries(completedSections)
         .filter(([section, completed]) => {
           if (section === 'giver') return false;
+          if (section === 'momDrawing') return false;
           if (ignoreSections && ignoreSections.has(section)) return false;
           return !completed;
         })
@@ -3974,6 +4331,70 @@ export default function PreviewPageWithTopNav() {
 
                   if (coverUrls) {
                     const { base, canvasBase, cropRightHalf } = coverUrls;
+                    const rawCoverKey = activeOption?.option_key || String(activeOption?.id || '');
+                    const activeCoverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(activeOption?.id || '');
+
+                    // Make it personal 顶部封面：cover_3/4 也使用后端 preview 页，这样排队/换脸中状态与 Options tab 保持一致。
+                    if (activeCoverId === '3' || activeCoverId === '4') {
+                      const target = `cover_${activeCoverId}`;
+                      const coverPage = (previewData?.preview_data || []).find((p: any) => {
+                        const code = String((p as any)?.page_code || '').toLowerCase().replace(/-/g, '_');
+                        return code === target;
+                      });
+                      const raw = coverPage ? getPreviewDisplayImageRaw(coverPage) : '';
+                      const backendSrc = raw ? buildImageUrl(String(raw)) : '';
+                      const ratio = coverThumbAspectRatio ?? (cropRightHalf ? 2 : 1);
+                      const coverHasSwap = !!(coverPage as any)?.has_face_swap;
+                      const coverHasBase = !!(coverPage as any)?.base_image_url || !!(coverPage as any)?.image_url;
+                      const coverFailed = String((coverPage as any)?.status || '').toLowerCase() === 'failed';
+                      const coverNeedsOverlay =
+                        coverHasSwap && coverHasBase && !hasMeaningfulFinalImage(coverPage) && !coverFailed;
+                      const coverProgress = coverPage ? Math.round(pageProgress[(coverPage as any).page_id] ?? 0) : 0;
+                      const coverOverlayMode = coverFailed ? 'failed' : (coverProgress > 0 ? 'progress' : 'loading');
+
+                      return (
+                        <div
+                          className="relative w-full max-w-[400px] overflow-hidden rounded-lg shadow-md"
+                          style={{ aspectRatio: String(ratio) }}
+                        >
+                          {backendSrc ? (
+                            <OptimizedImage
+                              src={backendSrc}
+                              alt="Book Cover"
+                              width={cropRightHalf ? 400 : 200}
+                              height={200}
+                              priority
+                              className="absolute inset-0 h-full w-full object-cover object-right"
+                            />
+                          ) : (
+                            <Image
+                              src={base}
+                              alt="Book Cover"
+                              width={400}
+                              height={400}
+                              priority
+                              className={`absolute inset-0 h-full w-full object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
+                            />
+                          )}
+                          {(!backendSrc || coverNeedsOverlay || coverFailed) && (
+                            <div
+                              className="absolute inset-0 z-10 flex items-center justify-center bg-white/70"
+                              style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}
+                            >
+                              {coverOverlayMode === 'failed' ? (
+                                <PageRenderFailedOverlay message={t('pageRenderFailedMessage')} />
+                              ) : coverOverlayMode === 'progress' ? (
+                                <DreamazeFaceSwapLoadingBar progress={coverProgress} />
+                              ) : (
+                                <div className="text-center">
+                                  <DreamazeLogoRainbowLoader size={60} />
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
 
                     // 通用：如果当前封面在 R2 上有 page_properties.json，使用 Canvas 在封面图上绘制用户名
                     if (activeOption && coverTextConfig && recipient && recipient.trim()) {
@@ -4158,6 +4579,17 @@ export default function PreviewPageWithTopNav() {
                     // 仅在 p3-4（有的书返回 p3-p4）页面渲染 Giver & Dedication
                     const pageCode = String((page as any).page_code || '');
                     const isGiverDedicationPage = pageCode === 'p3-4' || pageCode === 'p3-p4';
+                    const momCompositePageCode = isMomBook ? toMomCompositeUploadPageCode(pageCode) : null;
+                    const isMomCompositePage = Boolean(momCompositePageCode);
+                    const isMomCompositeUploadReady =
+                      isCompleted ||
+                      faceSwapStatusRef.current === 'completed' ||
+                      String((page as any).status || '').toLowerCase() === 'completed';
+                    const canUploadMomComposite =
+                      isMomCompositePage &&
+                      isMomCompositeUploadReady &&
+                      !isSwapping &&
+                      !pageFailed;
                     // 轮到该页前（progress 为 0）显示 loading；开始后显示进度；失败页显示说明
                     const overlayMode = pageFailed ? 'failed' : (progress > 0 ? 'progress' : 'loading');
 
@@ -4214,8 +4646,8 @@ export default function PreviewPageWithTopNav() {
                                     if (pageIdForStoryComingHide && loadedPageId === pageIdForStoryComingHide) {
                                       setIsStoryComingTargetPageLoaded(true);
                                     }
-                                    if (titlePageId && loadedPageId === titlePageId) {
-                                      setIsTitlePageLoaded(true);
+                                    if (sneakPeekNoticePageId && loadedPageId === sneakPeekNoticePageId) {
+                                      setIsSneakPeekNoticePageLoaded(true);
                                     }
                                   }}
                                 />
@@ -4325,8 +4757,41 @@ export default function PreviewPageWithTopNav() {
                           </div>
                         </div>
                       ) : null;
+                      const momCompositeButton = canUploadMomComposite && momCompositePageCode ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            activeMomDrawingPageCodeRef.current = momCompositePageCode;
+                            setActiveMomDrawingPageCode(momCompositePageCode);
+                            momDrawingFileInputRef.current?.click();
+                          }}
+                          disabled={momDrawingUploadingPageCode === momCompositePageCode}
+                          className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${
+                            momDrawingUploadingPageCode === momCompositePageCode ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                        >
+                          {momDrawingUploadingPageCode === momCompositePageCode
+                            ? 'Uploading...'
+                            : uploadedMomDrawingPageCodes.has(momCompositePageCode)
+                              ? 'Replace drawing'
+                              : 'Upload your drawing'}
+                        </button>
+                      ) : null;
+                      const momCompositeButtonOverlay = momCompositeButton && viewMode !== 'single' ? (
+                        <div className="pointer-events-none">
+                          <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
+                            <div className="pointer-events-auto">
+                              {momCompositeButton}
+                            </div>
+                          </div>
+                        </div>
+                      ) : null;
                       return (
-                      <div key={page.page_id} ref={isGiverDedicationPage ? dedicationRef : undefined} className="w-full flex flex-col items-center">
+                      <div
+                        key={page.page_id}
+                        ref={isGiverDedicationPage ? dedicationRef : (momCompositePageCode === 'p5-6' ? momDrawingRef : undefined)}
+                        className="w-full flex flex-col items-center"
+                      >
                         <div className="w-full max-w-5xl">
                           <PreviewPageItem
                             pageId={page.page_id}
@@ -4353,23 +4818,28 @@ export default function PreviewPageWithTopNav() {
                                   {p34ButtonsOverlay}
                                 </div>
                               )
-                            ) : undefined)}
+                            ) : (momCompositeButtonOverlay || undefined))}
                             onImageLoaded={(loadedPageId) => {
                               if (pageIdForStoryComingHide && loadedPageId === pageIdForStoryComingHide) {
                                 setIsStoryComingTargetPageLoaded(true);
                               }
-                              if (titlePageId && loadedPageId === titlePageId) {
-                                setIsTitlePageLoaded(true);
+                              if (sneakPeekNoticePageId && loadedPageId === sneakPeekNoticePageId) {
+                                setIsSneakPeekNoticePageLoaded(true);
                               }
                             }}
                           />
+                          {momCompositeButton && viewMode === 'single' && (
+                            <div className="mt-6 w-full flex justify-center">
+                              {momCompositeButton}
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
                   });
                   })()}
                 </div>
-                {isTitlePageLoaded && (
+                {isSneakPeekNoticePageLoaded && (
                   <p className="text-center text-[#999999] mt-8 whitespace-pre-line">
                     {`This is a sneak peek of the story.\nComplete your order to receive the full book preview within 48 hours.`}
                   </p>
@@ -5031,6 +5501,40 @@ export default function PreviewPageWithTopNav() {
           onChange={handleGiverFileSelect}
           className="hidden"
         />
+        <input
+          ref={momDrawingFileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleMomDrawingFileSelect}
+          className="hidden"
+        />
+
+        {pendingMomDrawingFile && activeMomDrawingPageCode && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white w-[860px] max-w-[95vw] rounded-sm pt-6 pr-6 pb-4 pl-6 flex flex-col gap-4">
+              <GiverAvatarCropper
+                uiVariant="openingPage"
+                maxSize={1600}
+                exportMime="image/png"
+                exportQuality={0.92}
+                initialSrc={pendingMomDrawingFile}
+                onCancel={closeMomDrawingCropper}
+                onDone={() => {}}
+                resultMode="file"
+                onDoneFile={(file) => {
+                  const pageCode = activeMomDrawingPageCode;
+                  if (!pageCode) {
+                    closeMomDrawingCropper();
+                    return;
+                  }
+                  uploadMomCompositeImage(pageCode, file).finally(() => {
+                    closeMomDrawingCropper();
+                  });
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         {editField && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -5188,7 +5692,7 @@ export default function PreviewPageWithTopNav() {
                 <div
                   key={item.id}
                   onClick={() => {
-                    if (item.id === "giver" || item.id === "dedication") {
+                    if (item.id === "giver" || item.id === "dedication" || item.id === "momDrawing") {
                       setActiveTab("Book preview");
                     } else {
                       setActiveTab("Others");
@@ -5263,7 +5767,7 @@ export default function PreviewPageWithTopNav() {
       <div
         className={`fixed bottom-0 left-0 right-0 md:hidden z-50 bg-white border-t border-gray-200 ${
           mobileStatusOpen ? '' : 'shadow-lg'
-        } ${editField === 'giver' ? 'hidden' : ''}`}
+        } ${editField === 'giver' || pendingMomDrawingFile ? 'hidden' : ''}`}
       >
         {/* 状态面板（展开态） */}
         {mobileStatusOpen && (
@@ -5273,10 +5777,12 @@ export default function PreviewPageWithTopNav() {
                 ? [
                     { id: 'giver', label: 'Name on Book', done: !!completedSections.giver },
                     { id: 'dedication', label: 'Your Special Message', done: !!completedSections.dedication },
+                    ...(hasMomCompositePages ? [{ id: 'momDrawing', label: 'Your Drawing', done: !!completedSections.momDrawing }] : []),
                   ]
                 : [
                     { id: 'giver', label: 'Name on Book', done: !!completedSections.giver },
                     { id: 'dedication', label: 'Your Special Message', done: !!completedSections.dedication },
+                    ...(hasMomCompositePages ? [{ id: 'momDrawing', label: 'Your Drawing', done: !!completedSections.momDrawing }] : []),
                     { id: 'coverDesign', label: 'Cover Design', done: !!completedSections.coverDesign },
                     { id: 'binding', label: 'Book Format', done: !!completedSections.binding },
                     { id: 'giftBox', label: 'Add Extras', done: !!completedSections.giftBox },
@@ -5324,10 +5830,12 @@ export default function PreviewPageWithTopNav() {
               ? [
                   { id: 'giver', completed: completedSections.giver },
                   { id: 'dedication', completed: completedSections.dedication },
+                  ...(hasMomCompositePages ? [{ id: 'momDrawing', completed: completedSections.momDrawing }] : []),
                 ]
               : [
                   { id: 'giver', completed: completedSections.giver },
                   { id: 'dedication', completed: completedSections.dedication },
+                  ...(hasMomCompositePages ? [{ id: 'momDrawing', completed: completedSections.momDrawing }] : []),
                   { id: 'coverDesign', completed: completedSections.coverDesign },
                   { id: 'binding', completed: completedSections.binding },
                   { id: 'giftBox', completed: completedSections.giftBox },

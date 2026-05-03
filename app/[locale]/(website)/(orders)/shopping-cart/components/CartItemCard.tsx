@@ -44,6 +44,7 @@ export default function CartItemCard({
 
   const [isLoading, setIsLoading] = useState(false);
   const [isEditLoading, setIsEditLoading] = useState(false);
+  const [isGiftOptionLoading, setIsGiftOptionLoading] = useState(false);
   const [isAddonLoading, setIsAddonLoading] = useState(false);
   const [countdown, setCountdown] = useState<string | null>(null);
   const isPackage = item.item_type === "package";
@@ -119,12 +120,6 @@ export default function CartItemCard({
       count: pkgDefaultOptions?.bookmarks_count ?? null,
     },
     {
-      key: "box",
-      name: "Gift box",
-      imageUrl: `${christmasFreebieBaseUrl}box.png`,
-      count: pkgDefaultOptions?.gift_box_count ?? pkgDefaultOptions?.giftbox_count ?? null,
-    },
-    {
       key: "coloring-book",
       name: "Coloring book",
       // 文件名包含空格，必须做 URL 编码
@@ -140,6 +135,12 @@ export default function CartItemCard({
       name: "Sticker",
       imageUrl: `${christmasFreebieBaseUrl}sticker.png`,
       count: pkgDefaultOptions?.stickers_count ?? null,
+    },
+    {
+      key: "box",
+      name: "Gift box",
+      imageUrl: `${christmasFreebieBaseUrl}box.png`,
+      count: pkgDefaultOptions?.gift_box_count ?? pkgDefaultOptions?.giftbox_count ?? null,
     },
   ] as const;
 
@@ -353,31 +354,54 @@ export default function CartItemCard({
                   <div className="flex items-center gap-6 overflow-hidden">
                     {showEditBook &&
                       (isEditMode ? (
-                        <a
-                          className={`text-sm text-blue-600 hover:underline cursor-pointer ${
-                            isPackage ? "mt-2" : ""
-                          } ${
-                            isEditLoading ? "opacity-50 cursor-not-allowed" : ""
-                          }`}
-                          onClick={async (e) => {
-                            e.preventDefault();
-                            if (isEditLoading) return;
+                        <>
+                          <a
+                            className={`text-sm text-blue-600 hover:underline cursor-pointer ${
+                              isPackage ? "mt-2" : ""
+                            } ${
+                              isEditLoading ? "opacity-50 cursor-not-allowed" : ""
+                            }`}
+                            onClick={async (e) => {
+                              e.preventDefault();
+                              if (isEditLoading) return;
 
-                            if (handleClickEditMessage) {
-                              setIsEditLoading(true);
-                              try {
-                                await handleClickEditMessage(item);
-                              } finally {
-                                setIsEditLoading(false);
+                              if (handleClickEditMessage) {
+                                setIsEditLoading(true);
+                                try {
+                                  await handleClickEditMessage(item);
+                                } finally {
+                                  setIsEditLoading(false);
+                                }
+                              } else {
+                              const url = `/personalized-products/${item.spu_code}/${item.preview_id}/edit?fromCartItemId=${encodeURIComponent(String(item.id))}`;
+                                router.push(url);
                               }
-                            } else {
-                              const url = `/personalized-products/${item.spu_code}/${item.preview_id}/edit`;
-                              router.push(url);
-                            }
-                          }}
-                        >
-                          {isEditLoading ? "Loading..." : t("editBook")}
-                        </a>
+                            }}
+                          >
+                            {isEditLoading ? "Loading..." : t("editBook")}
+                          </a>
+                          <a
+                            className={`text-sm text-blue-600 hover:underline cursor-pointer ${
+                              isGiftOptionLoading ? "opacity-50 cursor-not-allowed" : ""
+                            }`}
+                            onClick={async (e) => {
+                              e.preventDefault();
+                              if (isGiftOptionLoading) return;
+                              setIsGiftOptionLoading(true);
+                              try {
+                                await router.push(
+                                  `/preview?bookid=${item.spu_code}&previewid=${item.preview_id}&fromCartItemId=${item.id}&tab=giftOptions`
+                                );
+                              } catch (e) {
+                                setIsGiftOptionLoading(false);
+                              }
+                            }}
+                          >
+                            {isGiftOptionLoading
+                              ? "Loading..."
+                              : tSafe("editGiftOption", "Edit gift option")}
+                          </a>
+                        </>
                       ) : (
                         <>
                         <a
@@ -637,7 +661,7 @@ export default function CartItemCard({
                         const piIsEdit = piMode === "edit" && !!piPreviewId
                         const ctaLabel = piIsEdit ? t("editBook") : tSafe("createBook", "Create book")
                         const ctaHref = piIsEdit
-                          ? `/personalized-products/${spuCode}/${encodeURIComponent(String(piPreviewId))}/edit`
+                          ? `/personalized-products/${spuCode}/${encodeURIComponent(String(piPreviewId))}/edit?fromCartItemId=${encodeURIComponent(String(pi?.id ?? ''))}`
                           // 圣诞 bundle：跳转到 preview 后不展示 option tab
                           : `/personalize?bookid=${spuCode}&hideOptions=1&fromCartItemId=${encodeURIComponent(String(pi?.id ?? ''))}${coverType ? `&cover_type=${encodeURIComponent(coverType)}` : ''}${bindingType ? `&binding_type=${encodeURIComponent(bindingType)}` : ''}`
 
@@ -692,15 +716,28 @@ export default function CartItemCard({
                                     </p>
                                   </div>
 
-                                  <a
-                                    className="text-blue-600 text-[14px] leading-[20px] tracking-[0.25px] hover:underline cursor-pointer inline-block mt-2 md:mt-0"
-                                    onClick={(e) => {
-                                      e.preventDefault()
-                                      router.push(ctaHref)
-                                    }}
-                                  >
-                                    {ctaLabel}
-                                  </a>
+                                  <div className="flex flex-wrap items-center gap-6 mt-2 md:mt-0">
+                                    <a
+                                      className="text-blue-600 text-[14px] leading-[20px] tracking-[0.25px] hover:underline cursor-pointer inline-block"
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        router.push(ctaHref)
+                                      }}
+                                    >
+                                      {ctaLabel}
+                                    </a>
+                                    {piIsEdit && (
+                                      <a
+                                        className="text-blue-600 text-[14px] leading-[20px] tracking-[0.25px] hover:underline cursor-pointer inline-block"
+                                        onClick={(e) => {
+                                          e.preventDefault()
+                                          router.push(`/preview?bookid=${spuCode}&previewid=${encodeURIComponent(String(piPreviewId))}&fromCartItemId=${encodeURIComponent(String(pi?.id ?? ''))}&tab=giftOptions`)
+                                        }}
+                                      >
+                                        {tSafe("editGiftOption", "Edit gift option")}
+                                      </a>
+                                    )}
+                                  </div>
                                 </div>
 
                                 <div className="hidden md:block shrink-0 text-right">
@@ -728,6 +765,9 @@ export default function CartItemCard({
                     <div className="">
                       {christmasFreebies.map((g) => {
                         const qty = Number(g.count);
+                        if (g.key === "coloring-book" && (!Number.isFinite(qty) || qty <= 0)) {
+                          return null;
+                        }
                         const label =
                           Number.isFinite(qty) && qty > 1 ? `${g.name} × ${qty}` : g.name;
                         return (

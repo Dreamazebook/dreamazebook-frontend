@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from '@/i18n/routing';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { IoIosArrowBack } from "@/utils/icons";
 import { Link } from "@/i18n/routing";
 import Image from 'next/image';
@@ -15,7 +15,11 @@ import SingleCharacterForm2, { SingleCharacterForm2Handle } from '@/app/[locale]
 import usePreviewStore from '@/stores/previewStore';
 import { isPicbookBirthday } from '@/utils/isPicbookBirthday';
 import { isPicbookMom } from '@/utils/isPicbookMom';
-import { formatBirthDateIso, mapPersonalityTraitIdsToCharacterTraits } from '@/utils/birthdayPersonalizeHelpers';
+import {
+  BIRTHDAY_PERSONALITY_TRAITS,
+  formatBirthDateIso,
+  mapPersonalityTraitIdsToCharacterTraits,
+} from '@/utils/birthdayPersonalizeHelpers';
 import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
 import { fbTrack, getContentIdBySpu } from '@/utils/track';
 
@@ -63,12 +67,14 @@ const SkeletonLoader = () => (
 
 export default function EditPersonalizedProductPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
   const bookId = params.spu_code as string;
   const birthdayBook = isPicbookBirthday(bookId);
   const momBook = isPicbookMom(bookId);
   const previewId = params.preview_id as string; // preview_id 是 UUID 字符串，不是数字
+  const fromCartItemIdParam = searchParams.get('fromCartItemId');
   const currentLang = (pathname.match(/^\/(en|zh|fr)\b/)?.[1] as 'en'|'zh'|'fr') || 'en';
 
   const normalizeGender = (v: any): '' | 'boy' | 'girl' => {
@@ -86,6 +92,116 @@ export default function EditPersonalizedProductPage() {
       if (s === 'female' || s === 'f' || s === 'woman') return 'girl';
     }
     return '';
+  };
+
+  const normalizeAgeStage = (v: any): 'infant' | 'preschooler' | 'early_school_age' | '' => {
+    if (v == null) return '';
+    const s = String(v).trim().toLowerCase();
+    if (!s) return '';
+    if (s === 'infant' || s === '0-3' || s === '0–3' || s === '0_3') return 'infant';
+    if (s === 'preschooler' || s === '3-6' || s === '3–6' || s === '3_6') return 'preschooler';
+    if (s === 'early_school_age' || s === '6+' || s === '6_plus' || s === '6-plus') return 'early_school_age';
+    return '';
+  };
+
+  const normalizeSkinColor = (v: any): string => {
+    if (v == null) return '';
+    if (Array.isArray(v)) return normalizeSkinColor(v[0]);
+    const s = String(v).trim().toLowerCase();
+    if (!s) return '';
+
+    const skinNum = Number(s);
+    if (!Number.isNaN(skinNum) && skinNum >= 1 && skinNum <= 3) return skinColors[skinNum - 1];
+    if (s.startsWith('#')) return String(v);
+    if (s === 'white' || s === 'fair' || s === 'light') return skinColors[0];
+    if (s === 'original' || s === 'medium' || s === 'tan') return skinColors[1];
+    if (s === 'black' || s === 'dark') return skinColors[2];
+    return '';
+  };
+
+  const normalizeHairstyle = (v: any): string => {
+    if (v == null) return '';
+    const s = String(v).trim();
+    if (!s) return '';
+    return s.startsWith('hair_') ? s : `hair_${s}`;
+  };
+
+  const normalizeBirthDate = (v: any): string => {
+    if (typeof v !== 'string') return '';
+    const s = v.trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : '';
+  };
+
+  const normalizeBirthdayTraitIds = (...sources: any[]): string[] => {
+    const ids = new Set(BIRTHDAY_PERSONALITY_TRAITS.map(t => t.id));
+    const result: string[] = [];
+    const push = (value: any) => {
+      if (!value) return;
+      if (typeof value === 'string') {
+        const s = value.trim();
+        if (!s) return;
+        if (s.startsWith('[')) {
+          try {
+            push(JSON.parse(s));
+            return;
+          } catch {}
+        }
+        const traitsMatch = s.match(/^traits_(\d+)$/);
+        if (traitsMatch) {
+          const trait = BIRTHDAY_PERSONALITY_TRAITS[Number(traitsMatch[1]) - 1];
+          if (trait && !result.includes(trait.id)) result.push(trait.id);
+          return;
+        }
+        if (ids.has(s as any) && !result.includes(s)) result.push(s);
+        return;
+      }
+      if (Array.isArray(value)) {
+        value.forEach(push);
+      }
+    };
+
+    sources.forEach(push);
+    return result;
+  };
+
+  const normalizeHairColor = (v: any): string => {
+    if (v == null) return '';
+    const s = String(v).trim().toLowerCase();
+    if (!s) return '';
+    if (s === 'blone' || s === 'blonde' || s === 'light' || s === 'fair') return 'light';
+    if (s === 'original' || s === 'brown' || s === 'dark_brown') return 'brown';
+    if (s === 'dark' || s === 'black') return 'dark';
+    return '';
+  };
+
+  const extractFaceImageUrls = (...sources: any[]): string[] => {
+    const result: string[] = [];
+    const push = (value: any) => {
+      if (!value) return;
+      if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (!trimmed) return;
+        if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+          try {
+            push(JSON.parse(trimmed));
+            return;
+          } catch {}
+        }
+        result.push(trimmed);
+        return;
+      }
+      if (Array.isArray(value)) {
+        value.forEach(push);
+        return;
+      }
+      if (typeof value === 'object') {
+        const imageValue = value.url || value.path || value.data || value.uploadedFilePath;
+        if (imageValue) push(imageValue);
+      }
+    };
+
+    sources.forEach(push);
+    return Array.from(new Set(result));
   };
 
   const [formType, setFormType] = useState<'SINGLE1'|'SINGLE2'|'DOUBLE'|null>(null);
@@ -154,8 +270,8 @@ export default function EditPersonalizedProductPage() {
         const options = batch?.options || {};
 
         if (options && (options.full_name || options.face_images || options.attributes)) {
-          const fullName = options.full_name || batch.recipient_name || '';
           const attrs = options.attributes || {};
+          const fullName = options.full_name || attrs.full_name || batch.recipient_name || '';
           const gender = normalizeGender(
             options.gender ??
               options.gender_code ??
@@ -164,36 +280,15 @@ export default function EditPersonalizedProductPage() {
               attrs.genderCode
           );
 
-          // skin_tone: 'white' | 'original' | 'black' → hex
-          let skinColor = '';
-          const tone = String(attrs.skin_tone || '').toLowerCase();
-          if (tone === 'white') skinColor = skinColors[0];
-          else if (tone === 'original') skinColor = skinColors[1];
-          else if (tone === 'black') skinColor = skinColors[2];
-
-          // hair_style: 后端返回数字 id (如 "1")，需要转换为 "hair_1" 格式以匹配 HairstyleSelector
-          const hairstyleRaw = attrs.hair_style || attrs.hairstyle || '';
-          const hairstyle = hairstyleRaw 
-            ? (hairstyleRaw.startsWith('hair_') ? hairstyleRaw : `hair_${hairstyleRaw}`)
-            : '';
-          let hairColor = '';
-          const hairColorRaw = String(attrs.hair_color || '').toLowerCase();
-          if (hairColorRaw === 'blone' || hairColorRaw === 'blonde' || hairColorRaw === 'light') {
-            hairColor = 'light';
-          } else if (hairColorRaw === 'original' || hairColorRaw === 'brown' || hairColorRaw === 'dark_brown') {
-            // original 视为 brown
-            hairColor = 'brown';
-          } else if (hairColorRaw) {
-            hairColor = 'dark';
-          }
-
-          // face_images: 取 url/path 作为照片路径
-          let faceImages: string[] = [];
-          if (Array.isArray(options.face_images)) {
-            faceImages = options.face_images
-              .map((f: any) => f?.url || f?.path)
-              .filter((v: any) => typeof v === 'string' && v);
-          }
+          const skinColor = normalizeSkinColor(attrs.skin_tone ?? attrs.skin_color ?? options.skin_tone ?? options.skin_color);
+          const hairstyle = normalizeHairstyle(attrs.hair_style ?? attrs.hairstyle ?? options.hair_style ?? options.hairstyle);
+          const hairColor = normalizeHairColor(attrs.hair_color ?? options.hair_color);
+          const ageStage = normalizeAgeStage(attrs.age_stage ?? options.age_stage);
+          const fromWhom = String(options.giver_name ?? attrs.giver_name ?? attrs.from_whom ?? attrs.created_by ?? '').trim();
+          const faceImages = extractFaceImageUrls(options.face_images, attrs.face_images);
+          const birthDate = normalizeBirthDate(attrs.birthday_context?.birthday);
+          const personalityTraitIds = normalizeBirthdayTraitIds(attrs.birthday_context?.selected_traits);
+          const giftMessage = String(attrs.gift_message || '').trim();
 
           setInitialData({
             fullName,
@@ -204,11 +299,16 @@ export default function EditPersonalizedProductPage() {
             photos: faceImages,
             ...(hairstyle ? { hairstyle } : {}),
             ...(hairColor ? { hairColor } : {}),
+            ...(ageStage ? { ageStage } : {}),
+            ...(fromWhom ? { fromWhom } : {}),
+            ...(birthDate ? { birthDate } : {}),
+            ...(personalityTraitIds.length ? { personalityTraitIds } : {}),
+            ...(giftMessage ? { giftMessage } : {}),
             ...(typeof attrs.mom_calls_me === 'string' ? { momCallsMe: attrs.mom_calls_me } : {}),
             ...(typeof attrs.mom_makes_best === 'string' ? { momMakesBest: attrs.mom_makes_best } : {}),
           });
 
-          const lang = batch.language;
+          const lang = batch.language || options.language || attrs.language;
           if (lang) {
             setBookLanguage(String(lang));
           }
@@ -224,7 +324,11 @@ export default function EditPersonalizedProductPage() {
       try {
         const { data } = await api.get<ApiResponse<CartItems>>(`${API_CART_LIST}`);
         const items: any[] = Array.isArray((data as any)?.items) ? (data as any).items : [];
-        const item = items.find((ci: any) => String(ci.preview_id) === String(previewId));
+        const itemByCartItemId = fromCartItemIdParam
+          ? items.find((ci: any) => String(ci.id) === String(fromCartItemIdParam))
+          : null;
+        const itemByPreviewId = items.find((ci: any) => String(ci.preview_id) === String(previewId));
+        const item = itemByCartItemId || itemByPreviewId;
         if (item?.id) setCartItemId(Number(item.id));
         // 圣诞 bundle：preview_id 可能在 package.items[].customization_data.preview_id
         if (!item) {
@@ -232,6 +336,7 @@ export default function EditPersonalizedProductPage() {
             const subItems: any[] = Array.isArray((pkg as any)?.items) ? (pkg as any).items : [];
             const match = subItems.find(
               (pi: any) =>
+                (fromCartItemIdParam && String(pi?.id) === String(fromCartItemIdParam)) ||
                 String(pi?.preview_id || pi?.customization_data?.preview_id) === String(previewId),
             );
             if (match?.id) {
@@ -252,50 +357,48 @@ export default function EditPersonalizedProductPage() {
           return;
         }
         
-        // 兼容 face_image 为 JSON 数组字符串或单值
-        let faceImages: string[] = [];
-        // 尝试从 preview 或 item 根层级获取 face_image
-        const faceImageRaw = p?.face_image || (item as any)?.face_image;
-        try {
-          if (typeof faceImageRaw === 'string' && faceImageRaw.trim().startsWith('[')) {
-            const arr = JSON.parse(faceImageRaw);
-            if (Array.isArray(arr)) faceImages = arr;
-          } else if (typeof faceImageRaw === 'string' && faceImageRaw) {
-            faceImages = [faceImageRaw];
-          } else if (Array.isArray(faceImageRaw)) {
-            faceImages = faceImageRaw;
-          }
-        } catch {}
+        const cartAttrs = (p as any)?.attributes || (item as any)?.attributes || {};
+
+        // 兼容 face_image/face_images 为 JSON 字符串、数组、对象或单值
+        const faceImages = extractFaceImageUrls(
+          p?.face_images,
+          p?.face_image,
+          (item as any)?.face_images,
+          (item as any)?.face_image,
+          cartAttrs.face_images,
+        );
         
         // 获取hairstyle和hairColor
         // hair_style: 后端返回数字 id (如 "1")，需要转换为 "hair_1" 格式以匹配 HairstyleSelector
-        const hairstyleRaw = (p as any)?.hairstyle || (p as any)?.hair_style || (item as any)?.hairstyle || (item as any)?.hair_style || '';
-        const hairstyle = hairstyleRaw 
-          ? (hairstyleRaw.startsWith('hair_') ? hairstyleRaw : `hair_${hairstyleRaw}`)
-          : '';
-        const hairColor = (p as any)?.hairColor || (p as any)?.hair_color || (item as any)?.hairColor || (item as any)?.hair_color || '';
+        const hairstyle = normalizeHairstyle(
+          (p as any)?.hairstyle || (p as any)?.hair_style || (item as any)?.hairstyle || (item as any)?.hair_style || cartAttrs.hair_style || cartAttrs.hairstyle,
+        );
+        const hairColor = normalizeHairColor(
+          (p as any)?.hairColor || (p as any)?.hair_color || (item as any)?.hairColor || (item as any)?.hair_color || cartAttrs.hair_color,
+        );
         
         // 获取性别和肤色 (处理数字字符串或数字)
-        const genderVal = p?.gender || (item as any)?.gender;
+        const genderVal = p?.gender || (item as any)?.gender || cartAttrs.gender;
         const gender = normalizeGender(genderVal);
         
-        const skinVal = (p?.skin_color?.length ? p.skin_color[0] : p?.skin_color) || (item as any)?.skin_color;
-        // 假设 skinVal 是 1, 2, 3 对应的索引，或者是颜色值
-        // 这里 skinColors = ['#FFE2CF', '#DCB593', '#665444'];
-        // 如果 skinVal 是数字 1-3，映射到索引 0-2
-        let skinColor = '';
-        if (skinVal) {
-          const skinNum = Number(skinVal);
-          if (!isNaN(skinNum) && skinNum >= 1 && skinNum <= 3) {
-            skinColor = skinColors[skinNum - 1];
-          } else if (typeof skinVal === 'string' && skinVal.startsWith('#')) {
-            skinColor = skinVal;
-          }
-        }
+        const previewSkinColor = Array.isArray(p?.skin_color) ? p.skin_color[0] : p?.skin_color;
+        const skinVal = previewSkinColor || (item as any)?.skin_color || cartAttrs.skin_tone || cartAttrs.skin_color;
+        const skinColor = normalizeSkinColor(skinVal);
 
-        const cartAttrs = (p as any)?.attributes || (item as any)?.attributes || {};
+        const ageStage = normalizeAgeStage((p as any)?.age_stage || (item as any)?.age_stage || cartAttrs.age_stage);
+        const fromWhom = String((p as any)?.giver_name || (item as any)?.giver_name || cartAttrs.giver_name || cartAttrs.from_whom || cartAttrs.created_by || '').trim();
+        const birthDate = normalizeBirthDate(cartAttrs.birthday_context?.birthday);
+        const personalityTraitIds = normalizeBirthdayTraitIds(cartAttrs.birthday_context?.selected_traits);
+        const giftMessage = String(
+          (item as any)?.attributes?.gift_message ||
+          (item as any)?.customization_data?.attributes?.gift_message ||
+          cartAttrs.gift_message ||
+          (p as any)?.message ||
+          (p as any)?.dedication ||
+          ''
+        ).trim();
         setInitialData({
-          fullName: p?.recipient_name || p?.full_name || (item as any)?.full_name || '',
+          fullName: p?.recipient_name || p?.full_name || (item as any)?.full_name || cartAttrs.full_name || '',
           gender,
           skinColor,
           photo: faceImages.length > 0 ? { path: faceImages[0] } : null,
@@ -304,6 +407,11 @@ export default function EditPersonalizedProductPage() {
           // 预填hairstyle和hairColor（如果存在）
           ...(hairstyle ? { hairstyle } : {}),
           ...(hairColor ? { hairColor } : {}),
+          ...(ageStage ? { ageStage } : {}),
+          ...(fromWhom ? { fromWhom } : {}),
+          ...(birthDate ? { birthDate } : {}),
+          ...(personalityTraitIds.length ? { personalityTraitIds } : {}),
+          ...(giftMessage ? { giftMessage } : {}),
           ...(typeof cartAttrs.mom_calls_me === 'string' ? { momCallsMe: cartAttrs.mom_calls_me } : {}),
           ...(typeof cartAttrs.mom_makes_best === 'string' ? { momMakesBest: cartAttrs.mom_makes_best } : {}),
         });
@@ -319,7 +427,7 @@ export default function EditPersonalizedProductPage() {
         setIsLoading(false);
       }
     })();
-  }, [bookId, previewId, currentLang]);
+  }, [bookId, previewId, fromCartItemIdParam, currentLang]);
 
   // 无论初始数据来自 batch 还是 cart，都需要 cartItemId；这里再兜底取一次
   useEffect(() => {
@@ -328,13 +436,18 @@ export default function EditPersonalizedProductPage() {
       try {
         const { data } = await api.get<ApiResponse<CartItems>>(`${API_CART_LIST}`);
         const items: any[] = Array.isArray((data as any)?.items) ? (data as any).items : [];
-        const item = items.find((ci: any) => String(ci.preview_id) === String(previewId));
+        const itemByCartItemId = fromCartItemIdParam
+          ? items.find((ci: any) => String(ci.id) === String(fromCartItemIdParam))
+          : null;
+        const itemByPreviewId = items.find((ci: any) => String(ci.preview_id) === String(previewId));
+        const item = itemByCartItemId || itemByPreviewId;
         if (item?.id) setCartItemId(Number(item.id));
         if (!item) {
           for (const pkg of items) {
             const subItems: any[] = Array.isArray((pkg as any)?.items) ? (pkg as any).items : [];
             const match = subItems.find(
               (pi: any) =>
+                (fromCartItemIdParam && String(pi?.id) === String(fromCartItemIdParam)) ||
                 String(pi?.preview_id || pi?.customization_data?.preview_id) === String(previewId),
             );
             if (match?.id) {
@@ -345,7 +458,7 @@ export default function EditPersonalizedProductPage() {
         }
       } catch {}
     })();
-  }, [cartItemId, packageItemId, previewId]);
+  }, [cartItemId, packageItemId, previewId, fromCartItemIdParam]);
 
   const renderForm = () => {
     if (isLoading) return <SkeletonLoader />;
@@ -572,6 +685,7 @@ export default function EditPersonalizedProductPage() {
       const characterTraitsOk = characterTraits.length === 4;
 
       const fb = buildPicbookPreviewFacePayload(bookId, faceImages);
+      const giftMessage = String((initialData as any)?.giftMessage || (initialData as any)?.gift_message || '').trim();
 
       const payload = {
         full_name: fullName,
@@ -586,6 +700,7 @@ export default function EditPersonalizedProductPage() {
           hair_style: hairStyle,
           hair_color: hairColor,
           ...(ageStageBackend ? { age_stage: ageStageBackend } : {}),
+          ...(giftMessage ? { gift_message: giftMessage } : {}),
           ...(birthdayBook && birthdayStr
             ? {
                 birthday: birthdayStr,
@@ -634,6 +749,7 @@ export default function EditPersonalizedProductPage() {
               gender: genderStr,
               relationship: relationshipRaw || 'Parent/Guardian',
               ...(giverNameRaw ? { giver_name: giverNameRaw } : {}),
+              ...(giftMessage ? { gift_message: giftMessage } : {}),
               attributes: payload.attributes || {},
               photo: faceImages?.[0] || '',
               photos: faceImages || [],
@@ -718,7 +834,7 @@ export default function EditPersonalizedProductPage() {
       </div>
 
       <div className="mx-auto">
-        <h1 className="text-2xl text-center my-6">Please fill in the basic information</h1>
+        <h1 className="text-[28px] leading-[36px] text-center my-6">Please fill in the basic information</h1>
         {renderForm()}
         <div className="flex justify-center">
           <button
