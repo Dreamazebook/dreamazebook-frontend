@@ -218,7 +218,7 @@ const OrderSummary: React.FC = () => {
               onClick={copyOrderNumberToClipboard}
             />
           </span>
-          <span className="text-gray-500">{t("estimatedDelivery")}: </span>
+          <span className="text-gray-500">{t("estimatedDelivery")}: {orderDetail?.delivered_at} </span>
         </div>
 
         {/* 进度状态指示 */}
