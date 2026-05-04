@@ -6,7 +6,7 @@ import { OrderDetail } from '@/types/order';
 import DisplayPrice from '../../../components/component/DisplayPrice';
 import OrderSummaryPrices from '../../../components/component/OrderSummaryPrices';
 import CouponInput from '../../shopping-cart/components/CouponInput';
-import { getOurBookDisplayName } from '@/utils/bookNames';
+import { getFormattedCartItemTitle, getOurBookDisplayName } from '@/utils/bookNames';
 
 interface OrderSummaryProps {
   orderDetail?: OrderDetail;
@@ -26,8 +26,8 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         {orderDetail?.items?.map((item) => (
           <div key={item.id} className="flex items-start">
             <div className="flex-grow">
-              <h4 className="text-sm font-medium">{getOurBookDisplayName(item.spu?.spu_code, item.book_name)}</h4>
-              <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
+              <h4 className="text-sm font-medium">{getFormattedCartItemTitle(item)}</h4>
+              {/* <p className="text-sm text-gray-500">Quantity: {item.quantity}</p> */}
             </div>
             <DisplayPrice value={item.total_price} style='text-sm font-medium' />
           </div>

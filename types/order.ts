@@ -16,7 +16,12 @@ export function formatDate(date: string | null | undefined): string {
   const day = dateObj.getDate();
   const year = dateObj.getFullYear();
 
-  return `${month} ${day}, ${year}`;
+  const hours = dateObj.getHours();
+  const minutes = dateObj.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const hour12 = hours % 12 || 12;
+
+  return `${month} ${day}, ${year} at ${hour12}:${minutes} ${ampm}`;
 }
 
 export type ShippingOptions = ShippingOption[] | { options: ShippingOption[] };

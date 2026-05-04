@@ -39,4 +39,14 @@ export function formatCartBookTitle(params: {
   return `${base} | ${fullName}`
 }
 
+export function getFormattedCartItemTitle(item: any): string {
+  const spuCode = item?.spu_code
+  const baseBookName =
+    getOurBookDisplayName(spuCode, item.product_name || item.book_name || item.sku_name || spuCode || 'Book') || 'Book'
+  const fullName = item.full_name || item.recipient_name || ''
+  return fullName && !String(baseBookName).includes(String(fullName))
+    ? `${baseBookName} | ${fullName}`
+    : baseBookName
+}
+
 
