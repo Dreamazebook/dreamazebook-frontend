@@ -2486,7 +2486,7 @@ export default function PreviewPageWithTopNav() {
     },
     ...(hasMomCompositePages ? [{
       id: "momDrawing",
-      label: "Your Drawing",
+      label: "Your Drawing (optional)",
       icon:
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M14.9 1.4a2.6 2.6 0 0 1 3.7 3.7L7.1 16.6 2 18l1.4-5.1L14.9 1.4Zm2.1 1.5a.55.55 0 0 0-.78 0L5.2 13.92l-.48 1.76 1.76-.48L17.5 4.18a.55.55 0 0 0 0-.78l-.5-.5ZM2 3.5A1.5 1.5 0 0 1 3.5 2H10a1 1 0 1 1 0 2H4v12h12v-6a1 1 0 1 1 2 0v6.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 2 16.5v-13Z" fill="currentColor"/>
