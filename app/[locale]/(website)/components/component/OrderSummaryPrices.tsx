@@ -26,13 +26,13 @@ const OrderSummaryPrices = ({ orderDetail }: OrderSummaryPricesProps) => {
         <DisplayPrice value={shippingCost} />
       </div>
       {discount > 0 && (
-        <div className="flex justify-between text-[#16A34A]">
+        <div className="flex justify-between text-primary">
           {order?.discount_details?.description && (
             <div className="">
               {numberItems>1?t('multiBookDiscount'):t('discount')}{` (${order.discount_details.percentage}%)`}
             </div>
           )}
-          <DisplayPrice style="text-primary font-bold" value={-discount} />
+          <DisplayPrice style="font-bold" value={-discount} />
         </div>
 
       )}
