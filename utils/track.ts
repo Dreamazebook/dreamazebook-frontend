@@ -61,13 +61,26 @@ type GA4EventParams = Record<string, string | number | boolean | any[]>;
  * @param eventName - GA4 event name
  * @param params - Event parameters
  */
+const calculateItemsValue = (
+  items: { item_id: string; item_name: string; price: number; quantity: number }[]
+): number => items.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
+
 export const gtag = (
   eventName: string,
   params?: GA4EventParams
 ): void => {
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', eventName, params);
+  if (typeof window === 'undefined') {
+    return;
   }
+
+  const win = window as any;
+  if (win.gtag) {
+    win.gtag('event', eventName, params);
+    return;
+  }
+
+  win.dataLayer = win.dataLayer || [];
+  win.dataLayer.push(['event', eventName, params]);
 };
 
 /**
@@ -78,6 +91,12 @@ export const trackViewItem = (bookId: string, bookName: string): void => {
   gtag('view_item', {
     item_id: bookId,
     item_name: bookName,
+    items: [
+      {
+        item_id: bookId,
+        item_name: bookName,
+      },
+    ],
   });
 };
 
@@ -89,12 +108,12 @@ export const trackAddToCart = (
   items: { item_id: string; item_name: string; price: number; quantity: number }[],
   totalPrice: number = 0
 ): void => {
-  const price = totalPrice || (items.length > 0 ? items[0].price * items[0].quantity : 0);
+  const value = totalPrice || calculateItemsValue(items);
   
   gtag('add_to_cart', {
     currency: 'USD',
-    value: price,
-    items: items,
+    value,
+    items,
   });
 };
 
@@ -106,10 +125,12 @@ export const trackBeginCheckout = (
   items: { item_id: string; item_name: string; price: number; quantity: number }[],
   cartTotal: number
 ): void => {
+  const value = cartTotal || calculateItemsValue(items);
+
   gtag('begin_checkout', {
     currency: 'USD',
-    value: cartTotal,
-    items: items,
+    value,
+    items,
   });
 };
 
@@ -121,10 +142,12 @@ export const trackAddPaymentInfo = (
   items: { item_id: string; item_name: string; price: number; quantity: number }[],
   orderTotal: number
 ): void => {
+  const value = orderTotal || calculateItemsValue(items);
+
   gtag('add_payment_info', {
     currency: 'USD',
-    value: orderTotal,
-    items: items,
+    value,
+    items,
   });
 };
 
@@ -137,10 +160,12 @@ export const trackPurchase = (
   items: { item_id: string; item_name: string; price: number; quantity: number }[],
   orderTotal: number
 ): void => {
+  const value = orderTotal || calculateItemsValue(items);
+
   gtag('purchase', {
-    transaction_id: orderId,
+    transaction_id: String(orderId),
     currency: 'USD',
-    value: orderTotal,
-    items: items,
+    value,
+    items,
   });
 };
