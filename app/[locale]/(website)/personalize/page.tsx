@@ -6,6 +6,7 @@ import { usePathname, Link, useRouter } from '@/i18n/routing';
 import Image from 'next/image';
 import { IoIosArrowBack } from '@/utils/icons';
 import api from '@/utils/api';
+import { trackViewItem } from '@/utils/track';
 import SingleCharacterForm1, { SingleCharacterForm1Handle } from '../components/personalize/SingleCharacterForm1';
 import SingleCharacterForm2, { SingleCharacterForm2Handle } from '../components/personalize/SingleCharacterForm2';
 import SingleCharacterForm3, { SingleCharacterForm3Handle } from '../components/personalize/SingleCharacterForm3';
@@ -159,6 +160,13 @@ export default function PersonalizeApiDrivenPage() {
 
     fetchConfig();
   }, [bookId, locale, mockParam]);
+
+  // GA4: Track view_item event
+  useEffect(() => {
+    if (bookId && bookName && !loading) {
+      trackViewItem(bookId, bookName);
+    }
+  }, [bookId, bookName, loading]);
 
   useEffect(() => {
     setCurrentStep(1);
