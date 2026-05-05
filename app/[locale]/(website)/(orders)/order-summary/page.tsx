@@ -24,6 +24,10 @@ import OrderTitle from "./components/OrderTitle";
 import AddressEditModal from "../../components/component/AddressEditModal";
 import { useAddressModal } from "@/hooks/useAddressModal";
 import { usePathname, useRouter } from "@/i18n/routing";
+import { trackPurchase } from "@/utils/track";
+
+// Track purchase event only once per page load
+let purchaseTracked = false;
 
 const OrderSummary: React.FC = () => {
   const t = useTranslations("orderSummary");
@@ -102,6 +106,26 @@ const OrderSummary: React.FC = () => {
       // getOrderProgress(orderId);
     }
   }, []);
+
+  // GA4: Track purchase event when order is confirmed
+  useEffect(() => {
+    if (orderDetail && !purchaseTracked && (orderDetail.status === 'paid' || orderDetail.status === 'completed')) {
+      purchaseTracked = true;
+      
+      const ga4Items = orderDetail.items.map((item: any) => ({
+        item_id: item.id || item.spu_code || '',
+        item_name: item.name || item.spu_code || '',
+        price: item.price || 0,
+        quantity: item.quantity || 1
+      }));
+      
+      trackPurchase(
+        String(orderDetail?.id || orderId || ''),
+        ga4Items,
+        orderDetail.total_amount || 0
+      );
+    }
+  }, [orderDetail]);
 
   const copyOrderNumberToClipboard = async () => {
     try {

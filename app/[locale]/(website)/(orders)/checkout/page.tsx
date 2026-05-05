@@ -17,7 +17,7 @@ import { useCheckoutSteps } from "./hooks/useCheckoutSteps";
 import { useShippingAddress } from "./hooks/useShippingAddress";
 import { useShippingMethod } from "./hooks/useShippingMethod";
 import { CheckoutProvider } from "./context/CheckoutContext";
-import { fbTrack, getContentIdBySpu } from "@/utils/track";
+import { fbTrack, getContentIdBySpu, trackBeginCheckout, trackAddToCart } from "@/utils/track";
 
 // Track InitiateCheckout only once per page load
 let initiateCheckoutTracked = false;
@@ -99,6 +99,18 @@ function CheckoutPageContent() {
           content_type: 'product',
           contents
         });
+
+        // GA4: Track begin_checkout event
+        const ga4Items = orderDetail.items.map((item: any) => ({
+          item_id: item.id || item.spu_code || '',
+          item_name: item.name || item.spu_code || '',
+          price: item.price || 0,
+          quantity: item.quantity || 1
+        }));
+        trackBeginCheckout(ga4Items, orderDetail.total_amount || 0);
+
+        // GA4: Track add_to_cart event (when entering checkout)
+        trackAddToCart(ga4Items, orderDetail.total_amount || 0);
       }
     }
   }, [orderDetail]);
