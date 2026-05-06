@@ -245,10 +245,17 @@ export interface ShippingOption {
   currency?: string;
   description?: string;
   estimated_days?: string;
-  is_trackable?: boolean;
+  free_shipping_amount?: number;
+  is_free?: boolean;
+  is_free_shipping_baseline?: boolean;
+  is_selected?: boolean;
+  is_trackable?: boolean | string;
   name?: string;
   original_cost?: string;
   original_currency?: string;
+  payable_cost: number;
+  raw_data?: Record<string, unknown> | any;
+  remarks?: string;
   type?: string;
 }
 
