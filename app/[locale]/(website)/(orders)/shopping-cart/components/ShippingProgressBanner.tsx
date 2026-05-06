@@ -2,10 +2,11 @@ import { Link } from "@/i18n/routing";
 
 interface ShippingProgressBannerProps {
   itemsCount: number;
+  hasPackage: boolean;
 }
 
-export default function ShippingProgressBanner({ itemsCount }: ShippingProgressBannerProps) {
-  if (itemsCount ===0 || itemsCount > 2) {
+export default function ShippingProgressBanner({ itemsCount, hasPackage }: ShippingProgressBannerProps) {
+  if (hasPackage || itemsCount === 0 || itemsCount > 2) {
     return null;
   }
   let message = 'Add 1 more book to get free shipping';

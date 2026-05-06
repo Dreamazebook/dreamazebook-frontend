@@ -39,6 +39,7 @@ export default function ShoppingCartPage() {
 
   // 记录被选中的书本 ID，只有被选中的书才会结账
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [hasPackage, setHasPackage] = useState(false);
 
   // Use custom hooks for order summary and checkout
   const {
@@ -158,6 +159,11 @@ export default function ShoppingCartPage() {
       }
     }
   }, [error, cartItems, selectedItems]);
+
+  useEffect(() => {
+    const selectedCartItems = cartItems.filter(item => selectedItems.includes(item.id));
+    setHasPackage(selectedCartItems.some(item => item.item_type === 'package'));
+  }, [cartItems, selectedItems]);
 
   const handleToggleSelectItem = (id: number) => {
     setSelectedItems(prev => {
@@ -288,7 +294,7 @@ export default function ShoppingCartPage() {
                   }}
                 />
 
-                <ShippingProgressBanner itemsCount={selectedItems.length} />
+                <ShippingProgressBanner itemsCount={selectedItems.length} hasPackage={hasPackage} />
               </div>
             )}
           </div>
