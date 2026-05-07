@@ -78,7 +78,7 @@ const normalizePreviewPageCode = (pageCode: unknown): string =>
 const MOM_COMPOSITE_PAGE_CODES = new Set(['p5-6', 'p5-p6', 'p27-28', 'p27-p28']);
 const MOM_COMPOSITE_IMAGE_PLACEMENTS: Record<'p5-6' | 'p27-28', { x: number; y: number; width: number; height: number }> = {
   'p5-6': { x: 2902, y: 718, width: 1315, height: 840 },
-  'p27-28': { x: 1106, y: 639, width: 908, height: 580 },
+  'p27-28': { x: 3154, y: 639, width: 908, height: 580 },
 };
 
 const isMomCompositePageCode = (pageCode: unknown): boolean =>
@@ -4962,7 +4962,11 @@ export default function PreviewPageWithTopNav() {
                       ) : null;
                       const momCompositeButtonOverlay = momCompositeButton && viewMode !== 'single' ? (
                         <div className="pointer-events-none hidden md:block absolute inset-0">
-                          <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
+                          <div
+                            className={`absolute right-0 w-1/2 flex justify-center ${
+                              momCompositePageCode === 'p27-28' ? 'bottom-[30%]' : 'bottom-[20%]'
+                            }`}
+                          >
                             <div className="pointer-events-auto">
                               {momCompositeButton}
                             </div>

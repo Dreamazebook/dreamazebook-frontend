@@ -665,12 +665,6 @@ export default function CartItemCard({
                           // 圣诞 bundle：跳转到 preview 后不展示 option tab
                           : `/personalize?bookid=${spuCode}&hideOptions=1&fromCartItemId=${encodeURIComponent(String(pi?.id ?? ''))}${coverType ? `&cover_type=${encodeURIComponent(coverType)}` : ''}${bindingType ? `&binding_type=${encodeURIComponent(bindingType)}` : ''}`
 
-                        const piMarketPrice = getMarketPrice(pi);
-                        const piBasePrice =
-                          parseMoney(pi?.base_price) ??
-                          parseMoney(pi?.pricing?.base_price) ??
-                          null;
-
                         return (
                           <div key={pi?.id || `${spuCode}-${pi?.item_index}`} className="flex md:h-[120px] items-center">
                             {/* 圣诞 bundle 子项封面：移动端 56x56，桌面端保持原尺寸 */}
@@ -697,20 +691,7 @@ export default function CartItemCard({
                                     <p className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222] whitespace-normal break-words md:whitespace-nowrap md:truncate">
                                       {bookName}
                                     </p>
-                                    {/* 手机端：子书价格放到书名下方；桌面端保持右侧显示 */}
-                                    <div className="md:hidden mt-1">
-                                      <div className="flex items-baseline gap-2">
-                                        <span className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222]">
-                                          {formatMoney(piBasePrice ?? 0, pkgCurrency)}
-                                        </span>
-                                        {piMarketPrice != null && (
-                                          <span className="text-[#999999] line-through text-[14px] tracking-[0.25px]">
-                                            {formatMoney(piMarketPrice, pkgCurrency)}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                    {/* 圣诞 bundle 子书：补充 cover / gift 细节（与普通购物车一致） */}
+                                    {/* bundle 子书不展示单行定价（总价在套件标题行） */}
                                     <p className="text-[#666666] font-[400] capitalize flex items-center gap-2 mt-1 md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
                                       <span>{formatOptionLabel(bindingType, "Soft Cover")}</span>
                                     </p>
@@ -736,19 +717,6 @@ export default function CartItemCard({
                                       >
                                         {tSafe("editGiftOption", "Edit gift option")}
                                       </a>
-                                    )}
-                                  </div>
-                                </div>
-
-                                <div className="hidden md:block shrink-0 text-right">
-                                  <div className="flex items-baseline gap-2 justify-end">
-                                    <span className="text-[18px] font-medium leading-[24px] tracking-[0.15px] text-[#222222]">
-                                      {formatMoney(piBasePrice ?? 0, pkgCurrency)}
-                                    </span>
-                                    {piMarketPrice != null && (
-                                      <span className="text-[#999999] line-through text-[14px] tracking-[0.25px]">
-                                        {formatMoney(piMarketPrice, pkgCurrency)}
-                                      </span>
                                     )}
                                   </div>
                                 </div>
