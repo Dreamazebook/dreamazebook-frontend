@@ -172,7 +172,7 @@ function BundleCard({ bundle, onGetBundle }: { bundle: Bundle; onGetBundle: (bun
           <button
             type="button"
             onClick={() => onGetBundle(bundle)}
-            className="px-6 py-3 rounded-[8px] bg-[#222222] text-[#F5E3E3] md:mt-3 text-sm md:text-base hover:bg-black"
+            className="cursor-pointer px-6 py-3 rounded-[8px] bg-[#222222] text-[#F5E3E3] md:mt-3 text-sm md:text-base hover:bg-black"
           >
             Get This Bundle
           </button>
@@ -814,7 +814,7 @@ export default function BundlePromotionBlock({
                   onClick={() => {
                     scrollToGroup(g.id as typeof activeTab)
                   }}
-                  className={`relative z-10 flex-1 text-[14px] md:px-3 md:gap-[10px] h-full rounded-full text-center transition-colors ${
+                  className={`cursor-pointer relative z-10 flex-1 text-[14px] md:px-3 md:gap-[10px] h-full rounded-full text-center transition-colors ${
                     activeTab === g.id
                       ? 'text-[#222222] md:font-bold'
                       : 'text-[#222222] hover:bg-[#FADADA] md:font-medium'

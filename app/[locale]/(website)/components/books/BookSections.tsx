@@ -273,7 +273,7 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection; bookId: string |
                 type="button"
                 onClick={isAddBooksBundleCta(section.buttonText) ? handleAddBundleToBag : undefined}
                 disabled={isAdding}
-                className={`bg-black text-[#F5E3E3] px-8 py-3 rounded-[4px] hover:bg-gray-800 transition-colors ${
+                className={`cursor-pointer bg-black text-[#F5E3E3] px-8 py-3 rounded-[4px] hover:bg-gray-800 transition-colors ${
                   isAdding ? 'opacity-75 cursor-wait pointer-events-none' : ''
                 }`}
               >
@@ -521,7 +521,7 @@ const ToddlerFavoritesSection: React.FC<{ section: BookSection; bookId: string |
               type="button"
               onClick={isAddBooksBundleCta(section.buttonText) ? handleAddBundleToBag : undefined}
               disabled={isAdding}
-              className={`bg-black text-[#F5E3E3] px-8 py-3 rounded-[4px] hover:bg-gray-800 transition-colors ${
+              className={`cursor-pointer bg-black text-[#F5E3E3] px-8 py-3 rounded-[4px] hover:bg-gray-800 transition-colors ${
                 isAdding ? 'opacity-75 cursor-wait pointer-events-none' : ''
               }`}
             >

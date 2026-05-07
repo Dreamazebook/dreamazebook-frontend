@@ -691,7 +691,7 @@ export default function CartItemCard({
                                       {bookName}
                                     </p>
                                     {/* 手机端：子书价格放到书名下方；桌面端保持右侧显示 */}
-                                    <div className="md:hidden mt-1">
+                                    {/* <div className="md:hidden mt-1">
                                       <div className="flex items-baseline gap-2">
                                         <span className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222]">
                                           {formatMoney(piBasePrice ?? 0, pkgCurrency)}
@@ -702,7 +702,7 @@ export default function CartItemCard({
                                           </span>
                                         )}
                                       </div>
-                                    </div>
+                                    </div> */}
                                     {/* 圣诞 bundle 子书：补充 cover / gift 细节（与普通购物车一致） */}
                                     <p className="text-[#666666] font-[400] capitalize flex items-center gap-2 mt-1 md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
                                       <span>{formatOptionLabel(bindingType, "Soft Cover")}</span>
@@ -733,7 +733,7 @@ export default function CartItemCard({
                                   </div>
                                 </div>
 
-                                <div className="hidden md:block shrink-0 text-right">
+                                {/* <div className="hidden md:block shrink-0 text-right">
                                   <div className="flex items-baseline gap-2 justify-end">
                                     <span className="text-[18px] font-medium leading-[24px] tracking-[0.15px] text-[#222222]">
                                       {formatMoney(piBasePrice ?? 0, pkgCurrency)}
@@ -744,7 +744,7 @@ export default function CartItemCard({
                                       </span>
                                     )}
                                   </div>
-                                </div>
+                                </div> */}
                               </div>
                             </div>
                           </div>
@@ -792,11 +792,11 @@ export default function CartItemCard({
                                   </div>
                                 </div>
 
-                                <div className="hidden md:block shrink-0 text-right">
+                                {/* <div className="hidden md:block shrink-0 text-right">
                                   <span className="text-[18px] font-medium leading-[24px] tracking-[0.15px] text-[#222222]">
                                     $0 {pkgCurrency}
                                   </span>
-                                </div>
+                                </div> */}
                               </div>
                             </div>
                           </div>
