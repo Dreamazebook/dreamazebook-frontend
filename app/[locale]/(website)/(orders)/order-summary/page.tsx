@@ -277,7 +277,7 @@ const OrderSummary: React.FC = () => {
         <div className="bg-white py-[16px] px-[24px] rounded mt-[16px] text-[16px] text-[#666666]">
           <div className="flex justify-between items-center">
             <span className="">Payment Method</span>
-            <span className="">{orderDetail?.payment_method}</span>
+            <span className="capitalized">{orderDetail?.payment_method}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="">Payment Date</span>
