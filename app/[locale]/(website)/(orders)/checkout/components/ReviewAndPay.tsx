@@ -20,7 +20,7 @@ import { ORDER_SUMMARY_URL } from '@/constants/links';
 import OrderSummaryDelivery from '../../../components/component/OrderSummaryDelivery';
 import OrderSummary from './OrderSummary';
 import CartItemCard from '../../shopping-cart/components/CartItemCard';
-import { fbTrackCustom, fbTrack, getContentIdBySpu } from '@/utils/track';
+import { fbTrackCustom, fbTrack, getContentIdBySpu, trackAddPaymentInfo } from '@/utils/track';
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
@@ -90,6 +90,15 @@ const CheckoutForm: React.FC<{
       content_type: 'product',
       contents
     });
+
+    // GA4: Track add_payment_info event
+    const ga4Items = orderDetail.items.map((item: any) => ({
+      item_id: item.id || item.spu_code || '',
+      item_name: item.name || item.spu_code || '',
+      price: item.price || 0,
+      quantity: item.quantity || 1
+    }));
+    trackAddPaymentInfo(ga4Items, orderDetail.total_amount || 0);
 
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
@@ -167,7 +176,7 @@ const CheckoutForm: React.FC<{
       <h3 className='text-[22px] md:text-[26px] mb-[16px]'>Order Summary</h3>
 
       {orderDetail.items.map((item) => (
-        <CartItemCard key={item.id} item={item} showEditBook={false} />
+        <CartItemCard key={item.id} item={item} showEditBook={false} showDiscountPrice={true} />
       ))}
 
       <h3 className='text-[22px] md:text-[26px] mb-[16px] border-t border-[#E5E5E5] pt-[16px] mt-[16px]'>Order Details</h3>

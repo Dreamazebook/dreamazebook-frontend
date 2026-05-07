@@ -21,7 +21,7 @@ import {
   mapPersonalityTraitIdsToCharacterTraits,
 } from '@/utils/birthdayPersonalizeHelpers';
 import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
-import { fbTrack, getContentIdBySpu } from '@/utils/track';
+import { fbTrack, getContentIdBySpu, trackViewItem } from '@/utils/track';
 
 // Track ViewContent only once per page load
 let viewContentTracked = false;
@@ -218,6 +218,7 @@ export default function EditPersonalizedProductPage() {
 
   const form1Ref = useRef<SingleCharacterForm1Handle>(null);
   const form2Ref = useRef<SingleCharacterForm2Handle>(null);
+  const viewContentTrackedRef = useRef(false);
 
   // 1) 根据 bookId 获取书籍信息，决定表单类型
   useEffect(() => {
@@ -240,20 +241,24 @@ export default function EditPersonalizedProductPage() {
 
   // Track ViewContent when editor page loads
   useEffect(() => {
-    if (!viewContentTracked && !isLoading && formType) {
-      viewContentTracked = true;
-      const contentId = getContentIdBySpu(bookId);
-      
-      if (contentId) {
-        fbTrack('ViewContent', {
-          content_name: 'editor_open',
-          content_category: 'book',
-          content_ids: [contentId],
-          content_type: 'product',
-          contents: [{ id: contentId }]
-        });
-      }
+    if (viewContentTrackedRef.current || isLoading || !formType) return;
+    
+    viewContentTrackedRef.current = true;
+    const contentId = getContentIdBySpu(bookId);
+    
+    if (contentId) {
+      // Meta Pixel: ViewContent
+      fbTrack('ViewContent', {
+        content_name: 'editor_open',
+        content_category: 'book',
+        content_ids: [contentId],
+        content_type: 'product',
+        contents: [{ id: contentId }]
+      });
     }
+    
+    // GA4: Track view_item event (entering editor)
+    trackViewItem(bookId, bookId);
   }, [isLoading, formType, bookId]);
 
   // 从 preview/batches/{previewId} 或购物车中查找初始数据，用于回填个性化表单

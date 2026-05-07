@@ -7,7 +7,7 @@ import { useRouter } from "@/i18n/routing";
 import { useEffect, useState } from "react";
 import KickstarterInlineCard from "./KickstarterInlineCard";
 import { getR2BookCover } from "@/utils/bookCovers";
-import { getOurBookDisplayName } from "@/utils/bookNames";
+import { getOurBookDisplayName, getFormattedCartItemTitle } from "@/utils/bookNames";
 import { WEBSITE_CDN_URL } from "@/constants/cdn";
 import { getBirthdayCoverSeasonFromCharacterLike } from "@/utils/birthdayPersonalizeHelpers";
 
@@ -22,6 +22,7 @@ interface CartItemProps {
   handleClickEditMessage?: (orderItem: any) => Promise<void> | void;
   isSubItem?: boolean;
   flash?: boolean;
+  showDiscountPrice?: boolean;
 }
 
 export default function CartItemCard({
@@ -35,6 +36,7 @@ export default function CartItemCard({
   onToggleSelect,
   handleClickEditMessage,
   flash = false,
+  showDiscountPrice = false,
 }: CartItemProps) {
   const t = useTranslations("ShoppingCart");
   const tSafe = (key: string, fallback: string) =>
@@ -145,7 +147,7 @@ export default function CartItemCard({
   ] as const;
 
   const showDiscountLabel = item.is_selected_for_checkout && itemsCount != 0 && itemsCount && itemsCount >= 3;
-  const pricetoShow = item.is_selected_for_checkout ? item.total_price : item.original_total_price;
+  const pricetoShow = item.is_selected_for_checkout || showDiscountPrice ? item.total_price : item.original_total_price;
 
   useEffect(() => {
     checkAndShowCountdown(item.added_at);
@@ -258,16 +260,7 @@ export default function CartItemCard({
                   {/* 手机端：标题允许自动换行，避免过长导致卡片横向溢出；桌面端保持单行 */}
                   <div className="flex items-start justify-between gap-3 min-w-0 md:w-full md:items-center">
                     <h3 className="font-bold flex-1 min-w-0 whitespace-normal break-words md:whitespace-nowrap md:truncate">
-                      {(() => {
-                        const spuCode = (item as any)?.spu_code
-                        const baseBookName =
-                          getOurBookDisplayName(spuCode, item.product_name || item.book_name || item.sku_name || spuCode || "Book") ||
-                          "Book"
-                        const fullName = item.full_name || item.recipient_name || ""
-                        return fullName && !String(baseBookName).includes(String(fullName))
-                          ? `${baseBookName} | ${fullName}`
-                          : baseBookName
-                      })()}
+                      {getFormattedCartItemTitle(item)}
                     </h3>
                     <div className="flex items-center gap-3 shrink-0">
                       {/* 桌面端：价格在右侧（与当前 UI 一致） */}
@@ -691,7 +684,20 @@ export default function CartItemCard({
                                     <p className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222] whitespace-normal break-words md:whitespace-nowrap md:truncate">
                                       {bookName}
                                     </p>
-                                    {/* bundle 子书不展示单行定价（总价在套件标题行） */}
+                                    {/* 手机端：子书价格放到书名下方；桌面端保持右侧显示 */}
+                                    {/* <div className="md:hidden mt-1">
+                                      <div className="flex items-baseline gap-2">
+                                        <span className="md:text-[18px] text-[16px] font-medium md:leading-[24px] leading-[20px] tracking-[0.15px] md:tracking-[0.15px] text-[#222222]">
+                                          {formatMoney(piBasePrice ?? 0, pkgCurrency)}
+                                        </span>
+                                        {piMarketPrice != null && (
+                                          <span className="text-[#999999] line-through text-[14px] tracking-[0.25px]">
+                                            {formatMoney(piMarketPrice, pkgCurrency)}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div> */}
+                                    {/* 圣诞 bundle 子书：补充 cover / gift 细节（与普通购物车一致） */}
                                     <p className="text-[#666666] font-[400] capitalize flex items-center gap-2 mt-1 md:text-[16px] md:leading-[24px] md:tracking-[0.5px]">
                                       <span>{formatOptionLabel(bindingType, "Soft Cover")}</span>
                                     </p>
@@ -720,6 +726,19 @@ export default function CartItemCard({
                                     )}
                                   </div>
                                 </div>
+
+                                {/* <div className="hidden md:block shrink-0 text-right">
+                                  <div className="flex items-baseline gap-2 justify-end">
+                                    <span className="text-[18px] font-medium leading-[24px] tracking-[0.15px] text-[#222222]">
+                                      {formatMoney(piBasePrice ?? 0, pkgCurrency)}
+                                    </span>
+                                    {piMarketPrice != null && (
+                                      <span className="text-[#999999] line-through text-[14px] tracking-[0.25px]">
+                                        {formatMoney(piMarketPrice, pkgCurrency)}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div> */}
                               </div>
                             </div>
                           </div>
@@ -767,11 +786,11 @@ export default function CartItemCard({
                                   </div>
                                 </div>
 
-                                <div className="hidden md:block shrink-0 text-right">
+                                {/* <div className="hidden md:block shrink-0 text-right">
                                   <span className="text-[18px] font-medium leading-[24px] tracking-[0.15px] text-[#222222]">
                                     $0 {pkgCurrency}
                                   </span>
-                                </div>
+                                </div> */}
                               </div>
                             </div>
                           </div>

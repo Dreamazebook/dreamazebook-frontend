@@ -185,7 +185,10 @@ export default function StoriesFromRealFamilies() {
               </div>
             </div>
             <p className="text-[#222] text-[16px] md:text-[18px] font-medium leading-relaxed mb-6 lg:mb-8">
-              As a mom, I've read lots of books my kids, but nothing has ever made my son light up quite like this when he saw his own face in the story. He disrupts and then he started acting out. It was seriously the sweetest thing I had ever seen. I almost cried. It just made him feel so seen. And as a mom, that just meant everything to me.
+              As a mom, I’ve read lots of books to my kids—but nothing has ever made my son light up like this. 
+              When he saw his own face in the story, he got so excited and started acting it out. 
+              It was honestly the sweetest thing I’ve ever seen. I almost cried. 
+              It just made him feel so seen—and as a mom, that meant everything to me. 
             </p>
             <div className="flex items-center justify-center gap-3 lg:gap-4">
               <Image src={HOME_STORIES('mckynlee.webp')} alt="McKynlee.M" className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover flex-shrink-0" />

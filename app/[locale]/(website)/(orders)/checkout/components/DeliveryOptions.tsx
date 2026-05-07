@@ -22,14 +22,15 @@ const DeliveryOptions: React.FC<DeliveryOptionsProps> = ({
   handleNextFromDelivery
 }) => {
   const t = useTranslations('checkoutPage');
+  const hasFreeShipping = getShippingOptions(orderDetail.shipping_options).some(option => option.is_free);
   return (
     <>
       <div className="space-y-4 mb-6">
-        {getShippingOptions(orderDetail.shipping_options).map(({code, cost, name, description, type, estimated_days})=>
+        {getShippingOptions(orderDetail.shipping_options).map(({code, cost, name, is_free, payable_cost, description, type, estimated_days})=>
         <div 
           key={type}
           className={`border rounded-lg p-4 cursor-pointer ${orderDetail.shipping_method === code ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}
-          onClick={() => updateOrderShippingMethod({code,cost})}
+          onClick={() => updateOrderShippingMethod({code,cost,payable_cost})}
         >
           <div className="flex items-start justify-between">
             <div className="flex items-start">
@@ -44,7 +45,16 @@ const DeliveryOptions: React.FC<DeliveryOptionsProps> = ({
                 {/* <p className='text-[#999999]'>{description}</p> */}
               </div>
             </div>
-            <DisplayPrice value={cost} />
+            <div className="flex gap-2 items-center">
+              {hasFreeShipping ? 
+              <>
+                {is_free ? <span className="bg-[#FFE5E5] p-1 text-[16px]">Shipping included</span> : <span className="text-[#999999] text-[14px]">Need it sooner? Upgrade available</span>}
+                <div>+<DisplayPrice value={payable_cost} /></div>
+                {is_free && <span className="text-[#222222] text-[16px] font-bold">Free</span>}
+              </>
+              :
+              <DisplayPrice value={cost} />}
+            </div>
           </div>
         </div>
         )}

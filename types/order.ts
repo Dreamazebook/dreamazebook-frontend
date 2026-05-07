@@ -16,7 +16,12 @@ export function formatDate(date: string | null | undefined): string {
   const day = dateObj.getDate();
   const year = dateObj.getFullYear();
 
-  return `${month} ${day}, ${year}`;
+  const hours = dateObj.getHours();
+  const minutes = dateObj.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const hour12 = hours % 12 || 12;
+
+  return `${month} ${day}, ${year} at ${hour12}:${minutes} ${ampm}`;
 }
 
 export type ShippingOptions = ShippingOption[] | { options: ShippingOption[] };
@@ -240,10 +245,17 @@ export interface ShippingOption {
   currency?: string;
   description?: string;
   estimated_days?: string;
-  is_trackable?: boolean;
+  free_shipping_amount?: number;
+  is_free?: boolean;
+  is_free_shipping_baseline?: boolean;
+  is_selected?: boolean;
+  is_trackable?: boolean | string;
   name?: string;
   original_cost?: string;
   original_currency?: string;
+  payable_cost: number;
+  raw_data?: Record<string, unknown> | any;
+  remarks?: string;
   type?: string;
 }
 
