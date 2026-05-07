@@ -103,6 +103,10 @@ const normalizeMomCompositeDefaultGender = (gender: unknown, genderCode?: unknow
   return null;
 };
 
+/** `/preview/batches` 返回的 batch.options.gender（无本地 previewUserData 时用于默认手绘图） */
+const momCompositeGenderFromBatchOptions = (options: unknown): MomCompositeDefaultGender | null =>
+  normalizeMomCompositeDefaultGender((options as { gender?: unknown } | null | undefined)?.gender);
+
 const getMomCompositeDefaultImagePath = (pageCode: 'p5-6' | 'p27-28', gender: MomCompositeDefaultGender): string =>
   `/images/preview/mom-drawing/${pageCode}-${gender}.png`;
 
@@ -1150,6 +1154,7 @@ export default function PreviewPageWithTopNav() {
                   status: batch.status || 'processing',
                   batch_id: batch.batch_id,
                   queue_info: batch.queue,
+                  batch_options: batch.options ?? null,
                 } as any;
 
                setPreviewData(initialData);
@@ -1631,8 +1636,10 @@ export default function PreviewPageWithTopNav() {
         }
       })();
 
-    return normalizeMomCompositeDefaultGender(character?.gender, character?.gender_code);
-  }, [previewStoreUserData]);
+    const fromCharacter = normalizeMomCompositeDefaultGender(character?.gender, character?.gender_code);
+    if (fromCharacter) return fromCharacter;
+    return momCompositeGenderFromBatchOptions((previewData as any)?.batch_options);
+  }, [previewStoreUserData, previewData]);
 
   const handleUseDefaultMomDrawing = useCallback(async (pageCode: 'p5-6' | 'p27-28') => {
     const gender = getMomCompositeDefaultGender();
@@ -3074,6 +3081,7 @@ export default function PreviewPageWithTopNav() {
                 batch_id: batch.batch_id,
                 // 保存batch级别的队列信息
                 queue_info: batch.queue,
+                batch_options: batch.options ?? null,
               } as any;
               console.log('[Polling] Created preview_data with', initialData.preview_data.length, 'pages');
               console.log('[Polling] Sample page:', initialData.preview_data[0]);
@@ -3105,6 +3113,7 @@ export default function PreviewPageWithTopNav() {
                 status: batch.status || 'processing',
                 batch_id: batch.batch_id,
                 queue_info: batch.queue,
+                batch_options: batch.options ?? (prev as any)?.batch_options ?? null,
               } as any;
               console.log('[Polling] Reinitialized preview_data with', reinitData.preview_data.length, 'pages');
               return reinitData;
@@ -3137,6 +3146,7 @@ export default function PreviewPageWithTopNav() {
               status: batch.status || ((prev as any)?.status) || 'processing',
               batch_id: batch.batch_id,
               queue_info: batch.queue,
+              batch_options: batch.options ?? (prev as any)?.batch_options ?? null,
             } as any;
           });
         }
@@ -3236,10 +3246,12 @@ export default function PreviewPageWithTopNav() {
                 status: 'completed',
                 batch_id: batch.batch_id,
                   queue_info: batch.queue,
+                  batch_options: batch.options ?? null,
                 } as any;
               }
             const updated = {
               ...prev,
+              batch_options: batch.options ?? (prev as any)?.batch_options ?? null,
               preview_data: prev.preview_data.map((p: any) => {
                 const match = batch.pages.find((bp: any) => bp.page_code === p.page_code);
                   if (!match) return p;
@@ -3648,6 +3660,9 @@ export default function PreviewPageWithTopNav() {
                         if (recipientName && typeof recipientName === 'string' && recipientName.trim()) {
                           setRecipient(recipientName);
                           console.log('[Preview] Updated recipient from new batch:', recipientName);
+                        }
+                        if (batch.options) {
+                          setPreviewData((p) => (p ? { ...p, batch_options: batch.options } : p));
                         }
                       }
                     }).catch(() => {});
@@ -4754,7 +4769,7 @@ export default function PreviewPageWithTopNav() {
                       const p34HasLocalChanges =
                         !!giverImageUrl || !!editField || shouldUploadP34ComposedRef.current;
 
-                      // 单页模式：p3-4 默认展示 final；编辑时切换到 Canvas
+                      // 单页模式：p3-4 始终拆成左右单页展示；有 final 时只把 final 当作底图，不再整张跨页显示。
                       if (isGiverDedicationPage && viewMode === 'single') {
                         if (isSwapping || pageFailed) {
                           return (
@@ -4786,34 +4801,39 @@ export default function PreviewPageWithTopNav() {
                           return (
                             <div key={page.page_id} ref={giverRef} className="w-full flex flex-col items-center">
                               <div className="w-full max-w-5xl">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={p34FinalSrc}
-                                  alt={`Page ${page.page_number}`}
-                                  className="w-full h-auto rounded-lg object-cover"
+                                <GiverDedicationCanvas
+                                  className="w-full"
+                                  imageUrl={p34FinalSrc}
+                                  mode="single"
+                                  giverText=""
+                                  dedicationText=""
+                                  giverImageUrl={null}
+                                  giverImageScale={giverImageScale}
+                                  leftBelow={(
+                                    <div className="mt-2 w-full flex justify-center">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          giverFileInputRef.current?.click();
+                                        }}
+                                        className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                      >
+                                        Personalize with a photo
+                                      </button>
+                                    </div>
+                                  )}
+                                  rightBelow={(
+                                    <div className="mt-2 w-full flex justify-center">
+                                      <button
+                                        type="button"
+                                        onClick={() => setEditField('dedication')}
+                                        className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                      >
+                                        Edit Dedication
+                                      </button>
+                                    </div>
+                                  )}
                                 />
-                                <div className="mt-2 w-full grid grid-cols-2 gap-2">
-                                  <div className="w-full flex justify-center">
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        giverFileInputRef.current?.click();
-                                      }}
-                                      className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                                    >
-                                      Personalize with a photo
-                                    </button>
-                                  </div>
-                                  <div className="w-full flex justify-center">
-                                    <button
-                                      type="button"
-                                      onClick={() => setEditField('dedication')}
-                                      className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                                    >
-                                      Edit Dedication
-                                    </button>
-                                  </div>
-                                </div>
                               </div>
                             </div>
                           );
