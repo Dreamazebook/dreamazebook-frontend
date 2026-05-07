@@ -24,6 +24,18 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'api.dreamazebook.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'dev-api.dreamazebook.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'pub-8cae259c4f3f4e73adf6a65ae6bbd7fa.r2.dev',
         port: '',
         pathname: '/**',

@@ -21,6 +21,7 @@ import useUserStore from '@/stores/userStore';
 import usePreviewStore from '@/stores/previewStore';
 import { mapAgeStageUiToBackend } from '@/utils/mapAgeStageToBackend';
 import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
+import { getApiBaseUrl } from '@/utils/apiBaseUrl';
 import { getBirthdayCoverSeasonFromCharacterLike } from '@/utils/birthdayPersonalizeHelpers';
 import toast from 'react-hot-toast';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
@@ -88,6 +89,60 @@ const toMomCompositeUploadPageCode = (pageCode: unknown): 'p5-6' | 'p27-28' | nu
   if (normalized === 'p5-6' || normalized === 'p5-p6') return 'p5-6';
   if (normalized === 'p27-28' || normalized === 'p27-p28') return 'p27-28';
   return null;
+};
+
+type MomCompositeDefaultGender = 'boy' | 'girl';
+
+const normalizeMomCompositeDefaultGender = (gender: unknown, genderCode?: unknown): MomCompositeDefaultGender | null => {
+  const value = String(gender || '').trim().toLowerCase();
+  if (value === 'boy' || value === 'male' || value === '1') return 'boy';
+  if (value === 'girl' || value === 'female' || value === '2') return 'girl';
+  const code = String(genderCode || '').trim().toLowerCase();
+  if (code === '1' || code === 'boy' || code === 'male') return 'boy';
+  if (code === '2' || code === 'girl' || code === 'female') return 'girl';
+  return null;
+};
+
+const getMomCompositeDefaultImagePath = (pageCode: 'p5-6' | 'p27-28', gender: MomCompositeDefaultGender): string =>
+  `/images/preview/mom-drawing/${pageCode}-${gender}.png`;
+
+type UploadRateLimitError = {
+  title: string;
+  message: string;
+  retryText?: string;
+};
+
+const formatUploadRetryAfter = (retryAfterSeconds: unknown, retryAfterMinutes: unknown): string | undefined => {
+  const minutes = Number(retryAfterMinutes);
+  if (Number.isFinite(minutes) && minutes > 0) {
+    const roundedMinutes = Math.ceil(minutes);
+    const hours = Math.floor(roundedMinutes / 60);
+    const mins = roundedMinutes % 60;
+    if (hours > 0 && mins > 0) return `${hours}h ${mins}m`;
+    if (hours > 0) return `${hours}h`;
+    return `${roundedMinutes}m`;
+  }
+
+  const seconds = Number(retryAfterSeconds);
+  if (Number.isFinite(seconds) && seconds > 0) {
+    return formatUploadRetryAfter(undefined, Math.ceil(seconds / 60));
+  }
+
+  return undefined;
+};
+
+const getUploadRateLimitError = (error: unknown): UploadRateLimitError | null => {
+  const err = error as any;
+  const data = err?.response?.data;
+  const status = err?.response?.status;
+  if (status !== 429 && data?.code !== 'UPLOAD_RATE_LIMITED') return null;
+
+  return {
+    title: 'Upload limit reached',
+    message:
+      'You have reached the guest daily upload limit. Please sign in to continue uploading your images.',
+    retryText: formatUploadRetryAfter(data?.retry_after, data?.retry_after_minutes),
+  };
 };
 
 type MomCompositePreviewPage = PreviewPage & {
@@ -195,6 +250,7 @@ const composeMomCompositeImage = async (
   baseImageUrl: string,
   overlayFile: File,
   placement: { x: number; y: number; width: number; height: number },
+  overlayMode: 'placement' | 'full-page' = 'placement',
 ): Promise<string> => {
   const overlayDataUrl = await fileToDataUrl(overlayFile);
   const [baseImage, overlayImage] = await Promise.all([
@@ -208,6 +264,11 @@ const composeMomCompositeImage = async (
   if (!ctx) throw new Error('Failed to create canvas context');
 
   ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
+  if (overlayMode === 'full-page') {
+    ctx.drawImage(overlayImage, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/png');
+  }
+
   const { sx, sy, sw, sh } = computeCenteredCropForAspectRatio(
     overlayImage.naturalWidth || overlayImage.width,
     overlayImage.naturalHeight || overlayImage.height,
@@ -813,7 +874,7 @@ interface BookOptions {
 export default function PreviewPageWithTopNav() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useUserStore();
+  const { user, openLoginModal } = useUserStore();
   const t = useTranslations('Preview');
   // 严格以 URL 段判定展示语言，避免受到浏览器/cookie 影响
   const pathname = usePathname?.() as string;
@@ -861,6 +922,10 @@ export default function PreviewPageWithTopNav() {
   } = useStore();
 
   const previewStoreUserData = usePreviewStore((s) => s.userData);
+  const handleGuestRateLimitLogin = useCallback(() => {
+    setGuestUploadRateLimitError(null);
+    openLoginModal();
+  }, [openLoginModal]);
 
   // KS 流程：通过查询参数关闭 Others 标签
   const isKs = searchParams.get('ks') === '1';
@@ -1205,6 +1270,7 @@ export default function PreviewPageWithTopNav() {
   const shouldUploadP34ComposedRef = useRef(false);
   const p34ComposeUploadInFlightRef = useRef(false);
   const p34ComposeUploadedRef = useRef(false);
+  const [guestUploadRateLimitError, setGuestUploadRateLimitError] = useState<UploadRateLimitError | null>(null);
   // sidebar「Name on Book」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
   const [isNameOnBookCompleted, setIsNameOnBookCompleted] = useState(true);
   // dedication 完成态：必须用户点过 Submit 才算完成（避免默认寄语导致“已完成”误导）
@@ -1245,6 +1311,7 @@ export default function PreviewPageWithTopNav() {
     setMomDrawingUploadingPageCode(null);
     setUploadedMomDrawingPageCodes(new Set());
     setIsNameOnBookCompleted(false);
+    setGuestUploadRateLimitError(null);
     shouldUploadP34ComposedRef.current = false;
     p34ComposeUploadInFlightRef.current = false;
     p34ComposeUploadedRef.current = false;
@@ -1328,6 +1395,7 @@ export default function PreviewPageWithTopNav() {
     }
 
     p34ComposeUploadInFlightRef.current = true;
+    setGuestUploadRateLimitError(null);
     try {
       const giverData =
         p34GiverDataRef.current ||
@@ -1396,6 +1464,12 @@ export default function PreviewPageWithTopNav() {
       }
     } catch (e) {
       console.error('[P3-4 Compose] upload failed', e);
+      const uploadRateLimitError = getUploadRateLimitError(e);
+      if (uploadRateLimitError) {
+        setGuestUploadRateLimitError(uploadRateLimitError);
+      } else {
+        toast.error('Upload failed, please try again.');
+      }
     } finally {
       p34ComposeUploadInFlightRef.current = false;
     }
@@ -1442,14 +1516,18 @@ export default function PreviewPageWithTopNav() {
     activeMomDrawingPageCodeRef.current = null;
   }, [pendingMomDrawingFile]);
 
-  const uploadMomCompositeImage = useCallback(async (pageCode: 'p5-6' | 'p27-28', file: File) => {
+  const uploadMomCompositeImage = useCallback(async (
+    pageCode: 'p5-6' | 'p27-28',
+    file: File,
+    options?: { overlayMode?: 'placement' | 'full-page' },
+  ): Promise<'ok' | 'rate_limited' | 'skipped'> => {
     const spu = (searchParams.get('bookid') || '').toUpperCase();
     const previewForMom = previewData as MomCompositePreviewData | null;
     const batchId = previewForMom?.batch_id || searchParams.get('previewid');
 
     if (spu !== 'PICBOOK_MOM' || !batchId) {
       console.warn('[Mom Composite] skip upload: invalid book or missing batch_id', { spu, batchId, pageCode });
-      return;
+      return 'skipped';
     }
 
     const targetPage = previewForMom?.preview_data?.find(
@@ -1462,21 +1540,23 @@ export default function PreviewPageWithTopNav() {
     );
     if (!targetPage || !isFaceSwapReady) {
       toast.error('Please wait until face swap is complete before uploading.');
-      return;
+      return 'skipped';
     }
     const placement = MOM_COMPOSITE_IMAGE_PLACEMENTS[pageCode];
-    const baseImageRaw = getPreviewDisplayImageRaw(targetPage);
+    const baseImageRaw = String(targetPage?.base_image_url || '').trim();
     if (!baseImageRaw) {
       toast.error('Page image is not ready yet.');
-      return;
+      return 'skipped';
     }
 
     setMomDrawingUploadingPageCode(pageCode);
+    setGuestUploadRateLimitError(null);
     try {
       const dataUrl = await composeMomCompositeImage(
         normalizePreviewImageUrlForCanvas(String(baseImageRaw)),
         file,
         placement,
+        options?.overlayMode,
       );
 
       const resp = await api.post(
@@ -1520,16 +1600,63 @@ export default function PreviewPageWithTopNav() {
           next.add(pageCode);
           return next;
         });
+        return 'ok';
       } else {
         console.warn('[Mom Composite] uploaded but no image_url in response', resp);
+        return 'skipped';
       }
     } catch (e) {
       console.error('[Mom Composite] upload failed', e);
+      const uploadRateLimitError = getUploadRateLimitError(e);
+      if (uploadRateLimitError) {
+        setGuestUploadRateLimitError(uploadRateLimitError);
+        return 'rate_limited';
+      }
       toast.error('Upload failed, please try again.');
+      return 'skipped';
     } finally {
       setMomDrawingUploadingPageCode(null);
     }
   }, [previewData, searchParams]);
+
+  const getMomCompositeDefaultGender = useCallback((): MomCompositeDefaultGender | null => {
+    const character =
+      (previewStoreUserData as any)?.characters?.[0] ||
+      (() => {
+        try {
+          const userData = typeof window !== 'undefined' ? localStorage.getItem('previewUserData') : null;
+          return userData ? JSON.parse(userData)?.characters?.[0] : null;
+        } catch {
+          return null;
+        }
+      })();
+
+    return normalizeMomCompositeDefaultGender(character?.gender, character?.gender_code);
+  }, [previewStoreUserData]);
+
+  const handleUseDefaultMomDrawing = useCallback(async (pageCode: 'p5-6' | 'p27-28') => {
+    const gender = getMomCompositeDefaultGender();
+    if (!gender) {
+      toast.error('Default drawing is unavailable because gender is missing.');
+      return;
+    }
+
+    const defaultImagePath = getMomCompositeDefaultImagePath(pageCode, gender);
+    try {
+      const response = await fetch(defaultImagePath);
+      if (!response.ok) throw new Error(`Failed to load default image: ${defaultImagePath}`);
+      const blob = await response.blob();
+      const file = new File([blob], `${pageCode}-${gender}.png`, { type: blob.type || 'image/png' });
+      const result = await uploadMomCompositeImage(pageCode, file, { overlayMode: 'full-page' });
+      if (result === 'rate_limited') return;
+      if (result !== 'ok') {
+        toast.error('Default drawing failed, please try again.');
+      }
+    } catch (error) {
+      console.error('[Mom Composite] default image failed', error);
+      toast.error('Default drawing failed, please try again.');
+    }
+  }, [getMomCompositeDefaultGender, uploadMomCompositeImage]);
 
   // 添加 options 状态
   const [bookOptions, setBookOptions] = useState<BookOptions | null>(null);
@@ -3228,7 +3355,7 @@ export default function PreviewPageWithTopNav() {
       // 客户端使用 /api 代理，服务器端使用完整 URL
       const apiBase = typeof window !== 'undefined' 
         ? '/api' 
-        : (process.env.NEXT_PUBLIC_API_URL || 'https://api.dreamazebook.com/api');
+        : getApiBaseUrl();
       const url = `${apiBase}/products/${encodeURIComponent(spuCode)}/preview/render`;
       let authHeader: string | undefined = undefined;
       try {
@@ -4758,24 +4885,36 @@ export default function PreviewPageWithTopNav() {
                         </div>
                       ) : null;
                       const momCompositeButton = canUploadMomComposite && momCompositePageCode ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            activeMomDrawingPageCodeRef.current = momCompositePageCode;
-                            setActiveMomDrawingPageCode(momCompositePageCode);
-                            momDrawingFileInputRef.current?.click();
-                          }}
-                          disabled={momDrawingUploadingPageCode === momCompositePageCode}
-                          className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${
-                            momDrawingUploadingPageCode === momCompositePageCode ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
-                        >
-                          {momDrawingUploadingPageCode === momCompositePageCode
-                            ? 'Uploading...'
-                            : uploadedMomDrawingPageCodes.has(momCompositePageCode)
-                              ? 'Replace drawing'
-                              : 'Upload your drawing'}
-                        </button>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              activeMomDrawingPageCodeRef.current = momCompositePageCode;
+                              setActiveMomDrawingPageCode(momCompositePageCode);
+                              momDrawingFileInputRef.current?.click();
+                            }}
+                            disabled={momDrawingUploadingPageCode === momCompositePageCode}
+                            className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${
+                              momDrawingUploadingPageCode === momCompositePageCode ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                          >
+                            {momDrawingUploadingPageCode === momCompositePageCode
+                              ? 'Uploading...'
+                              : uploadedMomDrawingPageCodes.has(momCompositePageCode)
+                                ? 'Replace drawing'
+                                : 'Upload your drawing'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleUseDefaultMomDrawing(momCompositePageCode)}
+                            disabled={momDrawingUploadingPageCode === momCompositePageCode}
+                            className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${
+                              momDrawingUploadingPageCode === momCompositePageCode ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                          >
+                            Use default drawing
+                          </button>
+                        </div>
                       ) : null;
                       const momCompositeButtonOverlay = momCompositeButton && viewMode !== 'single' ? (
                         <div className="pointer-events-none">
@@ -5514,6 +5653,14 @@ export default function PreviewPageWithTopNav() {
             <div className="bg-white w-[860px] max-w-[95vw] rounded-sm pt-6 pr-6 pb-4 pl-6 flex flex-col gap-4">
               <GiverAvatarCropper
                 uiVariant="openingPage"
+                aspectRatio={
+                  MOM_COMPOSITE_IMAGE_PLACEMENTS[activeMomDrawingPageCode].width /
+                  MOM_COMPOSITE_IMAGE_PLACEMENTS[activeMomDrawingPageCode].height
+                }
+                outputSize={{
+                  width: MOM_COMPOSITE_IMAGE_PLACEMENTS[activeMomDrawingPageCode].width,
+                  height: MOM_COMPOSITE_IMAGE_PLACEMENTS[activeMomDrawingPageCode].height,
+                }}
                 maxSize={1600}
                 exportMime="image/png"
                 exportQuality={0.92}
@@ -5527,9 +5674,11 @@ export default function PreviewPageWithTopNav() {
                     closeMomDrawingCropper();
                     return;
                   }
-                  uploadMomCompositeImage(pageCode, file).finally(() => {
-                    closeMomDrawingCropper();
-                  });
+                  return uploadMomCompositeImage(pageCode, file)
+                    .then(() => undefined)
+                    .finally(() => {
+                      closeMomDrawingCropper();
+                    });
                 }}
               />
             </div>
@@ -5993,6 +6142,51 @@ export default function PreviewPageWithTopNav() {
           })()}
         </div>
       </div>
+
+      {guestUploadRateLimitError && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/45 p-4"
+          onClick={() => setGuestUploadRateLimitError(null)}
+          role="presentation"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="relative w-full max-w-md rounded-sm border border-[#E7D6D6] bg-[#FFF9F9] p-6 shadow-[0_8px_24px_rgba(34,34,34,0.12)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setGuestUploadRateLimitError(null)}
+              className="absolute right-4 top-4 text-xl leading-none text-[#8E92A7] transition-colors hover:text-[#222222]"
+              aria-label="Dismiss"
+            >
+              &times;
+            </button>
+            <div className="flex items-start gap-3 pr-6">
+              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F5E3E3] text-[#222222]">
+                <span className="text-lg leading-none">!</span>
+              </div>
+              <div className="min-w-0 flex-1 text-left">
+                <div className="text-base font-semibold text-[#222222]">{guestUploadRateLimitError.title}</div>
+                <div className="mt-2 text-sm leading-relaxed text-[#6F7280]">{guestUploadRateLimitError.message}</div>
+                {guestUploadRateLimitError.retryText && (
+                  <div className="mt-2 text-sm leading-relaxed text-[#8E92A7]">
+                    You can try again in about {guestUploadRateLimitError.retryText}, or sign in now.
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={handleGuestRateLimitLogin}
+                  className="mt-5 h-[40px] w-full rounded-sm bg-[#222222] px-5 text-sm font-medium text-[#F5E3E3] transition-colors hover:bg-black sm:w-auto"
+                >
+                  Log in to continue
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

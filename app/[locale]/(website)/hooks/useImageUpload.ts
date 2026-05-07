@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getApiOrigin } from '@/utils/apiBaseUrl';
 // Switched to inline data URL approach (no direct upload)
 
 interface UploadResponse {
@@ -23,10 +24,7 @@ const toAbsoluteUrl = (raw: string): string => {
   if (cleanPath.startsWith('user_uploads/')) {
     return `https://s3-pro-dre002.s3.us-east-1.amazonaws.com/${cleanPath}`;
   }
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.dreamazebook.com/api';
-  let origin = 'https://api.dreamazebook.com';
-  try { origin = new URL(apiUrl).origin; } catch {}
-  return `${origin}/${cleanPath}`;
+  return `${getApiOrigin()}/${cleanPath}`;
 }
 
 const useImageUpload = () => {

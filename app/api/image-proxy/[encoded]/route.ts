@@ -7,10 +7,12 @@ export const runtime = 'nodejs';
 
 const ALLOWED_HOSTS = [
   '.r2.dev',
+  's3-dev-dre01',
   's3-pro-dre001',
   's3-pro-dre002',
   'dreamazebook.com',
   'api.dreamazebook.com',
+  'dev-api.dreamazebook.com',
 ];
 
 function isAllowedHost(hostname: string) {

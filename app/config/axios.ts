@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { getApiBaseUrl } from '@/utils/apiBaseUrl';
 
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || getApiBaseUrl(),
   timeout: 30000, // 30 秒超时
   headers: {
     'Content-Type': 'application/json',
