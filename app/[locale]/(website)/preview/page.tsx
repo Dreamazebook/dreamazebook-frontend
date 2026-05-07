@@ -4881,7 +4881,7 @@ export default function PreviewPageWithTopNav() {
                     }
                       // 双页模式：p3-4 默认展示 final（并保留操作按钮）；编辑时才用 Canvas overlay
                       const p34ButtonsOverlay = isGiverDedicationPage ? (
-                        <div className="pointer-events-none">
+                        <div className="pointer-events-none hidden md:block absolute inset-0">
                           <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
                             <button
                               type="button"
@@ -4937,7 +4937,7 @@ export default function PreviewPageWithTopNav() {
                         </div>
                       ) : null;
                       const momCompositeButtonOverlay = momCompositeButton && viewMode !== 'single' ? (
-                        <div className="pointer-events-none">
+                        <div className="pointer-events-none hidden md:block absolute inset-0">
                           <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
                             <div className="pointer-events-auto">
                               {momCompositeButton}
@@ -4987,6 +4987,35 @@ export default function PreviewPageWithTopNav() {
                               }
                             }}
                           />
+                          {isGiverDedicationPage && viewMode === 'double' && !pageFailed && !isSwapping && (
+                            <div className="mt-2 w-full grid grid-cols-2 gap-2 md:hidden">
+                              <div className="w-full flex justify-center">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    giverFileInputRef.current?.click();
+                                  }}
+                                  className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                >
+                                  Personalize with a photo
+                                </button>
+                              </div>
+                              <div className="w-full flex justify-center">
+                                <button
+                                  type="button"
+                                  onClick={() => setEditField('dedication')}
+                                  className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                >
+                                  Edit Dedication
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                          {momCompositeButton && viewMode !== 'single' && (
+                            <div className="mt-6 w-full flex justify-center md:hidden">
+                              {momCompositeButton}
+                            </div>
+                          )}
                           {momCompositeButton && viewMode === 'single' && (
                             <div className="mt-6 w-full flex justify-center">
                               {momCompositeButton}
