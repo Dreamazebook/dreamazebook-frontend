@@ -280,7 +280,7 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
           'When love is spoken out loud, it quickly flows through the whole family.',
         ],
         authorImage:
-          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-behind.jpg',
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_MOM/Love.jpeg',
       },
       {
         type: 'toddler-favorites',

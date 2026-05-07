@@ -1400,7 +1400,6 @@ export default function PreviewPageWithTopNav() {
     }
 
     p34ComposeUploadInFlightRef.current = true;
-    setGuestUploadRateLimitError(null);
     try {
       const giverData =
         p34GiverDataRef.current ||
@@ -1464,6 +1463,7 @@ export default function PreviewPageWithTopNav() {
         shouldUploadP34ComposedRef.current = false;
         p34ComposeUploadedRef.current = true;
         setIsNameOnBookCompleted(true);
+        setGuestUploadRateLimitError(null);
       } else {
         console.warn('[P3-4 Compose] uploaded but no image_url in response', resp);
       }
@@ -1471,6 +1471,8 @@ export default function PreviewPageWithTopNav() {
       console.error('[P3-4 Compose] upload failed', e);
       const uploadRateLimitError = getUploadRateLimitError(e);
       if (uploadRateLimitError) {
+        // Canvas 会在依赖变化时反复触发 onRendered；429 后若仍保持 shouldUpload=true 会形成上传风暴并反复清空/弹出弹窗
+        shouldUploadP34ComposedRef.current = false;
         setGuestUploadRateLimitError(uploadRateLimitError);
       } else {
         toast.error('Upload failed, please try again.');
@@ -4304,24 +4306,33 @@ export default function PreviewPageWithTopNav() {
   const [message, setMessage] = React.useState(defaultMessage);
   // 跟踪上一次默认寄语，用于判断是否应同步更新（避免覆盖用户已编辑的内容）
   const prevDefaultMessageRef = React.useRef(defaultMessage);
+  /** 用户是否在寄语输入框中操作过（含整段删除）；用于区分「未改动」与「刻意留空」 */
+  const messageUserTouchedRef = React.useRef(false);
   React.useEffect(() => {
     const prev = prevDefaultMessageRef.current;
-    const userHasNotEdited = !message || message.trim() === '' || message === prev;
+    const userHasNotEdited =
+      !messageUserTouchedRef.current &&
+      (!message || message.trim() === '' || message === prev);
     if (userHasNotEdited) {
       setMessage(defaultMessage);
       setDedication(defaultMessage);
-    } else if (!dedication || dedication.trim() === '' || dedication === ' ') {
-      // 用户编辑了 message，但画布用的 dedication 仍为空，则仅同步画布默认值
+    } else if (
+      (!dedication || dedication.trim() === '' || dedication === ' ') &&
+      !(messageUserTouchedRef.current && !String(message || '').trim())
+    ) {
+      // 用户编辑了 message，但画布用的 dedication 仍为空，则仅同步画布默认值（不把「刻意清空」刷回默认）
       setDedication(defaultMessage);
     }
     prevDefaultMessageRef.current = defaultMessage;
   }, [defaultMessage, message, dedication]);
-  
+
   // 当bookId或语言变化时，如果用户未编辑，则更新为新的模板
   React.useEffect(() => {
     const newDefaultMessage = buildDefaultMessage(defaultName, selectedLang, bookId);
     const prev = prevDefaultMessageRef.current;
-    const userHasNotEdited = !message || message.trim() === '' || message === prev;
+    const userHasNotEdited =
+      !messageUserTouchedRef.current &&
+      (!message || message.trim() === '' || message === prev);
     if (userHasNotEdited && newDefaultMessage !== prev) {
       setMessage(newDefaultMessage);
       setDedication(newDefaultMessage);
@@ -4336,12 +4347,25 @@ export default function PreviewPageWithTopNav() {
     if (prevRecipient === recipient) return;
     const prevTemplate = buildDefaultMessage((prevRecipient && prevRecipient.trim()) ? prevRecipient : 'User', selectedLang, bookId);
     const nextTemplate = buildDefaultMessage(defaultName, selectedLang, bookId);
-    if (!message || message.trim() === '' || message === prevTemplate) setMessage(nextTemplate);
-    if (!dedication || dedication.trim() === '' || dedication === prevTemplate) setDedication(nextTemplate);
+    const skipEmptyOverride = messageUserTouchedRef.current && !String(message || '').trim();
+    const skipEmptyDedicationOverride = messageUserTouchedRef.current && !String(dedication || '').trim();
+    if (
+      (!message || message.trim() === '' || message === prevTemplate) &&
+      !skipEmptyOverride
+    ) {
+      setMessage(nextTemplate);
+    }
+    if (
+      (!dedication || dedication.trim() === '' || dedication === prevTemplate) &&
+      !skipEmptyDedicationOverride
+    ) {
+      setDedication(nextTemplate);
+    }
     prevRecipientRef.current = recipient;
   }, [recipient, selectedLang, defaultName, message, dedication, bookId]);
 
   const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    messageUserTouchedRef.current = true;
     const { value } = e.target;
 
     // 限制行数：按换行符拆分后行数不能超过 MAX_LINES
@@ -5773,6 +5797,7 @@ export default function PreviewPageWithTopNav() {
                       onDoneFile={(file) => {
                         // 用户上传后：先本地预览（不立刻发后端），等 Canvas 合成完成后再上传合成图
                         try {
+                          setGuestUploadRateLimitError(null);
                           const objUrl = URL.createObjectURL(file);
                           setGiverImageUrl(objUrl);
                           // 分层模型：把 giver 文件转成 data URL 存起来，后续 dedication 重绘/上传都带上最新 giver
@@ -5860,6 +5885,7 @@ export default function PreviewPageWithTopNav() {
                     className="bg-[#222222] text-[#F5E3E3] py-2 px-4 rounded-sm"
                     onClick={() => {
                       // Dedication 更新：通过同样接口上传「已合成（底图 + giver + dedication）」的 p3-4 图片
+                      setGuestUploadRateLimitError(null);
                       shouldUploadP34ComposedRef.current = true;
                       p34ComposeUploadedRef.current = false;
                       setDedication(message);
