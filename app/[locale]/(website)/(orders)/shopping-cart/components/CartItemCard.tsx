@@ -713,17 +713,6 @@ export default function CartItemCard({
                                     >
                                       {ctaLabel}
                                     </a>
-                                    {piIsEdit && (
-                                      <a
-                                        className="text-blue-600 text-[14px] leading-[20px] tracking-[0.25px] hover:underline cursor-pointer inline-block"
-                                        onClick={(e) => {
-                                          e.preventDefault()
-                                          router.push(`/preview?bookid=${spuCode}&previewid=${encodeURIComponent(String(piPreviewId))}&fromCartItemId=${encodeURIComponent(String(pi?.id ?? ''))}&tab=giftOptions`)
-                                        }}
-                                      >
-                                        {tSafe("editGiftOption", "Edit gift option")}
-                                      </a>
-                                    )}
                                   </div>
                                 </div>
 
