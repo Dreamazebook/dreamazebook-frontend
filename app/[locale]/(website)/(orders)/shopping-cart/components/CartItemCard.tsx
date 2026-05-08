@@ -643,6 +643,19 @@ export default function CartItemCard({
                                 normalizeSpuForCover(String(spuCode)),
                               )}/covers/cover_${encodeURIComponent(coverId)}/${coverBaseFile}`
                             : '';
+                        const bundleBookCoverImageUrl = spuCode
+                          ? `${WEBSITE_CDN_URL}products/bundles/BUNDLE_CHRISTMAS/${encodeURIComponent(String(spuCode))}.png`
+                          : '';
+                        const packageItemFallbackImage = bundleBookCoverImageUrl || coverOptionImageUrl || getR2BookCover(spuCode);
+                        const packageItemFallbackImageClass = "max-w-full max-h-full object-contain object-left md:object-center block";
+                        const isUsingEditedCoverImage = pi?.mode === "edit" && !!pi?.cover_image;
+                        const packageItemCoverImage =
+                          isUsingEditedCoverImage
+                            ? pi.cover_image
+                            : packageItemFallbackImage;
+                        const packageItemCoverImageClass = isUsingEditedCoverImage
+                          ? "h-full w-[200%] max-w-none object-fill block flex-shrink-0 -translate-x-1/4"
+                          : packageItemFallbackImageClass;
 
                         // 圣诞 bundle 子项：preview_id 可能在 customization_data.preview_id（而不是顶层 preview_id）
                         const piPreviewId =
@@ -665,12 +678,18 @@ export default function CartItemCard({
                             <div className="w-14 h-14 md:w-[88px] md:h-[100px] overflow-hidden flex items-start justify-center md:items-center md:justify-center self-start md:self-center pt-3 md:p-0">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
-                                src={coverOptionImageUrl || getR2BookCover(spuCode)}
+                                src={packageItemCoverImage}
                                 alt={bookName}
-                                className="max-w-full max-h-full object-contain object-left md:object-center block"
+                                className={packageItemCoverImageClass}
                                 onError={(e) => {
                                   try {
-                                    (e.currentTarget as HTMLImageElement).src = getR2BookCover(spuCode);
+                                    const img = e.currentTarget as HTMLImageElement;
+                                    if (img.dataset.fallbackApplied === "1") return;
+                                    img.dataset.fallbackApplied = "1";
+                                    img.className = packageItemFallbackImageClass;
+                                    img.src = packageItemFallbackImage !== packageItemCoverImage
+                                      ? packageItemFallbackImage
+                                      : coverOptionImageUrl || getR2BookCover(spuCode);
                                   } catch {}
                                 }}
                               />
