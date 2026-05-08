@@ -856,6 +856,22 @@ interface BindingOption {
   is_default?: boolean;
 }
 
+interface BindingTypePrice {
+  sku_code?: string;
+  binding_type?: string;
+  binding_type_label?: string;
+  attributes?: {
+    binding_type?: string;
+  };
+  price?: number | string;
+  current_price?: number | string;
+  final_unit_price?: number | string;
+  unit_price?: number | string;
+  original_unit_price?: number | string;
+  original_price?: number | string;
+  market_price?: number | string;
+}
+
 interface GiftBoxOption {
   id: number;
   option_type?: string;
@@ -2905,6 +2921,74 @@ export default function PreviewPageWithTopNav() {
       parseMoney(anyInfo?.market_price) ||
       0
     );
+  };
+
+  const pickFirstPrice = (...values: any[]): number => {
+    for (const value of values) {
+      const price = parseMoney(value);
+      if (price > 0) return price;
+    }
+    return 0;
+  };
+
+  const sameText = (a: any, b: any): boolean =>
+    String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+
+  const getBindingTypePrices = (): BindingTypePrice[] => {
+    const anyInfo: any = bookInfo as any;
+    const prices = anyInfo?.binding_type_prices || anyInfo?.data?.binding_type_prices;
+    return Array.isArray(prices) ? prices : [];
+  };
+
+  const findBindingTypePrice = (option: BindingOption): BindingTypePrice | null => {
+    const prices = getBindingTypePrices();
+    if (prices.length === 0) return null;
+
+    return prices.find((price) =>
+      sameText(option.option_key, price.binding_type || price.attributes?.binding_type) ||
+      sameText(option.name, price.binding_type_label),
+    ) || null;
+  };
+
+  const getBindingDisplayPrice = (option: BindingOption): {
+    finalPrice: number;
+    originalPrice: number;
+    sourceSku?: string;
+  } => {
+    const skuPrice = findBindingTypePrice(option);
+    if (skuPrice) {
+      const finalPrice = pickFirstPrice(
+        skuPrice.final_unit_price,
+        skuPrice.current_price,
+        skuPrice.price,
+        skuPrice.unit_price,
+      );
+      if (finalPrice <= 0) {
+        const fallbackPrice = getBookBasePrice() + (Number(option.price) || 0);
+        return {
+          finalPrice: fallbackPrice,
+          originalPrice: fallbackPrice,
+          sourceSku: skuPrice.sku_code,
+        };
+      }
+      const originalPrice = pickFirstPrice(
+        skuPrice.original_unit_price,
+        skuPrice.original_price,
+        skuPrice.market_price,
+      );
+
+      return {
+        finalPrice,
+        originalPrice: originalPrice > finalPrice ? originalPrice : finalPrice,
+        sourceSku: skuPrice.sku_code,
+      };
+    }
+
+    const finalPrice = getBookBasePrice() + (Number(option.price) || 0);
+    return {
+      finalPrice,
+      originalPrice: finalPrice,
+    };
   };
 
   // 确保人脸图片为绝对可访问地址（优先 S3 全路径），并移除 public/ 前缀
@@ -5409,28 +5493,23 @@ export default function PreviewPageWithTopNav() {
                     <h2 className="text-lg font-medium text-center">{option.name}</h2>
                     <p className="text-lg font-medium text-center mb-2">
                       {(() => {
-                        // 计算总价：绘本基础价格 + 装订方式的 price_diff
-                        const basePrice = getBookBasePrice();
-                        const priceDiff = Number(option.price) || 0;
-                        const totalPrice = basePrice + priceDiff;
+                        const { finalPrice, originalPrice, sourceSku } = getBindingDisplayPrice(option);
                         
                         // 调试日志
                         if (process.env.NODE_ENV === 'development') {
                           console.log('[Book Format Price]', {
-                            bookInfoPrice: (bookInfo as any)?.price,
-                            variantPrice: (bookInfo as any)?.variant?.price,
-                            currentPrice: (bookInfo as any)?.current_price,
-                            basePriceRaw: (bookInfo as any)?.base_price,
-                            basePrice,
-                            priceDiff,
-                            totalPrice,
+                            bindingTypePrices: (bookInfo as any)?.binding_type_prices,
+                            sourceSku,
+                            finalPrice,
+                            originalPrice,
                             optionName: option.name,
+                            optionKey: option.option_key,
                           });
                         }
                         
-                        return (
-                          <DisplayPrice value={totalPrice} discount={(totalPrice*0.9).toFixed(2)} />
-                        );
+                        return originalPrice > finalPrice
+                          ? <DisplayPrice value={originalPrice} discount={finalPrice.toFixed(2)} />
+                          : <DisplayPrice value={finalPrice} />;
                       })()}
                     </p>
                     {option.description && (
