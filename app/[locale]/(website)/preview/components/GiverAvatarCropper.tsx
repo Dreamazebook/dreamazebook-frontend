@@ -6,7 +6,9 @@ import type { ReactCropperElement } from 'react-cropper';
 import type { AxiosResponse } from 'axios';
 import { uploadApi } from '@/utils/api.js';
 import api from '@/utils/api';
+import { getApiOrigin } from '@/utils/apiBaseUrl';
 import { MdRotateLeft, MdRotateRight, MdFlip, MdRefresh } from '@/utils/icons';
+import useUserStore from '@/stores/userStore';
 
 type Props = {
   // 预览页：返回已上传到后端的图片 URL
@@ -39,7 +41,7 @@ type Props = {
    * 可选：如果希望拿到裁剪后的 File，由外部决定如何处理/上传，
    * 则传入该回调。常用于个性化页面本地 base64 上传场景。
    */
-  onDoneFile?: (file: File) => void;
+  onDoneFile?: (file: File) => void | Promise<void>;
   /**
    * 结果模式：
    * - 'specialUpload'（默认）：走特殊上传接口，返回后端 image_url（Preview Giver 使用）
@@ -63,6 +65,46 @@ const CROPPER_COPY: Record<'personalize' | 'openingPage', { title: string; subti
   },
 };
 
+type UploadRateLimitError = {
+  title: string;
+  message: string;
+  retryText?: string;
+};
+
+const formatRetryAfter = (retryAfterSeconds: unknown, retryAfterMinutes: unknown): string | undefined => {
+  const minutes = Number(retryAfterMinutes);
+  if (Number.isFinite(minutes) && minutes > 0) {
+    const roundedMinutes = Math.ceil(minutes);
+    const hours = Math.floor(roundedMinutes / 60);
+    const mins = roundedMinutes % 60;
+    if (hours > 0 && mins > 0) return `${hours}h ${mins}m`;
+    if (hours > 0) return `${hours}h`;
+    return `${roundedMinutes}m`;
+  }
+
+  const seconds = Number(retryAfterSeconds);
+  if (Number.isFinite(seconds) && seconds > 0) {
+    return formatRetryAfter(undefined, Math.ceil(seconds / 60));
+  }
+
+  return undefined;
+};
+
+const getUploadRateLimitError = (error: unknown): UploadRateLimitError | null => {
+  const err = error as any;
+  const data = err?.response?.data;
+  const status = err?.response?.status;
+  if (status !== 429 && data?.code !== 'UPLOAD_RATE_LIMITED') return null;
+
+  const retryText = formatRetryAfter(data?.retry_after, data?.retry_after_minutes);
+  return {
+    title: 'Upload limit reached',
+    message:
+      'You have reached the guest daily upload limit. Please sign in to continue uploading your images.',
+    retryText,
+  };
+};
+
 // 复制 hooks 内部的地址规范化逻辑，便于将后端 path 转为可访问 URL
 function toAbsoluteUrl(raw: string): string {
   if (!raw) return raw as unknown as string;
@@ -81,10 +123,7 @@ function toAbsoluteUrl(raw: string): string {
   if (cleanPath.startsWith('user_uploads/')) {
     return `https://s3-pro-dre002.s3.us-east-1.amazonaws.com/${cleanPath}`;
   }
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.dreamazebook.com/api';
-  let origin = 'https://api.dreamazebook.com';
-  try { origin = new URL(apiUrl).origin; } catch {}
-  return `${origin}/${cleanPath}`;
+  return `${getApiOrigin()}/${cleanPath}`;
 }
 
 export default function GiverAvatarCropper({
@@ -104,13 +143,16 @@ export default function GiverAvatarCropper({
   uiVariant = 'openingPage',
 }: Props) {
   const { title: headerTitle, subtitle: headerSubtitle } = CROPPER_COPY[uiVariant];
+  const openLoginModal = useUserStore((s) => s.openLoginModal);
   const [src, setSrc] = useState<string | undefined>(initialSrc);
   const cropperRef = useRef<ReactCropperElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isApplyingRef = useRef(false);
   const [sx, setSx] = useState(1);
   const [sy, setSy] = useState(1);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rateLimitError, setRateLimitError] = useState<UploadRateLimitError | null>(null);
 
   // 如果有initialSrc，直接使用；否则在组件挂载时自动触发文件选择器
   useEffect(() => {
@@ -133,7 +175,13 @@ export default function GiverAvatarCropper({
     const url = URL.createObjectURL(file);
     setSrc(url);
     setError(null);
+    setRateLimitError(null);
   }, [onCancel]);
+
+  const handleRateLimitLogin = useCallback(() => {
+    setRateLimitError(null);
+    openLoginModal();
+  }, [openLoginModal]);
 
   const rotateLeft = () => cropperRef.current?.cropper.rotate(-90);
   const rotateRight = () => cropperRef.current?.cropper.rotate(90);
@@ -199,10 +247,13 @@ export default function GiverAvatarCropper({
   };
 
   const onApply = async () => {
+    if (isApplyingRef.current) return;
     const cropper = cropperRef.current?.cropper;
     if (!cropper) return;
+    isApplyingRef.current = true;
     setIsUploading(true);
     setError(null);
+    setRateLimitError(null);
     try {
       // 获取裁剪结果：支持固定导出尺寸（outputSize），否则可选 maxSize 限制
       const cropOpts: any = { imageSmoothingEnabled: true, imageSmoothingQuality: 'high' };
@@ -232,7 +283,11 @@ export default function GiverAvatarCropper({
       }
 
       canvas.toBlob(async (blob) => {
-        if (!blob) return;
+        if (!blob) {
+          isApplyingRef.current = false;
+          setIsUploading(false);
+          return;
+        }
         try {
           if (resultMode === 'file') {
             // 个性化页面：直接返回裁剪后的 File，由外部自行上传/转 dataURL
@@ -240,7 +295,7 @@ export default function GiverAvatarCropper({
               type: exportMime,
             });
             if (onDoneFile) {
-              onDoneFile(file);
+              await onDoneFile(file);
             }
           } else {
             // 预览页面：统一使用特殊图片上传接口（需要 spu + page）
@@ -252,15 +307,29 @@ export default function GiverAvatarCropper({
             onDone(url);
           }
         } catch (e: unknown) {
-          setError(e instanceof Error ? e.message : 'Upload failed');
+          const uploadRateLimitError = getUploadRateLimitError(e);
+          if (uploadRateLimitError) {
+            setRateLimitError(uploadRateLimitError);
+            setError(null);
+          } else {
+            setError(e instanceof Error ? e.message : 'Upload failed');
+          }
         } finally {
+          isApplyingRef.current = false;
           setIsUploading(false);
           if (src) URL.revokeObjectURL(src);
         }
       }, exportMime, exportQuality);
     } catch (e: unknown) {
+      isApplyingRef.current = false;
       setIsUploading(false);
-      setError(e instanceof Error ? e.message : 'Process failed');
+      const uploadRateLimitError = getUploadRateLimitError(e);
+      if (uploadRateLimitError) {
+        setRateLimitError(uploadRateLimitError);
+        setError(null);
+      } else {
+        setError(e instanceof Error ? e.message : 'Process failed');
+      }
     }
   };
 
@@ -364,11 +433,58 @@ export default function GiverAvatarCropper({
               type="button"
               onClick={onApply}
               disabled={isUploading}
-              className="px-3 py-1 w-[120px] h-[44px] rounded bg-black text-[#F5E3E3] disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="px-3 py-1 w-[120px] h-[44px] rounded bg-black text-[#F5E3E3] disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {isUploading ? 'Adding...' : 'Apply'}
+              {isUploading && (
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#F5E3E3] border-t-transparent" />
+              )}
+              {isUploading ? 'Loading...' : 'Apply'}
             </button>
           </div>
+          {rateLimitError && (
+            <div
+              className="fixed inset-0 z-[200] flex items-center justify-center bg-black/45 p-4"
+              onClick={() => setRateLimitError(null)}
+              role="presentation"
+            >
+              <div
+                role="dialog"
+                aria-modal="true"
+                className="relative w-full max-w-md rounded-sm border border-[#E7D6D6] bg-[#FFF9F9] p-6 shadow-[0_8px_24px_rgba(34,34,34,0.12)]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  onClick={() => setRateLimitError(null)}
+                  className="absolute right-4 top-4 text-xl leading-none text-[#8E92A7] transition-colors hover:text-[#222222]"
+                  aria-label="Dismiss"
+                >
+                  &times;
+                </button>
+                <div className="flex items-start gap-3 pr-6">
+                  <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F5E3E3] text-[#222222]">
+                    <span className="text-lg leading-none">!</span>
+                  </div>
+                  <div className="min-w-0 flex-1 text-left">
+                    <div className="text-base font-semibold text-[#222222]">{rateLimitError.title}</div>
+                    <div className="mt-2 text-sm leading-relaxed text-[#6F7280]">{rateLimitError.message}</div>
+                    {rateLimitError.retryText && (
+                      <div className="mt-2 text-sm leading-relaxed text-[#8E92A7]">
+                        You can try again in about {rateLimitError.retryText}, or sign in now.
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleRateLimitLogin}
+                      className="mt-5 h-[40px] w-full rounded-sm bg-[#222222] px-5 text-sm font-medium text-[#F5E3E3] transition-colors hover:bg-black sm:w-auto"
+                    >
+                      Log in to continue
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {error && <div className="text-red-600 mt-2">{error}</div>}
         </div>
       )}

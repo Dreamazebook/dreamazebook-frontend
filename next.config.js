@@ -8,7 +8,7 @@ const nextConfig = {
   },
   images: {
     // 使用 domains 配置（简单方式）
-    domains: ['dreamazebook.com', 'api.dreamazebook.com', '54.196.149.18', 'pub-276765949af547aba1ca5c576f2859ea.r2.dev', 'pub-9cf31543472247c2936bb3ad6524d445.r2.dev', 'www.facebook.com', 'pro-s3-dre01.s3.amazonaws.com', 's3-pro-dre001.s3.us-east-1.amazonaws.com', 's3-pro-dre002.s3.us-east-1.amazonaws.com', 'example.com', 'images.unsplash.com'],
+    domains: ['dreamazebook.com', 'api.dreamazebook.com', 'dev-api.dreamazebook.com', '54.196.149.18', 'pub-276765949af547aba1ca5c576f2859ea.r2.dev', 'pub-9cf31543472247c2936bb3ad6524d445.r2.dev', 'www.facebook.com', 'pro-s3-dre01.s3.amazonaws.com', 's3-dev-dre01.s3.us-east-1.amazonaws.com', 's3-pro-dre001.s3.us-east-1.amazonaws.com', 's3-pro-dre002.s3.us-east-1.amazonaws.com', 'example.com', 'images.unsplash.com'],
     // 同时保留 remotePatterns 配置（更详细的控制）
     remotePatterns: [
       {
@@ -61,7 +61,19 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'dev-api.dreamazebook.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'example.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 's3-dev-dre01.s3.us-east-1.amazonaws.com',
         port: '',
         pathname: '/**',
       },

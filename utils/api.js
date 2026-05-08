@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getApiBaseUrl } from './apiBaseUrl';
 
 const GUEST_SESSION_HEADER = 'X-Guest-Session-Id';
 const GUEST_SESSION_STORAGE_KEY = 'guest_session_id';
@@ -45,7 +46,7 @@ const getBaseURL = () => {
         return '/api';
     } else {
         // 服务器端环境：直接使用完整 API URL
-        return process.env.NEXT_PUBLIC_API_URL || 'https://api.dreamazebook.com/api';
+        return getApiBaseUrl();
     }
 };
 

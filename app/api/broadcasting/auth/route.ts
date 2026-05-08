@@ -1,5 +1,6 @@
 // app/api/broadcasting/auth/route.ts
 import { NextRequest, NextResponse } from 'next/server'
+import { getApiOrigin } from '@/utils/apiBaseUrl'
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
 
     // 3) 构造 Laravel 后端广播授权 URL（稳健处理异常/非法主机名）
     const apiUrlEnv = process.env.NEXT_PUBLIC_API_URL
-    let laravelUrl = 'https://api.dreamazebook.com'
+    let laravelUrl = getApiOrigin()
     if (apiUrlEnv) {
       // 先尝试按原值解析
       try {
@@ -30,8 +31,8 @@ export async function POST(req: NextRequest) {
           const sanitized = apiUrlEnv.replace('://.', '://')
           laravelUrl = new URL(sanitized).origin
         } catch {
-          // 仍失败则回退到默认域名
-          laravelUrl = 'https://api.dreamazebook.com'
+          // 仍失败则回退到当前环境默认域名
+          laravelUrl = getApiOrigin()
         }
       }
     }

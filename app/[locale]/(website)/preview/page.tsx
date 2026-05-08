@@ -21,6 +21,7 @@ import useUserStore from '@/stores/userStore';
 import usePreviewStore from '@/stores/previewStore';
 import { mapAgeStageUiToBackend } from '@/utils/mapAgeStageToBackend';
 import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
+import { getApiBaseUrl } from '@/utils/apiBaseUrl';
 import { getBirthdayCoverSeasonFromCharacterLike } from '@/utils/birthdayPersonalizeHelpers';
 import toast from 'react-hot-toast';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
@@ -77,7 +78,7 @@ const normalizePreviewPageCode = (pageCode: unknown): string =>
 const MOM_COMPOSITE_PAGE_CODES = new Set(['p5-6', 'p5-p6', 'p27-28', 'p27-p28']);
 const MOM_COMPOSITE_IMAGE_PLACEMENTS: Record<'p5-6' | 'p27-28', { x: number; y: number; width: number; height: number }> = {
   'p5-6': { x: 2902, y: 718, width: 1315, height: 840 },
-  'p27-28': { x: 1106, y: 639, width: 908, height: 580 },
+  'p27-28': { x: 3154, y: 639, width: 908, height: 580 },
 };
 
 const isMomCompositePageCode = (pageCode: unknown): boolean =>
@@ -88,6 +89,64 @@ const toMomCompositeUploadPageCode = (pageCode: unknown): 'p5-6' | 'p27-28' | nu
   if (normalized === 'p5-6' || normalized === 'p5-p6') return 'p5-6';
   if (normalized === 'p27-28' || normalized === 'p27-p28') return 'p27-28';
   return null;
+};
+
+type MomCompositeDefaultGender = 'boy' | 'girl';
+
+const normalizeMomCompositeDefaultGender = (gender: unknown, genderCode?: unknown): MomCompositeDefaultGender | null => {
+  const value = String(gender || '').trim().toLowerCase();
+  if (value === 'boy' || value === 'male' || value === '1') return 'boy';
+  if (value === 'girl' || value === 'female' || value === '2') return 'girl';
+  const code = String(genderCode || '').trim().toLowerCase();
+  if (code === '1' || code === 'boy' || code === 'male') return 'boy';
+  if (code === '2' || code === 'girl' || code === 'female') return 'girl';
+  return null;
+};
+
+/** `/preview/batches` 返回的 batch.options.gender（无本地 previewUserData 时用于默认手绘图） */
+const momCompositeGenderFromBatchOptions = (options: unknown): MomCompositeDefaultGender | null =>
+  normalizeMomCompositeDefaultGender((options as { gender?: unknown } | null | undefined)?.gender);
+
+const getMomCompositeDefaultImagePath = (pageCode: 'p5-6' | 'p27-28', gender: MomCompositeDefaultGender): string =>
+  `/images/preview/mom-drawing/${pageCode}-${gender}.png`;
+
+type UploadRateLimitError = {
+  title: string;
+  message: string;
+  retryText?: string;
+};
+
+const formatUploadRetryAfter = (retryAfterSeconds: unknown, retryAfterMinutes: unknown): string | undefined => {
+  const minutes = Number(retryAfterMinutes);
+  if (Number.isFinite(minutes) && minutes > 0) {
+    const roundedMinutes = Math.ceil(minutes);
+    const hours = Math.floor(roundedMinutes / 60);
+    const mins = roundedMinutes % 60;
+    if (hours > 0 && mins > 0) return `${hours}h ${mins}m`;
+    if (hours > 0) return `${hours}h`;
+    return `${roundedMinutes}m`;
+  }
+
+  const seconds = Number(retryAfterSeconds);
+  if (Number.isFinite(seconds) && seconds > 0) {
+    return formatUploadRetryAfter(undefined, Math.ceil(seconds / 60));
+  }
+
+  return undefined;
+};
+
+const getUploadRateLimitError = (error: unknown): UploadRateLimitError | null => {
+  const err = error as any;
+  const data = err?.response?.data;
+  const status = err?.response?.status;
+  if (status !== 429 && data?.code !== 'UPLOAD_RATE_LIMITED') return null;
+
+  return {
+    title: 'Upload limit reached',
+    message:
+      'You have reached the guest daily upload limit. Please sign in to continue uploading your images.',
+    retryText: formatUploadRetryAfter(data?.retry_after, data?.retry_after_minutes),
+  };
 };
 
 type MomCompositePreviewPage = PreviewPage & {
@@ -195,6 +254,7 @@ const composeMomCompositeImage = async (
   baseImageUrl: string,
   overlayFile: File,
   placement: { x: number; y: number; width: number; height: number },
+  overlayMode: 'placement' | 'full-page' = 'placement',
 ): Promise<string> => {
   const overlayDataUrl = await fileToDataUrl(overlayFile);
   const [baseImage, overlayImage] = await Promise.all([
@@ -208,6 +268,11 @@ const composeMomCompositeImage = async (
   if (!ctx) throw new Error('Failed to create canvas context');
 
   ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
+  if (overlayMode === 'full-page') {
+    ctx.drawImage(overlayImage, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/png');
+  }
+
   const { sx, sy, sw, sh } = computeCenteredCropForAspectRatio(
     overlayImage.naturalWidth || overlayImage.width,
     overlayImage.naturalHeight || overlayImage.height,
@@ -791,6 +856,22 @@ interface BindingOption {
   is_default?: boolean;
 }
 
+interface BindingTypePrice {
+  sku_code?: string;
+  binding_type?: string;
+  binding_type_label?: string;
+  attributes?: {
+    binding_type?: string;
+  };
+  price?: number | string;
+  current_price?: number | string;
+  final_unit_price?: number | string;
+  unit_price?: number | string;
+  original_unit_price?: number | string;
+  original_price?: number | string;
+  market_price?: number | string;
+}
+
 interface GiftBoxOption {
   id: number;
   option_type?: string;
@@ -813,7 +894,7 @@ interface BookOptions {
 export default function PreviewPageWithTopNav() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useUserStore();
+  const { user, openLoginModal } = useUserStore();
   const t = useTranslations('Preview');
   // 严格以 URL 段判定展示语言，避免受到浏览器/cookie 影响
   const pathname = usePathname?.() as string;
@@ -861,6 +942,10 @@ export default function PreviewPageWithTopNav() {
   } = useStore();
 
   const previewStoreUserData = usePreviewStore((s) => s.userData);
+  const handleGuestRateLimitLogin = useCallback(() => {
+    setGuestUploadRateLimitError(null);
+    openLoginModal();
+  }, [openLoginModal]);
 
   // KS 流程：通过查询参数关闭 Others 标签
   const isKs = searchParams.get('ks') === '1';
@@ -1085,6 +1170,7 @@ export default function PreviewPageWithTopNav() {
                   status: batch.status || 'processing',
                   batch_id: batch.batch_id,
                   queue_info: batch.queue,
+                  batch_options: batch.options ?? null,
                 } as any;
 
                setPreviewData(initialData);
@@ -1205,6 +1291,7 @@ export default function PreviewPageWithTopNav() {
   const shouldUploadP34ComposedRef = useRef(false);
   const p34ComposeUploadInFlightRef = useRef(false);
   const p34ComposeUploadedRef = useRef(false);
+  const [guestUploadRateLimitError, setGuestUploadRateLimitError] = useState<UploadRateLimitError | null>(null);
   // sidebar「Name on Book」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
   const [isNameOnBookCompleted, setIsNameOnBookCompleted] = useState(true);
   // dedication 完成态：必须用户点过 Submit 才算完成（避免默认寄语导致“已完成”误导）
@@ -1245,6 +1332,7 @@ export default function PreviewPageWithTopNav() {
     setMomDrawingUploadingPageCode(null);
     setUploadedMomDrawingPageCodes(new Set());
     setIsNameOnBookCompleted(false);
+    setGuestUploadRateLimitError(null);
     shouldUploadP34ComposedRef.current = false;
     p34ComposeUploadInFlightRef.current = false;
     p34ComposeUploadedRef.current = false;
@@ -1391,11 +1479,20 @@ export default function PreviewPageWithTopNav() {
         shouldUploadP34ComposedRef.current = false;
         p34ComposeUploadedRef.current = true;
         setIsNameOnBookCompleted(true);
+        setGuestUploadRateLimitError(null);
       } else {
         console.warn('[P3-4 Compose] uploaded but no image_url in response', resp);
       }
     } catch (e) {
       console.error('[P3-4 Compose] upload failed', e);
+      const uploadRateLimitError = getUploadRateLimitError(e);
+      if (uploadRateLimitError) {
+        // Canvas 会在依赖变化时反复触发 onRendered；429 后若仍保持 shouldUpload=true 会形成上传风暴并反复清空/弹出弹窗
+        shouldUploadP34ComposedRef.current = false;
+        setGuestUploadRateLimitError(uploadRateLimitError);
+      } else {
+        toast.error('Upload failed, please try again.');
+      }
     } finally {
       p34ComposeUploadInFlightRef.current = false;
     }
@@ -1442,14 +1539,18 @@ export default function PreviewPageWithTopNav() {
     activeMomDrawingPageCodeRef.current = null;
   }, [pendingMomDrawingFile]);
 
-  const uploadMomCompositeImage = useCallback(async (pageCode: 'p5-6' | 'p27-28', file: File) => {
+  const uploadMomCompositeImage = useCallback(async (
+    pageCode: 'p5-6' | 'p27-28',
+    file: File,
+    options?: { overlayMode?: 'placement' | 'full-page' },
+  ): Promise<'ok' | 'rate_limited' | 'skipped'> => {
     const spu = (searchParams.get('bookid') || '').toUpperCase();
     const previewForMom = previewData as MomCompositePreviewData | null;
     const batchId = previewForMom?.batch_id || searchParams.get('previewid');
 
     if (spu !== 'PICBOOK_MOM' || !batchId) {
       console.warn('[Mom Composite] skip upload: invalid book or missing batch_id', { spu, batchId, pageCode });
-      return;
+      return 'skipped';
     }
 
     const targetPage = previewForMom?.preview_data?.find(
@@ -1462,21 +1563,23 @@ export default function PreviewPageWithTopNav() {
     );
     if (!targetPage || !isFaceSwapReady) {
       toast.error('Please wait until face swap is complete before uploading.');
-      return;
+      return 'skipped';
     }
     const placement = MOM_COMPOSITE_IMAGE_PLACEMENTS[pageCode];
-    const baseImageRaw = getPreviewDisplayImageRaw(targetPage);
+    const baseImageRaw = String(targetPage?.base_image_url || '').trim();
     if (!baseImageRaw) {
       toast.error('Page image is not ready yet.');
-      return;
+      return 'skipped';
     }
 
     setMomDrawingUploadingPageCode(pageCode);
+    setGuestUploadRateLimitError(null);
     try {
       const dataUrl = await composeMomCompositeImage(
         normalizePreviewImageUrlForCanvas(String(baseImageRaw)),
         file,
         placement,
+        options?.overlayMode,
       );
 
       const resp = await api.post(
@@ -1520,16 +1623,65 @@ export default function PreviewPageWithTopNav() {
           next.add(pageCode);
           return next;
         });
+        return 'ok';
       } else {
         console.warn('[Mom Composite] uploaded but no image_url in response', resp);
+        return 'skipped';
       }
     } catch (e) {
       console.error('[Mom Composite] upload failed', e);
+      const uploadRateLimitError = getUploadRateLimitError(e);
+      if (uploadRateLimitError) {
+        setGuestUploadRateLimitError(uploadRateLimitError);
+        return 'rate_limited';
+      }
       toast.error('Upload failed, please try again.');
+      return 'skipped';
     } finally {
       setMomDrawingUploadingPageCode(null);
     }
   }, [previewData, searchParams]);
+
+  const getMomCompositeDefaultGender = useCallback((): MomCompositeDefaultGender | null => {
+    const character =
+      (previewStoreUserData as any)?.characters?.[0] ||
+      (() => {
+        try {
+          const userData = typeof window !== 'undefined' ? localStorage.getItem('previewUserData') : null;
+          return userData ? JSON.parse(userData)?.characters?.[0] : null;
+        } catch {
+          return null;
+        }
+      })();
+
+    const fromCharacter = normalizeMomCompositeDefaultGender(character?.gender, character?.gender_code);
+    if (fromCharacter) return fromCharacter;
+    return momCompositeGenderFromBatchOptions((previewData as any)?.batch_options);
+  }, [previewStoreUserData, previewData]);
+
+  const handleUseDefaultMomDrawing = useCallback(async (pageCode: 'p5-6' | 'p27-28') => {
+    const gender = getMomCompositeDefaultGender();
+    if (!gender) {
+      toast.error('Default drawing is unavailable because gender is missing.');
+      return;
+    }
+
+    const defaultImagePath = getMomCompositeDefaultImagePath(pageCode, gender);
+    try {
+      const response = await fetch(defaultImagePath);
+      if (!response.ok) throw new Error(`Failed to load default image: ${defaultImagePath}`);
+      const blob = await response.blob();
+      const file = new File([blob], `${pageCode}-${gender}.png`, { type: blob.type || 'image/png' });
+      const result = await uploadMomCompositeImage(pageCode, file, { overlayMode: 'full-page' });
+      if (result === 'rate_limited') return;
+      if (result !== 'ok') {
+        toast.error('Default drawing failed, please try again.');
+      }
+    } catch (error) {
+      console.error('[Mom Composite] default image failed', error);
+      toast.error('Default drawing failed, please try again.');
+    }
+  }, [getMomCompositeDefaultGender, uploadMomCompositeImage]);
 
   // 添加 options 状态
   const [bookOptions, setBookOptions] = useState<BookOptions | null>(null);
@@ -2771,6 +2923,74 @@ export default function PreviewPageWithTopNav() {
     );
   };
 
+  const pickFirstPrice = (...values: any[]): number => {
+    for (const value of values) {
+      const price = parseMoney(value);
+      if (price > 0) return price;
+    }
+    return 0;
+  };
+
+  const sameText = (a: any, b: any): boolean =>
+    String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+
+  const getBindingTypePrices = (): BindingTypePrice[] => {
+    const anyInfo: any = bookInfo as any;
+    const prices = anyInfo?.binding_type_prices || anyInfo?.data?.binding_type_prices;
+    return Array.isArray(prices) ? prices : [];
+  };
+
+  const findBindingTypePrice = (option: BindingOption): BindingTypePrice | null => {
+    const prices = getBindingTypePrices();
+    if (prices.length === 0) return null;
+
+    return prices.find((price) =>
+      sameText(option.option_key, price.binding_type || price.attributes?.binding_type) ||
+      sameText(option.name, price.binding_type_label),
+    ) || null;
+  };
+
+  const getBindingDisplayPrice = (option: BindingOption): {
+    finalPrice: number;
+    originalPrice: number;
+    sourceSku?: string;
+  } => {
+    const skuPrice = findBindingTypePrice(option);
+    if (skuPrice) {
+      const finalPrice = pickFirstPrice(
+        skuPrice.final_unit_price,
+        skuPrice.current_price,
+        skuPrice.price,
+        skuPrice.unit_price,
+      );
+      if (finalPrice <= 0) {
+        const fallbackPrice = getBookBasePrice() + (Number(option.price) || 0);
+        return {
+          finalPrice: fallbackPrice,
+          originalPrice: fallbackPrice,
+          sourceSku: skuPrice.sku_code,
+        };
+      }
+      const originalPrice = pickFirstPrice(
+        skuPrice.original_unit_price,
+        skuPrice.original_price,
+        skuPrice.market_price,
+      );
+
+      return {
+        finalPrice,
+        originalPrice: originalPrice > finalPrice ? originalPrice : finalPrice,
+        sourceSku: skuPrice.sku_code,
+      };
+    }
+
+    const finalPrice = getBookBasePrice() + (Number(option.price) || 0);
+    return {
+      finalPrice,
+      originalPrice: finalPrice,
+    };
+  };
+
   // 确保人脸图片为绝对可访问地址（优先 S3 全路径），并移除 public/ 前缀
   const ensureFaceImageUrl = (path: string) => {
     if (!path) return path;
@@ -2947,6 +3167,7 @@ export default function PreviewPageWithTopNav() {
                 batch_id: batch.batch_id,
                 // 保存batch级别的队列信息
                 queue_info: batch.queue,
+                batch_options: batch.options ?? null,
               } as any;
               console.log('[Polling] Created preview_data with', initialData.preview_data.length, 'pages');
               console.log('[Polling] Sample page:', initialData.preview_data[0]);
@@ -2978,6 +3199,7 @@ export default function PreviewPageWithTopNav() {
                 status: batch.status || 'processing',
                 batch_id: batch.batch_id,
                 queue_info: batch.queue,
+                batch_options: batch.options ?? (prev as any)?.batch_options ?? null,
               } as any;
               console.log('[Polling] Reinitialized preview_data with', reinitData.preview_data.length, 'pages');
               return reinitData;
@@ -3010,6 +3232,7 @@ export default function PreviewPageWithTopNav() {
               status: batch.status || ((prev as any)?.status) || 'processing',
               batch_id: batch.batch_id,
               queue_info: batch.queue,
+              batch_options: batch.options ?? (prev as any)?.batch_options ?? null,
             } as any;
           });
         }
@@ -3109,10 +3332,12 @@ export default function PreviewPageWithTopNav() {
                 status: 'completed',
                 batch_id: batch.batch_id,
                   queue_info: batch.queue,
+                  batch_options: batch.options ?? null,
                 } as any;
               }
             const updated = {
               ...prev,
+              batch_options: batch.options ?? (prev as any)?.batch_options ?? null,
               preview_data: prev.preview_data.map((p: any) => {
                 const match = batch.pages.find((bp: any) => bp.page_code === p.page_code);
                   if (!match) return p;
@@ -3228,7 +3453,7 @@ export default function PreviewPageWithTopNav() {
       // 客户端使用 /api 代理，服务器端使用完整 URL
       const apiBase = typeof window !== 'undefined' 
         ? '/api' 
-        : (process.env.NEXT_PUBLIC_API_URL || 'https://api.dreamazebook.com/api');
+        : getApiBaseUrl();
       const url = `${apiBase}/products/${encodeURIComponent(spuCode)}/preview/render`;
       let authHeader: string | undefined = undefined;
       try {
@@ -3521,6 +3746,9 @@ export default function PreviewPageWithTopNav() {
                         if (recipientName && typeof recipientName === 'string' && recipientName.trim()) {
                           setRecipient(recipientName);
                           console.log('[Preview] Updated recipient from new batch:', recipientName);
+                        }
+                        if (batch.options) {
+                          setPreviewData((p) => (p ? { ...p, batch_options: batch.options } : p));
                         }
                       }
                     }).catch(() => {});
@@ -4162,24 +4390,33 @@ export default function PreviewPageWithTopNav() {
   const [message, setMessage] = React.useState(defaultMessage);
   // 跟踪上一次默认寄语，用于判断是否应同步更新（避免覆盖用户已编辑的内容）
   const prevDefaultMessageRef = React.useRef(defaultMessage);
+  /** 用户是否在寄语输入框中操作过（含整段删除）；用于区分「未改动」与「刻意留空」 */
+  const messageUserTouchedRef = React.useRef(false);
   React.useEffect(() => {
     const prev = prevDefaultMessageRef.current;
-    const userHasNotEdited = !message || message.trim() === '' || message === prev;
+    const userHasNotEdited =
+      !messageUserTouchedRef.current &&
+      (!message || message.trim() === '' || message === prev);
     if (userHasNotEdited) {
       setMessage(defaultMessage);
       setDedication(defaultMessage);
-    } else if (!dedication || dedication.trim() === '' || dedication === ' ') {
-      // 用户编辑了 message，但画布用的 dedication 仍为空，则仅同步画布默认值
+    } else if (
+      (!dedication || dedication.trim() === '' || dedication === ' ') &&
+      !(messageUserTouchedRef.current && !String(message || '').trim())
+    ) {
+      // 用户编辑了 message，但画布用的 dedication 仍为空，则仅同步画布默认值（不把「刻意清空」刷回默认）
       setDedication(defaultMessage);
     }
     prevDefaultMessageRef.current = defaultMessage;
   }, [defaultMessage, message, dedication]);
-  
+
   // 当bookId或语言变化时，如果用户未编辑，则更新为新的模板
   React.useEffect(() => {
     const newDefaultMessage = buildDefaultMessage(defaultName, selectedLang, bookId);
     const prev = prevDefaultMessageRef.current;
-    const userHasNotEdited = !message || message.trim() === '' || message === prev;
+    const userHasNotEdited =
+      !messageUserTouchedRef.current &&
+      (!message || message.trim() === '' || message === prev);
     if (userHasNotEdited && newDefaultMessage !== prev) {
       setMessage(newDefaultMessage);
       setDedication(newDefaultMessage);
@@ -4194,12 +4431,25 @@ export default function PreviewPageWithTopNav() {
     if (prevRecipient === recipient) return;
     const prevTemplate = buildDefaultMessage((prevRecipient && prevRecipient.trim()) ? prevRecipient : 'User', selectedLang, bookId);
     const nextTemplate = buildDefaultMessage(defaultName, selectedLang, bookId);
-    if (!message || message.trim() === '' || message === prevTemplate) setMessage(nextTemplate);
-    if (!dedication || dedication.trim() === '' || dedication === prevTemplate) setDedication(nextTemplate);
+    const skipEmptyOverride = messageUserTouchedRef.current && !String(message || '').trim();
+    const skipEmptyDedicationOverride = messageUserTouchedRef.current && !String(dedication || '').trim();
+    if (
+      (!message || message.trim() === '' || message === prevTemplate) &&
+      !skipEmptyOverride
+    ) {
+      setMessage(nextTemplate);
+    }
+    if (
+      (!dedication || dedication.trim() === '' || dedication === prevTemplate) &&
+      !skipEmptyDedicationOverride
+    ) {
+      setDedication(nextTemplate);
+    }
     prevRecipientRef.current = recipient;
   }, [recipient, selectedLang, defaultName, message, dedication, bookId]);
 
   const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    messageUserTouchedRef.current = true;
     const { value } = e.target;
 
     // 限制行数：按换行符拆分后行数不能超过 MAX_LINES
@@ -4627,7 +4877,7 @@ export default function PreviewPageWithTopNav() {
                       const p34HasLocalChanges =
                         !!giverImageUrl || !!editField || shouldUploadP34ComposedRef.current;
 
-                      // 单页模式：p3-4 默认展示 final；编辑时切换到 Canvas
+                      // 单页模式：p3-4 始终拆成左右单页展示；有 final 时只把 final 当作底图，不再整张跨页显示。
                       if (isGiverDedicationPage && viewMode === 'single') {
                         if (isSwapping || pageFailed) {
                           return (
@@ -4659,34 +4909,39 @@ export default function PreviewPageWithTopNav() {
                           return (
                             <div key={page.page_id} ref={giverRef} className="w-full flex flex-col items-center">
                               <div className="w-full max-w-5xl">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={p34FinalSrc}
-                                  alt={`Page ${page.page_number}`}
-                                  className="w-full h-auto rounded-lg object-cover"
+                                <GiverDedicationCanvas
+                                  className="w-full"
+                                  imageUrl={p34FinalSrc}
+                                  mode="single"
+                                  giverText=""
+                                  dedicationText=""
+                                  giverImageUrl={null}
+                                  giverImageScale={giverImageScale}
+                                  leftBelow={(
+                                    <div className="mt-2 w-full flex justify-center">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          giverFileInputRef.current?.click();
+                                        }}
+                                        className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                      >
+                                        Personalize with a photo
+                                      </button>
+                                    </div>
+                                  )}
+                                  rightBelow={(
+                                    <div className="mt-2 w-full flex justify-center">
+                                      <button
+                                        type="button"
+                                        onClick={() => setEditField('dedication')}
+                                        className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                      >
+                                        Edit Dedication
+                                      </button>
+                                    </div>
+                                  )}
                                 />
-                                <div className="mt-2 w-full grid grid-cols-2 gap-2">
-                                  <div className="w-full flex justify-center">
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        giverFileInputRef.current?.click();
-                                      }}
-                                      className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                                    >
-                                      Personalize with a photo
-                                    </button>
-                                  </div>
-                                  <div className="w-full flex justify-center">
-                                    <button
-                                      type="button"
-                                      onClick={() => setEditField('dedication')}
-                                      className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
-                                    >
-                                      Edit Dedication
-                                    </button>
-                                  </div>
-                                </div>
                               </div>
                             </div>
                           );
@@ -4734,7 +4989,7 @@ export default function PreviewPageWithTopNav() {
                     }
                       // 双页模式：p3-4 默认展示 final（并保留操作按钮）；编辑时才用 Canvas overlay
                       const p34ButtonsOverlay = isGiverDedicationPage ? (
-                        <div className="pointer-events-none">
+                        <div className="pointer-events-none hidden md:block absolute inset-0">
                           <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
                             <button
                               type="button"
@@ -4758,28 +5013,44 @@ export default function PreviewPageWithTopNav() {
                         </div>
                       ) : null;
                       const momCompositeButton = canUploadMomComposite && momCompositePageCode ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            activeMomDrawingPageCodeRef.current = momCompositePageCode;
-                            setActiveMomDrawingPageCode(momCompositePageCode);
-                            momDrawingFileInputRef.current?.click();
-                          }}
-                          disabled={momDrawingUploadingPageCode === momCompositePageCode}
-                          className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${
-                            momDrawingUploadingPageCode === momCompositePageCode ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
-                        >
-                          {momDrawingUploadingPageCode === momCompositePageCode
-                            ? 'Uploading...'
-                            : uploadedMomDrawingPageCodes.has(momCompositePageCode)
-                              ? 'Replace drawing'
-                              : 'Upload your drawing'}
-                        </button>
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              activeMomDrawingPageCodeRef.current = momCompositePageCode;
+                              setActiveMomDrawingPageCode(momCompositePageCode);
+                              momDrawingFileInputRef.current?.click();
+                            }}
+                            disabled={momDrawingUploadingPageCode === momCompositePageCode}
+                            className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${
+                              momDrawingUploadingPageCode === momCompositePageCode ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                          >
+                            {momDrawingUploadingPageCode === momCompositePageCode
+                              ? 'Uploading...'
+                              : uploadedMomDrawingPageCodes.has(momCompositePageCode)
+                                ? 'Replace drawing'
+                                : 'Upload your drawing'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleUseDefaultMomDrawing(momCompositePageCode)}
+                            disabled={momDrawingUploadingPageCode === momCompositePageCode}
+                            className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${
+                              momDrawingUploadingPageCode === momCompositePageCode ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                          >
+                            Use default drawing
+                          </button>
+                        </div>
                       ) : null;
                       const momCompositeButtonOverlay = momCompositeButton && viewMode !== 'single' ? (
-                        <div className="pointer-events-none">
-                          <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
+                        <div className="pointer-events-none hidden md:block absolute inset-0">
+                          <div
+                            className={`absolute right-0 w-1/2 flex justify-center ${
+                              momCompositePageCode === 'p27-28' ? 'bottom-[30%]' : 'bottom-[20%]'
+                            }`}
+                          >
                             <div className="pointer-events-auto">
                               {momCompositeButton}
                             </div>
@@ -4828,6 +5099,35 @@ export default function PreviewPageWithTopNav() {
                               }
                             }}
                           />
+                          {isGiverDedicationPage && viewMode === 'double' && !pageFailed && !isSwapping && (
+                            <div className="mt-2 w-full grid grid-cols-2 gap-2 md:hidden">
+                              <div className="w-full flex justify-center">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    giverFileInputRef.current?.click();
+                                  }}
+                                  className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                >
+                                  Personalize with a photo
+                                </button>
+                              </div>
+                              <div className="w-full flex justify-center">
+                                <button
+                                  type="button"
+                                  onClick={() => setEditField('dedication')}
+                                  className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                >
+                                  Edit Dedication
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                          {momCompositeButton && viewMode !== 'single' && (
+                            <div className="mt-6 w-full flex justify-center md:hidden">
+                              {momCompositeButton}
+                            </div>
+                          )}
                           {momCompositeButton && viewMode === 'single' && (
                             <div className="mt-6 w-full flex justify-center">
                               {momCompositeButton}
@@ -5193,28 +5493,23 @@ export default function PreviewPageWithTopNav() {
                     <h2 className="text-lg font-medium text-center">{option.name}</h2>
                     <p className="text-lg font-medium text-center mb-2">
                       {(() => {
-                        // 计算总价：绘本基础价格 + 装订方式的 price_diff
-                        const basePrice = getBookBasePrice();
-                        const priceDiff = Number(option.price) || 0;
-                        const totalPrice = basePrice + priceDiff;
+                        const { finalPrice, originalPrice, sourceSku } = getBindingDisplayPrice(option);
                         
                         // 调试日志
                         if (process.env.NODE_ENV === 'development') {
                           console.log('[Book Format Price]', {
-                            bookInfoPrice: (bookInfo as any)?.price,
-                            variantPrice: (bookInfo as any)?.variant?.price,
-                            currentPrice: (bookInfo as any)?.current_price,
-                            basePriceRaw: (bookInfo as any)?.base_price,
-                            basePrice,
-                            priceDiff,
-                            totalPrice,
+                            bindingTypePrices: (bookInfo as any)?.binding_type_prices,
+                            sourceSku,
+                            finalPrice,
+                            originalPrice,
                             optionName: option.name,
+                            optionKey: option.option_key,
                           });
                         }
                         
-                        return (
-                          <DisplayPrice value={totalPrice} discount={(totalPrice*0.9).toFixed(2)} />
-                        );
+                        return originalPrice > finalPrice
+                          ? <DisplayPrice value={originalPrice} discount={finalPrice.toFixed(2)} />
+                          : <DisplayPrice value={finalPrice} />;
                       })()}
                     </p>
                     {option.description && (
@@ -5514,6 +5809,14 @@ export default function PreviewPageWithTopNav() {
             <div className="bg-white w-[860px] max-w-[95vw] rounded-sm pt-6 pr-6 pb-4 pl-6 flex flex-col gap-4">
               <GiverAvatarCropper
                 uiVariant="openingPage"
+                aspectRatio={
+                  MOM_COMPOSITE_IMAGE_PLACEMENTS[activeMomDrawingPageCode].width /
+                  MOM_COMPOSITE_IMAGE_PLACEMENTS[activeMomDrawingPageCode].height
+                }
+                outputSize={{
+                  width: MOM_COMPOSITE_IMAGE_PLACEMENTS[activeMomDrawingPageCode].width,
+                  height: MOM_COMPOSITE_IMAGE_PLACEMENTS[activeMomDrawingPageCode].height,
+                }}
                 maxSize={1600}
                 exportMime="image/png"
                 exportQuality={0.92}
@@ -5527,9 +5830,11 @@ export default function PreviewPageWithTopNav() {
                     closeMomDrawingCropper();
                     return;
                   }
-                  uploadMomCompositeImage(pageCode, file).finally(() => {
-                    closeMomDrawingCropper();
-                  });
+                  return uploadMomCompositeImage(pageCode, file)
+                    .then(() => undefined)
+                    .finally(() => {
+                      closeMomDrawingCropper();
+                    });
                 }}
               />
             </div>
@@ -5575,6 +5880,7 @@ export default function PreviewPageWithTopNav() {
                       onDoneFile={(file) => {
                         // 用户上传后：先本地预览（不立刻发后端），等 Canvas 合成完成后再上传合成图
                         try {
+                          setGuestUploadRateLimitError(null);
                           const objUrl = URL.createObjectURL(file);
                           setGiverImageUrl(objUrl);
                           // 分层模型：把 giver 文件转成 data URL 存起来，后续 dedication 重绘/上传都带上最新 giver
@@ -5662,6 +5968,7 @@ export default function PreviewPageWithTopNav() {
                     className="bg-[#222222] text-[#F5E3E3] py-2 px-4 rounded-sm"
                     onClick={() => {
                       // Dedication 更新：通过同样接口上传「已合成（底图 + giver + dedication）」的 p3-4 图片
+                      setGuestUploadRateLimitError(null);
                       shouldUploadP34ComposedRef.current = true;
                       p34ComposeUploadedRef.current = false;
                       setDedication(message);
@@ -5993,6 +6300,51 @@ export default function PreviewPageWithTopNav() {
           })()}
         </div>
       </div>
+
+      {guestUploadRateLimitError && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/45 p-4"
+          onClick={() => setGuestUploadRateLimitError(null)}
+          role="presentation"
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="relative w-full max-w-md rounded-sm border border-[#E7D6D6] bg-[#FFF9F9] p-6 shadow-[0_8px_24px_rgba(34,34,34,0.12)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setGuestUploadRateLimitError(null)}
+              className="absolute right-4 top-4 text-xl leading-none text-[#8E92A7] transition-colors hover:text-[#222222]"
+              aria-label="Dismiss"
+            >
+              &times;
+            </button>
+            <div className="flex items-start gap-3 pr-6">
+              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F5E3E3] text-[#222222]">
+                <span className="text-lg leading-none">!</span>
+              </div>
+              <div className="min-w-0 flex-1 text-left">
+                <div className="text-base font-semibold text-[#222222]">{guestUploadRateLimitError.title}</div>
+                <div className="mt-2 text-sm leading-relaxed text-[#6F7280]">{guestUploadRateLimitError.message}</div>
+                {guestUploadRateLimitError.retryText && (
+                  <div className="mt-2 text-sm leading-relaxed text-[#8E92A7]">
+                    You can try again in about {guestUploadRateLimitError.retryText}, or sign in now.
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={handleGuestRateLimitLogin}
+                  className="mt-5 h-[40px] w-full rounded-sm bg-[#222222] px-5 text-sm font-medium text-[#F5E3E3] transition-colors hover:bg-black sm:w-auto"
+                >
+                  Log in to continue
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -280,13 +280,13 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
           'When love is spoken out loud, it quickly flows through the whole family.',
         ],
         authorImage:
-          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-behind.jpg',
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_MOM/Love.jpeg',
       },
       {
         type: 'toddler-favorites',
-        title: 'Keep the Love Growing',
-        description: `Turn one meaningful book into a collection of family memories.
-These titles are often chosen together to celebrate love, comfort, and connection throughout the family.`,
+        title: 'For the Days They Need Love, Courage, and Comfort',
+        description: `A beautiful bundle for little ones growing through big feelings -
+with Mama's love, brave little moments, and cozy bedtime comfort.`,
         className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
         bundleImage: picbookBundlePng('PICBOOK_MOM'),
         bundleImageMobile: picbookBundleMobilePng('PICBOOK_MOM'),
