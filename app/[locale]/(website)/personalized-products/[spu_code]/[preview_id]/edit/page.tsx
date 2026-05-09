@@ -693,12 +693,14 @@ export default function EditPersonalizedProductPage() {
       const giftMessage = String((initialData as any)?.giftMessage || (initialData as any)?.gift_message || '').trim();
 
       const payload = {
+        picbook_id: bookId,
+        face_images: fb.face_images,
         full_name: fullName,
         language: targetLang,
         gender: genderStr,
         relationship: relationshipRaw || 'Parent/Guardian',
         ...(giverNameRaw ? { giver_name: giverNameRaw } : {}),
-        face_images: fb.face_images,
+        skincolor: skinColorCode,
         attributes: {
           ...(skinTone ? { skin_tone: skinTone } : {}),
           // 后端校验必填
@@ -720,24 +722,32 @@ export default function EditPersonalizedProductPage() {
             : {}),
           ...fb.faceAttributes,
         },
-        texts: {},
       };
 
       let nextPreviewId: string = String(previewId);
+      let shouldSkipPreviewRender = false;
       try {
         const endpoint = isPackageItem
           ? `/cart/package-items/${encodeURIComponent(String(effectiveItemId))}/regenerate-preview`
           : `/cart/${encodeURIComponent(String(effectiveItemId))}/regenerate-preview`;
         const resp = await api.post<any>(endpoint, payload);
-        // 兼容不同返回结构：优先取 batch_id / preview_id
+        const responseData = resp?.data || {};
+        // 兼容不同返回结构：优先取 preview_batch_id / batch_id / preview_id
         const bid =
-          resp?.data?.batch_id ||
-          resp?.data?.preview_id ||
+          responseData?.preview_batch_id ||
+          responseData?.batch_id ||
+          responseData?.preview_id ||
+          resp?.preview_batch_id ||
           resp?.batch_id ||
           resp?.preview_id ||
-          resp?.data?.batch?.batch_id ||
-          resp?.data?.batch?.id;
+          responseData?.batch?.batch_id ||
+          responseData?.batch?.id ||
+          resp?.batch?.batch_id ||
+          resp?.batch?.id;
         if (bid) nextPreviewId = String(bid);
+        shouldSkipPreviewRender =
+          (responseData?.reused_preview === true || resp?.reused_preview === true) &&
+          String(nextPreviewId) === String(previewId);
       } catch (e) {
         console.error('Regenerate preview failed:', e);
         stop();
@@ -769,13 +779,14 @@ export default function EditPersonalizedProductPage() {
 
       // 不再“再次添加购物车”；跳转到 preview 展示结果，Add to cart 仅返回购物车
       // 重要：圣诞 bundle 需要透传 packageItemId（preview 页会走 /cart/package-items/:id/regenerate-preview）
-      router.push(
-        `/preview?bookid=${encodeURIComponent(bookId)}&previewid=${encodeURIComponent(
-          nextPreviewId,
-        )}&fromCartItemId=${encodeURIComponent(String(effectiveItemId))}${
-          isPackageItem ? '&hideOptions=1' : ''
-        }`,
-      );
+      const previewParams = new URLSearchParams({
+        bookid: bookId,
+        previewid: nextPreviewId,
+        fromCartItemId: String(effectiveItemId),
+      });
+      if (isPackageItem) previewParams.set('hideOptions', '1');
+      if (shouldSkipPreviewRender) previewParams.set('skipRender', '1');
+      router.push(`/preview?${previewParams.toString()}`);
       // 注意：成功 push 后保持 loading，直到页面卸载（与详情页 personalize 按钮一致）
     } catch (e) {
       console.error('Continue failed:', e);

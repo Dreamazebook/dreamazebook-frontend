@@ -500,7 +500,13 @@ export default function PersonalizeApiDrivenPage() {
           const ch: any = (userData as any)?.characters?.[0] || {};
           const faceImages = (Array.isArray(ch?.photos) ? ch.photos : (ch?.photo ? [ch.photo] : [])).filter(Boolean);
           const fb = buildPicbookPreviewFacePayload(bookId || '', faceImages);
+          const skinTone = ch?.attributes?.skin_tone || ch?.attributes?.skinTone;
+          const skincolor =
+            ch?.skincolor ??
+            (skinTone === 'white' ? 1 : skinTone === 'original' ? 2 : skinTone === 'black' ? 3 : undefined);
           const payload: any = {
+            picbook_id: bookId,
+            face_images: fb.face_images,
             full_name: ch?.full_name || '',
             language: ch?.language || selectedLanguage || 'en',
             gender: ch?.gender || '',
@@ -508,26 +514,31 @@ export default function PersonalizeApiDrivenPage() {
             ...(String(ch?.giver_name || ch?.created_by || '').trim()
               ? { giver_name: String(ch?.giver_name || ch?.created_by || '').trim() }
               : {}),
-            face_images: fb.face_images,
+            skincolor,
             attributes: {
               ...(ch?.attributes || {}),
               ...fb.faceAttributes,
             },
-            texts: {},
           };
 
           const resp: any = await api.post<any>(
             `/cart/${encodeURIComponent(String(fromCartItemId))}/regenerate-preview`,
             payload
           );
+          const responseData = resp?.data || {};
           const bid =
-            resp?.data?.batch_id ||
-            resp?.data?.preview_id ||
+            responseData?.preview_batch_id ||
+            responseData?.batch_id ||
+            responseData?.preview_id ||
+            resp?.preview_batch_id ||
             resp?.batch_id ||
             resp?.preview_id ||
-            resp?.data?.batch?.batch_id ||
-            resp?.data?.batch?.id;
+            responseData?.batch?.batch_id ||
+            responseData?.batch?.id ||
+            resp?.batch?.batch_id ||
+            resp?.batch?.id;
           if (bid) qs.set('previewid', String(bid));
+          if (responseData?.reused_preview === true || resp?.reused_preview === true) qs.set('skipRender', '1');
         } catch (e) {
           console.error('[CartCreateFlow] regenerate-preview failed:', e);
           setIsSubmitting(false);
