@@ -6,7 +6,7 @@ import { usePathname, Link, useRouter } from '@/i18n/routing';
 import Image from 'next/image';
 import { IoIosArrowBack } from '@/utils/icons';
 import api from '@/utils/api';
-import { trackViewItem } from '@/utils/track';
+import { fbTrack, getContentIdBySpu, trackViewItem } from '@/utils/track';
 import SingleCharacterForm1, { SingleCharacterForm1Handle } from '../components/personalize/SingleCharacterForm1';
 import SingleCharacterForm2, { SingleCharacterForm2Handle } from '../components/personalize/SingleCharacterForm2';
 import SingleCharacterForm3, { SingleCharacterForm3Handle } from '../components/personalize/SingleCharacterForm3';
@@ -20,6 +20,9 @@ import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
 
 type AttributeOption = { value: string; label?: string; is_default?: boolean; price_diff?: number | string };
 type Attribute = { name: string; options: AttributeOption[]; default?: string };
+
+// Track ViewContent only once per page load
+let viewContentTracked = false;
 
 export default function PersonalizeApiDrivenPage() {
   const searchParams = useSearchParams();
@@ -64,6 +67,8 @@ export default function PersonalizeApiDrivenPage() {
   const form1Ref = useRef<SingleCharacterForm1Handle>(null);
   const form2Ref = useRef<SingleCharacterForm2Handle>(null);
   const form3Ref = useRef<SingleCharacterForm3Handle>(null);
+
+  const viewContentTrackedRef = useRef(false);
 
   // 跟踪是否正在添加图片（裁剪器是否打开）
   const [isAddingImage, setIsAddingImage] = useState(false);
@@ -160,6 +165,26 @@ export default function PersonalizeApiDrivenPage() {
 
     fetchConfig();
   }, [bookId, locale, mockParam]);
+
+  // Track ViewContent when personalize page loads
+  useEffect(() => {
+    if (viewContentTrackedRef.current || loading) return;
+    
+    viewContentTrackedRef.current = true;
+    const contentId = getContentIdBySpu(bookId);
+    
+    if (contentId) {
+      console.log(contentId);
+      // Meta Pixel: ViewContent
+      fbTrack('ViewContent', {
+        content_name: 'editor_open',
+        content_category: 'book',
+        content_ids: [contentId],
+        content_type: 'product',
+        contents: [{ id: contentId }]
+      });
+    }
+  }, [loading, bookId]);
 
   // GA4: Track view_item event
   useEffect(() => {
