@@ -4299,7 +4299,7 @@ export default function PreviewPageWithTopNav() {
         const contentId = getContentIdBySpu(bookInfo?.spu_code || '');
         
         if (contentId) {
-          const cartValue = 0;
+          const cartValue = bookInfo?.price || 0;
           fbTrack('AddToCart', {
             value: cartValue,
             currency: 'USD',
@@ -4321,7 +4321,7 @@ export default function PreviewPageWithTopNav() {
         const contentId = getContentIdBySpu(bookInfo?.spu_code || '');
         
         if (contentId) {
-          const cartValue = 0;
+          const cartValue = bookInfo?.price || 0;
           
           fbTrack('AddToCart', {
             value: cartValue,
