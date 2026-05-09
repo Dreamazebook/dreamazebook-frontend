@@ -37,12 +37,30 @@ export const useCheckout = ({ selectedItems }: UseCheckoutProps) => {
         id: getContentIdBySpu(item.spu_code),
         quantity: item.quantity || 1
       })).filter((item: { id?: string }) => item.id);
+      const orderTotal = selectedCartItems.reduce((total: number, item: any) => total + (item.price * (item.quantity || 1)), 0);
 
-      return { content_ids, contents };
+      return { content_ids, contents, orderTotal };
     } catch (err) {
-      return { content_ids: [], contents: [] };
+      return { content_ids: [], contents: [], orderTotal: 0 };
     }
   }, [selectedItems]);
+
+  const trackCheckoutAttempt = useCallback(async () => {
+    if (isLoggedIn || checkoutAttemptTracked) {
+      return;
+    }
+
+    checkoutAttemptTracked = true;
+    const { content_ids, contents, orderTotal } = await getCartTrackingData();
+    fbTrackCustom('CheckoutAttempt', {
+      is_logged_in: false,
+      value: orderTotal,
+      currency: 'USD',
+      content_ids,
+      content_type: 'product',
+      contents
+    });
+  }, [getCartTrackingData, isLoggedIn]);
 
   const handleCheckout = async (paymentMethod: 'card' | 'paypal' = 'card') => {
     if (selectedItems.length === 0) {
@@ -65,30 +83,16 @@ export const useCheckout = ({ selectedItems }: UseCheckoutProps) => {
       
       if (success) {
         setError('');
-        
-        // Track CheckoutAttempt for guests (only once per session)
-        if (!isLoggedIn && !checkoutAttemptTracked) {
-          checkoutAttemptTracked = true;
-          const { content_ids, contents } = await getCartTrackingData();
-          const orderTotal = data.order?.total_amount || 0;
-          fbTrackCustom('CheckoutAttempt', {
-            is_logged_in: false,
-            value: orderTotal,
-            currency: 'USD',
-            content_ids,
-            content_type: 'product',
-            contents
-          });
-        }
-        
         router.push(ORDER_CHECKOUT_URL(data.order.id) + `&paymentMethod=${paymentMethod}`);
       } else if (code == 401) {
+        await trackCheckoutAttempt();
         return openLoginModal();
         //router.push(`/login?redirect=/shopping-cart`);
       }
     } catch (err:any) {
       if (err?.status == 401) {
-        return openLoginModal()
+        await trackCheckoutAttempt();
+        return openLoginModal();
       }
       setError('Almost there — tap "Create book" to continue ✨');
     } finally {
