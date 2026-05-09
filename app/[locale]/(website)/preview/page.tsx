@@ -4299,7 +4299,7 @@ export default function PreviewPageWithTopNav() {
         const contentId = getContentIdBySpu(bookInfo?.spu_code || '');
         
         if (contentId) {
-          const cartValue = 0;
+          const cartValue = bookInfo?.price || 0;
           fbTrack('AddToCart', {
             value: cartValue,
             currency: 'USD',
@@ -4321,7 +4321,7 @@ export default function PreviewPageWithTopNav() {
         const contentId = getContentIdBySpu(bookInfo?.spu_code || '');
         
         if (contentId) {
-          const cartValue = 0;
+          const cartValue = bookInfo?.price || 0;
           
           fbTrack('AddToCart', {
             value: cartValue,
@@ -4820,8 +4820,11 @@ export default function PreviewPageWithTopNav() {
               <div className="w-full max-w-5xl mb-8">
                 <div className="w-full flex flex-col items-center gap-8">
                   {(() => {
-                    // 在预览页面显示：仅普通页（封面移至 Others 处理）
-                    const displayedPages = previewData.preview_data.filter((p: any) => !(p as any).is_cover);
+                    // 在 Make it Personal 中只展示正文页；cover_3/4 属于 Gift Options 的封面预览，不在这里重复显示。
+                    const displayedPages = previewData.preview_data.filter((p: any) => {
+                      const pageCode = String((p as any)?.page_code || '').toLowerCase().replace(/-/g, '_');
+                      return !(p as any).is_cover && pageCode !== 'cover_3' && pageCode !== 'cover_4';
+                    });
                     console.log('[Preview] Rendering', displayedPages.length, 'pages (previewPagesCount:', previewPagesCount, ', isQueued:', isQueued, ', isGenerating:', isGenerating, ')');
                     
                     // 修改判定逻辑：只要有页面数据就渲染，不强制要求 base_image
