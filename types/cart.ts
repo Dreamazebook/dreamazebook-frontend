@@ -148,5 +148,5 @@ export const getCartCoverRatio = (item:CartItem) => {
     PICBOOK_MELODY: RATIO_2,
     PICBOOK_MOM: RATIO_2
   };
-  return SPU_COVER_RATIO[item.spu_code] || RATIO_1;
+  return SPU_COVER_RATIO[item.spu?.spu_code || item.spu_code] || RATIO_2;
 }
