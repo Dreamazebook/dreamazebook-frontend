@@ -6,7 +6,7 @@ import { usePathname, Link, useRouter } from '@/i18n/routing';
 import Image from 'next/image';
 import { IoIosArrowBack } from '@/utils/icons';
 import api from '@/utils/api';
-import { trackViewItem } from '@/utils/track';
+import { fbTrack, getContentIdBySpu, trackViewItem } from '@/utils/track';
 import SingleCharacterForm1, { SingleCharacterForm1Handle } from '../components/personalize/SingleCharacterForm1';
 import SingleCharacterForm2, { SingleCharacterForm2Handle } from '../components/personalize/SingleCharacterForm2';
 import SingleCharacterForm3, { SingleCharacterForm3Handle } from '../components/personalize/SingleCharacterForm3';
@@ -20,6 +20,9 @@ import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
 
 type AttributeOption = { value: string; label?: string; is_default?: boolean; price_diff?: number | string };
 type Attribute = { name: string; options: AttributeOption[]; default?: string };
+
+// Track ViewContent only once per page load
+let viewContentTracked = false;
 
 export default function PersonalizeApiDrivenPage() {
   const searchParams = useSearchParams();
@@ -64,6 +67,8 @@ export default function PersonalizeApiDrivenPage() {
   const form1Ref = useRef<SingleCharacterForm1Handle>(null);
   const form2Ref = useRef<SingleCharacterForm2Handle>(null);
   const form3Ref = useRef<SingleCharacterForm3Handle>(null);
+
+  const viewContentTrackedRef = useRef(false);
 
   // 跟踪是否正在添加图片（裁剪器是否打开）
   const [isAddingImage, setIsAddingImage] = useState(false);
@@ -160,6 +165,26 @@ export default function PersonalizeApiDrivenPage() {
 
     fetchConfig();
   }, [bookId, locale, mockParam]);
+
+  // Track ViewContent when personalize page loads
+  useEffect(() => {
+    if (viewContentTrackedRef.current || loading) return;
+    
+    viewContentTrackedRef.current = true;
+    const contentId = getContentIdBySpu(bookId);
+    
+    if (contentId) {
+      console.log(contentId);
+      // Meta Pixel: ViewContent
+      fbTrack('ViewContent', {
+        content_name: 'editor_open',
+        content_category: 'book',
+        content_ids: [contentId],
+        content_type: 'product',
+        contents: [{ id: contentId }]
+      });
+    }
+  }, [loading, bookId]);
 
   // GA4: Track view_item event
   useEffect(() => {
@@ -500,7 +525,13 @@ export default function PersonalizeApiDrivenPage() {
           const ch: any = (userData as any)?.characters?.[0] || {};
           const faceImages = (Array.isArray(ch?.photos) ? ch.photos : (ch?.photo ? [ch.photo] : [])).filter(Boolean);
           const fb = buildPicbookPreviewFacePayload(bookId || '', faceImages);
+          const skinTone = ch?.attributes?.skin_tone || ch?.attributes?.skinTone;
+          const skincolor =
+            ch?.skincolor ??
+            (skinTone === 'white' ? 1 : skinTone === 'original' ? 2 : skinTone === 'black' ? 3 : undefined);
           const payload: any = {
+            picbook_id: bookId,
+            face_images: fb.face_images,
             full_name: ch?.full_name || '',
             language: ch?.language || selectedLanguage || 'en',
             gender: ch?.gender || '',
@@ -508,26 +539,31 @@ export default function PersonalizeApiDrivenPage() {
             ...(String(ch?.giver_name || ch?.created_by || '').trim()
               ? { giver_name: String(ch?.giver_name || ch?.created_by || '').trim() }
               : {}),
-            face_images: fb.face_images,
+            skincolor,
             attributes: {
               ...(ch?.attributes || {}),
               ...fb.faceAttributes,
             },
-            texts: {},
           };
 
           const resp: any = await api.post<any>(
             `/cart/${encodeURIComponent(String(fromCartItemId))}/regenerate-preview`,
             payload
           );
+          const responseData = resp?.data || {};
           const bid =
-            resp?.data?.batch_id ||
-            resp?.data?.preview_id ||
+            responseData?.preview_batch_id ||
+            responseData?.batch_id ||
+            responseData?.preview_id ||
+            resp?.preview_batch_id ||
             resp?.batch_id ||
             resp?.preview_id ||
-            resp?.data?.batch?.batch_id ||
-            resp?.data?.batch?.id;
+            responseData?.batch?.batch_id ||
+            responseData?.batch?.id ||
+            resp?.batch?.batch_id ||
+            resp?.batch?.id;
           if (bid) qs.set('previewid', String(bid));
+          if (responseData?.reused_preview === true || resp?.reused_preview === true) qs.set('skipRender', '1');
         } catch (e) {
           console.error('[CartCreateFlow] regenerate-preview failed:', e);
           setIsSubmitting(false);

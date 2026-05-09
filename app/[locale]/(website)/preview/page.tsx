@@ -951,6 +951,12 @@ export default function PreviewPageWithTopNav() {
   const isKs = searchParams.get('ks') === '1';
   // 圣诞 bundle：通过查询参数关闭 Others(Options) 标签
   const isHideOptions = searchParams.get('hideOptions') === '1';
+  const tabParam = searchParams.get('tab');
+  const isCartOptionEdit =
+    !!searchParams.get('fromCartItemId') &&
+    (tabParam === 'giftOptions' || tabParam === 'options' || tabParam === 'giftBox' || tabParam === 'addons');
+  // regenerate-preview 复用当前 batch、或从购物车只编辑 options 时，不再用本地 previewUserData 触发二次 render
+  const shouldSkipInitialRender = searchParams.get('skipRender') === '1' || isCartOptionEdit;
   const hideOthers = isKs || isHideOptions;
   // 圣诞 bundle：根据封面类型决定默认封面（cover_type=personalized -> cover_3）
   const coverTypeParam = (searchParams.get('cover_type') || '').toLowerCase();
@@ -1103,7 +1109,7 @@ export default function PreviewPageWithTopNav() {
     // 如果存在本地编辑数据，则优先走本地数据流程，跳过购物车旧数据分支
     try {
       const ud = localStorage.getItem('previewUserData');
-      if (ud) {
+      if (ud && !shouldSkipInitialRender) {
         console.log('检测到本地用户数据，跳过购物车预览分支');
         return;
       }
@@ -1133,7 +1139,7 @@ export default function PreviewPageWithTopNav() {
              recipientNameFromBatch = batch.recipient_name || batch.options?.recipient_name || batch.options?.full_name || null;
              // 如果 store 中有名字（从 personalized-product 进入），使用 store 中的名字
              // 否则使用 batch 中的名字
-             if (storeName && typeof storeName === 'string' && storeName.trim()) {
+             if (!shouldSkipInitialRender && storeName && typeof storeName === 'string' && storeName.trim()) {
                setRecipient(storeName);
                console.log('[Preview] Set recipient from store (from personalized-product):', storeName);
              } else if (recipientNameFromBatch && typeof recipientNameFromBatch === 'string' && recipientNameFromBatch.trim()) {
@@ -1210,7 +1216,7 @@ export default function PreviewPageWithTopNav() {
             const storeUserData = usePreviewStore.getState().userData as any;
             const storeName = storeUserData?.characters?.[0]?.full_name;
             
-            if ((!recipientNameFromBatch || recipientNameFromBatch.trim() === '') && (!storeName || !storeName.trim())) {
+            if ((!recipientNameFromBatch || recipientNameFromBatch.trim() === '') && (shouldSkipInitialRender || !storeName || !storeName.trim())) {
               const rname = match?.preview?.recipient_name || match?.full_name;
               if (rname && typeof rname === 'string' && rname.trim()) {
                 setRecipient(rname);
@@ -3825,6 +3831,19 @@ export default function PreviewPageWithTopNav() {
         const storeUserData = usePreviewStore.getState().userData as any;
         const userData = storeUserData ? JSON.stringify(storeUserData) : localStorage.getItem('previewUserData');
         const bookId = searchParams.get('bookid') || localStorage.getItem('previewBookId');
+        const previewIdParam = searchParams.get('previewid');
+        if (shouldSkipInitialRender && previewIdParam) {
+          console.log('[Preview] skip initial render for reused preview:', previewIdParam);
+          setIsProcessing(false);
+          hasProcessedUserDataRef.current = true;
+          hasPostedCreateRef.current = true;
+          try {
+            localStorage.removeItem('previewUserData');
+            localStorage.removeItem('previewBookId');
+            usePreviewStore.getState().clear();
+          } catch {}
+          return;
+        }
         
         if (!userData || !bookId) {
           console.warn('缺少用户数据或书籍ID');
@@ -4104,6 +4123,9 @@ export default function PreviewPageWithTopNav() {
           const hairStyle = attrs?.hair_style || attrs?.hairStyle;
           const hairColor = attrs?.hair_color || attrs?.hairColor;
           const skinTone = attrs?.skin_tone || attrs?.skinTone;
+          const skincolor =
+            character?.skincolor ??
+            (skinTone === 'white' ? 1 : skinTone === 'original' ? 2 : skinTone === 'black' ? 3 : 1);
           const ageStagePayload = mapAgeStageUiToBackend(attrs?.age_stage);
           const giverNameCart = String(character?.giver_name || character?.created_by || '').trim();
           const photos = Array.isArray(character?.photos) ? character.photos : (character?.photo ? [character.photo] : []);
@@ -4111,12 +4133,14 @@ export default function PreviewPageWithTopNav() {
           const fb = buildPicbookPreviewFacePayload(searchParams.get('bookid') || '', photos.filter(Boolean));
 
           const payload: any = {
+            picbook_id: searchParams.get('bookid') || '',
+            face_images: fb.face_images,
             full_name: fullName,
             language,
             gender,
             relationship,
             ...(giverNameCart ? { giver_name: giverNameCart } : {}),
-            face_images: fb.face_images,
+            skincolor,
             attributes: {
               ...(skinTone ? { skin_tone: skinTone } : {}),
               ...(hairStyle ? { hair_style: hairStyle } : {}),
@@ -4124,7 +4148,6 @@ export default function PreviewPageWithTopNav() {
               ...(ageStagePayload ? { age_stage: ageStagePayload } : {}),
               ...fb.faceAttributes,
             },
-            texts: {},
           };
 
           // 圣诞 bundle：fromCartItemId 实际是 packageItemId（cart.items[].items[].id），需要调用新的接口
