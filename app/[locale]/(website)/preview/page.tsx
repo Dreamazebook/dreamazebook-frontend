@@ -91,25 +91,6 @@ const toMomCompositeUploadPageCode = (pageCode: unknown): 'p5-6' | 'p27-28' | nu
   return null;
 };
 
-type MomCompositeDefaultGender = 'boy' | 'girl';
-
-const normalizeMomCompositeDefaultGender = (gender: unknown, genderCode?: unknown): MomCompositeDefaultGender | null => {
-  const value = String(gender || '').trim().toLowerCase();
-  if (value === 'boy' || value === 'male' || value === '1') return 'boy';
-  if (value === 'girl' || value === 'female' || value === '2') return 'girl';
-  const code = String(genderCode || '').trim().toLowerCase();
-  if (code === '1' || code === 'boy' || code === 'male') return 'boy';
-  if (code === '2' || code === 'girl' || code === 'female') return 'girl';
-  return null;
-};
-
-/** `/preview/batches` 返回的 batch.options.gender（无本地 previewUserData 时用于默认手绘图） */
-const momCompositeGenderFromBatchOptions = (options: unknown): MomCompositeDefaultGender | null =>
-  normalizeMomCompositeDefaultGender((options as { gender?: unknown } | null | undefined)?.gender);
-
-const getMomCompositeDefaultImagePath = (pageCode: 'p5-6' | 'p27-28', gender: MomCompositeDefaultGender): string =>
-  `/images/preview/mom-drawing/${pageCode}-${gender}.png`;
-
 type UploadRateLimitError = {
   title: string;
   message: string;
@@ -1647,47 +1628,6 @@ export default function PreviewPageWithTopNav() {
       setMomDrawingUploadingPageCode(null);
     }
   }, [previewData, searchParams]);
-
-  const getMomCompositeDefaultGender = useCallback((): MomCompositeDefaultGender | null => {
-    const character =
-      (previewStoreUserData as any)?.characters?.[0] ||
-      (() => {
-        try {
-          const userData = typeof window !== 'undefined' ? localStorage.getItem('previewUserData') : null;
-          return userData ? JSON.parse(userData)?.characters?.[0] : null;
-        } catch {
-          return null;
-        }
-      })();
-
-    const fromCharacter = normalizeMomCompositeDefaultGender(character?.gender, character?.gender_code);
-    if (fromCharacter) return fromCharacter;
-    return momCompositeGenderFromBatchOptions((previewData as any)?.batch_options);
-  }, [previewStoreUserData, previewData]);
-
-  const handleUseDefaultMomDrawing = useCallback(async (pageCode: 'p5-6' | 'p27-28') => {
-    const gender = getMomCompositeDefaultGender();
-    if (!gender) {
-      toast.error('Default drawing is unavailable because gender is missing.');
-      return;
-    }
-
-    const defaultImagePath = getMomCompositeDefaultImagePath(pageCode, gender);
-    try {
-      const response = await fetch(defaultImagePath);
-      if (!response.ok) throw new Error(`Failed to load default image: ${defaultImagePath}`);
-      const blob = await response.blob();
-      const file = new File([blob], `${pageCode}-${gender}.png`, { type: blob.type || 'image/png' });
-      const result = await uploadMomCompositeImage(pageCode, file, { overlayMode: 'full-page' });
-      if (result === 'rate_limited') return;
-      if (result !== 'ok') {
-        toast.error('Default drawing failed, please try again.');
-      }
-    } catch (error) {
-      console.error('[Mom Composite] default image failed', error);
-      toast.error('Default drawing failed, please try again.');
-    }
-  }, [getMomCompositeDefaultGender, uploadMomCompositeImage]);
 
   // 添加 options 状态
   const [bookOptions, setBookOptions] = useState<BookOptions | null>(null);
@@ -4299,7 +4239,7 @@ export default function PreviewPageWithTopNav() {
         const contentId = getContentIdBySpu(bookInfo?.spu_code || '');
         
         if (contentId) {
-          const cartValue = bookInfo?.price || 0;
+          const cartValue = 0;
           fbTrack('AddToCart', {
             value: cartValue,
             currency: 'USD',
@@ -4321,7 +4261,7 @@ export default function PreviewPageWithTopNav() {
         const contentId = getContentIdBySpu(bookInfo?.spu_code || '');
         
         if (contentId) {
-          const cartValue = bookInfo?.price || 0;
+          const cartValue = 0;
           
           fbTrack('AddToCart', {
             value: cartValue,
@@ -5057,16 +4997,6 @@ export default function PreviewPageWithTopNav() {
                               : uploadedMomDrawingPageCodes.has(momCompositePageCode)
                                 ? 'Replace drawing'
                                 : 'Upload a drawing of Mama'}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleUseDefaultMomDrawing(momCompositePageCode)}
-                            disabled={momDrawingUploadingPageCode === momCompositePageCode}
-                            className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${
-                              momDrawingUploadingPageCode === momCompositePageCode ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                          >
-                            Add another drawing
                           </button>
                         </div>
                       ) : null;
