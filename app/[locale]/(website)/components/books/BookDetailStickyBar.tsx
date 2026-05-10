@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 import { getBookDetailFinalUnitPrice, getBookDetailOriginalUnitPrice } from '@/utils/bookDisplayPrice';
 
+const MOBILE_MENU_TOGGLE_EVENT = "dreamaze:mobile-menu-toggle";
+
 interface BookDetailStickyBarProps {
   book: any;
   primaryButtonLabel?: string;
@@ -22,6 +24,19 @@ export default function BookDetailStickyBar({
 }: BookDetailStickyBarProps) {
   const t = useTranslations('BookDetail');
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleMobileMenuToggle = (event: Event) => {
+      const customEvent = event as CustomEvent<{ open?: boolean }>;
+      setIsMobileMenuOpen(!!customEvent.detail?.open);
+    };
+
+    window.addEventListener(MOBILE_MENU_TOGGLE_EVENT, handleMobileMenuToggle);
+    return () => {
+      window.removeEventListener(MOBILE_MENU_TOGGLE_EVENT, handleMobileMenuToggle);
+    };
+  }, []);
 
   const finalUnit = getBookDetailFinalUnitPrice(book);
   const originalUnit = getBookDetailOriginalUnitPrice(book, finalUnit);
@@ -34,6 +49,8 @@ export default function BookDetailStickyBar({
     setIsLoading(true);
     onPrimaryClick?.(e, selectedLanguage);
   };
+
+  if (isMobileMenuOpen) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white z-50 md:hidden">
