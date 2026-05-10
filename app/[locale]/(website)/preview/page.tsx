@@ -5056,7 +5056,7 @@ export default function PreviewPageWithTopNav() {
                               ? 'Uploading...'
                               : uploadedMomDrawingPageCodes.has(momCompositePageCode)
                                 ? 'Replace drawing'
-                                : 'Upload your drawing'}
+                                : 'Upload a drawing of Mama'}
                           </button>
                           <button
                             type="button"
@@ -5066,7 +5066,7 @@ export default function PreviewPageWithTopNav() {
                               momDrawingUploadingPageCode === momCompositePageCode ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                           >
-                            Use default drawing
+                            Add another drawing
                           </button>
                         </div>
                       ) : null;
