@@ -4996,7 +4996,9 @@ export default function PreviewPageWithTopNav() {
                               ? 'Uploading...'
                               : uploadedMomDrawingPageCodes.has(momCompositePageCode)
                                 ? 'Replace drawing'
-                                : 'Upload a drawing of Mama'}
+                                : momCompositePageCode === 'p27-28'
+                                  ? 'Add another drawing'
+                                  : 'Upload a drawing of Mama'}
                           </button>
                         </div>
                       ) : null;
