@@ -36,9 +36,10 @@ export const SCROLL_TO_TOP_CONFIGS: Record<string, ScrollToTopConfig> = {
     enabled: true,
     threshold: 400,
     position: 'bottom-right',
-    showProgress: true,
+    showProgress: false,
     variant: 'default',
-    size: 'medium'
+    size: 'medium',
+    className: '!bottom-[96px] md:!bottom-8'
   },
   
   // 购物车和结账页面配置
@@ -80,9 +81,9 @@ export const getScrollToTopConfig = (path: string): ScrollToTopConfig => {
   //   return SCROLL_TO_TOP_CONFIGS.home;
   // }
   
-  // if (path.includes('/personalized-products/')) {
-  //   return SCROLL_TO_TOP_CONFIGS.product;
-  // }
+  if (/\/books\/[^/]+/.test(path)) {
+    return SCROLL_TO_TOP_CONFIGS.product;
+  }
   
   // if (path.includes('/checkout') || path.includes('/order-summary')) {
   //   return SCROLL_TO_TOP_CONFIGS.checkout;

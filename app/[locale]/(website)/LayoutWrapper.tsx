@@ -21,6 +21,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const isPreviewPage = segments.includes("preview");
   const isSelectBookContentPage = segments.includes("select-book-content");
   const isKickstarterConfigPage = segments.includes("kickstarter-config");
+  const isBookDetailPage = /\/books\/[^/]+$/.test(pathname);
 
   // 检查是否在嵌入模式（用于抽屉显示）
   const isEmbedMode = searchParams.get('embed') === 'true';
@@ -56,6 +57,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
         </div>
       )}
       {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isKickstarterConfigPage || isEmbedMode) && <Footer />}
+      {isBookDetailPage && !isEmbedMode && <div className="h-[92px] md:hidden" aria-hidden="true" />}
       {scrollToTopConfig.enabled && (
         <ScrollToTopButton
           threshold={scrollToTopConfig.threshold}

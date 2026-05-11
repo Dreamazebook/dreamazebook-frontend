@@ -39,6 +39,8 @@ const menuItems = [
   },
 ];
 
+const MOBILE_MENU_TOGGLE_EVENT = "dreamaze:mobile-menu-toggle";
+
 const Header = () => {
   const router = useRouter();
   const pathname = usePathname();
@@ -50,6 +52,24 @@ const Header = () => {
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent(MOBILE_MENU_TOGGLE_EVENT, {
+        detail: { open: isMobileMenuOpen },
+      })
+    );
+  }, [isMobileMenuOpen]);
+
+  useEffect(() => {
+    return () => {
+      window.dispatchEvent(
+        new CustomEvent(MOBILE_MENU_TOGGLE_EVENT, {
+          detail: { open: false },
+        })
+      );
+    };
   }, []);
 
   // Close mobile menu when route changes

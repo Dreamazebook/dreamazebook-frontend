@@ -179,17 +179,17 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   // fullName 的 onChange 与 onBlur 处理
   const handleFullNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target as HTMLInputElement;
-    // 仅允许拉丁字母、空格、撇号与连字符
+    // 允许带重音的法文/拉丁字母、空格、撇号与连字符
     const raw = input.value;
-    const sanitized = raw.replace(/[^A-Za-z '\-]/g, '');
+    const sanitized = raw.replace(/[^\p{Script=Latin}\p{M} '\-]/gu, '');
     // 长度限制：按 code point 计数
     const codePoints = Array.from(sanitized);
     let next = sanitized;
     if (codePoints.length > 13) {
       next = codePoints.slice(0, 13).join('');
-      if (onErrorChange) onErrorChange('fullName', 'First name cannot exceed 13 Latin characters.');
+      if (onErrorChange) onErrorChange('fullName', 'First name cannot exceed 13 letters.');
     } else if (sanitized !== raw) {
-      if (onErrorChange) onErrorChange('fullName', 'Only Latin letters, space, hyphen and apostrophe are allowed.');
+      if (onErrorChange) onErrorChange('fullName', 'Only letters, accented characters, spaces, hyphens, and apostrophes are allowed.');
     } else if (onErrorChange && errors.fullName) {
       onErrorChange('fullName', '');
     }
@@ -332,10 +332,10 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           value={data.fullName}
           onChange={handleFullNameChange}
           onBlur={handleFullNameBlur}
-          // 仅允许拉丁字符
+          // 允许法文重音字符
           inputMode="text"
-          pattern="[A-Za-z '\-]{1,13}"
-          title="Use Latin letters, spaces, hyphen (-) and apostrophe (') only"
+          pattern="[\p{Script=Latin}\p{M} '\-]{1,13}"
+          title="Use letters, accents, spaces, hyphen (-) and apostrophe (') only"
         />
         {touched.fullName && errors.fullName && (
           <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>

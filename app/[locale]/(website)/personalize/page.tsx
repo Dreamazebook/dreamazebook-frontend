@@ -21,6 +21,25 @@ import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
 type AttributeOption = { value: string; label?: string; is_default?: boolean; price_diff?: number | string };
 type Attribute = { name: string; options: AttributeOption[]; default?: string };
 
+// Keep the mobile personalize title aligned with book detail and Our Books.
+const BOOK_NAME_OVERRIDES: Record<string, string> = {
+  PICBOOK_GOODNIGHT3: 'Good Night to You',
+  PICBOOK_MOM: 'The Way I See You, Mama',
+  PICBOOK_BRAVEY: "Little One, You're Brave in Many Ways",
+  PICBOOK_BIRTHDAY: 'Birthday Book for You',
+  PICBOOK_MELODY: 'Your Melody',
+  PICBOOK_SANTA: "Santa's Letter for You",
+};
+
+const resolveBookDisplayName = (product: any, fallbackBookId: string) => {
+  const idOrCode = String(
+    product?.spu_code ?? product?.id ?? product?.code ?? fallbackBookId ?? ''
+  ).trim();
+  const originalName = product?.name ?? product?.default_name ?? '';
+
+  return BOOK_NAME_OVERRIDES[idOrCode] || originalName;
+};
+
 // Track ViewContent only once per page load
 let viewContentTracked = false;
 
@@ -95,8 +114,8 @@ export default function PersonalizeApiDrivenPage() {
         const res = await api.get<any>(`/products/${encodeURIComponent(String(bookId))}`, { params: { language: requestLang } });
         setRawApi(res?.data || res);
         const product = res?.data?.data || res?.data || {};
-        // 获取书籍名称
-        const name = product?.name || product?.default_name || '';
+        // 获取书籍名称，保持和详情页 / Our Books 的前端覆盖逻辑一致
+        const name = resolveBookDisplayName(product, bookId);
         setBookName(name);
         const attributes: Attribute[] = Array.isArray(product.attributes) ? product.attributes : [];
 
