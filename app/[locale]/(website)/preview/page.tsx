@@ -13,7 +13,7 @@ import GiverAvatarCropper from './components/GiverAvatarCropper';
 import CoverNameCanvas from './components/CoverNameCanvas';
 import { DreamazeFaceSwapLoadingBar } from './components/DreamazeFaceSwapLoadingBar';
 import DreamazeLogoRainbowLoader from './components/DreamazeLogoRainbowLoader';
-import api from '@/utils/api';
+import api, { fetchDreamazebookApi } from '@/utils/api';
 import echo from '@/app/config/echo';
 import { useTranslations, useLocale } from 'next-intl';
 import useImageUpload from '../hooks/useImageUpload';
@@ -135,6 +135,8 @@ type MomCompositePreviewPage = PreviewPage & {
   status?: string;
   base_image_url?: string;
   final_image_url?: string;
+  /** 换脸后的整页 stage（p27-28 拼贴 drawing 须以此为底图） */
+  final_stage_url?: string;
   composite_image_url?: string;
 };
 
@@ -1573,9 +1575,18 @@ export default function PreviewPageWithTopNav() {
       return 'skipped';
     }
     const placement = MOM_COMPOSITE_IMAGE_PLACEMENTS[pageCode];
-    const baseImageRaw = String(targetPage?.base_image_url || '').trim();
+    const momPage = targetPage as MomCompositePreviewPage;
+    // p5-6：无换脸，用 base；p27-28：仅允许在 final_stage 上拼贴（与蒙版/后端就绪一致，不用 final_image 回退）
+    const baseImageRaw =
+      pageCode === 'p27-28'
+        ? String(momPage.final_stage_url || '').trim()
+        : String(momPage.base_image_url || '').trim();
     if (!baseImageRaw) {
-      toast.error('Page image is not ready yet.');
+      toast.error(
+        pageCode === 'p27-28'
+          ? 'Please wait until the page is fully ready before uploading your drawing.'
+          : 'Page image is not ready yet.',
+      );
       return 'skipped';
     }
 
@@ -1589,14 +1600,16 @@ export default function PreviewPageWithTopNav() {
         options?.overlayMode,
       );
 
-      const resp = await api.post(
-        `/products/PICBOOK_MOM/pages/${pageCode}/upload-composite-image`,
+      // 直连后端 API，避免经 Next `/api` 代理时触发 Netlify 等对请求体大小的限制
+      const resp = (await fetchDreamazebookApi(
+        `products/PICBOOK_MOM/pages/${pageCode}/upload-composite-image`,
         {
-          batch_id: batchId,
-          data: dataUrl,
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ batch_id: batchId, data: dataUrl }),
+          timeoutMs: 120000,
         },
-        { timeout: 120000 },
-      ) as MomCompositeUploadResponse;
+      )) as MomCompositeUploadResponse;
       const imageUrl =
         resp?.data?.image_url ||
         resp?.image_url ||
@@ -4931,11 +4944,18 @@ export default function PreviewPageWithTopNav() {
                       isCompleted ||
                       faceSwapStatusRef.current === 'completed' ||
                       String((page as any).status || '').toLowerCase() === 'completed';
+                    // p27-28 必须有 final_stage_url（换脸后 stage），与无 stage 时的蒙版一致，否则不允许上传
+                    const momDrawingStageReady =
+                      momCompositePageCode !== 'p27-28' ||
+                      Boolean(
+                        String((page as MomCompositePreviewPage).final_stage_url || '').trim(),
+                      );
                     const canUploadMomComposite =
                       isMomCompositePage &&
                       isMomCompositeUploadReady &&
                       !isSwapping &&
-                      !pageFailed;
+                      !pageFailed &&
+                      momDrawingStageReady;
                     // 轮到该页前（progress 为 0）显示 loading；开始后显示进度；失败页显示说明
                     const overlayMode = pageFailed ? 'failed' : (progress > 0 ? 'progress' : 'loading');
 
