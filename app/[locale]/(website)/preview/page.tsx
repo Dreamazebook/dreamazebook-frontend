@@ -91,6 +91,19 @@ const toMomCompositeUploadPageCode = (pageCode: unknown): 'p5-6' | 'p27-28' | nu
   return null;
 };
 
+/** Continue/Next 队列里 Mom 两站 drawing 分两条 optional，各自 soft acknowledge */
+const MOM_DRAWING_PROMPT_PREFIX = 'momDrawing:';
+
+function momDrawingPromptSectionId(code: 'p5-6' | 'p27-28'): string {
+  return `${MOM_DRAWING_PROMPT_PREFIX}${code}`;
+}
+
+function parseMomDrawingPromptSectionId(sectionId: string): 'p5-6' | 'p27-28' | null {
+  if (!sectionId.startsWith(MOM_DRAWING_PROMPT_PREFIX)) return null;
+  const rest = sectionId.slice(MOM_DRAWING_PROMPT_PREFIX.length);
+  return rest === 'p5-6' || rest === 'p27-28' ? (rest as 'p5-6' | 'p27-28') : null;
+}
+
 type UploadRateLimitError = {
   title: string;
   message: string;
@@ -2610,6 +2623,21 @@ export default function PreviewPageWithTopNav() {
     return null;
   }, [hasMomCompositePages, isMomBook, previewData?.preview_data, uploadedMomDrawingPageCodes]);
 
+  /** Mom 书 preview 中出现的合成页，按阅读顺序用于 Continue 提示队列 */
+  const momDrawingPromptSectionIdsOrdered = useMemo(() => {
+    if (!isMomBook) return [] as string[];
+    const pages = (previewData as MomCompositePreviewData | null)?.preview_data || [];
+    const targetCodes = new Set(
+      pages
+        .map((p) => toMomCompositeUploadPageCode(p?.page_code))
+        .filter((code): code is 'p5-6' | 'p27-28' => Boolean(code)),
+    );
+    const out: string[] = [];
+    if (targetCodes.has('p5-6')) out.push(momDrawingPromptSectionId('p5-6'));
+    if (targetCodes.has('p27-28')) out.push(momDrawingPromptSectionId('p27-28'));
+    return out;
+  }, [isMomBook, previewData?.preview_data]);
+
   // 定义侧边栏各项，并为每个项配置默认图标和完成后的图标
   const sidebarItemsAll = [
     { id: "giver", label: "Name on Book (optional)", 
@@ -2662,7 +2690,8 @@ export default function PreviewPageWithTopNav() {
   // 为每个部分创建 ref（用于滚动定位）
   const giverRef = useRef<HTMLDivElement>(null);
   const dedicationRef = useRef<HTMLDivElement>(null);
-  const momDrawingRef = useRef<HTMLDivElement>(null);
+  const momDrawingP56Ref = useRef<HTMLDivElement>(null);
+  const momDrawingP2728Ref = useRef<HTMLDivElement>(null);
   const coverDesignRef = useRef<HTMLDivElement>(null);
   const bindingRef = useRef<HTMLDivElement>(null);
   const giftBoxRef = useRef<HTMLDivElement>(null);
@@ -4017,7 +4046,14 @@ export default function PreviewPageWithTopNav() {
     switch(sectionId) {
       case "giver": ref = giverRef; break;
       case "dedication": ref = dedicationRef.current ? dedicationRef : giverRef; break;
-      case "momDrawing": ref = momDrawingRef; break;
+      case "momDrawing": {
+        const first = firstMissingMomDrawingPageCode;
+        if (first === 'p27-28') ref = momDrawingP2728Ref;
+        else ref = momDrawingP56Ref;
+        break;
+      }
+      case "momDrawing:p5-6": ref = momDrawingP56Ref; break;
+      case "momDrawing:p27-28": ref = momDrawingP2728Ref; break;
       case "coverDesign": ref = coverDesignRef; break;
       case "binding": ref = bindingRef; break;
       case "giftBox": ref = giftBoxRef; break;
@@ -4025,11 +4061,38 @@ export default function PreviewPageWithTopNav() {
     }
     if (ref && ref.current) {
       ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
-      setActiveSection(sectionId);
+      setActiveSection(
+        sectionId.startsWith(MOM_DRAWING_PROMPT_PREFIX) ? 'momDrawing' : sectionId,
+      );
+    }
+  };
+
+  const getMissingSectionToastMessage = (sectionId: string): string => {
+    switch (sectionId) {
+      case 'giver':
+        return 'Add a photo on the opening page.';
+      case 'dedication':
+        return 'Click “Edit” to make it more personal.';
+      case 'momDrawing:p5-6':
+        return 'Add your drawing.';
+      case 'momDrawing:p27-28':
+        return 'Add your another drawing.';
+      case 'coverDesign':
+        return 'Please choose a cover design.';
+      case 'binding':
+        return 'Please choose a book format.';
+      case 'giftBox':
+        return 'Please choose gift box / extras.';
+      default:
+        if (sectionId.startsWith('momDrawing:')) {
+          return 'Add your drawing on the marked story pages.';
+        }
+        return 'Please complete the highlighted step.';
     }
   };
 
   const triggerMissingSectionFeedback = (sectionId: string) => {
+    toast(getMissingSectionToastMessage(sectionId), { duration: 3200 });
     setMissingSection(sectionId);
     setIsMissingSectionPulsing(true);
     setIsNextButtonShaking(true);
@@ -4037,10 +4100,11 @@ export default function PreviewPageWithTopNav() {
     if (missingPulseTimerRef.current) window.clearTimeout(missingPulseTimerRef.current);
     if (nextShakeTimerRef.current) window.clearTimeout(nextShakeTimerRef.current);
 
+    // 与 .dreamaze-missing-section-pulse 一致：0.9s × 2
     missingPulseTimerRef.current = window.setTimeout(() => {
       setIsMissingSectionPulsing(false);
       missingPulseTimerRef.current = null;
-    }, 2800);
+    }, 2000);
 
     nextShakeTimerRef.current = window.setTimeout(() => {
       setIsNextButtonShaking(false);
@@ -4052,10 +4116,11 @@ export default function PreviewPageWithTopNav() {
     }, 120);
   };
 
-  const isOptionalPromptSection = (sectionId: string) => sectionId === 'giver' || sectionId === 'momDrawing';
+  const isOptionalPromptSection = (sectionId: string) =>
+    sectionId === 'giver' || sectionId.startsWith(`${MOM_DRAWING_PROMPT_PREFIX}`);
 
   const focusMissingSection = (sectionId: string, options?: { acknowledgeOptional?: boolean }) => {
-    if (sectionId === "giver" || sectionId === "dedication" || sectionId === "momDrawing") {
+    if (sectionId === "giver" || sectionId === "dedication" || sectionId.startsWith("momDrawing")) {
       setActiveTab("Book preview");
     } else {
       setActiveTab("Others");
@@ -4084,6 +4149,12 @@ export default function PreviewPageWithTopNav() {
     // dedication：只有用户点击 Submit（或从后端/购物车回填了真实寄语）才算完成
     dedication: isDedicationSubmitted,
     momDrawing: isMomDrawingCompleted,
+    ...Object.fromEntries(
+      momDrawingPromptSectionIdsOrdered.map((id) => {
+        const code = parseMomDrawingPromptSectionId(id);
+        return [id, code ? uploadedMomDrawingPageCodes.has(code) : true];
+      }),
+    ),
     coverDesign: selectedBookCover !== null,
     binding: selectedBinding !== null,
     giftBox: selectedGiftBox !== null,
@@ -4153,7 +4224,7 @@ export default function PreviewPageWithTopNav() {
       const sectionsToPrompt = [
         'giver',
         'dedication',
-        ...(hasMomCompositePages ? ['momDrawing'] : []),
+        ...momDrawingPromptSectionIdsOrdered,
         ...(isHideOptions ? [] : ['coverDesign', 'binding', 'giftBox']),
       ];
       const firstPromptSection = getNextMissingSectionForPrompt(sectionsToPrompt);
@@ -4606,7 +4677,7 @@ export default function PreviewPageWithTopNav() {
         }
 
         .dreamaze-missing-section-pulse {
-          animation: dreamazeMissingPulse 0.9s ease-in-out 3;
+          animation: dreamazeMissingPulse 0.9s ease-in-out 2;
         }
 
         .dreamaze-missing-button {
@@ -4615,7 +4686,7 @@ export default function PreviewPageWithTopNav() {
         }
 
         .dreamaze-missing-button-pulse {
-          animation: dreamazeMissingButtonPulse 0.9s ease-in-out 3;
+          animation: dreamazeMissingButtonPulse 0.9s ease-in-out 2;
         }
       `}</style>
       <div className="w-full pt-[12px] px-4 md:mr-[280px] flex flex-col items-center pb-24 md:pb-0">
@@ -4707,6 +4778,19 @@ export default function PreviewPageWithTopNav() {
                         coverHasSwap && coverHasBase && !hasMeaningfulFinalImage(coverPage) && !coverFailed;
                       const coverProgress = coverPage ? Math.round(pageProgress[(coverPage as any).page_id] ?? 0) : 0;
                       const coverOverlayMode = coverFailed ? 'failed' : (coverProgress > 0 ? 'progress' : 'loading');
+                      const coverHasFinal = coverPage ? hasMeaningfulFinalImage(coverPage) : false;
+                      // 尚未有可展示的后端图时（排队/生成中、或已有 cover 行但无 URL、或进度在跑且尚无 final）保留蒙版；
+                      // 批次 completed 或已有 final 后不再仅用「进度=100」挡图（避免 100% 蒙版不消）。
+                      const waitingForBackendCoverDisplay =
+                        !backendSrc &&
+                        !coverFailed &&
+                        !isCompleted &&
+                        (isProcessingLike ||
+                          (!!coverPage && coverProgress > 0 && !coverHasFinal));
+                      const showCoverBusyOverlay =
+                        coverFailed ||
+                        coverNeedsOverlay ||
+                        waitingForBackendCoverDisplay;
 
                       return (
                         <div
@@ -4732,7 +4816,7 @@ export default function PreviewPageWithTopNav() {
                               className={`absolute inset-0 h-full w-full object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
                             />
                           )}
-                          {(!backendSrc || coverNeedsOverlay || coverFailed) && (
+                          {showCoverBusyOverlay && (
                             <div
                               className="absolute inset-0 z-10 flex items-center justify-center bg-white/70"
                               style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}
@@ -5145,7 +5229,12 @@ export default function PreviewPageWithTopNav() {
                               momDrawingFileInputRef.current?.click();
                             }}
                             disabled={momDrawingUploadingPageCode === momCompositePageCode}
-                          className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${momCompositePageCode && !uploadedMomDrawingPageCodes.has(momCompositePageCode) ? getMissingButtonClass('momDrawing') : ''} ${
+                          className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${
+                            momCompositePageCode &&
+                            !uploadedMomDrawingPageCodes.has(momCompositePageCode)
+                              ? getMissingButtonClass(momDrawingPromptSectionId(momCompositePageCode))
+                              : ''
+                          } ${
                               momDrawingUploadingPageCode === momCompositePageCode ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                           >
@@ -5176,7 +5265,7 @@ export default function PreviewPageWithTopNav() {
                         viewMode === 'single' &&
                         momCompositePageCode &&
                         !uploadedMomDrawingPageCodes.has(momCompositePageCode)
-                          ? getMissingSectionClass('momDrawing')
+                          ? getMissingSectionClass(momDrawingPromptSectionId(momCompositePageCode))
                           : undefined;
                       const openingDoubleImageGlow =
                         viewMode === 'double' && isGiverDedicationPage
@@ -5187,7 +5276,7 @@ export default function PreviewPageWithTopNav() {
                         !isGiverDedicationPage &&
                         momCompositePageCode &&
                         !uploadedMomDrawingPageCodes.has(momCompositePageCode)
-                          ? getMissingSectionClass('momDrawing')
+                          ? getMissingSectionClass(momDrawingPromptSectionId(momCompositePageCode))
                           : undefined;
                       return (
                       <div
@@ -5195,7 +5284,11 @@ export default function PreviewPageWithTopNav() {
                         ref={
                           isGiverDedicationPage
                             ? setOpeningPageRefs
-                            : (momCompositePageCode === firstMissingMomDrawingPageCode ? momDrawingRef : undefined)
+                            : momCompositePageCode === 'p5-6'
+                              ? momDrawingP56Ref
+                              : momCompositePageCode === 'p27-28'
+                                ? momDrawingP2728Ref
+                                : undefined
                         }
                         className="w-full flex flex-col items-center"
                       >
@@ -5388,33 +5481,41 @@ export default function PreviewPageWithTopNav() {
                             coverHasSwap && coverHasBase && !hasMeaningfulFinalImage(coverPage) && !coverFailed;
                           const coverProgress = coverPage ? Math.round(pageProgress[(coverPage as any).page_id] ?? 0) : 0;
                           const coverOverlayMode = coverFailed ? 'failed' : (coverProgress > 0 ? 'progress' : 'loading');
-
-                          if (!backendSrc) {
-                            return (
-                              <div
-                                className="relative w-full mb-2 overflow-hidden"
-                                style={{ aspectRatio: String(ratio) }}
-                              >
-                                <div className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center gap-2">
-                                  <DreamazeLogoRainbowLoader size={42} />
-                                </div>
-                              </div>
-                            );
-                          }
+                          const coverHasFinal = coverPage ? hasMeaningfulFinalImage(coverPage) : false;
+                          const waitingForBackendCoverDisplay =
+                            !backendSrc &&
+                            !coverFailed &&
+                            !isCompleted &&
+                            (isProcessingLike ||
+                              (!!coverPage && coverProgress > 0 && !coverHasFinal));
+                          const showThumbBusyOverlay =
+                            coverFailed ||
+                            coverNeedsOverlay ||
+                            waitingForBackendCoverDisplay;
 
                           return (
                             <div
                               className="relative w-full mb-2 overflow-hidden"
                               style={{ aspectRatio: String(ratio) }}
                             >
-                              <OptimizedImage
-                                src={backendSrc}
-                                alt={`Cover ${option.id} - ${option.name}`}
-                                width={cropRightHalf ? 400 : 200}
-                                height={200}
-                                className="absolute inset-0 h-full w-full object-cover object-right"
-                              />
-                              {(coverNeedsOverlay || coverFailed) && (
+                              {backendSrc ? (
+                                <OptimizedImage
+                                  src={backendSrc}
+                                  alt={`Cover ${option.id} - ${option.name}`}
+                                  width={cropRightHalf ? 400 : 200}
+                                  height={200}
+                                  className="absolute inset-0 h-full w-full object-cover object-right"
+                                />
+                              ) : (
+                                <Image
+                                  src={base}
+                                  alt={`Cover ${option.id} - ${option.name}`}
+                                  width={cropRightHalf ? 400 : 200}
+                                  height={200}
+                                  className={`absolute inset-0 h-full w-full object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
+                                />
+                              )}
+                              {showThumbBusyOverlay && (
                                 <div
                                   className="absolute inset-0 z-10 flex items-center justify-center bg-white/70"
                                   style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}
@@ -6392,7 +6493,7 @@ export default function PreviewPageWithTopNav() {
                     const sectionsToPrompt = [
                       'giver',
                       'dedication',
-                      ...(hasMomCompositePages ? ['momDrawing'] : []),
+                      ...momDrawingPromptSectionIdsOrdered,
                       ...(isHideOptions ? [] : ['coverDesign', 'binding', 'giftBox']),
                     ];
                     const firstPromptSection = getNextMissingSectionForPrompt(sectionsToPrompt);

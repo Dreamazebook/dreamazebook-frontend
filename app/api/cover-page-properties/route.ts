@@ -27,6 +27,11 @@ export async function GET(req: NextRequest) {
 
   try {
     const res = await fetch(url, { cache: 'no-store' });
+    // 部分书籍（如 PICBOOK_MOM）封面未上传 page_properties.json，R2 返回 404。
+    // 返回空配置 200，避免前端/监控把「无叠字配置」当成错误，并与「无文本、仅展示封面图」一致。
+    if (res.status === 404) {
+      return NextResponse.json({ text: [] });
+    }
     if (!res.ok) {
       return NextResponse.json(
         { error: 'page_properties.json not found on R2' },
