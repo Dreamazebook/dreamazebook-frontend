@@ -571,6 +571,9 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   content,
   customOverlayContent,
   onImageLoaded,
+  doubleImageAreaClassName,
+  leftSingleFrameClassName,
+  rightSingleFrameClassName,
 }: {
   pageId: number;
   pageNumber: number;
@@ -582,6 +585,12 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   content?: string | null;
   customOverlayContent?: React.ReactNode;
   onImageLoaded?: (pageId: number) => void;
+  /** 双页模式：仅包住整页预览图区域（不含下方按钮） */
+  doubleImageAreaClassName?: string;
+  /** 单页模式左半图外框 class（如缺失项高亮） */
+  leftSingleFrameClassName?: string;
+  /** 单页模式右半图外框 class */
+  rightSingleFrameClassName?: string;
 }) {
   const t = useTranslations('Preview');
   const notifiedRef = useRef(false);
@@ -598,7 +607,10 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
       <div className="w-full flex flex-col items-center gap-4">
         {/* 左半部分 */}
         <div className="w-full flex justify-center">
-          <div className="relative max-w-[500px] w-full" style={{ aspectRatio: '512/519' }}>
+          <div
+            className={`relative max-w-[500px] w-full ${leftSingleFrameClassName ?? ''}`.trim()}
+            style={{ aspectRatio: '512/519' }}
+          >
             {showOverlay ? (
               <>
                 <div className="absolute inset-0 overflow-hidden rounded-lg">
@@ -652,7 +664,10 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
         
         {/* 右半部分 */}
         <div className="w-full flex justify-center">
-          <div className="relative max-w-[500px] w-full" style={{ aspectRatio: '512/519' }}>
+          <div
+            className={`relative max-w-[500px] w-full ${rightSingleFrameClassName ?? ''}`.trim()}
+            style={{ aspectRatio: '512/519' }}
+          >
             {showOverlay ? (
               <>
                 <div className="absolute inset-0 overflow-hidden rounded-lg">
@@ -719,10 +734,11 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   }
 
   // double 模式
+  const doubleFrame = `w-full relative ${doubleImageAreaClassName ?? ''}`.trim();
   return (
     <div className="w-full relative">
       {showOverlay ? (
-        <div className="w-full relative">
+        <div className={doubleFrame}>
           <OptimizedImage
             src={src}
             alt={`Page ${pageNumber}`}
@@ -750,7 +766,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
           )}
         </div>
       ) : (
-        <div className="w-full relative">
+        <div className={doubleFrame}>
           <OptimizedImage
             src={src}
             alt={`Page ${pageNumber}`}
@@ -791,7 +807,10 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
     prev.overlayMode === next.overlayMode &&
     Math.round(prev.progress) === Math.round(next.progress) &&
     prev.content === next.content &&
-    prev.customOverlayContent === next.customOverlayContent
+    prev.customOverlayContent === next.customOverlayContent &&
+    prev.doubleImageAreaClassName === next.doubleImageAreaClassName &&
+    prev.leftSingleFrameClassName === next.leftSingleFrameClassName &&
+    prev.rightSingleFrameClassName === next.rightSingleFrameClassName
   );
 });
 
@@ -1319,6 +1338,7 @@ export default function PreviewPageWithTopNav() {
     setMomDrawingUploadingPageCode(null);
     setUploadedMomDrawingPageCodes(new Set());
     setIsNameOnBookCompleted(false);
+    setAcknowledgedOptionalMissingSections(new Set());
     setGuestUploadRateLimitError(null);
     shouldUploadP34ComposedRef.current = false;
     p34ComposeUploadInFlightRef.current = false;
@@ -2567,13 +2587,22 @@ export default function PreviewPageWithTopNav() {
     if (targetCodes.size === 0) return false;
     return Array.from(targetCodes).every((code) => uploadedMomDrawingPageCodes.has(code));
   }, [hasMomCompositePages, isMomBook, previewData?.preview_data, uploadedMomDrawingPageCodes]);
+  const firstMissingMomDrawingPageCode = useMemo(() => {
+    if (!isMomBook || !hasMomCompositePages) return null;
+    const pages = (previewData as MomCompositePreviewData | null)?.preview_data || [];
+    for (const page of pages) {
+      const code = toMomCompositeUploadPageCode(page?.page_code);
+      if (code && !uploadedMomDrawingPageCodes.has(code)) return code;
+    }
+    return null;
+  }, [hasMomCompositePages, isMomBook, previewData?.preview_data, uploadedMomDrawingPageCodes]);
 
   // 定义侧边栏各项，并为每个项配置默认图标和完成后的图标
   const sidebarItemsAll = [
-    { id: "giver", label: "Name on Book", 
+    { id: "giver", label: "Name on Book (optional)", 
       icon: 
-        <svg width="18" height="21" viewBox="0 0 18 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M17.8188 13.2969C18.0788 14.3398 18.0788 15.2523 17.6888 16.2952C17.4289 17.3381 16.909 18.2506 16.1291 18.9025C15.7392 19.2935 15.3492 19.5543 14.8293 19.815C14.3094 20.0757 13.7895 20.3364 13.1396 20.4668C12.6197 20.5972 11.9698 20.7275 11.3199 20.7275H8.20039V12.3844C7.29054 12.254 6.51066 12.1236 5.86077 11.7326C5.34085 11.4718 4.82094 11.0808 4.30102 10.6897C3.78111 10.2986 3.39117 9.77713 3.13121 9.25569C2.74128 8.73424 2.48132 8.08243 2.35134 7.43062C2.22136 6.77881 2.09138 6.127 2.09138 5.47519C2.09138 4.56266 2.22136 3.65013 2.6113 2.7376C3.26119 2.86796 3.91109 3.12868 4.56098 3.51977C5.21088 3.91085 5.73079 4.30194 6.12073 4.82339C6.25071 3.78049 6.64064 2.86796 7.16056 2.08579C7.68047 1.30362 8.33037 0.521447 9.11024 0C9.89011 0.521447 10.67 1.30362 11.1899 2.08579C11.7098 2.99832 11.9698 3.91085 12.0998 4.95375C12.6197 4.4323 13.1396 4.04121 13.6595 3.65013C14.3094 3.25904 14.9593 2.99832 15.6092 2.86796C15.9991 3.65013 16.1291 4.56266 16.1291 5.47519C16.1291 6.127 15.9991 6.77881 15.8691 7.43062C15.7392 8.08243 15.4792 8.60388 15.0893 9.25569C14.6993 9.77713 14.3094 10.2986 13.9195 10.6897C13.3995 11.0808 12.8796 11.4718 12.3597 11.7326C11.9698 11.9933 11.5798 12.1236 11.0599 12.254C10.67 12.3844 10.1501 12.5147 9.76014 12.5147V18.5114C9.89011 17.8596 10.1501 17.3381 10.54 16.8167C10.9299 16.2952 11.3199 15.7738 11.8398 15.2523C12.2297 14.8612 12.6197 14.4702 13.1396 14.2094C13.6595 13.9487 14.1794 13.688 14.6993 13.5576L16.2591 13.1665C16.779 13.1665 17.2989 13.2969 17.8188 13.2969ZM0.141699 13.2969C1.18153 13.0362 2.22136 13.1665 3.13121 13.4273C4.17104 13.688 5.0809 14.2094 5.86077 14.9916C6.25071 15.3827 6.51066 15.7738 6.77062 16.2952C7.03058 16.8167 7.29054 17.2078 7.42052 17.7292C7.55049 18.2506 7.68047 18.7721 7.68047 19.2935C7.68047 19.815 7.68047 20.3364 7.55049 20.8579C6.51066 21.1186 5.60081 20.9882 4.56098 20.7275C3.52115 20.3364 2.6113 19.815 1.83142 19.0328C1.05155 18.2506 0.531636 17.3381 0.271678 16.4256C0.0117201 15.3827 -0.118259 14.3398 0.141699 13.2969Z" fill="currentColor"/>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fillRule="evenodd" clipRule="evenodd" d="M4.25 2.5A2.25 2.25 0 0 0 2 4.75v10.5a2.25 2.25 0 0 0 2.25 2.25h11.5A2.25 2.25 0 0 0 18 15.25V4.75a2.25 2.25 0 0 0-2.25-2.25H4.25ZM3.75 4.75a.5.5 0 0 1 .5-.5h11.5a.5.5 0 0 1 .5.5v10.5a.5.5 0 0 1-.5.5H4.25a.5.5 0 0 1-.5-.5V4.75Zm3 1.75a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Zm0 1.7a.55.55 0 1 1 0 1.1.55.55 0 0 1 0-1.1Zm5.6 2.05a.88.88 0 0 0-1.35.02l-2.1 2.55-.88-.9a.88.88 0 0 0-1.27.02l-1.7 1.86a.75.75 0 0 0 .55 1.25h8.92a.75.75 0 0 0 .57-1.24l-2.74-3.56Z" fill="currentColor"/>
         </svg>
     },
     { id: "dedication", label: "Your Special Message", 
@@ -2624,6 +2653,16 @@ export default function PreviewPageWithTopNav() {
   const coverDesignRef = useRef<HTMLDivElement>(null);
   const bindingRef = useRef<HTMLDivElement>(null);
   const giftBoxRef = useRef<HTMLDivElement>(null);
+  const missingPulseTimerRef = useRef<number | null>(null);
+  const nextShakeTimerRef = useRef<number | null>(null);
+  const [missingSection, setMissingSection] = useState<string | null>(null);
+  const [isMissingSectionPulsing, setIsMissingSectionPulsing] = useState(false);
+  const [isNextButtonShaking, setIsNextButtonShaking] = useState(false);
+  const [acknowledgedOptionalMissingSections, setAcknowledgedOptionalMissingSections] = useState<Set<string>>(() => new Set());
+  const setOpeningPageRefs = useCallback((node: HTMLDivElement | null) => {
+    giverRef.current = node;
+    dedicationRef.current = node;
+  }, []);
   // 封面 R2 URL 构建缓存：避免在 render 中对每个 option 重复计算/重复打 log
   const coverR2UrlsCacheRef = useRef<Map<string, any>>(new Map());
   // 显式打开调试：在 URL 上加 ?debugCoverR2=1
@@ -3964,7 +4003,7 @@ export default function PreviewPageWithTopNav() {
     let ref: React.RefObject<HTMLDivElement | null> | null = null;
     switch(sectionId) {
       case "giver": ref = giverRef; break;
-      case "dedication": ref = dedicationRef; break;
+      case "dedication": ref = dedicationRef.current ? dedicationRef : giverRef; break;
       case "momDrawing": ref = momDrawingRef; break;
       case "coverDesign": ref = coverDesignRef; break;
       case "binding": ref = bindingRef; break;
@@ -3972,15 +4011,63 @@ export default function PreviewPageWithTopNav() {
       default: break;
     }
     if (ref && ref.current) {
-      ref.current.scrollIntoView({ behavior: "smooth" });
+      ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
       setActiveSection(sectionId);
     }
   };
 
+  const triggerMissingSectionFeedback = (sectionId: string) => {
+    setMissingSection(sectionId);
+    setIsMissingSectionPulsing(true);
+    setIsNextButtonShaking(true);
+
+    if (missingPulseTimerRef.current) window.clearTimeout(missingPulseTimerRef.current);
+    if (nextShakeTimerRef.current) window.clearTimeout(nextShakeTimerRef.current);
+
+    missingPulseTimerRef.current = window.setTimeout(() => {
+      setIsMissingSectionPulsing(false);
+      missingPulseTimerRef.current = null;
+    }, 2800);
+
+    nextShakeTimerRef.current = window.setTimeout(() => {
+      setIsNextButtonShaking(false);
+      nextShakeTimerRef.current = null;
+    }, 520);
+
+    setTimeout(() => {
+      scrollToSection(sectionId);
+    }, 120);
+  };
+
+  const isOptionalPromptSection = (sectionId: string) => sectionId === 'giver' || sectionId === 'momDrawing';
+
+  const focusMissingSection = (sectionId: string, options?: { acknowledgeOptional?: boolean }) => {
+    if (sectionId === "giver" || sectionId === "dedication" || sectionId === "momDrawing") {
+      setActiveTab("Book preview");
+    } else {
+      setActiveTab("Others");
+    }
+    if (options?.acknowledgeOptional && isOptionalPromptSection(sectionId)) {
+      setAcknowledgedOptionalMissingSections((prev) => {
+        const next = new Set(prev);
+        next.add(sectionId);
+        return next;
+      });
+    }
+    triggerMissingSectionFeedback(sectionId);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (missingPulseTimerRef.current) window.clearTimeout(missingPulseTimerRef.current);
+      if (nextShakeTimerRef.current) window.clearTimeout(nextShakeTimerRef.current);
+    };
+  }, []);
+
   // 各部分的完成状态判断
   const completedSections = {
-    // Name on Book：默认完成状态
-    giver: true,
+    // Name on Book：可选，但会在用户第一次点 Next 时 soft prompt
+    giver: isNameOnBookCompleted,
     // dedication：只有用户点击 Submit（或从后端/购物车回填了真实寄语）才算完成
     dedication: isDedicationSubmitted,
     momDrawing: isMomDrawingCompleted,
@@ -3988,6 +4075,30 @@ export default function PreviewPageWithTopNav() {
     binding: selectedBinding !== null,
     giftBox: selectedGiftBox !== null,
   };
+
+  const nextButtonFeedbackClass = isNextButtonShaking ? 'dreamaze-next-shake' : '';
+  const isSectionStillMissing = (sectionId: string) => !Boolean((completedSections as Record<string, boolean>)[sectionId]);
+  const getMissingSectionClass = (sectionId: string) =>
+    missingSection === sectionId && isSectionStillMissing(sectionId)
+      ? `dreamaze-missing-section ${isMissingSectionPulsing ? 'dreamaze-missing-section-pulse' : ''}`
+      : '';
+  const getMissingButtonClass = (sectionId: string) =>
+    missingSection === sectionId && isSectionStillMissing(sectionId)
+      ? `dreamaze-missing-button ${isMissingSectionPulsing ? 'dreamaze-missing-button-pulse' : ''}`
+      : '';
+  const renderMissingSectionPrompt = (sectionId: string) => {
+    if (sectionId !== 'dedication' || missingSection !== 'dedication' || completedSections.dedication) return null;
+    return (
+      <div className="mb-2 w-full text-center text-[14px] leading-[20px] font-medium text-[#CF0F02]">
+        Please add a dedication to continue ✨
+      </div>
+    );
+  };
+  const getNextMissingSectionForPrompt = (sections: string[]) =>
+    sections.find((sectionId) => {
+      if (Boolean((completedSections as Record<string, boolean>)[sectionId])) return false;
+      return !isOptionalPromptSection(sectionId) || !acknowledgedOptionalMissingSections.has(sectionId);
+    }) || null;
 
   // Others 标签页可选项提示文本（按需拼接 binding/cover/wrap）
   const selectableItems = [
@@ -4026,15 +4137,19 @@ export default function PreviewPageWithTopNav() {
     try {
       console.debug('[AddToCart] Clicked');
       const fromCartItemId = searchParams.get('fromCartItemId');
+      const sectionsToPrompt = [
+        'giver',
+        'dedication',
+        ...(hasMomCompositePages ? ['momDrawing'] : []),
+        ...(isHideOptions ? [] : ['coverDesign', 'binding', 'giftBox']),
+      ];
+      const firstPromptSection = getNextMissingSectionForPrompt(sectionsToPrompt);
 
-      // 无论是否来自 personalized-products（fromCartItemId），Dedication 都必须 Submit 才允许继续。
-      // 这样不会因为默认寄语展示而误导用户跳过提交。
-      if (!completedSections.dedication) {
-        setActiveTab("Book preview");
-        setTimeout(() => {
-          scrollToSection('dedication');
-        }, 100);
-        console.warn('[AddToCart] Blocked: dedication not submitted');
+      if (firstPromptSection) {
+        focusMissingSection(firstPromptSection, {
+          acknowledgeOptional: isOptionalPromptSection(firstPromptSection),
+        });
+        console.warn('[AddToCart] Blocked by incomplete section:', firstPromptSection);
         return;
       }
 
@@ -4107,34 +4222,7 @@ export default function PreviewPageWithTopNav() {
       // - 需要用户选择 Options 后，通过 /cart/add 更新当前购物车条目（不走“直接返回”快捷路径）
       // personalized-products（从购物车编辑进入）仍保持原行为：不再次 add-to-cart；仅返回购物车
       const skipPrefillOptions = searchParams.get('skipPrefillOptions') === '1';
-      // 检查是否所有必要的部分都已完成
-      // 允许未填写 giver 也能继续；但 dedication 必须 Submit 后才算完成
-      // 圣诞 bundle（hideOptions=1）：不要求 coverDesign/binding/giftBox，否则会被引导去 option tab
-      const ignoreSections = isHideOptions ? new Set(['coverDesign', 'binding', 'giftBox']) : null;
-      const incompleteSections = Object.entries(completedSections)
-        .filter(([section, completed]) => {
-          if (section === 'giver') return false;
-          if (section === 'momDrawing') return false;
-          if (ignoreSections && ignoreSections.has(section)) return false;
-          return !completed;
-        })
-        .map(([section, _]) => section);
-      console.debug('[AddToCart] completedSections:', completedSections, 'incomplete:', incompleteSections);
-
-      if (incompleteSections.length > 0) {
-        // 如果有未完成的部分，跳转到第一个未完成的部分
-        const firstIncomplete = incompleteSections[0];
-        if (firstIncomplete === "giver" || firstIncomplete === "dedication") {
-          setActiveTab("Book preview");
-        } else {
-          setActiveTab("Others");
-        }
-        setTimeout(() => {
-          scrollToSection(firstIncomplete);
-        }, 100);
-        console.warn('[AddToCart] Blocked by incomplete section:', firstIncomplete);
-        return;
-      }
+      console.debug('[AddToCart] completedSections:', completedSections);
 
       // 检查是否有预览数据（现在 preview_id 等于 batch_id，做兼容）
       const effectivePreviewId = previewData?.preview_id ?? (previewData as any)?.batch_id;
@@ -4475,6 +4563,48 @@ export default function PreviewPageWithTopNav() {
 
   return (
     <div className="flex min-h-screen bg-[#F8F8F8]">
+      <style>{`
+        @keyframes dreamazeNextShake {
+          0%, 100% { transform: translateX(0); }
+          20% { transform: translateX(-4px); }
+          40% { transform: translateX(4px); }
+          60% { transform: translateX(-3px); }
+          80% { transform: translateX(3px); }
+        }
+
+        @keyframes dreamazeMissingPulse {
+          0%, 100% { box-shadow: 0 0 0 rgba(207, 15, 2, 0.18); }
+          50% { box-shadow: 0 0 28px rgba(207, 15, 2, 0.22); }
+        }
+
+        @keyframes dreamazeMissingButtonPulse {
+          0%, 100% { box-shadow: 0 0 0 rgba(207, 15, 2, 0.12); }
+          50% { box-shadow: 0 0 14px rgba(207, 15, 2, 0.24); }
+        }
+
+        .dreamaze-next-shake {
+          animation: dreamazeNextShake 0.45s ease-in-out;
+        }
+
+        .dreamaze-missing-section {
+          border-radius: 12px;
+          box-shadow: 0 0 18px rgba(207, 15, 2, 0.14);
+          transition: box-shadow 180ms ease;
+        }
+
+        .dreamaze-missing-section-pulse {
+          animation: dreamazeMissingPulse 0.9s ease-in-out 3;
+        }
+
+        .dreamaze-missing-button {
+          border-color: #cf0f02 !important;
+          box-shadow: 0 0 0 3px rgba(207, 15, 2, 0.08);
+        }
+
+        .dreamaze-missing-button-pulse {
+          animation: dreamazeMissingButtonPulse 0.9s ease-in-out 3;
+        }
+      `}</style>
       <div className="w-full pt-[12px] px-4 md:mr-[280px] flex flex-col items-center pb-24 md:pb-0">
         {/* 固定的导航栏 */}
         <div className="fixed top-0 left-0 pt-[12px] px-4 z-50 w-full md:w-[calc(100%-280px)] flex flex-col items-center">
@@ -4847,7 +4977,7 @@ export default function PreviewPageWithTopNav() {
                       if (isGiverDedicationPage && viewMode === 'single') {
                         if (isSwapping || pageFailed) {
                           return (
-                            <div key={page.page_id} ref={giverRef} className="w-full flex flex-col items-center">
+                            <div key={page.page_id} ref={setOpeningPageRefs} className="w-full flex flex-col items-center">
                               <div className="w-full max-w-5xl">
                                 <PreviewPageItem
                                   pageId={page.page_id}
@@ -4873,7 +5003,7 @@ export default function PreviewPageWithTopNav() {
                         }
                         if (p34FinalSrc && !p34HasLocalChanges) {
                           return (
-                            <div key={page.page_id} ref={giverRef} className="w-full flex flex-col items-center">
+                            <div key={page.page_id} ref={setOpeningPageRefs} className="w-full flex flex-col items-center">
                               <div className="w-full max-w-5xl">
                                 <GiverDedicationCanvas
                                   className="w-full"
@@ -4883,6 +5013,8 @@ export default function PreviewPageWithTopNav() {
                                   dedicationText=""
                                   giverImageUrl={null}
                                   giverImageScale={giverImageScale}
+                                  leftImageFrameClassName={getMissingSectionClass('giver')}
+                                  rightImageFrameClassName={getMissingSectionClass('dedication')}
                                   leftBelow={(
                                     <div className="mt-2 w-full flex justify-center">
                                       <button
@@ -4890,18 +5022,19 @@ export default function PreviewPageWithTopNav() {
                                         onClick={() => {
                                           giverFileInputRef.current?.click();
                                         }}
-                                        className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                        className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
                                       >
                                         Personalize with a photo
                                       </button>
                                     </div>
                                   )}
                                   rightBelow={(
-                                    <div className="mt-2 w-full flex justify-center">
+                                    <div className="mt-2 w-full flex flex-col items-center">
+                                      {renderMissingSectionPrompt('dedication')}
                                       <button
                                         type="button"
                                         onClick={() => setEditField('dedication')}
-                                        className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                        className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
                                       >
                                         Edit Dedication
                                       </button>
@@ -4913,7 +5046,7 @@ export default function PreviewPageWithTopNav() {
                           );
                         }
                         return (
-                        <div key={page.page_id} ref={giverRef} className="w-full flex flex-col items-center">
+                        <div key={page.page_id} ref={setOpeningPageRefs} className="w-full flex flex-col items-center">
                           <div className="w-full max-w-5xl">
                             <GiverDedicationCanvas
                               className="w-full"
@@ -4924,6 +5057,8 @@ export default function PreviewPageWithTopNav() {
                               giverImageUrl={p34GiverOverlaySrc}
                               giverImageScale={giverImageScale}
                               onRendered={uploadP34ComposedImage}
+                              leftImageFrameClassName={getMissingSectionClass('giver')}
+                              rightImageFrameClassName={getMissingSectionClass('dedication')}
                               leftBelow={(
                                 <div className="mt-2 w-full flex justify-center">
                                   <button
@@ -4931,18 +5066,19 @@ export default function PreviewPageWithTopNav() {
                                     onClick={() => {
                                       giverFileInputRef.current?.click();
                                     }}
-                                    className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                    className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
                                   >
                                     Personalize with a photo
                                   </button>
                                 </div>
                               )}
                               rightBelow={(
-                                <div className="mt-2 w-full flex justify-center">
+                                <div className="mt-2 w-full flex flex-col items-center">
+                                  {renderMissingSectionPrompt('dedication')}
                                   <button
                                     type="button"
                                     onClick={() => setEditField('dedication')}
-                                    className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                    className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
                                   >
                                     Edit Dedication
                                   </button>
@@ -4962,16 +5098,17 @@ export default function PreviewPageWithTopNav() {
                               onClick={() => {
                                 giverFileInputRef.current?.click();
                               }}
-                              className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                              className={`pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
                             >
                               Personalize with a photo
                             </button>
                           </div>
-                          <div className="absolute bottom-[20%] right-0 w-1/2 flex justify-center">
+                          <div className="absolute bottom-[20%] right-0 w-1/2 flex flex-col items-center">
+                            {renderMissingSectionPrompt('dedication')}
                             <button
                               type="button"
                               onClick={() => setEditField('dedication')}
-                              className="pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                              className={`pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
                             >
                               Edit Dedication
                             </button>
@@ -4988,7 +5125,7 @@ export default function PreviewPageWithTopNav() {
                               momDrawingFileInputRef.current?.click();
                             }}
                             disabled={momDrawingUploadingPageCode === momCompositePageCode}
-                            className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${
+                          className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${momCompositePageCode && !uploadedMomDrawingPageCodes.has(momCompositePageCode) ? getMissingButtonClass('momDrawing') : ''} ${
                               momDrawingUploadingPageCode === momCompositePageCode ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                           >
@@ -5015,10 +5152,31 @@ export default function PreviewPageWithTopNav() {
                           </div>
                         </div>
                       ) : null;
+                      const momDrawingRightSingleGlow =
+                        viewMode === 'single' &&
+                        momCompositePageCode &&
+                        !uploadedMomDrawingPageCodes.has(momCompositePageCode)
+                          ? getMissingSectionClass('momDrawing')
+                          : undefined;
+                      const openingDoubleImageGlow =
+                        viewMode === 'double' && isGiverDedicationPage
+                          ? `${getMissingSectionClass('giver')} ${getMissingSectionClass('dedication')}`.trim()
+                          : undefined;
+                      const momDoubleImageGlow =
+                        viewMode === 'double' &&
+                        !isGiverDedicationPage &&
+                        momCompositePageCode &&
+                        !uploadedMomDrawingPageCodes.has(momCompositePageCode)
+                          ? getMissingSectionClass('momDrawing')
+                          : undefined;
                       return (
                       <div
                         key={page.page_id}
-                        ref={isGiverDedicationPage ? dedicationRef : (momCompositePageCode === 'p5-6' ? momDrawingRef : undefined)}
+                        ref={
+                          isGiverDedicationPage
+                            ? setOpeningPageRefs
+                            : (momCompositePageCode === firstMissingMomDrawingPageCode ? momDrawingRef : undefined)
+                        }
                         className="w-full flex flex-col items-center"
                       >
                         <div className="w-full max-w-5xl">
@@ -5031,6 +5189,8 @@ export default function PreviewPageWithTopNav() {
                             progress={progress}
                             overlayMode={overlayMode as any}
                             content={page.content}
+                            doubleImageAreaClassName={openingDoubleImageGlow || momDoubleImageGlow}
+                            rightSingleFrameClassName={momDrawingRightSingleGlow}
                             customOverlayContent={pageFailed ? undefined : (isGiverDedicationPage ? (
                               (p34FinalSrc && !p34HasLocalChanges) ? p34ButtonsOverlay : (
                                 <div className="w-full h-full relative">
@@ -5065,16 +5225,17 @@ export default function PreviewPageWithTopNav() {
                                   onClick={() => {
                                     giverFileInputRef.current?.click();
                                   }}
-                                  className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                  className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
                                 >
                                   Personalize with a photo
                                 </button>
                               </div>
-                              <div className="w-full flex justify-center">
+                              <div className="w-full flex flex-col items-center">
+                                {renderMissingSectionPrompt('dedication')}
                                 <button
                                   type="button"
                                   onClick={() => setEditField('dedication')}
-                                  className="text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm"
+                                  className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
                                 >
                                   Edit Dedication
                                 </button>
@@ -5378,7 +5539,7 @@ export default function PreviewPageWithTopNav() {
             </section>
             
             {/* Book Format Section */}
-            <section  ref={bindingRef} className="w-full mt-2 max-w-4xl mx-auto">
+            <section ref={bindingRef} className="w-full mt-2 max-w-4xl mx-auto">
               <h1 className="text-[28px] text-center mb-2">Choose your book format</h1>
               <p className="text-center text-gray-600 mb-4">
                 Pick the format that best fits how you'll treasure or gift it.
@@ -6003,7 +6164,7 @@ export default function PreviewPageWithTopNav() {
                 isAddingToCart 
                   ? 'bg-gray-400 cursor-not-allowed' 
                   : 'bg-[#222222] hover:bg-[#333333] cursor-pointer'
-              } text-[#F5E3E3]`}
+              } text-[#F5E3E3] ${nextButtonFeedbackClass}`}
             >
               {isAddingToCart ? (
                 <>
@@ -6191,7 +6352,7 @@ export default function PreviewPageWithTopNav() {
                     isAddingToCart
                       ? 'bg-gray-400 cursor-not-allowed text-white'
                       : 'bg-gray-900 text-white'
-                  }`}
+                  } ${nextButtonFeedbackClass}`}
                 >
                   {isAddingToCart ? (
                     <>
@@ -6208,48 +6369,21 @@ export default function PreviewPageWithTopNav() {
               return (
                 <button
                   onClick={() => {
-                    // 找到第一个未完成的必填步骤（排除 giver）
-                    const requiredSteps = [
-                      { id: 'dedication', ref: dedicationRef, completed: completedSections.dedication },
-                      { id: 'coverDesign', ref: coverDesignRef, completed: completedSections.coverDesign },
-                      { id: 'binding', ref: bindingRef, completed: completedSections.binding },
-                      { id: 'giftBox', ref: giftBoxRef, completed: completedSections.giftBox },
+                    const sectionsToPrompt = [
+                      'giver',
+                      'dedication',
+                      ...(hasMomCompositePages ? ['momDrawing'] : []),
+                      ...(isHideOptions ? [] : ['coverDesign', 'binding', 'giftBox']),
                     ];
-                    
-                    const firstIncomplete = requiredSteps.find((step) => !step.completed);
-                    
-                    if (firstIncomplete) {
-                      // 如果是 coverDesign, binding, giftBox，需要切换到 Others tab
-                      if (['coverDesign', 'binding', 'giftBox'].includes(firstIncomplete.id)) {
-                        if (activeTab !== 'Others') {
-                          setActiveTab('Others');
-                          // 等待 tab 切换后再滚动
-                          setTimeout(() => {
-                            if (firstIncomplete.ref?.current) {
-                              firstIncomplete.ref.current.scrollIntoView({ behavior: 'smooth' });
-                              setActiveSection(firstIncomplete.id);
-                            }
-                          }, 100);
-                        } else {
-                          scrollToSection(firstIncomplete.id);
-                        }
-                      } else {
-                        // dedication 在 Book preview tab
-                        if (activeTab !== 'Book preview') {
-                          setActiveTab('Book preview');
-                          setTimeout(() => {
-                            if (firstIncomplete.ref?.current) {
-                              firstIncomplete.ref.current.scrollIntoView({ behavior: 'smooth' });
-                              setActiveSection(firstIncomplete.id);
-                            }
-                          }, 100);
-                        } else {
-                          scrollToSection(firstIncomplete.id);
-                        }
-                      }
+                    const firstPromptSection = getNextMissingSectionForPrompt(sectionsToPrompt);
+
+                    if (firstPromptSection) {
+                      focusMissingSection(firstPromptSection, {
+                        acknowledgeOptional: isOptionalPromptSection(firstPromptSection),
+                      });
                     }
                   }}
-                  className="w-full bg-gray-900 text-white py-3 rounded-lg font-medium text-base"
+                  className={`w-full bg-gray-900 text-white py-3 rounded-lg font-medium text-base ${nextButtonFeedbackClass}`}
                 >
                   Continue
                 </button>

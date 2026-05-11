@@ -25,6 +25,12 @@ interface Props {
    */
   giverImageScale?: number;
   className?: string;
+  /** 仅套在单页模式左半画布外框（用于缺失高亮 glow，不含按钮区） */
+  leftImageFrameClassName?: string;
+  /** 仅套在单页模式右半画布外框 */
+  rightImageFrameClassName?: string;
+  /** 双页模式整张合成画布外框 */
+  doubleImageFrameClassName?: string;
   leftBelow?: React.ReactNode;
   rightBelow?: React.ReactNode;
   // 可选：合成完成后的回调（用于把合成图上传到后端）
@@ -124,6 +130,9 @@ export default function GiverDedicationCanvas({
   giverImageAspectRatio,
   giverImageScale = 0.45,
   className,
+  leftImageFrameClassName,
+  rightImageFrameClassName,
+  doubleImageFrameClassName,
   leftBelow,
   rightBelow,
   onRendered,
@@ -466,26 +475,37 @@ export default function GiverDedicationCanvas({
   }, [ready, imageUrl, mode, giverText, dedicationText, giverImageUrl, giverImageAspectRatio, giverImageScale, giverPx, dedicationPx, onRendered]);
 
   if (mode === 'double') {
+    const outer = [doubleImageFrameClassName, 'rounded-lg w-full'].filter(Boolean).join(' ');
     return (
       <div className={rootClassName}>
-        <canvas ref={canvasRef} style={{ width: '100%', height: 'auto', display: 'block' }} />
+        <div className={outer}>
+          <div className="overflow-hidden rounded-lg">
+            <canvas ref={canvasRef} style={{ width: '100%', height: 'auto', display: 'block' }} />
+          </div>
+        </div>
       </div>
     );
   }
+  const halfOuter = (frameClass?: string) =>
+    ['relative max-w-[500px] w-full rounded-lg', frameClass].filter(Boolean).join(' ');
   return (
     <div className={rootClassName}>
       <div className="flex flex-col items-center gap-4">
         {/* 左半：结构与 PreviewPageItem 单页模式保持一致 */}
         <div className="w-full flex justify-center">
-          <div className="relative max-w-[500px] w-full rounded-lg overflow-hidden" style={{ aspectRatio: '512/519' }}>
-            <canvas ref={leftCanvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }} />
+          <div className={halfOuter(leftImageFrameClassName)} style={{ aspectRatio: '512/519' }}>
+            <div className="absolute inset-0 overflow-hidden rounded-lg">
+              <canvas ref={leftCanvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }} />
+            </div>
           </div>
         </div>
         {leftBelow}
         {/* 右半：结构与 PreviewPageItem 单页模式保持一致 */}
         <div className="w-full flex justify-center">
-          <div className="relative max-w-[500px] w-full rounded-lg overflow-hidden" style={{ aspectRatio: '512/519' }}>
-            <canvas ref={rightCanvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }} />
+          <div className={halfOuter(rightImageFrameClassName)} style={{ aspectRatio: '512/519' }}>
+            <div className="absolute inset-0 overflow-hidden rounded-lg">
+              <canvas ref={rightCanvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }} />
+            </div>
           </div>
         </div>
         {rightBelow}
