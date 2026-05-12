@@ -12,5 +12,10 @@ declare const uploadApi: {
     delete: <T>(url: string, config?: AxiosRequestConfig) => Promise<T>;
 };
 
+export function fetchDreamazebookApi(
+    path: string,
+    options?: Omit<RequestInit, 'credentials'> & { timeoutMs?: number }
+): Promise<any>;
+
 export { uploadApi };
 export default api;

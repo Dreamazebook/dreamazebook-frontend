@@ -195,5 +195,85 @@ const handleError = async (error) => {
 api.interceptors.response.use(handleResponse, handleError);
 uploadApi.interceptors.response.use(handleResponse, handleError);
 
+/**
+ * 浏览器端调用 Dreamazebook API。
+ * - 生产/预览域名：直连 getApiBaseUrl()，避免大请求体经 Netlify 等 Next 代理被拦截。
+ * - localhost：走同源 `/api` 代理（与 axios 一致），避免 dev-api 未放行本地 Origin 的 CORS。
+ * 鉴权与 X-Guest-Session-Id 与默认 api 实例一致；错误对象带 `response: { status, data }`。
+ */
+export async function fetchDreamazebookApi(path, options = {}) {
+    if (typeof window === 'undefined') {
+        throw new Error('fetchDreamazebookApi is client-only');
+    }
+    const { timeoutMs = 0, headers: initHeaders, ...restInit } = options;
+    const host = window.location.hostname;
+    const useSameOriginApiProxy =
+        host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+    const base = (useSameOriginApiProxy ? '/api' : getApiBaseUrl().replace(/\/+$/, ''));
+    const rel = String(path || '').replace(/^\/+/, '');
+    const url = `${base}/${rel}`;
+
+    const headers = new Headers(initHeaders || {});
+    const token = localStorage.getItem('token');
+    if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+    }
+    const guestSessionId = readGuestSessionId();
+    if (guestSessionId) {
+        headers.set(GUEST_SESSION_HEADER, guestSessionId);
+    }
+    if (!headers.has('Accept')) {
+        headers.set('Accept', 'application/json');
+    }
+
+    let signal = restInit.signal;
+    let clearTimer;
+    if (timeoutMs > 0 && !signal) {
+        const controller = new AbortController();
+        clearTimer = setTimeout(() => controller.abort(), timeoutMs);
+        signal = controller.signal;
+    }
+
+    let res;
+    try {
+        res = await fetch(url, {
+            ...restInit,
+            signal,
+            credentials: 'include',
+            headers,
+        });
+    } catch (e) {
+        if (clearTimer) clearTimeout(clearTimer);
+        throw e;
+    }
+    if (clearTimer) clearTimeout(clearTimer);
+
+    const headerGuest =
+        res.headers.get('x-guest-session-id') ||
+        res.headers.get(GUEST_SESSION_HEADER) ||
+        res.headers.get(GUEST_SESSION_HEADER.toLowerCase());
+    if (headerGuest) {
+        writeGuestSessionId(Array.isArray(headerGuest) ? headerGuest[0] : String(headerGuest));
+    }
+
+    const text = await res.text();
+    let data = null;
+    if (text) {
+        try {
+            data = JSON.parse(text);
+        } catch {
+            data = text;
+        }
+    }
+
+    if (!res.ok) {
+        const err = new Error(`Request failed with status code ${res.status}`);
+        err.response = { status: res.status, statusText: res.statusText, data };
+        throw err;
+    }
+
+    return data;
+}
+
 export { uploadApi };
 export default api;

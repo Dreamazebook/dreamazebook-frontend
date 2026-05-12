@@ -231,6 +231,7 @@
     "refundedTitle": "Votre commande a été entièrement remboursée, nous sommes là pour vous aider.",
     "inTransitTitle": "Votre commande est en chemin sécurisé vers vous !",
     "digitalProductionTitle": "Votre livre est en cours de préparation !",
+    "printProductionTitle": "Votre livre est en cours d'impression !",
     "preparationSubtitle": "Nous vous contacterons dans les 48 heures pour finaliser la conception de votre livre ! Surveillez vos emails",
     "noOrderIdError": "Aucun identifiant de commande fourni. Veuillez vérifier les détails de votre commande."
   },
