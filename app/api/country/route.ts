@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logApiError } from '@/utils/errorLogger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
     });
     
   } catch (error) {
-    console.error('Error fetching country:', error);
+    logApiError({ error, context: 'Error fetching country' });
     return NextResponse.json(
       { 
         success: false,

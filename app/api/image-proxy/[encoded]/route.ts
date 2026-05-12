@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { unstable_noStore as noStore } from 'next/cache';
+import { logApiError } from '@/utils/errorLogger';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -91,7 +92,8 @@ export async function GET(
         Expires: '0',
       },
     });
-  } catch {
+  } catch (error) {
+    logApiError({ error, context: 'Failed to fetch upstream' });
     return NextResponse.json({ error: 'Failed to fetch upstream' }, { status: 500 });
   }
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logApiError } from '@/utils/errorLogger';
 
 const R2_BASE = 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev';
 
@@ -41,6 +42,7 @@ export async function GET(req: NextRequest) {
     const json = await res.json();
     return NextResponse.json(json);
   } catch (err) {
+    logApiError({ error: err, context: 'Failed to fetch page_properties from R2' });
     return NextResponse.json(
       { error: 'Failed to fetch page_properties from R2' },
       { status: 500 },

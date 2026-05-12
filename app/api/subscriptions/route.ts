@@ -1,5 +1,6 @@
 import { type NextRequest } from 'next/server'
 import { checkHubSpotContact, subscribeEmail, updateContact } from '../../../utils/subscription';
+import { logApiError } from '@/utils/errorLogger';
 
 export async function POST(request: NextRequest) {
   const { email, properties } = await request.json();
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     return Response.json({msg: "Subscription Successful", contactId: response.id},{status:200});
   } catch (error) {
-    console.error("Error subscribing email:", error);
+    logApiError({ error, context: 'Error subscribing email' });
     return Response.json({msg: "Error subscribing email"},{status:500});
   }
 }
@@ -43,7 +44,7 @@ export async function PATCH(request:NextRequest) {
     }
     return Response.json({msg: "Contact updated successfully"},{status:200});
   } catch (error) {
-    console.error("Error updating contact:", error);
+    logApiError({ error, context: 'Error updating contact' });
     return Response.json({msg: "Error updating contact"},{status:500});
   }
 }

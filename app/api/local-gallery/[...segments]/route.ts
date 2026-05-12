@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { WEBSITE_CDN_URL } from '@/constants/cdn';
+import { logApiError } from '@/utils/errorLogger';
 
 export const dynamic = 'force-dynamic';
 
@@ -108,6 +109,7 @@ export async function GET(
       items: normalizedItems,
     });
   } catch (err: any) {
+    logApiError({ error: err, context: 'Failed to read gallery' });
     return NextResponse.json(
       { success: false, message: err?.message || 'Failed to read gallery' },
       { status: 500 }

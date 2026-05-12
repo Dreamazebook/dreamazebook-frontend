@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logApiError } from '@/utils/errorLogger';
 
 // 这个接口的响应内容依赖 query（bookId/coverId/imageUrl）。
 // 线上如果被 CDN/浏览器错误缓存（尤其是忽略 query 的缓存键），会导致不同书/不同 coverId 返回同一张图。
@@ -106,6 +107,7 @@ export async function GET(req: NextRequest) {
       { status: lastStatus || 404 },
     );
   } catch (err) {
+    logApiError({ error: err, context: 'Failed to fetch cover image from R2' });
     return NextResponse.json(
       { error: 'Failed to fetch cover image from R2' },
       { status: 500 },
