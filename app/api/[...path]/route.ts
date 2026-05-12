@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getApiBaseUrl } from '@/utils/apiBaseUrl';
+import { logApiError } from '@/utils/errorLogger';
 
 const API_BASE_URL = getApiBaseUrl();
 
@@ -120,7 +121,7 @@ async function handleRequest(
       headers: resHeaders,
     });
   } catch (error) {
-    console.error('API代理错误:', error);
+    logApiError({ error, context: 'API代理错误' });
     return NextResponse.json(
       { error: 'Internal Server Error', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

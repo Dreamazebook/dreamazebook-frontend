@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import JSZip from "jszip";
+import { logApiError } from '@/utils/errorLogger';
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
           console.log(`Adding face image to zip: ${filename}`);
           zip.file(filename, arrayBuffer);
         } catch (error) {
-          console.error(`Error fetching face image ${faceImage.url}:`, error);
+          logApiError({ error, context: `Error fetching face image ${faceImage.url}` });
           continue;
         }
       }
@@ -98,10 +99,7 @@ export async function POST(request: NextRequest) {
             zip.file(finalFilename, finalArrayBuffer);
           }
         } catch (error) {
-          console.error(
-            `Error fetching final image ${image.final_image_url}:`,
-            error
-          );
+          logApiError({ error, context: `Error fetching final image ${image.final_image_url}` });
         }
       }
     }
@@ -124,7 +122,7 @@ export async function POST(request: NextRequest) {
       filename,
     });
   } catch (error) {
-    console.error("Failed to create zip file:", error);
+    logApiError({ error, context: 'Failed to create zip file' });
     return NextResponse.json(
       { error: "Failed to create zip file" },
       { status: 500 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logApiError } from '@/utils/errorLogger';
 
 export async function OPTIONS() {
   return new NextResponse(null, {
@@ -82,7 +83,7 @@ export async function POST(req: NextRequest) {
       }
     });
   } catch (err) {
-    console.error('Pusher auth proxy error:', err);
+    logApiError({ error: err, context: 'Pusher auth proxy error' });
     return NextResponse.json(
       { error: 'Server error', details: String(err) }, 
       { 

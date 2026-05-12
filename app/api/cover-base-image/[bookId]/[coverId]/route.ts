@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { unstable_noStore as noStore } from 'next/cache';
+import { logApiError } from '@/utils/errorLogger';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -64,7 +65,8 @@ export async function GET(
       { error: 'cover image not found on R2' },
       { status: lastStatus || 404 },
     );
-  } catch {
+  } catch (err) {
+    logApiError({ error: err, context: 'Failed to fetch cover image from R2' });
     return NextResponse.json({ error: 'Failed to fetch cover image from R2' }, { status: 500 });
   }
 }

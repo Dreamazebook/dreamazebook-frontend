@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { updateContactByEmail } from "@/utils/subscription";
+import { logApiError } from '@/utils/errorLogger';
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
@@ -39,9 +40,7 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (err: unknown) {
-    console.error(
-      `Webhook Error: ${err instanceof Error ? err.message : String(err)}`,
-    );
+    logApiError({ error: err, context: 'Stripe webhook event error' });
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Unknown error" },
       { status: 400 },
@@ -59,9 +58,6 @@ async function updateHubSpotContact(email: string) {
     await updateContactByEmail(email, {prepaid_status: 'paid'});
     console.log("HubSpot contact updated:", email);
   } catch (err: unknown) {
-    console.error(
-      "HubSpot update failed:",
-      err instanceof Error ? err.message : String(err),
-    );
+    logApiError({ error: err, context: 'HubSpot update failed' });
   }
 }
