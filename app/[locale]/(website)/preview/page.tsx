@@ -278,17 +278,7 @@ const composeMomCompositeCanvas = async (
   return canvas;
 };
 
-const composeMomCompositeImage = async (
-  baseImageUrl: string,
-  overlayFile: File,
-  placement: { x: number; y: number; width: number; height: number },
-  overlayMode: 'placement' | 'full-page' = 'placement',
-): Promise<string> => {
-  const canvas = await composeMomCompositeCanvas(baseImageUrl, overlayFile, placement, overlayMode);
-  return canvas.toDataURL('image/png');
-};
-
-/** p27-28 等新接口使用 multipart `image`，避免巨量 JSON base64 */
+/** multipart 上传：`canvas.toBlob` → FormData `image` */
 const composeMomCompositeImageBlob = (
   canvas: HTMLCanvasElement,
 ): Promise<Blob> =>
@@ -1642,39 +1632,24 @@ export default function PreviewPageWithTopNav() {
     try {
       const endpoint = `products/PICBOOK_MOM/pages/${pageCode}/upload-composite-image`;
 
-      let resp: MomCompositeUploadResponse;
-
-      if (pageCode === 'p27-28') {
-        const canvas = await composeMomCompositeCanvas(
-          normalizePreviewImageUrlForCanvas(String(baseImageRaw)),
-          file,
-          placement,
-          options?.overlayMode,
-        );
-        const blob = await composeMomCompositeImageBlob(canvas);
-        const form = new FormData();
-        form.append('batch_id', String(batchId));
-        form.append('image', blob, 'p27-28_composite.png');
-        // 直连后端；FormData 勿手动 Content-Type（需带 multipart boundary）
-        resp = (await fetchDreamazebookApi(endpoint, {
-          method: 'POST',
-          body: form,
-          timeoutMs: 120000,
-        })) as MomCompositeUploadResponse;
-      } else {
-        const dataUrl = await composeMomCompositeImage(
-          normalizePreviewImageUrlForCanvas(String(baseImageRaw)),
-          file,
-          placement,
-          options?.overlayMode,
-        );
-        resp = (await fetchDreamazebookApi(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ batch_id: batchId, data: dataUrl }),
-          timeoutMs: 120000,
-        })) as MomCompositeUploadResponse;
-      }
+      const canvas = await composeMomCompositeCanvas(
+        normalizePreviewImageUrlForCanvas(String(baseImageRaw)),
+        file,
+        placement,
+        options?.overlayMode,
+      );
+      const blob = await composeMomCompositeImageBlob(canvas);
+      const form = new FormData();
+      form.append('batch_id', String(batchId));
+      const compositeFileName =
+        pageCode === 'p27-28' ? 'p27-28_composite.png' : 'p5-6_composite.png';
+      form.append('image', blob, compositeFileName);
+      // 直连后端；FormData 勿手动 Content-Type（需带 multipart boundary）
+      const resp = (await fetchDreamazebookApi(endpoint, {
+        method: 'POST',
+        body: form,
+        timeoutMs: 120000,
+      })) as MomCompositeUploadResponse;
       const imageUrl =
         resp?.data?.image_url ||
         resp?.image_url ||
