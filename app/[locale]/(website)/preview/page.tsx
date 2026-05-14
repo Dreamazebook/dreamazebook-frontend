@@ -72,6 +72,27 @@ const getPreviewDisplayImageRaw = (page: any): string => {
   return String(page?.base_image_url || page?.image_url || page?.final_image_url || '');
 };
 
+/** 与预览页 buildImageUrl 对齐，用于上传成功后预解码 CDN（避免 revoke blob 早于下方 img 切图导致闪白） */
+function buildPreviewImageSrcForProbe(imagePath: string): string {
+  if (!imagePath) return '/imgs/picbook/goodnight/封面1.jpg';
+  if (imagePath.startsWith('http')) {
+    try {
+      return encodeURI(imagePath);
+    } catch {
+      return imagePath;
+    }
+  }
+  let normalized = imagePath.trim();
+  if (normalized.startsWith('/public/')) {
+    normalized = normalized.replace(/^\/public\//, '/');
+  } else if (normalized.startsWith('public/')) {
+    normalized = normalized.replace(/^public\//, '');
+    if (!normalized.startsWith('/')) normalized = '/' + normalized;
+  }
+  if (!normalized.startsWith('/')) normalized = '/' + normalized;
+  return normalized;
+}
+
 const normalizePreviewPageCode = (pageCode: unknown): string =>
   String(pageCode || '').trim().toLowerCase().replace(/_/g, '-');
 
@@ -318,17 +339,18 @@ const composeMomCompositeCanvas = async (
   return canvas;
 };
 
-/** multipart 上传：`canvas.toBlob` → FormData `image` */
+/** multipart 上传：`canvas.toBlob` → FormData `image`（仅 WebP） */
 const composeMomCompositeImageBlob = (
   canvas: HTMLCanvasElement,
 ): Promise<Blob> =>
   new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error('Canvas toBlob produced empty blob'));
+        if (blob && blob.size > 0) resolve(blob);
+        else reject(new Error('Canvas toBlob (image/webp) produced empty blob'));
       },
-      'image/png',
+      'image/webp',
+      0.92,
     );
   });
 
@@ -1390,6 +1412,10 @@ export default function PreviewPageWithTopNav() {
   const [pendingMomDrawingFile, setPendingMomDrawingFile] = React.useState<string | null>(null);
   const [activeMomDrawingPageCode, setActiveMomDrawingPageCode] = React.useState<'p5-6' | 'p27-28' | null>(null);
   const [momDrawingUploadingPageCode, setMomDrawingUploadingPageCode] = React.useState<'p5-6' | 'p27-28' | null>(null);
+  /** 上传中时优先展示本地合成预览（blob URL），行为对齐扉页：先看得见图再等 CDN */
+  const [momPendingCompositeUrlByPage, setMomPendingCompositeUrlByPage] = React.useState<
+    Partial<Record<'p5-6' | 'p27-28', string>>
+  >({});
   const [uploadedMomDrawingPageCodes, setUploadedMomDrawingPageCodes] = React.useState<Set<string>>(() => new Set());
 
   // 当 previewid/bookid 变化时重置缓存，避免跨不同预览复用旧数据
@@ -1416,6 +1442,12 @@ export default function PreviewPageWithTopNav() {
     activeMomDrawingPageCodeRef.current = null;
     setMomDrawingUploadingPageCode(null);
     setUploadedMomDrawingPageCodes(new Set());
+    setMomPendingCompositeUrlByPage((prev) => {
+      for (const u of Object.values(prev)) {
+        if (u) URL.revokeObjectURL(u);
+      }
+      return {};
+    });
     setIsNameOnBookCompleted(false);
     setAcknowledgedOptionalMissingSections(new Set());
     setGuestUploadRateLimitError(null);
@@ -1671,7 +1703,6 @@ export default function PreviewPageWithTopNav() {
       return 'skipped';
     }
 
-    setMomDrawingUploadingPageCode(pageCode);
     setGuestUploadRateLimitError(null);
     try {
       const endpoint = `products/PICBOOK_MOM/pages/${pageCode}/upload-composite-image`;
@@ -1683,10 +1714,22 @@ export default function PreviewPageWithTopNav() {
         options?.overlayMode,
       );
       const blob = await composeMomCompositeImageBlob(canvas);
+
+      const objectUrl = URL.createObjectURL(blob);
+      setMomPendingCompositeUrlByPage((prev) => {
+        const next = { ...prev };
+        const old = prev[pageCode];
+        if (old) URL.revokeObjectURL(old);
+        next[pageCode] = objectUrl;
+        return next;
+      });
+
+      setMomDrawingUploadingPageCode(pageCode);
+
       const form = new FormData();
       form.append('batch_id', String(batchId));
       const compositeFileName =
-        pageCode === 'p27-28' ? 'p27-28_composite.png' : 'p5-6_composite.png';
+        pageCode === 'p27-28' ? 'p27-28_composite.webp' : 'p5-6_composite.webp';
       form.append('image', blob, compositeFileName);
       // 直连后端；FormData 勿手动 Content-Type（需带 multipart boundary）
       const resp = (await fetchDreamazebookApi(endpoint, {
@@ -1727,6 +1770,23 @@ export default function PreviewPageWithTopNav() {
           next.add(pageCode);
           return next;
         });
+        const dropMomPendingBlob = () => {
+          setMomPendingCompositeUrlByPage((prev) => {
+            const old = prev[pageCode];
+            if (old) URL.revokeObjectURL(old);
+            const { [pageCode]: _removed, ...rest } = prev;
+            return rest;
+          });
+        };
+        const cdnSrc = buildPreviewImageSrcForProbe(imageUrl);
+        if (typeof document !== 'undefined') {
+          const probe = document.createElement('img');
+          probe.onload = dropMomPendingBlob;
+          probe.onerror = dropMomPendingBlob;
+          probe.src = cdnSrc;
+        } else {
+          dropMomPendingBlob();
+        }
         return 'ok';
       } else {
         console.warn('[Mom Composite] uploaded but no image_url in response', resp);
@@ -1734,6 +1794,7 @@ export default function PreviewPageWithTopNav() {
       }
     } catch (e) {
       console.error('[Mom Composite] upload failed', e);
+      // 保留本地合成预览便于重试 / 校对；用户在失败时仍可看到刚选的图（与扉页离线预览思路一致）
       const uploadRateLimitError = getUploadRateLimitError(e);
       if (uploadRateLimitError) {
         setGuestUploadRateLimitError(uploadRateLimitError);
@@ -2809,9 +2870,14 @@ export default function PreviewPageWithTopNav() {
   const [isMissingSectionPulsing, setIsMissingSectionPulsing] = useState(false);
   const [isNextButtonShaking, setIsNextButtonShaking] = useState(false);
   const [acknowledgedOptionalMissingSections, setAcknowledgedOptionalMissingSections] = useState<Set<string>>(() => new Set());
-  const setOpeningPageRefs = useCallback((node: HTMLDivElement | null) => {
+  /** p3-4 双页：整块容器同时作为 Opening Photo / Special Message 滚动锚点 */
+  const setOpeningSpreadBothRefs = useCallback((node: HTMLDivElement | null) => {
     giverRef.current = node;
     dedicationRef.current = node;
+  }, []);
+  /** p3-4 单页：外层仅 Opening Photo；寄语锚点在右侧半页（GiverDedicationCanvas.singleRightHalfRef / PreviewPageItem） */
+  const setOpeningSpreadGiverOuterRef = useCallback((node: HTMLDivElement | null) => {
+    giverRef.current = node;
   }, []);
   // 封面 R2 URL 构建缓存：避免在 render 中对每个 option 重复计算/重复打 log
   const coverR2UrlsCacheRef = useRef<Map<string, any>>(new Map());
@@ -5183,6 +5249,10 @@ export default function PreviewPageWithTopNav() {
                       !isSwapping &&
                       !pageFailed &&
                       momDrawingStageReady;
+                    const momCompositeLocalPreviewSrc =
+                      momCompositePageCode && momPendingCompositeUrlByPage[momCompositePageCode]
+                        ? momPendingCompositeUrlByPage[momCompositePageCode]
+                        : null;
                     // 轮到该页前（progress 为 0）显示 loading；开始后显示进度；失败页显示说明
                     const overlayMode = pageFailed ? 'failed' : (progress > 0 ? 'progress' : 'loading');
 
@@ -5224,7 +5294,7 @@ export default function PreviewPageWithTopNav() {
                       if (isGiverDedicationPage && viewMode === 'single') {
                         if (isSwapping || pageFailed) {
                           return (
-                            <div key={page.page_id} ref={setOpeningPageRefs} className="w-full flex flex-col items-center">
+                            <div key={page.page_id} ref={setOpeningSpreadGiverOuterRef} className="w-full flex flex-col items-center">
                               <div className="w-full max-w-5xl">
                                 <PreviewPageItem
                                   pageId={page.page_id}
@@ -5235,6 +5305,7 @@ export default function PreviewPageWithTopNav() {
                                   progress={progress}
                                   overlayMode={overlayMode as any}
                                   content={page.content}
+                                  scrollAnchorSingleRightRef={dedicationRef}
                                   onImageLoaded={(loadedPageId) => {
                                     if (pageIdForStoryComingHide && loadedPageId === pageIdForStoryComingHide) {
                                       setIsStoryComingTargetPageLoaded(true);
@@ -5430,7 +5501,7 @@ export default function PreviewPageWithTopNav() {
                         key={page.page_id}
                         ref={
                           isGiverDedicationPage
-                            ? setOpeningPageRefs
+                            ? setOpeningSpreadBothRefs
                             : momCompositePageCode === 'p5-6'
                               ? viewMode === 'single'
                                 ? undefined
@@ -5447,7 +5518,13 @@ export default function PreviewPageWithTopNav() {
                           <PreviewPageItem
                             pageId={page.page_id}
                             pageNumber={page.page_number}
-                            src={(p34FinalSrc && isGiverDedicationPage && !p34HasLocalChanges) ? p34FinalSrc : src}
+                            src={
+                              momCompositeLocalPreviewSrc
+                                ? momCompositeLocalPreviewSrc
+                                : (p34FinalSrc && isGiverDedicationPage && !p34HasLocalChanges)
+                                  ? p34FinalSrc
+                                  : src
+                            }
                             viewMode={viewMode}
                             showOverlay={isSwapping || pageFailed}
                             progress={progress}
@@ -5514,7 +5591,7 @@ export default function PreviewPageWithTopNav() {
                             </div>
                           )}
                           {momCompositeButton && viewMode !== 'single' && (
-                            <div className="mt-6 w-full flex justify-center md:hidden">
+                            <div className="mt-2 w-full flex justify-center md:hidden">
                               {momCompositeButton}
                             </div>
                           )}
@@ -6223,16 +6300,14 @@ export default function PreviewPageWithTopNav() {
                 onDone={() => {}}
                 resultMode="file"
                 onDoneFile={(file) => {
-                  const pageCode = activeMomDrawingPageCode;
+                  const pageCode =
+                    activeMomDrawingPageCode ?? activeMomDrawingPageCodeRef.current ?? null;
                   if (!pageCode) {
                     closeMomDrawingCropper();
                     return;
                   }
-                  return uploadMomCompositeImage(pageCode, file)
-                    .then(() => undefined)
-                    .finally(() => {
-                      closeMomDrawingCropper();
-                    });
+                  closeMomDrawingCropper();
+                  void uploadMomCompositeImage(pageCode, file);
                 }}
               />
             </div>
