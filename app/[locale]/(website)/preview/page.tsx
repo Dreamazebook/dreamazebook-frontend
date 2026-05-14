@@ -1310,6 +1310,8 @@ export default function PreviewPageWithTopNav() {
   // p3-4 分层模型：缓存 giver 图片数据（data URL），用于 dedication 重绘时始终携带最新 giver
   const p34GiverDataRef = useRef<string | null>(null);
   const shouldUploadP34ComposedRef = useRef(false);
+  /** 仅「用户裁剪上传 Giver」触发的上传成功后才应勾选 Name on Book；纯提交寄语不走此项 */
+  const p34UploadCompletesNameOnBookRef = useRef(false);
   const p34ComposeUploadInFlightRef = useRef(false);
   const p34ComposeUploadedRef = useRef(false);
   const [guestUploadRateLimitError, setGuestUploadRateLimitError] = useState<UploadRateLimitError | null>(null);
@@ -1356,6 +1358,7 @@ export default function PreviewPageWithTopNav() {
     setAcknowledgedOptionalMissingSections(new Set());
     setGuestUploadRateLimitError(null);
     shouldUploadP34ComposedRef.current = false;
+    p34UploadCompletesNameOnBookRef.current = false;
     p34ComposeUploadInFlightRef.current = false;
     p34ComposeUploadedRef.current = false;
   }, [p34CacheKey, setEditField, setGiverImageUrl]);
@@ -1500,7 +1503,9 @@ export default function PreviewPageWithTopNav() {
         // base_image_url 可能包含历史 giver，若再叠加新的 giver（比例不同）会出现边缘残影。
         shouldUploadP34ComposedRef.current = false;
         p34ComposeUploadedRef.current = true;
-        setIsNameOnBookCompleted(true);
+        if (p34UploadCompletesNameOnBookRef.current) {
+          setIsNameOnBookCompleted(true);
+        }
         setGuestUploadRateLimitError(null);
       } else {
         console.warn('[P3-4 Compose] uploaded but no image_url in response', resp);
@@ -1517,6 +1522,7 @@ export default function PreviewPageWithTopNav() {
       }
     } finally {
       p34ComposeUploadInFlightRef.current = false;
+      p34UploadCompletesNameOnBookRef.current = false;
     }
   }, [previewData, searchParams, dedication]);
 
@@ -6135,8 +6141,9 @@ export default function PreviewPageWithTopNav() {
                             reader.readAsDataURL(file);
                           } catch {}
                           shouldUploadP34ComposedRef.current = true;
+                          p34UploadCompletesNameOnBookRef.current = true;
                           p34ComposeUploadedRef.current = false;
-                          // 上传图片即视为完成 Name on Book
+                          // 上传图片即视为完成 Name on Book（沿用原逻辑）；真正落 mark 在上传成功后
                           setIsNameOnBookCompleted(true);
                         } catch {}
                         setEditField(null);
@@ -6210,6 +6217,7 @@ export default function PreviewPageWithTopNav() {
                       // Dedication 更新：通过同样接口上传「已合成（底图 + giver + dedication）」的 p3-4 图片
                       setGuestUploadRateLimitError(null);
                       shouldUploadP34ComposedRef.current = true;
+                      p34UploadCompletesNameOnBookRef.current = false;
                       p34ComposeUploadedRef.current = false;
                       setDedication(message);
                       setIsDedicationSubmitted(true);

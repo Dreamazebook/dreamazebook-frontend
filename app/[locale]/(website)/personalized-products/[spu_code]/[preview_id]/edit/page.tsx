@@ -200,6 +200,27 @@ export default function EditPersonalizedProductPage() {
     return Array.from(new Set(result));
   };
 
+  /** PICBOOK_MOM：购物车 / batch.options.attributes 中 mom_image（妈妈）+ face_images（孩子）→ [momUrl, childUrl] */
+  const buildMomPhotosFromCartAttributes = (cartAttrs: any): string[] => {
+    const momUrls = extractFaceImageUrls(cartAttrs?.mom_image);
+    const childUrls = extractFaceImageUrls(cartAttrs?.face_images);
+    const mom = momUrls[0];
+    const child = childUrls[0];
+    if (mom && child) return [mom, child];
+    const partial: string[] = [];
+    if (mom) partial.push(mom);
+    if (child) partial.push(child);
+    return partial;
+  };
+
+  const photoPayloadForFaceImages = (faceImages: string[]) =>
+    momBook && faceImages.length
+      ? { photo: { path: faceImages[1] || faceImages[0] } as const, photos: faceImages }
+      : {
+          photo: faceImages.length > 0 ? ({ path: faceImages[0] } as const) : null,
+          photos: faceImages,
+        };
+
   const [formType, setFormType] = useState<'SINGLE1'|'SINGLE2'|'DOUBLE'|null>(null);
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [initialData, setInitialData] = useState<any>();
@@ -237,6 +258,57 @@ export default function EditPersonalizedProductPage() {
   // 从 preview/batches/{previewId} 或购物车中查找初始数据，用于回填个性化表单
   useEffect(() => {
     (async () => {
+      /** 从购物车条目 attributes 拉 mom_image + face_images（带 fromCartItemId 的 PICBOOK_MOM 必填路径） */
+      let cartMomPhotosFromAttrs: string[] | undefined;
+      if (momBook && fromCartItemIdParam) {
+        try {
+          const { data } = await api.get<ApiResponse<CartItems>>(`${API_CART_LIST}`);
+          const items: any[] = Array.isArray((data as any)?.items) ? (data as any).items : [];
+          const itemByCartItemId = items.find((ci: any) => String(ci.id) === String(fromCartItemIdParam));
+          const itemByPreviewId = items.find((ci: any) => String(ci.preview_id) === String(previewId));
+          let cartRow: any = itemByCartItemId || itemByPreviewId;
+          let packageMatch: any = null;
+
+          if (!cartRow) {
+            for (const pkg of items) {
+              const subItems: any[] = Array.isArray((pkg as any)?.items) ? (pkg as any).items : [];
+              const match = subItems.find(
+                (pi: any) =>
+                  (fromCartItemIdParam && String(pi?.id) === String(fromCartItemIdParam)) ||
+                  String(pi?.preview_id || pi?.customization_data?.preview_id) === String(previewId),
+              );
+              if (match?.id) {
+                packageMatch = match;
+                break;
+              }
+            }
+          }
+
+          let cartAttrs: any = {};
+          if (packageMatch) {
+            setPackageItemId(Number(packageMatch.id));
+            cartAttrs =
+              packageMatch?.preview?.attributes ||
+              packageMatch?.customization_data?.attributes ||
+              {};
+            const lang =
+              packageMatch?.customization_data?.language ||
+              packageMatch?.preview?.language ||
+              packageMatch?.language;
+            if (lang) setBookLanguage(String(lang));
+          } else if (cartRow?.id) {
+            setCartItemId(Number(cartRow.id));
+            const p = cartRow.preview;
+            cartAttrs = (p as any)?.attributes || (cartRow as any)?.attributes || {};
+          }
+
+          const built = buildMomPhotosFromCartAttributes(cartAttrs);
+          if (built.length) cartMomPhotosFromAttrs = built;
+        } catch (e) {
+          console.warn('PICBOOK_MOM：从购物车 attributes 读取 mom_image / face_images 失败:', e);
+        }
+      }
+
       // 1) 优先尝试从 /products/{spu_code}/preview/batches/{previewId} 获取 options
       try {
         const path = `/products/${bookId}/preview/batches/${previewId}`;
@@ -263,7 +335,15 @@ export default function EditPersonalizedProductPage() {
           const hairColor = normalizeHairColor(attrs.hair_color ?? options.hair_color);
           const ageStage = normalizeAgeStage(attrs.age_stage ?? options.age_stage);
           const fromWhom = String(options.giver_name ?? attrs.giver_name ?? attrs.from_whom ?? attrs.created_by ?? '').trim();
-          const faceImages = extractFaceImageUrls(options.face_images, attrs.face_images);
+          let faceImages = extractFaceImageUrls(options.face_images, attrs.face_images);
+          if (momBook) {
+            if (fromCartItemIdParam && cartMomPhotosFromAttrs?.length) {
+              faceImages = cartMomPhotosFromAttrs;
+            } else {
+              const split = buildMomPhotosFromCartAttributes(attrs);
+              if (split.length >= 2) faceImages = split;
+            }
+          }
           const birthDate = normalizeBirthDate(attrs.birthday_context?.birthday);
           const personalityTraitIds = normalizeBirthdayTraitIds(attrs.birthday_context?.selected_traits);
           const giftMessage = String(attrs.gift_message || '').trim();
@@ -273,8 +353,7 @@ export default function EditPersonalizedProductPage() {
             // gender 可能在 options 或 options.attributes 中；缺失则留空交给用户选择
             gender,
             skinColor,
-            photo: faceImages.length > 0 ? { path: faceImages[0] } : null,
-            photos: faceImages,
+            ...photoPayloadForFaceImages(faceImages),
             ...(hairstyle ? { hairstyle } : {}),
             ...(hairColor ? { hairColor } : {}),
             ...(ageStage ? { ageStage } : {}),
@@ -338,13 +417,17 @@ export default function EditPersonalizedProductPage() {
         const cartAttrs = (p as any)?.attributes || (item as any)?.attributes || {};
 
         // 兼容 face_image/face_images 为 JSON 字符串、数组、对象或单值
-        const faceImages = extractFaceImageUrls(
+        let faceImages = extractFaceImageUrls(
           p?.face_images,
           p?.face_image,
           (item as any)?.face_images,
           (item as any)?.face_image,
           cartAttrs.face_images,
         );
+        if (momBook) {
+          const fromAttrs = buildMomPhotosFromCartAttributes(cartAttrs);
+          if (fromAttrs.length) faceImages = fromAttrs;
+        }
         
         // 获取hairstyle和hairColor
         // hair_style: 后端返回数字 id (如 "1")，需要转换为 "hair_1" 格式以匹配 HairstyleSelector
@@ -379,9 +462,7 @@ export default function EditPersonalizedProductPage() {
           fullName: p?.recipient_name || p?.full_name || (item as any)?.full_name || cartAttrs.full_name || '',
           gender,
           skinColor,
-          photo: faceImages.length > 0 ? { path: faceImages[0] } : null,
-          // 预填多张照片（SingleCharacterForm1支持photos数组）
-          photos: faceImages,
+          ...photoPayloadForFaceImages(faceImages),
           // 预填hairstyle和hairColor（如果存在）
           ...(hairstyle ? { hairstyle } : {}),
           ...(hairColor ? { hairColor } : {}),
