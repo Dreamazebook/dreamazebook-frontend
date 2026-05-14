@@ -104,6 +104,46 @@ function parseMomDrawingPromptSectionId(sectionId: string): 'p5-6' | 'p27-28' | 
   return rest === 'p5-6' || rest === 'p27-28' ? (rest as 'p5-6' | 'p27-28') : null;
 }
 
+/**
+ * 顶栏占位兜底（未拿到 DOM 测量时）：12 + 48 + pb + safe-area 粗估值
+ * 正常路径使用固定壳 ref 的 getBoundingClientRect().bottom
+ */
+const PREVIEW_FIXED_TOP_NAV_FALLBACK_PX = 12 + 48 + 12 + 47;
+
+/** 相对「Tab 下方可视区域」滚动：矮块按 anchorFraction 对齐（默认中线）；高于可视区的块顶对齐 */
+function scrollPreviewElementIntoComfortableCenter(
+  el: HTMLElement,
+  topInsetPx?: number,
+  opts?: { anchorFraction?: number },
+) {
+  if (typeof window === 'undefined') return;
+  const rect = el.getBoundingClientRect();
+  const topInset =
+    typeof topInsetPx === 'number' && Number.isFinite(topInsetPx)
+      ? topInsetPx
+      : PREVIEW_FIXED_TOP_NAV_FALLBACK_PX;
+  const viewportH = window.innerHeight;
+  const visibleHeight = Math.max(0, viewportH - topInset);
+  const gap = 10;
+  const h = rect.height;
+  const anchorFraction = opts?.anchorFraction ?? 0.5;
+
+  let delta: number;
+  if (h > visibleHeight - gap * 2) {
+    delta = rect.top - (topInset + gap);
+  } else {
+    const visibleAnchorY = topInset + visibleHeight * anchorFraction;
+    const elementMidY = rect.top + h / 2;
+    delta = elementMidY - visibleAnchorY;
+    const maxDeltaKeepTopClear = rect.top - (topInset + gap);
+    if (delta > maxDeltaKeepTopClear) {
+      delta = maxDeltaKeepTopClear;
+    }
+  }
+
+  window.scrollBy({ top: delta, behavior: 'smooth' });
+}
+
 type UploadRateLimitError = {
   title: string;
   message: string;
@@ -603,6 +643,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   doubleImageAreaClassName,
   leftSingleFrameClassName,
   rightSingleFrameClassName,
+  scrollAnchorSingleRightRef,
 }: {
   pageId: number;
   pageNumber: number;
@@ -620,6 +661,8 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   leftSingleFrameClassName?: string;
   /** 单页模式右半图外框 class */
   rightSingleFrameClassName?: string;
+  /** 单页模式：滚动定位锚点（如 Mom drawing 应对齐右侧含按钮的半页） */
+  scrollAnchorSingleRightRef?: React.Ref<HTMLDivElement | null>;
 }) {
   const t = useTranslations('Preview');
   const notifiedRef = useRef(false);
@@ -692,7 +735,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
         </div>
         
         {/* 右半部分 */}
-        <div className="w-full flex justify-center">
+        <div ref={scrollAnchorSingleRightRef ?? undefined} className="w-full flex justify-center">
           <div
             className={`relative max-w-[500px] w-full ${rightSingleFrameClassName ?? ''}`.trim()}
             style={{ aspectRatio: '512/519' }}
@@ -839,7 +882,8 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
     prev.customOverlayContent === next.customOverlayContent &&
     prev.doubleImageAreaClassName === next.doubleImageAreaClassName &&
     prev.leftSingleFrameClassName === next.leftSingleFrameClassName &&
-    prev.rightSingleFrameClassName === next.rightSingleFrameClassName
+    prev.rightSingleFrameClassName === next.rightSingleFrameClassName &&
+    prev.scrollAnchorSingleRightRef === next.scrollAnchorSingleRightRef
   );
 });
 
@@ -2757,6 +2801,8 @@ export default function PreviewPageWithTopNav() {
   const coverDesignRef = useRef<HTMLDivElement>(null);
   const bindingRef = useRef<HTMLDivElement>(null);
   const giftBoxRef = useRef<HTMLDivElement>(null);
+  /** 固定 Tab 外层（含 safe-area、底部留白），用于滚动时精确扣除遮挡高度 */
+  const previewFixedNavShellRef = useRef<HTMLDivElement>(null);
   const missingPulseTimerRef = useRef<number | null>(null);
   const nextShakeTimerRef = useRef<number | null>(null);
   const [missingSection, setMissingSection] = useState<string | null>(null);
@@ -2785,7 +2831,7 @@ export default function PreviewPageWithTopNav() {
       // 延迟滚动以确保 DOM 渲染
       setTimeout(() => {
         if (giftBoxRef.current) {
-          giftBoxRef.current.scrollIntoView({ behavior: "smooth" });
+          scrollPreviewTargetIntoComfortableCenter(giftBoxRef.current);
           setActiveSection('giftBox');
         }
       }, 300);
@@ -4102,6 +4148,32 @@ export default function PreviewPageWithTopNav() {
     handleUserDataProcessing();
   }, []);
 
+  const scrollPreviewTargetIntoComfortableCenter = useCallback((el: HTMLElement) => {
+    const shell = previewFixedNavShellRef.current;
+    const measuredBottom = shell?.getBoundingClientRect().bottom;
+    const topInset =
+      typeof measuredBottom === 'number' && Number.isFinite(measuredBottom)
+        ? measuredBottom + 10
+        : PREVIEW_FIXED_TOP_NAV_FALLBACK_PX;
+
+    let anchorFraction: number | undefined;
+    if (viewMode === 'double' && typeof window !== 'undefined') {
+      try {
+        if (window.matchMedia('(min-width: 768px)').matches) {
+          anchorFraction = 0.4;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    scrollPreviewElementIntoComfortableCenter(
+      el,
+      topInset,
+      anchorFraction !== undefined ? { anchorFraction } : undefined,
+    );
+  }, [viewMode]);
+
   // 点击侧边栏项，滚动到对应部分
   const scrollToSection = (sectionId: string) => {
     let ref: React.RefObject<HTMLDivElement | null> | null = null;
@@ -4122,7 +4194,7 @@ export default function PreviewPageWithTopNav() {
       default: break;
     }
     if (ref && ref.current) {
-      ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      scrollPreviewTargetIntoComfortableCenter(ref.current);
       setActiveSection(
         sectionId.startsWith(MOM_DRAWING_PROMPT_PREFIX) ? 'momDrawing' : sectionId,
       );
@@ -4751,9 +4823,12 @@ export default function PreviewPageWithTopNav() {
           animation: dreamazeMissingButtonPulse 0.9s ease-in-out 2;
         }
       `}</style>
-      <div className="w-full pt-[12px] px-4 md:mr-[280px] flex flex-col items-center pb-24 md:pb-0">
-        {/* 固定的导航栏 */}
-        <div className="fixed top-0 left-0 pt-[12px] px-4 z-50 w-full md:w-[calc(100%-280px)] flex flex-col items-center">
+      <div className="w-full pt-0 px-4 md:mr-[280px] flex flex-col items-center pb-24 md:pb-0">
+        {/* 固定的导航栏：safe-area + 底部留白一并纳入测量，避免手机刘海/滚动定位遮挡 */}
+        <div
+          ref={previewFixedNavShellRef}
+          className="fixed top-0 left-0 pt-[calc(12px+env(safe-area-inset-top,0px))] pb-3 px-4 z-50 w-full md:w-[calc(100%-280px)] flex flex-col items-center"
+        >
           <div className="w-[95%] mx-auto">
             <TopNavBarWithTabs
               activeTab={activeTab}
@@ -4769,7 +4844,13 @@ export default function PreviewPageWithTopNav() {
         </div>
 
         {activeTab === 'Book preview' ? (
-          <main className="flex-1 flex flex-col items-center justify-start w-full pt-14">
+          <main
+            className={`flex-1 flex flex-col items-center justify-start w-full ${
+              viewMode === 'double'
+                ? 'pt-[calc(72px+env(safe-area-inset-top,0px))] md:pt-[calc(60px+env(safe-area-inset-top,0px))]'
+                : 'pt-[calc(72px+env(safe-area-inset-top,0px))]'
+            }`}
+          >
             <h1 className="text-[28px] mt-2 mb-4 text-center w-full">Your book for {recipient?.trim()}</h1>
             
             {/* 书籍封面 */}
@@ -5347,9 +5428,13 @@ export default function PreviewPageWithTopNav() {
                           isGiverDedicationPage
                             ? setOpeningPageRefs
                             : momCompositePageCode === 'p5-6'
-                              ? momDrawingP56Ref
+                              ? viewMode === 'single'
+                                ? undefined
+                                : momDrawingP56Ref
                               : momCompositePageCode === 'p27-28'
-                                ? momDrawingP2728Ref
+                                ? viewMode === 'single'
+                                  ? undefined
+                                  : momDrawingP2728Ref
                                 : undefined
                         }
                         className="w-full flex flex-col items-center"
@@ -5366,6 +5451,13 @@ export default function PreviewPageWithTopNav() {
                             content={page.content}
                             doubleImageAreaClassName={openingDoubleImageGlow || momDoubleImageGlow}
                             rightSingleFrameClassName={momDrawingRightSingleGlow}
+                            scrollAnchorSingleRightRef={
+                              viewMode === 'single' && momCompositePageCode === 'p5-6'
+                                ? momDrawingP56Ref
+                                : viewMode === 'single' && momCompositePageCode === 'p27-28'
+                                  ? momDrawingP2728Ref
+                                  : undefined
+                            }
                             customOverlayContent={pageFailed ? undefined : (isGiverDedicationPage ? (
                               (p34FinalSrc && !p34HasLocalChanges) ? p34ButtonsOverlay : (
                                 <div className="w-full h-full relative">
@@ -5444,7 +5536,7 @@ export default function PreviewPageWithTopNav() {
           </main>
         ) : (
           // Others 标签页内容
-          <main className="flex-1 flex flex-col items-center justify-center w-full gap-[64px] pt-14">
+          <main className="flex-1 flex flex-col items-center justify-center w-full gap-[64px] pt-[calc(72px+env(safe-area-inset-top,0px))]">
             {/* Book Cover Section */}
             <section ref={coverDesignRef} className="w-full mt-2 max-w-3xl mx-auto">
               <h1 className="text-[28px] text-center mb-2">Which cover will your little one love most?</h1>
