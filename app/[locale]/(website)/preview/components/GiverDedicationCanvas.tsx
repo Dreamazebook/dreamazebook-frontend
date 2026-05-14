@@ -31,6 +31,10 @@ interface Props {
   rightImageFrameClassName?: string;
   /** 双页模式整张合成画布外框 */
   doubleImageFrameClassName?: string;
+  /** 单页模式左侧（opening photo）外框 — 侧边栏等处滚动对齐 */
+  singleLeftHalfRef?: React.Ref<HTMLDivElement>;
+  /** 单页模式右侧（special message）外框 — 侧边栏等处滚动对齐 */
+  singleRightHalfRef?: React.Ref<HTMLDivElement>;
   leftBelow?: React.ReactNode;
   rightBelow?: React.ReactNode;
   // 可选：合成完成后的回调（用于把合成图上传到后端）
@@ -133,6 +137,8 @@ export default function GiverDedicationCanvas({
   leftImageFrameClassName,
   rightImageFrameClassName,
   doubleImageFrameClassName,
+  singleLeftHalfRef,
+  singleRightHalfRef,
   leftBelow,
   rightBelow,
   onRendered,
@@ -493,7 +499,11 @@ export default function GiverDedicationCanvas({
       <div className="flex flex-col items-center gap-4">
         {/* 左半：结构与 PreviewPageItem 单页模式保持一致 */}
         <div className="w-full flex justify-center">
-          <div className={halfOuter(leftImageFrameClassName)} style={{ aspectRatio: '512/519' }}>
+          <div
+            ref={singleLeftHalfRef}
+            className={halfOuter(leftImageFrameClassName)}
+            style={{ aspectRatio: '512/519' }}
+          >
             <div className="absolute inset-0 overflow-hidden rounded-lg">
               <canvas ref={leftCanvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }} />
             </div>
@@ -502,7 +512,11 @@ export default function GiverDedicationCanvas({
         {leftBelow}
         {/* 右半：结构与 PreviewPageItem 单页模式保持一致 */}
         <div className="w-full flex justify-center">
-          <div className={halfOuter(rightImageFrameClassName)} style={{ aspectRatio: '512/519' }}>
+          <div
+            ref={singleRightHalfRef}
+            className={halfOuter(rightImageFrameClassName)}
+            style={{ aspectRatio: '512/519' }}
+          >
             <div className="absolute inset-0 overflow-hidden rounded-lg">
               <canvas ref={rightCanvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }} />
             </div>

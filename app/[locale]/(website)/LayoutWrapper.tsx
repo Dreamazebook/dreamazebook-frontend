@@ -68,7 +68,20 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
           className={scrollToTopConfig.className}
         />
       )}
-      <Toaster position="top-center" />
+      <Toaster
+        position="top-center"
+        containerStyle={{
+          top: '6.25rem',
+        }}
+        toastOptions={{
+          style: {
+            background: 'rgba(64, 64, 64, 0.82)',
+            color: '#ffffff',
+            borderRadius: 0,
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)',
+          },
+        }}
+      />
     </>
   );
 } 

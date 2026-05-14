@@ -104,6 +104,46 @@ function parseMomDrawingPromptSectionId(sectionId: string): 'p5-6' | 'p27-28' | 
   return rest === 'p5-6' || rest === 'p27-28' ? (rest as 'p5-6' | 'p27-28') : null;
 }
 
+/**
+ * 顶栏占位兜底（未拿到 DOM 测量时）：12 + 48 + pb + safe-area 粗估值
+ * 正常路径使用固定壳 ref 的 getBoundingClientRect().bottom
+ */
+const PREVIEW_FIXED_TOP_NAV_FALLBACK_PX = 12 + 48 + 12 + 47;
+
+/** 相对「Tab 下方可视区域」滚动：矮块按 anchorFraction 对齐（默认中线）；高于可视区的块顶对齐 */
+function scrollPreviewElementIntoComfortableCenter(
+  el: HTMLElement,
+  topInsetPx?: number,
+  opts?: { anchorFraction?: number },
+) {
+  if (typeof window === 'undefined') return;
+  const rect = el.getBoundingClientRect();
+  const topInset =
+    typeof topInsetPx === 'number' && Number.isFinite(topInsetPx)
+      ? topInsetPx
+      : PREVIEW_FIXED_TOP_NAV_FALLBACK_PX;
+  const viewportH = window.innerHeight;
+  const visibleHeight = Math.max(0, viewportH - topInset);
+  const gap = 10;
+  const h = rect.height;
+  const anchorFraction = opts?.anchorFraction ?? 0.5;
+
+  let delta: number;
+  if (h > visibleHeight - gap * 2) {
+    delta = rect.top - (topInset + gap);
+  } else {
+    const visibleAnchorY = topInset + visibleHeight * anchorFraction;
+    const elementMidY = rect.top + h / 2;
+    delta = elementMidY - visibleAnchorY;
+    const maxDeltaKeepTopClear = rect.top - (topInset + gap);
+    if (delta > maxDeltaKeepTopClear) {
+      delta = maxDeltaKeepTopClear;
+    }
+  }
+
+  window.scrollBy({ top: delta, behavior: 'smooth' });
+}
+
 type UploadRateLimitError = {
   title: string;
   message: string;
@@ -246,12 +286,12 @@ const computeCenteredCropForAspectRatio = (
   return { sx: 0, sy: Math.floor((naturalHeight - sh) / 2), sw: naturalWidth, sh };
 };
 
-const composeMomCompositeImage = async (
+const composeMomCompositeCanvas = async (
   baseImageUrl: string,
   overlayFile: File,
   placement: { x: number; y: number; width: number; height: number },
   overlayMode: 'placement' | 'full-page' = 'placement',
-): Promise<string> => {
+): Promise<HTMLCanvasElement> => {
   const overlayDataUrl = await fileToDataUrl(overlayFile);
   const [baseImage, overlayImage] = await Promise.all([
     loadCanvasImage(baseImageUrl),
@@ -266,7 +306,7 @@ const composeMomCompositeImage = async (
   ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
   if (overlayMode === 'full-page') {
     ctx.drawImage(overlayImage, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL('image/png');
+    return canvas;
   }
 
   const { sx, sy, sw, sh } = computeCenteredCropForAspectRatio(
@@ -275,8 +315,22 @@ const composeMomCompositeImage = async (
     placement.width / placement.height,
   );
   ctx.drawImage(overlayImage, sx, sy, sw, sh, placement.x, placement.y, placement.width, placement.height);
-  return canvas.toDataURL('image/png');
+  return canvas;
 };
+
+/** multipart 上传：`canvas.toBlob` → FormData `image` */
+const composeMomCompositeImageBlob = (
+  canvas: HTMLCanvasElement,
+): Promise<Blob> =>
+  new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('Canvas toBlob produced empty blob'));
+      },
+      'image/png',
+    );
+  });
 
 // 自定义图片组件，支持Next.js Image和原生img的回退
 const OptimizedImage = ({ src, alt, width, height, className, style, onError, onLoad, onLoadingComplete, fallbackSrc, ...props }: {
@@ -589,6 +643,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   doubleImageAreaClassName,
   leftSingleFrameClassName,
   rightSingleFrameClassName,
+  scrollAnchorSingleRightRef,
 }: {
   pageId: number;
   pageNumber: number;
@@ -606,6 +661,8 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   leftSingleFrameClassName?: string;
   /** 单页模式右半图外框 class */
   rightSingleFrameClassName?: string;
+  /** 单页模式：滚动定位锚点（如 Mom drawing 应对齐右侧含按钮的半页） */
+  scrollAnchorSingleRightRef?: React.Ref<HTMLDivElement | null>;
 }) {
   const t = useTranslations('Preview');
   const notifiedRef = useRef(false);
@@ -678,7 +735,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
         </div>
         
         {/* 右半部分 */}
-        <div className="w-full flex justify-center">
+        <div ref={scrollAnchorSingleRightRef ?? undefined} className="w-full flex justify-center">
           <div
             className={`relative max-w-[500px] w-full ${rightSingleFrameClassName ?? ''}`.trim()}
             style={{ aspectRatio: '512/519' }}
@@ -825,7 +882,8 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
     prev.customOverlayContent === next.customOverlayContent &&
     prev.doubleImageAreaClassName === next.doubleImageAreaClassName &&
     prev.leftSingleFrameClassName === next.leftSingleFrameClassName &&
-    prev.rightSingleFrameClassName === next.rightSingleFrameClassName
+    prev.rightSingleFrameClassName === next.rightSingleFrameClassName &&
+    prev.scrollAnchorSingleRightRef === next.scrollAnchorSingleRightRef
   );
 });
 
@@ -1232,7 +1290,11 @@ export default function PreviewPageWithTopNav() {
             const storeName = storeUserData?.characters?.[0]?.full_name;
             
             if ((!recipientNameFromBatch || recipientNameFromBatch.trim() === '') && (shouldSkipInitialRender || !storeName || !storeName.trim())) {
-              const rname = match?.preview?.recipient_name || match?.full_name;
+              const rname =
+                match?.preview?.recipient_name ||
+                match?.full_name ||
+                match?.customization_data?.full_name ||
+                match?.customization_data?.attributes?.full_name;
               if (rname && typeof rname === 'string' && rname.trim()) {
                 setRecipient(rname);
                 console.log('[Preview] Set recipient from cart (fallback):', rname);
@@ -1310,10 +1372,12 @@ export default function PreviewPageWithTopNav() {
   // p3-4 分层模型：缓存 giver 图片数据（data URL），用于 dedication 重绘时始终携带最新 giver
   const p34GiverDataRef = useRef<string | null>(null);
   const shouldUploadP34ComposedRef = useRef(false);
+  /** 仅「用户裁剪上传 Giver」触发的上传成功后才应勾选 Opening Photo；纯提交寄语不走此项 */
+  const p34UploadCompletesNameOnBookRef = useRef(false);
   const p34ComposeUploadInFlightRef = useRef(false);
   const p34ComposeUploadedRef = useRef(false);
   const [guestUploadRateLimitError, setGuestUploadRateLimitError] = useState<UploadRateLimitError | null>(null);
-  // sidebar「Name on Book」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
+  // sidebar「Opening Photo」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
   const [isNameOnBookCompleted, setIsNameOnBookCompleted] = useState(true);
   // dedication 完成态：必须用户点过 Submit 才算完成（避免默认寄语导致“已完成”误导）
   const [isDedicationSubmitted, setIsDedicationSubmitted] = useState(false);
@@ -1356,6 +1420,7 @@ export default function PreviewPageWithTopNav() {
     setAcknowledgedOptionalMissingSections(new Set());
     setGuestUploadRateLimitError(null);
     shouldUploadP34ComposedRef.current = false;
+    p34UploadCompletesNameOnBookRef.current = false;
     p34ComposeUploadInFlightRef.current = false;
     p34ComposeUploadedRef.current = false;
   }, [p34CacheKey, setEditField, setGiverImageUrl]);
@@ -1500,7 +1565,9 @@ export default function PreviewPageWithTopNav() {
         // base_image_url 可能包含历史 giver，若再叠加新的 giver（比例不同）会出现边缘残影。
         shouldUploadP34ComposedRef.current = false;
         p34ComposeUploadedRef.current = true;
-        setIsNameOnBookCompleted(true);
+        if (p34UploadCompletesNameOnBookRef.current) {
+          setIsNameOnBookCompleted(true);
+        }
         setGuestUploadRateLimitError(null);
       } else {
         console.warn('[P3-4 Compose] uploaded but no image_url in response', resp);
@@ -1517,10 +1584,11 @@ export default function PreviewPageWithTopNav() {
       }
     } finally {
       p34ComposeUploadInFlightRef.current = false;
+      p34UploadCompletesNameOnBookRef.current = false;
     }
   }, [previewData, searchParams, dedication]);
 
-  // 一旦本地选择了 giver 图片（blob/objectURL 或远程 URL），就把 Name on Book 标记为完成
+  // 一旦本地选择了 giver 图片（blob/objectURL 或远程 URL），就把 Opening Photo 标记为完成
   useEffect(() => {
     if (giverImageUrl) {
       setIsNameOnBookCompleted(true);
@@ -1606,23 +1674,26 @@ export default function PreviewPageWithTopNav() {
     setMomDrawingUploadingPageCode(pageCode);
     setGuestUploadRateLimitError(null);
     try {
-      const dataUrl = await composeMomCompositeImage(
+      const endpoint = `products/PICBOOK_MOM/pages/${pageCode}/upload-composite-image`;
+
+      const canvas = await composeMomCompositeCanvas(
         normalizePreviewImageUrlForCanvas(String(baseImageRaw)),
         file,
         placement,
         options?.overlayMode,
       );
-
-      // 直连后端 API，避免经 Next `/api` 代理时触发 Netlify 等对请求体大小的限制
-      const resp = (await fetchDreamazebookApi(
-        `products/PICBOOK_MOM/pages/${pageCode}/upload-composite-image`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ batch_id: batchId, data: dataUrl }),
-          timeoutMs: 120000,
-        },
-      )) as MomCompositeUploadResponse;
+      const blob = await composeMomCompositeImageBlob(canvas);
+      const form = new FormData();
+      form.append('batch_id', String(batchId));
+      const compositeFileName =
+        pageCode === 'p27-28' ? 'p27-28_composite.png' : 'p5-6_composite.png';
+      form.append('image', blob, compositeFileName);
+      // 直连后端；FormData 勿手动 Content-Type（需带 multipart boundary）
+      const resp = (await fetchDreamazebookApi(endpoint, {
+        method: 'POST',
+        body: form,
+        timeoutMs: 120000,
+      })) as MomCompositeUploadResponse;
       const imageUrl =
         resp?.data?.image_url ||
         resp?.image_url ||
@@ -1740,27 +1811,58 @@ export default function PreviewPageWithTopNav() {
         const items = res?.data?.items || res?.data?.cart_items || res?.cart_items || [];
         if (!Array.isArray(items) || items.length === 0) return;
         const fromCartItemIdParam = searchParams.get('fromCartItemId');
-        const matchByCartItemId = fromCartItemIdParam
-          ? items.find((ci: any) => String(ci.id) === String(fromCartItemIdParam))
-          : null;
-        const matchByPreviewId = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
-        const match = matchByCartItemId || matchByPreviewId;
-        const pv = match?.preview;
-        if (!pv && !match) return;
+        const match = findCartItemForPreview(items, previewIdParam, fromCartItemIdParam);
+        if (!match) return;
 
         console.log('Preview Page: Found cart match for prefill:', match);
 
-        // 服务器存储的是 option_key（或回退为 id/name），尝试多种键名以兼容历史数据
-        // 优先从 preview 对象读取，如果没有则从 item.attributes 读取
-        const coverKey = pv?.cover_type || pv?.cover || pv?.cover_option || pv?.cover_key || match?.attributes?.cover_style;
-        const bindingKey = pv?.binding_type || pv?.binding || pv?.binding_option || pv?.binding_key || (match as any)?.attributes?.binding_type;
-        const giftKey = pv?.gift_box || pv?.wrap || pv?.wrap_option || pv?.gift_box_key || match?.attributes?.giftbox;
+        const pv = match?.preview;
+        const custAttrs = match?.customization_data?.attributes || {};
+        const topAttrs = (match as any)?.attributes || {};
+        const adjustments = (match as any)?.price_adjustments || {};
+
+        // 服务器多为 option_key：cover_style / binding_type / giftbox；
+        // 新购物车：customization_data.attributes + price_adjustments.*.selected；旧数据：preview / item.attributes
+        const coverKey =
+          pv?.cover_type ||
+          pv?.cover ||
+          pv?.cover_option ||
+          pv?.cover_key ||
+          topAttrs.cover_style ||
+          custAttrs.cover_style ||
+          adjustments.cover_style?.selected;
+
+        const bindingKey =
+          pv?.binding_type ||
+          pv?.binding ||
+          pv?.binding_option ||
+          pv?.binding_key ||
+          topAttrs.binding_type ||
+          custAttrs.binding_type ||
+          adjustments.binding_type?.selected;
+
+        const giftKey =
+          pv?.gift_box ||
+          pv?.wrap ||
+          pv?.wrap_option ||
+          pv?.gift_box_key ||
+          topAttrs.giftbox ||
+          custAttrs.giftbox ||
+          adjustments.giftbox?.selected;
 
         let changed = false;
 
+        const cartOptionKeyMatches = (optKey: unknown, cartVal: unknown) =>
+          String(optKey ?? '')
+            .trim()
+            .toLowerCase() === String(cartVal ?? '')
+              .trim()
+              .toLowerCase();
+
         if (selectedBookCover == null && coverKey) {
           const cover = bookOptions?.cover_options?.find(
-            (o) => o.option_key === String(coverKey) || String(o.id) === String(coverKey)
+            (o) =>
+              cartOptionKeyMatches(o.option_key, coverKey) || String(o.id) === String(coverKey),
           );
           if (cover) {
             setSelectedBookCover(cover.id);
@@ -1770,7 +1872,8 @@ export default function PreviewPageWithTopNav() {
 
         if (selectedBinding == null && bindingKey) {
           const binding = bookOptions?.binding_options?.find(
-            (o) => o.option_key === String(bindingKey) || String(o.id) === String(bindingKey)
+            (o) =>
+              cartOptionKeyMatches(o.option_key, bindingKey) || String(o.id) === String(bindingKey),
           );
           if (binding) {
             setSelectedBinding(binding.id);
@@ -1780,7 +1883,10 @@ export default function PreviewPageWithTopNav() {
 
         if (selectedGiftBox == null && giftKey) {
           const gift = bookOptions?.gift_box_options?.find(
-            (o) => (o.option_key ? o.option_key === String(giftKey) : false) || String(o.id) === String(giftKey) || o.name === String(giftKey)
+            (o) =>
+              (o.option_key ? cartOptionKeyMatches(o.option_key, giftKey) : false) ||
+              String(o.id) === String(giftKey) ||
+              cartOptionKeyMatches(o.name, giftKey),
           );
           if (gift) {
             setSelectedGiftBox(gift.id);
@@ -2640,7 +2746,7 @@ export default function PreviewPageWithTopNav() {
 
   // 定义侧边栏各项，并为每个项配置默认图标和完成后的图标
   const sidebarItemsAll = [
-    { id: "giver", label: "Name on Book (optional)", 
+    { id: "giver", label: "Opening Photo (optional)", 
       icon: 
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path fillRule="evenodd" clipRule="evenodd" d="M4.25 2.5A2.25 2.25 0 0 0 2 4.75v10.5a2.25 2.25 0 0 0 2.25 2.25h11.5A2.25 2.25 0 0 0 18 15.25V4.75a2.25 2.25 0 0 0-2.25-2.25H4.25ZM3.75 4.75a.5.5 0 0 1 .5-.5h11.5a.5.5 0 0 1 .5.5v10.5a.5.5 0 0 1-.5.5H4.25a.5.5 0 0 1-.5-.5V4.75Zm3 1.75a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Zm0 1.7a.55.55 0 1 1 0 1.1.55.55 0 0 1 0-1.1Zm5.6 2.05a.88.88 0 0 0-1.35.02l-2.1 2.55-.88-.9a.88.88 0 0 0-1.27.02l-1.7 1.86a.75.75 0 0 0 .55 1.25h8.92a.75.75 0 0 0 .57-1.24l-2.74-3.56Z" fill="currentColor"/>
@@ -2695,6 +2801,8 @@ export default function PreviewPageWithTopNav() {
   const coverDesignRef = useRef<HTMLDivElement>(null);
   const bindingRef = useRef<HTMLDivElement>(null);
   const giftBoxRef = useRef<HTMLDivElement>(null);
+  /** 固定 Tab 外层（含 safe-area、底部留白），用于滚动时精确扣除遮挡高度 */
+  const previewFixedNavShellRef = useRef<HTMLDivElement>(null);
   const missingPulseTimerRef = useRef<number | null>(null);
   const nextShakeTimerRef = useRef<number | null>(null);
   const [missingSection, setMissingSection] = useState<string | null>(null);
@@ -2723,7 +2831,7 @@ export default function PreviewPageWithTopNav() {
       // 延迟滚动以确保 DOM 渲染
       setTimeout(() => {
         if (giftBoxRef.current) {
-          giftBoxRef.current.scrollIntoView({ behavior: "smooth" });
+          scrollPreviewTargetIntoComfortableCenter(giftBoxRef.current);
           setActiveSection('giftBox');
         }
       }, 300);
@@ -4040,12 +4148,38 @@ export default function PreviewPageWithTopNav() {
     handleUserDataProcessing();
   }, []);
 
+  const scrollPreviewTargetIntoComfortableCenter = useCallback((el: HTMLElement) => {
+    const shell = previewFixedNavShellRef.current;
+    const measuredBottom = shell?.getBoundingClientRect().bottom;
+    const topInset =
+      typeof measuredBottom === 'number' && Number.isFinite(measuredBottom)
+        ? measuredBottom + 10
+        : PREVIEW_FIXED_TOP_NAV_FALLBACK_PX;
+
+    let anchorFraction: number | undefined;
+    if (viewMode === 'double' && typeof window !== 'undefined') {
+      try {
+        if (window.matchMedia('(min-width: 768px)').matches) {
+          anchorFraction = 0.4;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    scrollPreviewElementIntoComfortableCenter(
+      el,
+      topInset,
+      anchorFraction !== undefined ? { anchorFraction } : undefined,
+    );
+  }, [viewMode]);
+
   // 点击侧边栏项，滚动到对应部分
   const scrollToSection = (sectionId: string) => {
     let ref: React.RefObject<HTMLDivElement | null> | null = null;
     switch(sectionId) {
       case "giver": ref = giverRef; break;
-      case "dedication": ref = dedicationRef.current ? dedicationRef : giverRef; break;
+      case "dedication": ref = dedicationRef; break;
       case "momDrawing": {
         const first = firstMissingMomDrawingPageCode;
         if (first === 'p27-28') ref = momDrawingP2728Ref;
@@ -4060,7 +4194,7 @@ export default function PreviewPageWithTopNav() {
       default: break;
     }
     if (ref && ref.current) {
-      ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      scrollPreviewTargetIntoComfortableCenter(ref.current);
       setActiveSection(
         sectionId.startsWith(MOM_DRAWING_PROMPT_PREFIX) ? 'momDrawing' : sectionId,
       );
@@ -4144,7 +4278,7 @@ export default function PreviewPageWithTopNav() {
 
   // 各部分的完成状态判断
   const completedSections = {
-    // Name on Book：可选，但会在用户第一次点 Next 时 soft prompt
+    // Opening Photo：可选，但会在用户第一次点 Next 时 soft prompt
     giver: isNameOnBookCompleted,
     // dedication：只有用户点击 Submit（或从后端/购物车回填了真实寄语）才算完成
     dedication: isDedicationSubmitted,
@@ -4689,9 +4823,12 @@ export default function PreviewPageWithTopNav() {
           animation: dreamazeMissingButtonPulse 0.9s ease-in-out 2;
         }
       `}</style>
-      <div className="w-full pt-[12px] px-4 md:mr-[280px] flex flex-col items-center pb-24 md:pb-0">
-        {/* 固定的导航栏 */}
-        <div className="fixed top-0 left-0 pt-[12px] px-4 z-50 w-full md:w-[calc(100%-280px)] flex flex-col items-center">
+      <div className="w-full pt-0 px-4 md:mr-[280px] flex flex-col items-center pb-24 md:pb-0">
+        {/* 固定的导航栏：safe-area + 底部留白一并纳入测量，避免手机刘海/滚动定位遮挡 */}
+        <div
+          ref={previewFixedNavShellRef}
+          className="fixed top-0 left-0 pt-[calc(12px+env(safe-area-inset-top,0px))] pb-3 px-4 z-50 w-full md:w-[calc(100%-280px)] flex flex-col items-center"
+        >
           <div className="w-[95%] mx-auto">
             <TopNavBarWithTabs
               activeTab={activeTab}
@@ -4707,7 +4844,13 @@ export default function PreviewPageWithTopNav() {
         </div>
 
         {activeTab === 'Book preview' ? (
-          <main className="flex-1 flex flex-col items-center justify-start w-full pt-14">
+          <main
+            className={`flex-1 flex flex-col items-center justify-start w-full ${
+              viewMode === 'double'
+                ? 'pt-[calc(72px+env(safe-area-inset-top,0px))] md:pt-[calc(60px+env(safe-area-inset-top,0px))]'
+                : 'pt-[calc(72px+env(safe-area-inset-top,0px))]'
+            }`}
+          >
             <h1 className="text-[28px] mt-2 mb-4 text-center w-full">Your book for {recipient?.trim()}</h1>
             
             {/* 书籍封面 */}
@@ -5107,7 +5250,7 @@ export default function PreviewPageWithTopNav() {
                         }
                         if (p34FinalSrc && !p34HasLocalChanges) {
                           return (
-                            <div key={page.page_id} ref={setOpeningPageRefs} className="w-full flex flex-col items-center">
+                            <div key={page.page_id} className="w-full flex flex-col items-center">
                               <div className="w-full max-w-5xl">
                                 <GiverDedicationCanvas
                                   className="w-full"
@@ -5117,6 +5260,8 @@ export default function PreviewPageWithTopNav() {
                                   dedicationText=""
                                   giverImageUrl={null}
                                   giverImageScale={giverImageScale}
+                                  singleLeftHalfRef={giverRef}
+                                  singleRightHalfRef={dedicationRef}
                                   leftImageFrameClassName={getMissingSectionClass('giver')}
                                   rightImageFrameClassName={getMissingSectionClass('dedication')}
                                   leftBelow={(
@@ -5150,7 +5295,7 @@ export default function PreviewPageWithTopNav() {
                           );
                         }
                         return (
-                        <div key={page.page_id} ref={setOpeningPageRefs} className="w-full flex flex-col items-center">
+                        <div key={page.page_id} className="w-full flex flex-col items-center">
                           <div className="w-full max-w-5xl">
                             <GiverDedicationCanvas
                               className="w-full"
@@ -5161,6 +5306,8 @@ export default function PreviewPageWithTopNav() {
                               giverImageUrl={p34GiverOverlaySrc}
                               giverImageScale={giverImageScale}
                               onRendered={uploadP34ComposedImage}
+                              singleLeftHalfRef={giverRef}
+                              singleRightHalfRef={dedicationRef}
                               leftImageFrameClassName={getMissingSectionClass('giver')}
                               rightImageFrameClassName={getMissingSectionClass('dedication')}
                               leftBelow={(
@@ -5285,9 +5432,13 @@ export default function PreviewPageWithTopNav() {
                           isGiverDedicationPage
                             ? setOpeningPageRefs
                             : momCompositePageCode === 'p5-6'
-                              ? momDrawingP56Ref
+                              ? viewMode === 'single'
+                                ? undefined
+                                : momDrawingP56Ref
                               : momCompositePageCode === 'p27-28'
-                                ? momDrawingP2728Ref
+                                ? viewMode === 'single'
+                                  ? undefined
+                                  : momDrawingP2728Ref
                                 : undefined
                         }
                         className="w-full flex flex-col items-center"
@@ -5304,6 +5455,13 @@ export default function PreviewPageWithTopNav() {
                             content={page.content}
                             doubleImageAreaClassName={openingDoubleImageGlow || momDoubleImageGlow}
                             rightSingleFrameClassName={momDrawingRightSingleGlow}
+                            scrollAnchorSingleRightRef={
+                              viewMode === 'single' && momCompositePageCode === 'p5-6'
+                                ? momDrawingP56Ref
+                                : viewMode === 'single' && momCompositePageCode === 'p27-28'
+                                  ? momDrawingP2728Ref
+                                  : undefined
+                            }
                             customOverlayContent={pageFailed ? undefined : (isGiverDedicationPage ? (
                               (p34FinalSrc && !p34HasLocalChanges) ? p34ButtonsOverlay : (
                                 <div className="w-full h-full relative">
@@ -5382,7 +5540,7 @@ export default function PreviewPageWithTopNav() {
           </main>
         ) : (
           // Others 标签页内容
-          <main className="flex-1 flex flex-col items-center justify-center w-full gap-[64px] pt-14">
+          <main className="flex-1 flex flex-col items-center justify-center w-full gap-[64px] pt-[calc(72px+env(safe-area-inset-top,0px))]">
             {/* Book Cover Section */}
             <section ref={coverDesignRef} className="w-full mt-2 max-w-3xl mx-auto">
               <h1 className="text-[28px] text-center mb-2">Which cover will your little one love most?</h1>
@@ -6135,8 +6293,9 @@ export default function PreviewPageWithTopNav() {
                             reader.readAsDataURL(file);
                           } catch {}
                           shouldUploadP34ComposedRef.current = true;
+                          p34UploadCompletesNameOnBookRef.current = true;
                           p34ComposeUploadedRef.current = false;
-                          // 上传图片即视为完成 Name on Book
+                          // 上传图片即视为完成 Opening Photo（沿用原逻辑）；真正落 mark 在上传成功后
                           setIsNameOnBookCompleted(true);
                         } catch {}
                         setEditField(null);
@@ -6210,6 +6369,7 @@ export default function PreviewPageWithTopNav() {
                       // Dedication 更新：通过同样接口上传「已合成（底图 + giver + dedication）」的 p3-4 图片
                       setGuestUploadRateLimitError(null);
                       shouldUploadP34ComposedRef.current = true;
+                      p34UploadCompletesNameOnBookRef.current = false;
                       p34ComposeUploadedRef.current = false;
                       setDedication(message);
                       setIsDedicationSubmitted(true);
@@ -6322,12 +6482,12 @@ export default function PreviewPageWithTopNav() {
             {(() => {
               const statuses = isHideOptions
                 ? [
-                    { id: 'giver', label: 'Name on Book', done: !!completedSections.giver },
+                    { id: 'giver', label: 'Opening Photo', done: !!completedSections.giver },
                     { id: 'dedication', label: 'Your Special Message', done: !!completedSections.dedication },
                     ...(hasMomCompositePages ? [{ id: 'momDrawing', label: 'Your Drawing', done: !!completedSections.momDrawing }] : []),
                   ]
                 : [
-                    { id: 'giver', label: 'Name on Book', done: !!completedSections.giver },
+                    { id: 'giver', label: 'Opening Photo', done: !!completedSections.giver },
                     { id: 'dedication', label: 'Your Special Message', done: !!completedSections.dedication },
                     ...(hasMomCompositePages ? [{ id: 'momDrawing', label: 'Your Drawing', done: !!completedSections.momDrawing }] : []),
                     { id: 'coverDesign', label: 'Cover Design', done: !!completedSections.coverDesign },
