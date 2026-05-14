@@ -1,6 +1,7 @@
 // app/api/mailerlite-webhook/route.ts
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { logApiError } from '@/utils/errorLogger';
 
 const MAILERLITE_GROUP_ID = '150850576633038531';
 const META_APP_SECRET = '628d771851b81b2150900b589d67e283';
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
 
   } catch (error) {
-    console.error('Webhook error:', error);
+    logApiError({ error, context: 'Webhook error' });
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }

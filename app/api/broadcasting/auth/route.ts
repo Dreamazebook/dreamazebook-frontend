@@ -1,6 +1,7 @@
 // app/api/broadcasting/auth/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { getApiOrigin } from '@/utils/apiBaseUrl'
+import { logApiError } from '@/utils/errorLogger'
 
 export async function POST(req: NextRequest) {
   try {
@@ -71,18 +72,14 @@ export async function POST(req: NextRequest) {
     try {
       data = JSON.parse(text)
     } catch (e) {
-      console.error('Laravel auth response not JSON:', text)
+      logApiError({ error: e, context: 'Laravel auth response not JSON' })
       return NextResponse.json({ error: 'Invalid auth response' }, { status: 502 })
     }
 
     // 不再提供其他模式/路径的回退
 
     if (!laravelRes.ok) {
-      console.error('Laravel broadcast auth failed:', {
-        status: laravelRes.status,
-        data: data,
-        headers: Object.fromEntries(laravelRes.headers.entries())
-      })
+      logApiError({ error: { status: laravelRes.status, data, headers: Object.fromEntries(laravelRes.headers.entries()) }, context: 'Laravel broadcast auth failed' })
       return NextResponse.json({ error: 'Auth failed', details: data }, { status: laravelRes.status })
     }
 
@@ -97,7 +94,7 @@ export async function POST(req: NextRequest) {
       }
     })
   } catch (err) {
-    console.error('Proxy error in broadcasting auth route:', err)
+    logApiError({ error: err, context: 'Proxy error in broadcasting auth route' })
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { HELLO_EMAIL } from '@/constants/text'
+import { logApiError } from '@/utils/errorLogger'
 
 interface ContactFormData {
   firstName: string
@@ -116,7 +117,7 @@ This email was sent from the Dreamaze Book contact form.
       { status: 200 }
     )
   } catch (error) {
-    console.error('Error sending email:', error)
+    logApiError({ error, context: 'Error sending email' });
     return NextResponse.json(
       { error: 'Failed to send email' },
       { status: 500 }
