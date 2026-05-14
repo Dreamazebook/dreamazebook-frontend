@@ -1372,12 +1372,12 @@ export default function PreviewPageWithTopNav() {
   // p3-4 分层模型：缓存 giver 图片数据（data URL），用于 dedication 重绘时始终携带最新 giver
   const p34GiverDataRef = useRef<string | null>(null);
   const shouldUploadP34ComposedRef = useRef(false);
-  /** 仅「用户裁剪上传 Giver」触发的上传成功后才应勾选 Name on Book；纯提交寄语不走此项 */
+  /** 仅「用户裁剪上传 Giver」触发的上传成功后才应勾选 Opening Photo；纯提交寄语不走此项 */
   const p34UploadCompletesNameOnBookRef = useRef(false);
   const p34ComposeUploadInFlightRef = useRef(false);
   const p34ComposeUploadedRef = useRef(false);
   const [guestUploadRateLimitError, setGuestUploadRateLimitError] = useState<UploadRateLimitError | null>(null);
-  // sidebar「Name on Book」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
+  // sidebar「Opening Photo」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
   const [isNameOnBookCompleted, setIsNameOnBookCompleted] = useState(true);
   // dedication 完成态：必须用户点过 Submit 才算完成（避免默认寄语导致“已完成”误导）
   const [isDedicationSubmitted, setIsDedicationSubmitted] = useState(false);
@@ -1588,7 +1588,7 @@ export default function PreviewPageWithTopNav() {
     }
   }, [previewData, searchParams, dedication]);
 
-  // 一旦本地选择了 giver 图片（blob/objectURL 或远程 URL），就把 Name on Book 标记为完成
+  // 一旦本地选择了 giver 图片（blob/objectURL 或远程 URL），就把 Opening Photo 标记为完成
   useEffect(() => {
     if (giverImageUrl) {
       setIsNameOnBookCompleted(true);
@@ -2746,7 +2746,7 @@ export default function PreviewPageWithTopNav() {
 
   // 定义侧边栏各项，并为每个项配置默认图标和完成后的图标
   const sidebarItemsAll = [
-    { id: "giver", label: "Name on Book (optional)", 
+    { id: "giver", label: "Opening Photo (optional)", 
       icon: 
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path fillRule="evenodd" clipRule="evenodd" d="M4.25 2.5A2.25 2.25 0 0 0 2 4.75v10.5a2.25 2.25 0 0 0 2.25 2.25h11.5A2.25 2.25 0 0 0 18 15.25V4.75a2.25 2.25 0 0 0-2.25-2.25H4.25ZM3.75 4.75a.5.5 0 0 1 .5-.5h11.5a.5.5 0 0 1 .5.5v10.5a.5.5 0 0 1-.5.5H4.25a.5.5 0 0 1-.5-.5V4.75Zm3 1.75a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Zm0 1.7a.55.55 0 1 1 0 1.1.55.55 0 0 1 0-1.1Zm5.6 2.05a.88.88 0 0 0-1.35.02l-2.1 2.55-.88-.9a.88.88 0 0 0-1.27.02l-1.7 1.86a.75.75 0 0 0 .55 1.25h8.92a.75.75 0 0 0 .57-1.24l-2.74-3.56Z" fill="currentColor"/>
@@ -4179,7 +4179,7 @@ export default function PreviewPageWithTopNav() {
     let ref: React.RefObject<HTMLDivElement | null> | null = null;
     switch(sectionId) {
       case "giver": ref = giverRef; break;
-      case "dedication": ref = dedicationRef.current ? dedicationRef : giverRef; break;
+      case "dedication": ref = dedicationRef; break;
       case "momDrawing": {
         const first = firstMissingMomDrawingPageCode;
         if (first === 'p27-28') ref = momDrawingP2728Ref;
@@ -4278,7 +4278,7 @@ export default function PreviewPageWithTopNav() {
 
   // 各部分的完成状态判断
   const completedSections = {
-    // Name on Book：可选，但会在用户第一次点 Next 时 soft prompt
+    // Opening Photo：可选，但会在用户第一次点 Next 时 soft prompt
     giver: isNameOnBookCompleted,
     // dedication：只有用户点击 Submit（或从后端/购物车回填了真实寄语）才算完成
     dedication: isDedicationSubmitted,
@@ -5250,7 +5250,7 @@ export default function PreviewPageWithTopNav() {
                         }
                         if (p34FinalSrc && !p34HasLocalChanges) {
                           return (
-                            <div key={page.page_id} ref={setOpeningPageRefs} className="w-full flex flex-col items-center">
+                            <div key={page.page_id} className="w-full flex flex-col items-center">
                               <div className="w-full max-w-5xl">
                                 <GiverDedicationCanvas
                                   className="w-full"
@@ -5260,6 +5260,8 @@ export default function PreviewPageWithTopNav() {
                                   dedicationText=""
                                   giverImageUrl={null}
                                   giverImageScale={giverImageScale}
+                                  singleLeftHalfRef={giverRef}
+                                  singleRightHalfRef={dedicationRef}
                                   leftImageFrameClassName={getMissingSectionClass('giver')}
                                   rightImageFrameClassName={getMissingSectionClass('dedication')}
                                   leftBelow={(
@@ -5293,7 +5295,7 @@ export default function PreviewPageWithTopNav() {
                           );
                         }
                         return (
-                        <div key={page.page_id} ref={setOpeningPageRefs} className="w-full flex flex-col items-center">
+                        <div key={page.page_id} className="w-full flex flex-col items-center">
                           <div className="w-full max-w-5xl">
                             <GiverDedicationCanvas
                               className="w-full"
@@ -5304,6 +5306,8 @@ export default function PreviewPageWithTopNav() {
                               giverImageUrl={p34GiverOverlaySrc}
                               giverImageScale={giverImageScale}
                               onRendered={uploadP34ComposedImage}
+                              singleLeftHalfRef={giverRef}
+                              singleRightHalfRef={dedicationRef}
                               leftImageFrameClassName={getMissingSectionClass('giver')}
                               rightImageFrameClassName={getMissingSectionClass('dedication')}
                               leftBelow={(
@@ -6291,7 +6295,7 @@ export default function PreviewPageWithTopNav() {
                           shouldUploadP34ComposedRef.current = true;
                           p34UploadCompletesNameOnBookRef.current = true;
                           p34ComposeUploadedRef.current = false;
-                          // 上传图片即视为完成 Name on Book（沿用原逻辑）；真正落 mark 在上传成功后
+                          // 上传图片即视为完成 Opening Photo（沿用原逻辑）；真正落 mark 在上传成功后
                           setIsNameOnBookCompleted(true);
                         } catch {}
                         setEditField(null);
@@ -6478,12 +6482,12 @@ export default function PreviewPageWithTopNav() {
             {(() => {
               const statuses = isHideOptions
                 ? [
-                    { id: 'giver', label: 'Name on Book', done: !!completedSections.giver },
+                    { id: 'giver', label: 'Opening Photo', done: !!completedSections.giver },
                     { id: 'dedication', label: 'Your Special Message', done: !!completedSections.dedication },
                     ...(hasMomCompositePages ? [{ id: 'momDrawing', label: 'Your Drawing', done: !!completedSections.momDrawing }] : []),
                   ]
                 : [
-                    { id: 'giver', label: 'Name on Book', done: !!completedSections.giver },
+                    { id: 'giver', label: 'Opening Photo', done: !!completedSections.giver },
                     { id: 'dedication', label: 'Your Special Message', done: !!completedSections.dedication },
                     ...(hasMomCompositePages ? [{ id: 'momDrawing', label: 'Your Drawing', done: !!completedSections.momDrawing }] : []),
                     { id: 'coverDesign', label: 'Cover Design', done: !!completedSections.coverDesign },
