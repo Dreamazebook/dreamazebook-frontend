@@ -246,12 +246,12 @@ const computeCenteredCropForAspectRatio = (
   return { sx: 0, sy: Math.floor((naturalHeight - sh) / 2), sw: naturalWidth, sh };
 };
 
-const composeMomCompositeImage = async (
+const composeMomCompositeCanvas = async (
   baseImageUrl: string,
   overlayFile: File,
   placement: { x: number; y: number; width: number; height: number },
   overlayMode: 'placement' | 'full-page' = 'placement',
-): Promise<string> => {
+): Promise<HTMLCanvasElement> => {
   const overlayDataUrl = await fileToDataUrl(overlayFile);
   const [baseImage, overlayImage] = await Promise.all([
     loadCanvasImage(baseImageUrl),
@@ -266,7 +266,7 @@ const composeMomCompositeImage = async (
   ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
   if (overlayMode === 'full-page') {
     ctx.drawImage(overlayImage, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL('image/png');
+    return canvas;
   }
 
   const { sx, sy, sw, sh } = computeCenteredCropForAspectRatio(
@@ -275,8 +275,32 @@ const composeMomCompositeImage = async (
     placement.width / placement.height,
   );
   ctx.drawImage(overlayImage, sx, sy, sw, sh, placement.x, placement.y, placement.width, placement.height);
+  return canvas;
+};
+
+const composeMomCompositeImage = async (
+  baseImageUrl: string,
+  overlayFile: File,
+  placement: { x: number; y: number; width: number; height: number },
+  overlayMode: 'placement' | 'full-page' = 'placement',
+): Promise<string> => {
+  const canvas = await composeMomCompositeCanvas(baseImageUrl, overlayFile, placement, overlayMode);
   return canvas.toDataURL('image/png');
 };
+
+/** p27-28 等新接口使用 multipart `image`，避免巨量 JSON base64 */
+const composeMomCompositeImageBlob = (
+  canvas: HTMLCanvasElement,
+): Promise<Blob> =>
+  new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('Canvas toBlob produced empty blob'));
+      },
+      'image/png',
+    );
+  });
 
 // 自定义图片组件，支持Next.js Image和原生img的回退
 const OptimizedImage = ({ src, alt, width, height, className, style, onError, onLoad, onLoadingComplete, fallbackSrc, ...props }: {
@@ -1232,7 +1256,11 @@ export default function PreviewPageWithTopNav() {
             const storeName = storeUserData?.characters?.[0]?.full_name;
             
             if ((!recipientNameFromBatch || recipientNameFromBatch.trim() === '') && (shouldSkipInitialRender || !storeName || !storeName.trim())) {
-              const rname = match?.preview?.recipient_name || match?.full_name;
+              const rname =
+                match?.preview?.recipient_name ||
+                match?.full_name ||
+                match?.customization_data?.full_name ||
+                match?.customization_data?.attributes?.full_name;
               if (rname && typeof rname === 'string' && rname.trim()) {
                 setRecipient(rname);
                 console.log('[Preview] Set recipient from cart (fallback):', rname);
@@ -1612,23 +1640,41 @@ export default function PreviewPageWithTopNav() {
     setMomDrawingUploadingPageCode(pageCode);
     setGuestUploadRateLimitError(null);
     try {
-      const dataUrl = await composeMomCompositeImage(
-        normalizePreviewImageUrlForCanvas(String(baseImageRaw)),
-        file,
-        placement,
-        options?.overlayMode,
-      );
+      const endpoint = `products/PICBOOK_MOM/pages/${pageCode}/upload-composite-image`;
 
-      // 直连后端 API，避免经 Next `/api` 代理时触发 Netlify 等对请求体大小的限制
-      const resp = (await fetchDreamazebookApi(
-        `products/PICBOOK_MOM/pages/${pageCode}/upload-composite-image`,
-        {
+      let resp: MomCompositeUploadResponse;
+
+      if (pageCode === 'p27-28') {
+        const canvas = await composeMomCompositeCanvas(
+          normalizePreviewImageUrlForCanvas(String(baseImageRaw)),
+          file,
+          placement,
+          options?.overlayMode,
+        );
+        const blob = await composeMomCompositeImageBlob(canvas);
+        const form = new FormData();
+        form.append('batch_id', String(batchId));
+        form.append('image', blob, 'p27-28_composite.png');
+        // 直连后端；FormData 勿手动 Content-Type（需带 multipart boundary）
+        resp = (await fetchDreamazebookApi(endpoint, {
+          method: 'POST',
+          body: form,
+          timeoutMs: 120000,
+        })) as MomCompositeUploadResponse;
+      } else {
+        const dataUrl = await composeMomCompositeImage(
+          normalizePreviewImageUrlForCanvas(String(baseImageRaw)),
+          file,
+          placement,
+          options?.overlayMode,
+        );
+        resp = (await fetchDreamazebookApi(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ batch_id: batchId, data: dataUrl }),
           timeoutMs: 120000,
-        },
-      )) as MomCompositeUploadResponse;
+        })) as MomCompositeUploadResponse;
+      }
       const imageUrl =
         resp?.data?.image_url ||
         resp?.image_url ||
@@ -1746,27 +1792,58 @@ export default function PreviewPageWithTopNav() {
         const items = res?.data?.items || res?.data?.cart_items || res?.cart_items || [];
         if (!Array.isArray(items) || items.length === 0) return;
         const fromCartItemIdParam = searchParams.get('fromCartItemId');
-        const matchByCartItemId = fromCartItemIdParam
-          ? items.find((ci: any) => String(ci.id) === String(fromCartItemIdParam))
-          : null;
-        const matchByPreviewId = items.find((ci: any) => String(ci.preview_id) === String(previewIdParam));
-        const match = matchByCartItemId || matchByPreviewId;
-        const pv = match?.preview;
-        if (!pv && !match) return;
+        const match = findCartItemForPreview(items, previewIdParam, fromCartItemIdParam);
+        if (!match) return;
 
         console.log('Preview Page: Found cart match for prefill:', match);
 
-        // 服务器存储的是 option_key（或回退为 id/name），尝试多种键名以兼容历史数据
-        // 优先从 preview 对象读取，如果没有则从 item.attributes 读取
-        const coverKey = pv?.cover_type || pv?.cover || pv?.cover_option || pv?.cover_key || match?.attributes?.cover_style;
-        const bindingKey = pv?.binding_type || pv?.binding || pv?.binding_option || pv?.binding_key || (match as any)?.attributes?.binding_type;
-        const giftKey = pv?.gift_box || pv?.wrap || pv?.wrap_option || pv?.gift_box_key || match?.attributes?.giftbox;
+        const pv = match?.preview;
+        const custAttrs = match?.customization_data?.attributes || {};
+        const topAttrs = (match as any)?.attributes || {};
+        const adjustments = (match as any)?.price_adjustments || {};
+
+        // 服务器多为 option_key：cover_style / binding_type / giftbox；
+        // 新购物车：customization_data.attributes + price_adjustments.*.selected；旧数据：preview / item.attributes
+        const coverKey =
+          pv?.cover_type ||
+          pv?.cover ||
+          pv?.cover_option ||
+          pv?.cover_key ||
+          topAttrs.cover_style ||
+          custAttrs.cover_style ||
+          adjustments.cover_style?.selected;
+
+        const bindingKey =
+          pv?.binding_type ||
+          pv?.binding ||
+          pv?.binding_option ||
+          pv?.binding_key ||
+          topAttrs.binding_type ||
+          custAttrs.binding_type ||
+          adjustments.binding_type?.selected;
+
+        const giftKey =
+          pv?.gift_box ||
+          pv?.wrap ||
+          pv?.wrap_option ||
+          pv?.gift_box_key ||
+          topAttrs.giftbox ||
+          custAttrs.giftbox ||
+          adjustments.giftbox?.selected;
 
         let changed = false;
 
+        const cartOptionKeyMatches = (optKey: unknown, cartVal: unknown) =>
+          String(optKey ?? '')
+            .trim()
+            .toLowerCase() === String(cartVal ?? '')
+              .trim()
+              .toLowerCase();
+
         if (selectedBookCover == null && coverKey) {
           const cover = bookOptions?.cover_options?.find(
-            (o) => o.option_key === String(coverKey) || String(o.id) === String(coverKey)
+            (o) =>
+              cartOptionKeyMatches(o.option_key, coverKey) || String(o.id) === String(coverKey),
           );
           if (cover) {
             setSelectedBookCover(cover.id);
@@ -1776,7 +1853,8 @@ export default function PreviewPageWithTopNav() {
 
         if (selectedBinding == null && bindingKey) {
           const binding = bookOptions?.binding_options?.find(
-            (o) => o.option_key === String(bindingKey) || String(o.id) === String(bindingKey)
+            (o) =>
+              cartOptionKeyMatches(o.option_key, bindingKey) || String(o.id) === String(bindingKey),
           );
           if (binding) {
             setSelectedBinding(binding.id);
@@ -1786,7 +1864,10 @@ export default function PreviewPageWithTopNav() {
 
         if (selectedGiftBox == null && giftKey) {
           const gift = bookOptions?.gift_box_options?.find(
-            (o) => (o.option_key ? o.option_key === String(giftKey) : false) || String(o.id) === String(giftKey) || o.name === String(giftKey)
+            (o) =>
+              (o.option_key ? cartOptionKeyMatches(o.option_key, giftKey) : false) ||
+              String(o.id) === String(giftKey) ||
+              cartOptionKeyMatches(o.name, giftKey),
           );
           if (gift) {
             setSelectedGiftBox(gift.id);

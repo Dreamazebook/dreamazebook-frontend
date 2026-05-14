@@ -299,7 +299,11 @@ export default function EditPersonalizedProductPage() {
           } else if (cartRow?.id) {
             setCartItemId(Number(cartRow.id));
             const p = cartRow.preview;
-            cartAttrs = (p as any)?.attributes || (cartRow as any)?.attributes || {};
+            cartAttrs =
+              (p as any)?.attributes ||
+              cartRow.customization_data?.attributes ||
+              (cartRow as any)?.attributes ||
+              {};
           }
 
           const built = buildMomPhotosFromCartAttributes(cartAttrs);
@@ -414,7 +418,9 @@ export default function EditPersonalizedProductPage() {
           return;
         }
         
-        const cartAttrs = (p as any)?.attributes || (item as any)?.attributes || {};
+        const cust = (item as any)?.customization_data || {};
+        const cartAttrs =
+          (p as any)?.attributes || cust.attributes || (item as any)?.attributes || {};
 
         // 兼容 face_image/face_images 为 JSON 字符串、数组、对象或单值
         let faceImages = extractFaceImageUrls(
@@ -423,6 +429,7 @@ export default function EditPersonalizedProductPage() {
           (item as any)?.face_images,
           (item as any)?.face_image,
           cartAttrs.face_images,
+          cust.face_images,
         );
         if (momBook) {
           const fromAttrs = buildMomPhotosFromCartAttributes(cartAttrs);
@@ -459,7 +466,13 @@ export default function EditPersonalizedProductPage() {
           ''
         ).trim();
         setInitialData({
-          fullName: p?.recipient_name || p?.full_name || (item as any)?.full_name || cartAttrs.full_name || '',
+          fullName:
+            p?.recipient_name ||
+            p?.full_name ||
+            (item as any)?.full_name ||
+            cust.full_name ||
+            cartAttrs.full_name ||
+            '',
           gender,
           skinColor,
           ...photoPayloadForFaceImages(faceImages),
@@ -475,7 +488,7 @@ export default function EditPersonalizedProductPage() {
           ...(typeof cartAttrs.mom_makes_best === 'string' ? { momMakesBest: cartAttrs.mom_makes_best } : {}),
         });
         
-        const lang = p?.language || (item as any)?.language || (item as any)?.attributes?.language;
+        const lang = p?.language || (item as any)?.language || cust.language || cartAttrs.language;
         if (lang) {
           setBookLanguage(String(lang));
         }
