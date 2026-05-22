@@ -27,10 +27,10 @@ const menuItems = [
     isActive: (pathname: string) => pathname?.includes("/books"),
   },
   {
-    label: "Mother's Day",
-    href: "/mothers-day",
+    label: "Father's Day",
+    href: "/fathers-day",
     isActive: (pathname: string) =>
-      pathname === "/mothers-day" || pathname?.endsWith("/mothers-day"),
+      pathname === "/fathers-day" || pathname?.endsWith("/fathers-day"),
   },
   {
     label: "About Us",
@@ -81,8 +81,17 @@ const Header = () => {
     router.replace(pathname, { locale: language as any });
   };
 
+  const isFathersDayPage =
+    pathname === '/fathers-day' || pathname?.endsWith('/fathers-day');
+  const iconClassName = (base: string) =>
+    `${base}${isFathersDayPage ? ' md:brightness-0 md:invert' : ''}`;
+
   return (
-    <header className="relative z-50 max-w-[1200px] mx-auto flex items-center justify-between px-[12px] pb-[12px] pt-4 md:px-[24px] md:pb-[24px] bg-white md:bg-transparent">
+    <header
+      className={`relative z-50 max-w-[1200px] mx-auto flex items-center justify-between px-[12px] pb-[12px] pt-4 md:px-[24px] md:pb-[24px] bg-white md:bg-transparent${
+        isFathersDayPage ? ' md:text-white' : ''
+      }`}
+    >
       <button
         className="text-2xl md:hidden z-50"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -124,7 +133,7 @@ const Header = () => {
       </div>
       {/* Desktop Logo */}
       <div className="hidden md:block">
-        <Logo useWhite={false} />
+        <Logo useWhite={isFathersDayPage} />
       </div>
 
       {/* Desktop Navigation */}
@@ -132,11 +141,15 @@ const Header = () => {
         {menuItems.map((item) => (
           <Link
             key={item.href}
-            className="text-[16px] font-medium relative"
+            className={`text-[16px] font-medium relative${
+              isFathersDayPage ? ' md:text-white' : ''
+            }`}
             href={item.href}
           >
             {item.label}
-            {item.isActive(pathname) && <UnderlineIcon color="#012CCE" />}
+            {item.isActive(pathname) && (
+              <UnderlineIcon color={isFathersDayPage ? '#FFFFFF' : '#012CCE'} />
+            )}
           </Link>
         ))}
       </nav>
@@ -276,7 +289,7 @@ const Header = () => {
             alt="language"
             width={48}
             height={24}
-            className="cursor-pointer"
+            className={iconClassName('cursor-pointer')}
           />
           <div className="absolute hidden group-hover:block bg-white shadow-md rounded-md p-2 z-50">
             <button
@@ -306,7 +319,7 @@ const Header = () => {
           <Image
             src={"/header/search.svg"}
             alt="Search"
-            className="cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]"
+            className={iconClassName('cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]')}
           />
         </Link>
         <Link
@@ -316,7 +329,7 @@ const Header = () => {
           <Image
             src={"/header/cart.svg"}
             alt="Shopping Cart"
-            className="cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]"
+            className={iconClassName('cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]')}
           />
         </Link>
         {mounted && user ? (
@@ -327,7 +340,7 @@ const Header = () => {
             <Image
               src={"/header/profile.svg"}
               alt="Profile"
-              className="cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]"
+              className={iconClassName('cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]')}
             />
           </Link>
         ) : (
@@ -338,7 +351,7 @@ const Header = () => {
             <Image
               src={"/header/profile.svg"}
               alt="Login"
-              className="cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]"
+              className={iconClassName('cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]')}
             />
           </Link>
         )}
