@@ -1,3 +1,4 @@
+'use client';
 import { HOME_STORIES } from '@/constants/cdn';
 import { useEffect, useRef, useState } from 'react';
 import Image from '../common/Image';

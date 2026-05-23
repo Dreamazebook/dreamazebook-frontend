@@ -1,3 +1,4 @@
+'use client';
 import { HOME_HERO } from "@/constants/cdn";
 import { BOOKS_URL } from "@/constants/links";
 import { Link } from "@/i18n/routing";
