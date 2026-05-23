@@ -68,6 +68,7 @@ export default function SlideShow() {
         .slide-bg {
           position: absolute;
           inset: 0;
+          min-height: 80vh;
           background-size: cover;
           background-position: center;
           transition: transform 0.5s ease-in-out;
@@ -80,18 +81,19 @@ export default function SlideShow() {
         }
       `}</style>
 
-      <div className="slideshow-container max-h-[680px]">
+      <div className="slideshow-container max-h-[680px]" style={{ minHeight: '80vh' }}>
         {slides.map((slide, index) => (
           <div
             key={slide.id}
             className={`slide ${index === currentIndex ? "active" : ""}`}
           >
             <div
-              className="slide-bg"
+              className="slide-bg bg-gray-100"
               style={
                 {
                   backgroundImage: `url(${slide.image})`,
                   "--desktop-bg": `url(${slide.image_desktop})`,
+                  backgroundColor: '#f3f4f6',
                 } as React.CSSProperties
               }
             />
