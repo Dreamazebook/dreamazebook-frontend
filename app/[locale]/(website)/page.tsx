@@ -27,8 +27,8 @@ const BOOK_DISPLAY_ORDER_RANK: Record<string, number> = {
 const getBookCode = (book: any): string =>
   String((book as any)?.spu_code ?? (book as any)?.id ?? (book as any)?.code ?? '').trim();
 
-export default async function HomePage({ params }: { params: { locale: string } }) {
-  const locale = params.locale;
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
 
   let books: Product[] = [];
   try {
