@@ -3,10 +3,10 @@
 import { useSelectedLayoutSegments, usePathname, useSearchParams } from 'next/navigation';
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import ScrollToTopButton from './components/ScrollToTopButton';
-import { getScrollToTopConfig } from './components/scrollToTopConfig';
+// import ScrollToTopButton from './components/ScrollToTopButton';
+// import { getScrollToTopConfig } from './components/scrollToTopConfig';
 import useUserStore from '@/stores/userStore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import KickstarterWelcomeModal from './components/KickstarterWelcomeModal';
 import LoginModal from './components/LoginModal';
 import { Toaster } from 'react-hot-toast';
@@ -22,20 +22,29 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const isSelectBookContentPage = segments.includes("select-book-content");
   const isKickstarterConfigPage = segments.includes("kickstarter-config");
   const isBookDetailPage = /\/books\/[^/]+$/.test(pathname);
+  const isFathersDayPage = pathname === '/fathers-day' || pathname?.endsWith('/fathers-day');
 
   // 检查是否在嵌入模式（用于抽屉显示）
   const isEmbedMode = searchParams.get('embed') === 'true';
 
   // 在组件中
   const { fetchCurrentUser, isLoggedIn, checkKickstarterStatus, isLoginModalOpen } = useUserStore();
-  
+  const [isScrolled, setIsScrolled] = useState(false);
+
   // 获取当前页面的滚动到顶部按钮配置
-  const scrollToTopConfig = getScrollToTopConfig(pathname);
+  // const scrollToTopConfig = getScrollToTopConfig(pathname);
 
   // 在需要获取用户信息的地方调用
   useEffect(() => {
     fetchCurrentUser();
   }, [fetchCurrentUser]);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 0);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // 登录状态变化后检查Kickstarter套餐
   useEffect(() => {
@@ -45,10 +54,20 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     }
   }, [isLoggedIn, checkKickstarterStatus]);
 
+  const showTopBanner = !isPreviewPage;
+  const showHeader = !(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isEmbedMode);
+  const headerIsWhite = isScrolled || !isFathersDayPage;
+
   return (
     <>
-      {!isPreviewPage && <TopBanner />}
-      {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isEmbedMode) && <Header />}
+      {(showTopBanner || showHeader) && (
+        <div className={`sticky top-0 left-0 right-0 z-[60] transition-colors duration-200 ${
+          headerIsWhite ? 'bg-white' : 'bg-transparent'
+        }`}>
+          {showTopBanner && <TopBanner />}
+          {showHeader && <Header headerIsWhite={headerIsWhite} />}
+        </div>
+      )}
       {children}
       <KickstarterWelcomeModal />
       {isLoginModalOpen && (
@@ -58,7 +77,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
       )}
       {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isKickstarterConfigPage || isEmbedMode) && <Footer />}
       {isBookDetailPage && !isEmbedMode && <div className="h-[92px] md:hidden" aria-hidden="true" />}
-      {scrollToTopConfig.enabled && (
+      {/* {scrollToTopConfig.enabled && (
         <ScrollToTopButton
           threshold={scrollToTopConfig.threshold}
           position={scrollToTopConfig.position}
@@ -67,7 +86,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
           size={scrollToTopConfig.size}
           className={scrollToTopConfig.className}
         />
-      )}
+      )} */}
       <Toaster
         position="top-center"
         containerStyle={{
