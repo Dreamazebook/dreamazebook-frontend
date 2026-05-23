@@ -38,6 +38,7 @@ const MomChildPhotoUpload: React.FC<MomChildPhotoUploadProps> = ({
   const input0 = useRef<HTMLInputElement>(null);
   const input1 = useRef<HTMLInputElement>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [showTooltip, setShowTooltip] = useState(false);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -68,15 +69,63 @@ const MomChildPhotoUpload: React.FC<MomChildPhotoUploadProps> = ({
   const thumbCount = thumbIndices.length;
 
   return (
-    <div className="space-y-4" id="upload-area-photo">
-      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <h2 className="font-medium text-[#222222] text-[16px] leading-[24px] tracking-[0.15px]">
-          Upload photos of Mom and child 🎨
-        </h2>
-        <span className="text-[#999999] text-[14px] leading-[20px] tracking-[0.5px]">(Upload up to 2)</span>
+    <div className="space-y-4">
+      <div>
+        <div className="flex items-center mb-2">
+          <label className="block font-medium text-[#222222] text-[16px] leading-[24px] tracking-[0.15px]">
+            Upload 1–2 Clear Photos
+          </label>
+          <span className="text-gray-400 inline-flex items-center group relative font-normal ml-2">
+            <div
+              className="w-4 h-4 rounded-full border border-[#666666] flex items-center justify-center cursor-pointer"
+              onClick={() => setShowTooltip(!showTooltip)}
+            >
+              <span className="text-[#666666] text-[10px] leading-none font-medium">?</span>
+            </div>
+            <div className={`${showTooltip ? 'block' : 'hidden'} md:group-hover:block absolute left-1/2 transform -translate-x-1/2 bottom-6 w-64 p-2 bg-white text-gray-800 text-sm rounded shadow-lg z-10 backdrop-blur`}>
+              <p>
+                Upload clear photos so we can create unique images of you.
+                Photos are only generated from user images. We have an independent database to ensure that your privacy will not be leaked.
+              </p>
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white" />
+            </div>
+          </span>
+        </div>
+        <p className="text-[#999999] text-[16px] leading-[24px] tracking-[0.5px] mb-4">
+          To get the best result, please use photos that meet the following:
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+      <div className="flex flex-row gap-4 bg-[#F8F8F8] py-3 px-4 rounded-[4px]">
+        <div className="flex-shrink-0 max-w-[102px] md:max-w-[80px]">
+          <Image
+            src="/personalize/face.png"
+            alt="Example photo"
+            width={200}
+            height={200}
+            className="w-full h-auto object-contain rounded-[4px] bg-gray-100"
+            sizes="(max-width: 768px) 80px, 102px"
+          />
+        </div>
+        <div className="flex-1 flex items-start">
+          <ul className="space-y-2 text-[#666666] text-[14px] leading-[20px] tracking-[0.5px]">
+            <li className="flex items-start">
+              <span className="mr-2">•</span>
+              <span>Solo photo, front-facing, natural look</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-2">•</span>
+              <span>Bright & clear image</span>
+            </li>
+            <li className="flex items-start">
+              <span className="mr-2">•</span>
+              <span>No pacifier, hat, or cap</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" id="upload-area-photo">
         {([0, 1] as const).map(slotIndex => {
           const slot = slots[slotIndex];
           const dragging = slotDragging[slotIndex];
