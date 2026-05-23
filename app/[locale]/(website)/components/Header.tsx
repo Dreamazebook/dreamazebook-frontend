@@ -84,12 +84,12 @@ const Header = () => {
   const isFathersDayPage =
     pathname === '/fathers-day' || pathname?.endsWith('/fathers-day');
   const iconClassName = (base: string) =>
-    `${base}${isFathersDayPage ? ' md:brightness-0 md:invert' : ''}`;
+    `${base}${isFathersDayPage ? ' brightness-0 invert' : ''}`;
 
   return (
     <header
-      className={`relative z-50 max-w-[1200px] mx-auto flex items-center justify-between px-[12px] pb-[12px] pt-4 md:px-[24px] md:pb-[24px] bg-white md:bg-transparent${
-        isFathersDayPage ? ' md:text-white' : ''
+      className={`relative z-50 max-w-[1200px] mx-auto flex items-center justify-between px-[12px] pb-[12px] pt-4 md:px-[24px] md:pb-[24px] ${
+        isFathersDayPage ? 'bg-transparent text-white' : 'bg-white md:bg-transparent'
       }`}
     >
       <button
@@ -127,9 +127,9 @@ const Header = () => {
           </svg>
         )}
       </button>
-      {/* Mobile Logo - always use normal version */}
+      {/* Mobile Logo */}
       <div className="md:hidden">
-        <Logo useWhite={false} />
+        <Logo useWhite={isFathersDayPage} />
       </div>
       {/* Desktop Logo */}
       <div className="hidden md:block">
@@ -142,7 +142,7 @@ const Header = () => {
           <Link
             key={item.href}
             className={`text-[16px] font-medium relative${
-              isFathersDayPage ? ' md:text-white' : ''
+              isFathersDayPage ? ' text-white' : ''
             }`}
             href={item.href}
           >

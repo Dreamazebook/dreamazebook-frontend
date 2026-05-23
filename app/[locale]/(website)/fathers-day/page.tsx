@@ -20,7 +20,7 @@ export default function FathersDayPage() {
     <main className="min-h-screen bg-[#FFF7F9]">
       <div className="bg-[#FCF2F2]">
         {/* Hero/Banner */}
-        <div className="relative overflow-hidden md:-mt-20">
+        <div className="relative overflow-hidden -mt-[68px] md:-mt-20">
           <div className="absolute inset-0 z-[5] pointer-events-none bg-gradient-to-t from-black/50 via-black/10 to-transparent md:from-transparent md:via-transparent" />
           <div className="relative min-h-[560px] mx-auto md:min-h-[720px] md:h-auto lg:h-[calc(100dvh-48px)]">
             <div
