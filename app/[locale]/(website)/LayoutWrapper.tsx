@@ -11,6 +11,7 @@ import KickstarterWelcomeModal from './components/KickstarterWelcomeModal';
 import LoginModal from './components/LoginModal';
 import { Toaster } from 'react-hot-toast';
 import TopBanner from '@/app/components/TopBanner';
+import TawkScript from '@/app/components/TawkScript';
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const segments = useSelectedLayoutSegments();
@@ -21,7 +22,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const isPreviewPage = segments.includes("preview");
   const isSelectBookContentPage = segments.includes("select-book-content");
   const isKickstarterConfigPage = segments.includes("kickstarter-config");
-  const isBookDetailPage = /\/books\/[^/]+$/.test(pathname);
+  const isBookDetailPage = segments[0] === 'books' && segments.length > 1;
   const isFathersDayPage = pathname === '/fathers-day' || pathname?.endsWith('/fathers-day');
 
   // 检查是否在嵌入模式（用于抽屉显示）
@@ -77,6 +78,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
       )}
       {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isKickstarterConfigPage || isEmbedMode) && <Footer />}
       {isBookDetailPage && !isEmbedMode && <div className="h-[92px] md:hidden" aria-hidden="true" />}
+      <TawkScript visible={!isBookDetailPage} />
       {/* {scrollToTopConfig.enabled && (
         <ScrollToTopButton
           threshold={scrollToTopConfig.threshold}

@@ -43,8 +43,6 @@ import { sharedMetadata } from '@/components/metadata';
 import { OrganizationSchema, WebsiteSchema } from '@/app/components/StructuredDataSchemas';
 import MetaPixel from '@/app/components/MetaPixel';
 import GA4Script from '@/app/components/GA4Script';
-import TawkScript from '@/app/components/TawkScript';
-
 export const metadata: Metadata = sharedMetadata;
 
 export default async function LocaleLayout({
@@ -70,7 +68,6 @@ export default async function LocaleLayout({
         <GA4Script />
         <OrganizationSchema />
         <WebsiteSchema />
-        <TawkScript />
         <MetaPixel />
       </head>
       <body
