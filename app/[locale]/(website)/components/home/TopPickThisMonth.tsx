@@ -1,3 +1,4 @@
+'use client';
 import { HOME_TOP_PICKS } from '@/constants/cdn';
 import { BOOK_DETAIL_URL } from '@/constants/links';
 import { Link } from '@/i18n/routing';

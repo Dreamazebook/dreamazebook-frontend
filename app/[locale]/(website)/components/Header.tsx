@@ -41,7 +41,7 @@ const menuItems = [
 
 const MOBILE_MENU_TOGGLE_EVENT = "dreamaze:mobile-menu-toggle";
 
-const Header = () => {
+const Header = ({ headerIsWhite }: { headerIsWhite: boolean }) => {
   const router = useRouter();
   const pathname = usePathname();
   const locale = useLocale();
@@ -83,13 +83,16 @@ const Header = () => {
 
   const isFathersDayPage =
     pathname === '/fathers-day' || pathname?.endsWith('/fathers-day');
+  const useWhiteLogo = isFathersDayPage && !headerIsWhite;
   const iconClassName = (base: string) =>
-    `${base}${isFathersDayPage ? ' brightness-0 invert' : ''}`;
+    `${base}${isFathersDayPage && !headerIsWhite ? ' brightness-0 invert' : ''}`;
 
   return (
     <header
-      className={`relative z-50 max-w-[1200px] mx-auto flex items-center justify-between px-[12px] pb-[12px] pt-4 md:px-[24px] md:pb-[24px] ${
-        isFathersDayPage ? 'bg-transparent text-white' : 'bg-white md:bg-transparent'
+      className={`relative z-50 max-w-[1200px] mx-auto flex items-center justify-between px-[12px] pb-[12px] pt-4 md:px-[24px] md:pb-[24px] transition-colors duration-200 ease-in-out ${
+        headerIsWhite
+          ? 'bg-white text-black'
+          : 'bg-transparent text-white'
       }`}
     >
       <button
@@ -129,11 +132,11 @@ const Header = () => {
       </button>
       {/* Mobile Logo */}
       <div className="md:hidden">
-        <Logo useWhite={isFathersDayPage} />
+        <Logo useWhite={useWhiteLogo} />
       </div>
       {/* Desktop Logo */}
       <div className="hidden md:block">
-        <Logo useWhite={isFathersDayPage} />
+        <Logo useWhite={useWhiteLogo} />
       </div>
 
       {/* Desktop Navigation */}
@@ -142,13 +145,15 @@ const Header = () => {
           <Link
             key={item.href}
             className={`text-[16px] font-medium relative${
-              isFathersDayPage ? ' text-white' : ''
+              isFathersDayPage && !headerIsWhite ? ' text-white' : ''
             }`}
             href={item.href}
           >
             {item.label}
             {item.isActive(pathname) && (
-              <UnderlineIcon color={isFathersDayPage ? '#FFFFFF' : '#012CCE'} />
+              <UnderlineIcon
+                color={isFathersDayPage && !headerIsWhite ? '#FFFFFF' : '#012CCE'}
+              />
             )}
           </Link>
         ))}

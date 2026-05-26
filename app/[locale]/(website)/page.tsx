@@ -1,8 +1,3 @@
-'use client';
-
-import { useLocale } from 'next-intl';
-import React, { useEffect, useMemo } from 'react';
-import { motion, useAnimation, useInView } from 'framer-motion';
 import TheHeartBehindDreamaze from './components/home/TheHeartBehindDreamaze';
 import LastingMemorial from './components/home/LastingMemorial';
 import Slideshow from './components/home/SlideShow';
@@ -32,90 +27,35 @@ const BOOK_DISPLAY_ORDER_RANK: Record<string, number> = {
 const getBookCode = (book: any): string =>
   String((book as any)?.spu_code ?? (book as any)?.id ?? (book as any)?.code ?? '').trim();
 
-interface AnimatedSectionProps {
-  children: React.ReactNode;
-  className?: string;
-  delay?: number;
-}
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
 
-const AnimatedSection: React.FC<AnimatedSectionProps> = ({ children, className = "", delay = 0 }) => {
-  const ref = React.useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const controls = useAnimation();
+  let books: Product[] = [];
+  try {
+    const { data } = await getBooks(locale);
+    books = data || [];
+  } catch (error) {
+    console.error('Failed to fetch books:', error);
+  }
 
-  useEffect(() => {
-    if (isInView) {
-      controls.start("visible");
-    }
-  }, [isInView, controls]);
-
-  return (
-    <motion.section
-      ref={ref}
-      initial="hidden"
-      animate={controls}
-      variants={{
-        hidden: { opacity: 0, y: 50 },
-        visible: {
-          opacity: 1,
-          y: 0,
-          transition: {
-            duration: 0.8,
-            delay: delay,
-            ease: [0.22, 1, 0.36, 1]
-          }
-        }
-      }}
-      className={className}
-    >
-      {children}
-    </motion.section>
-  );
-};
-
-export default function HomePage() {
-  const locale = useLocale();
-
-  const [books, setBooks] = React.useState<Product[]>([]);
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const {data} = await getBooks(locale);
-        setBooks(data || []);
-      } catch (error) {
-        console.error('Failed to fetch books:', error);
-      }
-    }
-
-    fetchBooks();
-  }, [locale]);
-
-  const orderedBooks = useMemo(() => {
-    const enriched = (books || []).map((book, index) => {
-      const code = getBookCode(book);
-      const rank = BOOK_DISPLAY_ORDER_RANK[code] ?? Number.MAX_SAFE_INTEGER;
-      return { book, index, rank };
-    });
-    enriched.sort((a, b) => (a.rank - b.rank) || (a.index - b.index));
-    return enriched.map(x => x.book);
-  }, [books]);
+  const orderedBooks = (books || []).map((book, index) => {
+    const code = getBookCode(book);
+    const rank = BOOK_DISPLAY_ORDER_RANK[code] ?? Number.MAX_SAFE_INTEGER;
+    return { book, index, rank };
+  })
+  .sort((a, b) => (a.rank - b.rank) || (a.index - b.index))
+  .map(x => x.book);
 
   return (
     <main className="min-h-screen">
       {/* Slideshow doesn't need animation as it's already animated */}
-      <AnimatedSection delay={0.0}>
-        <Slideshow />
-      </AnimatedSection>
+      <Slideshow />
 
-      <AnimatedSection delay={0.1}>
-        <TheHeartBehindDreamaze />
-      </AnimatedSection>
+      <TheHeartBehindDreamaze />
 
-      <AnimatedSection delay={0.1}>
-        <WhatMakesDreamazeDifferent />
-      </AnimatedSection>
+      <WhatMakesDreamazeDifferent />
 
-      <AnimatedSection delay={0.2}>
+      <section>
         {/* <OurBook /> */}
         <h2 className='text-[#222] text-[24px] md:text-[40px] font-medium text-center mb-3 mt-[64px] md:mt-[88px]'>Our Favorite<br className="md:hidden"/> Personalized Stories</h2>
         <p className='text-[#222] text-[14px] md:text-[16px] text-center mb-[24px] md:mb-[48px] leading-relaxed'>
@@ -123,37 +63,25 @@ export default function HomePage() {
           <span className='hidden md:block'>Find the story where they become the hero.</span>
         </p>
         <BooksGrid books={orderedBooks} />
-      </AnimatedSection>
+      </section>
 
-      <AnimatedSection delay={0.2}>
-        <GiftPackagesSection section={DEFAULT_GIFT_PACKAGES_CONFIG} />
-      </AnimatedSection>
+      <GiftPackagesSection section={DEFAULT_GIFT_PACKAGES_CONFIG} />
 
-      <AnimatedSection delay={0.2}>
-        <TopPickThisMonth />
-      </AnimatedSection>
+      <TopPickThisMonth />
 
-      <AnimatedSection delay={0.2}>
-        <StoriesFromRealFamilies />
-      </AnimatedSection>
+      <StoriesFromRealFamilies />
 
-      <AnimatedSection delay={0.2}>
-        <InfiniteScrollLogo />
-      </AnimatedSection>
+      <InfiniteScrollLogo />
 
-      <AnimatedSection delay={0.2}>
-        <LastingMemorial />
-      </AnimatedSection>
+      <LastingMemorial />
 
       {/* FAQ */}
-      {/* <AnimatedSection delay={0.3}>
+      {/* <section>
         <FAQ FAQs={faqs} />
-      </AnimatedSection> */}
+      </section> */}
 
       {/* Newsletter */}
-      <AnimatedSection className="bg-black text-white" delay={0.3}>
-        <ReserveSection cssClass='bg-white text-[#222222]' btnId="email_submit_mid" redirectUrl={WELCOME_SUCCESS_URL} title={"Every child deserves<br class='md:hidden' /> to be the hero."} desc={'Join the Dreamaze circle to get free printables, story samples, and early access gifts.'} btnText="Join Now" />
-      </AnimatedSection>
+      <ReserveSection cssClass='bg-white text-[#222222]' btnId="email_submit_mid" redirectUrl={WELCOME_SUCCESS_URL} title={"Every child deserves<br class='md:hidden' /> to be the hero."} desc={'Join the Dreamaze circle to get free printables, story samples, and early access gifts.'} btnText="Join Now" />
 
     </main>
   );

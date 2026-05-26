@@ -1,3 +1,4 @@
+'use client';
 import { HOME_SPARKS } from '@/constants/cdn';
 import React, { useState, useEffect } from 'react';
 import Image from '../common/Image';

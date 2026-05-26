@@ -63,7 +63,7 @@ const ScrollToTopButton: React.FC<ScrollToTopButtonProps> = ({
         return 'bottom-8 left-1/2 transform -translate-x-1/2';
       case 'bottom-right':
       default:
-        return 'bottom-8 right-8';
+        return 'bottom-32 right-8';
     }
   };
 
