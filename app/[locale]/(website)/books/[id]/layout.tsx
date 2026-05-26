@@ -8,6 +8,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     PICBOOK_GOODNIGHT3: 'Good Night to You',
     PICBOOK_GOODNIGHT: 'Good Night to You',
     PICBOOK_MOM: 'The Way I See You, Mama',
+    PICBOOK_DAD: 'Dad & Me: A Little Book of Our Big Memories',
     PICBOOK_BRAVEY: "Little One, You're Brave in Many Ways",
     PICBOOK_BIRTHDAY: 'Birthday Book for You',
     PICBOOK_SANTA: "Santa's Letter for You",
@@ -21,6 +22,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       'Introduce your little one to a world of peaceful dreams. A personalized story that sparks imagination while creating the perfect, soothing atmosphere for sleep.',
     PICBOOK_MOM:
       "Celebrate the love between a child and their mama. A personalized keepsake woven with photos, your child's drawings, and words from the heart.",
+    PICBOOK_DAD:
+      "Celebrate the love between a child and their dad. A personalized keepsake woven with photos, your child's words, and favorite family memories.",
     PICBOOK_BRAVEY:
       "Even the smallest acts of bravery make a big difference. A personalized story that celebrates courage and nurtures confidence in all its forms.",
     PICBOOK_BIRTHDAY:

@@ -45,6 +45,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     'PICBOOK_GOODNIGHT3',
     'PICBOOK_GOODNIGHT',
     'PICBOOK_MOM',
+    'PICBOOK_DAD',
     'PICBOOK_SANTA',
     'PICBOOK_BRAVEY',
     'PICBOOK_BIRTHDAY',

@@ -61,6 +61,12 @@ const BOOK_DETAIL_OVERRIDES: Record<
       "Celebrate the love between a child and their mama with The Way I See You, Mama. Told through a child's eyes, this heartfelt story explores all the little things that make Mama special — from her warm hugs and gentle hands to the way she makes the world feel safe and full of love. With personalized details and your child's own drawings woven into the story, this book becomes a deeply meaningful keepsake for both mother and child.",
     tags: [{ tname: "Mother's Day Gift" }, { tname: 'Family Bonding' }],
   },
+  PICBOOK_DAD: {
+    name: 'Dad & Me: A Little Book of Our Big Memories',
+    description:
+      "Celebrate the love between a child and their dad with Dad & Me: A Little Book of Our Big Memories. Told through a child's eyes, this heartfelt story explores all the little things that make Dad special — from his laughter and adventures to the way he makes the world feel safe and full of love. With personalized photos, your child's own words, and favorite family moments woven into the story, this book becomes a deeply meaningful keepsake for both father and child.",
+    tags: [{ tname: "Father's Day Gift" }, { tname: 'Family Bonding' }],
+  },
   PICBOOK_BRAVEY: {
     name: "Little One, You're Brave in Many Ways",
     description:

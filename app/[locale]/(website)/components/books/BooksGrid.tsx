@@ -11,6 +11,7 @@ import Button from '@/app/components/Button';
 const BOOK_NAME_OVERRIDES: Record<string, string> = {
   PICBOOK_GOODNIGHT3: 'Good Night to You',
   PICBOOK_MOM: 'The Way I See You, Mama',
+  PICBOOK_DAD: 'Dad & Me: A Little Book of Our Big Memories',
   PICBOOK_BRAVEY: "Little One, You're Brave in Many Ways",
   PICBOOK_BIRTHDAY: 'Birthday Book for You',
   PICBOOK_MELODY: 'Your Melody',

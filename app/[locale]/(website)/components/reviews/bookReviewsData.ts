@@ -76,6 +76,60 @@ const PICBOOK_MOM_REVIEW_DATA: BookReviewData = {
   ],
 };
 
+const PICBOOK_DAD_REVIEW_DATA: BookReviewData = {
+  title: 'Loved by parents · 5.0 / 5.0',
+  rating: 5.0,
+  reviewsCount: 5,
+  keywords: [
+    { keyword: 'Made mama cry', count: 5 },
+    { keyword: 'heartfelt gift', count: 12 },
+    { keyword: "child's drawing inside", count: 8 },
+    { keyword: 'family keepsake', count: 6 },
+  ],
+  reviews: [
+    {
+      reviewer_name: 'Emily R., Texas',
+      rating: 5,
+      comment:
+        "I bought this for my husband and son, and honestly I didn't expect it to feel this emotional. It captured so many little everyday moments that already feel precious as a mom.",
+      pagepic:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_DAD/reviews/avatars/emily-texas.jpg',
+    },
+    {
+      reviewer_name: 'Sophie M., London',
+      rating: 5,
+      comment:
+        'My daughter kept saying, "That\'s Daddy and me!" while turning every page. It felt less like reading a book and more like reliving memories together.',
+      pagepic:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_DAD/reviews/avatars/sophie-london.jpg',
+    },
+    {
+      reviewer_name: 'Rachel T., Sydney',
+      rating: 5,
+      comment:
+        'Personalization made such a difference. Seeing their real names and little details from our family written into the story made it feel incredibly thoughtful.',
+      pagepic:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_DAD/reviews/avatars/rachel-sydney.jpg',
+    },
+    {
+      reviewer_name: 'Lauren K., Brisbane',
+      rating: 5,
+      comment:
+        'I thought it would just be a cute personalized gift, but it genuinely felt meaningful. Like a time capsule for their relationship right now.',
+      pagepic:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_DAD/reviews/avatars/lauren-brisbane.jpg',
+    },
+    {
+      reviewer_name: 'Claire B., Vancouver',
+      rating: 5,
+      comment:
+        'As a mom, I loved watching my husband read this with our daughter. They were laughing one minute and hugging the next. It created such a sweet moment for our family.',
+      pagepic:
+        'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_DAD/reviews/avatars/claire-vancouver.jpg',
+    },
+  ],
+};
+
 const GOODNIGHT_REVIEW_DATA: BookReviewData = {
   title: "What Parents Are Saying",
   rating: 5.0, // 平均评分
@@ -128,6 +182,7 @@ export const BOOK_REVIEWS_DATA: Record<string | number, BookReviewData> = {
   'PICBOOK_GOODNIGHT3': GOODNIGHT_REVIEW_DATA,
   'PICBOOK_GOODNIGHT': GOODNIGHT_REVIEW_DATA,
   'PICBOOK_MOM': PICBOOK_MOM_REVIEW_DATA,
+  'PICBOOK_DAD': PICBOOK_DAD_REVIEW_DATA,
   
   // You're Brave in Many Ways 书籍的评论数据（兼容新版与旧版 ID）
   'PICBOOK_BRAVEY': {

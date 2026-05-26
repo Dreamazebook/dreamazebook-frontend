@@ -24,6 +24,9 @@ const BehindStorySection: React.FC<{ section: BookSection }> = ({ section }) => 
   
   // 优先使用 authorImage，如果没有则使用 backgroundImage
   const imageUrl = section.authorImage || section.backgroundImage;
+  const galleryImages =
+    section.authorImages?.filter(Boolean) ??
+    (imageUrl ? [imageUrl] : []);
 
   return (
     <div className={`w-full bg-white pt-12 gap-8 md:h-[616px] md:pt-[88px] md:pr-[120px] md:pb-[88px] md:pl-[120px] flex flex-col md:flex-row md:gap-[48px] ${section.className || ''}`}>
@@ -52,13 +55,26 @@ const BehindStorySection: React.FC<{ section: BookSection }> = ({ section }) => 
       </div>
       
       {/* 左侧：图片 - 手机端在下，桌面端在左 */}
-      {imageUrl && (
+      {galleryImages.length > 0 && (
         <div className="w-full md:w-1/2 order-2 md:order-1">
-          <img 
-            src={imageUrl} 
-            alt={section.title || 'Behind the Story'} 
-            className="w-full md:h-full object-cover"
-          />
+          {galleryImages.length > 1 ? (
+            <div className="grid grid-cols-2 gap-2 md:gap-3">
+              {galleryImages.map((src, index) => (
+                <img
+                  key={src}
+                  src={src}
+                  alt={`${section.title || 'Behind the Story'} ${index + 1}`}
+                  className="aspect-[3/4] w-full object-cover"
+                />
+              ))}
+            </div>
+          ) : (
+            <img
+              src={galleryImages[0]}
+              alt={section.title || 'Behind the Story'}
+              className="w-full md:h-full object-cover"
+            />
+          )}
         </div>
       )}
     </div>

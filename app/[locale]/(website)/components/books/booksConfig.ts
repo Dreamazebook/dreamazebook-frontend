@@ -20,6 +20,8 @@ export interface BookSection {
   render?: () => React.ReactNode; // 自定义渲染函数（可选）
   // Meet Author 专用字段
   authorImage?: string; // 作者图片URL
+  /** behind-story 等：多张配图（如小时候 vs 现在对比） */
+  authorImages?: string[];
   paragraphs?: string[]; // 段落数组
   // Tips 专用字段
   tips?: string[]; // 提示列表数组
@@ -358,6 +360,118 @@ with Mama's love, brave little moments, and cozy bedtime comfort.`,
               'Children never get tired of hearing “I love you,” “I’m proud of you,” and “I’m so happy you’re mine.”',
             backgroundImage:
               'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-3.png',
+          },
+        ],
+      },
+    ],
+  },
+
+  'PICBOOK_DAD': {
+    id: 'PICBOOK_DAD',
+    specifications: [
+      { label: 'Best for ages 3+' },
+      { label: '20 × 20 cm hardcover' },
+      { label: '32 pages' },
+      { label: 'Printed and dispatched in 2–4 working days' },
+    ],
+    faqs: [
+      {
+        question: 'How is the book personalized?',
+        answer:
+          "- Add Dad's name or special title: Dad, Daddy, Papa, Dada, etc.\n- Add your child's name or nickname\n- Add playful personal details, like favorite things you do together\n- Upload a photo of mom, dad and child\n- Add a dedication — printed on the first page\n- Choose your cover and gift options\n- Place your order — preview before printing",
+      },
+      {
+        question: 'Why families love it?',
+        answer:
+          "In this sweet story, Dad is seen through the eyes of his child — not just as a grown-up, but as a teammate, a storyteller, a builder, a comforter, and someone who makes ordinary days feel special.\nMore than a book, it becomes a delicate container for all the shimmering love, laughter, and memories shared between a child and their dad.",
+      },
+      {
+        question: 'Reading tips for parents',
+        answer:
+          '- Before reading, invite your child to guess what memories and adventures might appear in the story.\n- Pause during reading to connect the story with your own real-life moments together.\n- Encourage your child to act out funny scenes, expressions, or favorite parts of the book.\n- Ask open-ended questions like "What should happen in the next chapter?" to spark imagination and storytelling.\n- After reading, share a hug or talk about your favorite memory together to turn reading into a meaningful bonding moment.',
+      },
+    ],
+    sections: [
+      {
+        type: 'behind-story',
+        title: 'A Note from Our Creator',
+        paragraphs: [
+          'As I grow older, many childhood memories have slowly become blurry.',
+          'But somehow, the feeling of being loved never disappeared.',
+          "Now that I'm older, and my father's hair has slowly turned gray, I realize those little everyday moments were never little at all.",
+          "That's why this book was created — as a small container for love, laughter, and the memories we shared in our real, ordinary lives.",
+          'When children are young, it becomes a story to read and laugh through together.',
+          'And one day, when they grow older, it becomes something beautiful to look back on side by side.',
+        ],
+        authorImage:
+          'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_DAD/A Note from Our Creator.png',
+      },
+      {
+        type: 'toddler-favorites',
+        title: 'For the Moments That Shape a Childhood',
+        description:
+          'Two heartfelt keepsakes celebrating the love, warmth, and beautiful bond between children and their parents.',
+        className: 'w-full h-auto py-[88px] md:px-[0px] px-[20px] mx-auto flex flex-col gap-[48px]',
+        bundleImage: picbookBundlePng('PICBOOK_DAD'),
+        bundleImageMobile: picbookBundleMobilePng('PICBOOK_DAD'),
+        books: [
+          {
+            title: 'The Way I See You, Mama',
+            subtitle: 'The Sweetest Love Letter for Mama',
+            coverImage: '',
+            price: '$49.99',
+            backgroundColor: '#E8B4BC',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_MOM/Love.jpeg',
+            spuCode: 'PICBOOK_MOM',
+          },
+          {
+            title: 'Dad & Me: A Little Book of Our Big Memories',
+            subtitle: "A keepsake filled with Dad's love, laughter, and little moments",
+            coverImage: '',
+            price: '$49.99',
+            backgroundColor: '#4A90E2',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_DAD.png',
+            spuCode: 'PICBOOK_DAD',
+          },
+        ],
+        originalPrice: '$99.9',
+        discountedPrice: '$89.9',
+        buttonText: 'add 2 books to bag',
+      },
+      {
+        type: 'why-personalized',
+        title: '4 Dad Superpowers Kids Never Forget',
+        className: 'py-[48px] mx-auto md:w-full md:px-0 md:h-[860px] md:pt-[88px] md:pb-[128px]',
+        items: [
+          {
+            title: 'Turning boring things into adventures',
+            description:
+              'A trip to the grocery store somehow becomes “mission impossible” with Dad.',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-4.png',
+          },
+          {
+            title: 'Saying “be careful” while doing the exact opposite',
+            description:
+              'Dads will absolutely tell kids to stay safe… while helping them jump off something slightly too high.',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-3.png',
+          },
+          {
+            title: 'Having a PhD in silly jokes',
+            description:
+              'Somehow Dad can make kids laugh with the silliest voices, weirdest faces, or jokes that make absolutely no sense.',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-1.png',
+          },
+          {
+            title: 'Making kids feel safe without making it a big deal',
+            description:
+              'A shoulder ride, a bedtime check-in, carrying a sleepy child to bed — little things that quietly mean everything.',
+            backgroundImage:
+              'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-2.png',
           },
         ],
       },

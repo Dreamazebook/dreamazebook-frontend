@@ -4,6 +4,7 @@ const normalizeSpu = (spu: string) => (spu === 'PICBOOK_GOODNIGHT3' ? 'PICBOOK_G
 const OUR_BOOK_NAMES_BY_SPU: Record<string, string> = {
   PICBOOK_GOODNIGHT: 'Good Night to You',
   PICBOOK_MOM: 'The Way I See You, Mama',
+  PICBOOK_DAD: 'Dad & Me: A Little Book of Our Big Memories',
   PICBOOK_BRAVEY: "Little One, You're Brave in Many Ways",
   PICBOOK_BIRTHDAY: 'Birthday Book for You',
   PICBOOK_SANTA: "Santa's Letter for You",
