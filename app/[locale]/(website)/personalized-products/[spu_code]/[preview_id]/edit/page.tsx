@@ -15,6 +15,7 @@ import SingleCharacterForm2, { SingleCharacterForm2Handle } from '@/app/[locale]
 import usePreviewStore from '@/stores/previewStore';
 import { isPicbookBirthday } from '@/utils/isPicbookBirthday';
 import { isPicbookMom } from '@/utils/isPicbookMom';
+import { getPersonalizeAvatarAssetSpu } from '@/utils/personalizeAvatar';
 import {
   BIRTHDAY_PERSONALITY_TRAITS,
   formatBirthDateIso,
@@ -535,7 +536,7 @@ export default function EditPersonalizedProductPage() {
   const renderForm = () => {
     if (isLoading) return <SkeletonLoader />;
     if (!formType) return null;
-    const form1Asset = birthdayBook ? 'PICBOOK_BIRTHDAY' : momBook ? 'PICBOOK_MOM' : 'PICBOOK_GOODNIGHT';
+    const form1Asset = getPersonalizeAvatarAssetSpu(bookId);
     if (formType === 'SINGLE1')
       return (
         <SingleCharacterForm1

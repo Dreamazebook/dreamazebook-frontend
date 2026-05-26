@@ -21,6 +21,9 @@ import AvatarCanvas from './AvatarCanvas';
 
 export type AgeStage = '' | 'infant' | 'toddler' | 'preschooler' | 'early_school_age';
 
+export const PERSONALIZE_AVATAR_PREVIEW_CAPTION =
+  'This little avatar is only a preview — your real photos will bring the story to life.';
+
 export interface BasicInfoData {
   fullName: string;
   gender: '' | 'boy' | 'girl';
@@ -53,6 +56,8 @@ interface BasicInfoFormProps {
   hideHairstyleAndHairColor?: boolean;
   /** 为 true 时在肤色下方展示 Age stage 与 From whom（SingleCharacterForm1） */
   showAgeStageAndFromWhom?: boolean;
+  /** avatar 区域上方的小标题（如 PICBOOK_DAD 第一页 "About Your Child"） */
+  avatarSectionTitle?: string;
 }
 
 const FORM1_AGE_OPTIONS: {
@@ -123,6 +128,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   assetSpuCode,
   hideHairstyleAndHairColor = false,
   showAgeStageAndFromWhom = false,
+  avatarSectionTitle,
 }) => {
   const [showSkinColorTooltip, setShowSkinColorTooltip] = useState(false);
   const ageStagePolicy = getPersonalizeAgeStagePolicy(bookId);
@@ -307,7 +313,12 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
   return (
     <div className="flex flex-col gap-3 md:gap-6">
       {/* 预览图 */}
-      <div className="flex justify-center -mt-6 -mb-3 md:-mt-0 md:-mb-0 w-full overflow-hidden">
+      <div className="flex flex-col items-center -mt-6 -mb-3 md:-mt-0 md:-mb-0 w-full overflow-hidden">
+        {avatarSectionTitle ? (
+          <h2 className="w-full text-center font-semibold text-[#222222] text-[16px] leading-[24px] tracking-[0.15px] mb-2">
+            {avatarSectionTitle}
+          </h2>
+        ) : null}
         <AvatarCanvas
           bookId={bookId}
           skinColor={data.skinColor || '#FFE2CF'}
@@ -319,7 +330,9 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         />
       </div>
       <p className="text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[#999999]">
-        This cute avatar is just the beginning — your child's photo is where the magic happens.
+        {avatarSectionTitle
+          ? PERSONALIZE_AVATAR_PREVIEW_CAPTION
+          : "This cute avatar is just the beginning — your child's photo is where the magic happens."}
       </p>
 
       {/* First name */}

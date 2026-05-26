@@ -93,21 +93,14 @@ const AutoLoopVideo: React.FC<{ src: string; className?: string; isActive?: bool
     >
       {(() => {
         const lower = src.toLowerCase();
-        const hasExt = lower.endsWith('.mp4') || lower.endsWith('.webm');
-        if (hasExt) {
-          const base = src.replace(/\.(mp4|webm)$/i, '');
-          const mp4Src = `${base}.mp4`;
-          const webmSrc = `${base}.webm`;
-          return (
-            <>
-              {/* iOS / 大部分浏览器优先使用 mp4 */}
-              <source src={mp4Src} type="video/mp4" />
-              {/* Chrome 等支持 webm 的浏览器可用 webm */}
-              {webmSrc !== mp4Src && <source src={webmSrc} type="video/webm" />}
-            </>
-          );
+        // Gallery 资源通常只有单一格式（如 PICBOOK_DAD 的 d2_fout.webm），
+        // 不要根据扩展名再拼出另一种格式，否则会触发 404。
+        if (lower.endsWith('.webm')) {
+          return <source src={src} type="video/webm" />;
         }
-        // 兜底：使用原始 src
+        if (lower.endsWith('.mp4')) {
+          return <source src={src} type="video/mp4" />;
+        }
         return <source src={src} />;
       })()}
       Your browser does not support the video tag.

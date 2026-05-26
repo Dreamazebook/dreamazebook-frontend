@@ -6,14 +6,25 @@ import { Link } from '@/i18n/routing';
 import BasicInfoForm, { BasicInfoData } from './BasicInfoForm';
 import MultiImageUpload from './MultiImageUpload';
 import MomChildPhotoUpload from './MomChildPhotoUpload';
+import DadMomChildPhotoUpload from './DadMomChildPhotoUpload';
+import DadCustomizeStep from './DadCustomizeStep';
+import MomCustomizeStep from './MomCustomizeStep';
+import DadPersonalizeSidebar from './DadPersonalizeSidebar';
+import { PERSONALIZE_PHOTO_CONSENT_PREFIX } from './PersonalizePhotoUploadTips';
 import useMultiImageUpload from '../../hooks/useMultiImageUpload';
 import { useMomChildPhotoSlots } from '../../hooks/useMomChildPhotoSlots';
+import {
+  useDadMomChildPhotoSlots,
+  type DadMomChildSlotIndex,
+} from '../../hooks/useDadMomChildPhotoSlots';
 import GiverAvatarCropper from '../../preview/components/GiverAvatarCropper';
 import BirthdayBringThemToLifeStep from './BirthdayBringThemToLifeStep';
 import { isPicbookBirthday } from '@/utils/isPicbookBirthday';
 import { isPicbookMom } from '@/utils/isPicbookMom';
+import { isPicbookDad } from '@/utils/isPicbookDad';
 import { getDefaultAgeStageForPersonalize } from '@/utils/personalizeAgeStagePolicy';
 import { parseBirthDateIso } from '@/utils/birthdayPersonalizeHelpers';
+import type { DadQuestionConfig } from '@/utils/dadPersonalizeHelpers';
 
 const BIRTHDAY_TRAITS_REQUIRED = 4;
 
@@ -24,13 +35,19 @@ export interface PersonalizeFormData extends BasicInfoData {
   /** PICBOOK_BIRTHDAY：生日与特质 */
   birthDate?: Date | null;
   personalityTraitIds?: string[];
-  /** PICBOOK_MOM：孩子视角文案 */
+  /** PICBOOK_MOM：孩子视角文案与妈妈肤色 */
   momCallsMe?: string;
   momMakesBest?: string;
+  momSkinColor?: string;
+  /** PICBOOK_DAD：爸爸称呼与肤色 */
+  dadTitle?: string;
+  dadSkinColor?: string;
+  /** PICBOOK_DAD：customization_config.dad_questions 答案，key 为 attribute_name */
+  dadQuestionAnswers?: Record<string, string>;
 }
 
 export interface SingleCharacterForm1Handle {
-  validateForm: (options?: { scope?: 'step1' | 'stepBirthday' | 'stepMomLove' | 'stepMomPhotos' | 'all' }) => {
+  validateForm: (options?: { scope?: 'step1' | 'stepBirthday' | 'stepMomLove' | 'stepDadCustomize' | 'stepMomPhotos' | 'all' }) => {
     isValid: boolean;
     firstErrorField: string | null;
   };
@@ -54,6 +71,9 @@ interface FormErrors {
   personalityTraits?: string;
   momCallsMe?: string;
   momMakesBest?: string;
+  momSkinColor?: string;
+  dadTitle?: string;
+  dadSkinColor?: string;
 }
 
 interface SingleCharacterForm1Props {
@@ -71,6 +91,9 @@ interface SingleCharacterForm1Props {
     personalityTraitIds?: string[];
     momCallsMe?: string;
     momMakesBest?: string;
+    momSkinColor?: string;
+    dadTitle?: string;
+    dadSkinColor?: string;
   };
   bookId?: string;
   defaultConsentChecked?: boolean;
@@ -84,6 +107,7 @@ interface SingleCharacterForm1Props {
   };
   assetSpuCode?: string;
   currentStep?: number;
+  dadQuestions?: DadQuestionConfig[];
   onCropperOpenChange?: (isOpen: boolean) => void;
 }
 
@@ -99,14 +123,16 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       uploadOptions,
       assetSpuCode,
       currentStep = 1,
+      dadQuestions = [],
       onCropperOpenChange,
     },
     ref
   ) => {
     const isBirthdayBook = isPicbookBirthday(bookId);
     const isMomBook = isPicbookMom(bookId);
-    /** 最后一页为上传图：生日书与 Mom 书均为第 3 步；中间步可插书别定制（Mom 第 2 步文案等） */
-    const photoStep = isBirthdayBook || isMomBook ? 3 : 2;
+    const isDadBook = isPicbookDad(bookId);
+    /** 最后一页为上传图：生日 / Mom / Dad 书均为第 3 步 */
+    const photoStep = isBirthdayBook || isMomBook || isDadBook ? 3 : 2;
 
     const [formData, setFormData] = useState<PersonalizeFormData>({
       fullName: initialData?.fullName ?? '',
@@ -126,9 +152,15 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
         : [],
       momCallsMe: initialData?.momCallsMe ?? '',
       momMakesBest: initialData?.momMakesBest ?? '',
+      momSkinColor: initialData?.momSkinColor ?? '#FFE2CF',
+      dadTitle: initialData?.dadTitle ?? '',
+      dadSkinColor: initialData?.dadSkinColor ?? '#FFE2CF',
+      dadQuestionAnswers: {},
     });
     const [errors, setErrors] = useState<FormErrors>({});
     const [touched, setTouched] = useState<{ [K in keyof PersonalizeFormData]?: boolean }>({});
+    const [dadQuestionTouched, setDadQuestionTouched] = useState<Record<string, boolean>>({});
+    const [dadQuestionErrors, setDadQuestionErrors] = useState<Record<string, string>>({});
     const [traitsHintFlashNonce, setTraitsHintFlashNonce] = useState(0);
     const [isCropperOpen, setIsCropperOpen] = useState(false);
     const [pendingFiles, setPendingFiles] = useState<File[]>([]);
@@ -136,6 +168,23 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
     const [pendingMomSlot, setPendingMomSlot] = useState<0 | 1 | null>(null);
     const [momSlotDrag, setMomSlotDrag] = useState<[boolean, boolean]>([false, false]);
+    const [pendingDadSlot, setPendingDadSlot] = useState<DadMomChildSlotIndex | null>(null);
+    const [dadSlotDrag, setDadSlotDrag] = useState<[boolean, boolean, boolean]>([false, false, false]);
+
+    useEffect(() => {
+      if (!isDadBook || dadQuestions.length === 0) return;
+      setFormData(prev => {
+        const nextAnswers = { ...(prev.dadQuestionAnswers || {}) };
+        let changed = false;
+        for (const q of dadQuestions) {
+          if (!(q.attribute_name in nextAnswers)) {
+            nextAnswers[q.attribute_name] = '';
+            changed = true;
+          }
+        }
+        return changed ? { ...prev, dadQuestionAnswers: nextAnswers } : prev;
+      });
+    }, [isDadBook, dadQuestions]);
 
     const {
       images,
@@ -170,6 +219,20 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       maxFileSize: uploadOptions?.maxFileSize,
     });
 
+    const {
+      slots: dadSlots,
+      isUploading: dadUploading,
+      uploadProgress: dadUploadProgress,
+      error: dadUploadError,
+      uploadToSlot: uploadToDadSlot,
+      clearSlot: clearDadSlot,
+      getDadMomChildPaths,
+      initializeWithUrls: initializeDadSlotsWithUrls,
+    } = useDadMomChildPhotoSlots({
+      allowedTypes: uploadOptions?.allowedTypes,
+      maxFileSize: uploadOptions?.maxFileSize,
+    });
+
     useEffect(() => {
       const photosToInit =
         initialData?.photos && initialData.photos.length > 0
@@ -187,6 +250,13 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
           handleBasicInfoChange('photo', { path: childPath });
           handleErrorChange('photo', '');
         }
+      } else if (isDadBook) {
+        initializeDadSlotsWithUrls(photosToInit.slice(0, 3));
+        const childPath = photosToInit[2] || photosToInit[0];
+        if (childPath) {
+          handleBasicInfoChange('photo', { path: childPath });
+          handleErrorChange('photo', '');
+        }
       } else {
         initializeWithUrls(photosToInit);
         const firstPhoto = photosToInit[0];
@@ -196,10 +266,10 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
         }
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initialData?.photo?.path, initialData?.photos, isMomBook]);
+    }, [initialData?.photo?.path, initialData?.photos, isMomBook, isDadBook]);
 
     useEffect(() => {
-      if (isMomBook) return;
+      if (isMomBook || isDadBook) return;
       const firstUploaded = images.find(img => (img as any).dataUrl || (img as any).uploadedFilePath);
       const picked = (firstUploaded as any)?.dataUrl || (firstUploaded as any)?.uploadedFilePath;
 
@@ -210,7 +280,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
         handleBasicInfoChange('photo', null);
         handleErrorChange('photo', 'Please upload a photo');
       }
-    }, [images, formData.photo, isMomBook]);
+    }, [images, formData.photo, isMomBook, isDadBook]);
 
     const handleBasicInfoChange = useCallback((field: keyof BasicInfoData, value: string | { file?: File; path: string } | null) => {
       setFormData(prev => ({ ...prev, [field]: value }));
@@ -262,6 +332,47 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       if (f) handleMomSlotFileChosen(slot, f);
     };
 
+    const handleDadSlotFileChosen = (slot: DadMomChildSlotIndex, file: File) => {
+      setPendingDadSlot(slot);
+      setPendingFiles([file]);
+      if (pendingPreviewUrl) {
+        URL.revokeObjectURL(pendingPreviewUrl);
+      }
+      setPendingPreviewUrl(URL.createObjectURL(file));
+      setIsCropperOpen(true);
+      onCropperOpenChange?.(true);
+    };
+
+    const handleDadSlotDragEnter = (slot: DadMomChildSlotIndex, e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setDadSlotDrag(d => {
+        const n: [boolean, boolean, boolean] = [d[0], d[1], d[2]];
+        n[slot] = true;
+        return n;
+      });
+    };
+
+    const handleDadSlotDragLeave = (slot: DadMomChildSlotIndex, e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setDadSlotDrag(d => {
+        const n: [boolean, boolean, boolean] = [d[0], d[1], d[2]];
+        n[slot] = false;
+        return n;
+      });
+    };
+
+    const handleDadSlotDragOver = (_slot: DadMomChildSlotIndex, e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    const handleDadSlotDrop = (slot: DadMomChildSlotIndex, e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setDadSlotDrag([false, false, false]);
+      const f = e.dataTransfer.files?.[0];
+      if (f) handleDadSlotFileChosen(slot, f);
+    };
+
     const handlePhotosUpload = async (files: File[]) => {
       if (!files || files.length === 0) return;
       const maxImages = uploadOptions?.maxImages ?? 1;
@@ -282,6 +393,23 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     };
 
     const handleCroppedFile = async (file: File) => {
+      if (isDadBook && pendingDadSlot !== null) {
+        const path = await uploadToDadSlot(pendingDadSlot, file);
+        setTouched(prev => ({ ...prev, photo: true }));
+        if (path) {
+          handleErrorChange('photo', '');
+        }
+        setPendingDadSlot(null);
+        setIsCropperOpen(false);
+        onCropperOpenChange?.(false);
+        setPendingFiles([]);
+        if (pendingPreviewUrl) {
+          URL.revokeObjectURL(pendingPreviewUrl);
+          setPendingPreviewUrl(null);
+        }
+        return;
+      }
+
       if (isMomBook && pendingMomSlot !== null) {
         const path = await uploadToSlot(pendingMomSlot, file);
         setTouched(prev => ({ ...prev, photo: true }));
@@ -338,6 +466,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       onCropperOpenChange?.(false);
       setPendingFiles([]);
       setPendingMomSlot(null);
+      setPendingDadSlot(null);
       if (pendingPreviewUrl) {
         URL.revokeObjectURL(pendingPreviewUrl);
         setPendingPreviewUrl(null);
@@ -362,10 +491,10 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     };
 
     useEffect(() => {
-      if (isMomBook) return;
+      if (isMomBook || isDadBook) return;
       const uploadedPaths = getUploadedPaths();
       setFormData(prev => ({ ...prev, photos: uploadedPaths }));
-    }, [getUploadedPaths, isMomBook]);
+    }, [getUploadedPaths, isMomBook, isDadBook]);
 
     useEffect(() => {
       if (!isMomBook) return;
@@ -380,6 +509,20 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isMomBook, momSlots]);
+
+    useEffect(() => {
+      if (!isDadBook) return;
+      const [d, m, c] = getDadMomChildPaths();
+      setFormData(prev => ({
+        ...prev,
+        photo: c ? ({ path: c } as any) : d ? ({ path: d } as any) : null,
+        photos: d && m && c ? [d, m, c] : [],
+      }));
+      if (d && m && c) {
+        handleErrorChange('photo', '');
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isDadBook, dadSlots]);
 
     const runStep1Validation = (form: PersonalizeFormData, newErrors: FormErrors) => {
       if (!form.fullName.trim()) newErrors.fullName = 'Please enter the first name';
@@ -401,10 +544,31 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
 
     const runMomLoveValidation = (form: PersonalizeFormData, newErrors: FormErrors) => {
       if (!String(form.momCallsMe || '').trim()) {
-        newErrors.momCallsMe = 'Please add what Mama calls them';
+        newErrors.momCallsMe = 'Please add what Mom calls your child';
+      }
+      if (!form.momSkinColor) {
+        newErrors.momSkinColor = 'Please select a skin tone';
       }
       if (!String(form.momMakesBest || '').trim()) {
-        newErrors.momMakesBest = 'Please add what Mama makes best';
+        newErrors.momMakesBest = 'Please add what Mom is best at';
+      }
+    };
+
+    const runDadCustomizeValidation = (
+      form: PersonalizeFormData,
+      newErrors: FormErrors,
+      questionErrors: Record<string, string>
+    ) => {
+      if (!String(form.dadTitle || '').trim()) {
+        newErrors.dadTitle = 'Please add what they call Dad';
+      }
+      if (!form.dadSkinColor) {
+        newErrors.dadSkinColor = 'Please select a skin tone';
+      }
+      for (const q of dadQuestions) {
+        if (!String(form.dadQuestionAnswers?.[q.attribute_name] || '').trim()) {
+          questionErrors[q.attribute_name] = 'Please answer this question';
+        }
       }
     };
 
@@ -414,6 +578,11 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
         if (!m || !c) {
           newErrors.photo = 'Please upload a photo for both Mom and Child';
         }
+      } else if (isDadBook) {
+        const [d, m, c] = getDadMomChildPaths();
+        if (!d || !m || !c) {
+          newErrors.photo = 'Please upload a photo for Dad, Mom and Child';
+        }
       } else if (!form.photo) {
         newErrors.photo = 'Please upload a photo';
       }
@@ -422,9 +591,11 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     };
 
     useImperativeHandle(ref, () => ({
-      validateForm(options?: { scope?: 'step1' | 'stepBirthday' | 'stepMomLove' | 'stepMomPhotos' | 'all' }) {
+      validateForm(options?: { scope?: 'step1' | 'stepBirthday' | 'stepMomLove' | 'stepDadCustomize' | 'stepMomPhotos' | 'all' }) {
         const scope = options?.scope ?? 'all';
         const newErrors: FormErrors = {};
+        const nextQuestionErrors: Record<string, string> = {};
+        const nextQuestionTouched: Record<string, boolean> = {};
         const nextTouched: { [K in keyof PersonalizeFormData]?: boolean } = {
           fullName: true,
           gender: true,
@@ -446,7 +617,13 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
         } else if (scope === 'stepMomLove') {
           nextTouched.momCallsMe = true;
           nextTouched.momMakesBest = true;
+          nextTouched.momSkinColor = true;
           runMomLoveValidation(formData, newErrors);
+        } else if (scope === 'stepDadCustomize') {
+          nextTouched.dadTitle = true;
+          nextTouched.dadSkinColor = true;
+          for (const q of dadQuestions) nextQuestionTouched[q.attribute_name] = true;
+          runDadCustomizeValidation(formData, newErrors, nextQuestionErrors);
         } else if (scope === 'stepMomPhotos') {
           nextTouched.photo = true;
           nextTouched.relationship = true;
@@ -462,7 +639,14 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
           if (isMomBook) {
             nextTouched.momCallsMe = true;
             nextTouched.momMakesBest = true;
+            nextTouched.momSkinColor = true;
             runMomLoveValidation(formData, newErrors);
+          }
+          if (isDadBook) {
+            nextTouched.dadTitle = true;
+            nextTouched.dadSkinColor = true;
+            for (const q of dadQuestions) nextQuestionTouched[q.attribute_name] = true;
+            runDadCustomizeValidation(formData, newErrors, nextQuestionErrors);
           }
           nextTouched.photo = true;
           nextTouched.relationship = true;
@@ -472,8 +656,18 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
 
         setTouched(prev => ({ ...prev, ...nextTouched }));
         setErrors(newErrors);
-        const firstErrorKey = Object.keys(newErrors)[0] || null;
-        return { isValid: Object.keys(newErrors).length === 0, firstErrorField: firstErrorKey };
+        setDadQuestionErrors(nextQuestionErrors);
+        if (Object.keys(nextQuestionTouched).length > 0) {
+          setDadQuestionTouched(prev => ({ ...prev, ...nextQuestionTouched }));
+        }
+
+        const orderedErrorFields = [
+          ...Object.keys(newErrors),
+          ...dadQuestions.map(q => q.attribute_name).filter(name => nextQuestionErrors[name]),
+        ];
+        const firstErrorField = orderedErrorFields[0] || null;
+        const isValid = orderedErrorFields.length === 0;
+        return { isValid, firstErrorField };
       },
       formData,
       getFormData() {
@@ -485,6 +679,14 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
             photos: m && c ? [m, c] : [],
           } as PersonalizeFormData;
         }
+        if (isDadBook) {
+          const [d, m, c] = getDadMomChildPaths();
+          return {
+            ...formData,
+            photo: c ? ({ path: c } as any) : d ? ({ path: d } as any) : null,
+            photos: d && m && c ? [d, m, c] : [],
+          } as PersonalizeFormData;
+        }
         const currentPaths = getUploadedPaths();
         return {
           ...formData,
@@ -493,21 +695,6 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       },
       isCropperOpen,
     }));
-
-    const getConsentText = (relationship: string | undefined) => {
-      switch (relationship) {
-        case 'Parent/Guardian':
-          return "I confirm that I am this child's parent or legal guardian, I am over 18, and I give my consent to use these details and photos to create their personalized storybook, in line with the";
-        case 'Grandparent':
-        case 'Aunt/Uncle':
-        case 'Family Friend':
-          return "I confirm that I am over 18 and that the child's parent or guardian has given me permission to share these details and photos so we can create their personalized storybook, in line with the";
-        case 'Other':
-          return "I confirm that I am over 18 and that the child's parent or guardian has given me consent to share these details and photos so we can create their personalized storybook, in line with the";
-        default:
-          return "I confirm that I am this child's parent or legal guardian, I am over 18, and I give my consent to use these details and photos to create their personalized storybook, in line with the";
-      }
-    };
 
     const handleToggleTrait = (id: string) => {
       setFormData(prev => {
@@ -570,6 +757,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                   assetSpuCode={assetSpuCode}
                   hideHairstyleAndHairColor
                   showAgeStageAndFromWhom
+                  avatarSectionTitle={isDadBook || isMomBook ? 'About Your Child' : undefined}
                 />
               )}
 
@@ -592,55 +780,67 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
               )}
 
               {isMomBook && currentStep === 2 && (
-                <div className="space-y-6">
-                  <div id="field-momCallsMe">
-                    <label className="block font-semibold text-[#222222] text-[16px] leading-[24px] tracking-[0.15px] mb-1">
-                      Mama calls me
-                    </label>
-                    <p className="text-[#999999] text-[14px] leading-[20px] mb-2">
-                      lily, sweetie pie, little bear...
-                    </p>
-                    <input
-                      type="text"
-                      value={formData.momCallsMe ?? ''}
-                      onChange={e => {
-                        setFormData(prev => ({ ...prev, momCallsMe: e.target.value }));
-                        setTouched(prev => ({ ...prev, momCallsMe: true }));
-                        setErrors(prev => ({ ...prev, momCallsMe: '' }));
-                      }}
-                      onBlur={() => setTouched(prev => ({ ...prev, momCallsMe: true }))}
-                      className="w-full px-3 py-2.5 border border-[#E5E5E5] rounded text-[#222222] text-[16px] focus:outline-none focus:border-[#012CCE]"
-                      autoComplete="off"
-                    />
-                    {touched.momCallsMe && errors.momCallsMe && (
-                      <p className="text-red-500 text-sm mt-1">{errors.momCallsMe}</p>
-                    )}
-                  </div>
-                  <div id="field-momMakesBest">
-                    <label className="block text-[#222222] text-[16px] leading-[24px] tracking-[0.15px] mb-1">
-                      <span className="font-semibold">Mama makes the best</span>
-                      <span className="font-normal text-[#999999]"> (1–3 words works best)</span>
-                    </label>
-                    <p className="text-[#999999] text-[14px] leading-[20px] mb-2">
-                      pancakes, stories, lego...
-                    </p>
-                    <input
-                      type="text"
-                      value={formData.momMakesBest ?? ''}
-                      onChange={e => {
-                        setFormData(prev => ({ ...prev, momMakesBest: e.target.value }));
-                        setTouched(prev => ({ ...prev, momMakesBest: true }));
-                        setErrors(prev => ({ ...prev, momMakesBest: '' }));
-                      }}
-                      onBlur={() => setTouched(prev => ({ ...prev, momMakesBest: true }))}
-                      className="w-full px-3 py-2.5 border border-[#E5E5E5] rounded text-[#222222] text-[16px] focus:outline-none focus:border-[#012CCE]"
-                      autoComplete="off"
-                    />
-                    {touched.momMakesBest && errors.momMakesBest && (
-                      <p className="text-red-500 text-sm mt-1">{errors.momMakesBest}</p>
-                    )}
-                  </div>
-                </div>
+                <MomCustomizeStep
+                  bookId={bookId}
+                  momCallsMe={formData.momCallsMe ?? ''}
+                  momMakesBest={formData.momMakesBest ?? ''}
+                  momSkinColor={formData.momSkinColor ?? '#FFE2CF'}
+                  onMomCallsMeChange={value => {
+                    setFormData(prev => ({ ...prev, momCallsMe: value }));
+                    setTouched(prev => ({ ...prev, momCallsMe: true }));
+                    setErrors(prev => ({ ...prev, momCallsMe: '' }));
+                  }}
+                  onMomMakesBestChange={value => {
+                    setFormData(prev => ({ ...prev, momMakesBest: value }));
+                    setTouched(prev => ({ ...prev, momMakesBest: true }));
+                    setErrors(prev => ({ ...prev, momMakesBest: '' }));
+                  }}
+                  onMomSkinColorChange={value => {
+                    setFormData(prev => ({ ...prev, momSkinColor: value }));
+                    setTouched(prev => ({ ...prev, momSkinColor: true }));
+                    setErrors(prev => ({ ...prev, momSkinColor: '' }));
+                  }}
+                  momCallsMeError={errors.momCallsMe}
+                  momMakesBestError={errors.momMakesBest}
+                  momSkinColorError={errors.momSkinColor}
+                  momCallsMeTouched={touched.momCallsMe}
+                  momMakesBestTouched={touched.momMakesBest}
+                  momSkinColorTouched={touched.momSkinColor}
+                />
+              )}
+
+              {isDadBook && currentStep === 2 && (
+                <DadCustomizeStep
+                  bookId={bookId}
+                  dadTitle={formData.dadTitle ?? ''}
+                  dadSkinColor={formData.dadSkinColor ?? '#FFE2CF'}
+                  dadQuestions={dadQuestions}
+                  dadQuestionAnswers={formData.dadQuestionAnswers ?? {}}
+                  onDadTitleChange={value => {
+                    setFormData(prev => ({ ...prev, dadTitle: value }));
+                    setTouched(prev => ({ ...prev, dadTitle: true }));
+                    setErrors(prev => ({ ...prev, dadTitle: '' }));
+                  }}
+                  onDadSkinColorChange={value => {
+                    setFormData(prev => ({ ...prev, dadSkinColor: value }));
+                    setTouched(prev => ({ ...prev, dadSkinColor: true }));
+                    setErrors(prev => ({ ...prev, dadSkinColor: '' }));
+                  }}
+                  onDadQuestionChange={(attributeName, value) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      dadQuestionAnswers: { ...(prev.dadQuestionAnswers || {}), [attributeName]: value },
+                    }));
+                    setDadQuestionTouched(prev => ({ ...prev, [attributeName]: true }));
+                    setDadQuestionErrors(prev => ({ ...prev, [attributeName]: '' }));
+                  }}
+                  dadTitleError={errors.dadTitle}
+                  dadSkinColorError={errors.dadSkinColor}
+                  dadTitleTouched={touched.dadTitle}
+                  dadSkinColorTouched={touched.dadSkinColor}
+                  dadQuestionErrors={dadQuestionErrors}
+                  dadQuestionTouched={dadQuestionTouched}
+                />
               )}
 
               {currentStep === photoStep && (
@@ -658,6 +858,20 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                       onSlotDrop={handleMomSlotDrop}
                       onSlotFileChosen={handleMomSlotFileChosen}
                       onDeleteSlot={clearMomSlot}
+                    />
+                  ) : isDadBook ? (
+                    <DadMomChildPhotoUpload
+                      slots={dadSlots}
+                      isUploading={dadUploading}
+                      uploadProgress={dadUploadProgress}
+                      error={dadUploadError}
+                      slotDragging={dadSlotDrag}
+                      onSlotDragEnter={handleDadSlotDragEnter}
+                      onSlotDragLeave={handleDadSlotDragLeave}
+                      onSlotDragOver={handleDadSlotDragOver}
+                      onSlotDrop={handleDadSlotDrop}
+                      onSlotFileChosen={handleDadSlotFileChosen}
+                      onDeleteSlot={clearDadSlot}
                     />
                   ) : (
                     <MultiImageUpload
@@ -741,10 +955,11 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                       }}
                     />
                     <span className="text-[#666666] text-[14px] leading-[20px] tracking-[0.5px]">
-                      {getConsentText(formData.relationship)}{' '}
+                      {PERSONALIZE_PHOTO_CONSENT_PREFIX}{' '}
                       <Link href="/privacy-policy" className="text-[#012CCE] underline">
-                        Privacy Policy.
+                        Privacy Policy
                       </Link>
+                      .
                     </span>
                   </label>
                   {touched.consent && errors.consent && (
@@ -774,6 +989,15 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                 onDoneFile={handleCroppedFile}
               />
             </div>
+          </div>
+        )}
+
+        {(isDadBook || isMomBook) && (
+          <div className="hidden md:block absolute top-0 right-0 mr-14">
+            <DadPersonalizeSidebar
+              currentStep={currentStep}
+              aboutParentLabel={isMomBook ? 'About Mom' : 'About Dad'}
+            />
           </div>
         )}
       </div>

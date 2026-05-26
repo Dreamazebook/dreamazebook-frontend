@@ -29,6 +29,7 @@ import { BaseBook, DetailedBook } from '@/types/book';
 import { API_CART_LIST, API_CART_UPDATE } from '@/constants/api';
 import DisplayPrice from '../components/component/DisplayPrice';
 import { fbTrack, getContentIdBySpu } from '@/utils/track';
+import { shouldBypassNextImageOptimization } from '@/utils/previewImageOptimization';
 
 // 封面文字配置缓存：避免在同一会话内反复请求 R2
 const coverTextsCache: Record<string, Array<{
@@ -405,28 +406,32 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
     if (onError) onError(e);
   };
 
+  const preferNativeImg =
+    useNativeImg ||
+    shouldBypassNextImageOptimization(src) ||
+    shouldBypassNextImageOptimization(currentSrc);
+
+  const {
+    priority: _priority,
+    placeholder: _placeholder,
+    blurDataURL: _blurDataURL,
+    fill: _fill,
+    sizes: _sizes,
+    quality: _quality,
+    onLoadingComplete: _onLoadingComplete,
+    unoptimized: _unoptimized,
+    ...restImageProps
+  } = props || {};
+
   if (imgError) {
     return (
       <div className={`${className} bg-gray-200 flex items-center justify-center`} style={style}>
-        <p className="text-gray-500 text-sm">图片加载失败</p>
+        <p className="text-gray-500 text-sm">Page image failed to load</p>
       </div>
     );
   }
 
-  if (useNativeImg) {
-    // 过滤掉 Next/Image 专有或不适用于 <img> 的属性
-    const {
-      priority: _priority,
-      placeholder: _placeholder,
-      blurDataURL: _blurDataURL,
-      fill: _fill,
-      sizes: _sizes,
-      quality: _quality,
-      onLoadingComplete: _onLoadingComplete,
-      unoptimized: _unoptimized,
-      ...restProps
-    } = props || {};
-
+  if (preferNativeImg) {
     return (
       <img
         src={currentSrc}
@@ -436,8 +441,11 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
         className={className}
         style={style}
         onError={handleNativeImgError}
-        onLoad={onLoad}
-        {...restProps}
+        onLoad={(e) => {
+          onLoad?.(e);
+          onLoadingComplete?.(e.currentTarget);
+        }}
+        {...restImageProps}
       />
     );
   }
@@ -450,11 +458,14 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
       height={height}
       className={className}
       style={style}
-      unoptimized={src.includes('s3-pro-dre001') || src.includes('s3-pro-dre002') || src.includes('.r2.dev')}
+      unoptimized={
+        shouldBypassNextImageOptimization(src) ||
+        shouldBypassNextImageOptimization(currentSrc)
+      }
       onError={handleNextImageError}
       onLoad={onLoad}
       onLoadingComplete={onLoadingComplete}
-      {...props}
+      {...restImageProps}
     />
   );
 };
@@ -575,6 +586,7 @@ function CoverOptionImageWithName({
         alt={`Cover ${option.id} - ${option.name}`}
         width={cropRightHalf ? 400 : 200}
         height={200}
+        unoptimized
         className={`w-full h-auto object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
       />
     );
@@ -599,6 +611,7 @@ function CoverOptionImageWithName({
       alt={`Cover ${option.id} - ${option.name}`}
       width={cropRightHalf ? 400 : 200}
       height={200}
+      unoptimized={shouldBypassNextImageOptimization(baseSrc)}
       className={`w-full h-auto object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
     />
   );
@@ -688,13 +701,32 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
 }) {
   const t = useTranslations('Preview');
   const notifiedRef = useRef(false);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsImageLoaded(false);
+    notifiedRef.current = false;
+  }, [src]);
+
   const handleImageLoad = () => {
+    setIsImageLoaded(true);
     if (notifiedRef.current) return;
     notifiedRef.current = true;
     try {
       onImageLoaded?.(pageId);
     } catch {}
   };
+
+  const showImageLoadingPlaceholder = !showOverlay && !isImageLoaded;
+
+  const imageLoadingPlaceholder = showImageLoadingPlaceholder ? (
+    <div
+      className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-[#F8F8F8]"
+      aria-hidden={!showImageLoadingPlaceholder}
+    >
+      <DreamazeLogoRainbowLoader size={60} />
+    </div>
+  ) : null;
 
   if (viewMode === 'single') {
     return (
@@ -733,7 +765,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                 </div>
               </>
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg">
+              <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg bg-[#F8F8F8]">
                 <img
                   src={src}
                   alt={`Page ${pageNumber} - Left Half`}
@@ -751,6 +783,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                     handleImageLoad();
                   }}
                 />
+                {imageLoadingPlaceholder}
               </div>
             )}
           </div>
@@ -790,7 +823,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                 </div>
               </>
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg">
+              <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg bg-[#F8F8F8]">
                 <img
                   src={src}
                   alt={`Page ${pageNumber} - Right Half`}
@@ -808,9 +841,10 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                     handleImageLoad();
                   }}
                 />
+                {imageLoadingPlaceholder}
               </div>
             )}
-            {customOverlayContent && (
+            {customOverlayContent && isImageLoaded && !showOverlay && (
               <div className="absolute inset-0 z-10 pointer-events-none">
                 {customOverlayContent}
               </div>
@@ -853,14 +887,14 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
               </div>
             )}
           </div>
-          {customOverlayContent && (
+          {customOverlayContent && isImageLoaded && !showOverlay && (
             <div className="absolute inset-0 z-10 pointer-events-none">
               {customOverlayContent}
             </div>
           )}
         </div>
       ) : (
-        <div className={doubleFrame}>
+        <div className={doubleFrame} style={{ aspectRatio: '1600 / 600' }}>
           <OptimizedImage
             src={src}
             alt={`Page ${pageNumber}`}
@@ -876,7 +910,8 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
             }}
             onLoadingComplete={() => handleImageLoad()}
           />
-          {customOverlayContent && (
+          {imageLoadingPlaceholder}
+          {customOverlayContent && isImageLoaded && (
             <div className="absolute inset-0 z-10 pointer-events-none">
               {customOverlayContent}
             </div>
@@ -1380,6 +1415,18 @@ export default function PreviewPageWithTopNav() {
   // - 只有当 p3-4 出现且该页图片 onLoad 后才隐藏
   const [isStoryComingTargetPageLoaded, setIsStoryComingTargetPageLoaded] = useState(false);
   const storyComingTargetPageIdRef = useRef<number | null>(null);
+  /** 预览页底图 onLoad / Canvas 绘制完成标记，用于延迟显示 p3-4 等交互按钮 */
+  const [previewPageReadySrcById, setPreviewPageReadySrcById] = useState<Record<number, string>>({});
+  const markPreviewPageReady = useCallback((pageId: number, readySrc: string) => {
+    setPreviewPageReadySrcById(prev => {
+      if (prev[pageId] === readySrc) return prev;
+      return { ...prev, [pageId]: readySrc };
+    });
+  }, []);
+  const isPreviewPageReady = useCallback(
+    (pageId: number, expectedSrc: string) => previewPageReadySrcById[pageId] === expectedSrc,
+    [previewPageReadySrcById]
+  );
 
   // 为 Others 标签页添加局部状态，用于记录选中的选项
   const [selectedBookCover, setSelectedBookCover] = React.useState<number | null>(null);
@@ -5551,8 +5598,11 @@ export default function PreviewPageWithTopNav() {
                                     giverImageUrl={p34GiverOverlaySrc}
                                     giverImageScale={giverImageScale}
                                     onRendered={uploadP34ComposedImage}
+                                    overlayContent={p34ButtonsOverlay}
+                                    onVisualReady={() =>
+                                      markPreviewPageReady(page.page_id, `${p34BaseSrc}:canvas`)
+                                    }
                                   />
-                                  {p34ButtonsOverlay}
                                 </div>
                               )
                             ) : (momCompositeButtonOverlay || undefined))}
@@ -5563,39 +5613,68 @@ export default function PreviewPageWithTopNav() {
                               if (sneakPeekNoticePageId && loadedPageId === sneakPeekNoticePageId) {
                                 setIsSneakPeekNoticePageLoaded(true);
                               }
+                              const readySrc =
+                                momCompositeLocalPreviewSrc ??
+                                (p34FinalSrc && isGiverDedicationPage && !p34HasLocalChanges
+                                  ? p34FinalSrc
+                                  : src);
+                              markPreviewPageReady(loadedPageId, readySrc);
                             }}
                           />
-                          {isGiverDedicationPage && viewMode === 'double' && !pageFailed && !isSwapping && (
-                            <div className="mt-2 w-full grid grid-cols-2 gap-2 md:hidden">
-                              <div className="w-full flex justify-center">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    giverFileInputRef.current?.click();
-                                  }}
-                                  className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
-                                >
-                                  Personalize with a photo
-                                </button>
+                          {(() => {
+                            const p34InteractionReadyKey =
+                              p34FinalSrc && !p34HasLocalChanges
+                                ? p34FinalSrc
+                                : `${p34BaseSrc}:canvas`;
+                            const showP34MobileButtons =
+                              isGiverDedicationPage &&
+                              viewMode === 'double' &&
+                              !pageFailed &&
+                              !isSwapping &&
+                              isPreviewPageReady(page.page_id, p34InteractionReadyKey);
+                            if (!showP34MobileButtons) return null;
+                            return (
+                              <div className="mt-2 w-full grid grid-cols-2 gap-2 md:hidden">
+                                <div className="w-full flex justify-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      giverFileInputRef.current?.click();
+                                    }}
+                                    className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
+                                  >
+                                    Personalize with a photo
+                                  </button>
+                                </div>
+                                <div className="w-full flex flex-col items-center">
+                                  {renderMissingSectionPrompt('dedication')}
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditField('dedication')}
+                                    className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
+                                  >
+                                    Edit Dedication
+                                  </button>
+                                </div>
                               </div>
-                              <div className="w-full flex flex-col items-center">
-                                {renderMissingSectionPrompt('dedication')}
-                                <button
-                                  type="button"
-                                  onClick={() => setEditField('dedication')}
-                                  className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
-                                >
-                                  Edit Dedication
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                          {momCompositeButton && viewMode !== 'single' && (
+                            );
+                          })()}
+                          {momCompositeButton &&
+                            viewMode !== 'single' &&
+                            isPreviewPageReady(
+                              page.page_id,
+                              momCompositeLocalPreviewSrc ?? src
+                            ) && (
                             <div className="mt-2 w-full flex justify-center md:hidden">
                               {momCompositeButton}
                             </div>
                           )}
-                          {momCompositeButton && viewMode === 'single' && (
+                          {momCompositeButton &&
+                            viewMode === 'single' &&
+                            isPreviewPageReady(
+                              page.page_id,
+                              momCompositeLocalPreviewSrc ?? src
+                            ) && (
                             <div className="mt-6 w-full flex justify-center">
                               {momCompositeButton}
                             </div>

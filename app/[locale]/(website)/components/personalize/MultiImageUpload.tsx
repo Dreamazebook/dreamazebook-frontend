@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
-import Image from 'next/image';
 import { IoCloudUploadOutline, FaRegTrashAlt } from '@/utils/icons';
 import type { UploadedImage } from '../../hooks/useMultiImageUpload';
+import PersonalizePhotoUploadTips from './PersonalizePhotoUploadTips';
 
 interface MultiImageUploadProps {
   images: UploadedImage[];
@@ -34,7 +34,6 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showToast, setShowToast] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
 
   const showToastMessage = () => {
     setShowToast(true);
@@ -97,73 +96,11 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
 
   const canUploadMore = images.length < maxImages;
   const isSingle = maxImages <= 1;
+  const uploadSubtitle = isSingle ? 'Upload a photo' : `Upload up to ${maxImages} photos`;
 
   return (
     <div className="space-y-4">
-      {/* 标题和说明 */}
-      <div className="">
-        <div className="flex items-center mb-2">
-          <label className="block font-medium text-[#222222] text-[16px] leading-[24px] tracking-[0.15px]">
-            {isSingle ? 'Upload a Clear Photo' : `Upload 1–${maxImages} Clear Photos`}
-          </label>
-          <span className="text-gray-400 inline-flex items-center group relative font-normal ml-2">
-            <div 
-              className="w-4 h-4 rounded-full border border-[#666666] flex items-center justify-center cursor-pointer"
-              onClick={() => setShowTooltip(!showTooltip)}
-            >
-              <span className="text-[#666666] text-[10px] leading-none font-medium">?</span>
-            </div>
-            <div className={`${showTooltip ? 'block' : 'hidden'} md:group-hover:block absolute left-1/2 transform -translate-x-1/2 bottom-6 w-64 p-2 bg-white text-gray-800 text-sm rounded shadow-lg z-10 backdrop-blur`}>
-              <p>
-                Upload a clear photo so we can create a unique image of you.
-                {isSingle
-                  ? ' Your image is only used for this book; we use secure storage to help protect your privacy.'
-                  : ' Photos are only generated from user images. We have an independent database to ensure that your privacy will not be leaked.'}
-              </p>
-              {/* 箭头 */}
-              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white"></div>
-            </div>
-          </span>
-        </div>
-        <p className="text-[#999999] text-[16px] leading-[24px] tracking-[0.5px] mb-4">
-          {isSingle
-            ? 'To get the best result, please use a photo that meets the following:'
-            : 'To get the best result, please use photos that meet the following:'}
-        </p>
-      </div>
-
-      {/* 图片要求示例 - 左右布局 */}
-      <div className="flex flex-row gap-4 mb-6 bg-[#F8F8F8] py-3 px-4 rounded-[4px]">
-        {/* 左侧：示例图片 */}
-        <div className="flex-shrink-0 max-w-[102px] md:max-w-[80px]">
-          <Image
-            src="/personalize/face.png"
-            alt="Example photo"
-            width={200}
-            height={200}
-            className="w-full h-auto object-contain rounded-[4px] bg-gray-100"
-            sizes="(max-width: 768px) 80px, 102px"
-          />
-        </div>
-        
-        {/* 右侧：指南列表 */}
-        <div className="flex-1 flex items-start">
-          <ul className="space-y-2 text-[#666666] text-[14px] leading-[20px] tracking-[0.5px]">
-            <li className="flex items-start">
-              <span className="mr-2">•</span>
-              <span>Solo photo, front-facing, natural look</span>
-            </li>
-            <li className="flex items-start">
-              <span className="mr-2">•</span>
-              <span>Bright & clear image</span>
-            </li>
-            <li className="flex items-start">
-              <span className="mr-2">•</span>
-              <span>No pacifier, hat, or cap</span>
-            </li>
-          </ul>
-        </div>
-      </div>
+      <PersonalizePhotoUploadTips subtitle={uploadSubtitle} />
 
       {/* 上传区域 - 始终显示，达到张数上限时禁用 */}
       <div
