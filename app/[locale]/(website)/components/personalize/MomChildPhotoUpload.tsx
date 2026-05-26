@@ -20,7 +20,7 @@ export interface MomChildPhotoUploadProps {
   onDeleteSlot: (slotIndex: 0 | 1) => void;
 }
 
-const SLOT_LABELS: [string, string] = ['For Mom', 'For Child'];
+const SLOT_LABELS: [string, string] = ['Mom', 'Child'];
 const SLOT_PLACEHOLDER_SRC: [string, string] = ['/personalize/mom.png', '/personalize/face.png'];
 
 const MomChildPhotoUpload: React.FC<MomChildPhotoUploadProps> = ({

@@ -40,7 +40,7 @@ export default function DadPersonalizeSidebar({
             <span className={currentStep === 2 ? 'text-[#012CCE]' : 'text-[#CCCCCC]'}>{aboutParentLabel}</span>
           </div>
           <p className={`m-0 h-[20px] flex items-center font-semibold mt-auto ${isGetBookActive ? 'text-[#222222]' : 'text-[#CCCCCC]'}`}>
-            Get your book !
+            Preview Your Book
           </p>
         </div>
       </div>

@@ -83,7 +83,7 @@ const PICBOOK_DAD_REVIEW_DATA: BookReviewData = {
   keywords: [
     { keyword: 'Made mama cry', count: 5 },
     { keyword: 'heartfelt gift', count: 12 },
-    { keyword: "child's drawing inside", count: 8 },
+    { keyword: "the sweetest dad gift ", count: 7 },
     { keyword: 'family keepsake', count: 6 },
   ],
   reviews: [

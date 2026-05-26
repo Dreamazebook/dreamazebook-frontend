@@ -335,9 +335,9 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           : "This cute avatar is just the beginning — your child's photo is where the magic happens."}
       </p>
 
-      {/* First name */}
+      {/* Child's Name */}
       <div id="field-fullName">
-        <label className="block font-medium">First name</label>
+        <label className="block font-medium">Child&apos;s Name</label>
         <input
           type="text"
           placeholder="please enter..."
