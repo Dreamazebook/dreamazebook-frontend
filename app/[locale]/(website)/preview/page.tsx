@@ -11,6 +11,7 @@ import Image from 'next/image';
 import GiverDedicationCanvas from './components/GiverDedicationCanvas';
 import GiverAvatarCropper from './components/GiverAvatarCropper';
 import CoverNameCanvas from './components/CoverNameCanvas';
+import CoverSpreadFrame from './components/CoverSpreadFrame';
 import { DreamazeFaceSwapLoadingBar } from './components/DreamazeFaceSwapLoadingBar';
 import DreamazeLogoRainbowLoader from './components/DreamazeLogoRainbowLoader';
 import api, { fetchDreamazebookApi } from '@/utils/api';
@@ -30,6 +31,11 @@ import { API_CART_LIST, API_CART_UPDATE } from '@/constants/api';
 import DisplayPrice from '../components/component/DisplayPrice';
 import { fbTrack, getContentIdBySpu } from '@/utils/track';
 import { shouldBypassNextImageOptimization } from '@/utils/previewImageOptimization';
+import {
+  buildCoverTextVariables,
+  canDrawCoverTexts,
+  getCoverTextCacheKey,
+} from '@/utils/coverTextVariables';
 
 // 封面文字配置缓存：避免在同一会话内反复请求 R2
 const coverTextsCache: Record<string, Array<{
@@ -53,11 +59,42 @@ const normalizeCoverTexts = (json: any): Array<any> => {
     ...t,
     fontSize: typeof t?.fontSize === 'number' ? t.fontSize : t?.font_size,
     fontWeight: t?.fontWeight ?? t?.font_weight,
+    fontStyle: t?.fontStyle ?? t?.font_style,
   }));
+};
+
+const getFirstNonEmptyCoverValue = (...values: unknown[]) => {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return '';
+};
+
+const resolveCoverDadName = (previewStoreUserData: any, previewData: any) => {
+  try {
+    const storeChar = previewStoreUserData?.characters?.[0];
+    let lsChar: any = null;
+    if (typeof window !== 'undefined') {
+      const ls = localStorage.getItem('previewUserData');
+      if (ls) lsChar = JSON.parse(ls)?.characters?.[0];
+    }
+    const batchOptions = (previewData as any)?.batch_options;
+    return getFirstNonEmptyCoverValue(
+      storeChar?.attributes?.dad_name,
+      storeChar?.dadTitle,
+      lsChar?.attributes?.dad_name,
+      lsChar?.dadTitle,
+      batchOptions?.dad_name,
+      batchOptions?.attributes?.dad_name,
+    );
+  } catch {
+    return '';
+  }
 };
 
 // 叠字后封面的 DataURL 缓存：避免每次进入 Tab 都重新用 Canvas 合成
 const coverComposedImageCache: Record<string, string> = {};
+const COVER_COMPOSE_CACHE_VERSION = 'rowdies-v2';
 
 const hasMeaningfulFinalImage = (page: any): boolean => {
   const finalRaw = String(page?.final_image_url || '').trim();
@@ -480,12 +517,16 @@ function CoverOptionImageWithName({
   baseSrc,
   cropRightHalf,
   recipient,
+  coverTextVariables,
+  spreadAspectRatio,
 }: {
   bookId: string | null;
   option: CoverOption;
   baseSrc: string;
   cropRightHalf: boolean;
   recipient: string;
+  coverTextVariables: ReturnType<typeof buildCoverTextVariables>;
+  spreadAspectRatio?: number | null;
 }) {
   const [texts, setTexts] = useState<Array<{
     type?: string;
@@ -557,63 +598,71 @@ function CoverOptionImageWithName({
   }, [bookId, option.id, option.option_key]);
 
   const trimmedName = (recipient || '').trim();
-  const canDrawName = !!trimmedName && texts && texts.length > 0;
+  const canDrawName = canDrawCoverTexts(texts, coverTextVariables);
 
   // 如果已经有缓存的合成图片，直接使用，避免再次 Canvas 绘制
   const upperBookId = (bookId || '').toUpperCase();
   const rawCoverKey = option.option_key || String(option.id);
   const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(option.id);
-  const composedKey = `${upperBookId}_${coverId}_${trimmedName}_${baseSrc}`;
+  const variablesKey = getCoverTextCacheKey(coverTextVariables);
+  const composedKey = `${upperBookId}_${coverId}_${variablesKey}_${baseSrc}_${COVER_COMPOSE_CACHE_VERSION}`;
   const handleCoverRendered = useCallback((dataUrl: string) => {
     coverComposedImageCache[composedKey] = dataUrl;
     setComposedUrl(dataUrl);
   }, [composedKey]);
 
   useEffect(() => {
-    if (!trimmedName) {
+    if (!canDrawName) {
       setComposedUrl(null);
       return;
     }
     if (coverComposedImageCache[composedKey]) {
       setComposedUrl(coverComposedImageCache[composedKey]);
     }
-  }, [composedKey, trimmedName]);
+  }, [composedKey, canDrawName]);
 
   if (composedUrl) {
     return (
-      <Image
-        src={composedUrl}
-        alt={`Cover ${option.id} - ${option.name}`}
-        width={cropRightHalf ? 400 : 200}
-        height={200}
-        unoptimized
-        className={`w-full h-auto object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
-      />
+      <CoverSpreadFrame cropRightHalf={cropRightHalf} spreadAspectRatio={spreadAspectRatio}>
+        <Image
+          src={composedUrl}
+          alt={`Cover ${option.id} - ${option.name}`}
+          width={cropRightHalf ? 400 : 200}
+          height={200}
+          unoptimized
+          className="block h-full w-full object-cover object-right"
+        />
+      </CoverSpreadFrame>
     );
   }
 
   if (canDrawName) {
     return (
-      <CoverNameCanvas
-        src={baseSrc}
-        name={trimmedName}
-        texts={texts as any}
-        className="w-full h-auto block"
-        onRendered={handleCoverRendered}
-      />
+      <CoverSpreadFrame cropRightHalf={cropRightHalf} spreadAspectRatio={spreadAspectRatio}>
+        <CoverNameCanvas
+          src={baseSrc}
+          name={trimmedName}
+          variables={coverTextVariables}
+          texts={texts as any}
+          className="block h-full w-full"
+          onRendered={handleCoverRendered}
+        />
+      </CoverSpreadFrame>
     );
   }
 
   // 无文本配置或没有名字时，回退为普通封面图片
   return (
-    <Image
-      src={baseSrc}
-      alt={`Cover ${option.id} - ${option.name}`}
-      width={cropRightHalf ? 400 : 200}
-      height={200}
-      unoptimized={shouldBypassNextImageOptimization(baseSrc)}
-      className={`w-full h-auto object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
-    />
+    <CoverSpreadFrame cropRightHalf={cropRightHalf} spreadAspectRatio={spreadAspectRatio}>
+      <Image
+        src={baseSrc}
+        alt={`Cover ${option.id} - ${option.name}`}
+        width={cropRightHalf ? 400 : 200}
+        height={200}
+        unoptimized={shouldBypassNextImageOptimization(baseSrc)}
+        className="block h-full w-full object-cover object-right"
+      />
+    </CoverSpreadFrame>
   );
 }
 
@@ -1406,6 +1455,14 @@ export default function PreviewPageWithTopNav() {
   const [previewData, setPreviewData] = useState<PreviewResponse | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const coverTextVariables = useMemo(
+    () =>
+      buildCoverTextVariables({
+        name: recipient,
+        dadName: resolveCoverDadName(previewStoreUserData, previewData),
+      }),
+    [recipient, previewStoreUserData, previewData],
+  );
   // p7-8 展示完成后显示 sneak peek 提示文案
   const [isSneakPeekNoticePageLoaded, setIsSneakPeekNoticePageLoaded] = useState(false);
   const sneakPeekNoticePageIdRef = useRef<number | null>(null);
@@ -4844,7 +4901,6 @@ export default function PreviewPageWithTopNav() {
                       });
                       const raw = coverPage ? getPreviewDisplayImageRaw(coverPage) : '';
                       const backendSrc = raw ? buildImageUrl(String(raw)) : '';
-                      const ratio = coverThumbAspectRatio ?? (cropRightHalf ? 2 : 1);
                       const coverHasSwap = !!(coverPage as any)?.has_face_swap;
                       const coverHasBase = !!(coverPage as any)?.base_image_url || !!(coverPage as any)?.image_url;
                       const coverFailed = String((coverPage as any)?.status || '').toLowerCase() === 'failed';
@@ -4867,32 +4923,35 @@ export default function PreviewPageWithTopNav() {
                         waitingForBackendCoverDisplay;
 
                       return (
-                        <div
-                          className="relative w-full max-w-[400px] overflow-hidden rounded-lg shadow-md"
-                          style={{ aspectRatio: String(ratio) }}
-                        >
-                          {backendSrc ? (
-                            <OptimizedImage
-                              src={backendSrc}
-                              alt="Book Cover"
-                              width={cropRightHalf ? 400 : 200}
-                              height={200}
-                              priority
-                              className="absolute inset-0 h-full w-full object-cover object-right"
-                            />
-                          ) : (
-                            <Image
-                              src={base}
-                              alt="Book Cover"
-                              width={400}
-                              height={400}
-                              priority
-                              className={`absolute inset-0 h-full w-full object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
-                            />
-                          )}
+                        <div className="relative w-full max-w-[400px]">
+                          <CoverSpreadFrame
+                            cropRightHalf={cropRightHalf}
+                            spreadAspectRatio={coverThumbAspectRatio}
+                            className="relative w-full overflow-hidden rounded-lg shadow-md"
+                          >
+                            {backendSrc ? (
+                              <OptimizedImage
+                                src={backendSrc}
+                                alt="Book Cover"
+                                width={cropRightHalf ? 400 : 200}
+                                height={200}
+                                priority
+                                className="block h-full w-full"
+                              />
+                            ) : (
+                              <Image
+                                src={base}
+                                alt="Book Cover"
+                                width={400}
+                                height={400}
+                                priority
+                                className="block h-full w-full"
+                              />
+                            )}
+                          </CoverSpreadFrame>
                           {showCoverBusyOverlay && (
                             <div
-                              className="absolute inset-0 z-10 flex items-center justify-center bg-white/70"
+                              className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden rounded-lg bg-white/70"
                               style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}
                             >
                               {coverOverlayMode === 'failed' ? (
@@ -4911,7 +4970,7 @@ export default function PreviewPageWithTopNav() {
                     }
 
                     // 通用：如果当前封面在 R2 上有 page_properties.json，使用 Canvas 在封面图上绘制用户名
-                    if (activeOption && coverTextConfig && recipient && recipient.trim()) {
+                    if (activeOption && coverTextConfig && canDrawCoverTexts(coverTextConfig.texts, coverTextVariables)) {
                       const rawCoverKeyInner = activeOption.option_key || String(activeOption.id);
                       const coverIdInner = /^\d+$/.test(rawCoverKeyInner)
                         ? rawCoverKeyInner
@@ -4934,31 +4993,32 @@ export default function PreviewPageWithTopNav() {
                       }
                       if (coverTextConfig.key === expectedKey) {
                         return (
-                          <div className="relative w-full max-w-[400px] shadow-md rounded-lg overflow-hidden">
+                          <CoverSpreadFrame cropRightHalf={cropRightHalf} spreadAspectRatio={coverThumbAspectRatio}>
                             <CoverNameCanvas
                               // 使用本地域名代理过的图片地址，避免 Canvas CORS 污染
                               src={canvasBase}
                               name={recipient.trim()}
+                              variables={coverTextVariables}
                               texts={coverTextConfig.texts}
-                              className="w-full h-auto block"
+                              className="block h-full w-full"
                             />
-                          </div>
+                          </CoverSpreadFrame>
                         );
                       }
                     }
 
                     // 无 page_properties.json 的封面保持原有展示逻辑
                     return (
-                      <div className="relative w-full max-w-[400px] shadow-md rounded-lg overflow-hidden">
+                      <CoverSpreadFrame cropRightHalf={cropRightHalf} spreadAspectRatio={coverThumbAspectRatio}>
                         <Image
                           src={base}
                           alt="Book Cover"
                           width={400}
                           height={400}
                           priority
-                          className={`w-full h-auto object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
+                          className={`block h-full w-full object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
                         />
-                      </div>
+                      </CoverSpreadFrame>
                     );
                   }
 
@@ -5590,6 +5650,8 @@ export default function PreviewPageWithTopNav() {
                                 baseSrc={canvasBase}
                                 cropRightHalf={cropRightHalf}
                                 recipient={recipient}
+                                coverTextVariables={coverTextVariables}
+                                spreadAspectRatio={coverThumbAspectRatio}
                               />
                             </div>
                           );
@@ -5604,8 +5666,6 @@ export default function PreviewPageWithTopNav() {
                           });
                           const raw = coverPage ? getPreviewDisplayImageRaw(coverPage) : '';
                           const backendSrc = raw ? buildImageUrl(String(raw)) : '';
-                          // 以 cover_1 的真实宽高比为准，确保 cover_3/4 与 cover_1 同高
-                          const ratio = coverThumbAspectRatio ?? (cropRightHalf ? 2 : 1);
                           const coverHasSwap = !!(coverPage as any)?.has_face_swap;
                           const coverHasBase = !!(coverPage as any)?.base_image_url || !!(coverPage as any)?.image_url;
                           const coverFailed = String((coverPage as any)?.status || '').toLowerCase() === 'failed';
@@ -5626,27 +5686,30 @@ export default function PreviewPageWithTopNav() {
                             waitingForBackendCoverDisplay;
 
                           return (
-                            <div
-                              className="relative w-full mb-2 overflow-hidden"
-                              style={{ aspectRatio: String(ratio) }}
-                            >
-                              {backendSrc ? (
-                                <OptimizedImage
-                                  src={backendSrc}
-                                  alt={`Cover ${option.id} - ${option.name}`}
-                                  width={cropRightHalf ? 400 : 200}
-                                  height={200}
-                                  className="absolute inset-0 h-full w-full object-cover object-right"
-                                />
-                              ) : (
-                                <Image
-                                  src={base}
-                                  alt={`Cover ${option.id} - ${option.name}`}
-                                  width={cropRightHalf ? 400 : 200}
-                                  height={200}
-                                  className={`absolute inset-0 h-full w-full object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
-                                />
-                              )}
+                            <div className="relative w-full mb-2">
+                              <CoverSpreadFrame
+                                cropRightHalf={cropRightHalf}
+                                spreadAspectRatio={coverThumbAspectRatio}
+                                className="relative w-full overflow-hidden"
+                              >
+                                {backendSrc ? (
+                                  <OptimizedImage
+                                    src={backendSrc}
+                                    alt={`Cover ${option.id} - ${option.name}`}
+                                    width={cropRightHalf ? 400 : 200}
+                                    height={200}
+                                    className="block h-full w-full"
+                                  />
+                                ) : (
+                                  <Image
+                                    src={base}
+                                    alt={`Cover ${option.id} - ${option.name}`}
+                                    width={cropRightHalf ? 400 : 200}
+                                    height={200}
+                                    className="block h-full w-full"
+                                  />
+                                )}
+                              </CoverSpreadFrame>
                               {showThumbBusyOverlay && (
                                 <div
                                   className="absolute inset-0 z-10 flex items-center justify-center bg-white/70"
