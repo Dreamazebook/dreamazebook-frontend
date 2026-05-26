@@ -1,17 +1,10 @@
-import TheHeartBehindDreamaze from './components/home/TheHeartBehindDreamaze';
-import LastingMemorial from './components/home/LastingMemorial';
 import Slideshow from './components/home/SlideShow';
-import ReserveSection from '../(marketing)/components/ReserveSection';
+import LazyOnView from './components/common/LazyOnView';
 import { Product } from '@/types/product';
 import { getBooks } from '@/services/bookService';
-import BooksGrid from './components/books/BooksGrid';
-import WhatMakesDreamazeDifferent from './components/home/WhatMakesDreamazeDifferent';
-import TopPickThisMonth from './components/home/TopPickThisMonth';
-import InfiniteScrollLogo from './components/home/InfiniteScrollLogo';
-import StoriesFromRealFamilies from './components/home/StoriesFromRealFamilies';
 import { DEFAULT_GIFT_PACKAGES_CONFIG } from './components/books/giftPackagesData';
-import GiftPackagesSection from './components/books/GiftPackagesSection';
 import { WELCOME_SUCCESS_URL } from '@/constants/links';
+import ReserveSection from '../(marketing)/components/ReserveSection';
 
 // 固定 Our Books 展示顺序：good night, santa, bravery, birthday, melody
 const BOOK_DISPLAY_ORDER_RANK: Record<string, number> = {
@@ -51,9 +44,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       {/* Slideshow doesn't need animation as it's already animated */}
       <Slideshow />
 
-      <TheHeartBehindDreamaze />
+      <LazyOnView name='TheHeartBehindDreamaze' />
 
-      <WhatMakesDreamazeDifferent />
+      <LazyOnView name='WhatMakesDreamazeDifferent' />
 
       <section>
         {/* <OurBook /> */}
@@ -62,18 +55,18 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <span className='md:hidden'>Create the story that brings out their biggest smile.</span>
           <span className='hidden md:block'>Find the story where they become the hero.</span>
         </p>
-        <BooksGrid books={orderedBooks} />
+        <LazyOnView name='BooksGrid' componentProps={{ books: orderedBooks }} />
       </section>
 
-      <GiftPackagesSection section={DEFAULT_GIFT_PACKAGES_CONFIG} />
+      <LazyOnView name='GiftPackagesSection' componentProps={{ section: DEFAULT_GIFT_PACKAGES_CONFIG }} />
 
-      <TopPickThisMonth />
+      <LazyOnView name='TopPickThisMonth' />
 
-      <StoriesFromRealFamilies />
+      <LazyOnView name='StoriesFromRealFamilies' />
 
-      <InfiniteScrollLogo />
+      <LazyOnView name='InfiniteScrollLogo' />
 
-      <LastingMemorial />
+      <LazyOnView name='LastingMemorial' />
 
       {/* FAQ */}
       {/* <section>
