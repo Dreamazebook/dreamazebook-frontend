@@ -44,11 +44,13 @@ export const FATHERS_DAY_PACKED_WITH_LOVE = {
 export const FATHERS_DAY_PC = {
   banner: 'BANNER.png',
   bannerBooks: 'A Little Book of Our Big Memories.png',
+  fewPagesNeverForget: 'A few pages Dad will never forget.webp',
 } as const;
 
 export const FATHERS_DAY_MOBILE = {
   banner: 'BANNER.png',
   bannerBooks: 'A Little Book of Our Big Memories.png',
+  fewPagesNeverForget: 'A few pages Dad will never forget.webp',
   everythingFeelsBigger: [
     'Everything Feels Bigger with Dad.png',
     'Everything Feels Bigger with Dad-1.png',

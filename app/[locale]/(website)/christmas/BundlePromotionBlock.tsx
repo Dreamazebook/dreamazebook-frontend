@@ -33,10 +33,12 @@ export type BundlePromotionBlockProps = {
    */
   bundleOverrides?: BundleOverrides
   /**
-   * 为 true 时：选书不屏蔽生日书 / Melody，名称启发式也关闭，并含 PICBOOK_MOM 的封面与排序（母亲节等）。
+   * 为 true 时：选书不屏蔽生日书 / Melody，名称启发式也关闭（母亲节 / 父亲节等落地页）。
    * 默认 false 保持圣诞页对 PICBOOK_BIRTHDAY、PICBOOK_MELODY 等的原逻辑。
    */
   openBundleBookSelection?: boolean
+  /** 选书列表排序；不传时 openBundleBookSelection 默认用母亲节顺序 */
+  bundleProductPriority?: readonly string[]
 }
 
 export type Bundle = {
@@ -71,8 +73,17 @@ const DEFAULT_BUNDLE_PRODUCT_PRIORITY = [
   'PICBOOK_MELODY',
 ] as const
 /** 母亲节选书：Mama 与节日相关书可混选 */
-const MOTHERS_DAY_BUNDLE_PRODUCT_PRIORITY = [
+export const MOTHERS_DAY_BUNDLE_PRODUCT_PRIORITY = [
   'PICBOOK_MOM',
+  'PICBOOK_GOODNIGHT3',
+  'PICBOOK_BRAVEY',
+  'PICBOOK_BIRTHDAY',
+  'PICBOOK_MELODY',
+  'PICBOOK_SANTA',
+] as const
+/** 父亲节选书：Dad 与节日相关书可混选 */
+export const FATHERS_DAY_BUNDLE_PRODUCT_PRIORITY = [
+  'PICBOOK_DAD',
   'PICBOOK_GOODNIGHT3',
   'PICBOOK_BRAVEY',
   'PICBOOK_BIRTHDAY',
@@ -85,6 +96,7 @@ const BUNDLE_COVER_IMAGES: Record<string, string> = {
   PICBOOK_GOODNIGHT: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_GOODNIGHT.png',
   PICBOOK_GOODNIGHT3: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_GOODNIGHT.png',
   PICBOOK_MOM: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_MOM.png',
+  PICBOOK_DAD: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_DAD.png',
   PICBOOK_BRAVEY: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_BRAVEY.png',
   PICBOOK_BIRTHDAY: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_BIRTHDAY.png',
   PICBOOK_MELODY: 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/bundles/BUNDLE_CHRISTMAS/PICBOOK_MELODY.png',
@@ -95,6 +107,7 @@ const BOOK_NAME_MAP: Record<string, string> = {
   PICBOOK_GOODNIGHT: 'Good Night to You',
   PICBOOK_GOODNIGHT3: 'Good Night to You',
   PICBOOK_MOM: 'The Way I See You, Mama',
+  PICBOOK_DAD: 'Dad & Me: A Little Book of Our Big Memories',
   PICBOOK_BRAVEY: "You're Brave in Many Ways",
   PICBOOK_BIRTHDAY: 'Birthday Book for You',
   PICBOOK_MELODY: 'Your Melody',
@@ -206,6 +219,7 @@ export default function BundlePromotionBlock({
   bundleSectionTextureUrl,
   bundleOverrides,
   openBundleBookSelection = false,
+  bundleProductPriority,
 }: BundlePromotionBlockProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'trio' | 'four' | 'classics'>('trio')
@@ -379,9 +393,11 @@ export default function BundlePromotionBlock({
   }, [])
 
   const bookOptions: BookOption[] = useMemo(() => {
-    const productPriority = openBundleBookSelection
-      ? MOTHERS_DAY_BUNDLE_PRODUCT_PRIORITY
-      : DEFAULT_BUNDLE_PRODUCT_PRIORITY
+    const productPriority =
+      bundleProductPriority ??
+      (openBundleBookSelection
+        ? MOTHERS_DAY_BUNDLE_PRODUCT_PRIORITY
+        : DEFAULT_BUNDLE_PRODUCT_PRIORITY)
     const normalized = products.map(p => {
       const key = normalizeSpu(p.spu_code)
       const mappedCover = BUNDLE_COVER_IMAGES[key]
@@ -406,7 +422,7 @@ export default function BundlePromotionBlock({
       p => !(productPriority as readonly string[]).includes(p.spu),
     )
     return [...prioritized, ...remaining]
-  }, [products, openBundleBookSelection])
+  }, [products, openBundleBookSelection, bundleProductPriority])
 
   const handleBundleClick = (bundle: Bundle) => {
     setActiveBundle(bundle)

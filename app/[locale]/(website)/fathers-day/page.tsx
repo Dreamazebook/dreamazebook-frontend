@@ -4,6 +4,7 @@ import { Link } from '@/i18n/routing';
 import BundlePromotionBlock from '../christmas/BundlePromotionBlock';
 import EverythingFeelsBiggerWithDad from './EverythingFeelsBiggerWithDad';
 import RecipeSection from './RecipeSection';
+import AFewPagesDadNeverForget from './AFewPagesDadNeverForget';
 import { FATHERS_DAY_BUNDLE_PROMO } from './fathersDayBundlePromo';
 import { FATHERS_DAY_MOBILE, FATHERS_DAY_PC, mobileAsset, pcAsset } from './fathersDayAssets';
 
@@ -93,6 +94,7 @@ export default function FathersDayPage() {
 
       <EverythingFeelsBiggerWithDad />
       <RecipeSection />
+      <AFewPagesDadNeverForget />
 
       <div className="bg-[#FCF2F2] overflow-hidden" id="bundle-promo">
         <BundlePromotionBlock {...FATHERS_DAY_BUNDLE_PROMO} />

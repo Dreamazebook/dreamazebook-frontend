@@ -3,6 +3,7 @@ import type {
   BundleGroup,
   BundlePromotionBlockProps,
 } from '../christmas/BundlePromotionBlock'
+import { FATHERS_DAY_BUNDLE_PRODUCT_PRIORITY } from '../christmas/BundlePromotionBlock'
 import { mobileAsset } from './fathersDayAssets'
 
 const R2_FATHERS_DAY =
@@ -150,6 +151,7 @@ export const FATHERS_DAY_BUNDLE_PROMO: Pick<
   | 'bundleSectionTextureUrl'
   | 'bundleOverrides'
   | 'openBundleBookSelection'
+  | 'bundleProductPriority'
 > = {
   bundleSectionTextureUrl: mobileAsset('底纹.png'),
   bundleGroupTabLabels: {
@@ -199,4 +201,5 @@ export const FATHERS_DAY_BUNDLE_PROMO: Pick<
     packageIdByBundleId: FATHERS_DAY_PACKAGE_IDS,
   },
   openBundleBookSelection: true,
+  bundleProductPriority: FATHERS_DAY_BUNDLE_PRODUCT_PRIORITY,
 }
