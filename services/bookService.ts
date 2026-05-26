@@ -1,5 +1,6 @@
 import { ProductsResponse } from "@/types/product";
 import api from "@/utils/api";
+import { toApiProductLanguage } from "@/utils/apiLanguage";
 import { apiCache } from "@/utils/apiCache";
 
 export const getBooks = async (locale: string, options?: { useCache?: boolean }) => {
@@ -7,7 +8,7 @@ export const getBooks = async (locale: string, options?: { useCache?: boolean })
     page: 1,
     per_page: 20,
     category: 'picbook',
-    language: locale,
+    language: toApiProductLanguage(locale),
   };
 
   // 使用缓存，书籍列表缓存 5 分钟

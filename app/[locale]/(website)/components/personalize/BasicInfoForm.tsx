@@ -67,7 +67,7 @@ const FORM1_AGE_OPTIONS: {
 }[] = [
   { value: 'infant', title: 'Infant', image: PERSONALIZE_AGE_RANGE_0_3 },
   { value: 'preschooler', title: 'Preschooler', image: PERSONALIZE_AGE_RANGE_3_6 },
-  { value: 'early_school_age', title: 'Early school age', image: PERSONALIZE_AGE_RANGE_6_PLUS },
+  { value: 'early_school_age', title: 'School age', image: PERSONALIZE_AGE_RANGE_6_PLUS },
 ];
 
 const mapBackendHairToInternal = (val: string): 'light' | 'brown' | 'dark' => {
@@ -490,7 +490,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
           </div>
 
           <div id="field-fromWhom">
-            <label className="block font-medium text-[#222222]">From whom</label>
+            <label className="block font-medium text-[#222222]">Who is this book from?</label>
             <p className="text-[#999999] text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] mt-1 mb-2">
               This will appear as Created by inside the book.
             </p>

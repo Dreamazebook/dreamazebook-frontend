@@ -53,3 +53,24 @@ export function buildDadQuestionAttributes(
   }
   return out;
 }
+
+/** PICBOOK_DAD preview/render attributes（与后端 `dad_name` / `dad_question_*` 对齐） */
+export function buildPicbookDadRenderAttributes(
+  attrs: Record<string, unknown> | undefined | null,
+): Record<string, string> {
+  const a = attrs || {};
+  const out: Record<string, string> = {};
+
+  const dadName = String(a.dad_name ?? a.dad_title ?? '').trim();
+  if (dadName) out.dad_name = dadName;
+
+  const dadSkinTone = String(a.dad_skin_tone ?? '').trim();
+  if (dadSkinTone) out.dad_skin_tone = dadSkinTone;
+
+  for (const key of ['dad_question_1', 'dad_question_2', 'dad_question_3'] as const) {
+    const value = String(a[key] ?? '').trim();
+    if (value) out[key] = value;
+  }
+
+  return out;
+}

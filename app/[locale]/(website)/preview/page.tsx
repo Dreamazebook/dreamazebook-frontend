@@ -20,7 +20,7 @@ import useImageUpload from '../hooks/useImageUpload';
 import useUserStore from '@/stores/userStore';
 import usePreviewStore from '@/stores/previewStore';
 import { mapAgeStageUiToBackend } from '@/utils/mapAgeStageToBackend';
-import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
+import { buildPreviewRenderPayload } from '@/utils/previewRenderPayload';
 import { getApiBaseUrl } from '@/utils/apiBaseUrl';
 import { getBirthdayCoverSeasonFromCharacterLike } from '@/utils/birthdayPersonalizeHelpers';
 import toast from 'react-hot-toast';
@@ -721,7 +721,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
 
   const imageLoadingPlaceholder = showImageLoadingPlaceholder ? (
     <div
-      className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-[#F8F8F8]"
+      className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white"
       aria-hidden={!showImageLoadingPlaceholder}
     >
       <DreamazeLogoRainbowLoader size={60} />
@@ -765,7 +765,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                 </div>
               </>
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg bg-[#F8F8F8]">
+              <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg bg-white">
                 <img
                   src={src}
                   alt={`Page ${pageNumber} - Left Half`}
@@ -823,7 +823,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                 </div>
               </>
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg bg-[#F8F8F8]">
+              <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg bg-white">
                 <img
                   src={src}
                   alt={`Page ${pageNumber} - Right Half`}
@@ -894,7 +894,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
           )}
         </div>
       ) : (
-        <div className={doubleFrame} style={{ aspectRatio: '1600 / 600' }}>
+        <div className={`${doubleFrame} bg-white rounded-lg`} style={{ aspectRatio: '1600 / 600' }}>
           <OptimizedImage
             src={src}
             alt={`Page ${pageNumber}`}
@@ -3830,80 +3830,7 @@ export default function PreviewPageWithTopNav() {
       
       // 构造API要求的请求数据格式
       const character = (requestData as any).characters?.[0];
-      const faceImages = (character?.photos && Array.isArray(character.photos) && character.photos.length > 0)
-        ? character.photos
-        : (character?.photo ? [character.photo] : []);
-      const toBackendAttrs = (c: any) => {
-        // Map numeric codes or UI-values to backend strings
-        const skinHexes = ['#FFE2CF', '#DCB593', '#665444'];
-        const hex = c?.skinColor || c?.skin_color_hex;
-        const idx = typeof hex === 'string' ? skinHexes.findIndex((h) => h === hex) : (c?.skincolor ? (Number(c.skincolor) - 1) : -1);
-        const skin_tone = idx === 0 ? 'white' : idx === 2 ? 'black' : 'original';
-        const hair_style = String(c?.hairstyle || c?.hair_style || '').replace('hair_', '') || String(c?.hairstyle || '1');
-        const mapHairColor = (v: any) => {
-          if (typeof v === 'string') {
-            const s = v.toLowerCase();
-            if (s === 'light') return 'blone';
-            if (s === 'brown' || s === 'original') return 'original';
-            if (s === 'dark' || s === 'black') return 'dark';
-            return 'dark';
-          }
-          const n = Number(v) || 1;
-          if (n === 1) return 'blone';
-          if (n === 2) return 'original';
-          if (n === 3) return 'dark';
-          return 'dark';
-        };
-        const hair_color = mapHairColor(c?.hairColor || c?.haircolor);
-        const rawAge = c?.attributes?.age_stage ?? c?.age_stage;
-        const age_stage = mapAgeStageUiToBackend(rawAge);
-        const stored = c?.attributes;
-        const birthday =
-          stored && typeof stored.birthday === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(stored.birthday)
-            ? stored.birthday
-            : undefined;
-        const character_traits =
-          Array.isArray(stored?.character_traits) && stored.character_traits.length > 0
-            ? stored.character_traits
-            : undefined;
-        return {
-          skin_tone,
-          hair_style,
-          hair_color,
-          ...(age_stage ? { age_stage } : {}),
-          ...(birthday ? { birthday } : {}),
-          ...(character_traits ? { character_traits } : {}),
-        };
-      };
-
-      // gender: 后端期望字符串 boy/girl
-      const mapGenderToString = (g: any): string | null => {
-        if (g === 'boy' || g === 'girl') return g;
-        if (g === 1 || g === '1') return 'boy';
-        if (g === 2 || g === '2') return 'girl';
-        const code = (character as any)?.gender_code;
-        if (code === 1 || code === '1') return 'boy';
-        if (code === 2 || code === '2') return 'girl';
-        return null;
-      };
-      const genderStr = mapGenderToString(character?.gender);
-      const giverNameTop = String(character?.giver_name || character?.created_by || '').trim();
-
-      const fb = buildPicbookPreviewFacePayload(bookId, faceImages.filter(Boolean));
-
-      const apiRequestData = {
-        picbook_id: bookId,
-        face_images: fb.face_images,
-        full_name: character?.full_name,
-        language: character?.language || 'en', // 默认英语
-        gender: genderStr,
-        ...(giverNameTop ? { giver_name: giverNameTop } : {}),
-        skincolor: character?.skincolor || 1, // 默认值
-        attributes: {
-          ...toBackendAttrs(character),
-          ...fb.faceAttributes,
-        },
-      };
+      const apiRequestData = buildPreviewRenderPayload(String(bookId), character);
       
       // 添加详细的调试日志
       console.log('调用换脸接口（无用户数据）:', {
@@ -4118,80 +4045,7 @@ export default function PreviewPageWithTopNav() {
         try {
           // 构造API要求的请求数据格式
           const character = parsedUserData.characters?.[0];
-          const faceImages = (character?.photos && Array.isArray(character.photos))
-            ? character.photos
-            : (character?.photo ? [character.photo] : []);
-          const toBackendAttrs2 = (c: any) => {
-            const skinHexes = ['#FFE2CF', '#DCB593', '#665444'];
-            const hex = c?.skinColor || c?.skin_color_hex;
-            const idx = typeof hex === 'string' ? skinHexes.findIndex((h) => h === hex) : (c?.skincolor ? (Number(c.skincolor) - 1) : -1);
-            const skin_tone = idx === 0 ? 'white' : idx === 2 ? 'black' : 'original';
-            const hair_style = String(c?.hairstyle || c?.hair_style || '').replace('hair_', '') || String(c?.hairstyle || '1');
-            const mapHairColor = (v: any) => {
-              if (typeof v === 'string') {
-                const s = v.toLowerCase();
-                if (s === 'light') return 'blone';
-                if (s === 'brown' || s === 'original') return 'original';
-                if (s === 'dark' || s === 'black') return 'dark';
-                return 'dark';
-              }
-              const n = Number(v) || 1;
-              if (n === 1) return 'blone';
-              if (n === 2) return 'original';
-              if (n === 3) return 'dark';
-              return 'dark';
-            };
-            const hair_color = mapHairColor(c?.hairColor || c?.haircolor);
-            const rawAge = c?.attributes?.age_stage ?? c?.age_stage;
-            const age_stage = mapAgeStageUiToBackend(rawAge);
-            const stored = c?.attributes;
-            const birthday =
-              stored && typeof stored.birthday === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(stored.birthday)
-                ? stored.birthday
-                : undefined;
-            const character_traits =
-              Array.isArray(stored?.character_traits) && stored.character_traits.length > 0
-                ? stored.character_traits
-                : undefined;
-            return {
-              skin_tone,
-              hair_style,
-              hair_color,
-              ...(age_stage ? { age_stage } : {}),
-              ...(birthday ? { birthday } : {}),
-              ...(character_traits ? { character_traits } : {}),
-            };
-          };
-
-          // gender & relationship: 后端期望字符串
-          const mapGenderToString = (g: any, genderCode?: any): string | null => {
-            if (g === 'boy' || g === 'girl') return g;
-            if (g === 1 || g === '1') return 'boy';
-            if (g === 2 || g === '2') return 'girl';
-            if (genderCode === 1 || genderCode === '1') return 'boy';
-            if (genderCode === 2 || genderCode === '2') return 'girl';
-            return null;
-          };
-          const genderStr = mapGenderToString(character?.gender, (character as any)?.gender_code);
-          const relationshipStr = character?.relationship || null;
-          const giverNameTop2 = String(character?.giver_name || character?.created_by || '').trim();
-
-          const fb = buildPicbookPreviewFacePayload(bookId, faceImages.filter(Boolean));
-
-          const apiRequestData = {
-            picbook_id: bookId,
-            face_images: fb.face_images,
-            full_name: character?.full_name,
-            language: character?.language,
-            gender: genderStr,
-            relationship: relationshipStr,
-            ...(giverNameTop2 ? { giver_name: giverNameTop2 } : {}),
-            skincolor: character?.skincolor,
-            attributes: {
-              ...toBackendAttrs2(character),
-              ...fb.faceAttributes,
-            },
-          };
+          const apiRequestData = buildPreviewRenderPayload(String(bookId), character);
           
           // 添加详细的调试日志
           console.log('调用换脸接口（有用户数据）:', {
@@ -4498,43 +4352,7 @@ export default function PreviewPageWithTopNav() {
           })();
 
           const character = raw?.characters?.[0] || {};
-          const fullName = character?.full_name || character?.fullName || '';
-          const language = character?.language || (searchParams.get('lang') || 'en');
-          const genderRaw = character?.gender || character?.gender_code;
-          const gender = genderRaw === 'boy' || genderRaw === 'girl'
-            ? genderRaw
-            : (genderRaw === 1 || genderRaw === '1' ? 'boy' : (genderRaw === 2 || genderRaw === '2' ? 'girl' : ''));
-          const relationship = character?.relationship || 'Parent/Guardian';
-          const attrs = character?.attributes || {};
-          const hairStyle = attrs?.hair_style || attrs?.hairStyle;
-          const hairColor = attrs?.hair_color || attrs?.hairColor;
-          const skinTone = attrs?.skin_tone || attrs?.skinTone;
-          const skincolor =
-            character?.skincolor ??
-            (skinTone === 'white' ? 1 : skinTone === 'original' ? 2 : skinTone === 'black' ? 3 : 1);
-          const ageStagePayload = mapAgeStageUiToBackend(attrs?.age_stage);
-          const giverNameCart = String(character?.giver_name || character?.created_by || '').trim();
-          const photos = Array.isArray(character?.photos) ? character.photos : (character?.photo ? [character.photo] : []);
-
-          const fb = buildPicbookPreviewFacePayload(searchParams.get('bookid') || '', photos.filter(Boolean));
-
-          const payload: any = {
-            picbook_id: searchParams.get('bookid') || '',
-            face_images: fb.face_images,
-            full_name: fullName,
-            language,
-            gender,
-            relationship,
-            ...(giverNameCart ? { giver_name: giverNameCart } : {}),
-            skincolor,
-            attributes: {
-              ...(skinTone ? { skin_tone: skinTone } : {}),
-              ...(hairStyle ? { hair_style: hairStyle } : {}),
-              ...(hairColor ? { hair_color: hairColor } : {}),
-              ...(ageStagePayload ? { age_stage: ageStagePayload } : {}),
-              ...fb.faceAttributes,
-            },
-          };
+          const payload = buildPreviewRenderPayload(searchParams.get('bookid') || '', character);
 
           // 圣诞 bundle：fromCartItemId 实际是 packageItemId（cart.items[].items[].id），需要调用新的接口
           await api.post<any>(

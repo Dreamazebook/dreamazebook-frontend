@@ -15,13 +15,14 @@ import SingleCharacterForm2, { SingleCharacterForm2Handle } from '@/app/[locale]
 import usePreviewStore from '@/stores/previewStore';
 import { isPicbookBirthday } from '@/utils/isPicbookBirthday';
 import { isPicbookMom } from '@/utils/isPicbookMom';
+import { isPicbookDad } from '@/utils/isPicbookDad';
 import { getPersonalizeAvatarAssetSpu } from '@/utils/personalizeAvatar';
 import {
   BIRTHDAY_PERSONALITY_TRAITS,
   formatBirthDateIso,
   mapPersonalityTraitIdsToCharacterTraits,
 } from '@/utils/birthdayPersonalizeHelpers';
-import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
+import { buildPreviewRenderPayload } from '@/utils/previewRenderPayload';
 
 interface ApiResponse<T=any> { success: boolean; code: number; message: string; data: T }
 interface DetailedBook { character_count: number }
@@ -70,6 +71,7 @@ export default function EditPersonalizedProductPage() {
   const bookId = params.spu_code as string;
   const birthdayBook = isPicbookBirthday(bookId);
   const momBook = isPicbookMom(bookId);
+  const dadBook = isPicbookDad(bookId);
   const previewId = params.preview_id as string; // preview_id 是 UUID 字符串，不是数字
   const fromCartItemIdParam = searchParams.get('fromCartItemId');
   const currentLang = (pathname.match(/^\/(en|zh|fr)\b/)?.[1] as 'en'|'zh'|'fr') || 'en';
@@ -757,25 +759,19 @@ export default function EditPersonalizedProductPage() {
         traitUiIds.length === 4 ? mapPersonalityTraitIdsToCharacterTraits(traitUiIds) : [];
       const characterTraitsOk = characterTraits.length === 4;
 
-      const fb = buildPicbookPreviewFacePayload(bookId, faceImages);
-      const giftMessage = String((initialData as any)?.giftMessage || (initialData as any)?.gift_message || '').trim();
-
-      const payload = {
-        picbook_id: bookId,
-        face_images: fb.face_images,
+      const fb = buildPreviewRenderPayload(bookId, {
         full_name: fullName,
         language: targetLang,
         gender: genderStr,
         relationship: relationshipRaw || 'Parent/Guardian',
-        ...(giverNameRaw ? { giver_name: giverNameRaw } : {}),
+        giver_name: giverNameRaw,
         skincolor: skinColorCode,
+        photos: faceImages,
         attributes: {
           ...(skinTone ? { skin_tone: skinTone } : {}),
-          // 后端校验必填
           hair_style: hairStyle,
           hair_color: hairColor,
           ...(ageStageBackend ? { age_stage: ageStageBackend } : {}),
-          ...(giftMessage ? { gift_message: giftMessage } : {}),
           ...(birthdayBook && birthdayStr
             ? {
                 birthday: birthdayStr,
@@ -788,9 +784,24 @@ export default function EditPersonalizedProductPage() {
                 mom_makes_best: String(form1Snap.momMakesBest ?? '').trim(),
               }
             : {}),
-          ...fb.faceAttributes,
+          ...(dadBook && form1Snap
+            ? {
+                dad_name: String(form1Snap.dadTitle ?? '').trim(),
+                dad_skin_tone:
+                  form1Snap.dadSkinColor === skinColors[0]
+                    ? 'white'
+                    : form1Snap.dadSkinColor === skinColors[2]
+                      ? 'black'
+                      : 'original',
+                ...(form1Snap.dadQuestionAnswers || {}),
+              }
+            : {}),
         },
-      };
+      });
+      const giftMessage = String((initialData as any)?.giftMessage || (initialData as any)?.gift_message || '').trim();
+      const payload = giftMessage
+        ? { ...fb, attributes: { ...(fb.attributes as Record<string, unknown>), gift_message: giftMessage } }
+        : fb;
 
       let nextPreviewId: string = String(previewId);
       let shouldSkipPreviewRender = false;

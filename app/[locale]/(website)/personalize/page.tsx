@@ -19,6 +19,7 @@ import { isPicbookMom } from '@/utils/isPicbookMom';
 import { isPicbookDad } from '@/utils/isPicbookDad';
 import { getPersonalizeAvatarAssetSpu } from '@/utils/personalizeAvatar';
 import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
+import { buildPreviewRenderPayload } from '@/utils/previewRenderPayload';
 import {
   buildDadQuestionAttributes,
   DEFAULT_DAD_QUESTIONS_PREVIEW,
@@ -549,12 +550,14 @@ export default function PersonalizeApiDrivenPage() {
                 : {}),
               ...(isDadBookPersonalize && f1
                 ? {
-                    dad_title: String(f1.dadTitle ?? '').trim(),
+                    dad_name: String(f1.dadTitle ?? '').trim(),
                     dad_skin_tone: mapSkinToBackend(String(f1.dadSkinColor ?? skinColorRaw)),
                     ...buildDadQuestionAttributes(f1.dadQuestionAnswers, dadQuestions),
                   }
                 : {}),
-              ...buildPicbookPreviewFacePayload(bookId || '', photosData).faceAttributes,
+              ...(!isDadBookPersonalize
+                ? buildPicbookPreviewFacePayload(bookId || '', photosData).faceAttributes
+                : {}),
             },
           },
         ],
@@ -603,28 +606,7 @@ export default function PersonalizeApiDrivenPage() {
       if (fromCartItemId && !isHideOptions) {
         try {
           const ch: any = (userData as any)?.characters?.[0] || {};
-          const faceImages = (Array.isArray(ch?.photos) ? ch.photos : (ch?.photo ? [ch.photo] : [])).filter(Boolean);
-          const fb = buildPicbookPreviewFacePayload(bookId || '', faceImages);
-          const skinTone = ch?.attributes?.skin_tone || ch?.attributes?.skinTone;
-          const skincolor =
-            ch?.skincolor ??
-            (skinTone === 'white' ? 1 : skinTone === 'original' ? 2 : skinTone === 'black' ? 3 : undefined);
-          const payload: any = {
-            picbook_id: bookId,
-            face_images: fb.face_images,
-            full_name: ch?.full_name || '',
-            language: ch?.language || selectedLanguage || 'en',
-            gender: ch?.gender || '',
-            relationship: ch?.relationship || 'Parent/Guardian',
-            ...(String(ch?.giver_name || ch?.created_by || '').trim()
-              ? { giver_name: String(ch?.giver_name || ch?.created_by || '').trim() }
-              : {}),
-            skincolor,
-            attributes: {
-              ...(ch?.attributes || {}),
-              ...fb.faceAttributes,
-            },
-          };
+          const payload = buildPreviewRenderPayload(bookId || '', ch);
 
           const resp: any = await api.post<any>(
             `/cart/${encodeURIComponent(String(fromCartItemId))}/regenerate-preview`,
