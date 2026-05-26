@@ -1,29 +1,29 @@
 import React, { useRef, useState } from 'react';
-import Image from 'next/image';
 import { IoCloudUploadOutline, FaRegTrashAlt } from '@/utils/icons';
 import type { UploadedImage } from '../../hooks/useMultiImageUpload';
+import type { DadMomChildSlotIndex } from '../../hooks/useDadMomChildPhotoSlots';
 import PersonalizePhotoUploadTips from './PersonalizePhotoUploadTips';
 
 type Slot = UploadedImage | null;
 
-export interface MomChildPhotoUploadProps {
-  slots: [Slot, Slot];
+export interface DadMomChildPhotoUploadProps {
+  slots: [Slot, Slot, Slot];
   isUploading: boolean;
   uploadProgress: number;
   error: string | null;
-  slotDragging: [boolean, boolean];
-  onSlotDragEnter: (slotIndex: 0 | 1, e: React.DragEvent<HTMLDivElement>) => void;
-  onSlotDragLeave: (slotIndex: 0 | 1, e: React.DragEvent<HTMLDivElement>) => void;
-  onSlotDragOver: (slotIndex: 0 | 1, e: React.DragEvent<HTMLDivElement>) => void;
-  onSlotDrop: (slotIndex: 0 | 1, e: React.DragEvent<HTMLDivElement>) => void;
-  onSlotFileChosen: (slotIndex: 0 | 1, file: File) => void;
-  onDeleteSlot: (slotIndex: 0 | 1) => void;
+  slotDragging: [boolean, boolean, boolean];
+  onSlotDragEnter: (slotIndex: DadMomChildSlotIndex, e: React.DragEvent<HTMLDivElement>) => void;
+  onSlotDragLeave: (slotIndex: DadMomChildSlotIndex, e: React.DragEvent<HTMLDivElement>) => void;
+  onSlotDragOver: (slotIndex: DadMomChildSlotIndex, e: React.DragEvent<HTMLDivElement>) => void;
+  onSlotDrop: (slotIndex: DadMomChildSlotIndex, e: React.DragEvent<HTMLDivElement>) => void;
+  onSlotFileChosen: (slotIndex: DadMomChildSlotIndex, file: File) => void;
+  onDeleteSlot: (slotIndex: DadMomChildSlotIndex) => void;
 }
 
-const SLOT_LABELS: [string, string] = ['Mom', 'Child'];
-const SLOT_PLACEHOLDER_SRC: [string, string] = ['/personalize/mom.png', '/personalize/face.png'];
+const SLOT_LABELS: [string, string, string] = ['Dad', 'Mom', 'Child'];
+const SLOT_INDICES: DadMomChildSlotIndex[] = [0, 1, 2];
 
-const MomChildPhotoUpload: React.FC<MomChildPhotoUploadProps> = ({
+const DadMomChildPhotoUpload: React.FC<DadMomChildPhotoUploadProps> = ({
   slots,
   isUploading,
   uploadProgress,
@@ -38,6 +38,8 @@ const MomChildPhotoUpload: React.FC<MomChildPhotoUploadProps> = ({
 }) => {
   const input0 = useRef<HTMLInputElement>(null);
   const input1 = useRef<HTMLInputElement>(null);
+  const input2 = useRef<HTMLInputElement>(null);
+  const inputRefs = [input0, input1, input2];
   const [toast, setToast] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -45,35 +47,35 @@ const MomChildPhotoUpload: React.FC<MomChildPhotoUploadProps> = ({
     setTimeout(() => setToast(null), 3000);
   };
 
-  const canUploadToSlot = (slotIndex: 0 | 1) => {
+  const canUploadToSlot = (slotIndex: DadMomChildSlotIndex) => {
     const slot = slots[slotIndex];
     return !isUploading && !slot?.isUploading && !slot?.dataUrl;
   };
 
-  const triggerInput = (slotIndex: 0 | 1) => {
+  const triggerInput = (slotIndex: DadMomChildSlotIndex) => {
     if (!canUploadToSlot(slotIndex)) {
       showToast('You can only upload 1 photo');
       return;
     }
-    (slotIndex === 0 ? input0 : input1).current?.click();
+    inputRefs[slotIndex].current?.click();
   };
 
-  const handleFileChange = (slotIndex: 0 | 1, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (slotIndex: DadMomChildSlotIndex, e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     e.target.value = '';
     if (!f) return;
     onSlotFileChosen(slotIndex, f);
   };
 
-  const thumbIndices = ([0, 1] as const).filter(i => Boolean(slots[i]));
+  const thumbIndices = SLOT_INDICES.filter(i => Boolean(slots[i]));
   const thumbCount = thumbIndices.length;
 
   return (
     <div className="space-y-4">
-      <PersonalizePhotoUploadTips subtitle="Upload photos of Mom and Child" />
+      <PersonalizePhotoUploadTips subtitle="Upload photos of Dad, Mom and Child" />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" id="upload-area-photo">
-        {([0, 1] as const).map(slotIndex => {
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4" id="upload-area-photo">
+        {SLOT_INDICES.map(slotIndex => {
           const slot = slots[slotIndex];
           const dragging = slotDragging[slotIndex];
           const busy = Boolean(slot?.isUploading) || isUploading;
@@ -125,16 +127,6 @@ const MomChildPhotoUpload: React.FC<MomChildPhotoUploadProps> = ({
                 }}
                 role="presentation"
               >
-                <div className="mb-2 flex-shrink-0 pointer-events-none">
-                  <Image
-                    src={SLOT_PLACEHOLDER_SRC[slotIndex]}
-                    alt=""
-                    width={72}
-                    height={72}
-                    className="w-[72px] h-auto object-contain"
-                    sizes="72px"
-                  />
-                </div>
                 <p className="text-[#222222] text-[15px] font-medium mb-2 pointer-events-none">{SLOT_LABELS[slotIndex]}</p>
 
                 <IoCloudUploadOutline className={`mx-auto text-2xl mb-1 ${canUpload ? 'text-[#222222]' : 'text-[#999999]'}`} />
@@ -159,7 +151,7 @@ const MomChildPhotoUpload: React.FC<MomChildPhotoUploadProps> = ({
                 <p className="text-[#999999] text-sm mt-2 pointer-events-none">Supports: jpeg, png, webp</p>
               </div>
               <input
-                ref={slotIndex === 0 ? input0 : input1}
+                ref={inputRefs[slotIndex]}
                 type="file"
                 accept="image/*"
                 className="hidden"
@@ -178,53 +170,52 @@ const MomChildPhotoUpload: React.FC<MomChildPhotoUploadProps> = ({
         </div>
       )}
 
-      {/* 已上传图片预览（统一显示在底部，沿用 Good Night 风格） */}
       {thumbCount > 0 && (
         <div className="flex flex-wrap gap-2 sm:gap-3 mb-4">
-          {thumbIndices.map((slotIndex) => {
-              const slot = slots[slotIndex]!;
-              return (
-                <div key={slot.id} className="relative flex flex-shrink-0">
-                  <div className="relative w-[172px] h-[172px] overflow-hidden rounded-lg bg-gray-100">
-                    <img
-                      src={slot.previewUrl}
-                      alt={`Uploaded image ${slotIndex + 1}`}
-                      className="block w-full h-full object-cover"
-                    />
-                    {slot.isUploading && (
-                      <div
-                        className="absolute inset-0 z-10 flex items-center justify-center rounded-lg"
-                        style={{ backgroundColor: 'rgba(248, 248, 248, 0.4)' }}
-                      >
-                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#012CCE] border-t-transparent" />
-                      </div>
-                    )}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteSlot(slotIndex);
-                      }}
-                      type="button"
-                      className="absolute top-0 right-0 z-20 flex items-center justify-center bg-white shadow-md"
-                      style={{
-                        width: '24px',
-                        height: '24px',
-                        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                        borderRadius: '0 0 0 4px',
-                      }}
+          {thumbIndices.map(slotIndex => {
+            const slot = slots[slotIndex]!;
+            return (
+              <div key={slot.id} className="relative flex flex-shrink-0">
+                <div className="relative w-[172px] h-[172px] overflow-hidden rounded-lg bg-gray-100">
+                  <img
+                    src={slot.previewUrl}
+                    alt={`Uploaded image ${slotIndex + 1}`}
+                    className="block w-full h-full object-cover"
+                  />
+                  {slot.isUploading && (
+                    <div
+                      className="absolute inset-0 z-10 flex items-center justify-center rounded-lg"
+                      style={{ backgroundColor: 'rgba(248, 248, 248, 0.4)' }}
                     >
-                      <FaRegTrashAlt
-                        style={{
-                          color: 'white',
-                          width: '18px',
-                          height: '18px',
-                        }}
-                      />
-                    </button>
-                  </div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#012CCE] border-t-transparent" />
+                    </div>
+                  )}
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      onDeleteSlot(slotIndex);
+                    }}
+                    type="button"
+                    className="absolute top-0 right-0 z-20 flex items-center justify-center bg-white shadow-md"
+                    style={{
+                      width: '24px',
+                      height: '24px',
+                      backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                      borderRadius: '0 0 0 4px',
+                    }}
+                  >
+                    <FaRegTrashAlt
+                      style={{
+                        color: 'white',
+                        width: '18px',
+                        height: '18px',
+                      }}
+                    />
+                  </button>
                 </div>
-              );
-            })}
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -239,4 +230,4 @@ const MomChildPhotoUpload: React.FC<MomChildPhotoUploadProps> = ({
   );
 };
 
-export default MomChildPhotoUpload;
+export default DadMomChildPhotoUpload;

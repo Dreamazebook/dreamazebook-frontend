@@ -1,10 +1,14 @@
 /**
- * 预览 / regenerate-preview 面部图字段（与后端校验一致）：
+ * 预览 / regenerate-preview 面部图字段：
  * - 根级 `face_images`：孩子照片数组（必填）
- * - `attributes.face_images`：同上（孩子照片）
- * - `attributes.mom_image`：**数组**，且最多 1 条（PICBOOK_MOM 妈妈照）
+ * - `attributes.face_images`：同上（孩子照片，非 PICBOOK_DAD）
+ * - `attributes.mom_image`：**数组**，且最多 1 条（PICBOOK_MOM / PICBOOK_DAD 妈妈照）
+ * - `attributes.dad_image`：**数组**，且最多 1 条（PICBOOK_DAD 爸爸照）
  *
  * PICBOOK_MOM：`photos[0]` = Mom，`photos[1]` = Child（仅孩子进入 face_images）。
+ * PICBOOK_DAD：`photos[0]` = Dad，`photos[1]` = Mom，`photos[2]` = Child。
+ *
+ * PICBOOK_DAD 的 preview/render 使用 base64 字符串数组；其它书仍用 `{ filename, mime, data }` 或 `{ path, disk }`。
  */
 
 export const PICBOOK_PREVIEWS_DISK = 'picbook_previews';
@@ -42,6 +46,23 @@ export function toPreviewFaceEntry(raw: string, idx: number): PreviewFaceEntry {
   };
 }
 
+/** PICBOOK_DAD preview/render：将内部条目转为 API 所需的 base64 字符串或存储 path */
+export function previewFaceEntryToRenderValue(entry: PreviewFaceEntry): string {
+  if ('data' in entry) {
+    const data = String(entry.data || '').trim();
+    if (data) return data;
+  }
+  if ('path' in entry) {
+    return String(entry.path || '').trim();
+  }
+  return '';
+}
+
+export function previewFaceEntriesToRenderValues(entries: PreviewFaceEntry[] | undefined): string[] {
+  if (!entries?.length) return [];
+  return entries.map(previewFaceEntryToRenderValue).filter(Boolean);
+}
+
 export function toStorageRelativePath(input: string): string {
   const s = String(input || '').trim();
   if (/^https?:\/\//i.test(s)) {
@@ -61,10 +82,24 @@ export function buildPicbookPreviewFacePayload(
   rawPhotos: string[],
 ): {
   face_images: PreviewFaceEntry[];
-  faceAttributes: { face_images: PreviewFaceEntry[]; mom_image?: PreviewFaceEntry[] };
+  faceAttributes: { face_images: PreviewFaceEntry[]; mom_image?: PreviewFaceEntry[]; dad_image?: PreviewFaceEntry[] };
 } {
   const list = (rawPhotos || []).map(String).filter(Boolean);
   const u = String(bookId || '').trim().toUpperCase();
+
+  if (u === 'PICBOOK_DAD' && list.length >= 3) {
+    const dad = toPreviewFaceEntry(list[0], 0);
+    const mom = toPreviewFaceEntry(list[1], 0);
+    const child = toPreviewFaceEntry(list[2], 0);
+    return {
+      face_images: [child],
+      faceAttributes: {
+        face_images: [child],
+        mom_image: [mom],
+        dad_image: [dad],
+      },
+    };
+  }
 
   if (u === 'PICBOOK_MOM' && list.length >= 2) {
     const mom = toPreviewFaceEntry(list[0], 0);

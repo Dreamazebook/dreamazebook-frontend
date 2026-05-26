@@ -119,7 +119,7 @@ export const normalizePicbookAssetId = (id: string): string => {
   return u;
 };
 
-/** 个性化页预览头像：products/picbooks/{SPU}/personalize/avatars/{filename}（静态 PNG，与 Melody 相同方式，不用 Canvas） */
+/** 个性化页预览头像：products/picbooks/{SPU}/personalize/avatars/{filename}（PICBOOK_DAD 为 webp，其余多为 png） */
 export const PICBOOK_PERSONALIZE_AVATAR_URL = (bookId: string, filename: string) =>
   `${WEBSITE_CDN_URL}products/picbooks/${normalizePicbookAssetId(bookId)}/personalize/avatars/${filename}`;
 export const PERSONALIZE_AGE_RANGE_0_3 = `${WEBSITE_CDN_URL}assets/personalize/options/age-range/0-3.png`;

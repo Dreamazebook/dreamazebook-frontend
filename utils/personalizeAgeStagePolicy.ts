@@ -16,6 +16,7 @@ export function getPersonalizeAgeStagePolicy(bookId: string | undefined | null):
   if (!u) return 'full';
 
   if (u === 'PICBOOK_MOM') return 'three_plus';
+  if (u === 'PICBOOK_DAD') return 'three_plus';
 
   if (u.includes('MELODY')) return 'zero_to_three';
 

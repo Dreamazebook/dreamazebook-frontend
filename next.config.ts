@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
   serverExternalPackages: ['mailgun.js'],
+  experimental: {
+    imgOptTimeoutInSeconds: 30,
+  },
   images: {
     remotePatterns: [
       {
@@ -61,6 +64,30 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'www.facebook.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 's3-dev-dre01.s3.us-east-1.amazonaws.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 's3-pro-dre001.s3.us-east-1.amazonaws.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 's3-pro-dre002.s3.us-east-1.amazonaws.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pub-9cf31543472247c2936bb3ad6524d445.r2.dev',
         port: '',
         pathname: '/**',
       },

@@ -35,8 +35,13 @@ interface Props {
   singleLeftHalfRef?: React.Ref<HTMLDivElement>;
   /** 单页模式右侧（special message）外框 — 侧边栏等处滚动对齐 */
   singleRightHalfRef?: React.Ref<HTMLDivElement>;
+  /** 单页模式：左/右半页下方的交互按钮（底图绘制完成后才显示） */
   leftBelow?: React.ReactNode;
   rightBelow?: React.ReactNode;
+  /** 双页模式：底图绘制完成后叠在 canvas 上的交互区（如 p3-4 按钮） */
+  overlayContent?: React.ReactNode;
+  /** 底图绘制完成后回调（用于延迟显示按钮等交互） */
+  onVisualReady?: () => void;
   // 可选：合成完成后的回调（用于把合成图上传到后端）
   onRendered?: (dataUrl: string) => void;
 }
@@ -141,12 +146,16 @@ export default function GiverDedicationCanvas({
   singleRightHalfRef,
   leftBelow,
   rightBelow,
+  overlayContent,
+  onVisualReady,
   onRendered,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const leftCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const rightCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const visualReadyKeyRef = useRef('');
   const [ready, setReady] = useState(false);
+  const [isVisualReady, setIsVisualReady] = useState(false);
   const locale = useLocale();
   const isChinese = useMemo(() => locale?.toLowerCase().startsWith('zh'), [locale]);
   const rootClassName = useMemo(() => [className, 'mx-auto'].filter(Boolean).join(' '), [className]);
@@ -191,12 +200,14 @@ export default function GiverDedicationCanvas({
   };
 
   useEffect(() => {
+    visualReadyKeyRef.current = '';
+    setIsVisualReady(false);
+  }, [imageUrl, mode, giverText, dedicationText, giverImageUrl]);
+
+  useEffect(() => {
     let isMounted = true;
-    async function loadFonts() {
+    const loadFonts = async () => {
       try {
-        // 等待文档中字体可用（需外部加载 Philosopher 与 Roboto）
-        // 尝试主动加载指定大小，提升可靠性
-        // 注意：若字体未在全局通过 @font-face 或 next/font 注入，则会退回系统字体
         if ('fonts' in document) {
           // @ts-ignore
           await Promise.all([
@@ -208,11 +219,11 @@ export default function GiverDedicationCanvas({
             document.fonts.ready,
           ]);
         }
-      } catch (e) {
+      } catch {
         // 忽略字体加载错误，使用回退字体
       }
       if (isMounted) setReady(true);
-    }
+    };
     loadFonts();
     return () => {
       isMounted = false;
@@ -227,9 +238,9 @@ export default function GiverDedicationCanvas({
       const shouldBypassCors = (() => {
         try {
           const u = new URL(src, window.location.href);
-          return u.hostname.endsWith('.r2.dev') || u.hostname.includes('s3-pro-dre001') || u.hostname.includes('s3-pro-dre002');
+          return u.hostname.endsWith('.r2.dev') || u.hostname.includes('s3-dev-dre01') || u.hostname.includes('s3-pro-dre001') || u.hostname.includes('s3-pro-dre002');
         } catch {
-          return src.includes('.r2.dev') || src.includes('s3-pro-dre001') || src.includes('s3-pro-dre002');
+          return src.includes('.r2.dev') || src.includes('s3-dev-dre01') || src.includes('s3-pro-dre001') || src.includes('s3-pro-dre002');
         }
       })();
       return new Promise((resolve, reject) => {
@@ -467,6 +478,14 @@ export default function GiverDedicationCanvas({
       }
     };
 
+    const markVisualReady = () => {
+      const key = `${imageUrl}|${mode}|${giverText}|${dedicationText}|${giverImageUrl ?? ''}`;
+      if (visualReadyKeyRef.current === key) return;
+      visualReadyKeyRef.current = key;
+      setIsVisualReady(true);
+      onVisualReady?.();
+    };
+
     (async () => {
       try {
         if (mode === 'double') {
@@ -474,20 +493,24 @@ export default function GiverDedicationCanvas({
         } else {
           await drawSingle();
         }
+        markVisualReady();
       } catch (e) {
         console.error('GiverDedicationCanvas draw error:', e);
       }
     })();
-  }, [ready, imageUrl, mode, giverText, dedicationText, giverImageUrl, giverImageAspectRatio, giverImageScale, giverPx, dedicationPx, onRendered]);
+  }, [ready, imageUrl, mode, giverText, dedicationText, giverImageUrl, giverImageAspectRatio, giverImageScale, giverPx, dedicationPx, giverFontFamily, dedicationFontFamily, onRendered, onVisualReady]);
 
   if (mode === 'double') {
-    const outer = [doubleImageFrameClassName, 'rounded-lg w-full'].filter(Boolean).join(' ');
+    const outer = [doubleImageFrameClassName, 'relative rounded-lg w-full'].filter(Boolean).join(' ');
     return (
       <div className={rootClassName}>
         <div className={outer}>
           <div className="overflow-hidden rounded-lg">
             <canvas ref={canvasRef} style={{ width: '100%', height: 'auto', display: 'block' }} />
           </div>
+          {isVisualReady && overlayContent ? (
+            <div className="pointer-events-none absolute inset-0">{overlayContent}</div>
+          ) : null}
         </div>
       </div>
     );
@@ -509,7 +532,7 @@ export default function GiverDedicationCanvas({
             </div>
           </div>
         </div>
-        {leftBelow}
+        {isVisualReady ? leftBelow : null}
         {/* 右半：结构与 PreviewPageItem 单页模式保持一致 */}
         <div className="w-full flex justify-center">
           <div
@@ -522,7 +545,7 @@ export default function GiverDedicationCanvas({
             </div>
           </div>
         </div>
-        {rightBelow}
+        {isVisualReady ? rightBelow : null}
       </div>
     </div>
   );

@@ -16,7 +16,16 @@ import usePreviewStore from '@/stores/previewStore';
 import { isPicbookBirthday } from '@/utils/isPicbookBirthday';
 import { formatBirthDateIso, mapPersonalityTraitIdsToCharacterTraits } from '@/utils/birthdayPersonalizeHelpers';
 import { isPicbookMom } from '@/utils/isPicbookMom';
+import { isPicbookDad } from '@/utils/isPicbookDad';
+import { getPersonalizeAvatarAssetSpu } from '@/utils/personalizeAvatar';
 import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
+import { buildPreviewRenderPayload } from '@/utils/previewRenderPayload';
+import {
+  buildDadQuestionAttributes,
+  DEFAULT_DAD_QUESTIONS_PREVIEW,
+  parseDadQuestionsFromProduct,
+  type DadQuestionConfig,
+} from '@/utils/dadPersonalizeHelpers';
 
 type AttributeOption = { value: string; label?: string; is_default?: boolean; price_diff?: number | string };
 type Attribute = { name: string; options: AttributeOption[]; default?: string };
@@ -25,6 +34,7 @@ type Attribute = { name: string; options: AttributeOption[]; default?: string };
 const BOOK_NAME_OVERRIDES: Record<string, string> = {
   PICBOOK_GOODNIGHT3: 'Good Night to You',
   PICBOOK_MOM: 'The Way I See You, Mama',
+  PICBOOK_DAD: 'Dad & Me: A Little Book of Our Big Memories',
   PICBOOK_BRAVEY: "Little One, You're Brave in Many Ways",
   PICBOOK_BIRTHDAY: 'Birthday Book for You',
   PICBOOK_MELODY: 'Your Melody',
@@ -39,6 +49,28 @@ const resolveBookDisplayName = (product: any, fallbackBookId: string) => {
 
   return BOOK_NAME_OVERRIDES[idOrCode] || originalName;
 };
+
+const PERSONALIZE_PAGE_TITLE_CLASS =
+  'text-[22px] leading-[28px] md:text-[28px] md:leading-[36px] text-center pt-3 md:pt-0 md:my-6 my-0 text-[#222222]';
+
+const PERSONALIZE_TITLE_WHO =
+  'Who Are You Making This Book For?';
+
+const PERSONALIZE_TITLE_BRING_STORY =
+  'Let\u2019s Bring Your Story to Life \u2728';
+
+const PERSONALIZE_BTN_CONTINUE = 'Continue';
+const PERSONALIZE_BTN_CREATE_PREVIEW = 'Create My Preview';
+
+function getPersonalizeLastStep(
+  formType: 'SINGLE1' | 'SINGLE2',
+  isBirthday: boolean,
+  isMom: boolean,
+  isDad: boolean
+): number {
+  if (formType === 'SINGLE1' && (isBirthday || isMom || isDad)) return 3;
+  return 2;
+}
 
 // Track ViewContent only once per page load
 let viewContentTracked = false;
@@ -62,11 +94,8 @@ export default function PersonalizeApiDrivenPage() {
   const locale = pathname.split('/')[1] || 'en';
   const isBirthdayPersonalize = isPicbookBirthday(bookId);
   const isMomBookPersonalize = isPicbookMom(bookId);
-  const personalizeAvatarAssetSpu = isBirthdayPersonalize
-    ? 'PICBOOK_BIRTHDAY'
-    : String(bookId || '').trim().toUpperCase() === 'PICBOOK_MOM'
-      ? 'PICBOOK_MOM'
-      : 'PICBOOK_GOODNIGHT';
+  const isDadBookPersonalize = isPicbookDad(bookId);
+  const personalizeAvatarAssetSpu = getPersonalizeAvatarAssetSpu(bookId);
 
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,6 +111,7 @@ export default function PersonalizeApiDrivenPage() {
   const [rawApi, setRawApi] = useState<any>(null);
   const [uploadOptions, setUploadOptions] = useState<{ allowedTypes?: string[]; maxFileSize?: number; maxImages?: number } | undefined>(undefined);
   const [bookName, setBookName] = useState<string>('');
+  const [dadQuestions, setDadQuestions] = useState<DadQuestionConfig[]>([]);
 
   const form1Ref = useRef<SingleCharacterForm1Handle>(null);
   const form2Ref = useRef<SingleCharacterForm2Handle>(null);
@@ -99,10 +129,13 @@ export default function PersonalizeApiDrivenPage() {
         if (FRONTEND_PREVIEW) {
           // 预览模式
           setFormType(bookId === '2' ? 'SINGLE2' : 'SINGLE1');
+          if (isDadBookPersonalize) {
+            setDadQuestions(DEFAULT_DAD_QUESTIONS_PREVIEW);
+          }
           setUploadOptions({
             allowedTypes: ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'],
             maxFileSize: 20 * 1024 * 1024,
-            maxImages: isMomBookPersonalize ? 2 : 1,
+            maxImages: isMomBookPersonalize ? 2 : isDadBookPersonalize ? 3 : 1,
           });
           setLoading(false);
           return;
@@ -114,6 +147,9 @@ export default function PersonalizeApiDrivenPage() {
         const res = await api.get<any>(`/products/${encodeURIComponent(String(bookId))}`, { params: { language: requestLang } });
         setRawApi(res?.data || res);
         const product = res?.data?.data || res?.data || {};
+        if (isDadBookPersonalize) {
+          setDadQuestions(parseDadQuestionsFromProduct(product));
+        }
         // 获取书籍名称，保持和详情页 / Our Books 的前端覆盖逻辑一致
         const name = resolveBookDisplayName(product, bookId);
         setBookName(name);
@@ -172,7 +208,7 @@ export default function PersonalizeApiDrivenPage() {
           setUploadOptions({
             allowedTypes: allowed,
             maxFileSize: maxSize,
-            maxImages: isMomBookPersonalize ? 2 : 1,
+            maxImages: isMomBookPersonalize ? 2 : isDadBookPersonalize ? 3 : 1,
           });
         } catch {}
       } catch (e) {
@@ -320,6 +356,17 @@ export default function PersonalizeApiDrivenPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
+
+      if (isDadBookPersonalize && currentStep === 2) {
+        const validationResult = form1Ref.current.validateForm({ scope: 'stepDadCustomize' });
+        if (!validationResult.isValid) {
+          setTimeout(() => scrollToErrorField(validationResult.firstErrorField), 100);
+          return;
+        }
+        setCurrentStep(3);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
     } else if (formType === 'SINGLE2') {
       if (useForm3 && form3Ref.current) {
         const validationResult = form3Ref.current.validateForm({ scope: 'step1' });
@@ -350,6 +397,10 @@ export default function PersonalizeApiDrivenPage() {
       return;
     }
     if (formType === 'SINGLE1' && isMomBookPersonalize && currentStep === 2) {
+      handleNextStep();
+      return;
+    }
+    if (formType === 'SINGLE1' && isDadBookPersonalize && currentStep === 2) {
       handleNextStep();
       return;
     }
@@ -410,7 +461,9 @@ export default function PersonalizeApiDrivenPage() {
       if ((!photosData || photosData.length === 0) && FRONTEND_PREVIEW) {
         photosData = isMomBookPersonalize
           ? ['/personalize/face.png', '/personalize/face.png']
-          : ['/personalize/face.png'];
+          : isDadBookPersonalize
+            ? ['/personalize/face.png', '/personalize/mom.png', '/personalize/face.png']
+            : ['/personalize/face.png'];
       }
 
       const genderCode = genderRaw === 'boy' ? 1 : genderRaw === 'girl' ? 2 : 0;
@@ -474,7 +527,8 @@ export default function PersonalizeApiDrivenPage() {
             skincolor: skinColorCode,
             hairstyle: hairstyleCode,
             haircolor: hairColorCode,
-            photo: (isMomBookPersonalize ? photosData[1] : photosData[0]) || '',
+            photo:
+              (isMomBookPersonalize ? photosData[1] : isDadBookPersonalize ? photosData[2] : photosData[0]) || '',
             photos: photosData,
             attributes: {
               skin_tone: mapSkinToBackend(skinColorRaw),
@@ -491,9 +545,19 @@ export default function PersonalizeApiDrivenPage() {
                 ? {
                     mom_calls_me: String(f1.momCallsMe ?? '').trim(),
                     mom_makes_best: String(f1.momMakesBest ?? '').trim(),
+                    mom_skin_tone: mapSkinToBackend(String(f1.momSkinColor ?? skinColorRaw)),
                   }
                 : {}),
-              ...buildPicbookPreviewFacePayload(bookId || '', photosData).faceAttributes,
+              ...(isDadBookPersonalize && f1
+                ? {
+                    dad_name: String(f1.dadTitle ?? '').trim(),
+                    dad_skin_tone: mapSkinToBackend(String(f1.dadSkinColor ?? skinColorRaw)),
+                    ...buildDadQuestionAttributes(f1.dadQuestionAnswers, dadQuestions),
+                  }
+                : {}),
+              ...(!isDadBookPersonalize
+                ? buildPicbookPreviewFacePayload(bookId || '', photosData).faceAttributes
+                : {}),
             },
           },
         ],
@@ -542,28 +606,7 @@ export default function PersonalizeApiDrivenPage() {
       if (fromCartItemId && !isHideOptions) {
         try {
           const ch: any = (userData as any)?.characters?.[0] || {};
-          const faceImages = (Array.isArray(ch?.photos) ? ch.photos : (ch?.photo ? [ch.photo] : [])).filter(Boolean);
-          const fb = buildPicbookPreviewFacePayload(bookId || '', faceImages);
-          const skinTone = ch?.attributes?.skin_tone || ch?.attributes?.skinTone;
-          const skincolor =
-            ch?.skincolor ??
-            (skinTone === 'white' ? 1 : skinTone === 'original' ? 2 : skinTone === 'black' ? 3 : undefined);
-          const payload: any = {
-            picbook_id: bookId,
-            face_images: fb.face_images,
-            full_name: ch?.full_name || '',
-            language: ch?.language || selectedLanguage || 'en',
-            gender: ch?.gender || '',
-            relationship: ch?.relationship || 'Parent/Guardian',
-            ...(String(ch?.giver_name || ch?.created_by || '').trim()
-              ? { giver_name: String(ch?.giver_name || ch?.created_by || '').trim() }
-              : {}),
-            skincolor,
-            attributes: {
-              ...(ch?.attributes || {}),
-              ...fb.faceAttributes,
-            },
-          };
+          const payload = buildPreviewRenderPayload(bookId || '', ch);
 
           const resp: any = await api.post<any>(
             `/cart/${encodeURIComponent(String(fromCartItemId))}/regenerate-preview`,
@@ -597,6 +640,16 @@ export default function PersonalizeApiDrivenPage() {
     }
   };
 
+  const personalizeLastStep = getPersonalizeLastStep(
+    formType,
+    isBirthdayPersonalize,
+    isMomBookPersonalize,
+    isDadBookPersonalize
+  );
+  const isLastPersonalizeStep =
+    (formType === 'SINGLE1' && currentStep === personalizeLastStep) ||
+    (formType === 'SINGLE2' && useForm3 && currentStep === 2);
+
   return (
     <div className="min-h-screen bg-[#F8F8F8]">
       <div className="h-14 bg-white flex items-center px-4 sm:px-32">
@@ -617,25 +670,17 @@ export default function PersonalizeApiDrivenPage() {
       </div>
 
       <div className="mx-auto pb-20 md:pb-0">
-        {isBirthdayPersonalize && formType === 'SINGLE1' && currentStep === 2 ? (
+        {isLastPersonalizeStep ? (
+          <h1 className={PERSONALIZE_PAGE_TITLE_CLASS}>{PERSONALIZE_TITLE_BRING_STORY}</h1>
+        ) : isBirthdayPersonalize && formType === 'SINGLE1' && currentStep === 2 ? (
           <div className="text-center pt-3 md:pt-0 md:my-6 my-0">
             <h1 className="text-[22px] leading-[28px] md:text-[28px] md:leading-[36px] text-[#222222]">Bring them to life</h1>
             <p className="text-[#999999] text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] mt-2 max-w-xl mx-auto px-4">
               Tell us a little more — we&apos;ll turn it into their story.
             </p>
           </div>
-        ) : isMomBookPersonalize && formType === 'SINGLE1' && currentStep === 2 ? (
-          <h1 className="text-[22px] leading-[28px] md:text-[28px] md:leading-[36px] text-center pt-3 md:pt-0 md:my-6 my-0 text-[#222222]">
-            From your child, with love
-          </h1>
-        ) : isMomBookPersonalize && formType === 'SINGLE1' && currentStep === 3 ? (
-          <h1 className="text-[22px] leading-[28px] md:text-[28px] md:leading-[36px] text-center pt-3 md:pt-0 md:my-6 my-0 text-[#222222]">
-            Upload photos of Mom and child
-          </h1>
         ) : (
-          <h1 className="text-[22px] leading-[28px] md:text-[28px] md:leading-[36px] text-center pt-3 md:pt-0 md:my-6 my-0">
-            Tell Us About Your Child
-          </h1>
+          <h1 className={PERSONALIZE_PAGE_TITLE_CLASS}>{PERSONALIZE_TITLE_WHO}</h1>
         )}
         {formType === 'SINGLE1' ? (
           <SingleCharacterForm1
@@ -652,6 +697,7 @@ export default function PersonalizeApiDrivenPage() {
             uploadOptions={uploadOptions}
             assetSpuCode={personalizeAvatarAssetSpu}
             currentStep={currentStep}
+            dadQuestions={dadQuestions}
             onCropperOpenChange={handleCropperOpenChange}
           />
         ) : (
@@ -695,30 +741,23 @@ export default function PersonalizeApiDrivenPage() {
         <div className="hidden md:flex justify-center">
           {(currentStep === 1 && (formType === 'SINGLE1' || (formType === 'SINGLE2' && useForm3))) ||
           (formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 2) ||
-          (formType === 'SINGLE1' && isMomBookPersonalize && currentStep === 2) ? (
+          (formType === 'SINGLE1' && isMomBookPersonalize && currentStep === 2) ||
+          (formType === 'SINGLE1' && isDadBookPersonalize && currentStep === 2) ? (
             <button
               type="button"
               onClick={handleNextStep}
               style={{ width: '220px' }}
               className="bg-black text-[#F5E3E3] py-3  text-[16px] leading-[24px] tracking-[0.5px] mb-16 rounded hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
             >
-              {formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 1
-                ? 'Next Step (1/3)'
-                : formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 2
-                  ? 'Next Step (2/3)'
-                  : formType === 'SINGLE1' && isMomBookPersonalize && currentStep === 1
-                    ? 'Next Step (1/3)'
-                    : formType === 'SINGLE1' && isMomBookPersonalize && currentStep === 2
-                      ? 'Next Step (2/3)'
-                      : 'Next Step (1/2)'}
+              {PERSONALIZE_BTN_CONTINUE}
             </button>
           ) : (
             <button
               type="button"
               onClick={handleContinue}
               disabled={isSubmitting}
-              style={{ width: '180px' }}
-              className="bg-black text-[#F5E3E3] mb-16 py-3 rounded hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              style={{ width: '220px' }}
+              className="bg-black text-[#F5E3E3] mb-16 py-3 rounded hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-[16px] leading-[24px] tracking-[0.5px]"
             >
               {isSubmitting ? (
                 <>
@@ -729,7 +768,7 @@ export default function PersonalizeApiDrivenPage() {
                   <span>Loading...</span>
                 </>
               ) : (
-                'Continue'
+                PERSONALIZE_BTN_CREATE_PREVIEW
               )}
             </button>
           )}
@@ -740,21 +779,14 @@ export default function PersonalizeApiDrivenPage() {
         <div className="flex items-center justify-center h-[76px] px-[12px] py-[16px] gap-[10px]">
           {(currentStep === 1 && (formType === 'SINGLE1' || (formType === 'SINGLE2' && useForm3))) ||
           (formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 2) ||
-          (formType === 'SINGLE1' && isMomBookPersonalize && currentStep === 2) ? (
+          (formType === 'SINGLE1' && isMomBookPersonalize && currentStep === 2) ||
+          (formType === 'SINGLE1' && isDadBookPersonalize && currentStep === 2) ? (
             <button
               type="button"
               onClick={handleNextStep}
               className="w-full bg-black text-[#F5E3E3] h-[44px] rounded hover:bg-gray-800 transition-colors text-[16px] leading-[24px] tracking-[0.5px] flex items-center justify-center gap-2"
             >
-              {formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 1
-                ? 'Next Step (1/3)'
-                : formType === 'SINGLE1' && isBirthdayPersonalize && currentStep === 2
-                  ? 'Next Step (2/3)'
-                  : formType === 'SINGLE1' && isMomBookPersonalize && currentStep === 1
-                    ? 'Next Step (1/3)'
-                    : formType === 'SINGLE1' && isMomBookPersonalize && currentStep === 2
-                      ? 'Next Step (2/3)'
-                      : 'Next Step (1/2)'}
+              {PERSONALIZE_BTN_CONTINUE}
             </button>
           ) : (
             <button
@@ -772,7 +804,7 @@ export default function PersonalizeApiDrivenPage() {
                   <span>Loading...</span>
                 </>
               ) : (
-                'Continue'
+                PERSONALIZE_BTN_CREATE_PREVIEW
               )}
             </button>
           )}

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Link } from '@/i18n/routing';
 import BasicInfoForm, { BasicInfoData, AgeStage } from './BasicInfoForm';
 import MultiImageUpload from './MultiImageUpload';
+import { PERSONALIZE_PHOTO_CONSENT_PREFIX } from './PersonalizePhotoUploadTips';
 import useMultiImageUpload from '../../hooks/useMultiImageUpload';
 // Date of Birth 组件已移除
 import GiverAvatarCropper from '../../preview/components/GiverAvatarCropper';
@@ -318,22 +319,6 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
     isCropperOpen,
   }));
 
-  // 根据关系返回对应的 consent 文本
-  const getConsentText = (relationship: string | undefined) => {
-    switch (relationship) {
-      case 'Parent/Guardian':
-        return "I confirm that I am this child's parent or legal guardian, I am over 18, and I give my consent to use these details and photos to create their personalized storybook, in line with the";
-      case 'Grandparent':
-      case 'Aunt/Uncle':
-      case 'Family Friend':
-        return "I confirm that I am over 18 and that the child's parent or guardian has given me permission to share these details and photos so we can create their personalized storybook, in line with the";
-      case 'Other':
-        return "I confirm that I am over 18 and that the child's parent or guardian has given me consent to share these details and photos so we can create their personalized storybook, in line with the";
-      default:
-        return "I confirm that I am this child's parent or legal guardian, I am over 18, and I give my consent to use these details and photos to create their personalized storybook, in line with the";
-    }
-  };
-
   return (
     <div className="w-full max-w-[1440px] mx-auto px-4 md:px-[120px] bg-[#F8F8F8] relative pb-8">
       {/* 表单区域 */}
@@ -495,10 +480,11 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
                     }}
                   />
                   <span className="text-[#666666] text-[14px] leading-[20px] tracking-[0.5px]">
-                    {getConsentText(formData.relationship)}{' '}
+                    {PERSONALIZE_PHOTO_CONSENT_PREFIX}{' '}
                     <Link href="/privacy-policy" className="text-[#012CCE] underline">
-                      Privacy Policy.
+                      Privacy Policy
                     </Link>
+                    .
                   </span>
                 </label>
                 {touched.consent && errors.consent && <p className="text-red-500 text-sm mt-1 ml-8">{errors.consent}</p>}
