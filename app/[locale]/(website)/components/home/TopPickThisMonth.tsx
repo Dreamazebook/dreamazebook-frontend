@@ -9,15 +9,15 @@ import Image from '../common/Image';
 
 const TopPickThisMonth = () => {
   const images = [
-    HOME_TOP_PICKS('card-1.png'),
-    HOME_TOP_PICKS('card-2.png'),
-    HOME_TOP_PICKS('card-3.png'),
+    HOME_TOP_PICKS('father1.webp'),
+    HOME_TOP_PICKS('father2.webp'),
+    HOME_TOP_PICKS('father3.webp'),
   ];
 
   const images_mobile = [
-    HOME_TOP_PICKS('card-1-mobile.png'),
-    HOME_TOP_PICKS('card-2-mobile.png'),
-    HOME_TOP_PICKS('card-3-mobile.png'),
+    HOME_TOP_PICKS('father1.webp'),
+    HOME_TOP_PICKS('father2.webp'),
+    HOME_TOP_PICKS('father3.webp'),
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -170,13 +170,14 @@ const TopPickThisMonth = () => {
 
           <div className="space-y-[16px]">
             <h2 className="text-[18px] font-semibold text-[#222222]">
-              The Way I See You, Mama
+              Dad & Me: A Little Book of Our Big Memories
             </h2>
 
             <p className="text-[14px] text-left text-[#222222] md:text-[16px] text-[#666666] leading-relaxed">
-              Have you ever wondered how your child sees you through their eyes?<br/>
-              From Mama’s smile to her hugs and gentle hands, this book captures all the little things your child loves most about you.<br/>
-              You can even include your child’s own drawings to create a keepsake full of love and memories.
+              A personalized storybook that turns everyday moments with Dad into memories your child will treasure forever.<br/>
+              From silly little routines to “Dad fixes everything” magic, every page is customized to feel warm, personal, and uniquely yours — featuring real photos and the little details that make your family special.<br/>
+              More than a gift for Dad.<br/>
+              A keepsake for the whole family. 💛
             </p>
 
             <div className="flex gap-1 justify-center lg:justify-start pt-2">
@@ -186,7 +187,7 @@ const TopPickThisMonth = () => {
             </div>
           </div>
 
-          <Link href={BOOK_DETAIL_URL('PICBOOK_MOM')} className="text-[16px] text-[#222222] justify-center md:justify-start font-medium flex items-center mx-auto md:ml-0 gap-2 cursor-pointer hover:text-primary transition-colors duration-200 mt-4 md:mt-20">
+          <Link href={BOOK_DETAIL_URL('PICBOOK_DAD')} className="text-[16px] text-[#222222] justify-center md:justify-start font-medium flex items-center mx-auto md:ml-0 gap-2 cursor-pointer hover:text-primary transition-colors duration-200 mt-4 md:mt-20">
             Personalize This Book
             <Image alt='Personalize' src="/images/common/arrow-black.svg" className="w-5 h-5" />
           </Link>
