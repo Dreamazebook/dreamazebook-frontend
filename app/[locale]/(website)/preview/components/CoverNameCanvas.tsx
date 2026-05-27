@@ -367,7 +367,7 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
   return (
     <canvas
       ref={canvasRef}
-      className={className || "w-full h-auto block"}
+      className={className || 'block w-full h-auto'}
       style={{ width: '100%', height: 'auto', display: 'block' }}
     />
   );

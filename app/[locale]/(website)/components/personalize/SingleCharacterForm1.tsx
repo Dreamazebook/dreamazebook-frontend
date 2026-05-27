@@ -94,6 +94,7 @@ interface SingleCharacterForm1Props {
     momSkinColor?: string;
     dadTitle?: string;
     dadSkinColor?: string;
+    dadQuestionAnswers?: Record<string, string>;
   };
   bookId?: string;
   defaultConsentChecked?: boolean;
@@ -155,7 +156,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       momSkinColor: initialData?.momSkinColor ?? '#FFE2CF',
       dadTitle: initialData?.dadTitle ?? '',
       dadSkinColor: initialData?.dadSkinColor ?? '#FFE2CF',
-      dadQuestionAnswers: {},
+      dadQuestionAnswers: initialData?.dadQuestionAnswers ? { ...initialData.dadQuestionAnswers } : {},
     });
     const [errors, setErrors] = useState<FormErrors>({});
     const [touched, setTouched] = useState<{ [K in keyof PersonalizeFormData]?: boolean }>({});
@@ -170,6 +171,37 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     const [momSlotDrag, setMomSlotDrag] = useState<[boolean, boolean]>([false, false]);
     const [pendingDadSlot, setPendingDadSlot] = useState<DadMomChildSlotIndex | null>(null);
     const [dadSlotDrag, setDadSlotDrag] = useState<[boolean, boolean, boolean]>([false, false, false]);
+
+    useEffect(() => {
+      if (!isDadBook || !initialData) return;
+      setFormData(prev => {
+        const nextAnswers = { ...(prev.dadQuestionAnswers || {}) };
+        let answersChanged = false;
+        for (const [key, value] of Object.entries(initialData.dadQuestionAnswers || {})) {
+          const trimmed = String(value ?? '').trim();
+          if (trimmed && nextAnswers[key] !== trimmed) {
+            nextAnswers[key] = trimmed;
+            answersChanged = true;
+          }
+        }
+        const nextTitle = String(initialData.dadTitle ?? '').trim();
+        const nextSkin = initialData.dadSkinColor;
+        const titleChanged = nextTitle && prev.dadTitle !== nextTitle;
+        const skinChanged = nextSkin && prev.dadSkinColor !== nextSkin;
+        if (!answersChanged && !titleChanged && !skinChanged) return prev;
+        return {
+          ...prev,
+          ...(titleChanged ? { dadTitle: nextTitle } : {}),
+          ...(skinChanged ? { dadSkinColor: nextSkin } : {}),
+          ...(answersChanged ? { dadQuestionAnswers: nextAnswers } : {}),
+        };
+      });
+    }, [
+      isDadBook,
+      initialData?.dadTitle,
+      initialData?.dadSkinColor,
+      initialData?.dadQuestionAnswers,
+    ]);
 
     useEffect(() => {
       if (!isDadBook || dadQuestions.length === 0) return;

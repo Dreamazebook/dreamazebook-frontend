@@ -36,6 +36,14 @@ import {
   canDrawCoverTexts,
   getCoverTextCacheKey,
 } from '@/utils/coverTextVariables';
+import {
+  coverFitFrameImageClass,
+  coverNaturalImageClass,
+  coverSpreadImageStyle,
+  getCoverDisplayDimensions,
+  resolveCoverNumericId,
+  shouldCropCoverRightHalf,
+} from '@/utils/coverSpreadHelpers';
 
 // 封面文字配置缓存：避免在同一会话内反复请求 R2
 const coverTextsCache: Record<string, Array<{
@@ -515,18 +523,16 @@ function CoverOptionImageWithName({
   bookId,
   option,
   baseSrc,
-  cropRightHalf,
+  displayAspectRatio,
   recipient,
   coverTextVariables,
-  spreadAspectRatio,
 }: {
   bookId: string | null;
   option: CoverOption;
   baseSrc: string;
-  cropRightHalf: boolean;
+  displayAspectRatio: number;
   recipient: string;
   coverTextVariables: ReturnType<typeof buildCoverTextVariables>;
-  spreadAspectRatio?: number | null;
 }) {
   const [texts, setTexts] = useState<Array<{
     type?: string;
@@ -550,8 +556,7 @@ function CoverOptionImageWithName({
       setComposedUrl(null);
       return;
     }
-    const rawCoverKey = option.option_key || String(option.id);
-    const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(option.id);
+    const coverId = resolveCoverNumericId(option);
 
     const cacheKey = `${upperBookId}_${coverId}`;
     // 先尝试使用全局缓存的文字配置
@@ -602,8 +607,7 @@ function CoverOptionImageWithName({
 
   // 如果已经有缓存的合成图片，直接使用，避免再次 Canvas 绘制
   const upperBookId = (bookId || '').toUpperCase();
-  const rawCoverKey = option.option_key || String(option.id);
-  const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(option.id);
+  const coverId = resolveCoverNumericId(option);
   const variablesKey = getCoverTextCacheKey(coverTextVariables);
   const composedKey = `${upperBookId}_${coverId}_${variablesKey}_${baseSrc}_${COVER_COMPOSE_CACHE_VERSION}`;
   const handleCoverRendered = useCallback((dataUrl: string) => {
@@ -621,16 +625,18 @@ function CoverOptionImageWithName({
     }
   }, [composedKey, canDrawName]);
 
+  const coverDims = getCoverDisplayDimensions(displayAspectRatio);
+
   if (composedUrl) {
     return (
-      <CoverSpreadFrame cropRightHalf={cropRightHalf} spreadAspectRatio={spreadAspectRatio}>
+      <CoverSpreadFrame cropRightHalf={false}>
         <Image
           src={composedUrl}
           alt={`Cover ${option.id} - ${option.name}`}
-          width={cropRightHalf ? 400 : 200}
-          height={200}
+          width={coverDims.width}
+          height={coverDims.height}
           unoptimized
-          className="block h-full w-full object-cover object-right"
+          className={coverNaturalImageClass}
         />
       </CoverSpreadFrame>
     );
@@ -638,13 +644,13 @@ function CoverOptionImageWithName({
 
   if (canDrawName) {
     return (
-      <CoverSpreadFrame cropRightHalf={cropRightHalf} spreadAspectRatio={spreadAspectRatio}>
+      <CoverSpreadFrame cropRightHalf={false}>
         <CoverNameCanvas
           src={baseSrc}
           name={trimmedName}
           variables={coverTextVariables}
           texts={texts as any}
-          className="block h-full w-full"
+          className={coverNaturalImageClass}
           onRendered={handleCoverRendered}
         />
       </CoverSpreadFrame>
@@ -653,14 +659,14 @@ function CoverOptionImageWithName({
 
   // 无文本配置或没有名字时，回退为普通封面图片
   return (
-    <CoverSpreadFrame cropRightHalf={cropRightHalf} spreadAspectRatio={spreadAspectRatio}>
+    <CoverSpreadFrame cropRightHalf={false}>
       <Image
         src={baseSrc}
         alt={`Cover ${option.id} - ${option.name}`}
-        width={cropRightHalf ? 400 : 200}
-        height={200}
+        width={coverDims.width}
+        height={coverDims.height}
         unoptimized={shouldBypassNextImageOptimization(baseSrc)}
-        className="block h-full w-full object-cover object-right"
+        className={coverNaturalImageClass}
       />
     </CoverSpreadFrame>
   );
@@ -1913,7 +1919,7 @@ export default function PreviewPageWithTopNav() {
 
   // 添加 options 状态
   const [bookOptions, setBookOptions] = useState<BookOptions | null>(null);
-  // cover 缩略图统一比例：以 cover_1 的真实图片宽高比为准（用于让 cover_3/4 与 cover_1 同高）
+  // cover_1 真实宽高比：cover_3/4 缩略图外框与之对齐
   const [coverThumbAspectRatio, setCoverThumbAspectRatio] = useState<number | null>(null);
 
   // 圣诞 bundle：自动预选默认封面/装订（不让 Add to cart 引导去 option tab）
@@ -2125,8 +2131,7 @@ export default function PreviewPageWithTopNav() {
     }
     if (!activeOption) return;
 
-    const rawCoverKey = activeOption.option_key || String(activeOption.id);
-    const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(activeOption.id);
+    const coverId = resolveCoverNumericId(activeOption);
     const configKey = `${upperBookId}_${coverId}`;
 
     // 同一个 bookId+coverId 不要重复拉取（尤其在 React 18 dev strict mode 下 effect 会触发两次）
@@ -3039,8 +3044,7 @@ export default function PreviewPageWithTopNav() {
       normalizedBookId = 'PICBOOK_GOODNIGHT';
     }
 
-    const rawCoverKey = option.option_key || String(option.id);
-    const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(option.id);
+    const coverId = resolveCoverNumericId(option);
 
     const isBirthdaySeasonalCover =
       normalizedBookId === 'PICBOOK_BIRTHDAY' && (coverId === '1' || coverId === '2');
@@ -3062,7 +3066,7 @@ export default function PreviewPageWithTopNav() {
     }
 
     const folder = `${baseDomain}/${encodeURIComponent(normalizedBookId)}/covers/cover_${encodeURIComponent(coverId)}`;
-    const cropRightHalf = ['1', '2', '3', '4'].includes(coverId);
+    const cropRightHalf = shouldCropCoverRightHalf(coverId);
 
     const cacheKey = `${normalizedBookId}_${coverId}_${birthdaySeason ?? 'base'}`;
     const cached = coverR2UrlsCacheRef.current.get(cacheKey);
@@ -3100,16 +3104,22 @@ export default function PreviewPageWithTopNav() {
     return result;
   };
 
-  // 计算 cover_1 的真实宽高比，用于 cover_3/4 缩略图容器固定同高
+  // 测量 cover_1 真实宽高比，供 cover_3/4 缩略图裁切框使用
   useEffect(() => {
     try {
       const bookId = searchParams.get('bookid');
-      if (!bookId) return;
+      if (!bookId) {
+        setCoverThumbAspectRatio(null);
+        return;
+      }
       if (!bookOptions?.cover_options || bookOptions.cover_options.length === 0) return;
 
-      // 找 cover_1（兼容 option_key / id）
+      setCoverThumbAspectRatio(null);
+
       const cover1 =
-        bookOptions.cover_options.find((o) => String(o.option_key || '').toLowerCase().includes('cover_1')) ||
+        bookOptions.cover_options.find((o) =>
+          String(o.option_key || '').toLowerCase().includes('cover_1'),
+        ) ||
         bookOptions.cover_options.find((o) => String(o.option_key || '') === '1') ||
         bookOptions.cover_options.find((o) => String(o.id) === '1') ||
         null;
@@ -3120,7 +3130,7 @@ export default function PreviewPageWithTopNav() {
       if (!src) return;
 
       let cancelled = false;
-      const img = new (window as any).Image();
+      const img = new window.Image();
       img.onload = () => {
         if (cancelled) return;
         const w = Number(img.naturalWidth || img.width || 0);
@@ -3140,6 +3150,8 @@ export default function PreviewPageWithTopNav() {
       // ignore
     }
   }, [bookOptions?.cover_options, searchParams, previewStoreUserData]);
+
+  const coverDisplayAspectRatio = coverThumbAspectRatio ?? 1;
 
   // 为装订方式构建 Cloudflare R2 图片 URL（hardcover / softcover / premium）
   const buildBindingImageUrl = (option: BindingOption) => {
@@ -4885,12 +4897,17 @@ export default function PreviewPageWithTopNav() {
                     }
                   }
 
-                  const coverUrls = activeOption ? buildCoverR2Urls(searchParams.get('bookid'), activeOption) : null;
+                  const coverUrls =
+                    activeOption
+                      ? buildCoverR2Urls(searchParams.get('bookid'), activeOption)
+                      : searchParams.get('bookid')
+                        ? buildCoverR2Urls(searchParams.get('bookid'), { id: 1, option_key: '1' } as CoverOption)
+                        : null;
 
                   if (coverUrls) {
-                    const { base, canvasBase, cropRightHalf } = coverUrls;
-                    const rawCoverKey = activeOption?.option_key || String(activeOption?.id || '');
-                    const activeCoverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(activeOption?.id || '');
+                    const { canvasBase, cropRightHalf } = coverUrls;
+                    const activeCoverId = resolveCoverNumericId(activeOption ?? { id: 1, option_key: '1' });
+                    const coverDims = getCoverDisplayDimensions(coverDisplayAspectRatio);
 
                     // Make it personal 顶部封面：cover_3/4 也使用后端 preview 页，这样排队/换脸中状态与 Options tab 保持一致。
                     if (activeCoverId === '3' || activeCoverId === '4') {
@@ -4926,26 +4943,28 @@ export default function PreviewPageWithTopNav() {
                         <div className="relative w-full max-w-[400px]">
                           <CoverSpreadFrame
                             cropRightHalf={cropRightHalf}
-                            spreadAspectRatio={coverThumbAspectRatio}
+                            frameAspectRatio={coverDisplayAspectRatio}
                             className="relative w-full overflow-hidden rounded-lg shadow-md"
                           >
                             {backendSrc ? (
                               <OptimizedImage
                                 src={backendSrc}
                                 alt="Book Cover"
-                                width={cropRightHalf ? 400 : 200}
-                                height={200}
+                                width={coverDims.width}
+                                height={coverDims.height}
                                 priority
-                                className="block h-full w-full"
+                                className={coverFitFrameImageClass}
+                                style={coverSpreadImageStyle}
                               />
                             ) : (
-                              <Image
-                                src={base}
+                              <OptimizedImage
+                                src={canvasBase}
                                 alt="Book Cover"
-                                width={400}
-                                height={400}
+                                width={coverDims.width}
+                                height={coverDims.height}
                                 priority
-                                className="block h-full w-full"
+                                className={coverFitFrameImageClass}
+                                style={coverSpreadImageStyle}
                               />
                             )}
                           </CoverSpreadFrame>
@@ -4971,10 +4990,7 @@ export default function PreviewPageWithTopNav() {
 
                     // 通用：如果当前封面在 R2 上有 page_properties.json，使用 Canvas 在封面图上绘制用户名
                     if (activeOption && coverTextConfig && canDrawCoverTexts(coverTextConfig.texts, coverTextVariables)) {
-                      const rawCoverKeyInner = activeOption.option_key || String(activeOption.id);
-                      const coverIdInner = /^\d+$/.test(rawCoverKeyInner)
-                        ? rawCoverKeyInner
-                        : String(activeOption.id);
+                      const coverIdInner = resolveCoverNumericId(activeOption);
                       // 仅当配置对应当前封面时启用
                       let expectedBookId = (searchParams.get('bookid') || '').toUpperCase();
                       if (expectedBookId === 'PICBOOK_GOODNIGHT3') {
@@ -4993,14 +5009,14 @@ export default function PreviewPageWithTopNav() {
                       }
                       if (coverTextConfig.key === expectedKey) {
                         return (
-                          <CoverSpreadFrame cropRightHalf={cropRightHalf} spreadAspectRatio={coverThumbAspectRatio}>
+                          <CoverSpreadFrame cropRightHalf={false}>
                             <CoverNameCanvas
                               // 使用本地域名代理过的图片地址，避免 Canvas CORS 污染
                               src={canvasBase}
                               name={recipient.trim()}
                               variables={coverTextVariables}
                               texts={coverTextConfig.texts}
-                              className="block h-full w-full"
+                              className={coverNaturalImageClass}
                             />
                           </CoverSpreadFrame>
                         );
@@ -5009,24 +5025,25 @@ export default function PreviewPageWithTopNav() {
 
                     // 无 page_properties.json 的封面保持原有展示逻辑
                     return (
-                      <CoverSpreadFrame cropRightHalf={cropRightHalf} spreadAspectRatio={coverThumbAspectRatio}>
-                        <Image
-                          src={base}
+                      <CoverSpreadFrame cropRightHalf={false}>
+                        <OptimizedImage
+                          src={canvasBase}
                           alt="Book Cover"
-                          width={400}
-                          height={400}
+                          width={coverDims.width}
+                          height={coverDims.height}
                           priority
-                          className={`block h-full w-full object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
+                          className={coverNaturalImageClass}
                         />
                       </CoverSpreadFrame>
                     );
                   }
 
                   // 回退到原有逻辑（非 Cloudflare 场景）
+                  const fallbackCoverDims = getCoverDisplayDimensions(coverDisplayAspectRatio);
                   return bookInfo?.default_cover ? (
-                    <div className="relative w-full max-w-[400px]">
+                    <CoverSpreadFrame cropRightHalf={false}>
                       {isCoverLoading && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-lg z-10">
+                        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-lg bg-white">
                           <DreamazeLogoRainbowLoader size={60} />
                         </div>
                       )}
@@ -5034,11 +5051,10 @@ export default function PreviewPageWithTopNav() {
                         src={buildImageUrl(bookInfo.default_cover)}
                         fallbackSrc={'/imgs/picbook/goodnight/封面1.jpg'}
                         alt="Book Cover"
-                        width={400}
-                        height={392}
+                        width={fallbackCoverDims.width}
+                        height={fallbackCoverDims.height}
                         priority
-                        className={`max-w-sm rounded-lg shadow-md w-full h-auto ${isCoverLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
-                        style={{ objectFit: 'cover' }}
+                        className={`${coverNaturalImageClass} ${isCoverLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
                         onError={(e) => {
                           console.error(`封面图片加载失败: ${buildImageUrl(bookInfo.default_cover)} (raw: ${bookInfo.default_cover})`);
                           setIsCoverLoading(false);
@@ -5047,7 +5063,7 @@ export default function PreviewPageWithTopNav() {
                           setIsCoverLoading(false);
                         }}
                       />
-                    </div>
+                    </CoverSpreadFrame>
                   ) : (
                     <div className="relative w-full max-w-[400px]">
                       {isLoadingBookInfo && (
@@ -5635,10 +5651,10 @@ export default function PreviewPageWithTopNav() {
                         }
 
                         const { base, canvasBase, cropRightHalf } = coverUrls;
+                        const coverDims = getCoverDisplayDimensions(coverDisplayAspectRatio);
 
                         // 仅对 cover 1 / 2 在按钮缩略图中叠加名字，其余封面保持原图
-                        const rawCoverKey = option.option_key || String(option.id);
-                        const coverId = /^\d+$/.test(rawCoverKey) ? rawCoverKey : String(option.id);
+                        const coverId = resolveCoverNumericId(option);
 
                         if (coverId === '1' || coverId === '2') {
                           return (
@@ -5648,10 +5664,9 @@ export default function PreviewPageWithTopNav() {
                                 option={option}
                                 // 同样使用本地域名代理地址，保证缩略图 Canvas 也能正常叠加名字
                                 baseSrc={canvasBase}
-                                cropRightHalf={cropRightHalf}
+                                displayAspectRatio={coverDisplayAspectRatio}
                                 recipient={recipient}
                                 coverTextVariables={coverTextVariables}
-                                spreadAspectRatio={coverThumbAspectRatio}
                               />
                             </div>
                           );
@@ -5689,24 +5704,26 @@ export default function PreviewPageWithTopNav() {
                             <div className="relative w-full mb-2">
                               <CoverSpreadFrame
                                 cropRightHalf={cropRightHalf}
-                                spreadAspectRatio={coverThumbAspectRatio}
+                                frameAspectRatio={coverDisplayAspectRatio}
                                 className="relative w-full overflow-hidden"
                               >
                                 {backendSrc ? (
                                   <OptimizedImage
                                     src={backendSrc}
                                     alt={`Cover ${option.id} - ${option.name}`}
-                                    width={cropRightHalf ? 400 : 200}
-                                    height={200}
-                                    className="block h-full w-full"
+                                    width={coverDims.width}
+                                    height={coverDims.height}
+                                    className={coverFitFrameImageClass}
+                                    style={coverSpreadImageStyle}
                                   />
                                 ) : (
                                   <Image
                                     src={base}
                                     alt={`Cover ${option.id} - ${option.name}`}
-                                    width={cropRightHalf ? 400 : 200}
-                                    height={200}
-                                    className="block h-full w-full"
+                                    width={coverDims.width}
+                                    height={coverDims.height}
+                                    className={coverFitFrameImageClass}
+                                    style={coverSpreadImageStyle}
                                   />
                                 )}
                               </CoverSpreadFrame>
@@ -5738,9 +5755,9 @@ export default function PreviewPageWithTopNav() {
                             <Image
                               src={base}
                               alt={`Cover ${option.id} - ${option.name}`}
-                              width={cropRightHalf ? 400 : 200}
-                              height={200}
-                              className={`w-full h-auto object-cover ${cropRightHalf ? 'object-right' : 'object-center'}`}
+                              width={coverDims.width}
+                              height={coverDims.height}
+                              className={coverNaturalImageClass}
                             />
                           </div>
                         );

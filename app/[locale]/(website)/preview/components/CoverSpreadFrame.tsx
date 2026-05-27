@@ -3,20 +3,24 @@
 import React from 'react';
 
 interface CoverSpreadFrameProps {
-  /** 是否只展示 spread 右半页（封面正面） */
+  /** cover_3/4：按 cover_1 宽高比裁切展示框 */
   cropRightHalf: boolean;
-  /** 完整 spread 图的宽高比；未提供时按 4:1 估算 */
-  spreadAspectRatio?: number | null;
+  /** 与 cover_1 实测宽高比一致；仅 cropRightHalf 时使用 */
+  frameAspectRatio?: number | null;
   className?: string;
   children: React.ReactNode;
 }
 
+const fillChildClass =
+  '[&_canvas]:block [&_canvas]:h-full [&_canvas]:max-w-none [&_canvas]:w-full [&_img]:block [&_img]:h-full [&_img]:max-w-none [&_img]:w-full';
+
 /**
- * 封面 spread 展示框：cropRightHalf 时裁切并右对齐，只显示右半部分。
+ * cover_1/2：不裁切，按原图比例展示。
+ * cover_3/4：固定为 cover_1 宽高比，子元素 object-cover 从右侧裁切。
  */
 export function CoverSpreadFrame({
   cropRightHalf,
-  spreadAspectRatio,
+  frameAspectRatio,
   className = 'relative w-full max-w-[400px] overflow-hidden rounded-lg shadow-md',
   children,
 }: CoverSpreadFrameProps) {
@@ -24,12 +28,11 @@ export function CoverSpreadFrame({
     return <div className={className}>{children}</div>;
   }
 
-  const fullRatio = spreadAspectRatio && spreadAspectRatio > 0 ? spreadAspectRatio : 4;
-  const displayRatio = fullRatio / 2;
+  const ratio = frameAspectRatio && frameAspectRatio > 0 ? frameAspectRatio : 1;
 
   return (
-    <div className={className} style={{ aspectRatio: String(displayRatio) }}>
-      <div className="absolute inset-y-0 right-0 h-full w-[200%]">{children}</div>
+    <div className={className} style={{ aspectRatio: String(ratio) }}>
+      <div className={`relative h-full w-full overflow-hidden ${fillChildClass}`}>{children}</div>
     </div>
   );
 }
