@@ -647,13 +647,13 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
             setTraitsHintFlashNonce(v => v + 1);
           }
         } else if (scope === 'stepMomLove') {
+          nextTouched.momSkinColor = true;
           nextTouched.momCallsMe = true;
           nextTouched.momMakesBest = true;
-          nextTouched.momSkinColor = true;
           runMomLoveValidation(formData, newErrors);
         } else if (scope === 'stepDadCustomize') {
-          nextTouched.dadTitle = true;
           nextTouched.dadSkinColor = true;
+          nextTouched.dadTitle = true;
           for (const q of dadQuestions) nextQuestionTouched[q.attribute_name] = true;
           runDadCustomizeValidation(formData, newErrors, nextQuestionErrors);
         } else if (scope === 'stepMomPhotos') {

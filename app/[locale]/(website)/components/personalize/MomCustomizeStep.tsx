@@ -56,23 +56,6 @@ export default function MomCustomizeStep({
         {PERSONALIZE_AVATAR_PREVIEW_CAPTION}
       </p>
 
-      <div id="field-momCallsMe">
-        <label className="block font-semibold text-[#222222] text-[16px] leading-[24px] tracking-[0.15px] mb-2">
-          What sweet name does Mom call your child?
-        </label>
-        <input
-          type="text"
-          value={momCallsMe}
-          onChange={e => onMomCallsMeChange(e.target.value)}
-          placeholder="Examples: Sweetie, Peanut, Little Bear"
-          className="w-full px-3 py-2.5 border border-[#E5E5E5] rounded text-[#222222] text-[16px] placeholder:text-[#CCCCCC] focus:outline-none focus:border-[#012CCE]"
-          autoComplete="off"
-        />
-        {momCallsMeTouched && momCallsMeError && (
-          <p className="text-red-500 text-sm mt-1">{momCallsMeError}</p>
-        )}
-      </div>
-
       <div id="field-momSkinColor">
         <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between gap-3 md:gap-0">
           <label className="font-semibold text-[#222222] text-[16px] leading-[24px] tracking-[0.15px]">
@@ -102,6 +85,23 @@ export default function MomCustomizeStep({
         </div>
         {momSkinColorTouched && momSkinColorError && (
           <p className="text-red-500 text-sm mt-1">{momSkinColorError}</p>
+        )}
+      </div>
+
+      <div id="field-momCallsMe">
+        <label className="block font-semibold text-[#222222] text-[16px] leading-[24px] tracking-[0.15px] mb-2">
+          What sweet name does Mom call your child?
+        </label>
+        <input
+          type="text"
+          value={momCallsMe}
+          onChange={e => onMomCallsMeChange(e.target.value)}
+          placeholder="Examples: Sweetie, Peanut, Little Bear"
+          className="w-full px-3 py-2.5 border border-[#E5E5E5] rounded text-[#222222] text-[16px] placeholder:text-[#CCCCCC] focus:outline-none focus:border-[#012CCE]"
+          autoComplete="off"
+        />
+        {momCallsMeTouched && momCallsMeError && (
+          <p className="text-red-500 text-sm mt-1">{momCallsMeError}</p>
         )}
       </div>
 
