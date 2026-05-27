@@ -294,7 +294,7 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
       if (validateStep1) {
         if (!formData.fullName.trim()) newErrors.fullName = 'Please enter the first name';
         if (!formData.gender) newErrors.gender = 'Please select gender';
-        if (!formData.skinColor) newErrors.skinColor = 'Please select skin color';
+        if (!formData.skinColor) newErrors.skinColor = 'Please select skin tone';
         if (!formData.hairstyle) newErrors.hairstyle = 'Please select hairstyle';
         if (!formData.hairColor) newErrors.hairColor = 'Please select hair color';
         if (!formData.ageStage) newErrors.ageStage = 'Please select an age stage';

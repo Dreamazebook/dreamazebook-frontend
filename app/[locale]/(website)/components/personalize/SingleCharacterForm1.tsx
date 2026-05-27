@@ -559,7 +559,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
     const runStep1Validation = (form: PersonalizeFormData, newErrors: FormErrors) => {
       if (!form.fullName.trim()) newErrors.fullName = 'Please enter the first name';
       if (!form.gender) newErrors.gender = 'Please select gender';
-      if (!form.skinColor) newErrors.skinColor = 'Please select skin color';
+      if (!form.skinColor) newErrors.skinColor = 'Please select skin tone';
       if (!form.ageStage) newErrors.ageStage = 'Please select an age stage';
       if (!String(form.fromWhom || '').trim()) newErrors.fromWhom = 'Please enter a name';
     };
