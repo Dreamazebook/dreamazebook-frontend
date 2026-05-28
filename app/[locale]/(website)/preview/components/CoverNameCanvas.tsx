@@ -1,18 +1,31 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
+import {
+  canDrawCoverTexts,
+  isDrawableCoverTextElement,
+  resolveCoverElementText,
+  type CoverTextVariables,
+} from '@/utils/coverTextVariables';
+
+const registeredCoverFonts = new Set<string>();
 
 export interface CoverTextProperty {
   type?: string;
+  text?: string;
   font?: string;
   fontWeight?: string;
   font_weight?: string;
+  fontStyle?: string;
+  font_style?: string;
   fontSize?: number;
   font_size?: number;
   color?: string;
   theme_colors?: Record<string, { color?: string }>;
   position?: { x: number; y: number };
   alignment?: string;
+  syntheticItalic?: boolean;
+  italicAngle?: number;
   shadow_blur?: number;
   shadow_color?: string;
   shadow_opacity?: number;
@@ -26,6 +39,7 @@ interface CoverNameCanvasProps {
   src: string;
   name: string;
   texts: CoverTextProperty[];
+  variables?: CoverTextVariables;
   className?: string;
   onRendered?: (dataUrl: string) => void;
 }
@@ -37,6 +51,7 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
   src,
   name,
   texts,
+  variables,
   className,
   onRendered,
 }) => {
@@ -50,11 +65,6 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
   useEffect(() => {
     let cancelled = false;
 
-    // 关键：Canvas 的 fillText 不会“自动等待字体下载完成”。
-    // 默认封面第一次绘制时，如果字体尚未 ready，会先用 fallback 字体画上去；
-    // 后续交互（切 tab / 点 option）触发重绘，才会变成正确字体。
-    // 这里用 FontFace + document.fonts 显式确保字体可用后再绘制。
-
     const normalizeFontKey = (rawFont?: string) =>
       String(rawFont || '')
         .trim()
@@ -63,7 +73,6 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
 
     const normalizeFontWeight = (rawWeight?: string) => {
       const w = String(rawWeight || '').trim().toLowerCase();
-      // 兼容 JSON 中可能出现的 'Bold' / '700'
       if (w === 'bold' || w === '700' || w === '800' || w === '900') return 'bold';
       return 'normal';
     };
@@ -97,14 +106,6 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
       );
     };
 
-    const getDynamicTextValue = (type: string | undefined, rawName: string) => {
-      const trimmed = rawName.trim();
-      if (type === 'dynamic_possessive') {
-        return trimmed.endsWith('s') ? `${trimmed}'` : `${trimmed}'s`;
-      }
-      return trimmed;
-    };
-
     type KnownFont = {
       family: string;
       urls: {
@@ -115,15 +116,14 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
 
     const fontRegistry: Record<string, KnownFont> = {
       batamy: { family: 'Batamy', urls: { normal: '/fonts/Batamy-Regular.ttf' } },
-      // 注意：Caslon Antique 有独立 Bold 文件，需要按 weight 选择 url
       caslonantique: {
         family: 'Caslon Antique',
         urls: { normal: '/fonts/CaslonAntique-Regular.ttf', bold: '/fonts/CaslonAntique-Bold.ttf' },
       },
-      // PICBOOK_MELODY 等封面 page_properties 常用
       marcellus: { family: 'Marcellus', urls: { normal: '/fonts/Marcellus-Regular.ttf' } },
       notosanssc: { family: 'Noto Sans SC', urls: { normal: '/fonts/NotoSansSC-Regular.ttf' } },
       alittlemonster: { family: 'ALittleMonster', urls: { normal: '/fonts/ALittleMonster.ttf' } },
+      rowdies: { family: 'Rowdies', urls: { normal: '/fonts/Rowdies-Regular.ttf' } },
     };
 
     const resolveFontInfo = (rawFont?: string) => {
@@ -134,6 +134,7 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
       if (key.includes('marcellus')) return fontRegistry.marcellus;
       if (key.includes('notosanssc') || key.includes('notosans')) return fontRegistry.notosanssc;
       if (key.includes('alittlemonster')) return fontRegistry.alittlemonster;
+      if (key.includes('rowdies')) return fontRegistry.rowdies;
       return null;
     };
 
@@ -141,65 +142,69 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
       const direct = String(rawFont || '').trim();
       const known = resolveFontInfo(rawFont);
       if (known) {
-        // 让已知字体名排在最前，保证 ctx.font 命中正确 family
-        return `"${known.family}", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+        return known.family;
       }
       if (direct) {
-        return `"${direct}", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+        return direct.replace(/^"(.+)"$/, '$1');
       }
-      return 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      return 'sans-serif';
     };
 
-    const ensureFontReady = async (rawFont: string | undefined, weight: string, sizePx: number) => {
-      try {
-        const fontsAny = (document as any)?.fonts;
-        if (!fontsAny?.load) return;
+    const buildCanvasFont = (
+      t: CoverTextProperty,
+      fontSizePx: number,
+    ) => {
+      const fontWeight = normalizeFontWeight(getTextFontWeight(t));
+      const fontFamily = resolveFontFamily(t.font);
+      const size = Math.max(1, Math.round(fontSizePx));
+      // 与 Batamy 等已验证封面一致：仅 weight + size + family，避免 oblique 导致整段回退
+      return `${fontWeight} ${size}px "${fontFamily}"`;
+    };
 
-        const known = resolveFontInfo(rawFont);
+    const ensureFontReady = async (t: CoverTextProperty, fontSizePx: number) => {
+      const fontsAny = (document as any)?.fonts;
+      if (!fontsAny?.load) return;
+
+      const fontString = buildCanvasFont(t, fontSizePx);
+      const known = resolveFontInfo(t.font);
+
+      try {
         if (known && typeof (window as any).FontFace === 'function') {
+          const fontWeight = normalizeFontWeight(getTextFontWeight(t));
           const url =
-            weight === 'bold' && known.urls.bold
+            fontWeight === 'bold' && known.urls.bold
               ? known.urls.bold
               : known.urls.normal;
-          // 如果还未注册该 family，则用 FontFace 主动注册并加载
-          const exists = fontsAny.check?.(`${weight} ${Math.max(1, Math.floor(sizePx))}px "${known.family}"`);
-          if (!exists) {
+
+          const faceKey = `${known.family}:${fontWeight}`;
+
+          if (!registeredCoverFonts.has(faceKey)) {
             try {
-              const ff = new (window as any).FontFace(known.family, `url(${url})`, { weight });
-              const loaded = await Promise.race([
-                ff.load(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('font load timeout')), 1500)),
-              ]);
+              const ff = new (window as any).FontFace(known.family, `url(${url})`, {
+                weight: fontWeight === 'bold' ? '700' : '400',
+                style: 'normal',
+              });
+              const loaded = await ff.load();
               fontsAny.add(loaded);
-            } catch {
-              // ignore
+              registeredCoverFonts.add(faceKey);
+            } catch (err) {
+              console.warn(`[CoverNameCanvas] FontFace load failed for ${known.family}:`, err);
             }
           }
-          // 触发浏览器加载并等待 ready
-          await Promise.race([
-            fontsAny.load(`${weight} ${Math.max(1, Math.floor(sizePx))}px "${known.family}"`),
-            fontsAny.ready,
-            new Promise((resolve) => setTimeout(resolve, 800)),
-          ]);
-          return;
         }
 
-        // 未知字体：尽力加载（如果页面上有对应 @font-face，会起作用）
-        const family = String(rawFont || '').trim().replace(/^"(.+)"$/, '$1');
-        if (!family) return;
-        await Promise.race([
-          fontsAny.load(`${weight} ${Math.max(1, Math.floor(sizePx))}px "${family}"`),
-          fontsAny.ready,
-          new Promise((resolve) => setTimeout(resolve, 800)),
-        ]);
-      } catch {
-        // ignore
+        await fontsAny.load(fontString);
+        if (!fontsAny.check?.(fontString)) {
+          await fontsAny.ready;
+          await fontsAny.load(fontString);
+        }
+      } catch (err) {
+        console.warn('[CoverNameCanvas] ensureFontReady failed:', fontString, err);
       }
     };
 
     const loadImageWithCorsFallback = (url: string): Promise<HTMLImageElement> => {
       return new Promise((resolve, reject) => {
-        // 优先尝试 CORS，失败后降级为普通加载
         const corsImg = new (window as any).Image();
         corsImg.crossOrigin = 'anonymous';
         corsImg.onload = () => resolve(corsImg);
@@ -213,12 +218,64 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
       });
     };
 
+    const drawTextAt = (
+      ctx: CanvasRenderingContext2D,
+      textValue: string,
+      x: number,
+      y: number,
+      t: CoverTextProperty,
+    ) => {
+      const shadowBlur = Number(t.shadow_blur || 0);
+      if (shadowBlur > 0) {
+        ctx.shadowBlur = shadowBlur;
+        ctx.shadowColor = t.shadow_color || 'rgba(0,0,0,0.25)';
+        ctx.shadowOffsetX = Number(t.shadow_offset_x || 0);
+        ctx.shadowOffsetY = Number(t.shadow_offset_y || 0);
+        if (t.shadow_opacity != null && t.shadow_color) {
+          const alpha = Math.max(0, Math.min(1, Number(t.shadow_opacity)));
+          ctx.globalAlpha = alpha;
+          ctx.fillText(textValue, x, y);
+          ctx.globalAlpha = 1;
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+        }
+      }
+
+      const strokeWidth = Number(t.stroke_width || 0);
+      if (strokeWidth > 0 && t.stroke_color) {
+        ctx.lineWidth = strokeWidth;
+        ctx.strokeStyle = t.stroke_color;
+        ctx.strokeText(textValue, x, y);
+      }
+      ctx.fillText(textValue, x, y);
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+    };
+
     const draw = async () => {
       try {
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
+
+        const resolvedVariables: CoverTextVariables = {
+          name: String(name || '').trim(),
+          full_name: String(name || '').trim(),
+          recipient_name: String(name || '').trim(),
+          ...(variables || {}),
+        };
+        if (!resolvedVariables.name) {
+          resolvedVariables.name = String(resolvedVariables.full_name || '').trim();
+        }
+        if (!resolvedVariables.full_name) {
+          resolvedVariables.full_name = resolvedVariables.name;
+        }
+
+        const drawableTexts = (Array.isArray(texts) ? texts : []).filter((t) => isDrawableCoverTextElement(t));
+        if (!canDrawCoverTexts(drawableTexts, resolvedVariables)) return;
 
         const img = await loadImageWithCorsFallback(src);
         if (cancelled) return;
@@ -233,42 +290,35 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
         ctx.clearRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0, w, h);
 
-        if (!name.trim()) return;
-        if (!Array.isArray(texts) || texts.length === 0) return;
+        const resolvedValues = drawableTexts.map((t) => resolveCoverElementText(t, resolvedVariables));
+        const longestCharCount = Math.max(
+          0,
+          ...resolvedValues.map((value) => Array.from(value.trim()).length),
+        );
+        const fontScale = longestCharCount > 10 ? 0.92 : 1;
 
-        // 规则：名字超过 10 个字符时，字号稍微缩小一点点
-        // 用 Array.from 兼容 emoji/代理对的长度计算
-        const nameCharCount = Array.from(name.trim()).length;
-        const fontScale = nameCharCount > 10 ? 0.92 : 1;
-
-        // 确保涉及到的字体在绘制前已加载（否则 Canvas 会先用 fallback 字体渲染）
-        const dynamicTexts = texts.filter((t) => t && (t.type === 'dynamic' || t.type === 'dynamic_possessive'));
         await Promise.all(
-          dynamicTexts.map((t) => {
+          drawableTexts.map((t) => {
             const rawSize = getTextFontSize(t);
             const fontSizePx = rawSize * (300 / 72) * fontScale;
-            const fontWeight = normalizeFontWeight(getTextFontWeight(t));
-            return ensureFontReady(t.font, fontWeight, fontSizePx);
+            return ensureFontReady(t, fontSizePx);
           }),
         );
         if (cancelled) return;
 
-        // 处理动态名字文本
-        texts.forEach((t) => {
-          if (!t || (t.type !== 'dynamic' && t.type !== 'dynamic_possessive')) return;
+        drawableTexts.forEach((t, index) => {
           const pos = t.position || { x: 0, y: 0 };
           const x = pos.x || 0;
           const y = pos.y || 0;
-          const textValue = getDynamicTextValue(t.type, name);
+          const textValue = resolvedValues[index];
+          if (!textValue.trim()) return;
 
+          ctx.save();
           ctx.fillStyle = resolveTextColor(t);
-          // page_properties 中的 fontSize 按 300dpi 下的 pt 存储，这里换算为像素：
-          // px = pt * 300 / 72
+
           const rawSize = getTextFontSize(t);
           const fontSizePx = rawSize * (300 / 72) * fontScale;
-          const fontFamily = resolveFontFamily(t.font);
-          const fontWeight = normalizeFontWeight(getTextFontWeight(t));
-          ctx.font = `${fontWeight} ${fontSizePx}px ${fontFamily}`;
+          ctx.font = buildCanvasFont(t, fontSizePx);
 
           const alignment = (t.alignment || 'left').toLowerCase();
           if (alignment === 'center') {
@@ -280,42 +330,26 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
           }
           ctx.textBaseline = 'top';
 
-          const shadowBlur = Number(t.shadow_blur || 0);
-          if (shadowBlur > 0) {
-            ctx.shadowBlur = shadowBlur;
-            ctx.shadowColor = t.shadow_color || 'rgba(0,0,0,0.25)';
-            ctx.shadowOffsetX = Number(t.shadow_offset_x || 0);
-            ctx.shadowOffsetY = Number(t.shadow_offset_y || 0);
-            if (t.shadow_opacity != null && t.shadow_color) {
-              const alpha = Math.max(0, Math.min(1, Number(t.shadow_opacity)));
-              ctx.globalAlpha = alpha;
-              ctx.fillText(textValue, x, y);
-              ctx.globalAlpha = 1;
-              ctx.shadowBlur = 0;
-              ctx.shadowOffsetX = 0;
-              ctx.shadowOffsetY = 0;
-            }
+          const useSyntheticItalic = t.syntheticItalic === true;
+          const italicAngle = Number.isFinite(Number(t.italicAngle)) ? Number(t.italicAngle) : 10;
+          if (useSyntheticItalic) {
+            const skewX = -Math.tan((italicAngle * Math.PI) / 180);
+            ctx.translate(x, y);
+            ctx.transform(1, 0, skewX, 1, 0, 0);
+            drawTextAt(ctx, textValue, 0, 0, t);
+          } else {
+            drawTextAt(ctx, textValue, x, y, t);
           }
 
-          const strokeWidth = Number(t.stroke_width || 0);
-          if (strokeWidth > 0 && t.stroke_color) {
-            ctx.lineWidth = strokeWidth;
-            ctx.strokeStyle = t.stroke_color;
-            ctx.strokeText(textValue, x, y);
-          }
-          ctx.fillText(textValue, x, y);
-          ctx.shadowBlur = 0;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
+          ctx.restore();
         });
 
-        // 通知外部：当前封面已完成合成，返回 DataURL 以便缓存（避免重复绘制）
         if (onRenderedRef.current) {
           try {
             const url = canvas.toDataURL('image/png');
             onRenderedRef.current(url);
           } catch {
-            // 忽略 DataURL 生成失败
+            // ignore
           }
         }
       } catch (e) {
@@ -328,16 +362,15 @@ const CoverNameCanvas: React.FC<CoverNameCanvasProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [src, name, texts]);
+  }, [src, name, texts, variables]);
 
   return (
     <canvas
       ref={canvasRef}
-      className={className || "w-full h-auto block"}
+      className={className || 'block w-full h-auto'}
       style={{ width: '100%', height: 'auto', display: 'block' }}
     />
   );
 };
 
 export default CoverNameCanvas;
-

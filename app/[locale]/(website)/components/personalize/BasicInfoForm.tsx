@@ -237,7 +237,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
 
   const handleSkinColorBlur = () => {
     if (!data.skinColor) {
-      if (onErrorChange) onErrorChange('skinColor', 'Please select skin color');
+      if (onErrorChange) onErrorChange('skinColor', 'Please select skin tone');
     }
   };
 
@@ -337,7 +337,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
 
       {/* Child's Name */}
       <div id="field-fullName">
-        <label className="block font-medium">Child&apos;s Name</label>
+        <label className="block font-medium">Child&apos;s name</label>
         <input
           type="text"
           placeholder="please enter..."
@@ -408,7 +408,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
         <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between gap-2 md:gap-0" tabIndex={0} onBlur={handleSkinColorBlur}>
           <div className="flex flex-col">
             <div className="flex items-center">
-              <label className="font-medium">Skin color</label>
+              <label className="font-medium">Skin tone</label>
               <span className="text-gray-400 inline-flex items-center group relative font-normal ml-2">
                 <div 
                   className="w-4 h-4 rounded-full border border-[#666666] flex items-center justify-center cursor-pointer"
@@ -452,7 +452,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
       {showAgeStageAndFromWhom && (
         <>
           <div id="field-ageStage">
-            <label className="block font-medium text-[#222222]">Your Child's Age</label>
+            <label className="block font-medium text-[#222222]">Age stage</label>
             <p className="text-[#999999] text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] mt-1 mb-3">
               Choose the age range this story is made for.
             </p>

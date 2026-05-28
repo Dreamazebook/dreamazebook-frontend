@@ -42,6 +42,61 @@ export function parseDadQuestionsFromProduct(product: unknown): DadQuestionConfi
     .filter(q => q.question && q.attribute_name);
 }
 
+export function mergeDadAttributeRecords(
+  ...records: Array<Record<string, unknown> | null | undefined>
+): Record<string, string> {
+  const out: Record<string, string> = {};
+
+  const absorb = (src: Record<string, unknown> | null | undefined) => {
+    if (!src || typeof src !== 'object') return;
+    const dadName = String(src.dad_name ?? src.dad_title ?? '').trim();
+    if (dadName && !out.dad_name) out.dad_name = dadName;
+    const dadSkinTone = String(src.dad_skin_tone ?? '').trim();
+    if (dadSkinTone && !out.dad_skin_tone) out.dad_skin_tone = dadSkinTone;
+    for (const key of ['dad_question_1', 'dad_question_2', 'dad_question_3'] as const) {
+      const value = String(src[key] ?? '').trim();
+      if (value && !out[key]) out[key] = value;
+    }
+  };
+
+  for (const record of records) {
+    absorb(record ?? undefined);
+    if (record?.attributes && typeof record.attributes === 'object') {
+      absorb(record.attributes as Record<string, unknown>);
+    }
+  }
+
+  return out;
+}
+
+export function buildDadFormFieldsFromRecords(
+  ...records: Array<Record<string, unknown> | null | undefined>
+): {
+  dadTitle?: string;
+  dadSkinColor?: string;
+  dadQuestionAnswers?: Record<string, string>;
+} {
+  const merged = mergeDadAttributeRecords(...records);
+  const dadTitle = String(merged.dad_name ?? merged.dad_title ?? '').trim();
+  const dadQuestionAnswers: Record<string, string> = {};
+  for (const key of ['dad_question_1', 'dad_question_2', 'dad_question_3'] as const) {
+    const value = String(merged[key] ?? '').trim();
+    if (value) dadQuestionAnswers[key] = value;
+  }
+
+  const dadSkinTone = String(merged.dad_skin_tone ?? '').trim();
+  let dadSkinColor: string | undefined;
+  if (dadSkinTone === 'white') dadSkinColor = '#FFE2CF';
+  else if (dadSkinTone === 'black') dadSkinColor = '#665444';
+  else if (dadSkinTone === 'original') dadSkinColor = '#DCB593';
+
+  return {
+    ...(dadTitle ? { dadTitle } : {}),
+    ...(dadSkinColor ? { dadSkinColor } : {}),
+    ...(Object.keys(dadQuestionAnswers).length ? { dadQuestionAnswers } : {}),
+  };
+}
+
 export function buildDadQuestionAttributes(
   answers: Record<string, string> | undefined,
   questions: DadQuestionConfig[]

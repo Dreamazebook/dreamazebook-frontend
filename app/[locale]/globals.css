@@ -27,6 +27,15 @@
   font-display: swap;
 }
 
+/* Rowdies（用于 PICBOOK_DAD cover_2 等封面名字） */
+@font-face {
+  font-family: 'Rowdies';
+  src: url('/fonts/Rowdies-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* :root {
   --background: #ffffff;
   --foreground: #171717;

@@ -64,23 +64,6 @@ export default function DadCustomizeStep({
         {PERSONALIZE_AVATAR_PREVIEW_CAPTION}
       </p>
 
-      <div id="field-dadTitle">
-        <label className="block font-semibold text-[#222222] text-[16px] leading-[24px] tracking-[0.15px] mb-2">
-          What do they call Dad?
-        </label>
-        <input
-          type="text"
-          value={dadTitle}
-          onChange={e => onDadTitleChange(e.target.value)}
-          placeholder="Examples: Dad, Papa, Daddy"
-          className="w-full px-3 py-2.5 border border-[#E5E5E5] rounded text-[#222222] text-[16px] placeholder:text-[#CCCCCC] focus:outline-none focus:border-[#012CCE]"
-          autoComplete="off"
-        />
-        {dadTitleTouched && dadTitleError && (
-          <p className="text-red-500 text-sm mt-1">{dadTitleError}</p>
-        )}
-      </div>
-
       <div id="field-dadSkinColor">
         <div className="flex flex-col md:flex-row items-start md:items-center md:justify-between gap-3 md:gap-0">
           <label className="font-semibold text-[#222222] text-[16px] leading-[24px] tracking-[0.15px]">
@@ -110,6 +93,23 @@ export default function DadCustomizeStep({
         </div>
         {dadSkinColorTouched && dadSkinColorError && (
           <p className="text-red-500 text-sm mt-1">{dadSkinColorError}</p>
+        )}
+      </div>
+
+      <div id="field-dadTitle">
+        <label className="block font-semibold text-[#222222] text-[16px] leading-[24px] tracking-[0.15px] mb-2">
+          What do they call Dad?
+        </label>
+        <input
+          type="text"
+          value={dadTitle}
+          onChange={e => onDadTitleChange(e.target.value)}
+          placeholder="Examples: Dad, Papa, Daddy"
+          className="w-full px-3 py-2.5 border border-[#E5E5E5] rounded text-[#222222] text-[16px] placeholder:text-[#CCCCCC] focus:outline-none focus:border-[#012CCE]"
+          autoComplete="off"
+        />
+        {dadTitleTouched && dadTitleError && (
+          <p className="text-red-500 text-sm mt-1">{dadTitleError}</p>
         )}
       </div>
 

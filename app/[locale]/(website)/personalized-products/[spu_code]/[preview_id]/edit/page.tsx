@@ -23,9 +23,29 @@ import {
   mapPersonalityTraitIdsToCharacterTraits,
 } from '@/utils/birthdayPersonalizeHelpers';
 import { buildPreviewRenderPayload } from '@/utils/previewRenderPayload';
+import {
+  DEFAULT_DAD_QUESTIONS_PREVIEW,
+  parseDadQuestionsFromProduct,
+  buildDadQuestionAttributes,
+  buildDadFormFieldsFromRecords,
+  type DadQuestionConfig,
+} from '@/utils/dadPersonalizeHelpers';
 
 interface ApiResponse<T=any> { success: boolean; code: number; message: string; data: T }
 interface DetailedBook { character_count: number }
+
+const PERSONALIZE_PAGE_TITLE_CLASS =
+  'text-[22px] leading-[28px] md:text-[28px] md:leading-[36px] text-center pt-3 md:pt-0 md:my-6 my-0 text-[#222222]';
+
+const PERSONALIZE_TITLE_WHO = 'Who Are You Making This Book For?';
+const PERSONALIZE_TITLE_BRING_STORY = "Let's Bring Your Story to Life ✨";
+const PERSONALIZE_BTN_CONTINUE = 'Continue';
+const PERSONALIZE_BTN_UPDATE_PREVIEW = 'Update My Preview';
+
+function getPersonalizeLastStep(isBirthday: boolean, isMom: boolean, isDad: boolean): number {
+  if (isBirthday || isMom || isDad) return 3;
+  return 2;
+}
 
 const skinColors = ['#FFE2CF', '#DCB593', '#665444'];
 
@@ -216,13 +236,60 @@ export default function EditPersonalizedProductPage() {
     return partial;
   };
 
-  const photoPayloadForFaceImages = (faceImages: string[]) =>
-    momBook && faceImages.length
-      ? { photo: { path: faceImages[1] || faceImages[0] } as const, photos: faceImages }
-      : {
-          photo: faceImages.length > 0 ? ({ path: faceImages[0] } as const) : null,
-          photos: faceImages,
-        };
+  /** PICBOOK_DAD：dad_image + mom_image + face_images（孩子）→ [dadUrl, momUrl, childUrl] */
+  const buildDadPhotosFromCartAttributes = (cartAttrs: any): string[] => {
+    const dad = extractFaceImageUrls(cartAttrs?.dad_image)[0];
+    const mom = extractFaceImageUrls(cartAttrs?.mom_image)[0];
+    const child = extractFaceImageUrls(cartAttrs?.face_images)[0];
+    if (dad && mom && child) return [dad, mom, child];
+    const partial: string[] = [];
+    if (dad) partial.push(dad);
+    if (mom) partial.push(mom);
+    if (child) partial.push(child);
+    const legacy = extractFaceImageUrls(cartAttrs?.face_images);
+    if (legacy.length >= 3) return legacy.slice(0, 3);
+    return partial;
+  };
+
+  const buildDadFieldsFromAttributes = (...records: Array<Record<string, unknown> | null | undefined>) =>
+    buildDadFormFieldsFromRecords(...records);
+
+  const readPreviewStoreDadSources = (): Record<string, unknown>[] => {
+    const sources: Record<string, unknown>[] = [];
+    try {
+      const storeChar = usePreviewStore.getState().userData?.characters?.[0];
+      if (storeChar) sources.push(storeChar as Record<string, unknown>);
+    } catch {}
+    try {
+      const ls = localStorage.getItem('previewUserData');
+      if (ls) {
+        const parsed = JSON.parse(ls);
+        const char = parsed?.characters?.[0];
+        if (char) sources.push(char as Record<string, unknown>);
+      }
+    } catch {}
+    return sources;
+  };
+
+  const photoPayloadForFaceImages = (faceImages: string[]) => {
+    if (momBook && faceImages.length) {
+      return { photo: { path: faceImages[1] || faceImages[0] } as const, photos: faceImages };
+    }
+    if (dadBook && faceImages.length) {
+      return { photo: { path: faceImages[2] || faceImages[0] } as const, photos: faceImages };
+    }
+    return {
+      photo: faceImages.length > 0 ? ({ path: faceImages[0] } as const) : null,
+      photos: faceImages,
+    };
+  };
+
+  const appendCommonInitialFields = (attrs: any, base: Record<string, unknown>, ...extraDadSources: Array<Record<string, unknown> | null | undefined>) => ({
+    ...base,
+    ...(typeof attrs.mom_calls_me === 'string' ? { momCallsMe: attrs.mom_calls_me } : {}),
+    ...(typeof attrs.mom_makes_best === 'string' ? { momMakesBest: attrs.mom_makes_best } : {}),
+    ...buildDadFieldsFromAttributes(attrs, ...extraDadSources, ...readPreviewStoreDadSources()),
+  });
 
   const [formType, setFormType] = useState<'SINGLE1'|'SINGLE2'|'DOUBLE'|null>(null);
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -235,35 +302,54 @@ export default function EditPersonalizedProductPage() {
   const [cartItemId, setCartItemId] = useState<number | null>(null);
   // 圣诞 bundle/套装子项：用于 regenerate-preview（/cart/package-items/:id/regenerate-preview）
   const [packageItemId, setPackageItemId] = useState<number | null>(null);
+  const [dadQuestions, setDadQuestions] = useState<DadQuestionConfig[]>([]);
+  const [uploadOptions, setUploadOptions] = useState<{
+    allowedTypes?: string[];
+    maxFileSize?: number;
+    maxImages?: number;
+  }>();
+  const [isAddingImage, setIsAddingImage] = useState(false);
 
   const form1Ref = useRef<SingleCharacterForm1Handle>(null);
   const form2Ref = useRef<SingleCharacterForm2Handle>(null);
 
-  // 1) 根据 bookId 获取书籍信息，决定表单类型
+  // 1) 根据 bookId 获取书籍信息，决定表单类型与 Dad 问题配置
   useEffect(() => {
     let ignore = false;
     const fetchBook = async () => {
       try {
-        const { data } = await api.get<ApiResponse<DetailedBook>>(`/products/${bookId}`, { params: { language: currentLang } });
+        const res = await api.get<ApiResponse<DetailedBook>>(`/products/${bookId}`, { params: { language: currentLang } });
+        const product = (res as any)?.data?.data || (res as any)?.data || {};
         if (ignore) return;
-        switch (data.character_count) {
+        switch (product.character_count) {
           case 1: setFormType('SINGLE1'); break;
           case 2: setFormType('SINGLE2'); break;
           case 3: setFormType('DOUBLE'); break;
           default: setFormType('SINGLE1');
         }
+        if (dadBook) {
+          const questions = parseDadQuestionsFromProduct(product);
+          setDadQuestions(questions.length ? questions : DEFAULT_DAD_QUESTIONS_PREVIEW);
+        }
+        setUploadOptions({
+          allowedTypes: ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'],
+          maxFileSize: 20 * 1024 * 1024,
+          maxImages: momBook ? 2 : dadBook ? 3 : 1,
+        });
       } catch {}
     };
     fetchBook();
     return () => { ignore = true };
-  }, [bookId]);
+  }, [bookId, currentLang, dadBook, momBook]);
 
   // 从 preview/batches/{previewId} 或购物车中查找初始数据，用于回填个性化表单
   useEffect(() => {
     (async () => {
-      /** 从购物车条目 attributes 拉 mom_image + face_images（带 fromCartItemId 的 PICBOOK_MOM 必填路径） */
+      /** 从购物车条目 attributes 拉 mom_image + face_images（PICBOOK_MOM）或 Dad 多角色照片 / 问答 */
       let cartMomPhotosFromAttrs: string[] | undefined;
-      if (momBook && fromCartItemIdParam) {
+      let cartDadPhotosFromAttrs: string[] | undefined;
+      let cartAttrsForMerge: Record<string, unknown> = {};
+      if (momBook || dadBook) {
         try {
           const { data } = await api.get<ApiResponse<CartItems>>(`${API_CART_LIST}`);
           const items: any[] = Array.isArray((data as any)?.items) ? (data as any).items : [];
@@ -290,10 +376,13 @@ export default function EditPersonalizedProductPage() {
           let cartAttrs: any = {};
           if (packageMatch) {
             setPackageItemId(Number(packageMatch.id));
-            cartAttrs =
+            cartAttrsForMerge =
               packageMatch?.preview?.attributes ||
               packageMatch?.customization_data?.attributes ||
+              packageMatch?.preview ||
+              packageMatch?.customization_data ||
               {};
+            cartAttrs = cartAttrsForMerge;
             const lang =
               packageMatch?.customization_data?.language ||
               packageMatch?.preview?.language ||
@@ -307,12 +396,19 @@ export default function EditPersonalizedProductPage() {
               cartRow.customization_data?.attributes ||
               (cartRow as any)?.attributes ||
               {};
+            cartAttrsForMerge = {
+              ...(cartRow.customization_data || {}),
+              ...(p || {}),
+              ...cartAttrs,
+            };
           }
 
-          const built = buildMomPhotosFromCartAttributes(cartAttrs);
+          const built = buildMomPhotosFromCartAttributes(cartAttrsForMerge);
           if (built.length) cartMomPhotosFromAttrs = built;
+          const builtDad = buildDadPhotosFromCartAttributes(cartAttrsForMerge);
+          if (builtDad.length) cartDadPhotosFromAttrs = builtDad;
         } catch (e) {
-          console.warn('PICBOOK_MOM：从购物车 attributes 读取 mom_image / face_images 失败:', e);
+          console.warn('从购物车 attributes 读取多角色照片失败:', e);
         }
       }
 
@@ -351,26 +447,39 @@ export default function EditPersonalizedProductPage() {
               if (split.length >= 2) faceImages = split;
             }
           }
+          if (dadBook) {
+            if (fromCartItemIdParam && cartDadPhotosFromAttrs?.length) {
+              faceImages = cartDadPhotosFromAttrs;
+            } else {
+              const split = buildDadPhotosFromCartAttributes(attrs);
+              if (split.length >= 3) faceImages = split;
+              else if (split.length) faceImages = split;
+            }
+          }
           const birthDate = normalizeBirthDate(attrs.birthday_context?.birthday);
           const personalityTraitIds = normalizeBirthdayTraitIds(attrs.birthday_context?.selected_traits);
           const giftMessage = String(attrs.gift_message || '').trim();
 
-          setInitialData({
-            fullName,
-            // gender 可能在 options 或 options.attributes 中；缺失则留空交给用户选择
-            gender,
-            skinColor,
-            ...photoPayloadForFaceImages(faceImages),
-            ...(hairstyle ? { hairstyle } : {}),
-            ...(hairColor ? { hairColor } : {}),
-            ...(ageStage ? { ageStage } : {}),
-            ...(fromWhom ? { fromWhom } : {}),
-            ...(birthDate ? { birthDate } : {}),
-            ...(personalityTraitIds.length ? { personalityTraitIds } : {}),
-            ...(giftMessage ? { giftMessage } : {}),
-            ...(typeof attrs.mom_calls_me === 'string' ? { momCallsMe: attrs.mom_calls_me } : {}),
-            ...(typeof attrs.mom_makes_best === 'string' ? { momMakesBest: attrs.mom_makes_best } : {}),
-          });
+          setInitialData(
+            appendCommonInitialFields(
+              attrs,
+              {
+                fullName,
+                gender,
+                skinColor,
+                ...photoPayloadForFaceImages(faceImages),
+                ...(hairstyle ? { hairstyle } : {}),
+                ...(hairColor ? { hairColor } : {}),
+                ...(ageStage ? { ageStage } : {}),
+                ...(fromWhom ? { fromWhom } : {}),
+                ...(birthDate ? { birthDate } : {}),
+                ...(personalityTraitIds.length ? { personalityTraitIds } : {}),
+                ...(giftMessage ? { giftMessage } : {}),
+              },
+              options,
+              cartAttrsForMerge,
+            ),
+          );
 
           const lang = batch.language || options.language || attrs.language;
           if (lang) {
@@ -438,6 +547,10 @@ export default function EditPersonalizedProductPage() {
           const fromAttrs = buildMomPhotosFromCartAttributes(cartAttrs);
           if (fromAttrs.length) faceImages = fromAttrs;
         }
+        if (dadBook) {
+          const fromAttrs = buildDadPhotosFromCartAttributes(cartAttrs);
+          if (fromAttrs.length) faceImages = fromAttrs;
+        }
         
         // 获取hairstyle和hairColor
         // hair_style: 后端返回数字 id (如 "1")，需要转换为 "hair_1" 格式以匹配 HairstyleSelector
@@ -468,28 +581,33 @@ export default function EditPersonalizedProductPage() {
           (p as any)?.dedication ||
           ''
         ).trim();
-        setInitialData({
-          fullName:
-            p?.recipient_name ||
-            p?.full_name ||
-            (item as any)?.full_name ||
-            cust.full_name ||
-            cartAttrs.full_name ||
-            '',
-          gender,
-          skinColor,
-          ...photoPayloadForFaceImages(faceImages),
-          // 预填hairstyle和hairColor（如果存在）
-          ...(hairstyle ? { hairstyle } : {}),
-          ...(hairColor ? { hairColor } : {}),
-          ...(ageStage ? { ageStage } : {}),
-          ...(fromWhom ? { fromWhom } : {}),
-          ...(birthDate ? { birthDate } : {}),
-          ...(personalityTraitIds.length ? { personalityTraitIds } : {}),
-          ...(giftMessage ? { giftMessage } : {}),
-          ...(typeof cartAttrs.mom_calls_me === 'string' ? { momCallsMe: cartAttrs.mom_calls_me } : {}),
-          ...(typeof cartAttrs.mom_makes_best === 'string' ? { momMakesBest: cartAttrs.mom_makes_best } : {}),
-        });
+        setInitialData(
+          appendCommonInitialFields(
+            cartAttrs,
+            {
+              fullName:
+                p?.recipient_name ||
+                p?.full_name ||
+                (item as any)?.full_name ||
+                cust.full_name ||
+                cartAttrs.full_name ||
+                '',
+              gender,
+              skinColor,
+              ...photoPayloadForFaceImages(faceImages),
+              ...(hairstyle ? { hairstyle } : {}),
+              ...(hairColor ? { hairColor } : {}),
+              ...(ageStage ? { ageStage } : {}),
+              ...(fromWhom ? { fromWhom } : {}),
+              ...(birthDate ? { birthDate } : {}),
+              ...(personalityTraitIds.length ? { personalityTraitIds } : {}),
+              ...(giftMessage ? { giftMessage } : {}),
+            },
+            p,
+            cust,
+            item as Record<string, unknown>,
+          ),
+        );
         
         const lang = p?.language || (item as any)?.language || cust.language || cartAttrs.language;
         if (lang) {
@@ -502,7 +620,7 @@ export default function EditPersonalizedProductPage() {
         setIsLoading(false);
       }
     })();
-  }, [bookId, previewId, fromCartItemIdParam, currentLang]);
+  }, [bookId, previewId, fromCartItemIdParam, currentLang, momBook, dadBook]);
 
   // 无论初始数据来自 batch 还是 cart，都需要 cartItemId；这里再兜底取一次
   useEffect(() => {
@@ -535,30 +653,40 @@ export default function EditPersonalizedProductPage() {
     })();
   }, [cartItemId, packageItemId, previewId, fromCartItemIdParam]);
 
+  const personalizeLastStep = getPersonalizeLastStep(birthdayBook, momBook, dadBook);
+  const isLastPersonalizeStep =
+    (formType === 'SINGLE1' || formType === 'DOUBLE') && currentStep === personalizeLastStep;
+
+  const handleCropperOpenChange = (isOpen: boolean) => {
+    setIsAddingImage(isOpen);
+  };
+
   const renderForm = () => {
     if (isLoading) return <SkeletonLoader />;
     if (!formType) return null;
     const form1Asset = getPersonalizeAvatarAssetSpu(bookId);
+    const sharedForm1Props = {
+      initialData,
+      bookId,
+      currentStep,
+      defaultConsentChecked: true as const,
+      assetSpuCode: form1Asset,
+      uploadOptions,
+      dadQuestions,
+      onCropperOpenChange: handleCropperOpenChange,
+    };
     if (formType === 'SINGLE1')
       return (
         <SingleCharacterForm1
           ref={form1Ref}
-          initialData={initialData}
-          bookId={bookId}
-          currentStep={currentStep}
-          defaultConsentChecked
-          assetSpuCode={form1Asset}
+          {...sharedForm1Props}
         />
       );
     if (formType === 'SINGLE2') return <SingleCharacterForm2 ref={form2Ref} initialData={initialData} bookId={bookId} />;
     return (
       <SingleCharacterForm1
         ref={form1Ref}
-        initialData={initialData}
-        bookId={bookId}
-        currentStep={currentStep}
-        defaultConsentChecked
-        assetSpuCode={form1Asset}
+        {...sharedForm1Props}
       />
     );
   };
@@ -618,6 +746,18 @@ export default function EditPersonalizedProductPage() {
         return;
       }
 
+      if (dadBook && formType === 'SINGLE1' && currentStep === 2 && form1Ref.current) {
+        const validationResult = form1Ref.current.validateForm({ scope: 'stepDadCustomize' });
+        if (!validationResult.isValid) {
+          stop();
+          return;
+        }
+        setCurrentStep(3);
+        window.scrollTo(0, 0);
+        stop();
+        return;
+      }
+
       // Step 2 (或单步表单) 提交处理
       let fullName: string;
       let genderRaw: '' | 'boy' | 'girl';
@@ -667,10 +807,25 @@ export default function EditPersonalizedProductPage() {
         return;
       }
 
-      if (!photoData || !photoData.path) {
+      if (!dadBook && !momBook && (!photoData || !photoData.path)) {
         console.error('Please upload photo');
         stop();
         return;
+      }
+      if (momBook && photosData.filter(Boolean).length < 2) {
+        console.error('Please upload photos for Mom and Child');
+        stop();
+        return;
+      }
+      if (dadBook && photosData.filter(Boolean).length < 3) {
+        console.error('Please upload photos for Dad, Mom and Child');
+        stop();
+        return;
+      }
+      if ((momBook || dadBook) && !photoData?.path && photosData.length > 0) {
+        photoData = {
+          path: momBook ? (photosData[1] || photosData[0]) : (photosData[2] || photosData[0]),
+        };
       }
 
       const genderCode = genderRaw === 'boy' ? 1 : genderRaw === 'girl' ? 2 : 0;
@@ -746,7 +901,13 @@ export default function EditPersonalizedProductPage() {
         return;
       }
 
-      const faceImages = (photosData && photosData.length > 0 ? photosData : [photoData.path]).filter(Boolean);
+      const faceImages = (
+        photosData && photosData.length > 0
+          ? photosData
+          : photoData?.path
+            ? [photoData.path]
+            : []
+      ).filter(Boolean);
 
       const ageStageBackend = mapAgeStageUiToBackend(ageStageUi);
 
@@ -793,7 +954,10 @@ export default function EditPersonalizedProductPage() {
                     : form1Snap.dadSkinColor === skinColors[2]
                       ? 'black'
                       : 'original',
-                ...(form1Snap.dadQuestionAnswers || {}),
+                ...buildDadQuestionAttributes(
+                  form1Snap.dadQuestionAnswers,
+                  dadQuestions.length ? dadQuestions : DEFAULT_DAD_QUESTIONS_PREVIEW,
+                ),
               }
             : {}),
         },
@@ -885,6 +1049,8 @@ export default function EditPersonalizedProductPage() {
                 setCurrentStep(2);
               } else if (momBook && currentStep === 3) {
                 setCurrentStep(2);
+              } else if (dadBook && currentStep === 3) {
+                setCurrentStep(2);
               } else if (currentStep === 2) {
                 setCurrentStep(1);
               } else {
@@ -913,6 +1079,8 @@ export default function EditPersonalizedProductPage() {
               setCurrentStep(2);
             } else if (momBook && currentStep === 3) {
               setCurrentStep(2);
+            } else if (dadBook && currentStep === 3) {
+              setCurrentStep(2);
             } else if (currentStep === 2) {
               setCurrentStep(1);
             } else {
@@ -922,20 +1090,22 @@ export default function EditPersonalizedProductPage() {
           className="hidden sm:flex items-center text-sm cursor-pointer"
         >
           <span className="mr-2">←</span>{' '}
-          {currentStep === 2 || (birthdayBook && currentStep === 3) || (momBook && currentStep === 3)
+          {currentStep === 2 || (birthdayBook && currentStep === 3) || (momBook && currentStep === 3) || (dadBook && currentStep === 3)
             ? 'Back'
             : 'Back to shopping cart'}
         </a>
       </div>
 
-      <div className="mx-auto">
-        <h1 className="text-[28px] leading-[36px] text-center my-6">Please fill in the basic information</h1>
+      <div className={`mx-auto pb-20 md:pb-0 ${isAddingImage ? 'md:pb-0' : ''}`}>
+        <h1 className={PERSONALIZE_PAGE_TITLE_CLASS}>
+          {isLastPersonalizeStep ? PERSONALIZE_TITLE_BRING_STORY : PERSONALIZE_TITLE_WHO}
+        </h1>
         {renderForm()}
-        <div className="flex justify-center">
+        <div className={`flex justify-center ${isAddingImage ? 'hidden md:flex' : ''}`}>
           <button
             type="button"
             onClick={handleContinue}
-            style={{ width: '180px' }}
+            style={{ width: isLastPersonalizeStep ? '220px' : '180px' }}
             disabled={isContinuing}
             className={`bg-[#222222] text-[#F5E3E3] h-[44px] px-4 py-3 rounded-[4px] hover:bg-gray-800 text-[14px] leading-[20px] tracking-[0.25px] transition-colors flex items-center justify-center whitespace-nowrap mb-16 ${
               isContinuing ? 'opacity-75 cursor-wait pointer-events-none' : ''
@@ -949,8 +1119,34 @@ export default function EditPersonalizedProductPage() {
                 </svg>
                 Loading...
               </>
+            ) : isLastPersonalizeStep ? (
+              PERSONALIZE_BTN_UPDATE_PREVIEW
             ) : (
-              'Continue'
+              PERSONALIZE_BTN_CONTINUE
+            )}
+          </button>
+        </div>
+      </div>
+      <div className={`fixed bottom-0 left-0 right-0 bg-[#F8F8F8] z-50 md:hidden border-t border-gray-200 transition-transform duration-300 ${isAddingImage ? 'translate-y-full' : ''}`}>
+        <div className="flex items-center justify-center h-[76px] px-[12px] py-[16px] gap-[10px]">
+          <button
+            type="button"
+            onClick={handleContinue}
+            disabled={isContinuing}
+            className="w-full bg-black text-[#F5E3E3] h-[44px] rounded hover:bg-gray-800 transition-colors text-[16px] leading-[24px] tracking-[0.5px] disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isContinuing ? (
+              <>
+                <svg className="animate-spin h-5 w-5 text-[#F5E3E3]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Loading...</span>
+              </>
+            ) : isLastPersonalizeStep ? (
+              PERSONALIZE_BTN_UPDATE_PREVIEW
+            ) : (
+              PERSONALIZE_BTN_CONTINUE
             )}
           </button>
         </div>

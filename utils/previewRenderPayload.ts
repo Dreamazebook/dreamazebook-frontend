@@ -46,7 +46,9 @@ function toBackendCharacterAttrs(character: Record<string, unknown>): Record<str
       ? (character.attributes as Record<string, unknown>)
       : {};
   const rawAge = stored.age_stage ?? character.age_stage;
-  const age_stage = mapAgeStageUiToBackend(rawAge);
+  const age_stage = mapAgeStageUiToBackend(
+    typeof rawAge === 'string' || rawAge == null ? rawAge : String(rawAge),
+  );
   const birthday =
     typeof stored.birthday === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(stored.birthday)
       ? stored.birthday
