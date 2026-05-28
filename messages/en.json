@@ -18,6 +18,7 @@
     "total": "Total",
     "checkout": "Proceed to Checkout",
     "checkoutWithPayPal": "Checkout with PayPal",
+    "calculatedAtCheckout": "Calculated at checkout",
     "couponCode": "Coupon Code",
     "enterCouponCode": "please enter...",
     "apply": "Apply",
