@@ -6,14 +6,23 @@ import { useState, useEffect } from "react";
 import Image from "../common/Image";
 
 const slides = [
+  // {
+  //   id: 1,
+  //   title: ["A Storybook Where", "Your Child Is the Hero"],
+  //   color: "text-primary",
+  //   buttonText: "Create Yours",
+  //   image: HOME_HERO("hero_mobile.jpg"),
+  //   image_desktop: HOME_HERO("hero.webp"),
+  //   description: "Be seen. Be loved. Be celebrated",
+  // },
   {
-    id: 1,
-    title: ["A Storybook Where", "Your Child Is the Hero"],
+    id: 2,
+    title: ["Turn Dad into", "Part of the", "Story"],
     color: "text-primary",
     buttonText: "Create Yours",
-    image: HOME_HERO("hero_mobile.jpg"),
-    image_desktop: HOME_HERO("hero.webp"),
-    description: "Be seen. Be loved. Be celebrated",
+    image: HOME_HERO("father-mobile.webp"),
+    image_desktop: HOME_HERO("father-pc.webp"),
+    description: "The most unique hand-illustrated gift for Father's Day.",
   },
 ];
 
