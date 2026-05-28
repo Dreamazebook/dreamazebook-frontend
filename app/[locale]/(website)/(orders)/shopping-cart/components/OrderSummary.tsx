@@ -10,6 +10,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   discountAmount,
   total,
   itemsCount,
+  freeShipping,
   checkoutLoading,
   paypalCheckoutLoading,
   onCheckout
@@ -51,9 +52,13 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
               </p>
               <p>${subtotal.toFixed(2)}</p>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center gap-3">
               <p className={textColorClass}>{t('shipping')}</p>
-              <p>${shipping.toFixed(2)}</p>
+              {freeShipping ? (
+                <p>${shipping.toFixed(2)}</p>
+              ) : (
+                <p className="text-xs text-[#666666]">{t('calculatedAtCheckout')}</p>
+              )}
             </div>
             {discountInfo?.applicable && discountAmount > 0 && (
               <div className="space-y-2">

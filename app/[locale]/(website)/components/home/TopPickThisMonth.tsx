@@ -9,12 +9,14 @@ import Image from '../common/Image';
 
 const TopPickThisMonth = () => {
   const images = [
+    HOME_TOP_PICKS('father0.webp'),
     HOME_TOP_PICKS('father1.webp'),
     HOME_TOP_PICKS('father2.webp'),
     HOME_TOP_PICKS('father3.webp'),
   ];
 
   const images_mobile = [
+    HOME_TOP_PICKS('father0.webp'),
     HOME_TOP_PICKS('father1.webp'),
     HOME_TOP_PICKS('father2.webp'),
     HOME_TOP_PICKS('father3.webp'),

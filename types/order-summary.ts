@@ -8,6 +8,7 @@ export interface OrderSummaryProps {
   discountAmount: number;
   total: number;
   itemsCount: number;
+  freeShipping: boolean;
   checkoutLoading: boolean;
   paypalCheckoutLoading: boolean;
   onCheckout: (paymentMethod: 'card' | 'paypal') => void;

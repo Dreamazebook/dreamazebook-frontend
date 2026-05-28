@@ -18,6 +18,7 @@
     "total": "总计",
     "checkout": "前往结账",
     "checkoutWithPayPal": "使用 PayPal 结账",
+    "calculatedAtCheckout": "在结账时计算",
     "couponCode": "优惠券代码",
     "enterCouponCode": "请输入...",
     "apply": "应用",
