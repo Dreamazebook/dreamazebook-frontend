@@ -44,6 +44,7 @@ import {
   resolveCoverNumericId,
   shouldCropCoverRightHalf,
 } from '@/utils/coverSpreadHelpers';
+import { isPicbookDad } from '@/utils/isPicbookDad';
 
 // 封面文字配置缓存：避免在同一会话内反复请求 R2
 const coverTextsCache: Record<string, Array<{
@@ -1469,7 +1470,7 @@ export default function PreviewPageWithTopNav() {
       }),
     [recipient, previewStoreUserData, previewData],
   );
-  // p7-8 展示完成后显示 sneak peek 提示文案
+  // p7-8（Dad 书为 p13-14）展示完成后显示 sneak peek 提示文案
   const [isSneakPeekNoticePageLoaded, setIsSneakPeekNoticePageLoaded] = useState(false);
   const sneakPeekNoticePageIdRef = useRef<number | null>(null);
   // 顶部队列提示（原 “Your story is coming to life…”）：
@@ -2228,17 +2229,22 @@ export default function PreviewPageWithTopNav() {
   const isCompleted = faceSwapStatus === 'completed';
   const isFailed = faceSwapStatus === 'failed';
 
-  // 底部 sneak peek 提示：等 p7-8 这张预览图加载完成后再展示
+  // 底部 sneak peek 提示：等触发页预览图加载完成后再展示（Dad 书为 p13-14，其余为 p7-8）
   const sneakPeekNoticePageId = useMemo(() => {
     const pages = previewData?.preview_data ?? [];
+    const bookIdUpper = (searchParams.get('bookid') || '').toUpperCase();
+    const isDadBook = isPicbookDad(bookIdUpper);
     const candidate = pages.find((p: any) => {
-      const code = String(p?.page_code || '');
+      const code = normalizePreviewPageCode((p as any)?.page_code);
+      if (isDadBook) {
+        return code === 'p13-14' || code === 'p13-p14';
+      }
       return code === 'p7-8' || code === 'p7-p8';
     });
     const id = candidate ? Number((candidate as any).page_id) : null;
     if (!id || Number.isNaN(id)) return null;
     return id;
-  }, [previewData?.preview_data]);
+  }, [previewData?.preview_data, searchParams]);
 
   // p3-4：与下方 isGiverDedication 一致，用 page_code 定位
   const p34PageId = useMemo(() => {
