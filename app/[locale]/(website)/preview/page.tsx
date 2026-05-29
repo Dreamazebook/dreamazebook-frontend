@@ -5239,6 +5239,19 @@ export default function PreviewPageWithTopNav() {
                               upperBookId === 'PICBOOK_MELODY')
                               ? 0.7
                               : undefined;
+                      // Dad：仅默认寄语左对齐；用户编辑提交后与它书一致居中
+                      const dedicationTextAlign =
+                        isPicbookDad(upperBookId) &&
+                        (dedication || '').trim() === (defaultMessage || '').trim()
+                          ? 'left'
+                          : 'center';
+                      const isDadDefaultDedicationLeft =
+                        isPicbookDad(upperBookId) &&
+                        (dedication || '').trim() === (defaultMessage || '').trim();
+                      const dedicationSidePaddingRatio = isPicbookDad(upperBookId) ? 0.12 : 0.06;
+                      const dedicationSidePaddingLeftRatio = isDadDefaultDedicationLeft
+                        ? 0.2
+                        : undefined;
                       // 如果是“曾经编辑过的书”，后端会返回 p3-4 的 final_image_url。
                       // 默认应直接展示 final 图；只有当用户打开编辑弹窗/发生本地修改时，才使用 Canvas 分层合成。
                       const p34HasLocalChanges =
@@ -5285,6 +5298,9 @@ export default function PreviewPageWithTopNav() {
                                   dedicationText=""
                                   giverImageUrl={null}
                                   giverImageScale={giverImageScale}
+                                  dedicationTextAlign={dedicationTextAlign}
+                                  dedicationSidePaddingRatio={dedicationSidePaddingRatio}
+                                  dedicationSidePaddingLeftRatio={dedicationSidePaddingLeftRatio}
                                   singleLeftHalfRef={giverRef}
                                   singleRightHalfRef={dedicationRef}
                                   leftImageFrameClassName={getMissingSectionClass('giver')}
@@ -5330,6 +5346,9 @@ export default function PreviewPageWithTopNav() {
                               dedicationText={dedication}
                               giverImageUrl={p34GiverOverlaySrc}
                               giverImageScale={giverImageScale}
+                              dedicationTextAlign={dedicationTextAlign}
+                              dedicationSidePaddingRatio={dedicationSidePaddingRatio}
+                              dedicationSidePaddingLeftRatio={dedicationSidePaddingLeftRatio}
                               onRendered={uploadP34ComposedImage}
                               singleLeftHalfRef={giverRef}
                               singleRightHalfRef={dedicationRef}
@@ -5504,6 +5523,9 @@ export default function PreviewPageWithTopNav() {
                                     dedicationText={dedication}
                                     giverImageUrl={p34GiverOverlaySrc}
                                     giverImageScale={giverImageScale}
+                                    dedicationTextAlign={dedicationTextAlign}
+                                    dedicationSidePaddingRatio={dedicationSidePaddingRatio}
+                                    dedicationSidePaddingLeftRatio={dedicationSidePaddingLeftRatio}
                                     onRendered={uploadP34ComposedImage}
                                     overlayContent={p34ButtonsOverlay}
                                     onVisualReady={() =>

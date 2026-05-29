@@ -24,6 +24,12 @@ interface Props {
    * - 建议范围：0.35 ~ 1.0
    */
   giverImageScale?: number;
+  /** 右侧寄语对齐方式，默认居中 */
+  dedicationTextAlign?: 'left' | 'center';
+  /** 右侧寄语水平内边距（相对半页宽度），默认 0.06 */
+  dedicationSidePaddingRatio?: number;
+  /** 左对齐时左侧额外内边距（相对半页宽度）；未传则与 dedicationSidePaddingRatio 对称 */
+  dedicationSidePaddingLeftRatio?: number;
   className?: string;
   /** 仅套在单页模式左半画布外框（用于缺失高亮 glow，不含按钮区） */
   leftImageFrameClassName?: string;
@@ -65,6 +71,11 @@ function wrapText(
   const lines: string[] = [];
   const paragraphs = text.split('\n');
   for (const para of paragraphs) {
+    // 保留 \n\n 等产生的空行（段落间距）
+    if (!para.trim()) {
+      lines.push('');
+      continue;
+    }
     const words = para.split(/(\s+)/); // 保留空白符用于更自然的换行
     let current = '';
     for (const word of words) {
@@ -130,6 +141,20 @@ function computeTargetSizeByMaxSide(
   return { w: Math.round(maxSide * safeAspect), h: Math.round(maxSide) };
 }
 
+function resolveDedicationPads(
+  halfW: number,
+  align: 'left' | 'center',
+  sideRatio: number,
+  sideLeftRatio?: number,
+): { padLeft: number; padRight: number } {
+  const padRight = Math.round(halfW * sideRatio);
+  const padLeft =
+    align === 'left' && typeof sideLeftRatio === 'number'
+      ? Math.round(halfW * sideLeftRatio)
+      : padRight;
+  return { padLeft, padRight };
+}
+
 export default function GiverDedicationCanvas({
   imageUrl,
   mode,
@@ -138,6 +163,9 @@ export default function GiverDedicationCanvas({
   giverImageUrl,
   giverImageAspectRatio,
   giverImageScale = 0.45,
+  dedicationTextAlign = 'center',
+  dedicationSidePaddingRatio = 0.06,
+  dedicationSidePaddingLeftRatio,
   className,
   leftImageFrameClassName,
   rightImageFrameClassName,
@@ -326,7 +354,7 @@ export default function GiverDedicationCanvas({
           const leftTotalHeight = leftLines.length * leftLineHeight;
           let leftY = canvas.height / 2 - leftTotalHeight / 2;
           for (const line of leftLines) {
-            ctx.fillText(line, halfW / 2, leftY + leftLineHeight / 2, leftMaxWidth);
+            if (line) ctx.fillText(line, halfW / 2, leftY + leftLineHeight / 2, leftMaxWidth);
             leftY += leftLineHeight;
           }
         }
@@ -337,8 +365,7 @@ export default function GiverDedicationCanvas({
         const leftTotalHeight = leftLines.length * leftLineHeight;
         let leftY = canvas.height / 2 - leftTotalHeight / 2;
         for (const line of leftLines) {
-          // 不传递 maxWidth 参数，因为文本已经通过 wrapText 换行了
-          ctx.fillText(line, halfW / 2, leftY + leftLineHeight / 2);
+          if (line) ctx.fillText(line, halfW / 2, leftY + leftLineHeight / 2);
           leftY += leftLineHeight;
         }
       }
@@ -347,18 +374,24 @@ export default function GiverDedicationCanvas({
       // Dedication（调整：现在右侧绘制 Dedication）
       ctx.save();
       ctx.fillStyle = '#222222';
-      ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      const rightCenterX = halfW + halfW / 2;
-      const rightMaxWidth = halfW - padding * 2;
+      const { padLeft: dedicationPadLeft, padRight: dedicationPadRight } = resolveDedicationPads(
+        halfW,
+        dedicationTextAlign,
+        dedicationSidePaddingRatio,
+        dedicationSidePaddingLeftRatio,
+      );
+      const rightMaxWidth = halfW - dedicationPadLeft - dedicationPadRight;
+      const rightTextX =
+        dedicationTextAlign === 'left' ? halfW + dedicationPadLeft : halfW + halfW / 2;
+      ctx.textAlign = dedicationTextAlign;
       ctx.font = `${dedicationPx}px ${dedicationFontFamily}`;
       const rightLines = wrapText(ctx, (dedicationText || '').trim(), rightMaxWidth);
       const rightLineHeight = Math.round(dedicationPx * 1.25);
       const rightTotalHeight = rightLines.length * rightLineHeight;
       let rightY = canvas.height / 2 - rightTotalHeight / 2;
       for (const line of rightLines) {
-        // 不传递 maxWidth 参数，因为文本已经通过 wrapText 换行了
-        ctx.fillText(line, rightCenterX, rightY + rightLineHeight / 2);
+        if (line) ctx.fillText(line, rightTextX, rightY + rightLineHeight / 2);
         rightY += rightLineHeight;
       }
       ctx.restore();
@@ -430,7 +463,7 @@ export default function GiverDedicationCanvas({
         const lTotalH = lLines.length * lLH;
         let lY = fullH / 2 - lTotalH / 2;
         for (const line of lLines) {
-          lctx.fillText(line, halfW / 2, lY + lLH / 2, lMaxW);
+          if (line) lctx.fillText(line, halfW / 2, lY + lLH / 2, lMaxW);
           lY += lLH;
         }
       }
@@ -444,17 +477,23 @@ export default function GiverDedicationCanvas({
       rctx.drawImage(img, halfW, 0, halfW, fullH, 0, 0, halfW, fullH);
       rctx.save();
       rctx.fillStyle = '#222222';
-      rctx.textAlign = 'center';
       rctx.textBaseline = 'middle';
-      const rMaxW = halfW - padding * 2;
+      const { padLeft: dedicationPadLeft, padRight: dedicationPadRight } = resolveDedicationPads(
+        halfW,
+        dedicationTextAlign,
+        dedicationSidePaddingRatio,
+        dedicationSidePaddingLeftRatio,
+      );
+      const rMaxW = halfW - dedicationPadLeft - dedicationPadRight;
+      const rTextX = dedicationTextAlign === 'left' ? dedicationPadLeft : halfW / 2;
+      rctx.textAlign = dedicationTextAlign;
       rctx.font = `${dedicationPx}px ${dedicationFontFamily}`;
       const rLines = wrapText(rctx, (dedicationText || '').trim(), rMaxW);
       const rLH = Math.round(dedicationPx * 1.25);
       const rTotalH = rLines.length * rLH;
       let rY = fullH / 2 - rTotalH / 2;
       for (const line of rLines) {
-        // 不传递 maxWidth 参数，因为文本已经通过 wrapText 换行了
-        rctx.fillText(line, halfW / 2, rY + rLH / 2);
+        if (line) rctx.fillText(line, rTextX, rY + rLH / 2);
         rY += rLH;
       }
       rctx.restore();
@@ -498,7 +537,7 @@ export default function GiverDedicationCanvas({
         console.error('GiverDedicationCanvas draw error:', e);
       }
     })();
-  }, [ready, imageUrl, mode, giverText, dedicationText, giverImageUrl, giverImageAspectRatio, giverImageScale, giverPx, dedicationPx, giverFontFamily, dedicationFontFamily, onRendered, onVisualReady]);
+  }, [ready, imageUrl, mode, giverText, dedicationText, giverImageUrl, giverImageAspectRatio, giverImageScale, dedicationTextAlign, dedicationSidePaddingRatio, dedicationSidePaddingLeftRatio, giverPx, dedicationPx, giverFontFamily, dedicationFontFamily, onRendered, onVisualReady]);
 
   if (mode === 'double') {
     const outer = [doubleImageFrameClassName, 'relative rounded-lg w-full'].filter(Boolean).join(' ');
