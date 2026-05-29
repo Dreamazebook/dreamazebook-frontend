@@ -6,7 +6,7 @@ import { usePathname, Link, useRouter } from '@/i18n/routing';
 import Image from 'next/image';
 import { IoIosArrowBack } from '@/utils/icons';
 import api from '@/utils/api';
-import { fbTrack, getContentIdBySpu, trackViewItem } from '@/utils/track';
+import { fbTrack, fbTrackCustom, getContentIdBySpu, trackViewItem } from '@/utils/track';
 import SingleCharacterForm1, { SingleCharacterForm1Handle } from '../components/personalize/SingleCharacterForm1';
 import SingleCharacterForm2, { SingleCharacterForm2Handle } from '../components/personalize/SingleCharacterForm2';
 import SingleCharacterForm3, { SingleCharacterForm3Handle } from '../components/personalize/SingleCharacterForm3';
@@ -229,9 +229,8 @@ export default function PersonalizeApiDrivenPage() {
     const contentId = getContentIdBySpu(bookId);
     
     if (contentId) {
-      console.log(contentId);
       // Meta Pixel: ViewContent
-      fbTrack('ViewContent', {
+      fbTrack('StartPersonalization', {
         content_name: 'editor_open',
         content_category: 'book',
         content_ids: [contentId],
@@ -632,6 +631,16 @@ export default function PersonalizeApiDrivenPage() {
           return;
         }
       }
+
+      const actualBookId = getContentIdBySpu(bookId) || bookId;
+      if (actualBookId) {
+        fbTrackCustom('CreatePreview', {
+          content_ids: [actualBookId],
+          content_type: 'product',
+          contents: [{ id: actualBookId, quantity: 1 }],
+        });
+      }
+
       router.push(`/preview?${qs.toString()}`);
     } catch (error) {
       console.error('Failed to continue:', error);
