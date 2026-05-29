@@ -307,6 +307,7 @@ export default function ShoppingCartPage() {
             discountAmount={discountAmount}
             total={total}
             itemsCount={itemsCount}
+            freeShipping={hasPackage || itemsCount >= 2}
             checkoutLoading={checkoutLoading}
             paypalCheckoutLoading={paypalCheckoutLoading}
             onCheckout={handleCheckout}
