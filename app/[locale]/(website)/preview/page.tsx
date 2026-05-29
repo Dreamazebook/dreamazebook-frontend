@@ -44,6 +44,7 @@ import {
   resolveCoverNumericId,
   shouldCropCoverRightHalf,
 } from '@/utils/coverSpreadHelpers';
+import { isPicbookDad } from '@/utils/isPicbookDad';
 
 // 封面文字配置缓存：避免在同一会话内反复请求 R2
 const coverTextsCache: Record<string, Array<{
@@ -103,6 +104,11 @@ const resolveCoverDadName = (previewStoreUserData: any, previewData: any) => {
 // 叠字后封面的 DataURL 缓存：避免每次进入 Tab 都重新用 Canvas 合成
 const coverComposedImageCache: Record<string, string> = {};
 const COVER_COMPOSE_CACHE_VERSION = 'rowdies-v2';
+
+const isP34PageCode = (pageCode: unknown): boolean => {
+  const code = String(pageCode || '');
+  return code === 'p3-4' || code === 'p3-p4';
+};
 
 const hasMeaningfulFinalImage = (page: any): boolean => {
   const finalRaw = String(page?.final_image_url || '').trim();
@@ -1469,7 +1475,7 @@ export default function PreviewPageWithTopNav() {
       }),
     [recipient, previewStoreUserData, previewData],
   );
-  // p7-8 展示完成后显示 sneak peek 提示文案
+  // p7-8（Dad 书为 p13-14）展示完成后显示 sneak peek 提示文案
   const [isSneakPeekNoticePageLoaded, setIsSneakPeekNoticePageLoaded] = useState(false);
   const sneakPeekNoticePageIdRef = useRef<number | null>(null);
   // 顶部队列提示（原 “Your story is coming to life…”）：
@@ -1508,6 +1514,8 @@ export default function PreviewPageWithTopNav() {
   const p34UploadCompletesNameOnBookRef = useRef(false);
   const p34ComposeUploadInFlightRef = useRef(false);
   const p34ComposeUploadedRef = useRef(false);
+  /** 扉页寄语合成图上传成功后的 CDN URL；轮询重建 batch 时优先保留，避免被旧 final 覆盖 */
+  const p34LastComposedImageUrlRef = useRef<string | null>(null);
   const [guestUploadRateLimitError, setGuestUploadRateLimitError] = useState<UploadRateLimitError | null>(null);
   // sidebar「Opening Photo」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
   const [isNameOnBookCompleted, setIsNameOnBookCompleted] = useState(true);
@@ -1565,11 +1573,13 @@ export default function PreviewPageWithTopNav() {
     p34UploadCompletesNameOnBookRef.current = false;
     p34ComposeUploadInFlightRef.current = false;
     p34ComposeUploadedRef.current = false;
+    p34LastComposedImageUrlRef.current = null;
   }, [p34CacheKey, setEditField, setGiverImageUrl]);
 
   useEffect(() => {
     p34BaseImageUrlRef.current = null;
     p34GiverDataRef.current = null;
+    p34LastComposedImageUrlRef.current = null;
   }, [p34CacheKey]);
 
   // 首次拿到 previewData 后，记录 p3-4 的“纯底图”（尽量不含 dedication / 不含 giver）
@@ -1696,6 +1706,7 @@ export default function PreviewPageWithTopNav() {
                 ? {
                     ...p,
                     image_url: imageUrl,
+                    final_image_url: imageUrl,
                     ...(baseUrl ? { base_image_url: baseUrl } : {}),
                     ...(giverData ? { giver_data: giverData } : {}),
                   }
@@ -1707,6 +1718,7 @@ export default function PreviewPageWithTopNav() {
         // base_image_url 可能包含历史 giver，若再叠加新的 giver（比例不同）会出现边缘残影。
         shouldUploadP34ComposedRef.current = false;
         p34ComposeUploadedRef.current = true;
+        p34LastComposedImageUrlRef.current = imageUrl;
         if (p34UploadCompletesNameOnBookRef.current) {
           setIsNameOnBookCompleted(true);
         }
@@ -2228,17 +2240,22 @@ export default function PreviewPageWithTopNav() {
   const isCompleted = faceSwapStatus === 'completed';
   const isFailed = faceSwapStatus === 'failed';
 
-  // 底部 sneak peek 提示：等 p7-8 这张预览图加载完成后再展示
+  // 底部 sneak peek 提示：等触发页预览图加载完成后再展示（Dad 书为 p13-14，其余为 p7-8）
   const sneakPeekNoticePageId = useMemo(() => {
     const pages = previewData?.preview_data ?? [];
+    const bookIdUpper = (searchParams.get('bookid') || '').toUpperCase();
+    const isDadBook = isPicbookDad(bookIdUpper);
     const candidate = pages.find((p: any) => {
-      const code = String(p?.page_code || '');
+      const code = normalizePreviewPageCode((p as any)?.page_code);
+      if (isDadBook) {
+        return code === 'p13-14' || code === 'p13-p14';
+      }
       return code === 'p7-8' || code === 'p7-p8';
     });
     const id = candidate ? Number((candidate as any).page_id) : null;
     if (!id || Number.isNaN(id)) return null;
     return id;
-  }, [previewData?.preview_data]);
+  }, [previewData?.preview_data, searchParams]);
 
   // p3-4：与下方 isGiverDedication 一致，用 page_code 定位
   const p34PageId = useMemo(() => {
@@ -3523,26 +3540,38 @@ export default function PreviewPageWithTopNav() {
             }
             // 否则：全量覆盖，基于 batch.pages 重建 preview_data，确保显示所有页面
             console.log('[Polling] Rebuilding preview_data from batch.pages');
-            const nextPreviewData = (batch.pages || []).map((bp: any, idx: number) => ({
-              page_id: idx + 1,
-              page_code: bp.page_code,
-              page_number: ((bp.sort_order != null ? Number(bp.sort_order) : idx) + 1),
-              raw_image_url: bp.image_url,
-              base_stage_url: bp.base_stage_url,
-              final_stage_url: bp.final_stage_url,
-              giver_data: bp.giver_data,
-              template_image_url: bp.template_image_url || bp.template_url,
-              image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
-              has_face_swap: !!bp.has_face_elements,
-              status: bp.status,
-              base_image_url: bp.base_image_url,
-              final_image_url: bp.final_image_url,
-              base_only: bp.base_only,
-              queue_position: bp.queue_position,
-              queue_total: bp.queue_total,
-              page_type: bp.page_type,
-              is_cover: isCoverPage(bp),
-            }));
+            const nextPreviewData = (batch.pages || []).map((bp: any, idx: number) => {
+              const localP34Composed = p34LastComposedImageUrlRef.current;
+              const useLocalP34 = Boolean(localP34Composed && isP34PageCode(bp.page_code));
+              const page = {
+                page_id: idx + 1,
+                page_code: bp.page_code,
+                page_number: ((bp.sort_order != null ? Number(bp.sort_order) : idx) + 1),
+                raw_image_url: bp.image_url,
+                base_stage_url: bp.base_stage_url,
+                final_stage_url: bp.final_stage_url,
+                giver_data: bp.giver_data,
+                template_image_url: bp.template_image_url || bp.template_url,
+                image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
+                has_face_swap: !!bp.has_face_elements,
+                status: bp.status,
+                base_image_url: bp.base_image_url,
+                final_image_url: bp.final_image_url,
+                base_only: bp.base_only,
+                queue_position: bp.queue_position,
+                queue_total: bp.queue_total,
+                page_type: bp.page_type,
+                is_cover: isCoverPage(bp),
+              };
+              if (useLocalP34) {
+                return {
+                  ...page,
+                  image_url: localP34Composed,
+                  final_image_url: localP34Composed,
+                };
+              }
+              return page;
+            });
             return {
               ...(prev || {}),
               preview_data: nextPreviewData,
@@ -4601,16 +4630,20 @@ export default function PreviewPageWithTopNav() {
   const isZhLang = selectedLang.startsWith('zh');
   // 获取bookId用于匹配不同的寄语模板
   const bookId = searchParams.get('bookid') || (bookInfo?.id != null ? String(bookInfo.id) : '') || bookInfo?.spu_code || '';
+  // Dad 默认寄语含段落空行（\n\n），拆行后超过通用 10 行上限，需单独放宽编辑限制
+  const dedicationMaxLines = isPicbookDad(bookId) ? 14 : MAX_LINES;
   const buildDefaultMessage = (name: string, lang: string, bookIdParam?: string) => {
     const bookIdUpper = (bookIdParam || bookId || '').toUpperCase();
     
     // 根据bookId判断书籍类型
-    let templateType: 'goodnight' | 'santa' | 'bravery' | 'birthday' | 'mama' | 'default' = 'default';
+    let templateType: 'goodnight' | 'santa' | 'bravery' | 'birthday' | 'mama' | 'dad' | 'default' = 'default';
     
     if (bookIdUpper.includes('GOODNIGHT')) {
       templateType = 'goodnight';
     } else if (bookIdUpper === 'PICBOOK_MOM') {
       templateType = 'mama';
+    } else if (bookIdUpper === 'PICBOOK_DAD') {
+      templateType = 'dad';
     } else if (bookIdUpper.includes('SANTA') || bookIdUpper.includes('SANTALETTER')) {
       templateType = 'santa';
     } else if (bookIdUpper.includes('BRAVE') || bookIdUpper.includes('BRAVEY')) {
@@ -4633,6 +4666,8 @@ export default function PreviewPageWithTopNav() {
           return `亲爱的${name}，\n  又一年充满欢笑、成长和喜悦的美好时光！\n  你让每一天都因为你的存在而变得特别。祝你生日快乐，愿未来的回忆充满魔法般的精彩。`;
         case 'mama':
           return `我最亲爱的妈妈——\n谢谢你无尽的爱、温暖的拥抱，以及你每天为我做的点点滴滴。\n你让我的世界感到安全、快乐，充满魔力。\n我爱你，千言万语也说不尽。💛`;
+        case 'dad':
+          return `亲爱的爸爸，\n\n谢谢你成为我的避风港、\n最棒的啦啦队、\n以及总让我的世界更明亮的人。\n\n无论我长多大，\n我想我心里总有一部分\n还想牵着你的手。\n\n谢谢你用所有微不足道却最重要的小事来爱我。\n\n爱你。`;
         default:
           return `亲爱的${name}，\n  这个世界充满了令人惊喜与奇妙的角落等待你去探索。愿你的每一天都充满发现、冒险与喜悦！`;
       }
@@ -4649,6 +4684,8 @@ export default function PreviewPageWithTopNav() {
           return `Dear ${name},\nAnother wonderful year of laughter, growth, and joy!\nYou make every day special just by being you. Wishing you the happiest birthday and magical memories ahead.`;
         case 'mama':
           return `To my dearest mama —\nthank you for your endless love, your warm hugs, and all the little things you do every day.\nYou make my world feel safe, happy, and full of magic.\nI love you more than words can say. 💛`;
+        case 'dad':
+          return `Dear Dad,\n\nthank you for being my safe place,\nmy biggest cheerleader,\nand the one who always makes my world feel brighter.\n\nNo matter how big I grow,\nI think a part of me\nwill always want to hold your hand.\n\nThank you for loving me\nin all the little ways that matter most.\n\nLove you.`;
         default:
           return `Dear ${name},\n  The world is full of wonderful, surprising places to explore. May your days be full of discoveries, adventure and joy!`;
       }
@@ -4721,9 +4758,9 @@ export default function PreviewPageWithTopNav() {
     messageUserTouchedRef.current = true;
     const { value } = e.target;
 
-    // 限制行数：按换行符拆分后行数不能超过 MAX_LINES
+    // 限制行数：按换行符拆分后行数不能超过 dedicationMaxLines
     const lines = value.split('\n');
-    if (lines.length > MAX_LINES) {
+    if (lines.length > dedicationMaxLines) {
       return;
     }
 
@@ -5222,14 +5259,31 @@ export default function PreviewPageWithTopNav() {
                           ? 1.2
                           : (upperBookId === 'PICBOOK_GOODNIGHT3' ||
                               upperBookId === 'PICBOOK_MOM' ||
+                              upperBookId === 'PICBOOK_DAD' ||
                               upperBookId === 'PICBOOK_SANTA' ||
                               upperBookId === 'PICBOOK_MELODY')
                               ? 0.7
                               : undefined;
+                      // Dad：仅默认寄语左对齐；用户编辑提交后与它书一致居中
+                      const dedicationTextAlign =
+                        isPicbookDad(upperBookId) &&
+                        (dedication || '').trim() === (defaultMessage || '').trim()
+                          ? 'left'
+                          : 'center';
+                      const isDadDefaultDedicationLeft =
+                        isPicbookDad(upperBookId) &&
+                        (dedication || '').trim() === (defaultMessage || '').trim();
+                      const dedicationSidePaddingRatio = isPicbookDad(upperBookId) ? 0.12 : 0.06;
+                      const dedicationSidePaddingLeftRatio = isDadDefaultDedicationLeft
+                        ? 0.2
+                        : undefined;
                       // 如果是“曾经编辑过的书”，后端会返回 p3-4 的 final_image_url。
                       // 默认应直接展示 final 图；只有当用户打开编辑弹窗/发生本地修改时，才使用 Canvas 分层合成。
                       const p34HasLocalChanges =
-                        !!giverImageUrl || !!editField || shouldUploadP34ComposedRef.current;
+                        !!giverImageUrl ||
+                        !!editField ||
+                        shouldUploadP34ComposedRef.current ||
+                        (p34ComposeUploadedRef.current && isDedicationSubmitted);
 
                       // 单页模式：p3-4 始终拆成左右单页展示；有 final 时只把 final 当作底图，不再整张跨页显示。
                       if (isGiverDedicationPage && viewMode === 'single') {
@@ -5272,6 +5326,9 @@ export default function PreviewPageWithTopNav() {
                                   dedicationText=""
                                   giverImageUrl={null}
                                   giverImageScale={giverImageScale}
+                                  dedicationTextAlign={dedicationTextAlign}
+                                  dedicationSidePaddingRatio={dedicationSidePaddingRatio}
+                                  dedicationSidePaddingLeftRatio={dedicationSidePaddingLeftRatio}
                                   singleLeftHalfRef={giverRef}
                                   singleRightHalfRef={dedicationRef}
                                   leftImageFrameClassName={getMissingSectionClass('giver')}
@@ -5317,6 +5374,9 @@ export default function PreviewPageWithTopNav() {
                               dedicationText={dedication}
                               giverImageUrl={p34GiverOverlaySrc}
                               giverImageScale={giverImageScale}
+                              dedicationTextAlign={dedicationTextAlign}
+                              dedicationSidePaddingRatio={dedicationSidePaddingRatio}
+                              dedicationSidePaddingLeftRatio={dedicationSidePaddingLeftRatio}
                               onRendered={uploadP34ComposedImage}
                               singleLeftHalfRef={giverRef}
                               singleRightHalfRef={dedicationRef}
@@ -5491,6 +5551,9 @@ export default function PreviewPageWithTopNav() {
                                     dedicationText={dedication}
                                     giverImageUrl={p34GiverOverlaySrc}
                                     giverImageScale={giverImageScale}
+                                    dedicationTextAlign={dedicationTextAlign}
+                                    dedicationSidePaddingRatio={dedicationSidePaddingRatio}
+                                    dedicationSidePaddingLeftRatio={dedicationSidePaddingLeftRatio}
                                     onRendered={uploadP34ComposedImage}
                                     overlayContent={p34ButtonsOverlay}
                                     onVisualReady={() =>
@@ -6376,7 +6439,7 @@ export default function PreviewPageWithTopNav() {
                   </div>
                   <div className="flex text-gray-500 text-sm">
                     <span>
-                      There&apos;s 10 line limit (including blank lines)
+                      There&apos;s a {dedicationMaxLines} line limit (including blank lines)
                     </span>
                   </div>
                   <div className="w-full">
@@ -6402,7 +6465,7 @@ export default function PreviewPageWithTopNav() {
                           {message.length}/{MAX_CHARS} left
                         </span>
                         <span className="text-[#999999]">
-                          {message.split('\n').length}/{MAX_LINES} line
+                          {message.split('\n').length}/{dedicationMaxLines} line
                         </span>
                       </div>
                       {message.length >= MAX_CHARS && (
@@ -6419,10 +6482,12 @@ export default function PreviewPageWithTopNav() {
                     className="bg-[#222222] text-[#F5E3E3] py-2 px-4 rounded-sm"
                     onClick={() => {
                       // Dedication 更新：通过同样接口上传「已合成（底图 + giver + dedication）」的 p3-4 图片
+                      messageUserTouchedRef.current = true;
                       setGuestUploadRateLimitError(null);
                       shouldUploadP34ComposedRef.current = true;
                       p34UploadCompletesNameOnBookRef.current = false;
                       p34ComposeUploadedRef.current = false;
+                      p34LastComposedImageUrlRef.current = null;
                       setDedication(message);
                       setIsDedicationSubmitted(true);
                       setEditField(null);
