@@ -1,10 +1,13 @@
 import Image from 'next/image';
+import { Link } from '@/i18n/routing';
 import { aLittleMonster } from '@/app/fonts';
 import {
   FATHERS_DAY_PACKED_WITH_LOVE,
   mobileAsset,
   pcAsset,
 } from './fathersDayAssets';
+
+const DAD_BOOK_ID = 'PICBOOK_DAD';
 
 const TAGS_ROW = [
   { icon: '❤️', label: 'A heartfelt dedication' },
@@ -192,6 +195,16 @@ export default function RecipeSection() {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="flex w-full justify-center">
+          <Link
+            href={`/personalize?book=${DAD_BOOK_ID}`}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-[#222222] px-4 py-2 text-[16px] leading-[24px] tracking-[0.5px] text-[#FCF2F2] md:w-auto"
+          >
+            Create Your Book
+            <Image src="/images/common/arrow-white.svg" alt="" width={16} height={16} />
+          </Link>
         </div>
       </div>
     </section>

@@ -4605,12 +4605,14 @@ export default function PreviewPageWithTopNav() {
     const bookIdUpper = (bookIdParam || bookId || '').toUpperCase();
     
     // 根据bookId判断书籍类型
-    let templateType: 'goodnight' | 'santa' | 'bravery' | 'birthday' | 'mama' | 'default' = 'default';
+    let templateType: 'goodnight' | 'santa' | 'bravery' | 'birthday' | 'mama' | 'dad' | 'default' = 'default';
     
     if (bookIdUpper.includes('GOODNIGHT')) {
       templateType = 'goodnight';
     } else if (bookIdUpper === 'PICBOOK_MOM') {
       templateType = 'mama';
+    } else if (bookIdUpper === 'PICBOOK_DAD') {
+      templateType = 'dad';
     } else if (bookIdUpper.includes('SANTA') || bookIdUpper.includes('SANTALETTER')) {
       templateType = 'santa';
     } else if (bookIdUpper.includes('BRAVE') || bookIdUpper.includes('BRAVEY')) {
@@ -4633,6 +4635,8 @@ export default function PreviewPageWithTopNav() {
           return `亲爱的${name}，\n  又一年充满欢笑、成长和喜悦的美好时光！\n  你让每一天都因为你的存在而变得特别。祝你生日快乐，愿未来的回忆充满魔法般的精彩。`;
         case 'mama':
           return `我最亲爱的妈妈——\n谢谢你无尽的爱、温暖的拥抱，以及你每天为我做的点点滴滴。\n你让我的世界感到安全、快乐，充满魔力。\n我爱你，千言万语也说不尽。💛`;
+        case 'dad':
+          return `亲爱的爸爸，\n\n谢谢你成为我的避风港、\n最棒的啦啦队、\n以及总让我的世界更明亮的人。\n\n无论我长多大，\n我想我心里总有一部分\n还想牵着你的手。\n\n谢谢你用所有微不足道却最重要的小事来爱我。\n\n爱你。`;
         default:
           return `亲爱的${name}，\n  这个世界充满了令人惊喜与奇妙的角落等待你去探索。愿你的每一天都充满发现、冒险与喜悦！`;
       }
@@ -4649,6 +4653,8 @@ export default function PreviewPageWithTopNav() {
           return `Dear ${name},\nAnother wonderful year of laughter, growth, and joy!\nYou make every day special just by being you. Wishing you the happiest birthday and magical memories ahead.`;
         case 'mama':
           return `To my dearest mama —\nthank you for your endless love, your warm hugs, and all the little things you do every day.\nYou make my world feel safe, happy, and full of magic.\nI love you more than words can say. 💛`;
+        case 'dad':
+          return `Dear Dad,\n\nthank you for being my safe place,\nmy biggest cheerleader,\nand the one who always makes my world feel brighter.\n\nNo matter how big I grow,\nI think a part of me\nwill always want to hold your hand.\n\nThank you for loving me\nin all the little ways that matter most.\n\nLove you.`;
         default:
           return `Dear ${name},\n  The world is full of wonderful, surprising places to explore. May your days be full of discoveries, adventure and joy!`;
       }
@@ -5222,6 +5228,7 @@ export default function PreviewPageWithTopNav() {
                           ? 1.2
                           : (upperBookId === 'PICBOOK_GOODNIGHT3' ||
                               upperBookId === 'PICBOOK_MOM' ||
+                              upperBookId === 'PICBOOK_DAD' ||
                               upperBookId === 'PICBOOK_SANTA' ||
                               upperBookId === 'PICBOOK_MELODY')
                               ? 0.7
