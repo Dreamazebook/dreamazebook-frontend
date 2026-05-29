@@ -105,6 +105,11 @@ const resolveCoverDadName = (previewStoreUserData: any, previewData: any) => {
 const coverComposedImageCache: Record<string, string> = {};
 const COVER_COMPOSE_CACHE_VERSION = 'rowdies-v2';
 
+const isP34PageCode = (pageCode: unknown): boolean => {
+  const code = String(pageCode || '');
+  return code === 'p3-4' || code === 'p3-p4';
+};
+
 const hasMeaningfulFinalImage = (page: any): boolean => {
   const finalRaw = String(page?.final_image_url || '').trim();
   if (!finalRaw) return false;
@@ -1509,6 +1514,8 @@ export default function PreviewPageWithTopNav() {
   const p34UploadCompletesNameOnBookRef = useRef(false);
   const p34ComposeUploadInFlightRef = useRef(false);
   const p34ComposeUploadedRef = useRef(false);
+  /** 扉页寄语合成图上传成功后的 CDN URL；轮询重建 batch 时优先保留，避免被旧 final 覆盖 */
+  const p34LastComposedImageUrlRef = useRef<string | null>(null);
   const [guestUploadRateLimitError, setGuestUploadRateLimitError] = useState<UploadRateLimitError | null>(null);
   // sidebar「Opening Photo」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
   const [isNameOnBookCompleted, setIsNameOnBookCompleted] = useState(true);
@@ -1566,11 +1573,13 @@ export default function PreviewPageWithTopNav() {
     p34UploadCompletesNameOnBookRef.current = false;
     p34ComposeUploadInFlightRef.current = false;
     p34ComposeUploadedRef.current = false;
+    p34LastComposedImageUrlRef.current = null;
   }, [p34CacheKey, setEditField, setGiverImageUrl]);
 
   useEffect(() => {
     p34BaseImageUrlRef.current = null;
     p34GiverDataRef.current = null;
+    p34LastComposedImageUrlRef.current = null;
   }, [p34CacheKey]);
 
   // 首次拿到 previewData 后，记录 p3-4 的“纯底图”（尽量不含 dedication / 不含 giver）
@@ -1697,6 +1706,7 @@ export default function PreviewPageWithTopNav() {
                 ? {
                     ...p,
                     image_url: imageUrl,
+                    final_image_url: imageUrl,
                     ...(baseUrl ? { base_image_url: baseUrl } : {}),
                     ...(giverData ? { giver_data: giverData } : {}),
                   }
@@ -1708,6 +1718,7 @@ export default function PreviewPageWithTopNav() {
         // base_image_url 可能包含历史 giver，若再叠加新的 giver（比例不同）会出现边缘残影。
         shouldUploadP34ComposedRef.current = false;
         p34ComposeUploadedRef.current = true;
+        p34LastComposedImageUrlRef.current = imageUrl;
         if (p34UploadCompletesNameOnBookRef.current) {
           setIsNameOnBookCompleted(true);
         }
@@ -3529,26 +3540,38 @@ export default function PreviewPageWithTopNav() {
             }
             // 否则：全量覆盖，基于 batch.pages 重建 preview_data，确保显示所有页面
             console.log('[Polling] Rebuilding preview_data from batch.pages');
-            const nextPreviewData = (batch.pages || []).map((bp: any, idx: number) => ({
-              page_id: idx + 1,
-              page_code: bp.page_code,
-              page_number: ((bp.sort_order != null ? Number(bp.sort_order) : idx) + 1),
-              raw_image_url: bp.image_url,
-              base_stage_url: bp.base_stage_url,
-              final_stage_url: bp.final_stage_url,
-              giver_data: bp.giver_data,
-              template_image_url: bp.template_image_url || bp.template_url,
-              image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
-              has_face_swap: !!bp.has_face_elements,
-              status: bp.status,
-              base_image_url: bp.base_image_url,
-              final_image_url: bp.final_image_url,
-              base_only: bp.base_only,
-              queue_position: bp.queue_position,
-              queue_total: bp.queue_total,
-              page_type: bp.page_type,
-              is_cover: isCoverPage(bp),
-            }));
+            const nextPreviewData = (batch.pages || []).map((bp: any, idx: number) => {
+              const localP34Composed = p34LastComposedImageUrlRef.current;
+              const useLocalP34 = Boolean(localP34Composed && isP34PageCode(bp.page_code));
+              const page = {
+                page_id: idx + 1,
+                page_code: bp.page_code,
+                page_number: ((bp.sort_order != null ? Number(bp.sort_order) : idx) + 1),
+                raw_image_url: bp.image_url,
+                base_stage_url: bp.base_stage_url,
+                final_stage_url: bp.final_stage_url,
+                giver_data: bp.giver_data,
+                template_image_url: bp.template_image_url || bp.template_url,
+                image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
+                has_face_swap: !!bp.has_face_elements,
+                status: bp.status,
+                base_image_url: bp.base_image_url,
+                final_image_url: bp.final_image_url,
+                base_only: bp.base_only,
+                queue_position: bp.queue_position,
+                queue_total: bp.queue_total,
+                page_type: bp.page_type,
+                is_cover: isCoverPage(bp),
+              };
+              if (useLocalP34) {
+                return {
+                  ...page,
+                  image_url: localP34Composed,
+                  final_image_url: localP34Composed,
+                };
+              }
+              return page;
+            });
             return {
               ...(prev || {}),
               preview_data: nextPreviewData,
@@ -4607,6 +4630,8 @@ export default function PreviewPageWithTopNav() {
   const isZhLang = selectedLang.startsWith('zh');
   // 获取bookId用于匹配不同的寄语模板
   const bookId = searchParams.get('bookid') || (bookInfo?.id != null ? String(bookInfo.id) : '') || bookInfo?.spu_code || '';
+  // Dad 默认寄语含段落空行（\n\n），拆行后超过通用 10 行上限，需单独放宽编辑限制
+  const dedicationMaxLines = isPicbookDad(bookId) ? 14 : MAX_LINES;
   const buildDefaultMessage = (name: string, lang: string, bookIdParam?: string) => {
     const bookIdUpper = (bookIdParam || bookId || '').toUpperCase();
     
@@ -4733,9 +4758,9 @@ export default function PreviewPageWithTopNav() {
     messageUserTouchedRef.current = true;
     const { value } = e.target;
 
-    // 限制行数：按换行符拆分后行数不能超过 MAX_LINES
+    // 限制行数：按换行符拆分后行数不能超过 dedicationMaxLines
     const lines = value.split('\n');
-    if (lines.length > MAX_LINES) {
+    if (lines.length > dedicationMaxLines) {
       return;
     }
 
@@ -5255,7 +5280,10 @@ export default function PreviewPageWithTopNav() {
                       // 如果是“曾经编辑过的书”，后端会返回 p3-4 的 final_image_url。
                       // 默认应直接展示 final 图；只有当用户打开编辑弹窗/发生本地修改时，才使用 Canvas 分层合成。
                       const p34HasLocalChanges =
-                        !!giverImageUrl || !!editField || shouldUploadP34ComposedRef.current;
+                        !!giverImageUrl ||
+                        !!editField ||
+                        shouldUploadP34ComposedRef.current ||
+                        (p34ComposeUploadedRef.current && isDedicationSubmitted);
 
                       // 单页模式：p3-4 始终拆成左右单页展示；有 final 时只把 final 当作底图，不再整张跨页显示。
                       if (isGiverDedicationPage && viewMode === 'single') {
@@ -6411,7 +6439,7 @@ export default function PreviewPageWithTopNav() {
                   </div>
                   <div className="flex text-gray-500 text-sm">
                     <span>
-                      There&apos;s 10 line limit (including blank lines)
+                      There&apos;s a {dedicationMaxLines} line limit (including blank lines)
                     </span>
                   </div>
                   <div className="w-full">
@@ -6437,7 +6465,7 @@ export default function PreviewPageWithTopNav() {
                           {message.length}/{MAX_CHARS} left
                         </span>
                         <span className="text-[#999999]">
-                          {message.split('\n').length}/{MAX_LINES} line
+                          {message.split('\n').length}/{dedicationMaxLines} line
                         </span>
                       </div>
                       {message.length >= MAX_CHARS && (
@@ -6454,10 +6482,12 @@ export default function PreviewPageWithTopNav() {
                     className="bg-[#222222] text-[#F5E3E3] py-2 px-4 rounded-sm"
                     onClick={() => {
                       // Dedication 更新：通过同样接口上传「已合成（底图 + giver + dedication）」的 p3-4 图片
+                      messageUserTouchedRef.current = true;
                       setGuestUploadRateLimitError(null);
                       shouldUploadP34ComposedRef.current = true;
                       p34UploadCompletesNameOnBookRef.current = false;
                       p34ComposeUploadedRef.current = false;
+                      p34LastComposedImageUrlRef.current = null;
                       setDedication(message);
                       setIsDedicationSubmitted(true);
                       setEditField(null);
