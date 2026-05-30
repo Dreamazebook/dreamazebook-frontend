@@ -100,16 +100,6 @@ const CheckoutForm: React.FC<{
     }));
     trackAddPaymentInfo(ga4Items, orderDetail.total_amount || 0);
 
-    // Track Purchase after successful payment
-    fbTrack('Purchase', {
-      value: orderDetail.total_amount,
-      currency: 'USD',
-      content_ids,
-      content_type: 'product',
-      contents,
-      order_id: orderDetail.order_number
-    });
-
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       redirect: 'if_required',
@@ -134,7 +124,19 @@ const CheckoutForm: React.FC<{
             payment_intent_id: orderDetail.stripe_payment_intent_id
           });
           if (success) {
-            router.push(ORDER_SUMMARY_URL(orderDetail.id));
+            // Track Purchase after successful payment
+            fbTrack('Purchase', {
+              value: orderDetail.total_amount,
+              currency: 'USD',
+              content_ids,
+              content_type: 'product',
+              contents,
+              order_id: orderDetail.order_number
+            });
+
+            setTimeout(() => {
+              router.push(ORDER_SUMMARY_URL(orderDetail.id));
+            }, 500);
           } else {
             setMessage(t("errorLoadingOrder"));
           }
