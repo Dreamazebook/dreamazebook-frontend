@@ -114,7 +114,7 @@ const OrderSummary: React.FC = () => {
       
       const ga4Items = orderDetail.items.map((item: any) => ({
         item_id: item.id || item.spu_code || '',
-        item_name: item.name || item.spu_code || '',
+        item_name: item.sku_name || item.spu_code || '',
         price: item.price || 0,
         quantity: item.quantity || 1
       }));
