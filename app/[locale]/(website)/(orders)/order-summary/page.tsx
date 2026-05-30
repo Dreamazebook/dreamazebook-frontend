@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { formatDate, OrderDetail } from "@/types/order";
@@ -26,9 +26,6 @@ import { useAddressModal } from "@/hooks/useAddressModal";
 import { usePathname, useRouter } from "@/i18n/routing";
 import { fbTrack, getContentIdBySpu, trackPurchase } from "@/utils/track";
 
-// Track purchase event only once per page load
-let purchaseTracked = false;
-
 const OrderSummary: React.FC = () => {
   const t = useTranslations("orderSummary");
   const router = useRouter();
@@ -36,10 +33,11 @@ const OrderSummary: React.FC = () => {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
 
-  const [orderDetail, setOrderDetail] = useState<OrderDetail>();
+  const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<CartItem | null>(null);
+  const purchaseTrackedRef = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Use address modal hook
@@ -56,7 +54,7 @@ const OrderSummary: React.FC = () => {
       // Refresh order detail after address update
       if (orderId) {
         const { data, success } = await fetchOrderDetail(orderId);
-        if (success) {
+        if (success && data) {
           setOrderDetail(data);
         }
       }
@@ -77,7 +75,7 @@ const OrderSummary: React.FC = () => {
         payment_intent_id: orderDetail.stripe_payment_intent_id,
       }
     );
-    if (success) {
+    if (success && data) {
       setOrderDetail({...orderDetail, status: data.order.status, stripe_receipt_url:data.order.stripe_receipt_url});
     }
   };
@@ -91,7 +89,7 @@ const OrderSummary: React.FC = () => {
         const { data, code, message, success } = await fetchOrderDetail(
           orderId
         );
-        if (success) {
+        if (success && data) {
           setOrderDetail(data);
           if (data) {
             confirmOrderPayment(data);
@@ -109,8 +107,8 @@ const OrderSummary: React.FC = () => {
 
   // GA4: Track purchase event when order is confirmed
   useEffect(() => {
-    if (orderDetail && !purchaseTracked && (orderDetail.payment_status === 'paid')) {
-      purchaseTracked = true;
+    if (orderDetail && !purchaseTrackedRef.current && (orderDetail.payment_status === 'paid')) {
+      purchaseTrackedRef.current = true;
       
       const ga4Items = orderDetail.items.map((item: any) => ({
         item_id: item.id || item.spu_code || '',
@@ -126,7 +124,6 @@ const OrderSummary: React.FC = () => {
       );
 
       // Track Purchase after successful payment
-      console.log("Tracking purchase event for order:", orderDetail?.order_number);
       fbTrack('Purchase', {
         value: orderDetail.total_amount,
         currency: 'USD',
