@@ -76,7 +76,12 @@ const OrderSummary: React.FC = () => {
       }
     );
     if (success && data) {
-      setOrderDetail({...orderDetail, status: data.order.status, stripe_receipt_url:data.order.stripe_receipt_url});
+      setOrderDetail({
+        ...orderDetail,
+        status: data.order.status,
+        payment_status: data.order.payment_status,
+        stripe_receipt_url: data.order.stripe_receipt_url,
+      });
     }
   };
 
