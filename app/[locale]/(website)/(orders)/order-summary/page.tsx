@@ -24,7 +24,7 @@ import OrderTitle from "./components/OrderTitle";
 import AddressEditModal from "../../components/component/AddressEditModal";
 import { useAddressModal } from "@/hooks/useAddressModal";
 import { usePathname, useRouter } from "@/i18n/routing";
-import { trackPurchase } from "@/utils/track";
+import { fbTrack, getContentIdBySpu, trackPurchase } from "@/utils/track";
 
 // Track purchase event only once per page load
 let purchaseTracked = false;
@@ -109,7 +109,7 @@ const OrderSummary: React.FC = () => {
 
   // GA4: Track purchase event when order is confirmed
   useEffect(() => {
-    if (orderDetail && !purchaseTracked && (orderDetail.status === 'paid' || orderDetail.status === 'completed')) {
+    if (orderDetail && !purchaseTracked && (orderDetail.payment_status === 'paid')) {
       purchaseTracked = true;
       
       const ga4Items = orderDetail.items.map((item: any) => ({
@@ -124,6 +124,21 @@ const OrderSummary: React.FC = () => {
         ga4Items,
         orderDetail.total_amount || 0
       );
+
+      // Track Purchase after successful payment
+      console.log("Tracking purchase event for order:", orderDetail?.order_number);
+      fbTrack('Purchase', {
+        value: orderDetail.total_amount,
+        currency: 'USD',
+        content_ids: orderDetail.items.map((item: any) => getContentIdBySpu(item)),
+        content_type: 'product',
+        contents: orderDetail.items.map((item: any) => ({
+          id: getContentIdBySpu(item),
+          quantity: item.quantity || 1
+        }))
+      },{
+        eventID: orderDetail.order_number
+      });
     }
   }, [orderDetail]);
 

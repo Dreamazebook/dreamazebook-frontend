@@ -86,9 +86,9 @@ function CheckoutPageContent() {
       // Track InitiateCheckout when checkout page loads
       if (!initiateCheckoutTracked) {
         initiateCheckoutTracked = true;
-        const content_ids = orderDetail.items.map((item: any) => getContentIdBySpu(item.spu_code)).filter(Boolean);
+        const content_ids = orderDetail.items.map((item: any) => getContentIdBySpu(item));
         const contents = orderDetail.items.map((item: any) => ({
-          id: getContentIdBySpu(item.spu_code),
+          id: getContentIdBySpu(item),
           quantity: item.quantity || 1
         })).filter(item => item.id);
 

@@ -32,9 +32,9 @@ export const useCheckout = ({ selectedItems }: UseCheckoutProps) => {
       const items = data?.items || [];
       const selectedCartItems = items.filter((item: any) => selectedItems.includes(item.id));
       
-      const content_ids = selectedCartItems.map((item: any) => getContentIdBySpu(item.spu_code)).filter(Boolean);
+      const content_ids = selectedCartItems.map((item: any) => getContentIdBySpu(item)).filter(Boolean);
       const contents = selectedCartItems.map((item: any) => ({
-        id: getContentIdBySpu(item.spu_code),
+        id: getContentIdBySpu(item),
         quantity: item.quantity || 1
       })).filter((item: { id?: string }) => item.id);
       const orderTotal = selectedCartItems.reduce((total: number, item: any) => total + (item.price * (item.quantity || 1)), 0);

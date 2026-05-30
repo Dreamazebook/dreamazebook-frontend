@@ -4571,7 +4571,7 @@ export default function PreviewPageWithTopNav() {
         });
         
         // Track AddToCart for updated cart item (fromCartItemId path)
-        const contentId = getContentIdBySpu(bookInfo?.spu_code || '');
+        const contentId = getContentIdBySpu(bookInfo);
         
         if (contentId) {
           const cartValue = 0;
@@ -4593,7 +4593,7 @@ export default function PreviewPageWithTopNav() {
 
       if (response.success) {
         // Track AddToCart for successful cart addition
-        const contentId = getContentIdBySpu(bookInfo?.spu_code || '');
+        const contentId = getContentIdBySpu(bookInfo);
         
         if (contentId) {
           const cartValue = 0;
