@@ -22,6 +22,8 @@ export function getPersonalizeAvatarAssetSpu(bookId: string | undefined | null):
   if (u === 'PICBOOK_BIRTHDAY') return 'PICBOOK_BIRTHDAY';
   if (u === 'PICBOOK_MOM') return 'PICBOOK_MOM';
   if (u === 'PICBOOK_DAD') return 'PICBOOK_DAD';
+  if (u === 'PICBOOK_MELODY') return 'PICBOOK_MELODY';
+  if (u === 'PICBOOK_BRAVEY') return 'PICBOOK_BRAVEY';
   return 'PICBOOK_GOODNIGHT';
 }
 
