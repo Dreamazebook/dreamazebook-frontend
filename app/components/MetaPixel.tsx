@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import Script from 'next/script'
 
-const PIXEL_ID = '2031074071095770';
+const PIXEL_ID = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID;
 
 const FacebookPixel = () => {
   return (

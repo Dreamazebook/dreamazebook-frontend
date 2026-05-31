@@ -77,14 +77,14 @@ const CheckoutForm: React.FC<{
     }
 
     // Track PlaceOrder intent when user clicks Place Order button
-    const content_ids = orderDetail.items.map((item: any) => getContentIdBySpu(item.spu_code)).filter(Boolean);
+    const content_ids = orderDetail.items.map((item: any) => item.spu.spu_code);
     const contents = orderDetail.items.map((item: any) => ({
-      id: getContentIdBySpu(item.spu_code),
+      id: item.spu.spu_code,
       quantity: item.quantity || 1
     })).filter(item => item.id);
 
     fbTrackCustom('PlaceOrder', {
-      value: orderDetail.total_amount,
+      value: Number(orderDetail.total_amount),
       currency: 'USD',
       content_ids,
       content_type: 'product',
@@ -94,7 +94,7 @@ const CheckoutForm: React.FC<{
     // GA4: Track add_payment_info event
     const ga4Items = orderDetail.items.map((item: any) => ({
       item_id: item.id || item.spu_code || '',
-      item_name: item.name || item.spu_code || '',
+      item_name: item.sku_name || item.spu_code || '',
       price: item.price || 0,
       quantity: item.quantity || 1
     }));
@@ -124,16 +124,7 @@ const CheckoutForm: React.FC<{
             payment_intent_id: orderDetail.stripe_payment_intent_id
           });
           if (success) {
-            // Track Purchase after successful payment
-            fbTrack('Purchase', {
-              value: orderDetail.total_amount,
-              currency: 'USD',
-              content_ids,
-              content_type: 'product',
-              contents,
-              order_id: orderDetail.order_number
-            });
-            router.push(ORDER_SUMMARY_URL(orderDetail.id));
+            return router.push(ORDER_SUMMARY_URL(orderDetail.id));
           } else {
             setMessage(t("errorLoadingOrder"));
           }

@@ -10,24 +10,28 @@ export const CONTENT_ID_MAP: Record<string, string> = {
   PICBOOK_BIRTHDAY: 'birthday_book',
   PICBOOK_SANTA: 'santa_book',
   PICBOOK_MELODY: 'melody_book',
+  PICBOOK_DAD: 'dad_book'
 };
 
 // Normalize spu_code (e.g., PICBOOK_GOODNIGHT3 -> PICBOOK_GOODNIGHT)
 export const normalizeSpu = (spu: string): string =>
   spu === 'PICBOOK_GOODNIGHT3' ? 'PICBOOK_GOODNIGHT' : spu;
 
-// Get content_id by spu_code
-export const getContentIdBySpu = (spuCode: string): string | null => {
+// Get content_id by item (reads item.spu.spu_code, or item.spu_code, or uses string directly)
+export const getContentIdBySpu = (item: any): string | null => {
+  const spuCode = item?.spu?.spu_code || item?.spu_code || (typeof item === 'string' ? item : '');
   const code = normalizeSpu(spuCode);
   return CONTENT_ID_MAP[code] || null;
 };
 
 export const fbTrack = (
   eventName: string,
-  options?: FacebookEventParams
+  options?: FacebookEventParams,
+  extra?: { eventID?: string }
 ): void => {
-  if (typeof window !== undefined && (window as any).fbq) {
-    (window as any).fbq('track', eventName, options)
+  if (typeof window !== 'undefined' && (window as any).fbq) {
+    console.log(eventName, options, extra);
+    (window as any).fbq('track', eventName, options, extra);
   }
 }
 
@@ -43,9 +47,9 @@ export const fbTrackCustom = (
 
 // Helper function to build content_ids and contents from cart items
 export const buildCartTrackingData = (items: { spu_code: string; quantity?: number }[]) => {
-  const content_ids = items.map(item => getContentIdBySpu(item.spu_code)).filter(Boolean);
+  const content_ids = items.map(item => getContentIdBySpu(item)).filter(Boolean);
   const contents = items.map(item => ({
-    id: getContentIdBySpu(item.spu_code),
+    id: getContentIdBySpu(item),
     quantity: item.quantity || 1
   })).filter(item => item.id);
 

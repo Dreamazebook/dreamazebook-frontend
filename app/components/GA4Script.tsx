@@ -1,10 +1,12 @@
+const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
 export default function GA4Script() {
   return (
     <>
       {/* Google tag (gtag.js) */}
       <script
         async
-        src="https://www.googletagmanager.com/gtag/js?id=G-Q9HN0DB94C"
+        src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
       ></script>
       <script
         dangerouslySetInnerHTML={{
@@ -13,7 +15,7 @@ export default function GA4Script() {
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
 
-            gtag('config', 'G-Q9HN0DB94C');
+            gtag('config', '${GA_ID}');
           `,
         }}
       />

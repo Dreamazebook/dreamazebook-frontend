@@ -9,12 +9,13 @@ import ReserveSection from '../(marketing)/components/ReserveSection';
 // 固定 Our Books 展示顺序：good night, santa, bravery, birthday, melody
 const BOOK_DISPLAY_ORDER_RANK: Record<string, number> = {
   PICBOOK_GOODNIGHT3: 0,
-  PICBOOK_GOODNIGHT: 0,
-  PICBOOK_SANTA: 1,
-  PICBOOK_BRAVEY: 2,
+  // PICBOOK_GOODNIGHT: 0,
+  // PICBOOK_SANTA: 1,
+  PICBOOK_DAD: 1,
+  PICBOOK_MOM: 2,
   PICBOOK_BIRTHDAY: 3,
   PICBOOK_MELODY: 4,
-  PICBOOK_MOM: 5
+  PICBOOK_BRAVEY: 5,
 };
 
 const getBookCode = (book: any): string =>

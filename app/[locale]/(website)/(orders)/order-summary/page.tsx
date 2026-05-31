@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { formatDate, OrderDetail } from "@/types/order";
@@ -24,10 +24,7 @@ import OrderTitle from "./components/OrderTitle";
 import AddressEditModal from "../../components/component/AddressEditModal";
 import { useAddressModal } from "@/hooks/useAddressModal";
 import { usePathname, useRouter } from "@/i18n/routing";
-import { trackPurchase } from "@/utils/track";
-
-// Track purchase event only once per page load
-let purchaseTracked = false;
+import { fbTrack, getContentIdBySpu, trackPurchase } from "@/utils/track";
 
 const OrderSummary: React.FC = () => {
   const t = useTranslations("orderSummary");
@@ -36,10 +33,11 @@ const OrderSummary: React.FC = () => {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
 
-  const [orderDetail, setOrderDetail] = useState<OrderDetail>();
+  const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<CartItem | null>(null);
+  const purchaseTrackedRef = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Use address modal hook
@@ -56,7 +54,7 @@ const OrderSummary: React.FC = () => {
       // Refresh order detail after address update
       if (orderId) {
         const { data, success } = await fetchOrderDetail(orderId);
-        if (success) {
+        if (success && data) {
           setOrderDetail(data);
         }
       }
@@ -77,8 +75,13 @@ const OrderSummary: React.FC = () => {
         payment_intent_id: orderDetail.stripe_payment_intent_id,
       }
     );
-    if (success) {
-      setOrderDetail({...orderDetail, status: data.order.status, stripe_receipt_url:data.order.stripe_receipt_url});
+    if (success && data) {
+      setOrderDetail({
+        ...orderDetail,
+        status: data.order.status,
+        payment_status: data.order.payment_status,
+        stripe_receipt_url: data.order.stripe_receipt_url,
+      });
     }
   };
 
@@ -91,7 +94,7 @@ const OrderSummary: React.FC = () => {
         const { data, code, message, success } = await fetchOrderDetail(
           orderId
         );
-        if (success) {
+        if (success && data) {
           setOrderDetail(data);
           if (data) {
             confirmOrderPayment(data);
@@ -109,12 +112,12 @@ const OrderSummary: React.FC = () => {
 
   // GA4: Track purchase event when order is confirmed
   useEffect(() => {
-    if (orderDetail && !purchaseTracked && (orderDetail.status === 'paid' || orderDetail.status === 'completed')) {
-      purchaseTracked = true;
+    if (orderDetail && !purchaseTrackedRef.current && (orderDetail.payment_status === 'paid')) {
+      purchaseTrackedRef.current = true;
       
       const ga4Items = orderDetail.items.map((item: any) => ({
         item_id: item.id || item.spu_code || '',
-        item_name: item.name || item.spu_code || '',
+        item_name: item.sku_name || item.spu_code || '',
         price: item.price || 0,
         quantity: item.quantity || 1
       }));
@@ -124,6 +127,20 @@ const OrderSummary: React.FC = () => {
         ga4Items,
         orderDetail.total_amount || 0
       );
+
+      // Track Purchase after successful payment
+      fbTrack('Purchase', {
+        value: Number(orderDetail.total_amount),
+        currency: 'USD',
+        content_ids: orderDetail.items.map((item: any) => getContentIdBySpu(item)),
+        content_type: 'product',
+        contents: orderDetail.items.map((item: any) => ({
+          id: getContentIdBySpu(item),
+          quantity: item.quantity || 1
+        }))
+      },{
+        eventID: orderDetail.order_number
+      });
     }
   }, [orderDetail]);
 
