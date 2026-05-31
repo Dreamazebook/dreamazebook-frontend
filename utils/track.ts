@@ -17,9 +17,9 @@ export const CONTENT_ID_MAP: Record<string, string> = {
 export const normalizeSpu = (spu: string): string =>
   spu === 'PICBOOK_GOODNIGHT3' ? 'PICBOOK_GOODNIGHT' : spu;
 
-// Get content_id by item (reads item.spu.spu_code)
+// Get content_id by item (reads item.spu.spu_code, or item.spu_code, or uses string directly)
 export const getContentIdBySpu = (item: any): string | null => {
-  const spuCode = item?.spu?.spu_code || item?.spu_code || '';
+  const spuCode = item?.spu?.spu_code || item?.spu_code || (typeof item === 'string' ? item : '');
   const code = normalizeSpu(spuCode);
   return CONTENT_ID_MAP[code] || null;
 };
