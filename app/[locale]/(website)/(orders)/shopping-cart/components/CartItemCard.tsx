@@ -9,7 +9,7 @@ import KickstarterInlineCard from "./KickstarterInlineCard";
 import { getR2BookCover } from "@/utils/bookCovers";
 import { getOurBookDisplayName, getFormattedCartItemTitle } from "@/utils/bookNames";
 import { WEBSITE_CDN_URL } from "@/constants/cdn";
-import { getBirthdayCoverSeasonFromCharacterLike } from "@/utils/birthdayPersonalizeHelpers";
+import { getPicbookCoverOptionImageUrl } from "@/utils/picbookCoverImage";
 
 interface CartItemProps {
   showEditBook?: boolean;
@@ -56,10 +56,21 @@ export default function CartItemCard({
     typeof packageCode === "string" && packageCode.startsWith("CHRISTMAS_");
   const isKickstarterPackage = isPackage && !isChristmasBundle;
 
+  const skuSpuCode = String((item as any)?.spu_code || (item as any)?.spu?.spu_code || "");
+  const skuCustomizationAttrs = ((item as any)?.customization_data?.attributes ||
+    (item as any)?.attributes ||
+    {}) as Record<string, unknown>;
   // 后端新增字段：mode = create|edit，用于决定购物车 item 的按钮语义
   // 兼容旧数据：无 mode 时用 preview_id 推断
   const effectiveMode = (item as any)?.mode ?? (item.preview_id ? "edit" : "create");
   const isEditMode = effectiveMode === "edit" && !!item.preview_id;
+
+  const skuCover1ImageUrl = getPicbookCoverOptionImageUrl(skuSpuCode, "1", skuCustomizationAttrs);
+  // create：优先 cover_1（避免后端 book_cover/cover_image 指向 catalog/.../cover-default.png）
+  // edit：优先已生成的 preview 封面 cover_image
+  const skuCartCoverSrc = isEditMode && item.cover_image
+    ? item.cover_image
+    : skuCover1ImageUrl || item.book_cover || "/home-page/cover.png";
   // 需求：购物车中 item_type=sku 且 mode=create 的书本不要显示 cover / gift 细节（“Soft Cover | A Festive Gift Box” 那行）
   const shouldShowCoverGiftDetails = !(item.item_type === "sku" && effectiveMode === "create");
 
@@ -248,9 +259,20 @@ export default function CartItemCard({
             <div className="flex items-center gap-4 h-full relative">
               <div className={`${getCartCoverRatio(item)} w-40 rounded`}>
                 <img
-                  src={item.cover_image || item.book_cover || "/home-page/cover.png"}
+                  src={skuCartCoverSrc}
                   alt={item.product_name || item.sku_code}
                   className="w-full h-full object-cover object-right"
+                  onError={(e) => {
+                    try {
+                      const img = e.currentTarget;
+                      if (img.dataset.fallbackApplied === "1") return;
+                      img.dataset.fallbackApplied = "1";
+                      const fallback = isEditMode && item.cover_image
+                        ? item.book_cover || "/home-page/cover.png"
+                        : item.book_cover || skuCover1ImageUrl || "/home-page/cover.png";
+                      if (fallback && img.src !== fallback) img.src = fallback;
+                    } catch {}
+                  }}
                 />
               </div>
 
@@ -619,44 +641,6 @@ export default function CartItemCard({
                           return s ? s.split("_").join(" ") : fallback
                         }
 
-                        // 根据 cover_type 自动展示 cover option 图片：
-                        // - personalized → cover_3
-                        // - 其他/缺省 → cover_1
-                        const normalizeSpuForCover = (spu: string) =>
-  spu === 'PICBOOK_GOODNIGHT3' ? 'PICBOOK_GOODNIGHT' : spu;
-                        const coverId =
-                          String(coverType || '').toLowerCase().includes('personalized') ? '3' : '1';
-                        const attrsBundle = (pi?.customization_data?.attributes || {}) as Record<string, unknown>;
-                        const birthdaySeasonForCover =
-                          String(normalizeSpuForCover(String(spuCode || ''))).toUpperCase() === 'PICBOOK_BIRTHDAY' &&
-                          ['1', '2'].includes(String(coverId))
-                            ? getBirthdayCoverSeasonFromCharacterLike({
-                                birthday: attrsBundle?.birthday as string | undefined,
-                                birthSeason: attrsBundle?.birth_season as string | undefined,
-                                attributes: attrsBundle,
-                              })
-                            : null;
-                        const coverBaseFile = birthdaySeasonForCover ? `${birthdaySeasonForCover}.webp` : 'base.webp';
-                        const coverOptionImageUrl =
-                          spuCode
-                            ? `https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/${encodeURIComponent(
-                                normalizeSpuForCover(String(spuCode)),
-                              )}/covers/cover_${encodeURIComponent(coverId)}/${coverBaseFile}`
-                            : '';
-                        const bundleBookCoverImageUrl = spuCode
-                          ? `${WEBSITE_CDN_URL}products/bundles/BUNDLE_CHRISTMAS/${encodeURIComponent(String(spuCode))}.png`
-                          : '';
-                        const packageItemFallbackImage = bundleBookCoverImageUrl || coverOptionImageUrl || getR2BookCover(spuCode);
-                        const packageItemFallbackImageClass = "max-w-full max-h-full object-contain object-left md:object-center block";
-                        const isUsingEditedCoverImage = pi?.mode === "edit" && !!pi?.cover_image;
-                        const packageItemCoverImage =
-                          isUsingEditedCoverImage
-                            ? pi.cover_image
-                            : packageItemFallbackImage;
-                        const packageItemCoverImageClass = isUsingEditedCoverImage
-                          ? "h-full w-[200%] max-w-none object-fill block flex-shrink-0 -translate-x-1/4"
-                          : packageItemFallbackImageClass;
-
                         // 圣诞 bundle 子项：preview_id 可能在 customization_data.preview_id（而不是顶层 preview_id）
                         const piPreviewId =
                           pi?.preview_id ||
@@ -665,6 +649,34 @@ export default function CartItemCard({
                           null
                         const piMode = pi?.mode ?? (piPreviewId ? "edit" : "create")
                         const piIsEdit = piMode === "edit" && !!piPreviewId
+
+                        // 根据 cover_type 自动展示 cover option 图片：
+                        // - personalized → cover_3
+                        // - 其他/缺省 → cover_1
+                        const coverId =
+                          String(coverType || '').toLowerCase().includes('personalized') ? '3' : '1';
+                        const attrsBundle = (pi?.customization_data?.attributes || {}) as Record<string, unknown>;
+                        const coverOptionImageUrl = getPicbookCoverOptionImageUrl(
+                          spuCode,
+                          coverId,
+                          attrsBundle,
+                        );
+                        const bundleBookCoverImageUrl = spuCode
+                          ? `${WEBSITE_CDN_URL}products/bundles/BUNDLE_CHRISTMAS/${encodeURIComponent(String(spuCode))}.png`
+                          : '';
+                        // create：优先 cover_1（与详情页 batch-add 一致）；BUNDLE_CHRISTMAS 仅作营销兜底
+                        const packageItemFallbackImage = piIsEdit
+                          ? bundleBookCoverImageUrl || coverOptionImageUrl || getR2BookCover(spuCode)
+                          : coverOptionImageUrl || bundleBookCoverImageUrl || getR2BookCover(spuCode);
+                        const packageItemFallbackImageClass = "max-w-full max-h-full object-contain object-left md:object-center block";
+                        const packageItemCoverImage =
+                          piIsEdit && pi?.cover_image
+                            ? pi.cover_image
+                            : packageItemFallbackImage;
+                        const packageItemCoverImageClass =
+                          piIsEdit && pi?.cover_image
+                          ? "h-full w-[200%] max-w-none object-fill block flex-shrink-0 -translate-x-1/4"
+                          : packageItemFallbackImageClass;
                         const ctaLabel = piIsEdit ? t("editBook") : tSafe("createBook", "Create book")
                         const ctaHref = piIsEdit
                           ? `/personalized-products/${spuCode}/${encodeURIComponent(String(piPreviewId))}/edit?fromCartItemId=${encodeURIComponent(String(pi?.id ?? ''))}`
