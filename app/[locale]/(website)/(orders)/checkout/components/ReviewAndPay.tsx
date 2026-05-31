@@ -84,7 +84,7 @@ const CheckoutForm: React.FC<{
     })).filter(item => item.id);
 
     fbTrackCustom('PlaceOrder', {
-      value: orderDetail.total_amount,
+      value: Number(orderDetail.total_amount),
       currency: 'USD',
       content_ids,
       content_type: 'product',

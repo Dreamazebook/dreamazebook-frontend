@@ -130,7 +130,7 @@ const OrderSummary: React.FC = () => {
 
       // Track Purchase after successful payment
       fbTrack('Purchase', {
-        value: orderDetail.total_amount,
+        value: Number(orderDetail.total_amount),
         currency: 'USD',
         content_ids: orderDetail.items.map((item: any) => getContentIdBySpu(item)),
         content_type: 'product',

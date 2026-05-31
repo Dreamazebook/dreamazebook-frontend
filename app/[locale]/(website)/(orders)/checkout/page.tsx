@@ -93,7 +93,7 @@ function CheckoutPageContent() {
         })).filter(item => item.id);
 
         fbTrack('InitiateCheckout', {
-          value: orderDetail.total_amount,
+          value: Number(orderDetail.total_amount),
           currency: 'USD',
           content_ids,
           content_type: 'product',
