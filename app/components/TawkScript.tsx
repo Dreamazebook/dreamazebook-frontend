@@ -7,6 +7,8 @@ declare global {
   var Tawk_API: {
     hideWidget?: () => void;
     showWidget?: () => void;
+    onLoad?: (() => void) | undefined;
+    onBeforeLoad?: (() => void) | undefined;
   } | undefined;
 }
 
@@ -21,7 +23,18 @@ const HIDE_CSS = `
 export default function TawkScript({ visible = true }: { visible?: boolean }) {
   useEffect(() => {
     if (!visible) {
-      if (Tawk_API?.hideWidget) Tawk_API.hideWidget();
+      if (Tawk_API?.hideWidget) {
+        Tawk_API.hideWidget();
+      } else {
+        // Tawk not loaded yet — poll until it is, then hide
+        const interval = setInterval(() => {
+          if (Tawk_API?.hideWidget) {
+            Tawk_API.hideWidget();
+            clearInterval(interval);
+          }
+        }, 200);
+        return () => clearInterval(interval);
+      }
     } else {
       if (Tawk_API?.showWidget) Tawk_API.showWidget();
     }
@@ -36,6 +49,10 @@ export default function TawkScript({ visible = true }: { visible?: boolean }) {
         dangerouslySetInnerHTML={{
           __html: `
             var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+            Tawk_API.onLoad = function() {
+              var style = document.getElementById('${HIDE_STYLE_ID}');
+              if (style) Tawk_API.hideWidget();
+            };
             (function(){
             var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
             s1.async=true;
