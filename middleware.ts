@@ -22,6 +22,16 @@ export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const curLocale = getLocale(request)
 
+  // Add Cache-Control headers for all Next.js optimized images & static media
+  if (pathname.startsWith('/_next/image') || pathname.startsWith('/_next/static/media')) {
+    const response = NextResponse.next();
+    response.headers.set(
+      'Cache-Control',
+      'public, max-age=31536000, immutable'
+    );
+    return response;
+  }
+
   const redirectURL = process.env.REDIRECT_URL;
   if (redirectURL && pathname.indexOf(`/${curLocale}${redirectURL}`) === -1) {
     request.nextUrl.pathname = `/${curLocale}${redirectURL}`;
