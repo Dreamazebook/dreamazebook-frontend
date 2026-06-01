@@ -3,10 +3,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { usePathname, Link, useRouter } from '@/i18n/routing';
-import Image from 'next/image';
 import { IoIosArrowBack } from '@/utils/icons';
 import api from '@/utils/api';
-import { fbTrack, fbTrackCustom, getContentIdBySpu, trackViewItem } from '@/utils/track';
+import { fbTrackCustom, getContentIdBySpu, trackViewItem } from '@/utils/track';
 import SingleCharacterForm1, { SingleCharacterForm1Handle } from '../components/personalize/SingleCharacterForm1';
 import SingleCharacterForm2, { SingleCharacterForm2Handle } from '../components/personalize/SingleCharacterForm2';
 import SingleCharacterForm3, { SingleCharacterForm3Handle } from '../components/personalize/SingleCharacterForm3';
@@ -230,12 +229,12 @@ export default function PersonalizeApiDrivenPage() {
     
     if (contentId) {
       // Meta Pixel: ViewContent
-      fbTrack('StartPersonalization', {
+      fbTrackCustom('StartPersonalization', {
         content_name: 'editor_open',
         content_category: 'book',
         content_ids: [contentId],
         content_type: 'product',
-        contents: [{ id: contentId }]
+        contents: [{ id: contentId, quantity: 1 }]
       });
     }
   }, [loading, bookId]);
