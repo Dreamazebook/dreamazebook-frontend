@@ -228,9 +228,7 @@ const Header = ({ headerIsWhite }: { headerIsWhite: boolean }) => {
                   {mounted && user ? (
                     <>
                       <Link
-                        href={
-                          user.user_type === "admin" ? "/admin" : "/profile"
-                        }
+                        href="/profile"
                         className="flex items-center space-x-3 text-gray-700 hover:text-gray-900"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
@@ -340,7 +338,7 @@ const Header = ({ headerIsWhite }: { headerIsWhite: boolean }) => {
         {mounted && user ? (
           <Link
             className="hidden md:block"
-            href={user.user_type === "admin" ? "/admin" : "/profile"}
+            href="/profile"
           >
             <Image
               src={"/header/profile.svg"}

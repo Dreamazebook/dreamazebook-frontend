@@ -8,7 +8,6 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         disallow: [
           '/api/',
-          '/admin/',
           '/private/',
           '/*.json$',
           '/*?*sort=',
@@ -24,7 +23,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: 'Googlebot',
         allow: '/',
-        disallow: ['/api/', '/admin/', '/private/', '/checkout'],
+        disallow: ['/api/', '/private/', '/checkout'],
       },
     ],
     sitemap: 'https://dreamazebook.com/sitemap.xml',

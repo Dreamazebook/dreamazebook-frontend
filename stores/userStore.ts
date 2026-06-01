@@ -1,4 +1,4 @@
-import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT, API_USER_SEND_PASSWORD_RESET_EMAIL, API_ADDRESS_LIST, API_ADMIN_LOGIN, API_ORDER_LIST, API_ORDER_DETAIL, API_COUNTRY_LIST, API_CART_LIST, API_ORDER_STATUS, API_GET_LOGIN_CODE, API_VERIFY_LOGIN_CODE } from '@/constants/api'
+import { API_USER_LOGIN, API_USER_REGISTER, API_USER_CURRENT, API_USER_SEND_PASSWORD_RESET_EMAIL, API_ADDRESS_LIST, API_ORDER_LIST, API_ORDER_DETAIL, API_COUNTRY_LIST, API_CART_LIST, API_ORDER_STATUS, API_GET_LOGIN_CODE, API_VERIFY_LOGIN_CODE } from '@/constants/api'
 import api from '@/utils/api'
 import { ApiResponse, UserResponse } from '@/types/api'
 import { create } from 'zustand'
@@ -33,7 +33,7 @@ interface UserState {
 
   isLoggedIn: boolean
   login: (userData: LoginData) => Promise<ApiResponse<UserResponse> | null>
-  loginAdmin: (userData: LoginData) => Promise<ApiResponse<UserResponse> | null>
+
   register: (userData: RegisterData) => Promise<ApiResponse<UserResponse> | null>
   loginWithGoogleToken: (userData: GoogleLoginData) => Promise<ApiResponse<UserResponse> | null>
   loginWithFacebookToken: (userData: FacebookLoginData) => Promise<ApiResponse<UserResponse> | null>
@@ -264,18 +264,7 @@ const useUserStore = create<UserState>((set,get) => ({
       return null;
     }
   },
-  loginAdmin: async (userData): Promise<ApiResponse<UserResponse> | null> => {
-    try {
-      const response = await api.post<ApiResponse<UserResponse>>(API_ADMIN_LOGIN, userData);
-      if (response.success && response.data?.token) {
-        get().setLoginUserToken(response.data);
-      }
-      return response;
-    } catch (error) {
-      console.error('Login error:', error);
-      return null;
-    }
-  },
+
   logout: () => {
     localStorage.removeItem('token');
     set({ user: null, isLoggedIn: false });

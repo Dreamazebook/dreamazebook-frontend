@@ -22,11 +22,6 @@ export default function ProfileSidebar({
     // { href: "#", translationKey: "loyalty" },
   ];
 
-  // Add admin navigation item if user has admin in email
-  if (user?.email?.includes("admin")) {
-    navItems.push({ href: "/admin", translationKey: "admin" });
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
 
