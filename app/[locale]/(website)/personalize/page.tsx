@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { usePathname, Link, useRouter } from '@/i18n/routing';
 import { IoIosArrowBack } from '@/utils/icons';
 import api from '@/utils/api';
-import { fbTrackCustom, getContentIdBySpu, trackViewItem } from '@/utils/track';
+import { fbTrackCustom, getContentIdBySpu, trackViewItem, trackStartPersonalization, trackCreatePreview } from '@/utils/track';
 import SingleCharacterForm1, { SingleCharacterForm1Handle } from '../components/personalize/SingleCharacterForm1';
 import SingleCharacterForm2, { SingleCharacterForm2Handle } from '../components/personalize/SingleCharacterForm2';
 import SingleCharacterForm3, { SingleCharacterForm3Handle } from '../components/personalize/SingleCharacterForm3';
@@ -228,7 +228,7 @@ export default function PersonalizeApiDrivenPage() {
     const contentId = getContentIdBySpu(bookId);
     
     if (contentId) {
-      // Meta Pixel: ViewContent
+      // Meta Pixel: StartPersonalization
       fbTrackCustom('StartPersonalization', {
         content_name: 'editor_open',
         content_category: 'book',
@@ -236,8 +236,11 @@ export default function PersonalizeApiDrivenPage() {
         content_type: 'product',
         contents: [{ id: contentId, quantity: 1 }]
       });
+
+      // GA4: start_personalization
+      trackStartPersonalization(contentId, bookName);
     }
-  }, [loading, bookId]);
+  }, [loading, bookId, bookName]);
 
   // GA4: Track view_item event
   useEffect(() => {
@@ -633,11 +636,15 @@ export default function PersonalizeApiDrivenPage() {
 
       const actualBookId = getContentIdBySpu(bookId) || bookId;
       if (actualBookId) {
+        // Meta Pixel: CreatePreview
         fbTrackCustom('CreatePreview', {
           content_ids: [actualBookId],
           content_type: 'product',
           contents: [{ id: actualBookId, quantity: 1 }],
         });
+
+        // GA4: create_preview
+        trackCreatePreview(actualBookId, bookName);
       }
 
       router.push(`/preview?${qs.toString()}`);

@@ -156,6 +156,46 @@ export const trackAddPaymentInfo = (
 };
 
 /**
+ * GA4: start_personalization event
+ * Trigger: When user enters the personalize/editor page
+ */
+export const trackStartPersonalization = (
+  bookId: string,
+  bookName: string
+): void => {
+  gtag('start_personalization', {
+    item_id: bookId,
+    item_name: bookName,
+    items: [
+      {
+        item_id: bookId,
+        item_name: bookName,
+      },
+    ],
+  });
+};
+
+/**
+ * GA4: create_preview event
+ * Trigger: When user clicks "Create My Preview" and proceeds to preview page
+ */
+export const trackCreatePreview = (
+  bookId: string,
+  bookName: string
+): void => {
+  gtag('create_preview', {
+    item_id: bookId,
+    item_name: bookName,
+    items: [
+      {
+        item_id: bookId,
+        item_name: bookName,
+      },
+    ],
+  });
+};
+
+/**
  * GA4: purchase event
  * Trigger: On successful payment page load
  */
