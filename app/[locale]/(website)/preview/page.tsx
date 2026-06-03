@@ -2227,6 +2227,8 @@ export default function PreviewPageWithTopNav() {
   const [currentBatchId, setCurrentBatchId] = useState<string | null>(null);
   // 保存原始的 previewid（从 URL 参数获取，用于 add to cart 时作为 old_preview_id）
   const originalPreviewIdRef = useRef<string | null>(null);
+  // 防止 AddToCart 事件被多次触发
+  const addToCartTrackedRef = useRef(false);
   // 预览专用频道（preview.user-*/guest.*.batchId）
   const previewChannelNameRef = useRef<string | null>(null);
   const subscribedPreviewChannelRef = useRef<string | null>(null);
@@ -4571,17 +4573,20 @@ export default function PreviewPageWithTopNav() {
         });
         
         // Track AddToCart for updated cart item (fromCartItemId path)
-        const contentId = getContentIdBySpu(bookInfo);
-        
-        if (contentId) {
-          const cartValue = 0;
-          fbTrack('AddToCart', {
-            value: cartValue,
-            currency: 'USD',
-            content_ids: [contentId],
-            content_type: 'product',
-            contents: [{ id: contentId, quantity: 1 }]
-          });
+        if (!addToCartTrackedRef.current) {
+          addToCartTrackedRef.current = true;
+          const contentId = getContentIdBySpu(bookInfo);
+          
+          if (contentId) {
+            const cartValue = 0;
+            fbTrack('AddToCart', {
+              value: cartValue,
+              currency: 'USD',
+              content_ids: [contentId],
+              content_type: 'product',
+              contents: [{ id: contentId, quantity: 1 }]
+            });
+          }
         }
         
         router.push('/shopping-cart');
@@ -4593,18 +4598,21 @@ export default function PreviewPageWithTopNav() {
 
       if (response.success) {
         // Track AddToCart for successful cart addition
-        const contentId = getContentIdBySpu(bookInfo);
-        
-        if (contentId) {
-          const cartValue = 0;
+        if (!addToCartTrackedRef.current) {
+          addToCartTrackedRef.current = true;
+          const contentId = getContentIdBySpu(bookInfo);
           
-          fbTrack('AddToCart', {
-            value: cartValue,
-            currency: 'USD',
-            content_ids: [contentId],
-            content_type: 'product',
-            contents: [{ id: contentId, quantity: 1 }]
-          });
+          if (contentId) {
+            const cartValue = 0;
+            
+            fbTrack('AddToCart', {
+              value: cartValue,
+              currency: 'USD',
+              content_ids: [contentId],
+              content_type: 'product',
+              contents: [{ id: contentId, quantity: 1 }]
+            });
+          }
         }
         
         // 跳转到购物车页面

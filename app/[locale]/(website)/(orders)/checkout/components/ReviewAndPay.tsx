@@ -77,9 +77,9 @@ const CheckoutForm: React.FC<{
     }
 
     // Track PlaceOrder intent when user clicks Place Order button
-    const content_ids = orderDetail.items.map((item: any) => item.spu.spu_code);
+    const content_ids = orderDetail.items.map((item: any) => getContentIdBySpu(item));
     const contents = orderDetail.items.map((item: any) => ({
-      id: item.spu.spu_code,
+      id: getContentIdBySpu(item),
       quantity: item.quantity || 1
     })).filter(item => item.id);
 

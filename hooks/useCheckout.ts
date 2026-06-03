@@ -37,7 +37,7 @@ export const useCheckout = ({ selectedItems }: UseCheckoutProps) => {
         id: getContentIdBySpu(item),
         quantity: item.quantity || 1
       })).filter((item: { id?: string }) => item.id);
-      const orderTotal = selectedCartItems.reduce((total: number, item: any) => total + (item.price * (item.quantity || 1)), 0);
+      const orderTotal = data?.summary?.subtotal || 0;
 
       return { content_ids, contents, orderTotal };
     } catch (err) {
@@ -54,7 +54,7 @@ export const useCheckout = ({ selectedItems }: UseCheckoutProps) => {
     const { content_ids, contents, orderTotal } = await getCartTrackingData();
     fbTrackCustom('CheckoutAttempt', {
       is_logged_in: false,
-      value: orderTotal,
+      value: Number(orderTotal),
       currency: 'USD',
       content_ids,
       content_type: 'product',
