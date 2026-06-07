@@ -4,9 +4,9 @@ export const sharedMetadata: Metadata = {
   metadataBase: new URL('https://dreamazebook.com'),
   title: {
     template: '%s | Dreamaze',
-    default: 'Dreamaze - Personalized Children\'s Books',
+    default: 'Personalized Storybooks with Your Child’s Real Photo | Dreamaze',
   },
-  description: 'Create unique, personalized children\'s books where your loved ones become the heroes of their own magical stories. Handcrafted, high-quality custom children\'s books for every occasion.',
+  description: 'Turn your child’s real photo into a personalized storybook they’ll love. Create a keepsake gift for bedtime, birthdays, and family moments.',
   keywords: [
     'personalized children\'s books',
     'custom children\'s books',
@@ -28,16 +28,16 @@ export const sharedMetadata: Metadata = {
   openGraph: {
     type: 'website',
     url: 'https://dreamazebook.com',
-    title: 'Dreamaze - Personalized Children\'s Books',
+    title: 'Personalized Storybooks with Your Child’s Real Photo | Dreamaze',
     description:
-      'Create unique, personalized children\'s books where your loved ones become the heroes of their own magical stories.',
+      'Turn your child’s real photo into a personalized storybook they’ll love. Create a keepsake gift for bedtime, birthdays, and family moments.',
     siteName: 'Dreamaze',
     images: [
       {
         url: '/landing-page/cover.png',
         width: 1200,
         height: 630,
-        alt: 'Dreamaze - Personalized Children\'s Books',
+        alt: 'Personalized Storybooks with Your Child’s Real Photo | Dreamaze',
         type: 'image/png',
       },
     ],
@@ -45,9 +45,9 @@ export const sharedMetadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Dreamaze - Personalized Children\'s Books',
+    title: 'Personalized Storybooks with Your Child’s Real Photo | Dreamaze',
     description:
-      'Create unique, personalized children\'s books where your loved ones become the heroes of their own magical stories.',
+      'Turn your child’s real photo into a personalized storybook they’ll love. Create a keepsake gift for bedtime, birthdays, and family moments.',
     images: ['/landing-page/cover.png'],
     creator: '@dreamazebook',
     site: '@dreamazebook',
