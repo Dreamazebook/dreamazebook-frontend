@@ -14,7 +14,7 @@ export const generateMetadata = (): Metadata => {
     openGraph: {
       ...sharedMetadata.openGraph,
       type: 'website',
-      title: 'Dreamaze - Personalized Children\'s Books',
+      title: 'Personalized Storybooks with Your Child’s Real Photo | Dreamaze',
       description:
         'Create unique, personalized children\'s books where your loved ones become the heroes of their own magical stories.',
       url: 'https://dreamazebook.com',

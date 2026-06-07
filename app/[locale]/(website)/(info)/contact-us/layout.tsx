@@ -3,7 +3,7 @@ import { sharedMetadata } from '@/components/metadata';
 
 export const metadata: Metadata = {
   ...sharedMetadata,
-  title: 'Contact Us | Dreamaze - Personalized Children\'s Books',
+  title: 'Contact Us | Personalized Storybooks with Your Child’s Real Photo | Dreamaze',
   description:
     'Get in touch with our Dreamaze team. We\'re here to answer your questions and help you create the perfect personalized children\'s book.',
   keywords: ['contact', 'support', 'email', 'customer service', 'dreamaze'],
