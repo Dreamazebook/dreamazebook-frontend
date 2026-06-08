@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl'
 import useUserStore from '@/stores/userStore'
 import Input from '@/app/components/common/Input'
 import { OAUTH_REDIRECT } from '@/constants/api'
+import { fetchIpInfo } from '@/utils/ipGeo'
 import { useLoginState, type LoginMode } from './LoginModal/useLoginState'
 import { NameEmailPasswordFields } from './LoginModal/NameEmailPasswordFields'
 import { CodeInputField } from './LoginModal/CodeInputField'
@@ -197,7 +198,12 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
   }
 
   const handleLogin = async (email: string, password: string) => {
-    const response = await login({ email, password })
+    const ipInfo = await fetchIpInfo()
+    const response = await login({
+      email,
+      password,
+      ...(ipInfo ? { ip: ipInfo.ip, country: ipInfo.country } : {}),
+    })
     if (response?.success) {
       checkKickstarterStatus()
       handlePostLoginRedirect()
@@ -207,11 +213,13 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
   }
 
   const handleRegister = async (name: string, email: string, password: string) => {
+    const ipInfo = await fetchIpInfo()
     const response = await register({
       name,
       email,
       password,
       password_confirmation: password,
+      ...(ipInfo ? { ip: ipInfo.ip, country: ipInfo.country } : {}),
     })
     if (response?.success) {
       handlePostLoginRedirect()

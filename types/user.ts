@@ -10,6 +10,8 @@ export type UserType = {
 export type LoginData = {
   email: string;
   password: string;
+  ip?: string;
+  country?: string;
 };
 
 export type RegisterData = {
@@ -17,6 +19,8 @@ export type RegisterData = {
   email: string;
   password: string;
   password_confirmation: string;
+  ip?: string;
+  country?: string;
 };
 
 export type GoogleLoginData = {
