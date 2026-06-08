@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Slideshow from './components/home/SlideShow';
 import LazyOnView from './components/common/LazyOnView';
 import { Product } from '@/types/product';
@@ -21,9 +22,8 @@ const BOOK_DISPLAY_ORDER_RANK: Record<string, number> = {
 const getBookCode = (book: any): string =>
   String((book as any)?.spu_code ?? (book as any)?.id ?? (book as any)?.code ?? '').trim();
 
-export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params;
-
+// Separate async component for the books section so it streams independently
+async function BooksSection({ locale }: { locale: string }) {
   let books: Product[] = [];
   try {
     const { data } = await getBooks(locale);
@@ -41,6 +41,37 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   .map(x => x.book);
 
   return (
+    <section>
+      <h2 className='text-[#222] text-[24px] md:text-[40px] font-medium text-center mb-3 mt-[64px] md:mt-[88px]'>Our Favorite<br className="md:hidden"/> Personalized Stories</h2>
+      <p className='text-[#222] text-[14px] md:text-[16px] text-center mb-[24px] md:mb-[48px] leading-relaxed'>
+        <span className='md:hidden'>Create the story that brings out their biggest smile.</span>
+        <span className='hidden md:block'>Find the story where they become the hero.</span>
+      </p>
+      <LazyOnView name='BooksGrid' componentProps={{ books: orderedBooks }} />
+    </section>
+  );
+}
+
+// Skeleton placeholder shown while books are loading
+function BooksSectionSkeleton() {
+  return (
+    <section>
+      <h2 className='text-[#222] text-[24px] md:text-[40px] font-medium text-center mb-3 mt-[64px] md:mt-[88px]'>Our Favorite<br className="md:hidden"/> Personalized Stories</h2>
+      <p className='text-[#222] text-[14px] md:text-[16px] text-center mb-[24px] md:mb-[48px] leading-relaxed'>
+        <span className='md:hidden'>Create the story that brings out their biggest smile.</span>
+        <span className='hidden md:block'>Find the story where they become the hero.</span>
+      </p>
+      <div className="flex justify-center py-12">
+        <div className="w-8 h-8 border-4 border-gray-200 border-t-[#222] rounded-full animate-spin" />
+      </div>
+    </section>
+  );
+}
+
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
+  return (
     <main className="min-h-screen">
       {/* Slideshow doesn't need animation as it's already animated */}
       <Slideshow />
@@ -49,15 +80,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       <LazyOnView name='WhatMakesDreamazeDifferent' />
 
-      <section>
-        {/* <OurBook /> */}
-        <h2 className='text-[#222] text-[24px] md:text-[40px] font-medium text-center mb-3 mt-[64px] md:mt-[88px]'>Our Favorite<br className="md:hidden"/> Personalized Stories</h2>
-        <p className='text-[#222] text-[14px] md:text-[16px] text-center mb-[24px] md:mb-[48px] leading-relaxed'>
-          <span className='md:hidden'>Create the story that brings out their biggest smile.</span>
-          <span className='hidden md:block'>Find the story where they become the hero.</span>
-        </p>
-        <LazyOnView name='BooksGrid' componentProps={{ books: orderedBooks }} />
-      </section>
+      {/* Books section streams in independently — rest of page renders immediately */}
+      <Suspense fallback={<BooksSectionSkeleton />}>
+        <BooksSection locale={locale} />
+      </Suspense>
 
       <LazyOnView name='GiftPackagesSection' componentProps={{ section: DEFAULT_GIFT_PACKAGES_CONFIG }} />
 

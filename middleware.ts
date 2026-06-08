@@ -1,26 +1,38 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { match as matchLocale } from '@formatjs/intl-localematcher'
-import Negotiator from 'negotiator'
 
 const locales = ['en', 'fr','zh']
 const defaultLocale = 'en'
 
 function getLocale(request: NextRequest): string {
-  const negotiatorHeaders: Record<string, string> = {}
-  request.headers.forEach((value, key) => (negotiatorHeaders[key] = value))
-
-  let languages = new Negotiator({ headers: negotiatorHeaders }).languages()
-  if (languages.length === 1 && languages[0] === "*") {
-    languages = ["en"];
+  // Fast path: check cookie first (set after first visit)
+  const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value
+  if (cookieLocale && locales.includes(cookieLocale)) {
+    return cookieLocale
   }
-  const locale = matchLocale(languages, locales, defaultLocale)
-  return locale
+
+  // Fallback: parse Accept-Language header directly (avoids full Negotiator parse when possible)
+  const acceptLanguage = request.headers.get('accept-language')
+  if (acceptLanguage) {
+    const languages = acceptLanguage
+      .split(',')
+      .map(lang => {
+        const [code, qPart] = lang.trim().split(';q=')
+        return { code: code.split('-')[0], quality: qPart ? parseFloat(qPart) : 1 }
+      })
+      .sort((a, b) => b.quality - a.quality)
+      .map(l => l.code)
+
+    const locale = matchLocale(languages, locales, defaultLocale)
+    return locale
+  }
+
+  return defaultLocale
 }
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
-  const curLocale = getLocale(request)
 
   // Add Cache-Control headers for all Next.js optimized images & static media
   if (pathname.startsWith('/_next/image') || pathname.startsWith('/_next/static/media')) {
@@ -32,22 +44,40 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
-  const redirectURL = process.env.REDIRECT_URL;
-  if (redirectURL && pathname.indexOf(`/${curLocale}${redirectURL}`) === -1) {
-    request.nextUrl.pathname = `/${curLocale}${redirectURL}`;
-    return NextResponse.redirect(request.nextUrl);
-  }
-  
   // Check if the pathname already has a locale
   const pathnameHasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
   )
 
-  if (pathnameHasLocale) return
+  if (pathnameHasLocale) {
+    const response = NextResponse.next()
+
+    // Set locale cookie for fast subsequent requests
+    const localeMatch = locales.find(
+      (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
+    )
+    if (localeMatch) {
+      response.cookies.set('NEXT_LOCALE', localeMatch, {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 365, // 1 year
+        sameSite: 'lax',
+      })
+    }
+
+    return response
+  }
 
   // Redirect if there is no locale
+  const curLocale = getLocale(request)
   request.nextUrl.pathname = `/${curLocale}${pathname}`
-  return NextResponse.redirect(request.nextUrl)
+
+  const response = NextResponse.redirect(request.nextUrl)
+  response.cookies.set('NEXT_LOCALE', curLocale, {
+    path: '/',
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: 'lax',
+  })
+  return response
 }
 
 export const config = {
