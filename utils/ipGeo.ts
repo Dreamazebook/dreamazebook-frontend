@@ -1,5 +1,3 @@
-const IPIFY_API_URL = 'https://geo.ipify.org/api/v2/country';
-
 export interface IpGeoInfo {
   ip: string;
   country: string;
@@ -8,7 +6,10 @@ export interface IpGeoInfo {
 let cachedIpInfo: IpGeoInfo | null = null;
 
 /**
- * Fetch IP and country info from ipify API.
+ * Fetch IP and country info from the internal /api/country endpoint.
+ * The API route extracts client IP from x-forwarded-for / x-real-ip headers
+ * (set by Netlify) and resolves the country via api.country.is.
+ *
  * Results are cached in memory so subsequent calls within the same session won't re-fetch.
  */
 export const fetchIpInfo = async (): Promise<IpGeoInfo | null> => {
@@ -16,23 +17,19 @@ export const fetchIpInfo = async (): Promise<IpGeoInfo | null> => {
     return cachedIpInfo;
   }
 
-  const apiKey = process.env.NEXT_PUBLIC_IPIFY_API_KEY;
-  if (!apiKey) {
-    console.warn('[ipGeo] NEXT_PUBLIC_IPIFY_API_KEY is not set');
-    return null;
-  }
-
   try {
-    const res = await fetch(`${IPIFY_API_URL}?apiKey=${apiKey}`);
+    const res = await fetch('/api/country');
     if (!res.ok) {
-      console.warn('[ipGeo] ipify API returned', res.status);
+      console.warn('[ipGeo] /api/country returned', res.status);
       return null;
     }
 
-    const data = await res.json();
+    const json = await res.json();
+    const data = json?.data || json;
+
     cachedIpInfo = {
-      ip: data.ip || '',
-      country: data.location?.country || '',
+      ip: data.client_ip || data.ip || '',
+      country: data.country || '',
     };
 
     return cachedIpInfo;
