@@ -392,44 +392,49 @@ export default function BookDetailView({
                   );
                 })()}
               </div>
-              <Link
-                href={`${primaryButtonHref}${primaryButtonHref.includes('?') ? '&' : '?'}language=${encodeURIComponent(selectedLanguage)}`}
-                onClick={(e) => {
-                  setIsLoading(true);
-                  onPrimaryClick?.(e, selectedLanguage);
-                }}
-                className={`bg-[#222222] text-[#F5E3E3] box-border h-[44px] min-h-[44px] inline-flex w-[min(100%,203px)] shrink-0 items-center justify-center px-4 py-3 text-center text-base font-medium rounded-[4px] hover:bg-gray-800 transition-colors ${
-                  isLoading ? 'opacity-75 cursor-wait pointer-events-none' : ''
-                }`}
-              >
-                {isLoading ? (
-                  <>
-                    <svg
-                      className="animate-spin h-5 w-5 mr-2"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Loading...
-                  </>
-                ) : (
-                  primaryButtonLabel
-                )}
-              </Link>
+              <div className="flex flex-col items-center gap-1 shrink-0">
+                <Link
+                  href={`${primaryButtonHref}${primaryButtonHref.includes('?') ? '&' : '?'}language=${encodeURIComponent(selectedLanguage)}`}
+                  onClick={(e) => {
+                    setIsLoading(true);
+                    onPrimaryClick?.(e, selectedLanguage);
+                  }}
+                  className={`bg-[#222222] text-[#F5E3E3] box-border h-[44px] min-h-[44px] inline-flex w-[min(100%,203px)] shrink-0 items-center justify-center px-4 py-3 text-center text-base font-medium rounded-[4px] hover:bg-gray-800 transition-colors ${
+                    isLoading ? 'opacity-75 cursor-wait pointer-events-none' : ''
+                  }`}
+                >
+                  {isLoading ? (
+                    <>
+                      <svg
+                        className="animate-spin h-5 w-5 mr-2"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Loading...
+                    </>
+                  ) : (
+                    primaryButtonLabel
+                  )}
+                </Link>
+                <p className="text-[#666666] text-[12px] leading-[16px] tracking-[0.25px] text-center w-full">
+                  {t('personalizeButtonHint')}
+                </p>
+              </div>
             </div>
             )}
 
@@ -451,19 +456,31 @@ export default function BookDetailView({
                     {openFaq === num && (
                       <div className="min-w-0 break-words text-[#222222] mt-4 pb-4 md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[14px] leading-[20px] tracking-[0.25px]">
                         {faq.answer.split('\n').map((line, i) => {
-                          // 如果行以 "- " 开头，渲染为 bullet point
-                          if (line.trim().startsWith('- ')) {
+                          const trimmed = line.trim();
+                          // @ 开头：定制步骤标题
+                          if (trimmed.startsWith('@ ')) {
                             return (
-                              <div key={i} className="flex min-w-0 items-start gap-2 mb-2">
-                                <span className="shrink-0">•</span>
-                                <span className="min-w-0 break-words">{line.trim().substring(2)}</span>
+                              <div
+                                key={i}
+                                className={`font-medium text-[#222222] ${i === 0 ? 'mt-0' : 'mt-4'} mb-1`}
+                              >
+                                {trimmed.substring(2)}
                               </div>
                             );
                           }
-                          // 普通文本行
-                          return line.trim() ? (
-                            <div key={i} className={`min-w-0 break-words ${i > 0 && !faq.answer.split('\n')[i - 1].trim().startsWith('- ') ? 'mt-2' : ''}`}>
-                              {line}
+                          // 如果行以 "- " 开头，渲染为 bullet point
+                          if (trimmed.startsWith('- ')) {
+                            return (
+                              <div key={i} className="flex min-w-0 items-start gap-2 mb-2">
+                                <span className="shrink-0">•</span>
+                                <span className="min-w-0 break-words">{trimmed.substring(2)}</span>
+                              </div>
+                            );
+                          }
+                          // 普通文本行（步骤描述）
+                          return trimmed ? (
+                            <div key={i} className="min-w-0 break-words text-[#666666] mb-1">
+                              {trimmed}
                             </div>
                           ) : null;
                         })}

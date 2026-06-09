@@ -39,12 +39,19 @@ const PERSONALIZE_PAGE_TITLE_CLASS =
 
 const PERSONALIZE_TITLE_WHO = 'Who Are You Making This Book For?';
 const PERSONALIZE_TITLE_BRING_STORY = "Let's Bring Your Story to Life ✨";
-const PERSONALIZE_BTN_CONTINUE = 'Continue';
 const PERSONALIZE_BTN_UPDATE_PREVIEW = 'Update My Preview';
 
 function getPersonalizeLastStep(isBirthday: boolean, isMom: boolean, isDad: boolean): number {
   if (isBirthday || isMom || isDad) return 3;
   return 2;
+}
+
+function getPersonalizeNextStepLabel(currentStep: number, totalSteps: number): string {
+  if (totalSteps === 3) {
+    if (currentStep === 1) return 'Next Step · 1/3';
+    if (currentStep === 2) return 'Next Step · 2/3';
+  }
+  return 'Next Step · 1/2';
 }
 
 const skinColors = ['#FFE2CF', '#DCB593', '#665444'];
@@ -656,6 +663,7 @@ export default function EditPersonalizedProductPage() {
   const personalizeLastStep = getPersonalizeLastStep(birthdayBook, momBook, dadBook);
   const isLastPersonalizeStep =
     (formType === 'SINGLE1' || formType === 'DOUBLE') && currentStep === personalizeLastStep;
+  const nextStepButtonLabel = getPersonalizeNextStepLabel(currentStep, personalizeLastStep);
 
   const handleCropperOpenChange = (isOpen: boolean) => {
     setIsAddingImage(isOpen);
@@ -1105,7 +1113,7 @@ export default function EditPersonalizedProductPage() {
           <button
             type="button"
             onClick={handleContinue}
-            style={{ width: isLastPersonalizeStep ? '220px' : '180px' }}
+            style={{ width: '220px' }}
             disabled={isContinuing}
             className={`bg-[#222222] text-[#F5E3E3] h-[44px] px-4 py-3 rounded-[4px] hover:bg-gray-800 text-[14px] leading-[20px] tracking-[0.25px] transition-colors flex items-center justify-center whitespace-nowrap mb-16 ${
               isContinuing ? 'opacity-75 cursor-wait pointer-events-none' : ''
@@ -1122,7 +1130,7 @@ export default function EditPersonalizedProductPage() {
             ) : isLastPersonalizeStep ? (
               PERSONALIZE_BTN_UPDATE_PREVIEW
             ) : (
-              PERSONALIZE_BTN_CONTINUE
+              nextStepButtonLabel
             )}
           </button>
         </div>
@@ -1146,7 +1154,7 @@ export default function EditPersonalizedProductPage() {
             ) : isLastPersonalizeStep ? (
               PERSONALIZE_BTN_UPDATE_PREVIEW
             ) : (
-              PERSONALIZE_BTN_CONTINUE
+              nextStepButtonLabel
             )}
           </button>
         </div>

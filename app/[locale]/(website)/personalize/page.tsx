@@ -58,7 +58,6 @@ const PERSONALIZE_TITLE_WHO =
 const PERSONALIZE_TITLE_BRING_STORY =
   'Let\u2019s Bring Your Story to Life \u2728';
 
-const PERSONALIZE_BTN_CONTINUE = 'Continue';
 const PERSONALIZE_BTN_CREATE_PREVIEW = 'Create My Preview';
 
 function getPersonalizeLastStep(
@@ -69,6 +68,14 @@ function getPersonalizeLastStep(
 ): number {
   if (formType === 'SINGLE1' && (isBirthday || isMom || isDad)) return 3;
   return 2;
+}
+
+function getPersonalizeNextStepLabel(currentStep: number, totalSteps: number): string {
+  if (totalSteps === 3) {
+    if (currentStep === 1) return 'Next Step · 1/3';
+    if (currentStep === 2) return 'Next Step · 2/3';
+  }
+  return 'Next Step · 1/2';
 }
 
 // Track ViewContent only once per page load
@@ -664,6 +671,7 @@ export default function PersonalizeApiDrivenPage() {
   const isLastPersonalizeStep =
     (formType === 'SINGLE1' && currentStep === personalizeLastStep) ||
     (formType === 'SINGLE2' && useForm3 && currentStep === 2);
+  const nextStepButtonLabel = getPersonalizeNextStepLabel(currentStep, personalizeLastStep);
 
   return (
     <div className="min-h-screen bg-[#F8F8F8]">
@@ -764,7 +772,7 @@ export default function PersonalizeApiDrivenPage() {
               style={{ width: '220px' }}
               className="bg-black text-[#F5E3E3] py-3  text-[16px] leading-[24px] tracking-[0.5px] mb-16 rounded hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
             >
-              {PERSONALIZE_BTN_CONTINUE}
+              {nextStepButtonLabel}
             </button>
           ) : (
             <button
@@ -801,7 +809,7 @@ export default function PersonalizeApiDrivenPage() {
               onClick={handleNextStep}
               className="w-full bg-black text-[#F5E3E3] h-[44px] rounded hover:bg-gray-800 transition-colors text-[16px] leading-[24px] tracking-[0.5px] flex items-center justify-center gap-2"
             >
-              {PERSONALIZE_BTN_CONTINUE}
+              {nextStepButtonLabel}
             </button>
           ) : (
             <button

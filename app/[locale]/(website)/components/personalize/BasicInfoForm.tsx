@@ -332,7 +332,7 @@ const BasicInfoForm: React.FC<BasicInfoFormProps> = ({
       <p className="text-[14px] leading-[20px] tracking-[0.25px] md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[#999999]">
         {avatarSectionTitle
           ? PERSONALIZE_AVATAR_PREVIEW_CAPTION
-          : "This cute avatar is just the beginning — your child's photo is where the magic happens."}
+          : "Start with a few simple details — then upload a photo to see your child in the story."}
       </p>
 
       {/* Child's Name */}

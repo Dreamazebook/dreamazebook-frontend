@@ -134,7 +134,7 @@
     "book2Desc": "Explorez l'histoire dans ce récit interactif de voyage dans le temps",
     "book3Title": "Explorateurs sous-marins",
     "book3Desc": "Plongez dans un océan de découvertes et d'amitié",
-    "personalize": "Personnaliser",
+    "personalize": "Créer mon aperçu",
     "viewAllBooks": "Voir tous les livres",
     "testimonialsTitle": "Ce que disent nos lecteurs",
     "testimonial1Name": "Sarah J.",
@@ -163,7 +163,7 @@
     "sortPriceLow": "Prix : croissant",
     "sortPriceHigh": "Prix : décroissant",
     "sortRating": "Les mieux notés",
-    "personalize": "Personnaliser",
+    "personalize": "Créer mon aperçu",
     "noResults": "Aucun livre trouvé correspondant à votre recherche",
     "loading": "Chargement des livres...",
     "error": "Échec du chargement des livres. Veuillez réessayer plus tard.",
@@ -189,7 +189,8 @@
       "en": "English",
       "zh": "中文"
     },
-    "personalizeButton": "Personnaliser mon livre",
+    "personalizeButton": "Créer un aperçu gratuit",
+    "personalizeButtonHint": "🔒 100 % privé et sécurisé",
     "faq": {
       "title": "Où êtes-vous ? Sauvez le multivers !",
       "description": "Nous consacrons des heures de soin à la création de chaque livre - pour vous aider à montrer aux personnes qui comptent à quel point elles sont importantes pour vous."

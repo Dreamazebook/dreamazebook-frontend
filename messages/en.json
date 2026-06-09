@@ -133,7 +133,7 @@
     "book2Desc": "Explore history in this interactive time-travel tale",
     "book3Title": "Underwater Explorers",
     "book3Desc": "Dive into an ocean of discovery and friendship",
-    "personalize": "Personalize",
+    "personalize": "Create My Preview",
     "viewAllBooks": "View All Books",
     "testimonialsTitle": "What Our Readers Say",
     "testimonial1Name": "Sarah J.",
@@ -162,7 +162,7 @@
     "sortPriceLow": "Price: Low to High",
     "sortPriceHigh": "Price: High to Low",
     "sortRating": "Highest Rated",
-    "personalize": "Personalize",
+    "personalize": "Create My Preview",
     "noResults": "No books found matching your search",
     "loading": "Loading books...",
     "error": "Failed to load books. Please try again later.",
@@ -188,7 +188,8 @@
       "en": "English",
       "zh": "中文"
     },
-    "personalizeButton": "Personalize",
+    "personalizeButton": "Create Free Preview",
+    "personalizeButtonHint": "🔒 100% Private & Secure",
     "faq": {
       "title": "Where Are You? Save the Multiverse!",
       "description": "We pour hours of care into making every book - to help you show the people who matter just how much they mean to you."

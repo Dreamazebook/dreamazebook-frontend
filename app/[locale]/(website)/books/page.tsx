@@ -87,7 +87,6 @@ const StarRating = ({ rating, reviews }: { rating: number; reviews?: number }) =
 export default function BooksPage() {
   const locale = useLocale();
   const t = useTranslations('BooksPage');
-  const tBookDetail = useTranslations('BookDetail');
   const [books, setBooks] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -353,7 +352,7 @@ export default function BooksPage() {
                     href={`/books/${(bestSeller as any)?.spu_code ?? (bestSeller as any)?.id ?? 'featured'}`} 
                     className="text-[#222222] text-[16px] font-normal hover:underline flex items-center gap-1"
                   >
-                    {tBookDetail('personalizeButton')} →
+                    {t('personalize')} →
                   </Link>
                 </div>
               </div>

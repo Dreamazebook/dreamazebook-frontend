@@ -118,6 +118,30 @@ export interface BookFAQ {
   answer: string; // 答案（支持多行文本，使用 \n 分隔）
 }
 
+/** 单人书定制步骤（good night / bravery / melody）— 行首 @ 为步骤标题 */
+const SINGLE_HERO_PERSONALIZE_ANSWER = `@ Tell us about your little hero
+Name, age, and a few story details.
+@ Create a free, private preview
+Upload a photo securely and see the story begin.
+@ Make it gift-ready
+Add a free dedication, cover, and gift options.`;
+
+/** Birthday 定制步骤 */
+const BIRTHDAY_PERSONALIZE_ANSWER = `@ Tell us about your birthday star
+Name, age, and a few story details.
+@ Create a free, private preview
+Upload a photo securely and see the story begin.
+@ Make it gift-ready
+Add a free dedication, cover, and gift options.`;
+
+/** 多人物书定制步骤（mom / dad） */
+const MULTI_CHARACTER_PERSONALIZE_ANSWER = `@ 1. Tell us who's in the story
+Names, relationship, and a few sweet details.
+@ 2. Create a free, private preview
+Upload photos securely and see the story begin.
+@ 3. Make it gift-ready
+Add a free dedication, cover, and gift options.`;
+
 // 定义书籍配置的类型
 export interface BookConfig {
   id: string | number; // 书籍ID或代码
@@ -137,8 +161,7 @@ const GOODNIGHT_BASE_CONFIG: Omit<BookConfig, 'id'> = {
     faqs: [
       {
         question: 'How is the book personalized?',
-      answer:
-        "- Add your child's name — the star of this story\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication — printed on the first page\n- Choose your cover and gift options\n- Place your order — preview before printing",
+        answer: SINGLE_HERO_PERSONALIZE_ANSWER,
       },
       {
         question: 'Why children love it?',
@@ -256,8 +279,7 @@ export const BOOKS_CONFIG: Record<string | number, BookConfig> = {
     faqs: [
       {
         question: 'How is the book personalized?',
-        answer:
-          "- Add Mama's name or special title (Mama, Mommy, Mum, etc.)\n- Add your child's name or nickname\n- Upload a photo of Mama and your child\n- Upload your child's drawing of Mama\n- Add a dedication — printed on the first page\n- Choose your cover and gift options\n- Place your order — preview before printing",
+        answer: MULTI_CHARACTER_PERSONALIZE_ANSWER,
       },
       {
         question: 'Why families love it?',
@@ -377,8 +399,7 @@ with Mama's love, brave little moments, and cozy bedtime comfort.`,
     faqs: [
       {
         question: 'How is the book personalized?',
-        answer:
-          "- Add Dad's name or special title: Dad, Daddy, Papa, Dada, etc.\n- Add your child's name or nickname\n- Add playful personal details, like favorite things you do together\n- Upload a photo of mom, dad and child\n- Add a dedication — printed on the first page\n- Choose your cover and gift options\n- Place your order — preview before printing",
+        answer: MULTI_CHARACTER_PERSONALIZE_ANSWER,
       },
       {
         question: 'Why families love it?',
@@ -490,7 +511,7 @@ with Mama's love, brave little moments, and cozy bedtime comfort.`,
     faqs: [
       {
         question: 'How is the book personalized?',
-        answer: '- Add your child\'s name — the star of this story\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication — printed on the first page\n- Choose your cover and gift options\n- Place your order — preview before printing'
+        answer: SINGLE_HERO_PERSONALIZE_ANSWER,
       },
       {
         question: 'Recommendation',
@@ -588,7 +609,7 @@ with Mama's love, brave little moments, and cozy bedtime comfort.`,
     faqs: [
       {
         question: 'How is the book personalized?',
-        answer: '- Add your child\'s name — on the cover and in every page\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication — printed on the first page\n- Choose from four cover designs\n- Preview selected pages before purchase'
+        answer: SINGLE_HERO_PERSONALIZE_ANSWER,
       },
       {
         question: 'Recommendation',
@@ -649,7 +670,7 @@ with Mama's love, brave little moments, and cozy bedtime comfort.`,
     faqs: [
       {
         question: 'How is the book personalized?',
-        answer: '- Add your child\'s name — the star of the birthday story\n- Choose features (skin tone, hairstyle, hair color)\n- Upload a clear front-facing photo\n- Select your child\'s birthday date\n- Pick 4 personality traits shown as forest animals\n- Add a dedication on the first page\n- Place your order — preview before printing'
+        answer: BIRTHDAY_PERSONALIZE_ANSWER,
       },
       {
         question: 'Recommendation',
@@ -794,8 +815,7 @@ with Mama's love, brave little moments, and cozy bedtime comfort.`,
     faqs: [
       {
         question: 'How is the book personalized?',
-        answer:
-          "- Add your child's name — the star of this story\n- Customize features (skin tone, hairstyle, hair color)\n- Upload a clear photo for accurate personalization\n- Add your dedication — printed on the first page\n- Choose your cover and gift options\n- Place your order — preview before printing",
+        answer: SINGLE_HERO_PERSONALIZE_ANSWER,
       },
       {
         question: 'Recommendation',
