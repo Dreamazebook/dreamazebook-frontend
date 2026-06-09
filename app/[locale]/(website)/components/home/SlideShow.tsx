@@ -74,19 +74,15 @@ export default function SlideShow() {
           transform: translateY(0);
         }
 
-        .slide-bg {
+        .slide-bg-img {
           position: absolute;
           inset: 0;
-          min-height: 80vh;
-          background-size: cover;
-          background-position: center;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+          background-color: #f3f4f6;
           transition: transform 0.5s ease-in-out;
-        }
-
-        @media (min-width: 768px) {
-          .slide-bg {
-            background-image: var(--desktop-bg) !important;
-          }
         }
       `}</style>
 
@@ -96,15 +92,22 @@ export default function SlideShow() {
             key={slide.id}
             className={`slide ${index === currentIndex ? "active" : ""}`}
           >
-            <div
-              className="slide-bg bg-gray-100"
-              style={
-                {
-                  backgroundImage: `url(${slide.image})`,
-                  "--desktop-bg": `url(${slide.image_desktop})`,
-                  backgroundColor: '#f3f4f6',
-                } as React.CSSProperties
-              }
+            {/* Use <img> instead of CSS background-image for faster LCP paint */}
+            {/* Mobile hero */}
+            <img
+              src={slide.image}
+              alt=""
+              className="slide-bg-img md:hidden"
+              fetchPriority={index === 0 ? "high" : "low"}
+              decoding="async"
+            />
+            {/* Desktop hero */}
+            <img
+              src={slide.image_desktop}
+              alt=""
+              className="slide-bg-img hidden md:block"
+              fetchPriority={index === 0 ? "high" : "low"}
+              decoding="async"
             />
 
             <div
@@ -135,22 +138,6 @@ export default function SlideShow() {
             </div>
           </div>
         ))}
-
-        {/* Indicators */}
-        {/* <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center gap-2 lg:gap-3 z-20">
-          {slides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`rounded-full transition-all duration-300 ${
-                currentIndex === index 
-                  ? 'bg-white w-6 lg:w-8 h-2 lg:h-2.5' 
-                  : 'bg-white/60 w-2 lg:w-2.5 h-2 lg:h-2.5 hover:bg-white/80'
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div> */}
       </div>
     </>
   );

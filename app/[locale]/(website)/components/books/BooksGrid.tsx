@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
@@ -43,6 +43,7 @@ const BookCoverImage: React.FC<{
       style={style}
       unoptimized
       priority={priority}
+      sizes="(max-width: 768px) 100vw, 33vw"
       onError={() => {
         if (!hasError) {
           setHasError(true);
@@ -113,18 +114,19 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
         
         const cardContent = (
           <div className="flex flex-col md:relative w-full min-h-[355px] book-card-height overflow-hidden mx-auto bg-[#F3F3F3] transition-colors duration-300 group-hover:bg-[#E0E4EF]">
-            {/* 图片容器 */}
+            {/* 图片容器 — only load the cover needed for the current viewport */}
             <div className="relative w-full flex-shrink-0 h-[285px] md:h-[480px]">
-              {/* Mobile Cover：贴顶，宽度等于容器，高度自适应 */}
+              {/* Mobile: only mobile cover, no hover */}
               <div className="block md:hidden relative w-full h-full">
                 <BookCoverImage
                   src={mobileCoverUrl}
                   alt={String(name || 'Product image')}
-                  className="object-contain object-top transition-opacity duration-300 group-hover:opacity-0"
+                  className="object-contain object-top"
                   style={{ objectPosition: 'top' }}
+                  priority={idx < 2}
                 />
               </div>
-              {/* Default Cover (Desktop)：贴顶，宽度等于容器，高度自适应 */}
+              {/* Desktop: default + hover covers */}
               <div className="hidden md:block relative w-full h-full">
                 <BookCoverImage
                   src={defaultCoverUrl}
@@ -134,7 +136,6 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
                   priority={idx < 3}
                 />
               </div>
-              {/* Hover Cover (Desktop only)：同样贴顶，宽度等于容器 */}
               <div className="hidden md:block absolute inset-x-0 top-0 w-full h-full">
                 <BookCoverImage
                   src={hoverCoverUrl}
