@@ -1,14 +1,16 @@
 import type { Metadata } from 'next';
 import { sharedMetadata } from '@/components/metadata';
 
+const TITLE = 'Personalized Books for Kids';
+
 export const metadata: Metadata = {
   ...sharedMetadata,
-  title: 'Our Personalized Children\'s Books | Dreamaze',
+  title: TITLE,
   description:
-    'Explore Dreamaze\'s collection of personalized children\'s books. Each story features your child as the hero in magical, illustrated adventures designed for every special occasion.',
+    'Explore personalized books for kids made with real photos, names, and story details. Choose a bedtime, birthday, family, or keepsake gift.',
   keywords: [
     'children\'s books',
-    'personalized books for kids',
+    TITLE,
     'custom storybooks',
     'birthday books',
     'personalized gifts',
@@ -16,9 +18,9 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     ...sharedMetadata.openGraph,
-    title: 'Our Personalized Children\'s Books | Dreamaze',
+    title: TITLE,
     description:
-      'Explore Dreamaze\'s collection of personalized children\'s books. Each story features your child as the hero in magical, illustrated adventures.',
+      'Choose a personalized storybook made with your child’s real photo — from bedtime books to birthday keepsakes and family gifts.',
     url: 'https://dreamazebook.com/books',
   },
   alternates: {
