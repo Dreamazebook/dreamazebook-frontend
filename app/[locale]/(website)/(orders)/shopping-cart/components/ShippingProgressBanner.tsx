@@ -16,11 +16,11 @@ export default function ShippingProgressBanner({ itemsCount, hasPackage }: Shipp
   }
 
   return (
-    <div className="bg-[#FCF2F2] text-[#222222] p-4 flex justify-center items-center gap-2">
-      <p>{message}</p>
+    <div className="bg-[#FCF2F2] text-[#222222] p-4 flex flex-col sm:flex-row justify-center items-center gap-2 text-center w-full">
+      <p className="min-w-0 text-sm sm:text-base leading-snug">{message}</p>
       <Link
         href="/books"
-        className="text-[#012CCE] cursor-pointer"
+        className="text-[#012CCE] cursor-pointer shrink-0"
       >
         View More
       </Link>

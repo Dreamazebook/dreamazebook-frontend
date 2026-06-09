@@ -105,6 +105,38 @@ const getUploadRateLimitError = (error: unknown): UploadRateLimitError | null =>
   };
 };
 
+const ACCEPTED_IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const ACCEPTED_IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp';
+const MAX_UPLOAD_IMAGE_BYTES = 20 * 1024 * 1024;
+const MAX_UPLOAD_IMAGE_PIXELS = 36_000_000;
+
+const getFileValidationError = (file: File): string | null => {
+  const type = file.type?.toLowerCase();
+  if (type && !ACCEPTED_IMAGE_MIME_TYPES.has(type)) {
+    return 'Please upload a JPG, PNG, or WebP image.';
+  }
+  if (file.size > MAX_UPLOAD_IMAGE_BYTES) {
+    return 'Please upload an image smaller than 20MB.';
+  }
+  return null;
+};
+
+const loadImageDimensions = (src: string): Promise<{ width: number; height: number }> =>
+  new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => {
+      const width = img.naturalWidth || img.width;
+      const height = img.naturalHeight || img.height;
+      if (!width || !height) {
+        reject(new Error('Could not read image dimensions.'));
+        return;
+      }
+      resolve({ width, height });
+    };
+    img.onerror = () => reject(new Error('Could not read this image. Please try another file.'));
+    img.src = src;
+  });
+
 // 复制 hooks 内部的地址规范化逻辑，便于将后端 path 转为可访问 URL
 function toAbsoluteUrl(raw: string): string {
   if (!raw) return raw as unknown as string;
@@ -151,8 +183,13 @@ export default function GiverAvatarCropper({
   const [sx, setSx] = useState(1);
   const [sy, setSy] = useState(1);
   const [isUploading, setIsUploading] = useState(false);
+  const [isCropperReady, setIsCropperReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rateLimitError, setRateLimitError] = useState<UploadRateLimitError | null>(null);
+
+  useEffect(() => {
+    setIsCropperReady(false);
+  }, [src]);
 
   // 如果有initialSrc，直接使用；否则在组件挂载时自动触发文件选择器
   useEffect(() => {
@@ -165,17 +202,43 @@ export default function GiverAvatarCropper({
     }
   }, [initialSrc]);
 
-  const onFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const onFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.currentTarget.value = '';
     if (!file) {
       // 如果用户取消了选择，关闭弹窗
       onCancel();
       return;
     }
+    const validationError = getFileValidationError(file);
+    if (validationError) {
+      setSrc(undefined);
+      setError(validationError);
+      setRateLimitError(null);
+      return;
+    }
     const url = URL.createObjectURL(file);
-    setSrc(url);
-    setError(null);
-    setRateLimitError(null);
+    try {
+      const { width, height } = await loadImageDimensions(url);
+      if (width * height > MAX_UPLOAD_IMAGE_PIXELS) {
+        URL.revokeObjectURL(url);
+        setSrc(undefined);
+        setError('This photo is too large to process. Please choose a smaller photo.');
+        setRateLimitError(null);
+        return;
+      }
+      setSrc((prev) => {
+        if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+        return url;
+      });
+      setError(null);
+      setRateLimitError(null);
+    } catch (err) {
+      URL.revokeObjectURL(url);
+      setSrc(undefined);
+      setError(err instanceof Error ? err.message : 'Could not read this image. Please try another file.');
+      setRateLimitError(null);
+    }
   }, [onCancel]);
 
   const handleRateLimitLogin = useCallback(() => {
@@ -249,7 +312,10 @@ export default function GiverAvatarCropper({
   const onApply = async () => {
     if (isApplyingRef.current) return;
     const cropper = cropperRef.current?.cropper;
-    if (!cropper) return;
+    if (!cropper || !isCropperReady) {
+      setError('Image is still loading. Please try again in a moment.');
+      return;
+    }
     isApplyingRef.current = true;
     setIsUploading(true);
     setError(null);
@@ -262,7 +328,10 @@ export default function GiverAvatarCropper({
         cropOpts.width = outputSize!.width;
         cropOpts.height = outputSize!.height;
       }
-      let canvas = cropper.getCroppedCanvas(cropOpts);
+      let canvas: HTMLCanvasElement | null = cropper.getCroppedCanvas(cropOpts);
+      if (!canvas || !canvas.width || !canvas.height) {
+        throw new Error('Could not process this image. Please try again or choose a smaller JPG, PNG, or WebP image.');
+      }
       if (!hasOutputSize) {
         // 限制最大导出尺寸（如果配置了 maxSize）
         if (maxSize && (canvas.width > maxSize || canvas.height > maxSize)) {
@@ -286,6 +355,7 @@ export default function GiverAvatarCropper({
         if (!blob) {
           isApplyingRef.current = false;
           setIsUploading(false);
+          setError('Could not export this image. Please try again or choose a smaller image.');
           return;
         }
         try {
@@ -349,7 +419,7 @@ export default function GiverAvatarCropper({
         <input 
           ref={fileInputRef}
           type="file" 
-          accept="image/*" 
+          accept={ACCEPTED_IMAGE_ACCEPT}
           onChange={onFile} 
         />
       </div>
@@ -369,6 +439,7 @@ export default function GiverAvatarCropper({
               checkOrientation={true}
               // Cropper.js：aspectRatio 默认为 NaN（即自由裁剪）
               aspectRatio={(typeof aspectRatio === 'number' ? aspectRatio : Number.NaN) as any}
+              ready={() => setIsCropperReady(true)}
               zoomable
               movable
               rotatable
@@ -432,7 +503,7 @@ export default function GiverAvatarCropper({
             <button
               type="button"
               onClick={onApply}
-              disabled={isUploading}
+              disabled={isUploading || !isCropperReady}
               className="px-3 py-1 w-[120px] h-[44px] rounded bg-black text-[#F5E3E3] disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isUploading && (

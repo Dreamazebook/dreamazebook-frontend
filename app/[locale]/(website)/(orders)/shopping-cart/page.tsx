@@ -244,8 +244,8 @@ export default function ShoppingCartPage() {
             {error}
           </div>
         )}
-        <div className="flex w-full mx-auto">
-          <div className="flex-1 opacity-100 flex flex-col gap-6">
+        <div className="flex w-full mx-auto min-w-0">
+          <div className="flex-1 min-w-0 opacity-100 flex flex-col gap-6">
             <div className="w-full hidden lg:block box-border h-[108px] pt-12 pr-16 pb-6 pl-[120px]">
               <CartHeader />
             </div>

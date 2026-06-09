@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { getApiBaseUrl } from './apiBaseUrl';
 
-const GUEST_SESSION_HEADER = 'X-Guest-Session-Id';
-const GUEST_SESSION_STORAGE_KEY = 'guest_session_id';
+export const GUEST_SESSION_HEADER = 'X-Guest-Session-Id';
+export const GUEST_SESSION_STORAGE_KEY = 'guest_session_id';
 let guestSessionIdMemory = null;
 
-const readGuestSessionId = () => {
+export const readGuestSessionId = () => {
     if (guestSessionIdMemory) return guestSessionIdMemory;
     if (typeof window === 'undefined') return null;
     try {
@@ -17,7 +17,7 @@ const readGuestSessionId = () => {
     }
 };
 
-const writeGuestSessionId = (id, options = {}) => {
+export const writeGuestSessionId = (id, options = {}) => {
     if (!id || typeof id !== 'string') return;
     const v = id.trim();
     if (!v) return;

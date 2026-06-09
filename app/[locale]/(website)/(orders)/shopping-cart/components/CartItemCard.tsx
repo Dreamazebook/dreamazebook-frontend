@@ -254,10 +254,10 @@ export default function CartItemCard({
           </div>
         )}
 
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           {item.item_type !== "package" ? (
-            <div className="flex items-center gap-4 h-full relative">
-              <div className={`${getCartCoverRatio(item)} w-40 rounded`}>
+            <div className="flex items-center gap-2 md:gap-4 min-w-0 w-full h-full relative">
+              <div className={`${getCartCoverRatio(item)} w-28 shrink-0 md:w-40 rounded`}>
                 <img
                   src={skuCartCoverSrc}
                   alt={item.product_name || item.sku_code}
@@ -276,7 +276,7 @@ export default function CartItemCard({
                 />
               </div>
 
-              <div className="w-full space-y-1 pt-4 pr-6 pb-4 opacity-100 box-border">
+              <div className="flex-1 min-w-0 space-y-1 pt-4 pr-3 pb-4 md:pr-6 opacity-100 box-border">
                 {/* 桌面端保持原布局；手机端将价格放到书名下方，删除按钮位置不变 */}
                 <div className="flex flex-col gap-2 md:flex-row md:justify-between md:items-center md:w-full">
                   {/* 手机端：标题允许自动换行，避免过长导致卡片横向溢出；桌面端保持单行 */}
@@ -323,7 +323,7 @@ export default function CartItemCard({
                   </div>
                   {/* 手机端：价格在书名下方 */}
                   <div className="md:hidden">
-                    <div className="flex items-baseline gap-1 whitespace-nowrap">
+                    <div className="flex items-baseline gap-1 flex-wrap">
                       <DisplayPrice
                         style="text-[#222222] font-bold"
                         value={pricetoShow}
