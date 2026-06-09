@@ -5,11 +5,209 @@ import { CartItem as CartItemType, getCartCoverRatio, getFormatedCover, getForma
 import DisplayPrice from "../../../components/component/DisplayPrice";
 import { useRouter } from "@/i18n/routing";
 import { useEffect, useState } from "react";
+import type { ReactEventHandler } from "react";
 import KickstarterInlineCard from "./KickstarterInlineCard";
 import { getR2BookCover } from "@/utils/bookCovers";
 import { getOurBookDisplayName, getFormattedCartItemTitle } from "@/utils/bookNames";
 import { WEBSITE_CDN_URL } from "@/constants/cdn";
-import { getPicbookCoverOptionImageUrl } from "@/utils/picbookCoverImage";
+import { getPicbookCoverOptionImageUrl, normalizeSpuForCover } from "@/utils/picbookCoverImage";
+import CoverNameCanvas from "@/app/[locale]/(website)/preview/components/CoverNameCanvas";
+import { buildCoverTextVariables, canDrawCoverTexts } from "@/utils/coverTextVariables";
+import { getBirthdayCoverSeasonFromCharacterLike } from "@/utils/birthdayPersonalizeHelpers";
+
+const resolveCartCoverId = (...sources: any[]): string | null => {
+  for (const source of sources) {
+    if (source == null) continue;
+    const raw = String(source).trim();
+    if (!raw) continue;
+    if (/^\d+$/.test(raw)) return raw;
+    const numeric = raw.match(/(?:cover[_-]?)?([1-9]\d*)/i)?.[1];
+    if (numeric) return numeric;
+    if (raw.toLowerCase().includes("personalized")) return "3";
+  }
+
+  return null;
+};
+
+const buildCartImageUrl = (imagePath: string): string => {
+  if (!imagePath) return "";
+  if (imagePath.startsWith("http")) {
+    try {
+      return encodeURI(imagePath);
+    } catch {
+      return imagePath;
+    }
+  }
+
+  let normalized = imagePath.trim();
+  if (normalized.startsWith("/public/")) {
+    normalized = normalized.replace(/^\/public\//, "/");
+  } else if (normalized.startsWith("public/")) {
+    normalized = normalized.replace(/^public\//, "");
+    if (!normalized.startsWith("/")) normalized = `/${normalized}`;
+  }
+  if (!normalized.startsWith("/")) normalized = `/${normalized}`;
+  return normalized;
+};
+
+const hasMeaningfulFinalImage = (page: any): boolean => {
+  const finalRaw = String(page?.final_image_url || "").trim();
+  if (!finalRaw) return false;
+  const imageRaw = String(page?.image_url || "").trim();
+  const baseRaw = String(page?.base_image_url || "").trim();
+  const compareBase = baseRaw || (imageRaw && imageRaw !== finalRaw ? imageRaw : "");
+  return !compareBase || finalRaw !== compareBase;
+};
+
+const getPreviewDisplayImageRaw = (page: any): string => {
+  if (hasMeaningfulFinalImage(page)) return String(page?.final_image_url || "");
+  return String(page?.base_image_url || page?.image_url || page?.final_image_url || "");
+};
+
+const getCartPreviewCoverImageUrl = (coverId: string | null | undefined, ...sources: any[]): string => {
+  const id = String(coverId || "").trim();
+  if (id !== "3" && id !== "4") return "";
+
+  const target = `cover_${id}`;
+  for (const source of sources) {
+    const possiblePageLists = [
+      source?.preview?.preview_data,
+      source?.preview?.pages,
+      source?.preview_data,
+      source?.pages,
+      source?.batch?.preview_data,
+      source?.batch?.pages,
+      source?.customization_data?.preview?.preview_data,
+      source?.customization_data?.preview?.pages,
+      source?.customization_data?.batch?.preview_data,
+      source?.customization_data?.batch?.pages,
+    ];
+
+    for (const pages of possiblePageLists) {
+      if (!Array.isArray(pages) || pages.length === 0) continue;
+      const coverPage = pages.find((page) => {
+        const code = String(page?.page_code || "").toLowerCase().replace(/-/g, "_");
+        return code === target;
+      });
+      const raw = coverPage ? getPreviewDisplayImageRaw(coverPage) : "";
+      if (raw) return buildCartImageUrl(raw);
+    }
+  }
+
+  return "";
+};
+
+const normalizeCoverTexts = (json: any): Array<any> => {
+  const raw = Array.isArray(json?.text)
+    ? json.text
+    : Array.isArray(json?.texts)
+      ? json.texts
+      : Array.isArray(json?.elements)
+        ? json.elements
+        : [];
+
+  return raw.filter((item: any) => item && typeof item === "object");
+};
+
+const coverTextsCache: Record<string, Array<any> | null> = {};
+
+function CartCoverImageWithName({
+  spuCode,
+  coverId,
+  baseSrc,
+  recipient,
+  attributes,
+  alt,
+  className,
+  onError,
+}: {
+  spuCode: string;
+  coverId: string | null | undefined;
+  baseSrc: string;
+  recipient: string;
+  attributes?: Record<string, unknown> | null;
+  alt: string;
+  className: string;
+  onError?: ReactEventHandler<HTMLImageElement>;
+}) {
+  const id = String(coverId || "").trim();
+  const shouldComposeName = id === "1" || id === "2";
+  const trimmedRecipient = String(recipient || "").trim();
+  const normalizedSpu = normalizeSpuForCover(spuCode).toUpperCase();
+  const [texts, setTexts] = useState<Array<any> | null>(null);
+
+  useEffect(() => {
+    if (!shouldComposeName || !normalizedSpu || !trimmedRecipient) {
+      setTexts(null);
+      return;
+    }
+
+    const cacheKey = `${normalizedSpu}_${id}`;
+    if (cacheKey in coverTextsCache) {
+      setTexts(coverTextsCache[cacheKey] || null);
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const qs = new URLSearchParams({ bookId: normalizedSpu, coverId: id });
+        const res = await fetch(`/api/cover-page-properties?${qs.toString()}`, {
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          coverTextsCache[cacheKey] = null;
+          if (!cancelled) setTexts(null);
+          return;
+        }
+        const json = await res.json();
+        const next = normalizeCoverTexts(json);
+        coverTextsCache[cacheKey] = next.length ? next : null;
+        if (!cancelled) setTexts(coverTextsCache[cacheKey]);
+      } catch {
+        coverTextsCache[cacheKey] = null;
+        if (!cancelled) setTexts(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, normalizedSpu, shouldComposeName, trimmedRecipient]);
+
+  const variables = buildCoverTextVariables({
+    name: trimmedRecipient,
+  });
+  const canDrawName = shouldComposeName && canDrawCoverTexts(texts, variables);
+
+  if (canDrawName) {
+    const birthdaySeason =
+      normalizedSpu === "PICBOOK_BIRTHDAY"
+        ? getBirthdayCoverSeasonFromCharacterLike({
+            birthday: attributes?.birthday as string | undefined,
+            birthSeason: attributes?.birth_season as string | undefined,
+            attributes,
+          })
+        : null;
+    const canvasBaseSrc = birthdaySeason
+      ? `/api/cover-base-image/${encodeURIComponent(normalizedSpu)}/${encodeURIComponent(id)}?season=${encodeURIComponent(birthdaySeason)}`
+      : `/api/cover-base-image/${encodeURIComponent(normalizedSpu)}/${encodeURIComponent(id)}`;
+
+    return (
+      <CoverNameCanvas
+        src={canvasBaseSrc}
+        name={trimmedRecipient}
+        variables={variables}
+        texts={texts as any}
+        className={className}
+      />
+    );
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={baseSrc} alt={alt} className={className} onError={onError} />
+  );
+}
 
 interface CartItemProps {
   showEditBook?: boolean;
@@ -60,17 +258,40 @@ export default function CartItemCard({
   const skuCustomizationAttrs = ((item as any)?.customization_data?.attributes ||
     (item as any)?.attributes ||
     {}) as Record<string, unknown>;
+  const skuRecipientName =
+    (item as any)?.customization_data?.full_name ||
+    (item as any)?.customization_data?.recipient_name ||
+    (item as any)?.full_name ||
+    (item as any)?.recipient_name ||
+    (item as any)?.preview?.recipient_name ||
+    "";
+  const skuSelectedCoverId = resolveCartCoverId(
+    (item as any)?.cover_style,
+    skuCustomizationAttrs.cover_style,
+    (item as any)?.attributes?.cover_style,
+    (item as any)?.price_adjustments?.cover_style?.selected,
+    (item as any)?.preview?.cover_option,
+    (item as any)?.preview?.cover_key,
+    skuCustomizationAttrs.cover_type,
+    (item as any)?.attributes?.cover_type,
+    (item as any)?.preview?.cover_type,
+  );
   // 后端新增字段：mode = create|edit，用于决定购物车 item 的按钮语义
   // 兼容旧数据：无 mode 时用 preview_id 推断
   const effectiveMode = (item as any)?.mode ?? (item.preview_id ? "edit" : "create");
   const isEditMode = effectiveMode === "edit" && !!item.preview_id;
 
   const skuCover1ImageUrl = getPicbookCoverOptionImageUrl(skuSpuCode, "1", skuCustomizationAttrs);
-  // create：优先 cover_1（避免后端 book_cover/cover_image 指向 catalog/.../cover-default.png）
-  // edit：优先已生成的 preview 封面 cover_image
-  const skuCartCoverSrc = isEditMode && item.cover_image
-    ? item.cover_image
-    : skuCover1ImageUrl || item.book_cover || "/home-page/cover.png";
+  const skuSelectedCoverImageUrl = skuSelectedCoverId
+    ? getPicbookCoverOptionImageUrl(skuSpuCode, skuSelectedCoverId, skuCustomizationAttrs)
+    : "";
+  const skuPreviewCoverImageUrl = getCartPreviewCoverImageUrl(skuSelectedCoverId, item);
+  const isSkuGeneratedCoverOption = skuSelectedCoverId === "3" || skuSelectedCoverId === "4";
+  const skuGeneratedCoverFallbackImage = isEditMode && item.cover_image ? item.cover_image : "";
+  // cover_3/4 优先显示后端 preview/cover_image；静态 R2 图只作为兜底。
+  const skuCartCoverSrc = skuPreviewCoverImageUrl || (isSkuGeneratedCoverOption
+    ? skuGeneratedCoverFallbackImage || skuSelectedCoverImageUrl || skuCover1ImageUrl || item.book_cover || "/home-page/cover.png"
+    : skuSelectedCoverImageUrl || skuGeneratedCoverFallbackImage || skuCover1ImageUrl || item.book_cover || "/home-page/cover.png");
   // 需求：购物车中 item_type=sku 且 mode=create 的书本不要显示 cover / gift 细节（“Soft Cover | A Festive Gift Box” 那行）
   const shouldShowCoverGiftDetails = !(item.item_type === "sku" && effectiveMode === "create");
 
@@ -258,8 +479,12 @@ export default function CartItemCard({
           {item.item_type !== "package" ? (
             <div className="flex items-center gap-2 md:gap-4 min-w-0 w-full h-full relative">
               <div className={`${getCartCoverRatio(item)} w-28 shrink-0 md:w-40 rounded`}>
-                <img
-                  src={skuCartCoverSrc}
+                <CartCoverImageWithName
+                  spuCode={skuSpuCode}
+                  coverId={skuSelectedCoverId}
+                  baseSrc={skuCartCoverSrc}
+                  recipient={skuRecipientName}
+                  attributes={skuCustomizationAttrs}
                   alt={item.product_name || item.sku_code}
                   className="w-full h-full object-cover object-right"
                   onError={(e) => {
@@ -650,31 +875,40 @@ export default function CartItemCard({
                         const piMode = pi?.mode ?? (piPreviewId ? "edit" : "create")
                         const piIsEdit = piMode === "edit" && !!piPreviewId
 
-                        // 根据 cover_type 自动展示 cover option 图片：
-                        // - personalized → cover_3
-                        // - 其他/缺省 → cover_1
-                        const coverId =
-                          String(coverType || '').toLowerCase().includes('personalized') ? '3' : '1';
                         const attrsBundle = (pi?.customization_data?.attributes || {}) as Record<string, unknown>;
+                        const selectedBundleCoverId = resolveCartCoverId(
+                          pi?.cover_style,
+                          attrsBundle.cover_style,
+                          pi?.customization_data?.cover_style,
+                          pi?.attributes?.cover_style,
+                          pi?.price_adjustments?.cover_style?.selected,
+                          pi?.preview?.cover_option,
+                          pi?.preview?.cover_key,
+                          pkgDefaultOptions?.cover_style,
+                          attrsBundle.cover_type,
+                          pi?.customization_data?.cover_type,
+                          pi?.attributes?.cover_type,
+                          pi?.preview?.cover_type,
+                          coverType,
+                        ) || "1";
                         const coverOptionImageUrl = getPicbookCoverOptionImageUrl(
                           spuCode,
-                          coverId,
+                          selectedBundleCoverId,
                           attrsBundle,
                         );
+                        const previewCoverImageUrl = getCartPreviewCoverImageUrl(selectedBundleCoverId, pi, item);
                         const bundleBookCoverImageUrl = spuCode
                           ? `${WEBSITE_CDN_URL}products/bundles/BUNDLE_CHRISTMAS/${encodeURIComponent(String(spuCode))}.png`
                           : '';
-                        // create：优先 cover_1（与详情页 batch-add 一致）；BUNDLE_CHRISTMAS 仅作营销兜底
-                        const packageItemFallbackImage = piIsEdit
-                          ? bundleBookCoverImageUrl || coverOptionImageUrl || getR2BookCover(spuCode)
-                          : coverOptionImageUrl || bundleBookCoverImageUrl || getR2BookCover(spuCode);
+                        const isGeneratedCoverOption = selectedBundleCoverId === "3" || selectedBundleCoverId === "4";
+                        const generatedCoverFallbackImage = piIsEdit && pi?.cover_image ? pi.cover_image : "";
+                        const packageItemFallbackImage = isGeneratedCoverOption
+                          ? generatedCoverFallbackImage || coverOptionImageUrl || bundleBookCoverImageUrl || getR2BookCover(spuCode)
+                          : coverOptionImageUrl || generatedCoverFallbackImage || bundleBookCoverImageUrl || getR2BookCover(spuCode);
                         const packageItemFallbackImageClass = "max-w-full max-h-full object-contain object-left md:object-center block";
-                        const packageItemCoverImage =
-                          piIsEdit && pi?.cover_image
-                            ? pi.cover_image
-                            : packageItemFallbackImage;
+                        const packageItemCoverImage = previewCoverImageUrl || packageItemFallbackImage;
                         const packageItemCoverImageClass =
-                          piIsEdit && pi?.cover_image
+                          previewCoverImageUrl || packageItemCoverImage === generatedCoverFallbackImage
                           ? "h-full w-[200%] max-w-none object-fill block flex-shrink-0 -translate-x-1/4"
                           : packageItemFallbackImageClass;
                         const ctaLabel = piIsEdit ? t("editBook") : tSafe("createBook", "Create book")
@@ -688,9 +922,12 @@ export default function CartItemCard({
                             {/* 圣诞 bundle 子项封面：移动端 56x56，桌面端保持原尺寸 */}
                             {/* 圣诞 bundle 子项封面：手机端左上对齐（贴顶），桌面端保持居中 */}
                             <div className="w-14 h-14 md:w-[88px] md:h-[100px] overflow-hidden flex items-start justify-center md:items-center md:justify-center self-start md:self-center pt-3 md:p-0">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={packageItemCoverImage}
+                              <CartCoverImageWithName
+                                spuCode={spuCode}
+                                coverId={selectedBundleCoverId}
+                                baseSrc={packageItemCoverImage}
+                                recipient={fullName}
+                                attributes={attrsBundle}
                                 alt={bookName}
                                 className={packageItemCoverImageClass}
                                 onError={(e) => {
