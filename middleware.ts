@@ -67,8 +67,23 @@ export function middleware(request: NextRequest) {
     return response
   }
 
-  // Redirect if there is no locale
+
   const curLocale = getLocale(request)
+
+  // For the homepage (/), rewrite internally to /en instead of redirecting.
+  // This avoids a 302 round-trip and serves the page immediately.
+  // Other paths without locale still get a redirect (e.g. /books → /en/books).
+  if (pathname === '/') {
+    const response = NextResponse.rewrite(new URL(`/${curLocale}`, request.url))
+    response.cookies.set('NEXT_LOCALE', defaultLocale, {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: 'lax',
+    })
+    return response
+  }
+
+  // For other paths without locale, redirect to locale-prefixed URL
   request.nextUrl.pathname = `/${curLocale}${pathname}`
 
   const response = NextResponse.redirect(request.nextUrl)
