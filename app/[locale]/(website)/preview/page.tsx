@@ -4385,6 +4385,24 @@ export default function PreviewPageWithTopNav() {
       return !isOptionalPromptSection(sectionId) || !acknowledgedOptionalMissingSections.has(sectionId);
     }) || null;
 
+  const continuePromptSections = [
+    'giver',
+    'dedication',
+    ...momDrawingPromptSectionIdsOrdered,
+    ...(isHideOptions ? [] : ['coverDesign', 'binding', 'giftBox']),
+  ];
+  const canProceedToReview = !getNextMissingSectionForPrompt(continuePromptSections);
+  const nextButtonLabel = canProceedToReview ? 'Review Book & Pricing' : 'Next';
+
+  const focusFirstMissingContinueSection = () => {
+    const firstPromptSection = getNextMissingSectionForPrompt(continuePromptSections);
+    if (firstPromptSection) {
+      focusMissingSection(firstPromptSection, {
+        acknowledgeOptional: isOptionalPromptSection(firstPromptSection),
+      });
+    }
+  };
+
   // Others 标签页可选项提示文本（按需拼接 binding/cover/wrap）
   const selectableItems = [
     !completedSections.binding ? 'binding' : null,
@@ -4422,13 +4440,7 @@ export default function PreviewPageWithTopNav() {
     try {
       console.debug('[AddToCart] Clicked');
       const fromCartItemId = searchParams.get('fromCartItemId');
-      const sectionsToPrompt = [
-        'giver',
-        'dedication',
-        ...momDrawingPromptSectionIdsOrdered,
-        ...(isHideOptions ? [] : ['coverDesign', 'binding', 'giftBox']),
-      ];
-      const firstPromptSection = getNextMissingSectionForPrompt(sectionsToPrompt);
+      const firstPromptSection = getNextMissingSectionForPrompt(continuePromptSections);
 
       if (firstPromptSection) {
         focusMissingSection(firstPromptSection, {
@@ -6578,7 +6590,7 @@ export default function PreviewPageWithTopNav() {
                   Adding to cart...
                 </>
               ) : (
-                'Next'
+                nextButtonLabel
               )}
             </button>
           </div>
@@ -6736,66 +6748,35 @@ export default function PreviewPageWithTopNav() {
           })()}
         </div>
 
-        {/* Continue / Add to cart 按钮 */}
+        {/* Continue / Review 按钮 */}
         <div className="px-4 pb-4">
-          {(() => {
-            // 检查所有必填项是否完成（排除 giver）
-            const requiredSteps = [
-              { id: 'dedication', completed: completedSections.dedication },
-              { id: 'coverDesign', completed: completedSections.coverDesign },
-              { id: 'binding', completed: completedSections.binding },
-              { id: 'giftBox', completed: completedSections.giftBox },
-            ];
-            const allRequiredCompleted = requiredSteps.every(step => step.completed);
-            
-            if (allRequiredCompleted) {
-              // 所有必填项都完成了，显示 Add to cart 按钮
-              return (
-                <button
-                  onClick={handleContinue}
-                  disabled={isAddingToCart}
-                  className={`w-full py-3 rounded-lg font-medium text-base ${
-                    isAddingToCart
-                      ? 'bg-gray-400 cursor-not-allowed text-white'
-                      : 'bg-gray-900 text-white'
-                  } ${nextButtonFeedbackClass}`}
-                >
-                  {isAddingToCart ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
-                      Adding to cart...
-                    </>
-                  ) : (
-                    'Next'
-                  )}
-                </button>
-              );
-            } else {
-              // 还有未完成的必填项，显示 Continue 按钮
-              return (
-                <button
-                  onClick={() => {
-                    const sectionsToPrompt = [
-                      'giver',
-                      'dedication',
-                      ...momDrawingPromptSectionIdsOrdered,
-                      ...(isHideOptions ? [] : ['coverDesign', 'binding', 'giftBox']),
-                    ];
-                    const firstPromptSection = getNextMissingSectionForPrompt(sectionsToPrompt);
-
-                    if (firstPromptSection) {
-                      focusMissingSection(firstPromptSection, {
-                        acknowledgeOptional: isOptionalPromptSection(firstPromptSection),
-                      });
-                    }
-                  }}
-                  className={`w-full bg-gray-900 text-white py-3 rounded-lg font-medium text-base ${nextButtonFeedbackClass}`}
-                >
-                  Continue
-                </button>
-              );
-            }
-          })()}
+          {canProceedToReview ? (
+            <button
+              onClick={handleContinue}
+              disabled={isAddingToCart}
+              className={`w-full py-3 rounded-lg font-medium text-base ${
+                isAddingToCart
+                  ? 'bg-gray-400 cursor-not-allowed text-white'
+                  : 'bg-gray-900 text-white'
+              } ${nextButtonFeedbackClass}`}
+            >
+              {isAddingToCart ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
+                  Adding to cart...
+                </>
+              ) : (
+                nextButtonLabel
+              )}
+            </button>
+          ) : (
+            <button
+              onClick={focusFirstMissingContinueSection}
+              className={`w-full bg-gray-900 text-white py-3 rounded-lg font-medium text-base ${nextButtonFeedbackClass}`}
+            >
+              Continue
+            </button>
+          )}
         </div>
       </div>
 
