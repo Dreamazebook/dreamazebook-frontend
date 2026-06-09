@@ -59,7 +59,6 @@ const BookCoverImage: React.FC<{
 
 const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
   const t = useTranslations('BooksPage');
-  const tDetail = useTranslations('BookDetail');
   if (!books || books.length === 0) return null;
 
   const getCoverUrl = (id: string, isHover: boolean = false, isMobile: boolean = false) => {
@@ -203,7 +202,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
                 </p>
               )}
               {!isComingSoon && (
-                <Button tl={tDetail('personalizeButton')} className="md:hidden group-hover:inline-flex items-center bg-[#222222] text-white w-auto" />
+                <Button tl={t('personalize')} className="md:hidden group-hover:inline-flex items-center bg-[#222222] text-white w-auto" />
               )}
               {isComingSoon && (
                 <button className="md:hidden group-hover:inline-flex text-[#222222] text-sm items-center gap-2">

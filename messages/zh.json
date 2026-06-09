@@ -134,7 +134,7 @@
     "book2Desc": "在这个互动时间旅行故事中探索历史",
     "book3Title": "水下探险家",
     "book3Desc": "潜入发现和友谊的海洋",
-    "personalize": "个性化",
+    "personalize": "创建我的预览",
     "viewAllBooks": "查看所有书籍",
     "testimonialsTitle": "读者评价",
     "testimonial1Name": "Sarah J.",
@@ -163,7 +163,7 @@
     "sortPriceLow": "价格：从低到高",
     "sortPriceHigh": "价格：从高到低",
     "sortRating": "最高评分",
-    "personalize": "个性化",
+    "personalize": "创建我的预览",
     "noResults": "未找到匹配的书籍",
     "loading": "正在加载书籍...",
     "error": "加载书籍失败，请稍后再试。",
@@ -189,7 +189,8 @@
       "en": "English",
       "zh": "中文"
     },
-    "personalizeButton": "个性化我的书",
+    "personalizeButton": "创建免费预览",
+    "personalizeButtonHint": "🔒 100% 私密安全",
     "faq": {
       "title": "你在哪里？拯救多元宇宙！",
       "description": "我们为每一本书倾注大量心血——帮助您向最重要的人表达他们对您的意义。"
