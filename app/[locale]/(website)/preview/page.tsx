@@ -6343,14 +6343,14 @@ export default function PreviewPageWithTopNav() {
         <input
           ref={giverFileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           onChange={handleGiverFileSelect}
           className="hidden"
         />
         <input
           ref={momDrawingFileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           onChange={handleMomDrawingFileSelect}
           className="hidden"
         />
