@@ -456,19 +456,31 @@ export default function BookDetailView({
                     {openFaq === num && (
                       <div className="min-w-0 break-words text-[#222222] mt-4 pb-4 md:text-[16px] md:leading-[24px] md:tracking-[0.5px] text-[14px] leading-[20px] tracking-[0.25px]">
                         {faq.answer.split('\n').map((line, i) => {
-                          // 如果行以 "- " 开头，渲染为 bullet point
-                          if (line.trim().startsWith('- ')) {
+                          const trimmed = line.trim();
+                          // @ 开头：定制步骤标题
+                          if (trimmed.startsWith('@ ')) {
                             return (
-                              <div key={i} className="flex min-w-0 items-start gap-2 mb-2">
-                                <span className="shrink-0">•</span>
-                                <span className="min-w-0 break-words">{line.trim().substring(2)}</span>
+                              <div
+                                key={i}
+                                className={`font-medium text-[#222222] ${i === 0 ? 'mt-0' : 'mt-4'} mb-1`}
+                              >
+                                {trimmed.substring(2)}
                               </div>
                             );
                           }
-                          // 普通文本行
-                          return line.trim() ? (
-                            <div key={i} className={`min-w-0 break-words ${i > 0 && !faq.answer.split('\n')[i - 1].trim().startsWith('- ') ? 'mt-2' : ''}`}>
-                              {line}
+                          // 如果行以 "- " 开头，渲染为 bullet point
+                          if (trimmed.startsWith('- ')) {
+                            return (
+                              <div key={i} className="flex min-w-0 items-start gap-2 mb-2">
+                                <span className="shrink-0">•</span>
+                                <span className="min-w-0 break-words">{trimmed.substring(2)}</span>
+                              </div>
+                            );
+                          }
+                          // 普通文本行（步骤描述）
+                          return trimmed ? (
+                            <div key={i} className="min-w-0 break-words text-[#666666] mb-1">
+                              {trimmed}
                             </div>
                           ) : null;
                         })}
