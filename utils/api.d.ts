@@ -17,5 +17,10 @@ export function fetchDreamazebookApi(
     options?: Omit<RequestInit, 'credentials'> & { timeoutMs?: number }
 ): Promise<any>;
 
+export const GUEST_SESSION_HEADER: string;
+export const GUEST_SESSION_STORAGE_KEY: string;
+export function readGuestSessionId(): string | null;
+export function writeGuestSessionId(id: string, options?: { force?: boolean }): void;
+
 export { uploadApi };
 export default api;

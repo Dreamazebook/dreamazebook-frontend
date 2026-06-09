@@ -14,7 +14,12 @@ import CoverNameCanvas from './components/CoverNameCanvas';
 import CoverSpreadFrame from './components/CoverSpreadFrame';
 import { DreamazeFaceSwapLoadingBar } from './components/DreamazeFaceSwapLoadingBar';
 import DreamazeLogoRainbowLoader from './components/DreamazeLogoRainbowLoader';
-import api, { fetchDreamazebookApi } from '@/utils/api';
+import api, {
+  GUEST_SESSION_HEADER,
+  fetchDreamazebookApi,
+  readGuestSessionId,
+  writeGuestSessionId,
+} from '@/utils/api';
 import echo from '@/app/config/echo';
 import { useTranslations, useLocale } from 'next-intl';
 import useImageUpload from '../hooks/useImageUpload';
@@ -3811,6 +3816,7 @@ export default function PreviewPageWithTopNav() {
       if (!authHeader && process.env.NEXT_PUBLIC_API_STATIC_TOKEN) {
         authHeader = `Bearer ${process.env.NEXT_PUBLIC_API_STATIC_TOKEN}`;
       }
+      const guestSessionId = readGuestSessionId();
       // Add a 3-minute timeout for the preview render request
       const controller = new AbortController();
       const timeoutMs = 3 * 60 * 1000; // 3 minutes
@@ -3827,6 +3833,7 @@ export default function PreviewPageWithTopNav() {
             'Content-Type': 'application/json',
             'Accept': 'application/x-ndjson',
             ...(authHeader ? { Authorization: authHeader } : {}),
+            ...(guestSessionId ? { [GUEST_SESSION_HEADER]: guestSessionId } : {}),
           },
           body: JSON.stringify(payload),
           signal: controller.signal,
@@ -3838,6 +3845,15 @@ export default function PreviewPageWithTopNav() {
         throw err;
       } finally {
         // don't clear timeout here because we still need it until response body read completes
+      }
+
+      const responseGuestSessionId =
+        resp.headers.get('x-guest-session-id') ||
+        resp.headers.get(GUEST_SESSION_HEADER) ||
+        resp.headers.get(GUEST_SESSION_HEADER.toLowerCase());
+      if (responseGuestSessionId) {
+        // This render response owns the new batch; subsequent batch polling must use the same guest session.
+        writeGuestSessionId(responseGuestSessionId, { force: true });
       }
 
       if (!resp.ok) {
