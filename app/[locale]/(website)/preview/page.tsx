@@ -5686,7 +5686,7 @@ export default function PreviewPageWithTopNav() {
                 </div>
                 {isSneakPeekNoticePageLoaded && (
                   <p className="text-center text-[#999999] mt-8 whitespace-pre-line">
-                    {`This is a sneak peek of the story.\nComplete your order to receive the full book preview within 48 hours.`}
+                    {`Love this preview? Next step: complete your order ✨\nYour full book will be ready to review within 24 hours, before it goes to print.`}
                   </p>
                 )}
               </div>
