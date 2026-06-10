@@ -83,24 +83,51 @@ export default function ShoppingCartPage() {
                 const packageItems = status?.data?.package_items || [];
                 const progress = status?.data?.progress || {};
                 const pendingCount = packageItems.filter((pi: any) => pi.config_status === 'pending').length;
-                const subItems = packageItems.map((pi: any) => ({
-                  id: pi.id,
-                  item_type: 'package_item',
-                  package_id: item.package_id,
-                  picbook_id: pi.picbook_id,
-                  picbook_cover: pi.picbook?.default_cover,
-                  picbook_name: pi.picbook?.default_name,
-                  price: 0,
-                  quantity: 1,
-                  total_price: 0,
-                  preview_id: pi.preview_id,
-                  preview: pi.preview, // 可能为 null
-                  status: pi.config_status,
-                  created_at: pi.created_at,
-                  updated_at: pi.updated_at,
-                  picbook: pi.picbook,
-                  message: '',
-                }));
+                const subItems = packageItems.map((pi: any) => {
+                  const picbook = pi.picbook || {};
+                  const customizationData = pi.customization_data || pi.preview?.customization_data || {};
+                  const attributes = pi.attributes || customizationData?.attributes || pi.preview?.attributes || {};
+                  const spuCode =
+                    pi.spu_code ||
+                    pi.spu?.spu_code ||
+                    picbook.spu_code ||
+                    picbook.spu?.spu_code ||
+                    picbook.default_sku?.spu_code ||
+                    '';
+
+                  return {
+                    ...pi,
+                    id: pi.id,
+                    item_type: 'package_item',
+                    package_id: item.package_id,
+                    picbook_id: pi.picbook_id,
+                    spu_code: spuCode,
+                    book_cover: pi.book_cover || picbook.default_cover,
+                    cover_image: pi.cover_image || pi.preview?.cover_image || pi.preview?.cover_image_url,
+                    cover_style:
+                      pi.cover_style ||
+                      customizationData?.cover_style ||
+                      attributes?.cover_style ||
+                      pi.preview?.cover_style,
+                    attributes,
+                    customization_data: customizationData,
+                    price_adjustments: pi.price_adjustments || {},
+                    picbook_cover: picbook.default_cover,
+                    picbook_name: picbook.default_name,
+                    product_name: pi.product_name || picbook.default_name,
+                    sku_code: pi.sku_code || spuCode,
+                    price: pi.price || 0,
+                    quantity: pi.quantity || 1,
+                    total_price: pi.total_price || 0,
+                    preview_id: pi.preview_id,
+                    preview: pi.preview, // 可能为 null
+                    status: pi.config_status,
+                    created_at: pi.created_at,
+                    updated_at: pi.updated_at,
+                    picbook,
+                    message: pi.message || '',
+                  };
+                });
                 return { ...item, subItems, ks_pending: pendingCount > 0 || (progress.configured_items ?? 0) < (progress.total_items ?? 0), ks_progress: progress };
               } catch (e) {
                 return item;
