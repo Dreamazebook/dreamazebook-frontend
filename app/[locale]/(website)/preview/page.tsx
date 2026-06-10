@@ -5288,6 +5288,12 @@ export default function PreviewPageWithTopNav() {
                       const p34GiverOverlaySrc = isGiverDedicationPage
                         ? (giverImageUrl || (page as any).giver_data || null)
                         : giverImageUrl;
+                      const giverPhotoButtonLabel = p34GiverOverlaySrc
+                        ? 'Change photo'
+                        : 'Add a favorite photo';
+                      const dedicationButtonLabel = isDedicationSubmitted
+                        ? 'Edit your message'
+                        : 'Make this message yours';
                       const upperBookId = (searchParams.get('bookid') || '').toUpperCase();
                       const giverImageScale =
                         upperBookId === 'PICBOOK_BRAVEY' ||
@@ -5378,7 +5384,7 @@ export default function PreviewPageWithTopNav() {
                                         }}
                                         className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
                                       >
-                                        Personalize with a photo
+                                        {giverPhotoButtonLabel}
                                       </button>
                                     </div>
                                   )}
@@ -5390,7 +5396,7 @@ export default function PreviewPageWithTopNav() {
                                         onClick={() => setEditField('dedication')}
                                         className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
                                       >
-                                        Edit Dedication
+                                        {dedicationButtonLabel}
                                       </button>
                                     </div>
                                   )}
@@ -5427,7 +5433,7 @@ export default function PreviewPageWithTopNav() {
                                     }}
                                     className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
                                   >
-                                    Personalize with a photo
+                                    {giverPhotoButtonLabel}
                                   </button>
                                 </div>
                               )}
@@ -5439,7 +5445,7 @@ export default function PreviewPageWithTopNav() {
                                     onClick={() => setEditField('dedication')}
                                     className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
                                   >
-                                    Edit Dedication
+                                    {dedicationButtonLabel}
                                   </button>
                                 </div>
                               )}
@@ -5459,7 +5465,7 @@ export default function PreviewPageWithTopNav() {
                               }}
                               className={`pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
                             >
-                              Personalize with a photo
+                              {giverPhotoButtonLabel}
                             </button>
                           </div>
                           <div className="absolute bottom-[20%] right-0 w-1/2 flex flex-col items-center">
@@ -5469,7 +5475,7 @@ export default function PreviewPageWithTopNav() {
                               onClick={() => setEditField('dedication')}
                               className={`pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
                             >
-                              Edit Dedication
+                              {dedicationButtonLabel}
                             </button>
                           </div>
                         </div>
@@ -5636,7 +5642,7 @@ export default function PreviewPageWithTopNav() {
                                     }}
                                     className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
                                   >
-                                    Personalize with a photo
+                                    {giverPhotoButtonLabel}
                                   </button>
                                 </div>
                                 <div className="w-full flex flex-col items-center">
@@ -5646,7 +5652,7 @@ export default function PreviewPageWithTopNav() {
                                     onClick={() => setEditField('dedication')}
                                     className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
                                   >
-                                    Edit Dedication
+                                    {dedicationButtonLabel}
                                   </button>
                                 </div>
                               </div>
