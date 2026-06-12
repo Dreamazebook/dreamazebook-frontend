@@ -24,6 +24,8 @@ interface FormFieldProps {
   placeholder?: string;
   children?: React.ReactNode;
   disabled?: boolean;
+  autoComplete?: string;
+  onAutofill?: (value: string) => void;
 }
 
 export default function FormField({
@@ -39,6 +41,8 @@ export default function FormField({
   placeholder,
   children,
   disabled = false,
+  autoComplete,
+  onAutofill,
 }: FormFieldProps) {
   return (
     <div className="mb-4">
@@ -116,6 +120,7 @@ export default function FormField({
             type={type}
             required={required}
             disabled={disabled}
+            autoComplete={autoComplete}
             className={`w-full p-2 border rounded transition-colors ${
               error 
                 ? "border-red-500" 
@@ -126,6 +131,14 @@ export default function FormField({
             value={String(value ?? "")}
             onChange={onChange as any}
             onBlur={onBlur}
+            onAnimationStart={(e) => {
+              // Detect browser autofill via CSS animation trick
+              // The animation 'onAutoFillStart' is triggered when :-webkit-autofill applies
+              if (onAutofill && (e.animationName === 'onAutoFillStart' || e.animationName === 'onAutoFillCancel')) {
+                const input = e.target as HTMLInputElement;
+                onAutofill(input.value);
+              }
+            }}
             placeholder={placeholder}
           />
           {children}

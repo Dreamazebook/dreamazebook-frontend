@@ -118,3 +118,21 @@ body {
   animation: flash-opacity 1.5s ease-in-out infinite;
   border-radius: 12px;
 }
+
+/* Detect browser autofill via CSS animation — used by FormField to sync autofilled values into React state */
+@keyframes onAutoFillStart {
+  from { /* dummy */ }
+  to   { /* dummy */ }
+}
+@keyframes onAutoFillCancel {
+  from { /* dummy */ }
+  to   { /* dummy */ }
+}
+input:-webkit-autofill {
+  animation-name: onAutoFillStart;
+  animation-duration: 0.001s;
+}
+input:not(:-webkit-autofill) {
+  animation-name: onAutoFillCancel;
+  animation-duration: 0.001s;
+}
