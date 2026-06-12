@@ -14,6 +14,7 @@ import BookSections from '../../components/books/BookSections';
 import BookDetailSkeleton from '../../components/books/BookDetailSkeleton';
 import BookDetailStickyBar from '../../components/books/BookDetailStickyBar';
 import { useTranslations } from 'next-intl';
+import { resolveBookRouteFromParam } from '@/constants/bookRoutes';
 
 interface PagePic {
   id: number;
@@ -128,7 +129,8 @@ const BookDetailPage = () => {
   const [loadingGallery, setLoadingGallery] = useState(true);
   const [availableLanguages, setAvailableLanguages] = useState<string[]>(['en', 'zh']);
 
-  const normalizedId = Array.isArray(id) ? id[0] : String(id || '');
+  const routeParam = Array.isArray(id) ? id[0] : String(id || '');
+  const { productId } = resolveBookRouteFromParam(routeParam);
 
   // 检查是否在嵌入模式（用于抽屉显示）
   const isEmbedMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === 'true';
@@ -141,8 +143,8 @@ const BookDetailPage = () => {
         // 优先获取产品信息，让用户先看到页面内容
         // 使用缓存，书籍详情缓存 10 分钟
         const productResponse = await apiCache.request<any>(
-          () => api.get<any>(`/products/${normalizedId}`, { params: { language: locale } }),
-          `/products/${normalizedId}`,
+          () => api.get<any>(`/products/${productId}`, { params: { language: locale } }),
+          `/products/${productId}`,
           { language: locale },
           {
             ttl: 10 * 60 * 1000, // 10分钟缓存
@@ -151,7 +153,7 @@ const BookDetailPage = () => {
           }
         );
         const data = productResponse?.data || productResponse;
-        const override = BOOK_DETAIL_OVERRIDES[normalizedId];
+        const override = BOOK_DETAIL_OVERRIDES[productId];
         const patchedData = applyBookOverride(data, override);
         setBook(patchedData);
         setLoading(false); // 产品信息加载完成，可以先显示页面
@@ -177,9 +179,9 @@ const BookDetailPage = () => {
       try {
         // Good Night3 的静态 gallery 实际存放在 PICBOOK_GOODNIGHT 目录下
         const galleryId =
-          String(normalizedId) === 'PICBOOK_GOODNIGHT3'
+          String(productId) === 'PICBOOK_GOODNIGHT3'
             ? 'PICBOOK_GOODNIGHT'
-            : String(normalizedId);
+            : String(productId);
 
         const galleryBase = `/products/picbooks/${encodeURIComponent(
           galleryId
@@ -228,10 +230,10 @@ const BookDetailPage = () => {
       }
     };
 
-    if (normalizedId) {
+    if (productId) {
       fetchBookDetails();
     }
-  }, [normalizedId, locale]);
+  }, [productId, locale]);
 
   if (loading) return <BookDetailSkeleton />;
   if (!book) return <div className="min-h-screen flex items-center justify-center">{t('noBookFound')}</div>;
@@ -256,17 +258,17 @@ const BookDetailPage = () => {
           keywords={keywords}
           reviews={reviews}
           primaryButtonLabel={t('personalizeButton')}
-          primaryButtonHref={`/personalize?bookid=${normalizedId}`}
+          primaryButtonHref={`/personalize?bookid=${productId}`}
           onPrimaryClick={handlePersonalizeClick}
           availableLanguages={availableLanguages}
-          bookId={normalizedId}
+          bookId={productId}
           hidePriceAndButton={isEmbedMode}
         />
         {!isEmbedMode && (
           <>
         <ReviewsSection book={book} keywords={keywords} reviews={reviews} />
         {/* Book Sections - Dynamically rendered based on book config */}
-        <BookSections book={book} bookId={normalizedId} />
+        <BookSections book={book} bookId={productId} />
           </>
         )}
       </div>
@@ -275,7 +277,7 @@ const BookDetailPage = () => {
       <BookDetailStickyBar
         book={book}
         primaryButtonLabel={t('personalizeButton')}
-        primaryButtonHref={`/personalize?bookid=${normalizedId}`}
+        primaryButtonHref={`/personalize?bookid=${productId}`}
         onPrimaryClick={handlePersonalizeClick}
         selectedLanguage={availableLanguages[0] || 'en'}
       />

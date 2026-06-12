@@ -18,6 +18,7 @@ import { isPicbookMom } from '@/utils/isPicbookMom';
 import { isPicbookDad } from '@/utils/isPicbookDad';
 import { getPersonalizeAvatarAssetSpu } from '@/utils/personalizeAvatar';
 import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
+import { getBookPath } from '@/constants/bookRoutes';
 import { buildPreviewRenderPayload } from '@/utils/previewRenderPayload';
 import {
   buildDadQuestionAttributes,
@@ -677,7 +678,7 @@ export default function PersonalizeApiDrivenPage() {
     <div className="min-h-screen bg-[#F8F8F8]">
       <div className="h-14 bg-white flex items-center px-4 sm:px-32">
         <div className="relative flex items-center justify-between w-full sm:hidden">
-          <Link href={`/books/${bookId}`} className="flex items-center text-gray-700 hover:text-blue-500">
+          <Link href={getBookPath(String(bookId))} className="flex items-center text-gray-700 hover:text-blue-500">
             <IoIosArrowBack size={24} />
           </Link>
           <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center">
@@ -687,7 +688,7 @@ export default function PersonalizeApiDrivenPage() {
           </div>
           <div className="w-6"></div>
         </div>
-        <Link href={`/books/${bookId}`} className="hidden sm:flex items-center text-sm">
+        <Link href={getBookPath(String(bookId))} className="hidden sm:flex items-center text-sm">
           <span className="mr-2">←</span> Back to the product page
         </Link>
       </div>

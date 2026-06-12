@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
+import { getBookPath } from '@/constants/bookRoutes';
 
 interface CarouselCard {
   id: string;
@@ -156,7 +157,7 @@ const LovedByKidsCarousel: React.FC<LovedByKidsCarouselProps> = ({
             return (
               <Link
                 key={card.id}
-                href={`/books/${card.bookId}`}
+                href={getBookPath(card.bookId)}
                 className="absolute left-1/2 top-0 will-change-transform"
                 style={{
                   width: `${baseW}px`,

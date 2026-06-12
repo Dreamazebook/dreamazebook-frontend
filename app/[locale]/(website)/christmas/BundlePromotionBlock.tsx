@@ -11,6 +11,7 @@ import { CartItems } from '@/types/cart'
 import { roboto } from '@/app/fonts'
 import { BundleSelectionModal, BookOption } from './BundleSelectionModal'
 import { useRouter } from '@/i18n/routing'
+import { getBookPath } from '@/constants/bookRoutes'
 
 export type BundleGroupTabLabels = {
   trio: string
@@ -410,7 +411,7 @@ export default function BundlePromotionBlock({
         spu: p.spu_code,
         name: displayName,
         image,
-        href: `/books/${p.spu_code}`,
+        href: getBookPath(String(p.spu_code)),
         disabled,
       }
     })

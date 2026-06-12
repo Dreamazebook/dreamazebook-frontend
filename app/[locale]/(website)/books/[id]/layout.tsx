@@ -5,13 +5,13 @@ import {
   BreadcrumbSchema,
   FAQSchema,
 } from '@/app/components/StructuredDataSchemas';
+import { getBookAbsoluteUrl, resolveBookRouteFromParam } from '@/constants/bookRoutes';
 
 // ── Book SEO data ──────────────────────────────────────────────────────────
 
 interface BookSeo {
   name: string;
   subtitle: string;
-  url: string;
   seoTitle: string;
   metaDescription: string;
   ogTitle: string;
@@ -25,7 +25,6 @@ const BOOK_SEO: Record<string, BookSeo> = {
   PICBOOK_GOODNIGHT3: {
     name: 'Good Night to You',
     subtitle: 'A personalized bedtime storybook starring your child’s real photo.',
-    url: '/en/books/good-night-to-you-personalized-bedtime-book',
     seoTitle: 'Good Night to You: Personalized Bedtime Book | Dreamaze',
     metaDescription:
       'Create a calming personalized bedtime book starring your child’s real photo. A gentle story for toddlers and young children to end the day feeling seen and loved.',
@@ -66,7 +65,6 @@ const BOOK_SEO: Record<string, BookSeo> = {
   PICBOOK_GOODNIGHT: {
     name: 'Good Night to You',
     subtitle: 'A personalized bedtime storybook starring your child’s real photo.',
-    url: '/en/books/good-night-to-you-personalized-bedtime-book',
     seoTitle: 'Good Night to You: Personalized Bedtime Book | Dreamaze',
     metaDescription:
       'Create a calming personalized bedtime book starring your child’s real photo. A gentle story for toddlers and young children to end the day feeling seen and loved.',
@@ -107,7 +105,6 @@ const BOOK_SEO: Record<string, BookSeo> = {
   PICBOOK_DAD: {
     name: 'Dad & Me',
     subtitle: 'A personalized book and keepsake gift for Dad, made with your child’s real photo.',
-    url: '/en/books/dad-and-me-personalized-book-for-dad',
     seoTitle: 'Dad & Me: Personalized Book for Dad | Dreamaze',
     metaDescription:
       'Turn everyday moments with Dad into a personalized keepsake book made with your child’s real photo and family details. A meaningful gift for Dad.',
@@ -148,7 +145,6 @@ const BOOK_SEO: Record<string, BookSeo> = {
   PICBOOK_MOM: {
     name: 'The Way I See You, Mama',
     subtitle: 'A personalized book for Mom, told through the love only a child can see.',
-    url: '/en/books/the-way-i-see-you-mama-personalized-book-for-mom',
     seoTitle: 'The Way I See You, Mama: Personalized Book for Mom | Dreamaze',
     metaDescription:
       'Celebrate Mom through your child’s eyes with a personalized keepsake book made with real photos and heartfelt family details.',
@@ -189,7 +185,6 @@ const BOOK_SEO: Record<string, BookSeo> = {
   PICBOOK_MELODY: {
     name: 'Name Melody',
     subtitle: 'A personalized baby book celebrating your child’s name, photo, and first little story.',
-    url: '/en/books/name-melody-personalized-baby-book',
     seoTitle: 'Name Melody: Personalized Baby Book | Dreamaze',
     metaDescription:
       'Create a gentle personalized baby book with your child’s real photo, name, and a musical story made for early memories.',
@@ -230,7 +225,6 @@ const BOOK_SEO: Record<string, BookSeo> = {
   PICBOOK_BIRTHDAY: {
     name: 'Happy Birthday',
     subtitle: 'A personalized birthday book where your child becomes the star of the celebration.',
-    url: '/en/books/happy-birthday-personalized-birthday-book',
     seoTitle: 'Happy Birthday: Personalized Birthday Book | Dreamaze',
     metaDescription:
       'Make your child the star of a personalized birthday book made with their real photo, name, and celebration details.',
@@ -271,7 +265,6 @@ const BOOK_SEO: Record<string, BookSeo> = {
   PICBOOK_BRAVEY: {
     name: 'You’re Brave',
     subtitle: 'A personalized storybook that helps your child feel brave, seen, and celebrated.',
-    url: '/en/books/you-are-brave-personalized-book-for-kids',
     seoTitle: 'You’re Brave: Personalized Book for Kids | Dreamaze',
     metaDescription:
       'Help your child see their courage in a personalized book made with their real photo, name, and everyday brave moments.',
@@ -312,7 +305,6 @@ const BOOK_SEO: Record<string, BookSeo> = {
   PICBOOK_SANTA: {
     name: 'Santa’s Letter',
     subtitle: 'A personalized Christmas book where your child receives a letter made just for them.',
-    url: '/en/books/santas-letter-personalized-christmas-book',
     seoTitle: 'Santa’s Letter: Personalized Christmas Book | Dreamaze',
     metaDescription:
       'Create a personalized Christmas book from Santa, made with your child’s real photo, name, and festive story details.',
@@ -366,7 +358,9 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const seo = getBookSeo(id);
+  const { productId, slug } = resolveBookRouteFromParam(id);
+  const seo = getBookSeo(productId);
+  const bookUrl = getBookAbsoluteUrl(slug);
 
   const bookName = seo?.name ?? 'Personalized Children\'s Book';
   const seoTitle = seo?.seoTitle ?? `${bookName} | Personalized Children's Book | Dreamaze`;
@@ -394,7 +388,7 @@ export async function generateMetadata({
       ...sharedMetadata.openGraph,
       title: ogTitle,
       description: ogDescription,
-      url: `https://dreamazebook.com/books/${id}`,
+      url: bookUrl,
       type: 'website',
     },
     twitter: {
@@ -404,7 +398,7 @@ export async function generateMetadata({
       card: 'summary_large_image',
     },
     alternates: {
-      canonical: `https://dreamazebook.com/books/${id}`,
+      canonical: bookUrl,
     },
   };
 }
@@ -435,7 +429,9 @@ async function BookStructuredData({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const seo = getBookSeo(id);
+  const { productId, slug } = resolveBookRouteFromParam(id);
+  const bookUrl = getBookAbsoluteUrl(slug);
+  const seo = getBookSeo(productId);
 
   const bookName = seo?.name ?? 'Personalized Children\'s Book';
   const bookDescription = seo?.metaDescription ?? '';
@@ -449,7 +445,7 @@ async function BookStructuredData({
   try {
     // Dynamic import to avoid bundling api client into every page if not needed
     const api = (await import('@/utils/api')).default;
-    const resp = await api.get<any>(`/products/${id}`);
+    const resp = await api.get<any>(`/products/${productId}`);
     const data = resp?.data?.data || resp?.data || resp;
     if (data) {
       price = data.current_price ?? data.base_price ?? data.price ?? '29.99';
@@ -475,7 +471,7 @@ async function BookStructuredData({
   const breadcrumbItems = [
     { name: 'Home', url: 'https://dreamazebook.com' },
     { name: 'Books', url: 'https://dreamazebook.com/books' },
-    { name: bookName, url: `https://dreamazebook.com/books/${id}` },
+    { name: bookName, url: bookUrl },
   ];
 
   return (
@@ -500,7 +496,7 @@ async function BookStructuredData({
               priceCurrency: currency,
               price: String(price),
               availability: 'https://schema.org/InStock',
-              url: `https://dreamazebook.com/books/${id}`,
+              url: bookUrl,
             },
           }),
         }}

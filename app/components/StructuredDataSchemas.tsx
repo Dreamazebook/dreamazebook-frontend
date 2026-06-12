@@ -4,6 +4,7 @@
  */
 
 import { generateOrganizationSchema, generateWebsiteSchema } from '@/utils/structuredData';
+import { getBookAbsoluteUrlFromProductId } from '@/constants/bookRoutes';
 
 /**
  * Organization Schema Component
@@ -45,6 +46,7 @@ export const WebsiteSchema = () => {
  * Product Schema for Book Detail Page
  */
 export const ProductSchema = ({ book }: { book: any }) => {
+  const bookUrl = getBookAbsoluteUrlFromProductId(String(book.id || book.spu_code || ''));
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -63,7 +65,7 @@ export const ProductSchema = ({ book }: { book: any }) => {
       priceCurrency: 'USD',
       price: book.price || '29.99',
       availability: 'https://schema.org/InStock',
-      url: `https://dreamazebook.com/books/${book.id || book.spu_code}`,
+      url: bookUrl,
     },
     aggregateRating: book.rating
       ? {
