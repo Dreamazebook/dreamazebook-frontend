@@ -17,6 +17,7 @@ interface FormFieldProps {
     >
   ) => void;
   onBlur?: () => void;
+  onPaste?: (e: React.ClipboardEvent<HTMLInputElement>) => void;
   type?: "text" | "email" | "select" | "checkbox" | "tel" | "textarea";
   required?: boolean;
   error?: string | undefined;
@@ -43,6 +44,7 @@ export default function FormField({
   disabled = false,
   autoComplete,
   onAutofill,
+  onPaste,
 }: FormFieldProps) {
   return (
     <div className="mb-4">
@@ -131,6 +133,7 @@ export default function FormField({
             value={String(value ?? "")}
             onChange={onChange as any}
             onBlur={onBlur}
+            onPaste={onPaste}
             onAnimationStart={(e) => {
               // Detect browser autofill via CSS animation trick
               // The animation 'onAutoFillStart' is triggered when :-webkit-autofill applies

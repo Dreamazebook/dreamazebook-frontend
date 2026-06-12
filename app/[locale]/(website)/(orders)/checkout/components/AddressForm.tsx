@@ -82,6 +82,8 @@ const AddressForm = forwardRef<
 
   // ── Autofill sync: read DOM values directly ──────────────────────────────
 
+  const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   /**
    * When the browser autofills fields, React state may not be updated.
    * This reads current DOM values and syncs them into address state.
@@ -128,6 +130,24 @@ const AddressForm = forwardRef<
     return updates;
   }, [address, setAddress]);
 
+  /**
+   * Schedule a deferred DOM sync. Useful after paste or autofill events
+   * where the browser may take a moment to populate all related fields.
+   */
+  const scheduleSync = useCallback((delayMs = 150) => {
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(() => {
+      syncFromDOM();
+    }, delayMs);
+  }, [syncFromDOM]);
+
+  // Clean up sync timer on unmount
+  useEffect(() => {
+    return () => {
+      if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    };
+  }, []);
+
   // ── Autofill handler per field ───────────────────────────────────────────
 
   const handleAutofill = useCallback(
@@ -168,10 +188,47 @@ const AddressForm = forwardRef<
   // Expose validation + focus methods via ref
   useImperativeHandle(ref, () => ({
     validateShippingAddress: () => {
-      // Sync DOM first to catch any autofilled fields not yet in state
-      syncFromDOM();
-      // Small delay to let React state settle, then validate
-      return validateShippingInfo();
+      // Read DOM values directly for immediate validation (don't wait for React state)
+      const domUpdates: Partial<Address> = {};
+      let needsSync = false;
+
+      const propMap: Record<string, keyof Address> = {
+        email: "email",
+        first_name: "first_name",
+        last_name: "last_name",
+        country: "country",
+        address: "street",
+        house_number: "house_number",
+        city: "city",
+        post_code: "post_code",
+        state: "state",
+        phone: "phone",
+      };
+
+      (Object.keys(FIELD_IDS) as Array<keyof typeof FIELD_IDS>).forEach((key) => {
+        const domId = FIELD_IDS[key];
+        const el = document.getElementById(domId) as HTMLInputElement | HTMLSelectElement | null;
+        if (!el) return;
+        const domValue = el.value.trim();
+        const addressKey = propMap[key];
+        if (!addressKey) return;
+
+        if (domValue) {
+          (domUpdates as any)[addressKey] = domValue;
+          needsSync = true;
+        }
+      });
+
+      // Merge DOM values into current address for validation
+      const addressForValidation = needsSync ? { ...address, ...domUpdates } : address;
+
+      // Also sync React state (async — will update after this call returns)
+      if (needsSync) {
+        setAddress((prev) => ({ ...prev, ...domUpdates }));
+      }
+
+      // Validate with the merged data (includes DOM values)
+      return validateShippingInfo(undefined, addressForValidation);
     },
     focusFirstError: () => {
       // Find the first field with an error and focus it
@@ -191,7 +248,8 @@ const AddressForm = forwardRef<
     },
   }));
 
-  const validateShippingInfo = (field?: keyof ShippingErrors): boolean => {
+  const validateShippingInfo = (field?: keyof ShippingErrors, addressOverride?: Address): boolean => {
+    const addr = addressOverride || address;
     let newErrors: ShippingErrors;
 
     if (field) {
@@ -206,9 +264,9 @@ const AddressForm = forwardRef<
     };
 
     const checkEmail = () => {
-      if (!address.email)
+      if (!addr.email)
         setOrClear("email", t("required", { field: t("email") }));
-      else if (!/\S+@\S+\.\S+/.test(address.email))
+      else if (!/\S+@\S+\.\S+/.test(addr.email))
         setOrClear("email", t("invalidEmail"));
       else setOrClear("email");
     };
@@ -218,48 +276,48 @@ const AddressForm = forwardRef<
       first_name: () =>
         setOrClear(
           "first_name",
-          address.first_name
+          addr.first_name
             ? undefined
             : t("required", { field: t("firstName") })
         ),
       last_name: () =>
         setOrClear(
           "last_name",
-          address.last_name
+          addr.last_name
             ? undefined
             : t("required", { field: t("lastName") })
         ),
       address: () =>
         setOrClear(
           "address",
-          address.street ? undefined : t("required", { field: t("address") })
+          addr.street ? undefined : t("required", { field: t("address") })
         ),
       city: () =>
         setOrClear(
           "city",
-          address.city ? undefined : t("required", { field: t("city") })
+          addr.city ? undefined : t("required", { field: t("city") })
         ),
       post_code: () =>
         setOrClear(
           "post_code",
-          address.post_code
+          addr.post_code
             ? undefined
             : t("required", { field: t("postalCode") })
         ),
       country: () =>
         setOrClear(
           "country",
-          address.country ? undefined : t("required", { field: t("country") })
+          addr.country ? undefined : t("required", { field: t("country") })
         ),
       state: () =>
         setOrClear(
           "state",
-          address.state ? undefined : t("required", { field: t("state") })
+          addr.state ? undefined : t("required", { field: t("state") })
         ),
       phone: () =>
         setOrClear(
           "phone",
-          address.phone ? undefined : t("required", { field: t("phoneNumber") })
+          addr.phone ? undefined : t("required", { field: t("phoneNumber") })
         ),
     } as Record<string, () => void>;
 
@@ -496,8 +554,19 @@ const AddressForm = forwardRef<
           clearError("address");
           debouncedGetAddressSuggestions();
         }}
+        onPaste={(e:any) => {
+          // After pasting an address, browser autofill may populate other
+          // fields (city, state, zip, etc.) without firing onChange events.
+          // Schedule a delayed DOM sync to catch those changes.
+          setAddress((prev) => ({ ...prev, street: e.target.value }));
+          clearError("address");
+          debouncedGetAddressSuggestions();
+        }}
         onBlur={() => validateShippingInfo("address")}
-        onAutofill={(v) => handleAutofill("address", v)}
+        onAutofill={(v) => {
+          handleAutofill("address", v);
+          // Also schedule a sync for related fields after autofill
+        }}
         error={errors.address}
         placeholder={t("addressPlaceholder")}
       />
