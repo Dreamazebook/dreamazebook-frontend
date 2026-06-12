@@ -179,9 +179,30 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
         </p>
 
         <NextStepButton
-          // disabled={!isAddressVal
-          // idated()}
-          handleOnClick={handleNextFromShipping}
+          handleOnClick={() => {
+            // Trigger validation on both forms before calling parent
+            let hasError = false;
+
+            if (showShippingForm && shippingAddressRef?.current) {
+              const isValid = shippingAddressRef.current.validateShippingAddress();
+              if (!isValid) {
+                hasError = true;
+                shippingAddressRef.current.focusFirstError?.();
+              }
+            }
+
+            if (needsBillingAddress && billingAddressRef?.current) {
+              const isValid = billingAddressRef.current.validateShippingAddress();
+              if (!isValid) {
+                hasError = true;
+                billingAddressRef.current.focusFirstError?.();
+              }
+            }
+
+            if (!hasError) {
+              handleNextFromShipping();
+            }
+          }}
         >
           {t("continueToDelivery")}
         </NextStepButton>
