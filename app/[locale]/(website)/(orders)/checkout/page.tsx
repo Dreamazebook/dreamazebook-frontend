@@ -155,6 +155,7 @@ function CheckoutPageContent() {
       const isShippingValid =
         shippingAddressRef.current.validateShippingAddress();
       if (!isShippingValid) {
+        shippingAddressRef.current.focusFirstError?.();
         return; // Stop if shipping address validation fails
       }
     }
@@ -164,6 +165,7 @@ function CheckoutPageContent() {
       const isBillingValid =
         billingAddressRef.current.validateShippingAddress();
       if (!isBillingValid) {
+        billingAddressRef.current.focusFirstError?.();
         return; // Stop if billing address validation fails
       }
     }
