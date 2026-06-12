@@ -14,6 +14,7 @@ import LovedByKidsCarousel from '../components/books/LovedByKidsCarousel';
 import OccasionsSection from '../components/books/OccasionsSection';
 import WhyFamiliesChooseSection from '../components/books/WhyFamiliesChooseSection';
 import SignUpSection from '../components/books/SignUpSection';
+import { getBookPath } from '@/constants/bookRoutes';
 import { Product } from '@/types/product';
 import { getBooks } from '@/services/bookService';
 import { getBookListDisplayPrice, getBookMarketComparePrice } from '@/utils/bookDisplayPrice';
@@ -349,7 +350,13 @@ export default function BooksPage() {
 
                   {/* Personalize Button */}
                   <Link 
-                    href={`/books/${(bestSeller as any)?.spu_code ?? (bestSeller as any)?.id ?? 'featured'}`} 
+                    href={getBookPath(
+                      String(
+                        (bestSeller as any)?.spu_code ??
+                          (bestSeller as any)?.id ??
+                          'featured'
+                      )
+                    )} 
                     className="text-[#222222] text-[16px] font-normal hover:underline flex items-center gap-1"
                   >
                     {t('personalize')} →

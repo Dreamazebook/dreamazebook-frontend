@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
+import { getBookPath } from '@/constants/bookRoutes';
 
 interface OccasionCard {
   id: string;
@@ -179,7 +180,7 @@ const OccasionsSection: React.FC<OccasionsSectionProps> = ({
           {displayedCards.map((card, index) => (
             <Link
               key={card.id}
-              href={card.bookId ? `/books/${card.bookId}` : '#'}
+              href={card.bookId ? getBookPath(card.bookId) : '#'}
               className="flex-1"
             >
               <div className="flex h-auto flex-col gap-1 overflow-hidden rounded-[4px] bg-[#F8F0EC] md:h-[480px] md:gap-1">

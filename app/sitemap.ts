@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { BOOK_CANONICAL_SLUGS } from '@/constants/bookRoutes';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://dreamazebook.com';
@@ -40,21 +41,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })
   );
 
-  // Add book detail pages (these would typically be fetched from API)
-  const bookIds = [
-    'PICBOOK_GOODNIGHT3',
-    'PICBOOK_GOODNIGHT',
-    'PICBOOK_MOM',
-    'PICBOOK_DAD',
-    'PICBOOK_SANTA',
-    'PICBOOK_BRAVEY',
-    'PICBOOK_BIRTHDAY',
-    'PICBOOK_MELODY',
-  ];
-
-  const bookSitemap: MetadataRoute.Sitemap = bookIds.flatMap((bookId) =>
+  const bookSitemap: MetadataRoute.Sitemap = BOOK_CANONICAL_SLUGS.flatMap((slug) =>
     locales.map((locale) => ({
-      url: `${baseUrl}/${locale}/books/${bookId}`,
+      url: `${baseUrl}/${locale}/books/${slug}`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.7,
