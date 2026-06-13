@@ -11,6 +11,10 @@ export const generateMetadata = (): Metadata => {
     title: 'Personalized Children\'s Books | Create Custom Stories | Dreamaze',
     description:
       'Create unique, personalized children\'s books where your loved ones become the heroes of their own magical stories. Handcrafted, high-quality custom books for every occasion.',
+    robots: {
+      index: true,
+      follow: true,
+    },
     openGraph: {
       ...sharedMetadata.openGraph,
       type: 'website',

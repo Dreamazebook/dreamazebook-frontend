@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { match as matchLocale } from '@formatjs/intl-localematcher'
+import { getCanonicalBookSlug } from '@/constants/bookRoutes'
 
 const locales = ['en', 'fr','zh']
 const defaultLocale = 'en'
@@ -31,8 +32,43 @@ function getLocale(request: NextRequest): string {
   return defaultLocale
 }
 
+function redirectLegacyBookUrl(
+  request: NextRequest,
+  pathname: string
+): NextResponse | null {
+  const withLocale = pathname.match(/^\/(en|fr|zh)\/books\/([^/]+)\/?$/)
+  if (withLocale) {
+    const [, locale, segment] = withLocale
+    const canonicalSlug = getCanonicalBookSlug(segment)
+    if (canonicalSlug && canonicalSlug !== segment) {
+      const url = request.nextUrl.clone()
+      url.pathname = `/${locale}/books/${canonicalSlug}`
+      return NextResponse.redirect(url, 301)
+    }
+    return null
+  }
+
+  const withoutLocale = pathname.match(/^\/books\/([^/]+)\/?$/)
+  if (withoutLocale) {
+    const [, segment] = withoutLocale
+    const canonicalSlug = getCanonicalBookSlug(segment)
+    if (canonicalSlug && canonicalSlug !== segment) {
+      const url = request.nextUrl.clone()
+      url.pathname = `/${getLocale(request)}/books/${canonicalSlug}`
+      return NextResponse.redirect(url, 301)
+    }
+  }
+
+  return null
+}
+
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
+
+  const legacyBookRedirect = redirectLegacyBookUrl(request, pathname)
+  if (legacyBookRedirect) {
+    return legacyBookRedirect
+  }
 
   // Add Cache-Control headers for all Next.js optimized images & static media
   if (pathname.startsWith('/_next/image') || pathname.startsWith('/_next/static/media')) {

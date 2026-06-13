@@ -42,26 +42,138 @@ const AddressSuggestions: React.FC<AddressSuggestionsProps> = ({
   );
 };
 
+// ── Field mapping: state key → DOM id ─────────────────────────────────────
+const FIELD_IDS: Record<string, string> = {
+  email: "email",
+  first_name: "first_name",
+  last_name: "last_name",
+  country: "country",
+  address: "address",
+  house_number: "address2",
+  city: "city",
+  post_code: "post_code",
+  state: "state",
+  phone: "phone",
+};
+
 interface AddressFormProps {
   address: Address;
   setAddress: (value: React.SetStateAction<Address>) => void;
   orderDetail: OrderDetail;
-  updateShippingAddress?: (orderId:string|number) => Promise<{ success: boolean; message?: string }>;
+  updateShippingAddress?: (orderId: string | number) => Promise<{ success: boolean; message?: string }>;
 }
 
 const AddressForm = forwardRef<
   {
     validateShippingAddress: () => boolean;
+    /** Scroll to and focus the first field with an error */
+    focusFirstError: () => void;
   },
   AddressFormProps
 >(({ address, setAddress, orderDetail, updateShippingAddress }, ref) => {
   const { countryList, fetchCountryList } = useUserStore();
   const t = useTranslations("addressForm");
   const [errors, setErrors] = useState<ShippingErrors>({});
+  const formRef = useRef<HTMLDivElement>(null);
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchCountryList();
-  },[])
+  }, []);
+
+  // ── Autofill sync: read DOM values directly ──────────────────────────────
+
+  const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  /**
+   * When the browser autofills fields, React state may not be updated.
+   * This reads current DOM values and syncs them into address state.
+   */
+  const syncFromDOM = useCallback(() => {
+    const updates: Partial<Address> = {};
+    let hasChanges = false;
+
+    (Object.keys(FIELD_IDS) as Array<keyof typeof FIELD_IDS>).forEach((key) => {
+      const domId = FIELD_IDS[key];
+      const el = document.getElementById(domId) as HTMLInputElement | HTMLSelectElement | null;
+      if (!el) return;
+      const domValue = el.value.trim();
+
+      // Map state key → address property
+      const propMap: Record<string, keyof Address> = {
+        email: "email",
+        first_name: "first_name",
+        last_name: "last_name",
+        country: "country",
+        address: "street",
+        house_number: "house_number",
+        city: "city",
+        post_code: "post_code",
+        state: "state",
+        phone: "phone",
+      };
+
+      const addressKey = propMap[key];
+      if (!addressKey) return;
+
+      const currentValue = (address as any)[addressKey] || "";
+
+      if (domValue && domValue !== currentValue) {
+        (updates as any)[addressKey] = domValue;
+        hasChanges = true;
+      }
+    });
+
+    if (hasChanges) {
+      setAddress((prev) => ({ ...prev, ...updates }));
+    }
+
+    return updates;
+  }, [address, setAddress]);
+
+  /**
+   * Schedule a deferred DOM sync. Useful after paste or autofill events
+   * where the browser may take a moment to populate all related fields.
+   */
+  const scheduleSync = useCallback((delayMs = 150) => {
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(() => {
+      syncFromDOM();
+    }, delayMs);
+  }, [syncFromDOM]);
+
+  // Clean up sync timer on unmount
+  useEffect(() => {
+    return () => {
+      if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    };
+  }, []);
+
+  // ── Autofill handler per field ───────────────────────────────────────────
+
+  const handleAutofill = useCallback(
+    (field: string, value: string) => {
+      const propMap: Record<string, keyof Address> = {
+        email: "email",
+        first_name: "first_name",
+        last_name: "last_name",
+        address: "street",
+        address2: "house_number",
+        city: "city",
+        post_code: "post_code",
+        state: "state",
+        phone: "phone",
+      };
+      const addressKey = propMap[field];
+      if (addressKey && value) {
+        setAddress((prev) => {
+          if ((prev as any)[addressKey] === value) return prev;
+          return { ...prev, [addressKey]: value };
+        });
+        clearError(field as keyof ShippingErrors);
+      }
+    },
+    [setAddress]
+  );
 
   const clearError = (field: keyof ShippingErrors) => {
     if (errors[field]) {
@@ -71,20 +183,78 @@ const AddressForm = forwardRef<
     }
   };
 
-  // Expose validation method via ref
+  // ── Validation ───────────────────────────────────────────────────────────
+
+  // Expose validation + focus methods via ref
   useImperativeHandle(ref, () => ({
-    validateShippingAddress: () => validateShippingInfo(),
+    validateShippingAddress: () => {
+      // Read DOM values directly for immediate validation (don't wait for React state)
+      const domUpdates: Partial<Address> = {};
+      let needsSync = false;
+
+      const propMap: Record<string, keyof Address> = {
+        email: "email",
+        first_name: "first_name",
+        last_name: "last_name",
+        country: "country",
+        address: "street",
+        house_number: "house_number",
+        city: "city",
+        post_code: "post_code",
+        state: "state",
+        phone: "phone",
+      };
+
+      (Object.keys(FIELD_IDS) as Array<keyof typeof FIELD_IDS>).forEach((key) => {
+        const domId = FIELD_IDS[key];
+        const el = document.getElementById(domId) as HTMLInputElement | HTMLSelectElement | null;
+        if (!el) return;
+        const domValue = el.value.trim();
+        const addressKey = propMap[key];
+        if (!addressKey) return;
+
+        if (domValue) {
+          (domUpdates as any)[addressKey] = domValue;
+          needsSync = true;
+        }
+      });
+
+      // Merge DOM values into current address for validation
+      const addressForValidation = needsSync ? { ...address, ...domUpdates } : address;
+
+      // Also sync React state (async — will update after this call returns)
+      if (needsSync) {
+        setAddress((prev) => ({ ...prev, ...domUpdates }));
+      }
+
+      // Validate with the merged data (includes DOM values)
+      return validateShippingInfo(undefined, addressForValidation);
+    },
+    focusFirstError: () => {
+      // Find the first field with an error and focus it
+      setTimeout(() => {
+        const firstErrorField = Object.keys(errors).find(
+          (k) => errors[k as keyof ShippingErrors]
+        );
+        if (firstErrorField) {
+          const domId = FIELD_IDS[firstErrorField];
+          const el = document.getElementById(domId);
+          if (el) {
+            el.focus();
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }
+      }, 100);
+    },
   }));
 
-  // Validate shipping information. If `field` is provided, validate only that field.
-  const validateShippingInfo = (field?: keyof ShippingErrors): boolean => {
+  const validateShippingInfo = (field?: keyof ShippingErrors, addressOverride?: Address): boolean => {
+    const addr = addressOverride || address;
     let newErrors: ShippingErrors;
 
     if (field) {
-      // Start with existing errors, then update the specific field
       newErrors = { ...errors };
     } else {
-      // Start with empty errors for full validation
       newErrors = {} as ShippingErrors;
     }
 
@@ -94,9 +264,9 @@ const AddressForm = forwardRef<
     };
 
     const checkEmail = () => {
-      if (!address.email)
+      if (!addr.email)
         setOrClear("email", t("required", { field: t("email") }));
-      else if (!/\S+@\S+\.\S+/.test(address.email))
+      else if (!/\S+@\S+\.\S+/.test(addr.email))
         setOrClear("email", t("invalidEmail"));
       else setOrClear("email");
     };
@@ -106,48 +276,48 @@ const AddressForm = forwardRef<
       first_name: () =>
         setOrClear(
           "first_name",
-          address.first_name
+          addr.first_name
             ? undefined
             : t("required", { field: t("firstName") })
         ),
       last_name: () =>
         setOrClear(
           "last_name",
-          address.last_name
+          addr.last_name
             ? undefined
             : t("required", { field: t("lastName") })
         ),
       address: () =>
         setOrClear(
           "address",
-          address.street ? undefined : t("required", { field: t("address") })
+          addr.street ? undefined : t("required", { field: t("address") })
         ),
       city: () =>
         setOrClear(
           "city",
-          address.city ? undefined : t("required", { field: t("city") })
+          addr.city ? undefined : t("required", { field: t("city") })
         ),
       post_code: () =>
         setOrClear(
           "post_code",
-          address.post_code
+          addr.post_code
             ? undefined
             : t("required", { field: t("postalCode") })
         ),
       country: () =>
         setOrClear(
           "country",
-          address.country ? undefined : t("required", { field: t("country") })
+          addr.country ? undefined : t("required", { field: t("country") })
         ),
       state: () =>
         setOrClear(
           "state",
-          address.state ? undefined : t("required", { field: t("state") })
+          addr.state ? undefined : t("required", { field: t("state") })
         ),
       phone: () =>
         setOrClear(
           "phone",
-          address.phone ? undefined : t("required", { field: t("phoneNumber") })
+          addr.phone ? undefined : t("required", { field: t("phoneNumber") })
         ),
     } as Record<string, () => void>;
 
@@ -155,7 +325,6 @@ const AddressForm = forwardRef<
       const fn = checks[field as string];
       if (fn) fn();
     } else {
-      // validate all (fallback)
       Object.keys(checks).forEach((k) => {
         const fn = checks[k];
         if (fn) fn();
@@ -164,12 +333,13 @@ const AddressForm = forwardRef<
 
     setErrors(newErrors);
 
-    // Check if there are any errors
     const hasErrors = Object.values(newErrors).some(
       (error) => error !== undefined
     );
     return !hasErrors;
   };
+
+  // ── Address autocomplete ─────────────────────────────────────────────────
 
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -221,7 +391,6 @@ const AddressForm = forwardRef<
       if (item.id.includes("country")) country = item.short_code.toUpperCase();
     });
 
-    // Clear errors immediately for the fields that will be auto-filled
     setErrors((prev) => {
       const newErrors = { ...prev };
       delete newErrors.city;
@@ -244,19 +413,78 @@ const AddressForm = forwardRef<
     setAddressSuggestions([]);
   };
 
+  // ── Error summary for full-form validation failure ───────────────────────
+
+  const errorCount = Object.keys(errors).length;
+  const errorList = Object.entries(errors)
+    .filter(([, msg]) => msg)
+    .map(([field, msg]) => ({
+      field,
+      label: (() => {
+        const labelMap: Record<string, string> = {
+          email: t("email"),
+          first_name: t("firstName"),
+          last_name: t("lastName"),
+          address: t("address"),
+          city: t("city"),
+          post_code: t("postalCode"),
+          country: t("country"),
+          state: t("state"),
+          phone: t("phoneNumber"),
+        };
+        return labelMap[field] || field;
+      })(),
+      msg: msg as string,
+    }));
+
+  // ── Render ───────────────────────────────────────────────────────────────
+
   return (
-    <>
+    <div ref={formRef}>
+      {/* Error summary banner — shown when there are validation errors */}
+      {errorCount > 0 && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-700 text-sm font-medium mb-1">
+            {t("pleaseFixErrors", {
+              defaultValue: `Please fix the following ${errorCount} field(s):`,
+            })}
+          </p>
+          <ul className="list-disc list-inside text-red-600 text-xs space-y-0.5">
+            {errorList.map((err) => (
+              <li key={err.field}>
+                <button
+                  type="button"
+                  className="underline hover:text-red-800"
+                  onClick={() => {
+                    const domId = FIELD_IDS[err.field] || err.field;
+                    const el = document.getElementById(domId);
+                    if (el) {
+                      el.focus();
+                      el.scrollIntoView({ behavior: "smooth", block: "center" });
+                    }
+                  }}
+                >
+                  {err.label}: {err.msg}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <FormField
         id="email"
         label={t("email")}
         type="email"
         required
+        autoComplete="email"
         value={address.email}
         onChange={(e) => {
           setAddress((prev) => ({ ...prev, email: e.target.value }));
           clearError("email");
         }}
         onBlur={() => validateShippingInfo("email")}
+        onAutofill={(v) => handleAutofill("email", v)}
         error={errors.email}
         placeholder={t("emailPlaceholder")}
       >
@@ -268,12 +496,14 @@ const AddressForm = forwardRef<
         label={t("firstName")}
         type="text"
         required
+        autoComplete="given-name"
         value={address.first_name}
         onChange={(e) => {
           setAddress((prev) => ({ ...prev, first_name: e.target.value }));
           clearError("first_name");
         }}
         onBlur={() => validateShippingInfo("first_name")}
+        onAutofill={(v) => handleAutofill("first_name", v)}
         error={errors.first_name}
         placeholder={t("firstNamePlaceholder")}
       />
@@ -283,12 +513,14 @@ const AddressForm = forwardRef<
         label={t("lastName")}
         type="text"
         required
+        autoComplete="family-name"
         value={address.last_name}
         onChange={(e) => {
           setAddress((prev) => ({ ...prev, last_name: e.target.value }));
           clearError("last_name");
         }}
         onBlur={() => validateShippingInfo("last_name")}
+        onAutofill={(v) => handleAutofill("last_name", v)}
         error={errors.last_name}
         placeholder={t("lastNamePlaceholder")}
       />
@@ -298,6 +530,7 @@ const AddressForm = forwardRef<
         label={t("country")}
         type="select"
         required
+        autoComplete="country-name"
         value={address.country}
         onChange={(e) => {
           setAddress((prev) => ({ ...prev, country: e.target.value }));
@@ -314,13 +547,26 @@ const AddressForm = forwardRef<
         label={t("address")}
         type="text"
         required
+        autoComplete="street-address"
         value={address.street}
         onChange={(e) => {
           setAddress((prev) => ({ ...prev, street: e.target.value }));
           clearError("address");
           debouncedGetAddressSuggestions();
         }}
+        onPaste={(e:any) => {
+          // After pasting an address, browser autofill may populate other
+          // fields (city, state, zip, etc.) without firing onChange events.
+          // Schedule a delayed DOM sync to catch those changes.
+          setAddress((prev) => ({ ...prev, street: e.target.value }));
+          clearError("address");
+          debouncedGetAddressSuggestions();
+        }}
         onBlur={() => validateShippingInfo("address")}
+        onAutofill={(v) => {
+          handleAutofill("address", v);
+          // Also schedule a sync for related fields after autofill
+        }}
         error={errors.address}
         placeholder={t("addressPlaceholder")}
       />
@@ -337,12 +583,14 @@ const AddressForm = forwardRef<
         label={t("address2")}
         type="text"
         required
+        autoComplete="address-line2"
         value={address.house_number}
         onChange={(e) => {
           setAddress((prev) => ({ ...prev, house_number: e.target.value }));
           clearError("house_number");
         }}
         onBlur={() => validateShippingInfo("house_number")}
+        onAutofill={(v) => handleAutofill("address2", v)}
         error={errors.house_number}
         placeholder={t("address2Placeholder")}
       />
@@ -352,12 +600,14 @@ const AddressForm = forwardRef<
         label={t("city")}
         type="text"
         required
+        autoComplete="address-level2"
         value={address.city}
         onChange={(e) => {
           setAddress((prev) => ({ ...prev, city: e.target.value }));
           clearError("city");
         }}
         onBlur={() => validateShippingInfo("city")}
+        onAutofill={(v) => handleAutofill("city", v)}
         error={errors.city}
         placeholder={t("cityPlaceholder")}
       />
@@ -367,12 +617,14 @@ const AddressForm = forwardRef<
         label={t("postalCode")}
         type="text"
         required
+        autoComplete="postal-code"
         value={address.post_code}
         onChange={(e) => {
           setAddress((prev) => ({ ...prev, post_code: e.target.value }));
           clearError("post_code");
         }}
         onBlur={() => validateShippingInfo("post_code")}
+        onAutofill={(v) => handleAutofill("post_code", v)}
         error={errors.post_code}
         placeholder={t("postalCodePlaceholder")}
       />
@@ -382,12 +634,14 @@ const AddressForm = forwardRef<
         label={t("phoneNumber")}
         type="tel"
         required
+        autoComplete="tel"
         value={address.phone}
         onChange={(e) => {
           setAddress((prev) => ({ ...prev, phone: e.target.value }));
           clearError("phone");
         }}
         onBlur={() => validateShippingInfo("phone")}
+        onAutofill={(v) => handleAutofill("phone", v)}
         error={errors.phone}
         placeholder={t("phoneNumberPlaceholder")}
       >
@@ -416,19 +670,18 @@ const AddressForm = forwardRef<
           <button
             type="button"
             onClick={async () => {
+              syncFromDOM();
               if (validateShippingInfo()) {
                 setIsUpdating(true);
                 try {
                   const result = await updateShippingAddress(orderDetail.id);
                   if (result.success) {
-                    // Success message or close modal logic could be handled by parent
-                    console.log('Address updated successfully');
+                    console.log("Address updated successfully");
                   } else {
-                    // Handle error
-                    console.error('Failed to update address:', result.message);
+                    console.error("Failed to update address:", result.message);
                   }
                 } catch (error) {
-                  console.error('Error updating address:', error);
+                  console.error("Error updating address:", error);
                 } finally {
                   setIsUpdating(false);
                 }
@@ -437,11 +690,11 @@ const AddressForm = forwardRef<
             disabled={isUpdating}
             className="w-full cursor-pointer bg-primary text-white font-medium py-3 px-4 rounded transition-colors duration-200 disabled:cursor-not-allowed"
           >
-            {isUpdating ? 'Updating...' : 'Update Shipping Address'}
+            {isUpdating ? "Updating..." : "Update Shipping Address"}
           </button>
         </div>
       )}
-    </>
+    </div>
   );
 });
 

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
+import { getBookPath } from '@/constants/bookRoutes';
 import { useTranslations } from 'next-intl';
 import { getBookDetailFinalUnitPrice, getBookDetailOriginalUnitPrice } from '@/utils/bookDisplayPrice';
 import { WEBSITE_CDN_URL } from '@/constants/cdn';
@@ -229,7 +230,7 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
               </Link>
             ) : (
               <Link 
-                href={`/books/${idOrCode}`} 
+                href={getBookPath(String(idOrCode))} 
                 className="group relative flex flex-col items-center text-center w-full"
                 prefetch={true}
               >
