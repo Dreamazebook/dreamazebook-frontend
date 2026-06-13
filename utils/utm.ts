@@ -8,6 +8,7 @@ export const UTM_KEYS = [
   'utm_campaign',
   'utm_content',
   'utm_term',
+  'utm_id',
 ] as const;
 
 export const FIRST_TOUCH_KEYS = [
