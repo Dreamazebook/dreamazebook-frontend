@@ -383,6 +383,10 @@ export async function generateMetadata({
     ...sharedMetadata,
     title: seoTitle,
     description: metaDescription,
+    robots: {
+      index: true,
+      follow: true,
+    },
     keywords,
     openGraph: {
       ...sharedMetadata.openGraph,

@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   title: 'About Us | Dreamaze - Handcrafted Personalized Children\'s Books',
   description:
     'Learn about Dreamaze and our mission to create magical, personalized children\'s books that make every child feel like the hero of their own story.',
+  robots: {
+    index: true,
+    follow: true,
+  },
   keywords: ['about dreamaze', 'personalized books', 'children\'s book company', 'custom stories'],
   openGraph: {
     ...sharedMetadata.openGraph,

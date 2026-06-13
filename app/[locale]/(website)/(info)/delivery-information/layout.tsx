@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   title: 'Delivery Information | Dreamaze',
   description:
     'Learn about Dreamaze shipping options, delivery times, and tracking. We offer fast, reliable delivery for personalized children\'s books worldwide.',
+  robots: {
+    index: true,
+    follow: true,
+  },
   keywords: ['shipping', 'delivery', 'order tracking', 'shipping rates', 'delivery time'],
   openGraph: {
     ...sharedMetadata.openGraph,
