@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { useRouter } from '@/i18n/routing';
 import { OAUTH_CALLBACK } from '@/constants/api';
 import useUserStore from '@/stores/userStore';
+import api from '@/utils/api';
+import { ApiResponse } from '@/types/api';
 
 export default function OAuthCallbackContent({
   onSuccess,
@@ -34,19 +36,11 @@ export default function OAuthCallbackContent({
 
         const provider = localStorage.getItem('oauthProvider') || 'google';
 
-        const response = await fetch(OAUTH_CALLBACK(provider) + `?code=${code}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-        });
+        const {data, success} = await api.get<ApiResponse>(OAUTH_CALLBACK(provider) + `?code=${code}`);
 
-        const responseData = await response.json();
-
-        if (responseData.success) {
+        if (success) {
           const redirectUrl = localStorage.getItem('redirectUrl') || '/shopping-cart';
-          setLoginUserToken(responseData);
+          setLoginUserToken(data);
           localStorage.removeItem('redirectUrl');
           localStorage.removeItem('oauthProvider');
           if (onSuccess) {
