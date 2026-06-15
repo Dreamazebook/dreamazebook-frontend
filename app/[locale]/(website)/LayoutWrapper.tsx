@@ -7,6 +7,7 @@ import Footer from "./components/Footer";
 // import { getScrollToTopConfig } from './components/scrollToTopConfig';
 import useUserStore from '@/stores/userStore';
 import { useEffect, useState } from 'react';
+import { captureUtmFromUrl } from '@/utils/utm';
 import KickstarterWelcomeModal from './components/KickstarterWelcomeModal';
 import LoginModal from './components/LoginModal';
 import { Toaster } from 'react-hot-toast';
@@ -39,6 +40,11 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   useEffect(() => {
     fetchCurrentUser();
   }, [fetchCurrentUser]);
+
+  // Capture UTM params and first-touch attribution on first page load
+  useEffect(() => {
+    captureUtmFromUrl(searchParams);
+  }, [searchParams]);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 0);
