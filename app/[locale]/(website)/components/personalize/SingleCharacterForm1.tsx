@@ -95,6 +95,8 @@ interface SingleCharacterForm1Props {
     dadTitle?: string;
     dadSkinColor?: string;
     dadQuestionAnswers?: Record<string, string>;
+    relationship?: string;
+    consent?: boolean;
   };
   bookId?: string;
   defaultConsentChecked?: boolean;
@@ -145,8 +147,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       fromWhom: initialData?.fromWhom ?? '',
       photo: initialData?.photo ? ({ path: initialData.photo.path } as any) : null,
       photos: [],
-      relationship: 'Parent/Guardian',
-      consent: !!defaultConsentChecked,
+      relationship: initialData?.relationship ?? 'Parent/Guardian',
+      consent: initialData?.consent ?? !!defaultConsentChecked,
       birthDate: parseBirthDateIso(initialData?.birthDate) ?? null,
       personalityTraitIds: initialData?.personalityTraitIds?.length
         ? [...initialData.personalityTraitIds]

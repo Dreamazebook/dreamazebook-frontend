@@ -46,6 +46,8 @@ interface SingleCharacterForm3Props {
     hairColor?: string;
     photo?: { path: string } | null;
     photos?: string[]; // 支持多张图片初始化
+    relationship?: string;
+    consent?: boolean;
   };
   bookId?: string;
   // Relationship/consent defaults（用于 personalized-products 等场景）
@@ -93,8 +95,8 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
     ageStage: '',
     fromWhom: '',
     photos: [],
-    relationship: 'Parent/Guardian',
-    consent: !!defaultConsentChecked,
+    relationship: initialData?.relationship ?? 'Parent/Guardian',
+    consent: initialData?.consent ?? !!defaultConsentChecked,
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof PersonalizeFormData3, boolean>>>({});

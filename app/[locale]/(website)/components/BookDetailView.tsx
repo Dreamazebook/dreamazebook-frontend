@@ -394,7 +394,7 @@ export default function BookDetailView({
               </div>
               <div className="flex flex-col items-center gap-1 shrink-0">
                 <Link
-                  href={`${primaryButtonHref}${primaryButtonHref.includes('?') ? '&' : '?'}language=${encodeURIComponent(selectedLanguage)}`}
+                  href={`${primaryButtonHref}${primaryButtonHref.includes('?') ? '&' : '?'}language=${encodeURIComponent(selectedLanguage)}&fresh=1`}
                   onClick={(e) => {
                     setIsLoading(true);
                     onPrimaryClick?.(e, selectedLanguage);

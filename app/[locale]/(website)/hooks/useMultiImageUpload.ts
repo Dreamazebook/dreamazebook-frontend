@@ -14,6 +14,7 @@ const toAbsoluteUrl = (raw: string): string => {
       }
     } catch {}
   }
+  if (path.startsWith('data:') || path.startsWith('blob:')) return path;
   if (path.startsWith('http')) return path;
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   if (cleanPath.startsWith('user_uploads/')) {
@@ -238,7 +239,7 @@ const useMultiImageUpload = (maxImages: number = 1, options: UploadOptions = {})
         return {
           id: `${timestamp}-init-${i}`,
           previewUrl: absolute,
-          uploadedFilePath: absolute,
+          dataUrl: absolute,
           isUploading: false,
         } as UploadedImage;
       });

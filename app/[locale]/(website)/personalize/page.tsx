@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { usePathname, Link, useRouter } from '@/i18n/routing';
 import { IoIosArrowBack } from '@/utils/icons';
@@ -26,6 +26,17 @@ import {
   parseDadQuestionsFromProduct,
   type DadQuestionConfig,
 } from '@/utils/dadPersonalizeHelpers';
+import {
+  clearPersonalizeDraftAsync,
+  draftFormDataToInitialData,
+  isPersonalizeDraftUserCleared,
+  loadPersonalizeDraftWithPhotos,
+  markPersonalizeDraftUserCleared,
+  previewUserDataToInitialData,
+  savePersonalizeDraft,
+  savePersonalizeDraftAsync,
+  type PersonalizeDraftInitialData,
+} from '@/utils/personalizeDraftStorage';
 
 type AttributeOption = { value: string; label?: string; is_default?: boolean; price_diff?: number | string };
 type Attribute = { name: string; options: AttributeOption[]; default?: string };
@@ -119,6 +130,12 @@ export default function PersonalizeApiDrivenPage() {
   const [uploadOptions, setUploadOptions] = useState<{ allowedTypes?: string[]; maxFileSize?: number; maxImages?: number } | undefined>(undefined);
   const [bookName, setBookName] = useState<string>('');
   const [dadQuestions, setDadQuestions] = useState<DadQuestionConfig[]>([]);
+  const [draftInitialData, setDraftInitialData] = useState<PersonalizeDraftInitialData | null>(null);
+  const [draftReady, setDraftReady] = useState(false);
+  const [draftRestoreKey, setDraftRestoreKey] = useState(0);
+  const draftRestoredStepRef = useRef<number | null>(null);
+  const draftSaveSuppressedRef = useRef(false);
+  const isFreshEntry = searchParams.get('fresh') === '1';
 
   const form1Ref = useRef<SingleCharacterForm1Handle>(null);
   const form2Ref = useRef<SingleCharacterForm2Handle>(null);
@@ -128,6 +145,152 @@ export default function PersonalizeApiDrivenPage() {
 
   // 跟踪是否正在添加图片（裁剪器是否打开）
   const [isAddingImage, setIsAddingImage] = useState(false);
+
+  const saveCurrentDraft = useCallback(async (waitForPhotos = false) => {
+    if (draftSaveSuppressedRef.current || !bookId) return;
+
+    let formData: Record<string, unknown> | null = null;
+    if (formType === 'SINGLE1' && form1Ref.current) {
+      formData = form1Ref.current.getFormData() as unknown as Record<string, unknown>;
+    } else if (formType === 'SINGLE2') {
+      if (useForm3 && form3Ref.current) {
+        formData = form3Ref.current.getFormData() as unknown as Record<string, unknown>;
+      } else if (form2Ref.current) {
+        formData = form2Ref.current.getFormData() as unknown as Record<string, unknown>;
+      }
+    }
+    if (!formData) return;
+
+    const payload = {
+      formType,
+      useForm3,
+      currentStep,
+      formData,
+    };
+
+    if (waitForPhotos) {
+      await savePersonalizeDraftAsync(bookId, payload);
+      return;
+    }
+
+    savePersonalizeDraft(bookId, payload);
+  }, [bookId, currentStep, formType, useForm3]);
+
+  const clearAllPersonalizeDraftState = useCallback(async () => {
+    draftSaveSuppressedRef.current = true;
+    if (bookId) {
+      markPersonalizeDraftUserCleared(bookId);
+      await clearPersonalizeDraftAsync(bookId);
+    }
+    usePreviewStore.getState().clear();
+  }, [bookId]);
+
+  const restoreDraftFromStorage = useCallback(async () => {
+    if (!bookId) {
+      setDraftInitialData(null);
+      draftRestoredStepRef.current = null;
+      setDraftRestoreKey((key) => key + 1);
+      setDraftReady(true);
+      return;
+    }
+
+    if (isFreshEntry) {
+      await clearAllPersonalizeDraftState();
+      setDraftInitialData(null);
+      draftRestoredStepRef.current = null;
+      setDraftRestoreKey((key) => key + 1);
+      setDraftReady(true);
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('fresh');
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+      return;
+    }
+
+    draftSaveSuppressedRef.current = false;
+
+    const draft = await loadPersonalizeDraftWithPhotos(bookId);
+
+    if (draft) {
+      setDraftInitialData(draftFormDataToInitialData(draft.formData));
+      draftRestoredStepRef.current = draft.currentStep;
+      if (draft.formType) setFormType(draft.formType);
+    } else if (!isPersonalizeDraftUserCleared(bookId)) {
+      const { userData, bookId: storeBookId } = usePreviewStore.getState();
+      if (storeBookId === bookId && userData) {
+        const restored = previewUserDataToInitialData(userData);
+        if (restored) {
+          setDraftInitialData(restored);
+          draftRestoredStepRef.current = getPersonalizeLastStep(
+            bookId === '2' ? 'SINGLE2' : 'SINGLE1',
+            isPicbookBirthday(bookId),
+            isPicbookMom(bookId),
+            isPicbookDad(bookId),
+          );
+        } else {
+          setDraftInitialData(null);
+          draftRestoredStepRef.current = null;
+        }
+      } else {
+        setDraftInitialData(null);
+        draftRestoredStepRef.current = null;
+      }
+    } else {
+      setDraftInitialData(null);
+      draftRestoredStepRef.current = null;
+    }
+
+    setDraftRestoreKey((key) => key + 1);
+    setDraftReady(true);
+  }, [
+    bookId,
+    clearAllPersonalizeDraftState,
+    isFreshEntry,
+    isBirthdayPersonalize,
+    isDadBookPersonalize,
+    isMomBookPersonalize,
+    pathname,
+    router,
+    searchParams,
+  ]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const runRestore = async () => {
+      setDraftReady(false);
+      await restoreDraftFromStorage();
+      if (cancelled) return;
+    };
+
+    void runRestore();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [restoreDraftFromStorage]);
+
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (!bookId || isFreshEntry) return;
+      if (event.persisted) {
+        void restoreDraftFromStorage();
+      }
+    };
+
+    const handlePopState = () => {
+      if (!bookId || isFreshEntry) return;
+      void restoreDraftFromStorage();
+    };
+
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [bookId, isFreshEntry, restoreDraftFromStorage]);
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -258,8 +421,20 @@ export default function PersonalizeApiDrivenPage() {
   }, [bookId, bookName, loading]);
 
   useEffect(() => {
+    if (!draftReady) return;
+    if (draftRestoredStepRef.current != null) {
+      setCurrentStep(draftRestoredStepRef.current);
+      draftRestoredStepRef.current = null;
+      return;
+    }
     setCurrentStep(1);
-  }, [bookId]);
+  }, [bookId, draftReady]);
+
+  useEffect(() => {
+    if (loading || !draftReady || !bookId) return;
+    const timer = window.setInterval(saveCurrentDraft, 2000);
+    return () => window.clearInterval(timer);
+  }, [bookId, draftReady, loading, saveCurrentDraft]);
 
   // 处理裁剪器状态变化
   const handleCropperOpenChange = (isOpen: boolean) => {
@@ -341,6 +516,7 @@ export default function PersonalizeApiDrivenPage() {
         }
         setCurrentStep(2);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.setTimeout(saveCurrentDraft, 0);
         return;
       }
 
@@ -352,6 +528,7 @@ export default function PersonalizeApiDrivenPage() {
         }
         setCurrentStep(3);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.setTimeout(saveCurrentDraft, 0);
         return;
       }
 
@@ -363,6 +540,7 @@ export default function PersonalizeApiDrivenPage() {
         }
         setCurrentStep(3);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.setTimeout(saveCurrentDraft, 0);
         return;
       }
 
@@ -374,6 +552,7 @@ export default function PersonalizeApiDrivenPage() {
         }
         setCurrentStep(3);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.setTimeout(saveCurrentDraft, 0);
         return;
       }
     } else if (formType === 'SINGLE2') {
@@ -385,12 +564,30 @@ export default function PersonalizeApiDrivenPage() {
         }
         setCurrentStep(2);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.setTimeout(saveCurrentDraft, 0);
       } else {
         // SINGLE2（Form2）表单的处理逻辑：直接进入第二步
         setCurrentStep(2);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.setTimeout(saveCurrentDraft, 0);
       }
     }
+  };
+
+  const handlePreviousStep = () => {
+    if (currentStep <= 1) return;
+    setCurrentStep((prev) => prev - 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.setTimeout(saveCurrentDraft, 0);
+  };
+
+  const canGoToPreviousStep =
+    currentStep > 1 && (formType === 'SINGLE1' || (formType === 'SINGLE2' && useForm3));
+
+  const handleBackToProductPage = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    await clearAllPersonalizeDraftState();
+    router.push(getBookPath(String(bookId)));
   };
 
   const handleContinue = async () => {
@@ -655,6 +852,7 @@ export default function PersonalizeApiDrivenPage() {
         trackCreatePreview(actualBookId, bookName);
       }
 
+      await saveCurrentDraft(true);
       router.push(`/preview?${qs.toString()}`);
     } catch (error) {
       console.error('Failed to continue:', error);
@@ -674,13 +872,40 @@ export default function PersonalizeApiDrivenPage() {
     (formType === 'SINGLE2' && useForm3 && currentStep === 2);
   const nextStepButtonLabel = getPersonalizeNextStepLabel(currentStep, personalizeLastStep);
 
+  const mergedInitialData = useMemo(
+    () => ({
+      skinColor: draftInitialData?.skinColor ?? initials.skinColor,
+      hairstyle: draftInitialData?.hairstyle ?? initials.hairstyle,
+      hairColor: draftInitialData?.hairColor ?? initials.hairColor,
+      ...draftInitialData,
+    }),
+    [draftInitialData, initials.hairColor, initials.hairstyle, initials.skinColor],
+  );
+
+  const formMountKey = `${bookId}-${draftRestoreKey}`;
+
   return (
     <div className="min-h-screen bg-[#F8F8F8]">
       <div className="h-14 bg-white flex items-center px-4 sm:px-32">
         <div className="relative flex items-center justify-between w-full sm:hidden">
-          <Link href={getBookPath(String(bookId))} className="flex items-center text-gray-700 hover:text-blue-500">
-            <IoIosArrowBack size={24} />
-          </Link>
+          {canGoToPreviousStep ? (
+            <button
+              type="button"
+              onClick={handlePreviousStep}
+              className="flex items-center text-gray-700 hover:text-blue-500"
+              aria-label="Back to previous step"
+            >
+              <IoIosArrowBack size={24} />
+            </button>
+          ) : (
+            <Link
+              href={getBookPath(String(bookId))}
+              onClick={handleBackToProductPage}
+              className="flex items-center text-gray-700 hover:text-blue-500"
+            >
+              <IoIosArrowBack size={24} />
+            </Link>
+          )}
           <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center">
             <span className="text-[#222222] text-[16px] leading-[24px] tracking-[0.15px] font-medium text-center truncate max-w-[200px]">
               {bookName || 'Personalize'}
@@ -688,9 +913,23 @@ export default function PersonalizeApiDrivenPage() {
           </div>
           <div className="w-6"></div>
         </div>
-        <Link href={getBookPath(String(bookId))} className="hidden sm:flex items-center text-sm">
-          <span className="mr-2">←</span> Back to the product page
-        </Link>
+        {canGoToPreviousStep ? (
+          <button
+            type="button"
+            onClick={handlePreviousStep}
+            className="hidden sm:flex items-center text-sm"
+          >
+            <span className="mr-2">←</span> Back to previous step
+          </button>
+        ) : (
+          <Link
+            href={getBookPath(String(bookId))}
+            onClick={handleBackToProductPage}
+            className="hidden sm:flex items-center text-sm"
+          >
+            <span className="mr-2">←</span> Back to the product page
+          </Link>
+        )}
       </div>
 
       <div className="mx-auto pb-20 md:pb-0">
@@ -706,15 +945,12 @@ export default function PersonalizeApiDrivenPage() {
         ) : (
           <h1 className={PERSONALIZE_PAGE_TITLE_CLASS}>{PERSONALIZE_TITLE_WHO}</h1>
         )}
-        {formType === 'SINGLE1' ? (
+        {!loading && draftReady && formType === 'SINGLE1' ? (
           <SingleCharacterForm1
+            key={formMountKey}
             ref={form1Ref}
             bookId={bookId}
-            initialData={{
-              skinColor: initials.skinColor,
-              hairstyle: initials.hairstyle,
-              hairColor: initials.hairColor,
-            }}
+            initialData={mergedInitialData}
             apiSkinToneValues={skinToneValues}
             apiHairStyleValues={hairStyleValues}
             apiHairColorValues={hairColorValues}
@@ -724,17 +960,14 @@ export default function PersonalizeApiDrivenPage() {
             dadQuestions={dadQuestions}
             onCropperOpenChange={handleCropperOpenChange}
           />
-        ) : (
+        ) : !loading && draftReady ? (
           <>
             {useForm3 ? (
               <SingleCharacterForm3
+                key={formMountKey}
                 ref={form3Ref}
                 bookId={bookId}
-                initialData={{
-                  skinColor: initials.skinColor,
-                  hairstyle: initials.hairstyle,
-                  hairColor: initials.hairColor,
-                }}
+                initialData={mergedInitialData}
                 apiSkinToneValues={skinToneValues}
                 apiHairStyleValues={hairStyleValues}
                 apiHairColorValues={hairColorValues}
@@ -745,13 +978,10 @@ export default function PersonalizeApiDrivenPage() {
               />
             ) : (
               <SingleCharacterForm2
+                key={formMountKey}
                 ref={form2Ref}
                 bookId={bookId}
-                initialData={{
-                  skinColor: initials.skinColor,
-                  hairstyle: initials.hairstyle,
-                  hairColor: initials.hairColor,
-                }}
+                initialData={mergedInitialData}
                 apiSkinToneValues={skinToneValues}
                 apiHairStyleValues={hairStyleValues}
                 apiHairColorValues={hairColorValues}
@@ -760,7 +990,7 @@ export default function PersonalizeApiDrivenPage() {
               />
             )}
           </>
-        )}
+        ) : null}
         {/* 桌面端按钮 */}
         <div className="hidden md:flex justify-center">
           {(currentStep === 1 && (formType === 'SINGLE1' || (formType === 'SINGLE2' && useForm3))) ||
