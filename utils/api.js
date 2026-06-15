@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { getApiBaseUrl } from './apiBaseUrl';
+import { getUtmRequestHeaders } from './utm';
+import { getIpGeoRequestHeaders } from './ipGeo';
 
 export const GUEST_SESSION_HEADER = 'X-Guest-Session-Id';
 export const GUEST_SESSION_STORAGE_KEY = 'guest_session_id';
@@ -94,6 +96,21 @@ const addAuthHeader = (config) => {
     if (guestSessionId) {
         config.headers[GUEST_SESSION_HEADER] = guestSessionId;
     }
+
+    // 透传 UTM 和 first-touch 归因数据
+    if (typeof window !== 'undefined') {
+        const utmHeaders = getUtmRequestHeaders();
+        Object.entries(utmHeaders).forEach(([key, value]) => {
+            config.headers[key] = value;
+        });
+
+        // 透传 IP 和 country 信息
+        const ipGeoHeaders = getIpGeoRequestHeaders();
+        Object.entries(ipGeoHeaders).forEach(([key, value]) => {
+            config.headers[key] = value;
+        });
+    }
+
     return config;
 };
 
@@ -222,6 +239,19 @@ export async function fetchDreamazebookApi(path, options = {}) {
     if (guestSessionId) {
         headers.set(GUEST_SESSION_HEADER, guestSessionId);
     }
+
+    // 透传 UTM 和 first-touch 归因数据
+    const utmHeaders = getUtmRequestHeaders();
+    Object.entries(utmHeaders).forEach(([key, value]) => {
+        headers.set(key, value);
+    });
+
+    // 透传 IP 和 country 信息
+    const ipGeoHeaders = getIpGeoRequestHeaders();
+    Object.entries(ipGeoHeaders).forEach(([key, value]) => {
+        headers.set(key, value);
+    });
+
     if (!headers.has('Accept')) {
         headers.set('Accept', 'application/json');
     }

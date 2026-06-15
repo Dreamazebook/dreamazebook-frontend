@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   title: 'Contact Us | Personalized Storybooks with Your Child’s Real Photo | Dreamaze',
   description:
     'Get in touch with our Dreamaze team. We\'re here to answer your questions and help you create the perfect personalized children\'s book.',
+  robots: {
+    index: true,
+    follow: true,
+  },
   keywords: ['contact', 'support', 'email', 'customer service', 'dreamaze'],
   openGraph: {
     ...sharedMetadata.openGraph,

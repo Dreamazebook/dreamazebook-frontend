@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   title: 'Frequently Asked Questions | Dreamaze',
   description:
     'Find answers to common questions about Dreamaze personalized children\'s books, customization options, shipping, and more.',
+  robots: {
+    index: true,
+    follow: true,
+  },
   keywords: ['FAQ', 'questions', 'personalized books', 'help', 'dreamaze support'],
   openGraph: {
     ...sharedMetadata.openGraph,

@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   title: TITLE,
   description:
     'Explore personalized books for kids made with real photos, names, and story details. Choose a bedtime, birthday, family, or keepsake gift.',
+  robots: {
+    index: true,
+    follow: true,
+  },
   keywords: [
     'children\'s books',
     TITLE,

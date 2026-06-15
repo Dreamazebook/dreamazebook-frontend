@@ -7,12 +7,14 @@ import { useTranslations } from 'next-intl'
 import useUserStore from '@/stores/userStore'
 import Input from '@/app/components/common/Input'
 import { OAUTH_REDIRECT } from '@/constants/api'
-import { fetchIpInfo } from '@/utils/ipGeo'
+import { fetchIpInfo, storeIpGeoInfo } from '@/utils/ipGeo'
 import { useLoginState, type LoginMode } from './LoginModal/useLoginState'
 import { NameEmailPasswordFields } from './LoginModal/NameEmailPasswordFields'
 import { CodeInputField } from './LoginModal/CodeInputField'
 import { ModalHeader, CloseButton } from './LoginModal/ModalHeader'
 import { FormSubmitSections } from './LoginModal/FormSubmitSections'
+import api from '@/utils/api'
+import { ApiResponse } from '@/types/api'
 
 export default function LoginModal({ showCloseButton = false, title = 'Welcome to Dreamaze', description = 'Sign in to access your account', useRedirect = true }: { showCloseButton?: boolean, useRedirect?:boolean, title?: string, description?: string }) {
   const t = useTranslations('LoginModal')
@@ -129,11 +131,10 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
 
   const fetchOAuthRedirect = async (provider: string) => {
     try {
-      const res = await fetch(OAUTH_REDIRECT(provider), { method: 'GET', credentials: 'include' })
-      if (!res.ok) return null
-      const json = await res.json()
+      const {data,success} = await api.get<ApiResponse<{ redirect_url: string, url: string }>>(OAUTH_REDIRECT(provider))
+      if (!success || !data) return null
       localStorage.setItem('oauthProvider', provider)
-      return json.redirect_url ?? json.url ?? null
+      return data.redirect_url ?? data.url ?? null
     } catch (e) {
       console.error('fetchOAuthRedirect error', e)
       return null
@@ -144,6 +145,12 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
     setField(loaderField, true)
     updateState({ errorMessage: '' })
     try {
+      // Fetch and persist IP/country before redirecting to OAuth provider,
+      // so OAuthCallbackContent can pick them up from localStorage
+      const ipInfo = await fetchIpInfo()
+      if (ipInfo) {
+        storeIpGeoInfo(ipInfo)
+      }
       const url = await fetchOAuthRedirect(provider)
       if (url) {
         return window.location.href = url
@@ -199,6 +206,9 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
 
   const handleLogin = async (email: string, password: string) => {
     const ipInfo = await fetchIpInfo()
+    if (ipInfo) {
+      storeIpGeoInfo(ipInfo)
+    }
     const response = await login({
       email,
       password,
@@ -214,6 +224,9 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
 
   const handleRegister = async (name: string, email: string, password: string) => {
     const ipInfo = await fetchIpInfo()
+    if (ipInfo) {
+      storeIpGeoInfo(ipInfo)
+    }
     const response = await register({
       name,
       email,

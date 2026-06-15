@@ -5,6 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import { useRouter } from '@/i18n/routing';
 import { OAUTH_CALLBACK } from '@/constants/api';
 import useUserStore from '@/stores/userStore';
+import { getStoredIpGeoInfo, fetchIpInfo, storeIpGeoInfo } from '@/utils/ipGeo';
+import api from '@/utils/api';
+import { ApiResponse } from '@/types/api';
 
 export default function OAuthCallbackContent({
   onSuccess,
@@ -34,19 +37,27 @@ export default function OAuthCallbackContent({
 
         const provider = localStorage.getItem('oauthProvider') || 'google';
 
-        const response = await fetch(OAUTH_CALLBACK(provider) + `?code=${code}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-        });
+        // Ensure IP/country info is available (fetched in LoginModal before redirect,
+        // but fetch again as fallback in case it wasn't persisted)
+        let ipInfo = getStoredIpGeoInfo();
+        if (!ipInfo.ip || !ipInfo.country) {
+          const fresh = await fetchIpInfo();
+          if (fresh) {
+            storeIpGeoInfo(fresh);
+            ipInfo = fresh;
+          }
+        }
 
-        const responseData = await response.json();
+        // Build query params with code, ip, country
+        const params = new URLSearchParams({ code });
+        if (ipInfo.ip) params.set('ip', ipInfo.ip);
+        if (ipInfo.country) params.set('country', ipInfo.country);
 
-        if (responseData.success) {
+        const {data, success} = await api.get<ApiResponse>(OAUTH_CALLBACK(provider) + `?${params.toString()}`);
+
+        if (success) {
           const redirectUrl = localStorage.getItem('redirectUrl') || '/shopping-cart';
-          setLoginUserToken(responseData);
+          setLoginUserToken(data);
           localStorage.removeItem('redirectUrl');
           localStorage.removeItem('oauthProvider');
           if (onSuccess) {

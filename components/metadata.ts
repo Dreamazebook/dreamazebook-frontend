@@ -53,11 +53,11 @@ export const sharedMetadata: Metadata = {
     site: '@dreamazebook',
   },
   robots: {
-    index: true,
+    index: false,
     follow: true,
     nocache: false,
     googleBot: {
-      index: true,
+      index: false,
       follow: true,
       noimageindex: false,
       'max-video-preview': -1,
