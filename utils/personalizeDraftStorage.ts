@@ -4,6 +4,7 @@ import {
   hydratePersonalizeDraftFormData,
   savePersonalizeDraftPhotos,
 } from '@/utils/personalizeDraftPhotosStorage';
+import { normalizeBirthDateForStorage } from '@/utils/birthdayPersonalizeHelpers';
 
 const STORAGE_PREFIX = 'personalizeDraft:';
 const CLEARED_FLAG_PREFIX = 'personalizeDraftCleared:';
@@ -81,15 +82,10 @@ export function resetPersonalizeDraftUserCleared(bookId: string): void {
 }
 
 function serializeFormData(formData: Record<string, unknown>): Record<string, unknown> {
-  const birthDate = formData.birthDate;
+  const normalizedBirthDate = normalizeBirthDateForStorage(formData.birthDate);
   return {
     ...formData,
-    birthDate:
-      birthDate instanceof Date
-        ? birthDate.toISOString()
-        : typeof birthDate === 'string'
-          ? birthDate
-          : birthDate ?? null,
+    birthDate: normalizedBirthDate ?? null,
     photo:
       formData.photo && typeof formData.photo === 'object' && formData.photo !== null && 'path' in formData.photo
         ? { path: String((formData.photo as { path?: unknown }).path || '') }
@@ -218,7 +214,7 @@ export function draftFormDataToInitialData(formData: Record<string, unknown>): P
     hairColor: typeof formData.hairColor === 'string' ? formData.hairColor : undefined,
     ageStage,
     fromWhom: typeof formData.fromWhom === 'string' ? formData.fromWhom : undefined,
-    birthDate: typeof formData.birthDate === 'string' ? formData.birthDate : undefined,
+    birthDate: normalizeBirthDateForStorage(formData.birthDate),
     personalityTraitIds: Array.isArray(formData.personalityTraitIds)
       ? formData.personalityTraitIds.filter((id): id is string => typeof id === 'string')
       : undefined,
@@ -283,7 +279,7 @@ export function previewUserDataToInitialData(userData: any): PersonalizeDraftIni
     hairColor: hairCodeToColor(ch.haircolor ?? attrs.hair_color),
     ageStage: attrs.age_stage,
     fromWhom: ch.giver_name || '',
-    birthDate: attrs.birthday,
+    birthDate: normalizeBirthDateForStorage(attrs.birthday),
     momCallsMe: attrs.mom_calls_me,
     momMakesBest: attrs.mom_makes_best,
     momSkinColor: skinCodeToColor(attrs.mom_skin_tone),

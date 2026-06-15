@@ -73,6 +73,17 @@ export function parseBirthDateIso(iso: string | undefined | null): Date | null {
   return dt;
 }
 
+/** 草稿存取统一为 YYYY-MM-DD，兼容误存的 ISO 时间戳字符串 */
+export function normalizeBirthDateForStorage(value: unknown): string | undefined {
+  if (value instanceof Date) return formatBirthDateIso(value);
+  if (typeof value !== 'string' || !value.trim()) return undefined;
+  const direct = parseBirthDateIso(value);
+  if (direct) return formatBirthDateIso(direct);
+  const parsed = new Date(value);
+  if (!Number.isNaN(parsed.getTime())) return formatBirthDateIso(parsed);
+  return undefined;
+}
+
 /** 顺序即后端 traits_1 … traits_n 的编号（与 UI 一致） */
 export const BIRTHDAY_PERSONALITY_TRAITS = [
   { id: 'curious', label: 'Curious', description: "Always asking 'why?'" },
