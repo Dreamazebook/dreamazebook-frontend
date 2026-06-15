@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl'
 import useUserStore from '@/stores/userStore'
 import Input from '@/app/components/common/Input'
 import { OAUTH_REDIRECT } from '@/constants/api'
-import { fetchIpInfo } from '@/utils/ipGeo'
+import { fetchIpInfo, storeIpGeoInfo } from '@/utils/ipGeo'
 import { useLoginState, type LoginMode } from './LoginModal/useLoginState'
 import { NameEmailPasswordFields } from './LoginModal/NameEmailPasswordFields'
 import { CodeInputField } from './LoginModal/CodeInputField'
@@ -145,6 +145,12 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
     setField(loaderField, true)
     updateState({ errorMessage: '' })
     try {
+      // Fetch and persist IP/country before redirecting to OAuth provider,
+      // so OAuthCallbackContent can pick them up from localStorage
+      const ipInfo = await fetchIpInfo()
+      if (ipInfo) {
+        storeIpGeoInfo(ipInfo)
+      }
       const url = await fetchOAuthRedirect(provider)
       if (url) {
         return window.location.href = url
@@ -200,6 +206,9 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
 
   const handleLogin = async (email: string, password: string) => {
     const ipInfo = await fetchIpInfo()
+    if (ipInfo) {
+      storeIpGeoInfo(ipInfo)
+    }
     const response = await login({
       email,
       password,
@@ -215,6 +224,9 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
 
   const handleRegister = async (name: string, email: string, password: string) => {
     const ipInfo = await fetchIpInfo()
+    if (ipInfo) {
+      storeIpGeoInfo(ipInfo)
+    }
     const response = await register({
       name,
       email,
