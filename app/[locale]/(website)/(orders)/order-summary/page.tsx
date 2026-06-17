@@ -285,6 +285,17 @@ const OrderSummary: React.FC = () => {
                 handleClickEditShippingAddress={() => openAddressModal(orderDetail)}
                 showShipTo={true}
               />
+
+              {/* Coupon Info */}
+              {orderDetail.coupon_code && (
+                <div className="flex justify-between items-center text-[16px] text-green-600">
+                  <span>{t('couponDiscount')} ({orderDetail.coupon_code})</span>
+                  {orderDetail.coupon?.discount_amount ? (
+                    <span>-${orderDetail.coupon.discount_amount.toFixed(2)}</span>
+                  ) : null}
+                </div>
+              )}
+
               <OrderSummaryPrices orderDetail={orderDetail} />
             </>
           )}

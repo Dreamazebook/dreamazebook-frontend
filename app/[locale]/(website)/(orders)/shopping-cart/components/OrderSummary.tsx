@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslations } from 'next-intl';
 import { OrderSummaryProps } from '@/types/order-summary';
+import CouponInput from './CouponInput';
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
   calculatingCost,
@@ -13,7 +14,12 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   freeShipping,
   checkoutLoading,
   paypalCheckoutLoading,
-  onCheckout
+  onCheckout,
+  couponApplied,
+  couponApplying,
+  couponError,
+  onApplyCoupon,
+  coupon,
 }) => {
   const t = useTranslations('ShoppingCart');
 
@@ -33,6 +39,24 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
 
     return (
       <div className="space-y-3">
+        {/* Coupon Input */}
+        {onApplyCoupon && (
+          <div className="space-y-2">
+            <CouponInput onApply={onApplyCoupon} />
+            {couponApplying && (
+              <p className="text-xs text-gray-500">{t('applyingCoupon')}</p>
+            )}
+            {couponError && (
+              <p className="text-xs text-red-500">{couponError}</p>
+            )}
+            {couponApplied && !couponError && (
+              <p className="text-xs text-green-600">
+                {t('couponApplied')}
+              </p>
+            )}
+          </div>
+        )}
+
         {calculatingCost ? (
           <div className="space-y-3">
             <div className="flex justify-between">
@@ -68,6 +92,18 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                   </div>
                   <div className="text-right font-bold">
                     <p>-${discountAmount.toFixed(2)} ({discountInfo.percentage}%)</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            {coupon && coupon.status === 'applied' && coupon.discount_amount > 0 && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-green-600">
+                  <div>
+                    <p>{t('couponDiscount')} ({coupon.code})</p>
+                  </div>
+                  <div className="text-right font-bold">
+                    <p>-${coupon.discount_amount.toFixed(2)}</p>
                   </div>
                 </div>
               </div>
