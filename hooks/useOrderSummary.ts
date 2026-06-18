@@ -61,7 +61,7 @@ export const useOrderSummary = ({ selectedItems, onCartItemsUpdate }: UseOrderSu
       } else {
         setCouponError(err.message || err.toString());
       }
-      setCalculatedCost(null);
+      // setCalculatedCost(null);
     } finally {
       setCalculatingCost(false);
     }
@@ -86,6 +86,14 @@ export const useOrderSummary = ({ selectedItems, onCartItemsUpdate }: UseOrderSu
     }
   };
 
+  const removeCoupon = async () => {
+    currentCouponRef.current = '';
+    setCouponCode('');
+    setCouponApplied('');
+    setCouponError('');
+    await calculateCost('');
+  };
+
   // Extract values from calculated cost or provide defaults
   const subtotal = calculatedCost?.original_subtotal || 0;
   const shipping = calculatedCost?.shipping ?? 0;
@@ -108,6 +116,7 @@ export const useOrderSummary = ({ selectedItems, onCartItemsUpdate }: UseOrderSu
     couponApplying,
     couponError,
     applyCoupon,
+    removeCoupon,
     coupon,
   };
 };

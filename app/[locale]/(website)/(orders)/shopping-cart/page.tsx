@@ -54,6 +54,7 @@ export default function ShoppingCartPage() {
     couponApplying,
     couponError,
     applyCoupon,
+    removeCoupon,
     coupon,
     couponCode,
   } = useOrderSummary({ selectedItems, onCartItemsUpdate: setCartItems });
@@ -348,6 +349,7 @@ export default function ShoppingCartPage() {
             couponApplying={couponApplying}
             couponError={couponError}
             onApplyCoupon={applyCoupon}
+            onRemoveCoupon={removeCoupon}
             coupon={coupon}
           />
         </div>

@@ -17,6 +17,7 @@ export interface OrderSummaryProps {
   couponApplying?: boolean;
   couponError?: string;
   onApplyCoupon?: (code: string) => void;
+  onRemoveCoupon?: () => void;
   coupon?: CouponInfo;
 }
 
