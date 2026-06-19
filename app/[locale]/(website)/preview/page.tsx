@@ -4334,7 +4334,9 @@ export default function PreviewPageWithTopNav() {
   };
 
   const isOptionalPromptSection = (sectionId: string) =>
-    sectionId === 'giver' || sectionId.startsWith(`${MOM_DRAWING_PROMPT_PREFIX}`);
+    sectionId === 'giver' ||
+    sectionId === 'dedication' ||
+    sectionId.startsWith(`${MOM_DRAWING_PROMPT_PREFIX}`);
 
   const focusMissingSection = (sectionId: string, options?: { acknowledgeOptional?: boolean }) => {
     if (sectionId === "giver" || sectionId === "dedication" || sectionId.startsWith("momDrawing")) {
@@ -4363,8 +4365,8 @@ export default function PreviewPageWithTopNav() {
   const completedSections = {
     // Opening Photo：可选，但会在用户第一次点 Next 时 soft prompt
     giver: isNameOnBookCompleted,
-    // dedication：只有用户点击 Submit（或从后端/购物车回填了真实寄语）才算完成
-    dedication: isDedicationSubmitted,
+    // dedication：默认寄语始终展示，编辑为可选
+    dedication: true,
     momDrawing: isMomDrawingCompleted,
     ...Object.fromEntries(
       momDrawingPromptSectionIdsOrdered.map((id) => {
@@ -4387,14 +4389,6 @@ export default function PreviewPageWithTopNav() {
     missingSection === sectionId && isSectionStillMissing(sectionId)
       ? `dreamaze-missing-button ${isMissingSectionPulsing ? 'dreamaze-missing-button-pulse' : ''}`
       : '';
-  const renderMissingSectionPrompt = (sectionId: string) => {
-    if (sectionId !== 'dedication' || missingSection !== 'dedication' || completedSections.dedication) return null;
-    return (
-      <div className="mb-2 w-full text-center text-[14px] leading-[20px] font-medium text-[#CF0F02]">
-        Please add a dedication to continue ✨
-      </div>
-    );
-  };
   const getNextMissingSectionForPrompt = (sections: string[]) =>
     sections.find((sectionId) => {
       if (Boolean((completedSections as Record<string, boolean>)[sectionId])) return false;
@@ -4546,7 +4540,7 @@ export default function PreviewPageWithTopNav() {
             ...(bindingKey ? { binding_type: bindingKey } : {}),
             ...(giftKey ? { giftbox: giftKey } : {}),
             delivery_notes: '',
-            gift_message: message.trim(),
+            gift_message: getGiftMessageForCart(),
             replace: false,
           },
         },
@@ -4586,7 +4580,7 @@ export default function PreviewPageWithTopNav() {
           ...(giftKey ? { giftbox: giftKey } : {}),
           ...(languageKey ? { language: languageKey } : {}),
           delivery_notes: '',
-          gift_message: message.trim(),
+          gift_message: getGiftMessageForCart(),
           replace: false,
         };
         await api.put(API_CART_UPDATE(Number(fromCartItemId)), {
@@ -4807,6 +4801,37 @@ export default function PreviewPageWithTopNav() {
 
     setMessage(value);
   };
+
+  const openDedicationEditor = useCallback(() => {
+    setMessage(dedication);
+    setEditField('dedication');
+  }, [dedication, setEditField]);
+
+  const handleDedicationCancel = useCallback(() => {
+    setMessage(dedication);
+    setEditField(null);
+  }, [dedication, setEditField]);
+
+  const handleDedicationContinue = useCallback(() => {
+    const trimmed = message.trim();
+    const savedTrimmed = (dedication || '').trim();
+    if (trimmed !== savedTrimmed) {
+      messageUserTouchedRef.current = true;
+      setGuestUploadRateLimitError(null);
+      shouldUploadP34ComposedRef.current = true;
+      p34UploadCompletesNameOnBookRef.current = false;
+      p34ComposeUploadedRef.current = false;
+      p34LastComposedImageUrlRef.current = null;
+      setDedication(message);
+      setIsDedicationSubmitted(true);
+    }
+    setEditField(null);
+  }, [dedication, message, setDedication, setEditField]);
+
+  const getGiftMessageForCart = useCallback(
+    () => (isDedicationSubmitted ? message.trim() : ''),
+    [isDedicationSubmitted, message],
+  );
 
   //定义状态控制抽屉显示
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -5293,7 +5318,7 @@ export default function PreviewPageWithTopNav() {
                         : 'Add a favorite photo';
                       const dedicationButtonLabel = isDedicationSubmitted
                         ? 'Edit your message'
-                        : 'Make this message yours';
+                        : 'Write a dedication';
                       const upperBookId = (searchParams.get('bookid') || '').toUpperCase();
                       const giverImageScale =
                         upperBookId === 'PICBOOK_BRAVEY' ||
@@ -5390,10 +5415,9 @@ export default function PreviewPageWithTopNav() {
                                   )}
                                   rightBelow={(
                                     <div className="mt-2 w-full flex flex-col items-center">
-                                      {renderMissingSectionPrompt('dedication')}
                                       <button
                                         type="button"
-                                        onClick={() => setEditField('dedication')}
+                                        onClick={openDedicationEditor}
                                         className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
                                       >
                                         {dedicationButtonLabel}
@@ -5439,10 +5463,9 @@ export default function PreviewPageWithTopNav() {
                               )}
                               rightBelow={(
                                 <div className="mt-2 w-full flex flex-col items-center">
-                                  {renderMissingSectionPrompt('dedication')}
                                   <button
                                     type="button"
-                                    onClick={() => setEditField('dedication')}
+                                    onClick={openDedicationEditor}
                                     className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
                                   >
                                     {dedicationButtonLabel}
@@ -5469,10 +5492,9 @@ export default function PreviewPageWithTopNav() {
                             </button>
                           </div>
                           <div className="absolute bottom-[20%] right-0 w-1/2 flex flex-col items-center">
-                            {renderMissingSectionPrompt('dedication')}
                             <button
                               type="button"
-                              onClick={() => setEditField('dedication')}
+                              onClick={openDedicationEditor}
                               className={`pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
                             >
                               {dedicationButtonLabel}
@@ -5646,10 +5668,9 @@ export default function PreviewPageWithTopNav() {
                                   </button>
                                 </div>
                                 <div className="w-full flex flex-col items-center">
-                                  {renderMissingSectionPrompt('dedication')}
                                   <button
                                     type="button"
-                                    onClick={() => setEditField('dedication')}
+                                    onClick={openDedicationEditor}
                                     className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
                                   >
                                     {dedicationButtonLabel}
@@ -6466,18 +6487,14 @@ export default function PreviewPageWithTopNav() {
                 })()}
               </div>
             ) : (
-              // 寄语弹窗：不设死高，提示文案出现时白框随之增高；过高时在弹窗内滚动，避免 Submit 挤出
+              // 寄语弹窗：Cancel 丢弃本次修改；Continue 仅在文案变更时保存并上传
               <div className="bg-white w-[600px] max-w-[95vw] min-h-[464px] max-h-[90vh] overflow-y-auto rounded-sm pt-6 pr-6 pb-3 pl-6 flex flex-col gap-7">
-                {/* 标题、关闭按钮和填写区域 */}
                 <div className="w-full flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">Dedication</h2>
-                    <button
-                      className="text-xl text-gray-500 hover:text-gray-700"
-                      onClick={() => setEditField(null)}
-                    >
-                      &#x2715;
-                    </button>
+                  <div className="flex flex-col gap-2">
+                    <h2 className="text-lg font-semibold text-[#222222]">Make this message yours</h2>
+                    <p className="text-sm text-[#666666] leading-relaxed">
+                      Use our heartfelt message as a starting point, or replace it with your own words.
+                    </p>
                   </div>
                   <div className="flex text-gray-500 text-sm">
                     <span>
@@ -6518,24 +6535,20 @@ export default function PreviewPageWithTopNav() {
                     </div>
                   </div>
                 </div>
-                {/* 保存按钮 */}
-                <div className="flex justify-end mt-auto">
+                <div className="flex items-center justify-end gap-4 mt-auto">
                   <button
-                    className="bg-[#222222] text-[#F5E3E3] py-2 px-4 rounded-sm"
-                    onClick={() => {
-                      // Dedication 更新：通过同样接口上传「已合成（底图 + giver + dedication）」的 p3-4 图片
-                      messageUserTouchedRef.current = true;
-                      setGuestUploadRateLimitError(null);
-                      shouldUploadP34ComposedRef.current = true;
-                      p34UploadCompletesNameOnBookRef.current = false;
-                      p34ComposeUploadedRef.current = false;
-                      p34LastComposedImageUrlRef.current = null;
-                      setDedication(message);
-                      setIsDedicationSubmitted(true);
-                      setEditField(null);
-                    }}
+                    type="button"
+                    className="inline-flex items-center justify-center rounded-[4px] border border-[#000000] text-[#222222] bg-white hover:bg-gray-50 px-4 py-2 min-w-[120px] h-11"
+                    onClick={handleDedicationCancel}
                   >
-                    Submit
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex items-center justify-center rounded-[4px] bg-[#222222] text-[#F5E3E3] hover:bg-[#333333] px-4 py-2 min-w-[120px] h-11"
+                    onClick={handleDedicationContinue}
+                  >
+                    Continue
                   </button>
                 </div>
               </div>
