@@ -10,12 +10,14 @@ import { fbTrackCustom, getContentIdBySpu } from '@/utils/track';
 
 interface UseCheckoutProps {
   selectedItems: number[];
+  couponCode?: string;
+  campaignCode?: string;
 }
 
 // Track CheckoutAttempt only once per session
 let checkoutAttemptTracked = false;
 
-export const useCheckout = ({ selectedItems }: UseCheckoutProps) => {
+export const useCheckout = ({ selectedItems, couponCode, campaignCode }: UseCheckoutProps) => {
   const router = useRouter();
   const t = useTranslations('ShoppingCart');
 
@@ -76,10 +78,17 @@ export const useCheckout = ({ selectedItems }: UseCheckoutProps) => {
     }
     
     try {
-      const { success, code, message, data } = await api.post<ApiResponse>(API_ORDER_CREATE, {
+      const body: Record<string, any> = {
         cart_item_ids: selectedItems,
         payment_method: paymentMethod
-      });
+      };
+      if (couponCode) {
+        body.coupon_code = couponCode;
+      }
+      if (campaignCode) {
+        body.campaign_code = campaignCode;
+      }
+      const { success, code, message, data } = await api.post<ApiResponse>(API_ORDER_CREATE, body);
       
       if (success) {
         setError('');

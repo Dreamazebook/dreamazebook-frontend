@@ -3,6 +3,8 @@
     "shoppingCart": "Panier",
     "noItemsSelected": "Veuillez sélectionner au moins un article pour passer à la caisse",
     "couponApplied": "Coupon appliqué avec succès !",
+    "couponDiscount": "Code",
+    "applyingCoupon": "Application du coupon...",
     "invalidCoupon": "Code de coupon invalide",
     "loading": "Chargement de votre panier...",
     "emptyCart": "Votre panier est vide",
@@ -208,6 +210,7 @@
       "transport": "transport",
       "receiveBooks": "recevoir les livres"
     },
+    "couponDiscount": "Code",
     "orderSummary": {
       "title": "Résumé de la commande",
       "subtotal": "Sous-total",

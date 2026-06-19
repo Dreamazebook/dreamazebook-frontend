@@ -34,7 +34,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         ))}
       </div>
 
-      {/* <CouponInput onApply={handleApplyCoupon}  /> */}
+      <CouponInput onApply={handleApplyCoupon}  />
 
       {orderDetail?.coupon_code && (
         <p className="text-green-600 text-sm mb-2">

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslations } from 'next-intl';
 import { OrderSummaryProps } from '@/types/order-summary';
+import CouponInput from './CouponInput';
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
   calculatingCost,
@@ -13,7 +14,13 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   freeShipping,
   checkoutLoading,
   paypalCheckoutLoading,
-  onCheckout
+  onCheckout,
+  couponApplied,
+  couponApplying,
+  couponError,
+  onApplyCoupon,
+  onRemoveCoupon,
+  coupon,
 }) => {
   const t = useTranslations('ShoppingCart');
 
@@ -62,7 +69,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
             </div>
             {discountInfo?.applicable && discountAmount > 0 && (
               <div className="space-y-2">
-                <div className="flex justify-between text-primary">
+                <div className="flex justify-between text-[#165C52]">
                   <div>
                     <p>{t(itemsCount>1?'multiBookDiscount':'discount')}</p>
                   </div>
@@ -72,11 +79,45 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Coupon Input */}
+            {onApplyCoupon && (
+              <div className="space-y-2">
+                <h5 className="text-[#222222] text-[16px]">Have a promo code? ˅</h5>
+                <p className="text-[#666666] text-[16px]">25% off with code BLACKFRIDAY</p>
+                <CouponInput onApply={onApplyCoupon} />
+                {couponApplying && (
+                  <p className="text-xs text-gray-500">{t('applyingCoupon')}</p>
+                )}
+                {couponError && (
+                  <p className="text-xs text-red-500">{couponError}</p>
+                )}
+                {couponApplied && !couponError && (
+                  <p className="text-xs text-green-600">
+                    {t('couponApplied')}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {coupon && coupon.status === 'applied' && coupon.discount_amount > 0 && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-[#165C52]">
+                  <div>
+                    <p>{t('couponDiscount')} {coupon.code}</p>
+                  </div>
+                  <div className="text-right font-bold">
+                    <p>-${coupon.discount_amount.toFixed(2)}</p>
+                  </div>
+                </div>
+                <button className="text-[#666666] cursor-pointer text-[16px] hover:underline" onClick={onRemoveCoupon}>Remove</button>
+              </div>
+            )}
           </>
         )}
-        <div className={`border-t pt-3 flex font-bold justify-between ${borderColor}`}>
+        <div className={`border-t pt-3 flex font-bold text-[24px] justify-between ${borderColor}`}>
           <p >{t('total')}</p>
-          <p >${total.toFixed(2)}</p>
+          <p className="text-[#165C52]">${total.toFixed(2)}</p>
         </div>
       </div>
     );
