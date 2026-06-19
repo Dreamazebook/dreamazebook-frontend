@@ -187,12 +187,14 @@ function parseMomDrawingPromptSectionId(sectionId: string): 'p5-6' | 'p27-28' | 
  * 正常路径使用固定壳 ref 的 getBoundingClientRect().bottom
  */
 const PREVIEW_FIXED_TOP_NAV_FALLBACK_PX = 12 + 48 + 12 + 47;
+/** 手机吸底进度条 + Continue 区域高度兜底（未测到 DOM 时） */
+const PREVIEW_MOBILE_BOTTOM_BAR_FALLBACK_PX = 12 + 40 + 12 + 52 + 16;
 
-/** 相对「Tab 下方可视区域」滚动：矮块按 anchorFraction 对齐（默认中线）；高于可视区的块顶对齐 */
+/** 相对「Tab 下方 ~ 吸底栏上方」可视区域滚动；可附带 ref 下方 companion 区域（如按钮行） */
 function scrollPreviewElementIntoComfortableCenter(
   el: HTMLElement,
   topInsetPx?: number,
-  opts?: { anchorFraction?: number },
+  opts?: { anchorFraction?: number; bottomInsetPx?: number; companionBelowPx?: number },
 ) {
   if (typeof window === 'undefined') return;
   const rect = el.getBoundingClientRect();
@@ -200,25 +202,42 @@ function scrollPreviewElementIntoComfortableCenter(
     typeof topInsetPx === 'number' && Number.isFinite(topInsetPx)
       ? topInsetPx
       : PREVIEW_FIXED_TOP_NAV_FALLBACK_PX;
+  const bottomInset = opts?.bottomInsetPx ?? 0;
+  const companionBelow = opts?.companionBelowPx ?? 0;
   const viewportH = window.innerHeight;
-  const visibleHeight = Math.max(0, viewportH - topInset);
+  const visibleHeight = Math.max(0, viewportH - topInset - bottomInset);
   const gap = 10;
-  const h = rect.height;
+  const effectiveBottom = rect.bottom + companionBelow;
+  const effectiveHeight = effectiveBottom - rect.top;
   const anchorFraction = opts?.anchorFraction ?? 0.5;
+  const maxBottomY = viewportH - bottomInset - gap;
 
   let delta: number;
-  if (h > visibleHeight - gap * 2) {
+  const fitsInVisibleBand = effectiveHeight <= visibleHeight - gap * 2;
+  if (!fitsInVisibleBand) {
+    // 高于可视区：顶对齐；仅在有 companion（如 giver 下方按钮）时再补底
     delta = rect.top - (topInset + gap);
+    if (companionBelow > 0) {
+      const projectedBottom = effectiveBottom - delta;
+      if (projectedBottom > maxBottomY) {
+        delta += projectedBottom - maxBottomY;
+      }
+    }
   } else {
     const visibleAnchorY = topInset + visibleHeight * anchorFraction;
-    const elementMidY = rect.top + h / 2;
+    const elementMidY = rect.top + effectiveHeight / 2;
     delta = elementMidY - visibleAnchorY;
     const maxDeltaKeepTopClear = rect.top - (topInset + gap);
     if (delta > maxDeltaKeepTopClear) {
       delta = maxDeltaKeepTopClear;
     }
+    const projectedBottom = effectiveBottom - delta;
+    if (projectedBottom > maxBottomY) {
+      delta += projectedBottom - maxBottomY;
+    }
   }
 
+  if (Math.abs(delta) < 1) return;
   window.scrollBy({ top: delta, behavior: 'smooth' });
 }
 
@@ -2997,6 +3016,8 @@ export default function PreviewPageWithTopNav() {
   const giftBoxRef = useRef<HTMLDivElement>(null);
   /** 固定 Tab 外层（含 safe-area、底部留白），用于滚动时精确扣除遮挡高度 */
   const previewFixedNavShellRef = useRef<HTMLDivElement>(null);
+  /** 手机端吸底进度条 + Continue 区域，用于滚动时扣除底部遮挡 */
+  const mobileFixedBottomBarRef = useRef<HTMLDivElement>(null);
   const missingPulseTimerRef = useRef<number | null>(null);
   const nextShakeTimerRef = useRef<number | null>(null);
   const [missingSection, setMissingSection] = useState<string | null>(null);
@@ -4231,7 +4252,10 @@ export default function PreviewPageWithTopNav() {
     handleUserDataProcessing();
   }, []);
 
-  const scrollPreviewTargetIntoComfortableCenter = useCallback((el: HTMLElement) => {
+  const scrollPreviewTargetIntoComfortableCenter = useCallback((
+    el: HTMLElement,
+    scrollOpts?: { companionBelowPx?: number; anchorFraction?: number },
+  ) => {
     const shell = previewFixedNavShellRef.current;
     const measuredBottom = shell?.getBoundingClientRect().bottom;
     const topInset =
@@ -4239,10 +4263,22 @@ export default function PreviewPageWithTopNav() {
         ? measuredBottom + 10
         : PREVIEW_FIXED_TOP_NAV_FALLBACK_PX;
 
-    let anchorFraction: number | undefined;
-    if (viewMode === 'double' && typeof window !== 'undefined') {
+    let anchorFraction: number | undefined = scrollOpts?.anchorFraction;
+    let bottomInsetPx = 0;
+    if (typeof window !== 'undefined') {
       try {
-        if (window.matchMedia('(min-width: 768px)').matches) {
+        const isMobile = !window.matchMedia('(min-width: 768px)').matches;
+        if (isMobile) {
+          const bar = mobileFixedBottomBarRef.current;
+          const barHeight = bar?.getBoundingClientRect().height;
+          bottomInsetPx =
+            typeof barHeight === 'number' && Number.isFinite(barHeight) && barHeight > 0
+              ? barHeight + 10
+              : PREVIEW_MOBILE_BOTTOM_BAR_FALLBACK_PX;
+          if (anchorFraction === undefined) {
+            anchorFraction = 0.38;
+          }
+        } else if (viewMode === 'double' && anchorFraction === undefined) {
           anchorFraction = 0.4;
         }
       } catch {
@@ -4250,11 +4286,11 @@ export default function PreviewPageWithTopNav() {
       }
     }
 
-    scrollPreviewElementIntoComfortableCenter(
-      el,
-      topInset,
-      anchorFraction !== undefined ? { anchorFraction } : undefined,
-    );
+    scrollPreviewElementIntoComfortableCenter(el, topInset, {
+      ...(anchorFraction !== undefined ? { anchorFraction } : {}),
+      bottomInsetPx,
+      ...(scrollOpts?.companionBelowPx ? { companionBelowPx: scrollOpts.companionBelowPx } : {}),
+    });
   }, [viewMode]);
 
   // 点击侧边栏项，滚动到对应部分
@@ -4277,7 +4313,20 @@ export default function PreviewPageWithTopNav() {
       default: break;
     }
     if (ref && ref.current) {
-      scrollPreviewTargetIntoComfortableCenter(ref.current);
+      let scrollOpts: { companionBelowPx?: number; anchorFraction?: number } | undefined;
+      if (sectionId === 'giver' && typeof window !== 'undefined') {
+        try {
+          if (!window.matchMedia('(min-width: 768px)').matches) {
+            scrollOpts = {
+              anchorFraction: 0.32,
+              ...(viewMode === 'single' ? { companionBelowPx: 56 } : {}),
+            };
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+      scrollPreviewTargetIntoComfortableCenter(ref.current, scrollOpts);
       setActiveSection(
         sectionId.startsWith(MOM_DRAWING_PROMPT_PREFIX) ? 'momDrawing' : sectionId,
       );
@@ -6644,6 +6693,7 @@ export default function PreviewPageWithTopNav() {
       {/* 手机端吸底进度条和 Continue 按钮 */}
       {/* 在 Giver 添加图片（裁剪弹窗打开）时隐藏该吸底条，避免与弹窗底部区域冲突 */}
       <div
+        ref={mobileFixedBottomBarRef}
         className={`fixed bottom-0 left-0 right-0 md:hidden z-50 bg-white border-t border-gray-200 ${
           mobileStatusOpen ? '' : 'shadow-lg'
         } ${editField === 'giver' || pendingMomDrawingFile ? 'hidden' : ''}`}
