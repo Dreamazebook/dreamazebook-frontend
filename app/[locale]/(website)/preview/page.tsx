@@ -30,6 +30,7 @@ import { buildPreviewRenderPayload } from '@/utils/previewRenderPayload';
 import { getApiBaseUrl } from '@/utils/apiBaseUrl';
 import { getBirthdayCoverSeasonFromCharacterLike } from '@/utils/birthdayPersonalizeHelpers';
 import toast from 'react-hot-toast';
+import { IoCloseOutline, IoCheckmarkOutline } from '@/utils/icons';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
 import { BaseBook, DetailedBook } from '@/types/book';
 import { API_CART_LIST, API_CART_UPDATE } from '@/constants/api';
@@ -4335,8 +4336,6 @@ export default function PreviewPageWithTopNav() {
 
   const getMissingSectionToastMessage = (sectionId: string): string => {
     switch (sectionId) {
-      case 'giver':
-        return 'Add a photo on the opening page.';
       case 'dedication':
         return 'Click “Edit” to make it more personal.';
       case 'momDrawing:p5-6':
@@ -4383,7 +4382,6 @@ export default function PreviewPageWithTopNav() {
   };
 
   const isOptionalPromptSection = (sectionId: string) =>
-    sectionId === 'giver' ||
     sectionId === 'dedication' ||
     sectionId.startsWith(`${MOM_DRAWING_PROMPT_PREFIX}`);
 
@@ -4412,7 +4410,7 @@ export default function PreviewPageWithTopNav() {
 
   // 各部分的完成状态判断
   const completedSections = {
-    // Opening Photo：可选，但会在用户第一次点 Next 时 soft prompt
+    // Opening Photo：可选，仅用于侧边栏/进度条展示
     giver: isNameOnBookCompleted,
     // dedication：默认寄语始终展示，编辑为可选
     dedication: true,
@@ -4445,7 +4443,6 @@ export default function PreviewPageWithTopNav() {
     }) || null;
 
   const continuePromptSections = [
-    'giver',
     'dedication',
     ...momDrawingPromptSectionIdsOrdered,
     ...(isHideOptions ? [] : ['coverDesign', 'binding', 'giftBox']),
@@ -6536,15 +6533,33 @@ export default function PreviewPageWithTopNav() {
                 })()}
               </div>
             ) : (
-              // 寄语弹窗：Cancel 丢弃本次修改；Continue 仅在文案变更时保存并上传
-              <div className="bg-white w-[600px] max-w-[95vw] min-h-[464px] max-h-[90vh] overflow-y-auto rounded-sm pt-6 pr-6 pb-3 pl-6 flex flex-col gap-7">
+              // 寄语弹窗：标题两侧 X / ✓；Cancel 丢弃本次修改，✓ 仅在文案变更时保存
+              <div className="bg-white w-[600px] max-w-[95vw] min-h-[400px] max-h-[90vh] overflow-y-auto rounded-sm pt-6 pr-6 pb-6 pl-6 flex flex-col gap-5">
                 <div className="w-full flex flex-col gap-3">
-                  <div className="flex flex-col gap-2">
-                    <h2 className="text-lg font-semibold text-[#222222]">Make this message yours</h2>
-                    <p className="text-sm text-[#666666] leading-relaxed">
-                      Use our heartfelt message as a starting point, or replace it with your own words.
-                    </p>
+                  <div className="flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={handleDedicationCancel}
+                      aria-label="Cancel"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center text-[#222222] hover:text-gray-600"
+                    >
+                      <IoCloseOutline className="text-2xl leading-none" />
+                    </button>
+                    <h2 className="flex-1 text-center text-lg font-semibold text-[#222222]">
+                      Make this message yours
+                    </h2>
+                    <button
+                      type="button"
+                      onClick={handleDedicationContinue}
+                      aria-label="Save message"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center text-[#222222] hover:text-gray-600"
+                    >
+                      <IoCheckmarkOutline className="text-2xl leading-none" />
+                    </button>
                   </div>
+                  <p className="text-sm text-[#666666] leading-relaxed">
+                    Use our heartfelt message as a starting point, or replace it with your own words.
+                  </p>
                   <div className="flex text-gray-500 text-sm">
                     <span>
                       There&apos;s a {dedicationMaxLines} line limit (including blank lines)
@@ -6583,22 +6598,6 @@ export default function PreviewPageWithTopNav() {
                       )}
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center justify-end gap-4 mt-auto">
-                  <button
-                    type="button"
-                    className="inline-flex items-center justify-center rounded-[4px] border border-[#000000] text-[#222222] bg-white hover:bg-gray-50 px-4 py-2 min-w-[120px] h-11"
-                    onClick={handleDedicationCancel}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    className="inline-flex items-center justify-center rounded-[4px] bg-[#222222] text-[#F5E3E3] hover:bg-[#333333] px-4 py-2 min-w-[120px] h-11"
-                    onClick={handleDedicationContinue}
-                  >
-                    Continue
-                  </button>
                 </div>
               </div>
             )}

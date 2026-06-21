@@ -35,6 +35,7 @@ export {
 export {
   IoCloudUploadOutline,
   IoCloseOutline,
+  IoCheckmarkOutline,
 } from 'react-icons/io5';
 
 // Bs icons (Bootstrap)
