@@ -83,8 +83,8 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
             {/* Coupon Input */}
             {onApplyCoupon && (
               <div className="space-y-2">
-                <h5 className="text-[#222222] text-[16px]">Have a promo code? ˅</h5>
-                <p className="text-[#666666] text-[16px]">25% off with code BLACKFRIDAY</p>
+                <h5 className="text-[#222222] text-[16px]">Have a promo code?</h5>
+                {/* <p className="text-[#666666] text-[16px]">25% off with code BLACKFRIDAY</p> */}
                 <CouponInput onApply={onApplyCoupon} />
                 {couponApplying && (
                   <p className="text-xs text-gray-500">{t('applyingCoupon')}</p>
