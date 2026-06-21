@@ -498,8 +498,8 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
 
       {/* 裁剪弹窗：复用 Preview 页 Giver 的裁剪组件，但改为返回裁剪后的 File */}
       {isCropperOpen && pendingPreviewUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white w-[860px] max-w-[95vw] rounded-sm pt-6 pr-6 pb-4 pl-6 flex flex-col gap-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white w-full sm:w-[860px] sm:max-w-[95vw] sm:mx-auto rounded-sm overflow-hidden pt-6 pb-4 sm:px-6 max-h-[calc(100dvh-2rem)] overflow-y-auto">
             <GiverAvatarCropper
               resultMode="file"
               uiVariant="personalize"

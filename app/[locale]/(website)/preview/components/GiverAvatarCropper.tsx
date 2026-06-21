@@ -56,7 +56,7 @@ type Props = {
 const CROPPER_COPY: Record<'personalize' | 'openingPage', { title: string; subtitle: string }> = {
   personalize: {
     title: 'Add image',
-    subtitle: 'Drag, zoom, or rotate your photo to fit the circle. Keep only the head for best results.',
+    subtitle: 'Place the full head inside the circle',
   },
   openingPage: {
     title: 'Add a Photo for the Opening Page of Your Book',
@@ -227,106 +227,47 @@ function PersonalizeCircleCropEditor({
 }: PersonalizeCircleCropEditorProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [rotation, setRotation] = useState(0);
 
   useEffect(() => {
     onReadyChange(false);
     cropStateRef.current = { area: null, rotation: 0 };
     setCrop({ x: 0, y: 0 });
     setZoom(1);
-    setRotation(0);
   }, [src, onReadyChange, cropStateRef]);
-
-  useEffect(() => {
-    if (cropStateRef.current.area) {
-      cropStateRef.current = { ...cropStateRef.current, rotation };
-    }
-  }, [rotation, cropStateRef]);
 
   const handleCropComplete = useCallback(
     (_: Area, croppedAreaPixels: Area) => {
-      cropStateRef.current = { area: croppedAreaPixels, rotation };
+      cropStateRef.current = { area: croppedAreaPixels, rotation: 0 };
       onReadyChange(true);
     },
-    [cropStateRef, onReadyChange, rotation]
+    [cropStateRef, onReadyChange]
   );
-
-  const rotateLeft = () => setRotation((prev) => prev - 90);
-  const rotateRight = () => setRotation((prev) => prev + 90);
-  const resetAll = () => {
-    setCrop({ x: 0, y: 0 });
-    setZoom(1);
-    setRotation(0);
-  };
 
   return (
     <>
-      <div className="relative h-[min(72vw,400px)] w-[min(72vw,400px)] mx-auto bg-[#111111]">
+      <div className="relative w-full aspect-square bg-[#111111] md:max-w-[400px] md:mx-auto">
         <EasyCrop
           image={src}
           crop={crop}
           zoom={zoom}
-          rotation={rotation}
+          rotation={0}
           aspect={1}
           cropShape="round"
           showGrid={false}
           zoomWithScroll
           restrictPosition
-          objectFit="contain"
+          objectFit="cover"
           onCropChange={setCrop}
           onZoomChange={setZoom}
-          onRotationChange={setRotation}
           onCropComplete={handleCropComplete}
           classes={{
             containerClassName: '!absolute !inset-0',
-            cropAreaClassName: '!border-2 !border-white/90 !shadow-[0_0_0_9999px_rgba(0,0,0,0.55)]',
+            cropAreaClassName: '!border-2 !border-white/90 !shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]',
           }}
         />
       </div>
 
-      <div className="flex flex-col items-center gap-3 mt-4">
-        <input
-          type="range"
-          min={1}
-          max={3}
-          step={0.01}
-          value={zoom}
-          onChange={(e) => setZoom(Number(e.target.value))}
-          className="w-full max-w-[320px] accent-[#222222]"
-          aria-label="Zoom"
-        />
-        <div className="flex bg-[#F8F8F8] items-center py-[6px] px-[12px] gap-[21px]">
-          <button
-            type="button"
-            onClick={rotateLeft}
-            className="p-2 rounded hover:bg-gray-100 transition-colors"
-            title="Rotate Left"
-            aria-label="Rotate Left"
-          >
-            <MdRotateLeft className="w-6 h-6" />
-          </button>
-          <button
-            type="button"
-            onClick={rotateRight}
-            className="p-2 rounded hover:bg-gray-100 transition-colors"
-            title="Rotate Right"
-            aria-label="Rotate Right"
-          >
-            <MdRotateRight className="w-6 h-6" />
-          </button>
-          <button
-            type="button"
-            onClick={resetAll}
-            className="p-2 rounded hover:bg-gray-100 transition-colors"
-            title="Reset"
-            aria-label="Reset"
-          >
-            <MdRefresh className="w-6 h-6" />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex justify-end mt-3 gap-2">
+      <div className="flex justify-end mt-3 gap-2 px-6 md:px-0">
         <button
           type="button"
           onClick={onCancel}
@@ -626,28 +567,35 @@ export default function GiverAvatarCropper({
   };
 
   return (
-    <div className="w-full max-w-[860px]">
+    <div className={`w-full ${isPersonalizeCircle ? 'max-w-none md:max-w-[860px]' : 'max-w-[860px]'}`}>
       {src && (
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col gap-2">
+        <div className={isPersonalizeCircle ? 'px-6 md:px-0' : ''}>
+          <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-semibold">{headerTitle}</h2>
-            <p className="text-gray-500">{headerSubtitle}</p>
+            <button
+              type="button"
+              className="shrink-0 text-xl leading-none text-gray-500 hover:text-gray-700"
+              onClick={onCancel}
+              aria-label="Close"
+            >
+              &#x2715;
+            </button>
           </div>
-          <button className="text-xl text-gray-500 hover:text-gray-700" onClick={onCancel}>&#x2715;</button>
+          <p className="text-gray-500 mt-2">{headerSubtitle}</p>
         </div>
       )}
 
       <div className="mt-4 hidden">
-        <input 
+        <input
           ref={fileInputRef}
-          type="file" 
+          type="file"
           accept={ACCEPTED_IMAGE_ACCEPT}
-          onChange={onFile} 
+          onChange={onFile}
         />
       </div>
 
       {src && (
-        <div className="mt-4">
+        <div className={isPersonalizeCircle ? 'mt-4' : 'mt-4'}>
           {isPersonalizeCircle ? (
             <PersonalizeCircleCropEditor
               src={src}
@@ -791,7 +739,9 @@ export default function GiverAvatarCropper({
               </div>
             </div>
           )}
-          {error && <div className="text-red-600 mt-2">{error}</div>}
+          {error && (
+            <div className={`text-red-600 mt-2 ${isPersonalizeCircle ? 'px-6 md:px-0' : ''}`}>{error}</div>
+          )}
         </div>
       )}
     </div>
