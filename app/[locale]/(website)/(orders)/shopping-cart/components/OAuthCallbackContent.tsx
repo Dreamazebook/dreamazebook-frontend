@@ -53,11 +53,11 @@ export default function OAuthCallbackContent({
         if (ipInfo.ip) params.set('ip', ipInfo.ip);
         if (ipInfo.country) params.set('country', ipInfo.country);
 
-        const {data, success} = await api.get<ApiResponse>(OAUTH_CALLBACK(provider) + `?${params.toString()}`);
+        const {user, token, success} = await api.get<any>(OAUTH_CALLBACK(provider) + `?${params.toString()}`);
 
         if (success) {
           const redirectUrl = localStorage.getItem('redirectUrl') || '/shopping-cart';
-          setLoginUserToken(data);
+          setLoginUserToken({token, user});
           localStorage.removeItem('redirectUrl');
           localStorage.removeItem('oauthProvider');
           if (onSuccess) {
