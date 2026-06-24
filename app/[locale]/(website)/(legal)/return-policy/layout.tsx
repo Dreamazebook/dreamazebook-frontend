@@ -14,10 +14,10 @@ export const metadata: Metadata = {
     ...sharedMetadata.openGraph,
     title: 'Return Policy | Dreamaze',
     description: 'Learn about Dreamaze return policy.',
-    url: 'https://dreamazebook.com/return-policy',
+    url: 'https://dreamazebook.com/en/return-policy',
   },
   alternates: {
-    canonical: 'https://dreamazebook.com/return-policy',
+    canonical: 'https://dreamazebook.com/en/return-policy',
   },
 };
 

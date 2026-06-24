@@ -15,10 +15,10 @@ export const metadata: Metadata = {
     ...sharedMetadata.openGraph,
     title: 'Delivery Information | Dreamaze',
     description: 'Learn about Dreamaze shipping and delivery options.',
-    url: 'https://dreamazebook.com/delivery-information',
+    url: 'https://dreamazebook.com/en/delivery-information',
   },
   alternates: {
-    canonical: 'https://dreamazebook.com/delivery-information',
+    canonical: 'https://dreamazebook.com/en/delivery-information',
   },
 };
 

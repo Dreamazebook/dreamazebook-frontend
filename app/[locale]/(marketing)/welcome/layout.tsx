@@ -34,10 +34,10 @@ export const metadata: Metadata = {
     ...sharedMetadata.openGraph,
     title: 'Join Dreamaze | Personalized Children\'s Books',
     description: 'Join the Dreamaze community for exclusive offers and updates.',
-    url: 'https://dreamazebook.com/welcome',
+    url: 'https://dreamazebook.com/en/welcome',
   },
   alternates: {
-    canonical: 'https://dreamazebook.com/welcome',
+    canonical: 'https://dreamazebook.com/en/welcome',
   },
 };
 

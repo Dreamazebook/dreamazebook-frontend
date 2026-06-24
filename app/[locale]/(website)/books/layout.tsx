@@ -25,10 +25,10 @@ export const metadata: Metadata = {
     title: TITLE,
     description:
       'Choose a personalized storybook made with your child’s real photo — from bedtime books to birthday keepsakes and family gifts.',
-    url: 'https://dreamazebook.com/books',
+    url: 'https://dreamazebook.com/en/books',
   },
   alternates: {
-    canonical: 'https://dreamazebook.com/books',
+    canonical: 'https://dreamazebook.com/en/books',
   },
 };
 

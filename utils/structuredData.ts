@@ -26,7 +26,7 @@ export const generateOrganizationSchema = () => ({
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'Dreamaze',
-  url: 'https://dreamazebook.com',
+  url: 'https://dreamazebook.com/en',
   logo: 'https://dreamazebook.com/logo.png',
   description:
     'Personalized children\'s books where your loved ones become the heroes of their own magical stories.',
@@ -47,7 +47,7 @@ export const generateOrganizationSchema = () => ({
 export const generateWebsiteSchema = () => ({
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  url: 'https://dreamazebook.com',
+  url: 'https://dreamazebook.com/en',
   name: 'Dreamaze',
   description:
     'Personalized children\'s books where your loved ones become the heroes of their own magical stories.',
@@ -55,7 +55,7 @@ export const generateWebsiteSchema = () => ({
     '@type': 'SearchAction',
     target: {
       '@type': 'EntryPoint',
-      urlTemplate: 'https://dreamazebook.com/search?q={search_term_string}',
+      urlTemplate: 'https://dreamazebook.com/en/search?q={search_term_string}',
     },
     'query-input': 'required name=search_term_string',
   },
@@ -153,7 +153,7 @@ export const generateLocalBusinessSchema = () => ({
   name: 'Dreamaze',
   description:
     'Personalized children\'s books where your loved ones become the heroes of their own magical stories.',
-  url: 'https://dreamazebook.com',
+  url: 'https://dreamazebook.com/en',
   image: 'https://dreamazebook.com/landing-page/cover.png',
   creator: {
     '@type': 'Organization',

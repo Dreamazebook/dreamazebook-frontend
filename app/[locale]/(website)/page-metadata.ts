@@ -21,10 +21,10 @@ export const generateMetadata = (): Metadata => {
       title: 'Personalized Storybooks with Your Child’s Real Photo | Dreamaze',
       description:
         'Create unique, personalized children\'s books where your loved ones become the heroes of their own magical stories.',
-      url: 'https://dreamazebook.com',
+      url: 'https://dreamazebook.com/en',
     },
     alternates: {
-      canonical: 'https://dreamazebook.com',
+      canonical: 'https://dreamazebook.com/en',
     },
   };
 };

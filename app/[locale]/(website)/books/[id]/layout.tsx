@@ -473,8 +473,8 @@ async function BookStructuredData({
 
   // Breadcrumb items
   const breadcrumbItems = [
-    { name: 'Home', url: 'https://dreamazebook.com' },
-    { name: 'Books', url: 'https://dreamazebook.com/books' },
+    { name: 'Home', url: 'https://dreamazebook.com/en' },
+    { name: 'Books', url: 'https://dreamazebook.com/en/books' },
     { name: bookName, url: bookUrl },
   ];
 
