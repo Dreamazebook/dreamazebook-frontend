@@ -3,7 +3,7 @@ import { BOOK_CANONICAL_SLUGS } from '@/constants/bookRoutes';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://dreamazebook.com';
-  const locales = ['en', 'fr', 'zh'];
+  const locales = ['en'];
 
   // Core static pages
   const staticPages = [
@@ -16,9 +16,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/terms-and-conditions',
     '/privacy-policy',
     '/return-policy',
-    '/personalize',
     '/christmas',
     '/mothers-day',
+    '/fathers-day'
   ];
 
   // Generate main entries with all languages
@@ -41,6 +41,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })
   );
 
+  // Root home page without locale
+  const rootHomeSitemap: MetadataRoute.Sitemap = [
+    {
+      url: baseUrl,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 1.0,
+    },
+  ];
+
   const bookSitemap: MetadataRoute.Sitemap = BOOK_CANONICAL_SLUGS.flatMap((slug) =>
     locales.map((locale) => ({
       url: `${baseUrl}/${locale}/books/${slug}`,
@@ -50,5 +60,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }))
   );
 
-  return [...mainSitemap, ...bookSitemap];
+  return [...rootHomeSitemap, ...mainSitemap, ...bookSitemap];
 }
