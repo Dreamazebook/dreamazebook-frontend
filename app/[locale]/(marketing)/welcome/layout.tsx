@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   title: 'Join Dreamaze | Personalized Children\'s Books',
   description: 'Join the Dreamaze community and be the first to receive updates about our personalized children\'s books and exclusive offers.',
   robots: {
-    index: true,
+    index: false,
     follow: true,
   },
   openGraph: {
