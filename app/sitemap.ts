@@ -41,16 +41,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })
   );
 
-  // Root home page without locale
-  const rootHomeSitemap: MetadataRoute.Sitemap = [
-    {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 1.0,
-    },
-  ];
-
   const bookSitemap: MetadataRoute.Sitemap = BOOK_CANONICAL_SLUGS.flatMap((slug) =>
     locales.map((locale) => ({
       url: `${baseUrl}/${locale}/books/${slug}`,
@@ -60,5 +50,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }))
   );
 
-  return [...rootHomeSitemap, ...mainSitemap, ...bookSitemap];
+  return [...mainSitemap, ...bookSitemap];
 }
