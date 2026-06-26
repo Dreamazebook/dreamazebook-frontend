@@ -111,6 +111,12 @@ const addAuthHeader = (config) => {
         });
     }
 
+    // 透传 Client Context Secret（服务端环境变量）
+    const clientContextSecret = process.env.CLIENT_CONTEXT_HEADER_SECRET;
+    if (clientContextSecret) {
+        config.headers['X-Client-Context-Secret'] = clientContextSecret;
+    }
+
     return config;
 };
 
@@ -251,6 +257,12 @@ export async function fetchDreamazebookApi(path, options = {}) {
     Object.entries(ipGeoHeaders).forEach(([key, value]) => {
         headers.set(key, value);
     });
+
+    // 透传 Client Context Secret（服务端环境变量，客户端需通过 NEXT_PUBLIC_ 前缀暴露）
+    const clientContextSecret = process.env.NEXT_PUBLIC_CLIENT_CONTEXT_HEADER_SECRET || process.env.CLIENT_CONTEXT_HEADER_SECRET;
+    if (clientContextSecret) {
+        headers.set('X-Client-Context-Secret', clientContextSecret);
+    }
 
     if (!headers.has('Accept')) {
         headers.set('Accept', 'application/json');
