@@ -1048,7 +1048,7 @@ export default function EditPersonalizedProductPage() {
   return (
     <div className="min-h-screen bg-[#F8F8F8]">
       {/* 顶部导航栏 */}
-      <div className="h-12 bg-white flex items-center px-4 sm:px-32">
+      <div className="h-12 bg-white flex items-center px-4 sm:px-32 md:sticky md:top-12 md:z-50">
         <div className="flex items-center justify-between w-full sm:hidden">
           <a 
             onClick={(e) => {

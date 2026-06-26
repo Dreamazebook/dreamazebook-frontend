@@ -1979,7 +1979,6 @@ export default function PreviewPageWithTopNav() {
     }
   }, [isHideOptions, bookOptions, preferCover3AsDefault, bindingTypeParam, selectedBookCover, selectedBinding]);
   const [isLoadingOptions, setIsLoadingOptions] = useState(false);
-  const [optionsError, setOptionsError] = useState<string | null>(null);
   // Bravey 封面文案配置（根据 page_properties.json 绘制名字）
   const [coverTextConfig, setCoverTextConfig] = useState<{
     key: string;
@@ -2453,7 +2452,6 @@ export default function PreviewPageWithTopNav() {
       }
 
       setIsLoadingOptions(true);
-      setOptionsError(null);
 
       // 改为直接读取产品详情，并从 attributes/pages 派生可选项
       const path = `/products/${encodeURIComponent(String(bookId))}`;
@@ -2561,7 +2559,6 @@ export default function PreviewPageWithTopNav() {
       console.log('Book options(derived) 获取成功:', derived);
     } catch (error: any) {
       console.error('获取 book options 失败:', error);
-      setOptionsError(error.response?.data?.message || '获取选项失败');
     } finally {
       setIsLoadingOptions(false);
     }
@@ -4909,7 +4906,7 @@ export default function PreviewPageWithTopNav() {
       `}</style>
       <div
         ref={previewFixedNavShellRef}
-        className="h-12 bg-white flex items-center px-4 sm:px-32 md:fixed md:top-0 md:left-0 md:right-0 md:z-50"
+        className="sticky top-0 z-50 h-12 bg-white flex items-center px-4 sm:px-32"
       >
         <div className="relative flex items-center justify-between w-full sm:hidden">
           {showBackToPreviewPage ? (
@@ -4961,7 +4958,7 @@ export default function PreviewPageWithTopNav() {
         </div>
       </div>
 
-      <div className="mx-auto pb-[76px] md:pt-12 overflow-x-hidden">
+      <div className="mx-auto pb-[76px] overflow-x-hidden">
         {activeTab === 'Book preview' ? (
           <main className="flex-1 flex flex-col items-center justify-start w-full">
             <h1 className="text-[28px] mt-2 mb-4 text-center w-full">Your book for {recipient?.trim()}</h1>
@@ -5749,21 +5746,8 @@ export default function PreviewPageWithTopNav() {
                 </div>
               )}
 
-              {/* 错误状态 */}
-              {optionsError && (
-                <div className="w-full max-w-3xl mx-auto mb-8 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-800">错误: {optionsError}</p>
-                  <button 
-                    onClick={fetchBookOptions}
-                    className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                  >
-                    重试
-                  </button>
-                </div>
-              )}
-
               {/* 封面选项 */}
-              {!isLoadingOptions && !optionsError && bookOptions && bookOptions.cover_options && bookOptions.cover_options.length > 0 && (
+              {!isLoadingOptions && bookOptions && bookOptions.cover_options && bookOptions.cover_options.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-[80%] mx-auto">
                   {bookOptions.cover_options.map((option) => (
                     <div
@@ -5949,7 +5933,7 @@ export default function PreviewPageWithTopNav() {
               )} */}
               
               {/* 临时封面选项 - 当API数据有问题时使用 */}
-              {!isLoadingOptions && (optionsError || !bookOptions || !bookOptions.cover_options || bookOptions.cover_options.length === 0) && (
+              {!isLoadingOptions && (!bookOptions || !bookOptions.cover_options || bookOptions.cover_options.length === 0) && (
                 <div className="grid grid-cols-2 gap-4 w-[80%] mx-auto">
                   {[
                     { id: 1, name: 'Classic Cover', price: 14.99, currency_code: 'USD', image_url: '/imgs/picbook/goodnight/封面1.jpg' },
