@@ -450,10 +450,10 @@ export default function PersonalizeApiDrivenPage() {
     const element = document.getElementById(elementId);
     
     if (element) {
-      // 计算偏移量：考虑手机端吸底栏高度（76px）和顶部导航栏高度（56px）
+      // 计算偏移量：考虑手机端吸底栏高度（76px）和顶部导航栏高度（48px）
       const isMobile = window.innerWidth < 768; // md breakpoint
       const stickyBarHeight = isMobile ? 76 : 0;
-      const headerHeight = 56; // h-14 = 56px
+      const headerHeight = isMobile ? 48 : 96; // md+: promotion banner (48) + page header (48)
       const offset = stickyBarHeight + headerHeight + 20; // 额外 20px 间距
       
       const elementPosition = element.getBoundingClientRect().top;
@@ -505,7 +505,7 @@ export default function PersonalizeApiDrivenPage() {
             if (element) {
               const isMobile = window.innerWidth < 768;
               const stickyBarHeight = isMobile ? 76 : 0;
-              const headerHeight = 56;
+              const headerHeight = isMobile ? 48 : 96;
               const offset = stickyBarHeight + headerHeight + 20;
               const elementPosition = element.getBoundingClientRect().top;
               const offsetPosition = elementPosition + window.pageYOffset - offset;
@@ -886,7 +886,7 @@ export default function PersonalizeApiDrivenPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F8F8]">
-      <div className="h-14 bg-white flex items-center px-4 sm:px-32">
+      <div className="h-12 bg-white flex items-center px-4 sm:px-32 md:sticky md:top-12 md:z-50">
         <div className="relative flex items-center justify-between w-full sm:hidden">
           {canGoToPreviousStep ? (
             <button

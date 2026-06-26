@@ -27,7 +27,7 @@ const UnderlineIcon = () => (
 );
 
 // ViewModeToggle 子组件
-function ViewModeToggle({
+export function ViewModeToggle({
   viewMode,
   onViewModeChange,
 }: {

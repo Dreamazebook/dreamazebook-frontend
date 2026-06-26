@@ -108,7 +108,7 @@ export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onC
       <div className="absolute inset-0" onClick={onClose} />
       <div className="relative w-full h-full overflow-y-auto">
         {/* 桌面端 Header */}
-        <div className="hidden md:flex h-14 bg-white items-center px-4 sm:px-32">
+        <div className="hidden md:flex h-12 bg-white items-center px-4 sm:px-32">
           <button className="flex items-center gap-2 text-md text-[#222222] cursor-pointer" onClick={onClose}>
             <span aria-hidden>←</span> Back
           </button>
@@ -116,7 +116,7 @@ export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onC
         </div>
 
         {/* 手机端 Header - 贴顶 */}
-        <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center px-4 z-50">
+        <div className="md:hidden fixed top-0 left-0 right-0 h-12 bg-white border-b border-gray-200 flex items-center px-4 z-50">
           <button 
             className="w-8 h-8 flex items-center justify-center text-[#222222] cursor-pointer"
             onClick={onClose}
@@ -131,7 +131,7 @@ export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onC
           </h1>
         </div>
 
-        <div className="px-6 md:px-10 bg-[#F8F8F8] lg:px-[220px] pt-18 md:pt-6 md:py-10 pb-32 md:pb-10 gap-3 flex flex-col">
+        <div className="px-6 md:px-10 bg-[#F8F8F8] lg:px-[220px] pt-12 md:pt-6 md:py-10 pb-32 md:pb-10 gap-3 flex flex-col">
           <div className="text-center gap-3 md:gap-2 flex flex-col items-center">
             <p className="text-[24px] leading-[32px] md:text-[28px] md:leading-[36px] text-[#222222]">{bundle.title}</p>
             <p className="text-sm md:text-[16px] leading-[24px] tracking-[0.5px] text-[#444444]">
@@ -377,7 +377,7 @@ export function BundleSelectionModal({ bundle, books, loading, isSubmitting, onC
           <div className="absolute inset-0 bg-black/60 pointer-events-auto" onClick={() => setDetailBook(null)} />
           <div className="absolute right-0 top-26 bottom-0 md:top-0 md:bottom-0 w-full md:w-[360px] bg-[#F8F8F8] shadow-2xl pointer-events-auto overflow-hidden md:rounded-none flex flex-col">
             {/* 手机端 Header */}
-            <div className="md:hidden bg-white flex items-center justify-center px-4 h-14 flex-shrink-0 relative">
+            <div className="md:hidden bg-white flex items-center justify-center px-4 h-12 flex-shrink-0 relative">
               <h2 className="font-medium text-[16px] leading-[24px] tracking-[0.15px] text-center text-[#222222]">
                 {detailBook.name}
               </h2>

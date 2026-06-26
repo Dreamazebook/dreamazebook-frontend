@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { Drawer } from "antd";
 import { create } from 'zustand';
-import TopNavBarWithTabs from '../components/TopNavBarWithTabs';
+import { ViewModeToggle } from '../components/TopNavBarWithTabs';
+import { IoIosArrowBack } from '@/utils/icons';
 
 import Image from 'next/image';
 import GiverDedicationCanvas from './components/GiverDedicationCanvas';
@@ -187,11 +188,9 @@ function parseMomDrawingPromptSectionId(sectionId: string): 'p5-6' | 'p27-28' | 
  * 顶栏占位兜底（未拿到 DOM 测量时）：12 + 48 + pb + safe-area 粗估值
  * 正常路径使用固定壳 ref 的 getBoundingClientRect().bottom
  */
-const PREVIEW_FIXED_TOP_NAV_FALLBACK_PX = 12 + 48 + 12 + 47;
-/** 手机吸底进度条 + Continue 区域高度兜底（未测到 DOM 时） */
-const PREVIEW_MOBILE_BOTTOM_BAR_FALLBACK_PX = 12 + 40 + 12 + 52 + 16;
+const PREVIEW_FIXED_TOP_NAV_FALLBACK_PX = 48;
 
-/** 相对「Tab 下方 ~ 吸底栏上方」可视区域滚动；可附带 ref 下方 companion 区域（如按钮行） */
+/** 相对 Tab 下方可视区域滚动；可附带 ref 下方 companion 区域（如按钮行） */
 function scrollPreviewElementIntoComfortableCenter(
   el: HTMLElement,
   topInsetPx?: number,
@@ -1213,14 +1212,6 @@ export default function PreviewPageWithTopNav() {
     }
     return null;
   };
-  // 手机端底部状态面板（点击右侧箭头展开）
-  const [mobileStatusOpen, setMobileStatusOpen] = React.useState(false);
-
-  // 打开 giver 裁剪弹窗时，确保收起状态面板
-  React.useEffect(() => {
-    if (editField === 'giver') setMobileStatusOpen(false);
-  }, [editField]);
-
   // 页面加载即尝试从 Zustand store 预填 recipient（从 personalized-product 进入时）
   // 如果是从 personalized-product 进入，优先使用 store 中的名字，不会被后续的 batch API 覆盖
   useEffect(() => {
@@ -1529,7 +1520,6 @@ export default function PreviewPageWithTopNav() {
   const [detailModal, setDetailModal] = React.useState<GiftBoxOption | null>(null);
   // 当前展示图片的索引，用于翻页
   const [currentIndex, setCurrentIndex] = React.useState(0);
-  const [activeSection, setActiveSection] = React.useState<string>("");
   // p3-4 扉页合成：缓存“基础底图”（不含文字/不含用户上传照片），避免二次编辑时在已合成图上叠字
   const p34BaseImageUrlRef = useRef<string | null>(null);
   // p3-4 分层模型：缓存 giver 图片数据（data URL），用于 dedication 重绘时始终携带最新 giver
@@ -2958,55 +2948,6 @@ export default function PreviewPageWithTopNav() {
     return out;
   }, [isMomBook, previewData?.preview_data]);
 
-  // 定义侧边栏各项，并为每个项配置默认图标和完成后的图标
-  const sidebarItemsAll = [
-    { id: "giver", label: "Opening Photo (optional)", 
-      icon: 
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path fillRule="evenodd" clipRule="evenodd" d="M4.25 2.5A2.25 2.25 0 0 0 2 4.75v10.5a2.25 2.25 0 0 0 2.25 2.25h11.5A2.25 2.25 0 0 0 18 15.25V4.75a2.25 2.25 0 0 0-2.25-2.25H4.25ZM3.75 4.75a.5.5 0 0 1 .5-.5h11.5a.5.5 0 0 1 .5.5v10.5a.5.5 0 0 1-.5.5H4.25a.5.5 0 0 1-.5-.5V4.75Zm3 1.75a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Zm0 1.7a.55.55 0 1 1 0 1.1.55.55 0 0 1 0-1.1Zm5.6 2.05a.88.88 0 0 0-1.35.02l-2.1 2.55-.88-.9a.88.88 0 0 0-1.27.02l-1.7 1.86a.75.75 0 0 0 .55 1.25h8.92a.75.75 0 0 0 .57-1.24l-2.74-3.56Z" fill="currentColor"/>
-        </svg>
-    },
-    { id: "dedication", label: "Your Special Message", 
-      icon: 
-        <svg width="18" height="21" viewBox="0 0 18 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M17.8188 13.2969C18.0788 14.3398 18.0788 15.2523 17.6888 16.2952C17.4289 17.3381 16.909 18.2506 16.1291 18.9025C15.7392 19.2935 15.3492 19.5543 14.8293 19.815C14.3094 20.0757 13.7895 20.3364 13.1396 20.4668C12.6197 20.5972 11.9698 20.7275 11.3199 20.7275H8.20039V12.3844C7.29054 12.254 6.51066 12.1236 5.86077 11.7326C5.34085 11.4718 4.82094 11.0808 4.30102 10.6897C3.78111 10.2986 3.39117 9.77713 3.13121 9.25569C2.74128 8.73424 2.48132 8.08243 2.35134 7.43062C2.22136 6.77881 2.09138 6.127 2.09138 5.47519C2.09138 4.56266 2.22136 3.65013 2.6113 2.7376C3.26119 2.86796 3.91109 3.12868 4.56098 3.51977C5.21088 3.91085 5.73079 4.30194 6.12073 4.82339C6.25071 3.78049 6.64064 2.86796 7.16056 2.08579C7.68047 1.30362 8.33037 0.521447 9.11024 0C9.89011 0.521447 10.67 1.30362 11.1899 2.08579C11.7098 2.99832 11.9698 3.91085 12.0998 4.95375C12.6197 4.4323 13.1396 4.04121 13.6595 3.65013C14.3094 3.25904 14.9593 2.99832 15.6092 2.86796C15.9991 3.65013 16.1291 4.56266 16.1291 5.47519C16.1291 6.127 15.9991 6.77881 15.8691 7.43062C15.7392 8.08243 15.4792 8.60388 15.0893 9.25569C14.6993 9.77713 14.3094 10.2986 13.9195 10.6897C13.3995 11.0808 12.8796 11.4718 12.3597 11.7326C11.9698 11.9933 11.5798 12.1236 11.0599 12.254C10.67 12.3844 10.1501 12.5147 9.76014 12.5147V18.5114C9.89011 17.8596 10.1501 17.3381 10.54 16.8167C10.9299 16.2952 11.3199 15.7738 11.8398 15.2523C12.2297 14.8612 12.6197 14.4702 13.1396 14.2094C13.6595 13.9487 14.1794 13.688 14.6993 13.5576L16.2591 13.1665C16.779 13.1665 17.2989 13.2969 17.8188 13.2969ZM0.141699 13.2969C1.18153 13.0362 2.22136 13.1665 3.13121 13.4273C4.17104 13.688 5.0809 14.2094 5.86077 14.9916C6.25071 15.3827 6.51066 15.7738 6.77062 16.2952C7.03058 16.8167 7.29054 17.2078 7.42052 17.7292C7.55049 18.2506 7.68047 18.7721 7.68047 19.2935C7.68047 19.815 7.68047 20.3364 7.55049 20.8579C6.51066 21.1186 5.60081 20.9882 4.56098 20.7275C3.52115 20.3364 2.6113 19.815 1.83142 19.0328C1.05155 18.2506 0.531636 17.3381 0.271678 16.4256C0.0117201 15.3827 -0.118259 14.3398 0.141699 13.2969Z" fill="currentColor"/>
-        </svg>
-    },
-    ...(hasMomCompositePages ? [{
-      id: "momDrawing",
-      label: "Your Drawing (optional)",
-      icon:
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M14.9 1.4a2.6 2.6 0 0 1 3.7 3.7L7.1 16.6 2 18l1.4-5.1L14.9 1.4Zm2.1 1.5a.55.55 0 0 0-.78 0L5.2 13.92l-.48 1.76 1.76-.48L17.5 4.18a.55.55 0 0 0 0-.78l-.5-.5ZM2 3.5A1.5 1.5 0 0 1 3.5 2H10a1 1 0 1 1 0 2H4v12h12v-6a1 1 0 1 1 2 0v6.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 2 16.5v-13Z" fill="currentColor"/>
-        </svg>
-    }] : []),
-    {
-      id: "coverDesign",
-      label: "Cover Design",
-      icon: 
-        <svg width="20" height="22" viewBox="0 0 20 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path fillRule="evenodd" clipRule="evenodd" d="M18.1727 3.36602C18.1727 2.94414 18.5149 2.60195 18.9368 2.60195C19.3586 2.60195 19.7008 2.94414 19.7008 3.36602V19.498C19.7008 20.5973 18.8102 21.4879 17.711 21.4879H2.2938C1.19458 21.4879 0.303955 20.5973 0.303955 19.498V1.72539C0.303955 1.05039 0.852393 0.501953 1.52739 0.501953H15.7211C16.3961 0.501953 16.9446 1.04805 16.9446 1.72539V14.6113C16.9446 15.2863 16.3985 15.8348 15.7211 15.8348H3.05786C2.38286 15.8348 1.83442 16.3809 1.83442 17.0582V18.7316C1.83442 19.4066 2.38286 19.9551 3.05786 19.9551H16.9493C17.6243 19.9551 18.1727 19.4066 18.1727 18.7316V3.36602ZM2.91956 17.7621C2.91956 17.3402 3.26174 16.998 3.68362 16.998H16.0539C16.4758 16.998 16.818 17.3402 16.818 17.7621C16.818 18.184 16.4758 18.5262 16.0539 18.5262H3.68362C3.26174 18.5262 2.91956 18.184 2.91956 17.7621Z" fill="currentColor"/>
-        </svg>
-    },
-    { id: "binding", label: "Book Format", 
-      icon: 
-        <svg width="19" height="22" viewBox="0 0 19 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path fillRule="evenodd" clipRule="evenodd" d="M1.65002 0.5H16.95C17.85 0.5 18.6 1.1 18.3 1.85V13.65C18.3 14.55 17.7 15.15 16.8 15.15H14.25C13.5 15.15 12.75 15.9 12.75 16.65V19.8C12.75 20.7 12.15 21.3 11.25 21.3H1.65002C0.900024 21.3 0.150024 20.55 0.150024 19.8V2C0.150024 1.1 0.750024 0.5 1.65002 0.5ZM11.25 13.55C11.7 13.55 12 13.25 12 12.8C12 12.2 11.7 11.9 11.25 11.9H4.50002C4.05002 11.9 3.75002 12.2 3.75002 12.65V12.8C3.75002 13.25 4.05002 13.55 4.50002 13.55H11.25ZM14.55 9.5C15 9.5 15.3 9.2 15.3 8.75C15.3 8.15 15 7.85 14.4 7.85H4.35002C3.90002 7.85 3.60002 8.15 3.60002 8.6V8.75C3.60002 9.05 4.05002 9.35 4.50002 9.5H14.55ZM14.55 5.45C15 5.45 15.3 5.15 15.3 4.7C15.3 4.1 15 3.8 14.55 3.8H4.50002C4.05002 3.8 3.75002 4.1 3.75002 4.55V4.7C3.75002 5.15 4.05002 5.45 4.50002 5.45H14.55ZM13.8 19.7998V17.6998C13.8 16.7998 14.55 16.0498 15.45 16.0498H17.55C18.3 16.0498 18.6 16.9498 18.15 17.3998L15.15 20.3998C14.7 20.8498 13.8 20.5498 13.8 19.7998Z" fill="currentColor"/>
-        </svg>
-    },
-    { id: "giftBox", label: "Add Extras", 
-      icon: 
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M13.2313 3.77614C12.8615 4.14596 12.5157 4.36523 12.207 4.52123H11.2677C11.3037 4.18196 11.5622 3.51214 12.2648 2.80851C13.2008 1.87469 14.0757 1.71978 14.1968 1.84305C14.3168 1.96305 14.1662 2.84014 13.2313 3.77614ZM7.82477 4.52123C7.44529 4.33087 7.0996 4.07953 6.8015 3.77723C5.8655 2.84014 5.71604 1.96523 5.83604 1.84414C5.85895 1.82232 5.90804 1.80923 5.97786 1.80923C6.28768 1.80923 7.00768 2.05032 7.76804 2.81069C8.4695 3.51214 8.72804 4.17978 8.76404 4.52123H7.82477ZM9.3335 9.98451V19.5452H3.18732C2.84901 19.5459 2.52254 19.4207 2.27134 19.1941C2.02014 18.9675 1.86215 18.6556 1.82804 18.3191L1.8215 18.1794V9.98451H9.3335ZM18.2102 9.98451V18.1794C18.2105 18.3589 18.1754 18.5366 18.1068 18.7024C18.0383 18.8683 17.9377 19.019 17.8108 19.1458C17.6839 19.2727 17.5333 19.3733 17.3674 19.4419C17.2016 19.5104 17.0238 19.5455 16.8444 19.5452H10.6993V9.98451H18.2102ZM15.1633 0.877598C15.9106 1.62705 15.628 3.05942 14.5459 4.34669L14.3931 4.52123H18.2113C18.9182 4.52123 19.4997 5.05796 19.5706 5.74742L19.5771 5.88705V7.25287C19.5771 7.96196 19.0393 8.54233 18.351 8.61214L18.2113 8.61869H10.6993V4.52123H9.33459V8.61869H1.82041C1.48224 8.61884 1.15604 8.49353 0.904944 8.26702C0.653847 8.04051 0.495708 7.7289 0.461135 7.39251L0.45459 7.25287V5.88705C0.45459 5.17905 0.992408 4.59869 1.68077 4.52887L1.82041 4.52123H5.63859C4.42986 3.19032 4.08732 1.66196 4.8695 0.879779C5.69314 0.0506884 7.35677 0.468507 8.7335 1.84523C9.39568 2.50851 9.82986 3.23723 10.0153 3.90705C10.2008 3.23723 10.6339 2.50851 11.2982 1.84523C12.675 0.466325 14.3397 0.0539614 15.1622 0.878689L15.1633 0.877598Z" fill="currentColor"/>
-        </svg>
-    },
-  ];
-
-  // 圣诞 bundle：不展示 Options 相关的侧边栏信息与状态（Cover Design / Book Format / Add Extras）
-  const sidebarItems = isHideOptions
-    ? sidebarItemsAll.filter((it) => it.id === 'giver' || it.id === 'dedication' || it.id === 'momDrawing')
-    : sidebarItemsAll;
-
   // 为每个部分创建 ref（用于滚动定位）
   const giverRef = useRef<HTMLDivElement>(null);
   const dedicationRef = useRef<HTMLDivElement>(null);
@@ -3017,13 +2958,9 @@ export default function PreviewPageWithTopNav() {
   const giftBoxRef = useRef<HTMLDivElement>(null);
   /** 固定 Tab 外层（含 safe-area、底部留白），用于滚动时精确扣除遮挡高度 */
   const previewFixedNavShellRef = useRef<HTMLDivElement>(null);
-  /** 手机端吸底进度条 + Continue 区域，用于滚动时扣除底部遮挡 */
-  const mobileFixedBottomBarRef = useRef<HTMLDivElement>(null);
   const missingPulseTimerRef = useRef<number | null>(null);
-  const nextShakeTimerRef = useRef<number | null>(null);
   const [missingSection, setMissingSection] = useState<string | null>(null);
   const [isMissingSectionPulsing, setIsMissingSectionPulsing] = useState(false);
-  const [isNextButtonShaking, setIsNextButtonShaking] = useState(false);
   const [acknowledgedOptionalMissingSections, setAcknowledgedOptionalMissingSections] = useState<Set<string>>(() => new Set());
   /** p3-4 双页：整块容器同时作为 Opening Photo / Special Message 滚动锚点 */
   const setOpeningSpreadBothRefs = useCallback((node: HTMLDivElement | null) => {
@@ -3044,7 +2981,6 @@ export default function PreviewPageWithTopNav() {
     const tabParam = searchParams.get('tab');
     if (!hideOthers && (tabParam === 'giftOptions' || tabParam === 'options')) {
       setActiveTab('Others');
-      setActiveSection('coverDesign');
       return;
     }
     if (!hideOthers && (tabParam === 'giftBox' || tabParam === 'addons')) {
@@ -3053,11 +2989,10 @@ export default function PreviewPageWithTopNav() {
       setTimeout(() => {
         if (giftBoxRef.current) {
           scrollPreviewTargetIntoComfortableCenter(giftBoxRef.current);
-          setActiveSection('giftBox');
         }
       }, 300);
     }
-  }, [hideOthers, searchParams, setActiveTab, setActiveSection]);
+  }, [hideOthers, searchParams, setActiveTab]);
   
   // 构建图片URL的辅助函数（移除 public/ 前缀，优先使用站内相对路径）
   const buildImageUrl = (imagePath: string) => {
@@ -4260,25 +4195,16 @@ export default function PreviewPageWithTopNav() {
     const shell = previewFixedNavShellRef.current;
     const measuredBottom = shell?.getBoundingClientRect().bottom;
     const topInset =
-      typeof measuredBottom === 'number' && Number.isFinite(measuredBottom)
+      typeof measuredBottom === 'number' && Number.isFinite(measuredBottom) && measuredBottom > 0
         ? measuredBottom + 10
         : PREVIEW_FIXED_TOP_NAV_FALLBACK_PX;
 
     let anchorFraction: number | undefined = scrollOpts?.anchorFraction;
-    let bottomInsetPx = 0;
     if (typeof window !== 'undefined') {
       try {
         const isMobile = !window.matchMedia('(min-width: 768px)').matches;
-        if (isMobile) {
-          const bar = mobileFixedBottomBarRef.current;
-          const barHeight = bar?.getBoundingClientRect().height;
-          bottomInsetPx =
-            typeof barHeight === 'number' && Number.isFinite(barHeight) && barHeight > 0
-              ? barHeight + 10
-              : PREVIEW_MOBILE_BOTTOM_BAR_FALLBACK_PX;
-          if (anchorFraction === undefined) {
-            anchorFraction = 0.38;
-          }
+        if (isMobile && anchorFraction === undefined) {
+          anchorFraction = 0.38;
         } else if (viewMode === 'double' && anchorFraction === undefined) {
           anchorFraction = 0.4;
         }
@@ -4289,7 +4215,6 @@ export default function PreviewPageWithTopNav() {
 
     scrollPreviewElementIntoComfortableCenter(el, topInset, {
       ...(anchorFraction !== undefined ? { anchorFraction } : {}),
-      bottomInsetPx,
       ...(scrollOpts?.companionBelowPx ? { companionBelowPx: scrollOpts.companionBelowPx } : {}),
     });
   }, [viewMode]);
@@ -4328,9 +4253,6 @@ export default function PreviewPageWithTopNav() {
         }
       }
       scrollPreviewTargetIntoComfortableCenter(ref.current, scrollOpts);
-      setActiveSection(
-        sectionId.startsWith(MOM_DRAWING_PROMPT_PREFIX) ? 'momDrawing' : sectionId,
-      );
     }
   };
 
@@ -4360,21 +4282,14 @@ export default function PreviewPageWithTopNav() {
     toast(getMissingSectionToastMessage(sectionId), { duration: 3200 });
     setMissingSection(sectionId);
     setIsMissingSectionPulsing(true);
-    setIsNextButtonShaking(true);
 
     if (missingPulseTimerRef.current) window.clearTimeout(missingPulseTimerRef.current);
-    if (nextShakeTimerRef.current) window.clearTimeout(nextShakeTimerRef.current);
 
     // 与 .dreamaze-missing-section-pulse 一致：0.9s × 2
     missingPulseTimerRef.current = window.setTimeout(() => {
       setIsMissingSectionPulsing(false);
       missingPulseTimerRef.current = null;
     }, 2000);
-
-    nextShakeTimerRef.current = window.setTimeout(() => {
-      setIsNextButtonShaking(false);
-      nextShakeTimerRef.current = null;
-    }, 520);
 
     setTimeout(() => {
       scrollToSection(sectionId);
@@ -4404,13 +4319,12 @@ export default function PreviewPageWithTopNav() {
   useEffect(() => {
     return () => {
       if (missingPulseTimerRef.current) window.clearTimeout(missingPulseTimerRef.current);
-      if (nextShakeTimerRef.current) window.clearTimeout(nextShakeTimerRef.current);
     };
   }, []);
 
   // 各部分的完成状态判断
   const completedSections = {
-    // Opening Photo：可选，仅用于侧边栏/进度条展示
+    // Opening Photo：可选
     giver: isNameOnBookCompleted,
     // dedication：默认寄语始终展示，编辑为可选
     dedication: true,
@@ -4426,7 +4340,6 @@ export default function PreviewPageWithTopNav() {
     giftBox: selectedGiftBox !== null,
   };
 
-  const nextButtonFeedbackClass = isNextButtonShaking ? 'dreamaze-next-shake' : '';
   const isSectionStillMissing = (sectionId: string) => !Boolean((completedSections as Record<string, boolean>)[sectionId]);
   const getMissingSectionClass = (sectionId: string) =>
     missingSection === sectionId && isSectionStillMissing(sectionId)
@@ -4447,17 +4360,6 @@ export default function PreviewPageWithTopNav() {
     ...momDrawingPromptSectionIdsOrdered,
     ...(isHideOptions ? [] : ['coverDesign', 'binding', 'giftBox']),
   ];
-  const canProceedToReview = !getNextMissingSectionForPrompt(continuePromptSections);
-  const nextButtonLabel = canProceedToReview ? 'Review Book & Pricing' : 'Next';
-
-  const focusFirstMissingContinueSection = () => {
-    const firstPromptSection = getNextMissingSectionForPrompt(continuePromptSections);
-    if (firstPromptSection) {
-      focusMissingSection(firstPromptSection, {
-        acknowledgeOptional: isOptionalPromptSection(firstPromptSection),
-      });
-    }
-  };
 
   // Others 标签页可选项提示文本（按需拼接 binding/cover/wrap）
   const selectableItems = [
@@ -4923,17 +4825,59 @@ export default function PreviewPageWithTopNav() {
     };
   }, [drawerOpen]);
 
-  return (
-    <div className="flex min-h-screen bg-[#F8F8F8]">
-      <style>{`
-        @keyframes dreamazeNextShake {
-          0%, 100% { transform: translateX(0); }
-          20% { transform: translateX(-4px); }
-          40% { transform: translateX(4px); }
-          60% { transform: translateX(-3px); }
-          80% { transform: translateX(3px); }
-        }
+  const previewHeaderTitle = bookInfo?.default_name || 'Preview';
 
+  const previewBackHref = useMemo(() => {
+    if (isCartOptionEdit) {
+      return '/shopping-cart';
+    }
+
+    const params = new URLSearchParams();
+    const fromCartItemId = searchParams.get('fromCartItemId');
+    const bookIdParam = searchParams.get('bookid');
+    if (bookIdParam) params.set('book', bookIdParam);
+    const lang = searchParams.get('lang');
+    if (lang) params.set('language', lang);
+    if (isKs) params.set('ks', '1');
+    const packageItemId = searchParams.get('package_item_id');
+    if (packageItemId) params.set('package_item_id', packageItemId);
+    const packageId = searchParams.get('package_id');
+    if (packageId) params.set('package_id', packageId);
+    if (fromCartItemId) params.set('fromCartItemId', fromCartItemId);
+    if (isHideOptions) params.set('hideOptions', '1');
+    if (searchParams.get('skipPrefillOptions') === '1') params.set('skipPrefillOptions', '1');
+    const coverType = searchParams.get('cover_type');
+    if (coverType) params.set('cover_type', coverType);
+    const bindingType = searchParams.get('binding_type');
+    if (bindingType) params.set('binding_type', bindingType);
+    return `/personalize?${params.toString()}`;
+  }, [searchParams, isKs, isHideOptions, isCartOptionEdit]);
+
+  const previewBackLabel = isCartOptionEdit
+    ? 'Back to shopping cart'
+    : activeTab === 'Others' && !hideOthers
+      ? 'Back to the preview page'
+      : 'Back to edit';
+
+  const showBackToPreviewPage = activeTab === 'Others' && !hideOthers && !isCartOptionEdit;
+
+  const handlePreviewBackToBookPreview = useCallback(() => {
+    setActiveTab('Book preview');
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [setActiveTab]);
+
+  const showViewModeToggle = activeTab === 'Book preview';
+
+  const previewBottomButtonLabel =
+    hideOthers || activeTab === 'Book preview' ? 'Complete My Book' : 'Continue to Checkout';
+
+  const hidePreviewBottomBar = editField === 'giver' || pendingMomDrawingFile;
+
+  return (
+    <div className="min-h-screen bg-[#F8F8F8]">
+      <style>{`
         @keyframes dreamazeMissingPulse {
           0%, 100% { box-shadow: 0 0 0 rgba(207, 15, 2, 0.18); }
           50% { box-shadow: 0 0 28px rgba(207, 15, 2, 0.22); }
@@ -4942,10 +4886,6 @@ export default function PreviewPageWithTopNav() {
         @keyframes dreamazeMissingButtonPulse {
           0%, 100% { box-shadow: 0 0 0 rgba(207, 15, 2, 0.12); }
           50% { box-shadow: 0 0 14px rgba(207, 15, 2, 0.24); }
-        }
-
-        .dreamaze-next-shake {
-          animation: dreamazeNextShake 0.45s ease-in-out;
         }
 
         .dreamaze-missing-section {
@@ -4967,34 +4907,63 @@ export default function PreviewPageWithTopNav() {
           animation: dreamazeMissingButtonPulse 0.9s ease-in-out 2;
         }
       `}</style>
-      <div className="w-full pt-0 px-4 md:mr-[280px] flex flex-col items-center pb-24 md:pb-0">
-        {/* 固定的导航栏：safe-area + 底部留白一并纳入测量，避免手机刘海/滚动定位遮挡 */}
-        <div
-          ref={previewFixedNavShellRef}
-          className="fixed top-0 left-0 pt-[calc(12px+env(safe-area-inset-top,0px))] pb-3 px-4 z-50 w-full md:w-[calc(100%-280px)] flex flex-col items-center"
-        >
-          <div className="w-[95%] mx-auto">
-            <TopNavBarWithTabs
-              activeTab={activeTab}
-              onTabChange={(tab) => {
-                if (hideOthers && tab === 'Others') return;
-                setActiveTab(tab);
-              }}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              hideOthers={hideOthers}
-            />
+      <div
+        ref={previewFixedNavShellRef}
+        className="h-12 bg-white flex items-center px-4 sm:px-32 md:fixed md:top-0 md:left-0 md:right-0 md:z-50"
+      >
+        <div className="relative flex items-center justify-between w-full sm:hidden">
+          {showBackToPreviewPage ? (
+            <button
+              type="button"
+              onClick={handlePreviewBackToBookPreview}
+              className="flex items-center text-gray-700 hover:text-blue-500"
+              aria-label={previewBackLabel}
+            >
+              <IoIosArrowBack size={24} />
+            </button>
+          ) : (
+            <Link
+              href={previewBackHref}
+              className="flex items-center text-gray-700 hover:text-blue-500"
+              aria-label={previewBackLabel}
+            >
+              <IoIosArrowBack size={24} />
+            </Link>
+          )}
+          <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center">
+            <span className="text-[#222222] text-[16px] leading-[24px] tracking-[0.15px] font-medium text-center truncate max-w-[200px]">
+              {previewHeaderTitle}
+            </span>
           </div>
+          {showViewModeToggle ? (
+            <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+          ) : (
+            <div className="w-6" />
+          )}
         </div>
+        <div className="hidden sm:flex items-center justify-between flex-1 min-w-0">
+          {showBackToPreviewPage ? (
+            <button
+              type="button"
+              onClick={handlePreviewBackToBookPreview}
+              className="flex items-center text-sm shrink-0"
+            >
+              <span className="mr-2">←</span> {previewBackLabel}
+            </button>
+          ) : (
+            <Link href={previewBackHref} className="flex items-center text-sm shrink-0">
+              <span className="mr-2">←</span> {previewBackLabel}
+            </Link>
+          )}
+          {showViewModeToggle ? (
+            <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+          ) : null}
+        </div>
+      </div>
 
+      <div className="mx-auto pb-[76px] md:pt-12 overflow-x-hidden">
         {activeTab === 'Book preview' ? (
-          <main
-            className={`flex-1 flex flex-col items-center justify-start w-full ${
-              viewMode === 'double'
-                ? 'pt-[calc(72px+env(safe-area-inset-top,0px))] md:pt-[calc(60px+env(safe-area-inset-top,0px))]'
-                : 'pt-[calc(72px+env(safe-area-inset-top,0px))]'
-            }`}
-          >
+          <main className="flex-1 flex flex-col items-center justify-start w-full">
             <h1 className="text-[28px] mt-2 mb-4 text-center w-full">Your book for {recipient?.trim()}</h1>
             
             {/* 书籍封面 */}
@@ -5762,7 +5731,7 @@ export default function PreviewPageWithTopNav() {
           </main>
         ) : (
           // Others 标签页内容
-          <main className="flex-1 flex flex-col items-center justify-center w-full gap-[64px] pt-[calc(72px+env(safe-area-inset-top,0px))]">
+          <main className="flex-1 flex flex-col items-center justify-center w-full gap-[64px]">
             {/* Book Cover Section */}
             <section ref={coverDesignRef} className="w-full mt-2 max-w-3xl mx-auto">
               <h1 className="text-[28px] text-center mb-2">Which cover will your little one love most?</h1>
@@ -6605,263 +6574,27 @@ export default function PreviewPageWithTopNav() {
         )}
       </div>
 
-      {/* 右侧侧边栏 */}
-      <aside className="hidden md:flex fixed right-0 top-0 h-full w-[280px] bg-white py-[64px]">
-        <div className="mx-auto flex flex-col justify-between h-full">
-          {/* 顶部区域：侧边栏条目 */}
-          <div className="flex flex-col gap-[4px] py-[24px]">
-            {sidebarItems.map((item, index) => {
-              const isActive = activeSection === item.id;
-              const isCompleted = completedSections[item.id as keyof typeof completedSections];
-              // 规则：激活 或 完成 都显示为蓝色，其余为灰色
-              const iconClass = (isActive || isCompleted) ? "w-full h-full text-[#012CCE]" : "w-full h-full text-[#CCCCCC]";
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => {
-                    if (item.id === "giver" || item.id === "dedication" || item.id === "momDrawing") {
-                      setActiveTab("Book preview");
-                    } else {
-                      setActiveTab("Others");
-                    }
-                    setTimeout(() => {
-                      scrollToSection(item.id);
-                    }, 100);
-                  }}
-                  className={`w-full flex flex-col cursor-pointer ${isActive ? 'font-medium' : 'font-normal'}`}
-                >
-                  {/* 图标和文本在同一行，左对齐 */}
-                  <div className="flex">
-                    {/* 图标及竖线容器 */}
-                    <div className="flex flex-col items-center">
-                      {/* 固定为 24x24 的图标 */}
-                      <div className="w-[24px] h-[24px] flex items-center justify-center">
-                        {completedSections[item.id as keyof typeof completedSections] ? (
-                          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1.5 3.5L5 7L11 1" stroke="#012CCE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        ) : React.cloneElement(item.icon, {
-                          className: `${item.icon.props.className ?? ""} ${iconClass}`,
-                        })}
-                      </div>
-                      {/* 除最后一项外，图标下方添加灰色竖线 */}
-                      {index !== sidebarItems.length - 1 && (
-                        <div className="w-px h-[60px] bg-[#CCCCCC] mt-1"></div>
-                      )}
-                    </div>
-                    {/* 文本标签，位于图标右侧并顶端对齐 */}
-                    <span className="ml-2 self-start">{item.label}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="mx-auto">
-            <button
-              onClick={handleContinue}
-              disabled={isAddingToCart}
-              className={`w-full px-6 py-2 rounded flex items-center justify-center ${
-                isAddingToCart 
-                  ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-[#222222] hover:bg-[#333333] cursor-pointer'
-              } text-[#F5E3E3] ${nextButtonFeedbackClass}`}
-            >
-              {isAddingToCart ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Adding to cart...
-                </>
-              ) : (
-                nextButtonLabel
-              )}
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      {/* status 面板展开时：仅背景页面变暗（不遮住吸底栏内容） */}
-      {mobileStatusOpen && (
-        <div
-          className="fixed inset-0 md:hidden z-40 bg-black/20"
-          onClick={() => setMobileStatusOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* 手机端吸底进度条和 Continue 按钮 */}
-      {/* 在 Giver 添加图片（裁剪弹窗打开）时隐藏该吸底条，避免与弹窗底部区域冲突 */}
+      {/* 吸底 Complete / Continue 按钮 */}
       <div
-        ref={mobileFixedBottomBarRef}
-        className={`fixed bottom-0 left-0 right-0 md:hidden z-50 bg-white border-t border-gray-200 ${
-          mobileStatusOpen ? '' : 'shadow-lg'
-        } ${editField === 'giver' || pendingMomDrawingFile ? 'hidden' : ''}`}
+        className={`fixed bottom-0 left-0 right-0 z-50 bg-white items-center justify-end h-[76px] pt-4 pb-4 gap-3 shadow-[0px_0px_16px_0px_#0000000D] ${
+          hidePreviewBottomBar ? 'hidden' : 'flex'
+        } px-4 md:px-[120px]`}
       >
-        {/* 状态面板（展开态） */}
-        {mobileStatusOpen && (
-          <div className="px-6 pt-6 pb-2 flex justify-center">
-            {(() => {
-              const statuses = isHideOptions
-                ? [
-                    { id: 'giver', label: 'Opening Photo', done: !!completedSections.giver },
-                    { id: 'dedication', label: 'Your Special Message', done: !!completedSections.dedication },
-                    ...(hasMomCompositePages ? [{ id: 'momDrawing', label: 'Your Drawing', done: !!completedSections.momDrawing }] : []),
-                  ]
-                : [
-                    { id: 'giver', label: 'Opening Photo', done: !!completedSections.giver },
-                    { id: 'dedication', label: 'Your Special Message', done: !!completedSections.dedication },
-                    ...(hasMomCompositePages ? [{ id: 'momDrawing', label: 'Your Drawing', done: !!completedSections.momDrawing }] : []),
-                    { id: 'coverDesign', label: 'Cover Design', done: !!completedSections.coverDesign },
-                    { id: 'binding', label: 'Book Format', done: !!completedSections.binding },
-                    { id: 'giftBox', label: 'Add Extras', done: !!completedSections.giftBox },
-                  ];
-
-              const firstIncomplete = statuses.findIndex(s => !s.done);
-              const activeIndex = firstIncomplete === -1 ? statuses.length - 1 : firstIncomplete;
-
-              return (
-                <div className="bg-white w-full max-w-[320px]">
-                  {/* 让“圆点+文字”这一组整体居中 */}
-                  <div className="flex flex-col items-center">
-                    {statuses.map((s, idx) => {
-                      const isActive = idx === activeIndex;
-                      const isCompleted = !!s.done;
-                      const isBlueDot = isActive || isCompleted;
-                      const dotClass = isBlueDot ? 'bg-[#012CCE]' : 'bg-gray-300';
-                      // 竖线：每个“蓝点”后面的第一段线都应该是蓝色（线段跟随左侧点）
-                      const lineClass = isBlueDot ? 'bg-[#012CCE]' : 'bg-gray-200';
-                      return (
-                        <div key={s.id} className="flex gap-3 justify-center">
-                          <div className="flex flex-col items-center pt-2 flex-none">
-                            <div className={`w-2 h-2 rounded-full ${dotClass}`} />
-                            {idx < statuses.length - 1 && <div className={`w-px h-5 mt-2 ${lineClass}`} />}
-                          </div>
-                          <div className="w-[170px]">
-                            <div className="text-[16px] leading-[24px] tracking-[0.15px] font-medium text-[#222222] text-start">
-                              {s.label}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-        )}
-
-        {/* 进度指示器 */}
-        <div className="flex items-center justify-center px-4 pt-4 pb-2">
-          {(() => {
-            const steps = isHideOptions
-              ? [
-                  { id: 'giver', completed: completedSections.giver },
-                  { id: 'dedication', completed: completedSections.dedication },
-                  ...(hasMomCompositePages ? [{ id: 'momDrawing', completed: completedSections.momDrawing }] : []),
-                ]
-              : [
-                  { id: 'giver', completed: completedSections.giver },
-                  { id: 'dedication', completed: completedSections.dedication },
-                  ...(hasMomCompositePages ? [{ id: 'momDrawing', completed: completedSections.momDrawing }] : []),
-                  { id: 'coverDesign', completed: completedSections.coverDesign },
-                  { id: 'binding', completed: completedSections.binding },
-                  { id: 'giftBox', completed: completedSections.giftBox },
-                ];
-
-            // 和 status 面板保持一致：当前步骤（第一个未完成）也显示为蓝色
-            const firstIncomplete = steps.findIndex(s => !s.completed);
-            const activeIndex = firstIncomplete === -1 ? steps.length - 1 : firstIncomplete;
-            
-            return (
-              <div className="flex items-center w-full">
-                <div className="flex items-center flex-1">
-                  {steps.map((step, index) => (
-                    <React.Fragment key={step.id}>
-                      {(() => {
-                        const isBlueDot = step.completed || index === activeIndex;
-                        const dotColor = isBlueDot ? 'bg-[#012CCE]' : 'bg-gray-300';
-                        // 横线：每个“蓝点”后面的第一段线都应该是蓝色（线段跟随左侧点）
-                        const lineColor = isBlueDot ? 'bg-[#012CCE]' : 'bg-gray-300';
-                        return (
-                          <>
-                      <div
-                        className={`w-2 h-2 rounded-full ${dotColor}`}
-                      />
-                      {index < steps.length - 1 && (
-                        <div
-                          className={`h-0.5 flex-1 mx-3 ${
-                            // 横线也跟随“完成/当前”变蓝
-                            lineColor
-                          }`}
-                        />
-                      )}
-                          </>
-                        );
-                      })()}
-                    </React.Fragment>
-                  ))}
-                </div>
-
-                {/* 右侧箭头（展开/收起状态面板） */}
-                <button
-                  type="button"
-                  className="ml-3 text-gray-400"
-                  aria-label={mobileStatusOpen ? 'Collapse status' : 'Expand status'}
-                  onClick={() => setMobileStatusOpen(v => !v)}
-                >
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`transition-transform duration-200 ${mobileStatusOpen ? 'rotate-180' : ''}`}
-                  >
-                    <path
-                      d="M6 14L12 8L18 14"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-              </div>
-            );
-          })()}
-        </div>
-
-        {/* Continue / Review 按钮 */}
-        <div className="px-4 pb-4">
-          {canProceedToReview ? (
-            <button
-              onClick={handleContinue}
-              disabled={isAddingToCart}
-              className={`w-full py-3 rounded-lg font-medium text-base ${
-                isAddingToCart
-                  ? 'bg-gray-400 cursor-not-allowed text-white'
-                  : 'bg-gray-900 text-white'
-              } ${nextButtonFeedbackClass}`}
-            >
-              {isAddingToCart ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
-                  Adding to cart...
-                </>
-              ) : (
-                nextButtonLabel
-              )}
-            </button>
+        <button
+          type="button"
+          onClick={handleContinue}
+          disabled={isAddingToCart}
+          className="bg-[#222222] text-[#F5E3E3] h-[44px] w-full md:w-auto md:min-w-[220px] px-8 rounded hover:bg-[#333333] disabled:bg-gray-400 disabled:cursor-not-allowed text-[16px] leading-[24px] tracking-[0.5px] flex items-center justify-center gap-2"
+        >
+          {isAddingToCart ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#F5E3E3]" />
+              Adding to cart...
+            </>
           ) : (
-            <button
-              onClick={focusFirstMissingContinueSection}
-              className={`w-full bg-gray-900 text-white py-3 rounded-lg font-medium text-base ${nextButtonFeedbackClass}`}
-            >
-              Continue
-            </button>
+            previewBottomButtonLabel
           )}
-        </div>
+        </button>
       </div>
 
       {guestUploadRateLimitError && (
