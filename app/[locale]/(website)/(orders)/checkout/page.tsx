@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Loading from "../../components/Loading";
@@ -18,6 +18,9 @@ import { useShippingAddress } from "./hooks/useShippingAddress";
 import { useShippingMethod } from "./hooks/useShippingMethod";
 import { CheckoutProvider } from "./context/CheckoutContext";
 import { fbTrack, getContentIdBySpu, trackBeginCheckout, trackAddToCart } from "@/utils/track";
+import api from "@/utils/api";
+import { API_CART_CALCULATE_COST } from "@/constants/api";
+import { ApiResponse } from "@/types/api";
 
 // Track InitiateCheckout only once per page load
 let initiateCheckoutTracked = false;
@@ -130,8 +133,33 @@ function CheckoutPageContent() {
     setShowShippingForm(true);
   };
 
+  const [removingCoupon, setRemovingCoupon] = useState(false);
+
   const handleApplyCoupon = async (_couponCode: string) => {
     // TODO: Implement coupon logic
+  };
+
+  const handleRemoveCoupon = async () => {
+    if (!orderDetail) return;
+    setRemovingCoupon(true);
+    try {
+      const cartItemIds = orderDetail.items.map((item: any) => item.id);
+      const { data, success } = await api.post<ApiResponse>(
+        API_CART_CALCULATE_COST,
+        { cart_item_ids: cartItemIds }
+      );
+      if (success && data) {
+        setOrderDetail({
+          ...orderDetail,
+          ...data,
+          coupon_code: '',
+        });
+      }
+    } catch (err) {
+      console.error('Failed to remove coupon:', err);
+    } finally {
+      setRemovingCoupon(false);
+    }
   };
 
   const isSameAddress = (addr1: Address, addr2: Address) => {
@@ -308,6 +336,8 @@ function CheckoutPageContent() {
             <OrderSummary
               orderDetail={orderDetail}
               handleApplyCoupon={handleApplyCoupon}
+              handleRemoveCoupon={handleRemoveCoupon}
+              removingCoupon={removingCoupon}
             />
           </div>
         </div>
