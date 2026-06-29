@@ -3,8 +3,7 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Cropper } from 'react-cropper';
 import type { ReactCropperElement } from 'react-cropper';
-import type { AxiosResponse } from 'axios';
-import { uploadApi } from '@/utils/api.js';
+import EasyCrop, { type Area } from 'react-easy-crop';
 import api from '@/utils/api';
 import { getApiOrigin } from '@/utils/apiBaseUrl';
 import { MdRotateLeft, MdRotateRight, MdFlip, MdRefresh } from '@/utils/icons';
@@ -57,7 +56,7 @@ type Props = {
 const CROPPER_COPY: Record<'personalize' | 'openingPage', { title: string; subtitle: string }> = {
   personalize: {
     title: 'Add image',
-    subtitle: 'Please crop the image and keep only the head for best results.',
+    subtitle: 'Place the full head inside the circle',
   },
   openingPage: {
     title: 'Add a Photo for the Opening Page of Your Book',
@@ -158,6 +157,141 @@ function toAbsoluteUrl(raw: string): string {
   return `${getApiOrigin()}/${cleanPath}`;
 }
 
+const getRadianAngle = (degree: number) => (degree * Math.PI) / 180;
+
+const getSafeAreaSize = (width: number, height: number) =>
+  Math.ceil(Math.max(width, height) * Math.SQRT2);
+
+async function getCroppedCanvasFromArea(
+  imageSrc: string,
+  crop: Area,
+  rotation: number
+): Promise<HTMLCanvasElement> {
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Could not read this image.'));
+    img.src = imageSrc;
+  });
+
+  const rotationRad = getRadianAngle(rotation);
+  const safeSize = getSafeAreaSize(image.width, image.height);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Could not process this image.');
+
+  canvas.width = safeSize;
+  canvas.height = safeSize;
+  ctx.translate(safeSize / 2, safeSize / 2);
+  ctx.rotate(rotationRad);
+  ctx.translate(-safeSize / 2, -safeSize / 2);
+
+  const x = (safeSize - image.width) / 2;
+  const y = (safeSize - image.height) / 2;
+  ctx.drawImage(image, x, y);
+
+  const data = ctx.getImageData(
+    Math.round(x + crop.x),
+    Math.round(y + crop.y),
+    Math.round(crop.width),
+    Math.round(crop.height)
+  );
+
+  const out = document.createElement('canvas');
+  out.width = Math.round(crop.width);
+  out.height = Math.round(crop.height);
+  const outCtx = out.getContext('2d');
+  if (!outCtx) throw new Error('Could not process this image.');
+  outCtx.putImageData(data, 0, 0);
+  return out;
+}
+
+type PersonalizeCircleCropEditorProps = {
+  src: string;
+  isUploading: boolean;
+  isCropperReady: boolean;
+  onCancel: () => void;
+  onApply: () => void;
+  onReadyChange: (ready: boolean) => void;
+  cropStateRef: React.MutableRefObject<{ area: Area | null; rotation: number }>;
+};
+
+function PersonalizeCircleCropEditor({
+  src,
+  isUploading,
+  isCropperReady,
+  onCancel,
+  onApply,
+  onReadyChange,
+  cropStateRef,
+}: PersonalizeCircleCropEditorProps) {
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+
+  useEffect(() => {
+    onReadyChange(false);
+    cropStateRef.current = { area: null, rotation: 0 };
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+  }, [src, onReadyChange, cropStateRef]);
+
+  const handleCropComplete = useCallback(
+    (_: Area, croppedAreaPixels: Area) => {
+      cropStateRef.current = { area: croppedAreaPixels, rotation: 0 };
+      onReadyChange(true);
+    },
+    [cropStateRef, onReadyChange]
+  );
+
+  return (
+    <>
+      <div className="relative w-full aspect-square bg-[#111111] md:max-w-[400px] md:mx-auto">
+        <EasyCrop
+          image={src}
+          crop={crop}
+          zoom={zoom}
+          rotation={0}
+          aspect={1}
+          cropShape="round"
+          showGrid={false}
+          zoomWithScroll
+          restrictPosition
+          objectFit="cover"
+          onCropChange={setCrop}
+          onZoomChange={setZoom}
+          onCropComplete={handleCropComplete}
+          classes={{
+            containerClassName: '!absolute !inset-0',
+            cropAreaClassName: '!border-2 !border-white/90 !shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]',
+          }}
+        />
+      </div>
+
+      <div className="flex justify-end mt-3 gap-2 px-6 md:px-0">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={isUploading}
+          className="px-3 py-1 w-[120px] h-[44px] rounded border border-[#222222] text-[#222222] bg-white hover:bg-[#F5F5F5]"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={onApply}
+          disabled={isUploading || !isCropperReady}
+          className="px-3 py-1 w-[120px] h-[44px] rounded bg-black text-[#F5E3E3] disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {isUploading && (
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#F5E3E3] border-t-transparent" />
+          )}
+          {isUploading ? 'Loading...' : 'Apply'}
+        </button>
+      </div>
+    </>
+  );
+}
+
 export default function GiverAvatarCropper({
   onDone,
   onCancel,
@@ -175,9 +309,11 @@ export default function GiverAvatarCropper({
   uiVariant = 'openingPage',
 }: Props) {
   const { title: headerTitle, subtitle: headerSubtitle } = CROPPER_COPY[uiVariant];
+  const isPersonalizeCircle = uiVariant === 'personalize';
   const openLoginModal = useUserStore((s) => s.openLoginModal);
   const [src, setSrc] = useState<string | undefined>(initialSrc);
   const cropperRef = useRef<ReactCropperElement>(null);
+  const personalizeCropRef = useRef<{ area: Area | null; rotation: number }>({ area: null, rotation: 0 });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isApplyingRef = useRef(false);
   const [sx, setSx] = useState(1);
@@ -188,8 +324,10 @@ export default function GiverAvatarCropper({
   const [rateLimitError, setRateLimitError] = useState<UploadRateLimitError | null>(null);
 
   useEffect(() => {
-    setIsCropperReady(false);
-  }, [src]);
+    if (!isPersonalizeCircle) {
+      setIsCropperReady(false);
+    }
+  }, [src, isPersonalizeCircle]);
 
   // 如果有initialSrc，直接使用；否则在组件挂载时自动触发文件选择器
   useEffect(() => {
@@ -309,87 +447,112 @@ export default function GiverAvatarCropper({
     return imageUrl;
   };
 
+  const scaleCanvasToMaxSize = (canvas: HTMLCanvasElement, limit?: number) => {
+    if (!limit || (canvas.width <= limit && canvas.height <= limit)) {
+      return canvas;
+    }
+    const ratio = Math.min(limit / canvas.width, limit / canvas.height);
+    const targetW = Math.round(canvas.width * ratio);
+    const targetH = Math.round(canvas.height * ratio);
+    const scaled = document.createElement('canvas');
+    scaled.width = targetW;
+    scaled.height = targetH;
+    const ctx = scaled.getContext('2d');
+    if (ctx) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(canvas, 0, 0, targetW, targetH);
+    }
+    return scaled;
+  };
+
+  const exportCanvas = (canvas: HTMLCanvasElement) => {
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        isApplyingRef.current = false;
+        setIsUploading(false);
+        setError('Could not export this image. Please try again or choose a smaller image.');
+        return;
+      }
+      try {
+        if (resultMode === 'file') {
+          const file = new File(
+            [blob],
+            'cropped-image.' + (exportMime === 'image/png' ? 'png' : exportMime === 'image/webp' ? 'webp' : 'jpg'),
+            { type: exportMime }
+          );
+          if (onDoneFile) {
+            await onDoneFile(file);
+          }
+        } else {
+          if (!spu || page === undefined || page === null) {
+            throw new Error('Missing required parameters: spu or page');
+          }
+          const base64Data = await blobToBase64(blob);
+          const url = await uploadSpecialImage(base64Data);
+          onDone(url);
+        }
+      } catch (e: unknown) {
+        const uploadRateLimitError = getUploadRateLimitError(e);
+        if (uploadRateLimitError) {
+          setRateLimitError(uploadRateLimitError);
+          setError(null);
+        } else {
+          setError(e instanceof Error ? e.message : 'Upload failed');
+        }
+      } finally {
+        isApplyingRef.current = false;
+        setIsUploading(false);
+        if (src) URL.revokeObjectURL(src);
+      }
+    }, exportMime, exportQuality);
+  };
+
   const onApply = async () => {
     if (isApplyingRef.current) return;
-    const cropper = cropperRef.current?.cropper;
-    if (!cropper || !isCropperReady) {
-      setError('Image is still loading. Please try again in a moment.');
-      return;
-    }
     isApplyingRef.current = true;
     setIsUploading(true);
     setError(null);
     setRateLimitError(null);
+
     try {
-      // 获取裁剪结果：支持固定导出尺寸（outputSize），否则可选 maxSize 限制
-      const cropOpts: any = { imageSmoothingEnabled: true, imageSmoothingQuality: 'high' };
-      const hasOutputSize = !!(outputSize?.width && outputSize?.height);
-      if (hasOutputSize) {
-        cropOpts.width = outputSize!.width;
-        cropOpts.height = outputSize!.height;
-      }
-      let canvas: HTMLCanvasElement | null = cropper.getCroppedCanvas(cropOpts);
-      if (!canvas || !canvas.width || !canvas.height) {
-        throw new Error('Could not process this image. Please try again or choose a smaller JPG, PNG, or WebP image.');
-      }
-      if (!hasOutputSize) {
-        // 限制最大导出尺寸（如果配置了 maxSize）
-        if (maxSize && (canvas.width > maxSize || canvas.height > maxSize)) {
-          const ratio = Math.min(maxSize / canvas.width, maxSize / canvas.height);
-          const targetW = Math.round(canvas.width * ratio);
-          const targetH = Math.round(canvas.height * ratio);
-          const scaled = document.createElement('canvas');
-          scaled.width = targetW;
-          scaled.height = targetH;
-          const ctx = scaled.getContext('2d');
-          if (ctx) {
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            ctx.drawImage(canvas, 0, 0, targetW, targetH);
-          }
-          canvas = scaled;
+      let canvas: HTMLCanvasElement | null = null;
+
+      if (isPersonalizeCircle) {
+        const { area, rotation } = personalizeCropRef.current;
+        if (!area || !src || !isCropperReady) {
+          throw new Error('Image is still loading. Please try again in a moment.');
+        }
+        canvas = await getCroppedCanvasFromArea(src, area, rotation);
+        canvas = scaleCanvasToMaxSize(canvas, maxSize);
+      } else {
+        const cropper = cropperRef.current?.cropper;
+        if (!cropper || !isCropperReady) {
+          throw new Error('Image is still loading. Please try again in a moment.');
+        }
+        const cropOpts: { imageSmoothingEnabled: boolean; imageSmoothingQuality: 'high'; width?: number; height?: number } = {
+          imageSmoothingEnabled: true,
+          imageSmoothingQuality: 'high',
+        };
+        const hasOutputSize = !!(outputSize?.width && outputSize?.height);
+        if (hasOutputSize) {
+          cropOpts.width = outputSize!.width;
+          cropOpts.height = outputSize!.height;
+        }
+        canvas = cropper.getCroppedCanvas(cropOpts);
+        if (!canvas || !canvas.width || !canvas.height) {
+          throw new Error('Could not process this image. Please try again or choose a smaller JPG, PNG, or WebP image.');
+        }
+        if (!hasOutputSize) {
+          canvas = scaleCanvasToMaxSize(canvas, maxSize);
         }
       }
 
-      canvas.toBlob(async (blob) => {
-        if (!blob) {
-          isApplyingRef.current = false;
-          setIsUploading(false);
-          setError('Could not export this image. Please try again or choose a smaller image.');
-          return;
-        }
-        try {
-          if (resultMode === 'file') {
-            // 个性化页面：直接返回裁剪后的 File，由外部自行上传/转 dataURL
-            const file = new File([blob], 'cropped-image.' + (exportMime === 'image/png' ? 'png' : exportMime === 'image/webp' ? 'webp' : 'jpg'), {
-              type: exportMime,
-            });
-            if (onDoneFile) {
-              await onDoneFile(file);
-            }
-          } else {
-            // 预览页面：统一使用特殊图片上传接口（需要 spu + page）
-            if (!spu || page === undefined || page === null) {
-              throw new Error('Missing required parameters: spu or page');
-            }
-            const base64Data = await blobToBase64(blob);
-            const url = await uploadSpecialImage(base64Data);
-            onDone(url);
-          }
-        } catch (e: unknown) {
-          const uploadRateLimitError = getUploadRateLimitError(e);
-          if (uploadRateLimitError) {
-            setRateLimitError(uploadRateLimitError);
-            setError(null);
-          } else {
-            setError(e instanceof Error ? e.message : 'Upload failed');
-          }
-        } finally {
-          isApplyingRef.current = false;
-          setIsUploading(false);
-          if (src) URL.revokeObjectURL(src);
-        }
-      }, exportMime, exportQuality);
+      if (!canvas || !canvas.width || !canvas.height) {
+        throw new Error('Could not process this image. Please try again or choose a smaller JPG, PNG, or WebP image.');
+      }
+
+      exportCanvas(canvas);
     } catch (e: unknown) {
       isApplyingRef.current = false;
       setIsUploading(false);
@@ -404,114 +567,134 @@ export default function GiverAvatarCropper({
   };
 
   return (
-    <div className="w-full max-w-[860px]">
+    <div className={`w-full ${isPersonalizeCircle ? 'max-w-none md:max-w-[860px]' : 'max-w-[860px]'}`}>
       {src && (
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col gap-2">
+        <div className={isPersonalizeCircle ? 'px-6 md:px-0' : ''}>
+          <div className="flex items-center justify-between gap-3">
             <h2 className="text-lg font-semibold">{headerTitle}</h2>
-            <p className="text-gray-500">{headerSubtitle}</p>
+            <button
+              type="button"
+              className="shrink-0 text-xl leading-none text-gray-500 hover:text-gray-700"
+              onClick={onCancel}
+              aria-label="Close"
+            >
+              &#x2715;
+            </button>
           </div>
-          <button className="text-xl text-gray-500 hover:text-gray-700" onClick={onCancel}>&#x2715;</button>
+          <p className="text-gray-500 mt-2">{headerSubtitle}</p>
         </div>
       )}
 
       <div className="mt-4 hidden">
-        <input 
+        <input
           ref={fileInputRef}
-          type="file" 
+          type="file"
           accept={ACCEPTED_IMAGE_ACCEPT}
-          onChange={onFile} 
+          onChange={onFile}
         />
       </div>
 
       {src && (
-        <div className="mt-4">
-          <div className="h-[400px]">
-            <Cropper
+        <div className={isPersonalizeCircle ? 'mt-4' : 'mt-4'}>
+          {isPersonalizeCircle ? (
+            <PersonalizeCircleCropEditor
               src={src}
-              style={{ height: 400, width: '100%' }}
-              ref={cropperRef}
-              viewMode={1}
-              dragMode="move"
-              guides
-              background={false}
-              autoCropArea={1}
-              checkOrientation={true}
-              // Cropper.js：aspectRatio 默认为 NaN（即自由裁剪）
-              aspectRatio={(typeof aspectRatio === 'number' ? aspectRatio : Number.NaN) as any}
-              ready={() => setIsCropperReady(true)}
-              zoomable
-              movable
-              rotatable
-              scalable
+              isUploading={isUploading}
+              isCropperReady={isCropperReady}
+              onCancel={onCancel}
+              onApply={onApply}
+              onReadyChange={setIsCropperReady}
+              cropStateRef={personalizeCropRef}
             />
-          </div>
+          ) : (
+            <>
+              <div className="h-[400px]">
+                <Cropper
+                  src={src}
+                  style={{ height: 400, width: '100%' }}
+                  ref={cropperRef}
+                  viewMode={1}
+                  dragMode="move"
+                  guides
+                  background={false}
+                  autoCropArea={1}
+                  checkOrientation={true}
+                  aspectRatio={(typeof aspectRatio === 'number' ? aspectRatio : Number.NaN) as any}
+                  ready={() => setIsCropperReady(true)}
+                  zoomable
+                  movable
+                  rotatable
+                  scalable
+                />
+              </div>
 
-          <div className="flex flex-col items-center gap-2 mt-3">
-            <div className="flex bg-[#F8F8F8] items-center py-[6px] px-[12px] gap-[21px]">
-              <button 
-                onClick={rotateLeft} 
-                className="p-2 rounded hover:bg-gray-100 transition-colors"
-                title="Rotate Left"
-                aria-label="Rotate Left"
-              >
-                <MdRotateLeft className="w-6 h-6" />
-              </button>
-              <button 
-                onClick={rotateRight} 
-                className="p-2 rounded hover:bg-gray-100 transition-colors"
-                title="Rotate Right"
-                aria-label="Rotate Right"
-              >
-                <MdRotateRight className="w-6 h-6" />
-              </button>
-              <button 
-                onClick={flipH} 
-                className="p-2 rounded hover:bg-gray-100 transition-colors"
-                title="Flip Horizontal"
-                aria-label="Flip Horizontal"
-              >
-                <MdFlip className="w-6 h-6" style={{ transform: 'scaleX(-1)' }} />
-              </button>
-              <button 
-                onClick={flipV} 
-                className="p-2 rounded hover:bg-gray-100 transition-colors"
-                title="Flip Vertical"
-                aria-label="Flip Vertical"
-              >
-                <MdFlip className="w-6 h-6" style={{ transform: 'rotate(90deg) scaleX(-1)' }} />
-              </button>
-              <button 
-                onClick={resetAll} 
-                className="p-2 rounded hover:bg-gray-100 transition-colors"
-                title="Reset"
-                aria-label="Reset"
-              >
-                <MdRefresh className="w-6 h-6" />
-              </button>
-            </div>
-          </div>
-          <div className="flex justify-end mt-3 gap-2">
-            <button
-              type="button"
-              onClick={onCancel}
-              disabled={isUploading}
-              className="px-3 py-1 w-[120px] h-[44px] rounded border border-[#222222] text-[#222222] bg-white hover:bg-[#F5F5F5]"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={onApply}
-              disabled={isUploading || !isCropperReady}
-              className="px-3 py-1 w-[120px] h-[44px] rounded bg-black text-[#F5E3E3] disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isUploading && (
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#F5E3E3] border-t-transparent" />
-              )}
-              {isUploading ? 'Loading...' : 'Apply'}
-            </button>
-          </div>
+              <div className="flex flex-col items-center gap-2 mt-3">
+                <div className="flex bg-[#F8F8F8] items-center py-[6px] px-[12px] gap-[21px]">
+                  <button
+                    onClick={rotateLeft}
+                    className="p-2 rounded hover:bg-gray-100 transition-colors"
+                    title="Rotate Left"
+                    aria-label="Rotate Left"
+                  >
+                    <MdRotateLeft className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={rotateRight}
+                    className="p-2 rounded hover:bg-gray-100 transition-colors"
+                    title="Rotate Right"
+                    aria-label="Rotate Right"
+                  >
+                    <MdRotateRight className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={flipH}
+                    className="p-2 rounded hover:bg-gray-100 transition-colors"
+                    title="Flip Horizontal"
+                    aria-label="Flip Horizontal"
+                  >
+                    <MdFlip className="w-6 h-6" style={{ transform: 'scaleX(-1)' }} />
+                  </button>
+                  <button
+                    onClick={flipV}
+                    className="p-2 rounded hover:bg-gray-100 transition-colors"
+                    title="Flip Vertical"
+                    aria-label="Flip Vertical"
+                  >
+                    <MdFlip className="w-6 h-6" style={{ transform: 'rotate(90deg) scaleX(-1)' }} />
+                  </button>
+                  <button
+                    onClick={resetAll}
+                    className="p-2 rounded hover:bg-gray-100 transition-colors"
+                    title="Reset"
+                    aria-label="Reset"
+                  >
+                    <MdRefresh className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+              <div className="flex justify-end mt-3 gap-2">
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  disabled={isUploading}
+                  className="px-3 py-1 w-[120px] h-[44px] rounded border border-[#222222] text-[#222222] bg-white hover:bg-[#F5F5F5]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={onApply}
+                  disabled={isUploading || !isCropperReady}
+                  className="px-3 py-1 w-[120px] h-[44px] rounded bg-black text-[#F5E3E3] disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isUploading && (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#F5E3E3] border-t-transparent" />
+                  )}
+                  {isUploading ? 'Loading...' : 'Apply'}
+                </button>
+              </div>
+            </>
+          )}
           {rateLimitError && (
             <div
               className="fixed inset-0 z-[200] flex items-center justify-center bg-black/45 p-4"
@@ -556,7 +739,9 @@ export default function GiverAvatarCropper({
               </div>
             </div>
           )}
-          {error && <div className="text-red-600 mt-2">{error}</div>}
+          {error && (
+            <div className={`text-red-600 mt-2 ${isPersonalizeCircle ? 'px-6 md:px-0' : ''}`}>{error}</div>
+          )}
         </div>
       )}
     </div>

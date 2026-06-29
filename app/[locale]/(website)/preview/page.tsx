@@ -30,6 +30,7 @@ import { buildPreviewRenderPayload } from '@/utils/previewRenderPayload';
 import { getApiBaseUrl } from '@/utils/apiBaseUrl';
 import { getBirthdayCoverSeasonFromCharacterLike } from '@/utils/birthdayPersonalizeHelpers';
 import toast from 'react-hot-toast';
+import { IoCloseOutline, IoCheckmarkOutline } from '@/utils/icons';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
 import { BaseBook, DetailedBook } from '@/types/book';
 import { API_CART_LIST, API_CART_UPDATE } from '@/constants/api';
@@ -187,12 +188,14 @@ function parseMomDrawingPromptSectionId(sectionId: string): 'p5-6' | 'p27-28' | 
  * 正常路径使用固定壳 ref 的 getBoundingClientRect().bottom
  */
 const PREVIEW_FIXED_TOP_NAV_FALLBACK_PX = 12 + 48 + 12 + 47;
+/** 手机吸底进度条 + Continue 区域高度兜底（未测到 DOM 时） */
+const PREVIEW_MOBILE_BOTTOM_BAR_FALLBACK_PX = 12 + 40 + 12 + 52 + 16;
 
-/** 相对「Tab 下方可视区域」滚动：矮块按 anchorFraction 对齐（默认中线）；高于可视区的块顶对齐 */
+/** 相对「Tab 下方 ~ 吸底栏上方」可视区域滚动；可附带 ref 下方 companion 区域（如按钮行） */
 function scrollPreviewElementIntoComfortableCenter(
   el: HTMLElement,
   topInsetPx?: number,
-  opts?: { anchorFraction?: number },
+  opts?: { anchorFraction?: number; bottomInsetPx?: number; companionBelowPx?: number },
 ) {
   if (typeof window === 'undefined') return;
   const rect = el.getBoundingClientRect();
@@ -200,25 +203,42 @@ function scrollPreviewElementIntoComfortableCenter(
     typeof topInsetPx === 'number' && Number.isFinite(topInsetPx)
       ? topInsetPx
       : PREVIEW_FIXED_TOP_NAV_FALLBACK_PX;
+  const bottomInset = opts?.bottomInsetPx ?? 0;
+  const companionBelow = opts?.companionBelowPx ?? 0;
   const viewportH = window.innerHeight;
-  const visibleHeight = Math.max(0, viewportH - topInset);
+  const visibleHeight = Math.max(0, viewportH - topInset - bottomInset);
   const gap = 10;
-  const h = rect.height;
+  const effectiveBottom = rect.bottom + companionBelow;
+  const effectiveHeight = effectiveBottom - rect.top;
   const anchorFraction = opts?.anchorFraction ?? 0.5;
+  const maxBottomY = viewportH - bottomInset - gap;
 
   let delta: number;
-  if (h > visibleHeight - gap * 2) {
+  const fitsInVisibleBand = effectiveHeight <= visibleHeight - gap * 2;
+  if (!fitsInVisibleBand) {
+    // 高于可视区：顶对齐；仅在有 companion（如 giver 下方按钮）时再补底
     delta = rect.top - (topInset + gap);
+    if (companionBelow > 0) {
+      const projectedBottom = effectiveBottom - delta;
+      if (projectedBottom > maxBottomY) {
+        delta += projectedBottom - maxBottomY;
+      }
+    }
   } else {
     const visibleAnchorY = topInset + visibleHeight * anchorFraction;
-    const elementMidY = rect.top + h / 2;
+    const elementMidY = rect.top + effectiveHeight / 2;
     delta = elementMidY - visibleAnchorY;
     const maxDeltaKeepTopClear = rect.top - (topInset + gap);
     if (delta > maxDeltaKeepTopClear) {
       delta = maxDeltaKeepTopClear;
     }
+    const projectedBottom = effectiveBottom - delta;
+    if (projectedBottom > maxBottomY) {
+      delta += projectedBottom - maxBottomY;
+    }
   }
 
+  if (Math.abs(delta) < 1) return;
   window.scrollBy({ top: delta, behavior: 'smooth' });
 }
 
@@ -2997,6 +3017,8 @@ export default function PreviewPageWithTopNav() {
   const giftBoxRef = useRef<HTMLDivElement>(null);
   /** 固定 Tab 外层（含 safe-area、底部留白），用于滚动时精确扣除遮挡高度 */
   const previewFixedNavShellRef = useRef<HTMLDivElement>(null);
+  /** 手机端吸底进度条 + Continue 区域，用于滚动时扣除底部遮挡 */
+  const mobileFixedBottomBarRef = useRef<HTMLDivElement>(null);
   const missingPulseTimerRef = useRef<number | null>(null);
   const nextShakeTimerRef = useRef<number | null>(null);
   const [missingSection, setMissingSection] = useState<string | null>(null);
@@ -4231,7 +4253,10 @@ export default function PreviewPageWithTopNav() {
     handleUserDataProcessing();
   }, []);
 
-  const scrollPreviewTargetIntoComfortableCenter = useCallback((el: HTMLElement) => {
+  const scrollPreviewTargetIntoComfortableCenter = useCallback((
+    el: HTMLElement,
+    scrollOpts?: { companionBelowPx?: number; anchorFraction?: number },
+  ) => {
     const shell = previewFixedNavShellRef.current;
     const measuredBottom = shell?.getBoundingClientRect().bottom;
     const topInset =
@@ -4239,10 +4264,22 @@ export default function PreviewPageWithTopNav() {
         ? measuredBottom + 10
         : PREVIEW_FIXED_TOP_NAV_FALLBACK_PX;
 
-    let anchorFraction: number | undefined;
-    if (viewMode === 'double' && typeof window !== 'undefined') {
+    let anchorFraction: number | undefined = scrollOpts?.anchorFraction;
+    let bottomInsetPx = 0;
+    if (typeof window !== 'undefined') {
       try {
-        if (window.matchMedia('(min-width: 768px)').matches) {
+        const isMobile = !window.matchMedia('(min-width: 768px)').matches;
+        if (isMobile) {
+          const bar = mobileFixedBottomBarRef.current;
+          const barHeight = bar?.getBoundingClientRect().height;
+          bottomInsetPx =
+            typeof barHeight === 'number' && Number.isFinite(barHeight) && barHeight > 0
+              ? barHeight + 10
+              : PREVIEW_MOBILE_BOTTOM_BAR_FALLBACK_PX;
+          if (anchorFraction === undefined) {
+            anchorFraction = 0.38;
+          }
+        } else if (viewMode === 'double' && anchorFraction === undefined) {
           anchorFraction = 0.4;
         }
       } catch {
@@ -4250,11 +4287,11 @@ export default function PreviewPageWithTopNav() {
       }
     }
 
-    scrollPreviewElementIntoComfortableCenter(
-      el,
-      topInset,
-      anchorFraction !== undefined ? { anchorFraction } : undefined,
-    );
+    scrollPreviewElementIntoComfortableCenter(el, topInset, {
+      ...(anchorFraction !== undefined ? { anchorFraction } : {}),
+      bottomInsetPx,
+      ...(scrollOpts?.companionBelowPx ? { companionBelowPx: scrollOpts.companionBelowPx } : {}),
+    });
   }, [viewMode]);
 
   // 点击侧边栏项，滚动到对应部分
@@ -4277,7 +4314,20 @@ export default function PreviewPageWithTopNav() {
       default: break;
     }
     if (ref && ref.current) {
-      scrollPreviewTargetIntoComfortableCenter(ref.current);
+      let scrollOpts: { companionBelowPx?: number; anchorFraction?: number } | undefined;
+      if (sectionId === 'giver' && typeof window !== 'undefined') {
+        try {
+          if (!window.matchMedia('(min-width: 768px)').matches) {
+            scrollOpts = {
+              anchorFraction: 0.32,
+              ...(viewMode === 'single' ? { companionBelowPx: 56 } : {}),
+            };
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+      scrollPreviewTargetIntoComfortableCenter(ref.current, scrollOpts);
       setActiveSection(
         sectionId.startsWith(MOM_DRAWING_PROMPT_PREFIX) ? 'momDrawing' : sectionId,
       );
@@ -4286,8 +4336,6 @@ export default function PreviewPageWithTopNav() {
 
   const getMissingSectionToastMessage = (sectionId: string): string => {
     switch (sectionId) {
-      case 'giver':
-        return 'Add a photo on the opening page.';
       case 'dedication':
         return 'Click “Edit” to make it more personal.';
       case 'momDrawing:p5-6':
@@ -4334,7 +4382,8 @@ export default function PreviewPageWithTopNav() {
   };
 
   const isOptionalPromptSection = (sectionId: string) =>
-    sectionId === 'giver' || sectionId.startsWith(`${MOM_DRAWING_PROMPT_PREFIX}`);
+    sectionId === 'dedication' ||
+    sectionId.startsWith(`${MOM_DRAWING_PROMPT_PREFIX}`);
 
   const focusMissingSection = (sectionId: string, options?: { acknowledgeOptional?: boolean }) => {
     if (sectionId === "giver" || sectionId === "dedication" || sectionId.startsWith("momDrawing")) {
@@ -4361,10 +4410,10 @@ export default function PreviewPageWithTopNav() {
 
   // 各部分的完成状态判断
   const completedSections = {
-    // Opening Photo：可选，但会在用户第一次点 Next 时 soft prompt
+    // Opening Photo：可选，仅用于侧边栏/进度条展示
     giver: isNameOnBookCompleted,
-    // dedication：只有用户点击 Submit（或从后端/购物车回填了真实寄语）才算完成
-    dedication: isDedicationSubmitted,
+    // dedication：默认寄语始终展示，编辑为可选
+    dedication: true,
     momDrawing: isMomDrawingCompleted,
     ...Object.fromEntries(
       momDrawingPromptSectionIdsOrdered.map((id) => {
@@ -4387,14 +4436,6 @@ export default function PreviewPageWithTopNav() {
     missingSection === sectionId && isSectionStillMissing(sectionId)
       ? `dreamaze-missing-button ${isMissingSectionPulsing ? 'dreamaze-missing-button-pulse' : ''}`
       : '';
-  const renderMissingSectionPrompt = (sectionId: string) => {
-    if (sectionId !== 'dedication' || missingSection !== 'dedication' || completedSections.dedication) return null;
-    return (
-      <div className="mb-2 w-full text-center text-[14px] leading-[20px] font-medium text-[#CF0F02]">
-        Please add a dedication to continue ✨
-      </div>
-    );
-  };
   const getNextMissingSectionForPrompt = (sections: string[]) =>
     sections.find((sectionId) => {
       if (Boolean((completedSections as Record<string, boolean>)[sectionId])) return false;
@@ -4402,7 +4443,6 @@ export default function PreviewPageWithTopNav() {
     }) || null;
 
   const continuePromptSections = [
-    'giver',
     'dedication',
     ...momDrawingPromptSectionIdsOrdered,
     ...(isHideOptions ? [] : ['coverDesign', 'binding', 'giftBox']),
@@ -4546,7 +4586,7 @@ export default function PreviewPageWithTopNav() {
             ...(bindingKey ? { binding_type: bindingKey } : {}),
             ...(giftKey ? { giftbox: giftKey } : {}),
             delivery_notes: '',
-            gift_message: message.trim(),
+            gift_message: getGiftMessageForCart(),
             replace: false,
           },
         },
@@ -4586,7 +4626,7 @@ export default function PreviewPageWithTopNav() {
           ...(giftKey ? { giftbox: giftKey } : {}),
           ...(languageKey ? { language: languageKey } : {}),
           delivery_notes: '',
-          gift_message: message.trim(),
+          gift_message: getGiftMessageForCart(),
           replace: false,
         };
         await api.put(API_CART_UPDATE(Number(fromCartItemId)), {
@@ -4807,6 +4847,37 @@ export default function PreviewPageWithTopNav() {
 
     setMessage(value);
   };
+
+  const openDedicationEditor = useCallback(() => {
+    setMessage(dedication);
+    setEditField('dedication');
+  }, [dedication, setEditField]);
+
+  const handleDedicationCancel = useCallback(() => {
+    setMessage(dedication);
+    setEditField(null);
+  }, [dedication, setEditField]);
+
+  const handleDedicationContinue = useCallback(() => {
+    const trimmed = message.trim();
+    const savedTrimmed = (dedication || '').trim();
+    if (trimmed !== savedTrimmed) {
+      messageUserTouchedRef.current = true;
+      setGuestUploadRateLimitError(null);
+      shouldUploadP34ComposedRef.current = true;
+      p34UploadCompletesNameOnBookRef.current = false;
+      p34ComposeUploadedRef.current = false;
+      p34LastComposedImageUrlRef.current = null;
+      setDedication(message);
+      setIsDedicationSubmitted(true);
+    }
+    setEditField(null);
+  }, [dedication, message, setDedication, setEditField]);
+
+  const getGiftMessageForCart = useCallback(
+    () => (isDedicationSubmitted ? message.trim() : ''),
+    [isDedicationSubmitted, message],
+  );
 
   //定义状态控制抽屉显示
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -5293,7 +5364,7 @@ export default function PreviewPageWithTopNav() {
                         : 'Add a favorite photo';
                       const dedicationButtonLabel = isDedicationSubmitted
                         ? 'Edit your message'
-                        : 'Make this message yours';
+                        : 'Write a dedication';
                       const upperBookId = (searchParams.get('bookid') || '').toUpperCase();
                       const giverImageScale =
                         upperBookId === 'PICBOOK_BRAVEY' ||
@@ -5390,10 +5461,9 @@ export default function PreviewPageWithTopNav() {
                                   )}
                                   rightBelow={(
                                     <div className="mt-2 w-full flex flex-col items-center">
-                                      {renderMissingSectionPrompt('dedication')}
                                       <button
                                         type="button"
-                                        onClick={() => setEditField('dedication')}
+                                        onClick={openDedicationEditor}
                                         className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
                                       >
                                         {dedicationButtonLabel}
@@ -5439,10 +5509,9 @@ export default function PreviewPageWithTopNav() {
                               )}
                               rightBelow={(
                                 <div className="mt-2 w-full flex flex-col items-center">
-                                  {renderMissingSectionPrompt('dedication')}
                                   <button
                                     type="button"
-                                    onClick={() => setEditField('dedication')}
+                                    onClick={openDedicationEditor}
                                     className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
                                   >
                                     {dedicationButtonLabel}
@@ -5469,10 +5538,9 @@ export default function PreviewPageWithTopNav() {
                             </button>
                           </div>
                           <div className="absolute bottom-[20%] right-0 w-1/2 flex flex-col items-center">
-                            {renderMissingSectionPrompt('dedication')}
                             <button
                               type="button"
-                              onClick={() => setEditField('dedication')}
+                              onClick={openDedicationEditor}
                               className={`pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
                             >
                               {dedicationButtonLabel}
@@ -5646,10 +5714,9 @@ export default function PreviewPageWithTopNav() {
                                   </button>
                                 </div>
                                 <div className="w-full flex flex-col items-center">
-                                  {renderMissingSectionPrompt('dedication')}
                                   <button
                                     type="button"
-                                    onClick={() => setEditField('dedication')}
+                                    onClick={openDedicationEditor}
                                     className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
                                   >
                                     {dedicationButtonLabel}
@@ -6466,19 +6533,33 @@ export default function PreviewPageWithTopNav() {
                 })()}
               </div>
             ) : (
-              // 寄语弹窗：不设死高，提示文案出现时白框随之增高；过高时在弹窗内滚动，避免 Submit 挤出
-              <div className="bg-white w-[600px] max-w-[95vw] min-h-[464px] max-h-[90vh] overflow-y-auto rounded-sm pt-6 pr-6 pb-3 pl-6 flex flex-col gap-7">
-                {/* 标题、关闭按钮和填写区域 */}
+              // 寄语弹窗：标题两侧 X / ✓；Cancel 丢弃本次修改，✓ 仅在文案变更时保存
+              <div className="bg-white w-[600px] max-w-[95vw] min-h-[400px] max-h-[90vh] overflow-y-auto rounded-sm pt-6 pr-6 pb-6 pl-6 flex flex-col gap-5">
                 <div className="w-full flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">Dedication</h2>
+                  <div className="flex items-center justify-between gap-3">
                     <button
-                      className="text-xl text-gray-500 hover:text-gray-700"
-                      onClick={() => setEditField(null)}
+                      type="button"
+                      onClick={handleDedicationCancel}
+                      aria-label="Cancel"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center text-[#222222] hover:text-gray-600"
                     >
-                      &#x2715;
+                      <IoCloseOutline className="text-2xl leading-none" />
+                    </button>
+                    <h2 className="flex-1 text-center text-lg font-semibold text-[#222222]">
+                      Make this message yours
+                    </h2>
+                    <button
+                      type="button"
+                      onClick={handleDedicationContinue}
+                      aria-label="Save message"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center text-[#222222] hover:text-gray-600"
+                    >
+                      <IoCheckmarkOutline className="text-2xl leading-none" />
                     </button>
                   </div>
+                  <p className="text-sm text-[#666666] leading-relaxed">
+                    Use our heartfelt message as a starting point, or replace it with your own words.
+                  </p>
                   <div className="flex text-gray-500 text-sm">
                     <span>
                       There&apos;s a {dedicationMaxLines} line limit (including blank lines)
@@ -6517,26 +6598,6 @@ export default function PreviewPageWithTopNav() {
                       )}
                     </div>
                   </div>
-                </div>
-                {/* 保存按钮 */}
-                <div className="flex justify-end mt-auto">
-                  <button
-                    className="bg-[#222222] text-[#F5E3E3] py-2 px-4 rounded-sm"
-                    onClick={() => {
-                      // Dedication 更新：通过同样接口上传「已合成（底图 + giver + dedication）」的 p3-4 图片
-                      messageUserTouchedRef.current = true;
-                      setGuestUploadRateLimitError(null);
-                      shouldUploadP34ComposedRef.current = true;
-                      p34UploadCompletesNameOnBookRef.current = false;
-                      p34ComposeUploadedRef.current = false;
-                      p34LastComposedImageUrlRef.current = null;
-                      setDedication(message);
-                      setIsDedicationSubmitted(true);
-                      setEditField(null);
-                    }}
-                  >
-                    Submit
-                  </button>
                 </div>
               </div>
             )}
@@ -6631,6 +6692,7 @@ export default function PreviewPageWithTopNav() {
       {/* 手机端吸底进度条和 Continue 按钮 */}
       {/* 在 Giver 添加图片（裁剪弹窗打开）时隐藏该吸底条，避免与弹窗底部区域冲突 */}
       <div
+        ref={mobileFixedBottomBarRef}
         className={`fixed bottom-0 left-0 right-0 md:hidden z-50 bg-white border-t border-gray-200 ${
           mobileStatusOpen ? '' : 'shadow-lg'
         } ${editField === 'giver' || pendingMomDrawingFile ? 'hidden' : ''}`}

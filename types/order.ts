@@ -63,6 +63,12 @@ export interface OrderDetail {
     non_package_original_total?: number;
   };
   coupon_code: string;
+  discount_breakdown?: DiscountBreakdownItem[];
+  coupon?: {
+    status: string;
+    code: string;
+    discount_amount: number;
+  };
   notes: string;
   stripe_payment_intent_id: string;
   stripe_client_secret: string;
@@ -91,6 +97,13 @@ export interface OrderDetail {
     can_update_address_except_country: boolean;
     can_pay: boolean;
   };
+}
+
+export interface DiscountBreakdownItem {
+  type: string;
+  label: string;
+  code: string;
+  amount: number;
 }
 
 export interface LogisticsData {

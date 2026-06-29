@@ -3,6 +3,8 @@
     "shoppingCart": "购物车",
     "noItemsSelected": "请至少选择一件商品以结账",
     "couponApplied": "优惠券已成功应用！",
+    "couponDiscount": "优惠券",
+    "applyingCoupon": "正在应用优惠券...",
     "invalidCoupon": "无效的优惠券代码",
     "loading": "正在加载您的购物车...",
     "emptyCart": "您的购物车为空",
@@ -208,6 +210,7 @@
       "transport": "运输",
       "receiveBooks": "收到书籍"
     },
+    "couponDiscount": "优惠券",
     "orderSummary": {
       "title": "订单摘要",
       "subtotal": "小计",

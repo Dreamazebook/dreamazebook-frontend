@@ -50,6 +50,13 @@ export default function ShoppingCartPage() {
     discountAmount,
     total,
     itemsCount,
+    couponApplied,
+    couponApplying,
+    couponError,
+    applyCoupon,
+    removeCoupon,
+    coupon,
+    couponCode,
   } = useOrderSummary({ selectedItems, onCartItemsUpdate: setCartItems });
 
   const {
@@ -58,7 +65,7 @@ export default function ShoppingCartPage() {
     error,
     setError,
     handleCheckout,
-  } = useCheckout({ selectedItems });
+  } = useCheckout({ selectedItems, couponCode });
 
   const fetchCartList = async () => {
     try {
@@ -338,6 +345,12 @@ export default function ShoppingCartPage() {
             checkoutLoading={checkoutLoading}
             paypalCheckoutLoading={paypalCheckoutLoading}
             onCheckout={handleCheckout}
+            couponApplied={couponApplied}
+            couponApplying={couponApplying}
+            couponError={couponError}
+            onApplyCoupon={applyCoupon}
+            onRemoveCoupon={removeCoupon}
+            coupon={coupon}
           />
         </div>
       </div>

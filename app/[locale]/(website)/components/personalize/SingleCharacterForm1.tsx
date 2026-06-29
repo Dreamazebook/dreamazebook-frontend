@@ -95,6 +95,8 @@ interface SingleCharacterForm1Props {
     dadTitle?: string;
     dadSkinColor?: string;
     dadQuestionAnswers?: Record<string, string>;
+    relationship?: string;
+    consent?: boolean;
   };
   bookId?: string;
   defaultConsentChecked?: boolean;
@@ -145,8 +147,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       fromWhom: initialData?.fromWhom ?? '',
       photo: initialData?.photo ? ({ path: initialData.photo.path } as any) : null,
       photos: [],
-      relationship: 'Parent/Guardian',
-      consent: !!defaultConsentChecked,
+      relationship: initialData?.relationship ?? 'Parent/Guardian',
+      consent: initialData?.consent ?? !!defaultConsentChecked,
       birthDate: parseBirthDateIso(initialData?.birthDate) ?? null,
       personalityTraitIds: initialData?.personalityTraitIds?.length
         ? [...initialData.personalityTraitIds]
@@ -1004,8 +1006,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
         )}
 
         {isCropperOpen && pendingPreviewUrl && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white w-[860px] max-w-[95vw] rounded-sm pt-6 pr-6 pb-4 pl-6 flex flex-col gap-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="bg-white w-full sm:w-[860px] sm:max-w-[95vw] sm:mx-auto rounded-sm overflow-hidden pt-6 pb-4 sm:px-6 max-h-[calc(100dvh-2rem)] overflow-y-auto">
               <GiverAvatarCropper
                 resultMode="file"
                 uiVariant="personalize"
