@@ -34,7 +34,8 @@ import toast from 'react-hot-toast';
 import { IoCloseOutline, IoCheckmarkOutline } from '@/utils/icons';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
 import { BaseBook, DetailedBook } from '@/types/book';
-import { API_CART_LIST, API_CART_UPDATE } from '@/constants/api';
+import { API_CART_LIST, API_CART_UPDATE, API_ORDER_CREATE } from '@/constants/api';
+import { ORDER_CHECKOUT_URL } from '@/constants/links';
 import DisplayPrice from '../components/component/DisplayPrice';
 import { fbTrack, getContentIdBySpu } from '@/utils/track';
 import { shouldBypassNextImageOptimization } from '@/utils/previewImageOptimization';
@@ -4390,10 +4391,10 @@ export default function PreviewPageWithTopNav() {
     }
   };
 
-  // 点击 Continue 按钮处理：添加到购物车
+  // 点击 Continue 按钮处理：创建订单并进入 checkout
   const handleContinue = async () => {
     try {
-      console.debug('[AddToCart] Clicked');
+      console.debug('[Checkout] Clicked');
       const fromCartItemId = searchParams.get('fromCartItemId');
       const firstPromptSection = getNextMissingSectionForPrompt(continuePromptSections);
 
@@ -4401,7 +4402,7 @@ export default function PreviewPageWithTopNav() {
         focusMissingSection(firstPromptSection, {
           acknowledgeOptional: isOptionalPromptSection(firstPromptSection),
         });
-        console.warn('[AddToCart] Blocked by incomplete section:', firstPromptSection);
+        console.warn('[Checkout] Blocked by incomplete section:', firstPromptSection);
         return;
       }
 
@@ -4438,11 +4439,11 @@ export default function PreviewPageWithTopNav() {
       // - 需要用户选择 Options 后，通过 /cart/add 更新当前购物车条目（不走“直接返回”快捷路径）
       // personalized-products（从购物车编辑进入）仍保持原行为：不再次 add-to-cart；仅返回购物车
       const skipPrefillOptions = searchParams.get('skipPrefillOptions') === '1';
-      console.debug('[AddToCart] completedSections:', completedSections);
+      console.debug('[Checkout] completedSections:', completedSections);
 
       // 检查是否有预览数据（现在 preview_id 等于 batch_id，做兼容）
       const effectivePreviewId = previewData?.preview_id ?? (previewData as any)?.batch_id;
-      console.debug('[AddToCart] preview_id:', previewData?.preview_id, 'batch_id:', (previewData as any)?.batch_id, 'effective:', effectivePreviewId);
+      console.debug('[Checkout] preview_id:', previewData?.preview_id, 'batch_id:', (previewData as any)?.batch_id, 'effective:', effectivePreviewId);
       if (!effectivePreviewId) {
         return;
       }
@@ -4465,7 +4466,7 @@ export default function PreviewPageWithTopNav() {
         return item?.option_key ?? String(id);
       };
 
-      // 构建添加到购物车的数据
+      // 构建加购数据（/cart/add 与 create-order 前置步骤共用）
       const coverKey = getCoverKey(selectedBookCover);
       const bindingKey = getBindingKey(selectedBinding);
       const giftKey = getGiftBoxKey(selectedGiftBox);
@@ -4473,8 +4474,7 @@ export default function PreviewPageWithTopNav() {
       // 获取 old_preview_id（使用保存的原始 previewid，而不是当前 URL 中可能已更新的 previewid）
       // 如果存在原始 previewid，说明是从 edit 或 add additional product 进入的，需要携带 old_preview_id
       const oldPreviewId = originalPreviewIdRef.current;
-      
-      // 统一使用 POST /cart/add，后端会根据 old_preview_id 判断是更新还是新增
+
       const cartData: CartAddRequest = {
         preview_id: effectivePreviewId as any,
         ...(oldPreviewId ? { old_preview_id: oldPreviewId } : {}),
@@ -4491,26 +4491,6 @@ export default function PreviewPageWithTopNav() {
         },
       };
 
-      // 打印将要调用的购物车接口（区分 /cart/add vs /cart/{id} 更新）
-      console.log('调用购物车API:', fromCartItemId ? {
-        url: API_CART_UPDATE(Number(fromCartItemId)),
-        method: 'PUT',
-        fromCartItemId,
-        skipPrefillOptions,
-        data: {
-          quantity: skipPrefillOptions ? 1 : undefined,
-          cover_style: coverKey,
-          binding_type: bindingKey,
-          giftbox: giftKey,
-        },
-      } : {
-        url: '/cart/add',
-        method: 'POST',
-        data: cartData,
-        hasOldPreviewId: !!oldPreviewId
-      });
-      
-      console.debug('[AddToCart] Sending request /cart/add with data:', cartData);
       // 购物车内（包括普通商品 & 详情页 bundle 里的商品）：更新 options 必须用 PUT /cart/{id}
       // 圣诞 bundle（hideOptions=1）不需要选择 option，且上方已走 regenerate-preview 分支，不在此处理。
       if (fromCartItemId) {
@@ -4538,12 +4518,12 @@ export default function PreviewPageWithTopNav() {
           // 嵌套（与 /cart/add 对齐）
           customization_data: { attributes: optionAttrs },
         });
-        
+
         // Track AddToCart for updated cart item (fromCartItemId path)
         if (!addToCartTrackedRef.current) {
           addToCartTrackedRef.current = true;
           const contentId = getContentIdBySpu(bookInfo);
-          
+
           if (contentId) {
             const cartValue = 0;
             fbTrack('AddToCart', {
@@ -4555,41 +4535,65 @@ export default function PreviewPageWithTopNav() {
             });
           }
         }
-        
+
         router.push('/shopping-cart');
         return;
       }
 
-      const response = await api.post('/cart/add', cartData) as ApiResponse<CartAddResponse>;
-      console.debug('[AddToCart] Response:', response);
+      // Step 1: 加入购物车
+      console.debug('[Checkout] Sending request /cart/add with data:', cartData);
+      const addResponse = await api.post('/cart/add', cartData) as ApiResponse<CartAddResponse>;
+      console.debug('[Checkout] /cart/add response:', addResponse);
 
-      if (response.success) {
-        // Track AddToCart for successful cart addition
-        if (!addToCartTrackedRef.current) {
-          addToCartTrackedRef.current = true;
-          const contentId = getContentIdBySpu(bookInfo);
-          
-          if (contentId) {
-            const cartValue = 0;
-            
-            fbTrack('AddToCart', {
-              value: cartValue,
-              currency: 'USD',
-              content_ids: [contentId],
-              content_type: 'product',
-              contents: [{ id: contentId, quantity: 1 }]
-            });
-          }
+      if (!addResponse.success) {
+        return;
+      }
+
+      const cartItemId = addResponse.data?.id ?? addResponse.data?.cart_item_id;
+      if (!cartItemId) {
+        console.error('[Checkout] Missing cart item id from /cart/add response');
+        return;
+      }
+
+      if (!addToCartTrackedRef.current) {
+        addToCartTrackedRef.current = true;
+        const contentId = getContentIdBySpu(bookInfo);
+
+        if (contentId) {
+          fbTrack('AddToCart', {
+            value: 0,
+            currency: 'USD',
+            content_ids: [contentId],
+            content_type: 'product',
+            contents: [{ id: contentId, quantity: 1 }]
+          });
         }
-        
-        // 跳转到购物车页面
-        router.push(`/shopping-cart?selected_cart_id=${response?.data?.id}`);
-      } else {
-        //toast.error(response.message || (oldPreviewId ? '更新购物车失败' : '添加到购物车失败'));
+      }
+
+      // Step 2: 创建订单（payload 与购物车页 useCheckout 一致）
+      const orderBody = {
+        cart_item_ids: [cartItemId],
+        payment_method: 'card' as const,
+      };
+      console.debug('[Checkout] Sending request /checkout/create-order with data:', orderBody);
+
+      const { success, code, data } = await api.post<ApiResponse<{ order: { id: number } }>>(
+        API_ORDER_CREATE,
+        orderBody
+      );
+      console.debug('[Checkout] /checkout/create-order response:', { success, code, data });
+
+      if (success) {
+        router.push(ORDER_CHECKOUT_URL(data!.order!.id) + '&paymentMethod=card');
+      } else if (code == 401) {
+        openLoginModal();
       }
     } catch (error: any) {
-      console.error('添加到购物车失败:', error);
-      //toast.error(error.response?.data?.message || '添加到购物车失败，请重试');
+      console.error('创建订单失败:', error);
+      if (error?.status == 401 || error?.response?.status == 401) {
+        openLoginModal();
+      }
+      //toast.error(error.response?.data?.message || '创建订单失败，请重试');
     } finally {
       setIsAddingToCart(false);
     }
@@ -6352,7 +6356,7 @@ export default function PreviewPageWithTopNav() {
                       {isAddingToCart ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Adding...
+                          Processing...
                         </>
                       ) : (
                         'Add to order'
@@ -6573,7 +6577,7 @@ export default function PreviewPageWithTopNav() {
           {isAddingToCart ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#F5E3E3]" />
-              Adding to cart...
+              Processing...
             </>
           ) : (
             previewBottomButtonLabel
