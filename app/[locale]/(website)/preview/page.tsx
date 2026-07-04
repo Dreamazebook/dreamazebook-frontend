@@ -1110,7 +1110,7 @@ interface BookOptions {
 export default function PreviewPageWithTopNav() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, openLoginModal } = useUserStore();
+  const { user, isLoggedIn, openLoginModal } = useUserStore();
   const t = useTranslations('Preview');
   // 严格以 URL 段判定展示语言，避免受到浏览器/cookie 影响
   const pathname = usePathname?.() as string;
@@ -1157,11 +1157,32 @@ export default function PreviewPageWithTopNav() {
     setEditField,
   } = useStore();
 
+  const [isMobilePreviewViewport, setIsMobilePreviewViewport] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const update = () => setIsMobilePreviewViewport(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+  const displayViewMode: 'single' | 'double' = isMobilePreviewViewport ? 'double' : viewMode;
+
   const previewStoreUserData = usePreviewStore((s) => s.userData);
+  const isGuest = !isLoggedIn;
+
+  const openPreviewUnlockLogin = useCallback(() => {
+    openLoginModal({
+      title: t('unlockFullBookTitle'),
+      description: t('unlockFullBookDescription'),
+      footerNote: t('unlockFullBookFooter'),
+      sendCodeButtonLabel: t('continueWithEmailCode'),
+    });
+  }, [openLoginModal, t]);
+
   const handleGuestRateLimitLogin = useCallback(() => {
     setGuestUploadRateLimitError(null);
-    openLoginModal();
-  }, [openLoginModal]);
+    openPreviewUnlockLogin();
+  }, [openPreviewUnlockLogin]);
 
   // KS 流程：通过查询参数关闭 Others 标签
   const isKs = searchParams.get('ks') === '1';
@@ -1492,9 +1513,6 @@ export default function PreviewPageWithTopNav() {
       }),
     [recipient, previewStoreUserData, previewData],
   );
-  // p7-8（Dad 书为 p13-14）展示完成后显示 sneak peek 提示文案
-  const [isSneakPeekNoticePageLoaded, setIsSneakPeekNoticePageLoaded] = useState(false);
-  const sneakPeekNoticePageIdRef = useRef<number | null>(null);
   // 顶部队列提示（原 “Your story is coming to life…”）：
   // - 依据 batch.queue.preview_pending 展示「Preparing / N books ahead / It’s your turn」
   // - 在 p3-4 还没出现在 preview_data 之前保持显示
@@ -1526,6 +1544,9 @@ export default function PreviewPageWithTopNav() {
   // p3-4 分层模型：缓存 giver 图片数据（data URL），用于 dedication 重绘时始终携带最新 giver
   const p34GiverDataRef = useRef<string | null>(null);
   const shouldUploadP34ComposedRef = useRef(false);
+  const previewBottomSentinelRef = useRef<HTMLDivElement>(null);
+  const guestPreviewHasScrolledRef = useRef(false);
+  const guestWasAtBottomRef = useRef(false);
   /** 仅「用户裁剪上传 Giver」触发的上传成功后才应勾选 Opening Photo；纯提交寄语不走此项 */
   const p34UploadCompletesNameOnBookRef = useRef(false);
   const p34ComposeUploadInFlightRef = useRef(false);
@@ -2257,23 +2278,6 @@ export default function PreviewPageWithTopNav() {
   const isCompleted = faceSwapStatus === 'completed';
   const isFailed = faceSwapStatus === 'failed';
 
-  // 底部 sneak peek 提示：等触发页预览图加载完成后再展示（Dad 书为 p13-14，其余为 p7-8）
-  const sneakPeekNoticePageId = useMemo(() => {
-    const pages = previewData?.preview_data ?? [];
-    const bookIdUpper = (searchParams.get('bookid') || '').toUpperCase();
-    const isDadBook = isPicbookDad(bookIdUpper);
-    const candidate = pages.find((p: any) => {
-      const code = normalizePreviewPageCode((p as any)?.page_code);
-      if (isDadBook) {
-        return code === 'p13-14' || code === 'p13-p14';
-      }
-      return code === 'p7-8' || code === 'p7-p8';
-    });
-    const id = candidate ? Number((candidate as any).page_id) : null;
-    if (!id || Number.isNaN(id)) return null;
-    return id;
-  }, [previewData?.preview_data, searchParams]);
-
   // p3-4：与下方 isGiverDedication 一致，用 page_code 定位
   const p34PageId = useMemo(() => {
     const pages = previewData?.preview_data ?? [];
@@ -2346,12 +2350,6 @@ export default function PreviewPageWithTopNav() {
     previewPendingFromBatch === 0 &&
     displayedPreviewPending === 0;
 
-  useEffect(() => {
-    if (sneakPeekNoticePageIdRef.current !== sneakPeekNoticePageId) {
-      sneakPeekNoticePageIdRef.current = sneakPeekNoticePageId;
-      setIsSneakPeekNoticePageLoaded(false);
-    }
-  }, [sneakPeekNoticePageId]);
   useEffect(() => {
     if (storyComingTargetPageIdRef.current !== pageIdForStoryComingHide) {
       storyComingTargetPageIdRef.current = pageIdForStoryComingHide;
@@ -4203,7 +4201,7 @@ export default function PreviewPageWithTopNav() {
         const isMobile = !window.matchMedia('(min-width: 768px)').matches;
         if (isMobile && anchorFraction === undefined) {
           anchorFraction = 0.38;
-        } else if (viewMode === 'double' && anchorFraction === undefined) {
+        } else if (displayViewMode === 'double' && anchorFraction === undefined) {
           anchorFraction = 0.4;
         }
       } catch {
@@ -4215,7 +4213,7 @@ export default function PreviewPageWithTopNav() {
       ...(anchorFraction !== undefined ? { anchorFraction } : {}),
       ...(scrollOpts?.companionBelowPx ? { companionBelowPx: scrollOpts.companionBelowPx } : {}),
     });
-  }, [viewMode]);
+  }, [displayViewMode]);
 
   // 点击侧边栏项，滚动到对应部分
   const scrollToSection = (sectionId: string) => {
@@ -4243,7 +4241,7 @@ export default function PreviewPageWithTopNav() {
           if (!window.matchMedia('(min-width: 768px)').matches) {
             scrollOpts = {
               anchorFraction: 0.32,
-              ...(viewMode === 'single' ? { companionBelowPx: 56 } : {}),
+              ...(displayViewMode === 'single' ? { companionBelowPx: 56 } : {}),
             };
           }
         } catch {
@@ -4586,18 +4584,130 @@ export default function PreviewPageWithTopNav() {
       if (success) {
         router.push(ORDER_CHECKOUT_URL(data!.order!.id) + '&paymentMethod=card');
       } else if (code == 401) {
-        openLoginModal();
+        openPreviewUnlockLogin();
       }
     } catch (error: any) {
       console.error('创建订单失败:', error);
       if (error?.status == 401 || error?.response?.status == 401) {
-        openLoginModal();
+        openPreviewUnlockLogin();
       }
       //toast.error(error.response?.data?.message || '创建订单失败，请重试');
     } finally {
       setIsAddingToCart(false);
     }
   };
+
+  const handlePreviewPrimaryAction = async () => {
+    if (isGuest) {
+      openPreviewUnlockLogin();
+      return;
+    }
+    if (!hideOthers && activeTab === 'Book preview') {
+      setActiveTab('Others');
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      return;
+    }
+    await handleContinue();
+  };
+
+  useEffect(() => {
+    if (!isGuest) {
+      guestPreviewHasScrolledRef.current = false;
+      guestWasAtBottomRef.current = false;
+      return;
+    }
+
+    const markScrolled = () => {
+      if (window.scrollY > 32) {
+        guestPreviewHasScrolledRef.current = true;
+      }
+    };
+
+    window.addEventListener('scroll', markScrolled, { passive: true });
+    window.addEventListener('touchmove', markScrolled, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', markScrolled);
+      window.removeEventListener('touchmove', markScrolled);
+    };
+  }, [isGuest]);
+
+  const previewContentLength = previewData?.preview_data?.length ?? 0;
+
+  useEffect(() => {
+    if (!isGuest || activeTab !== 'Book preview') {
+      guestWasAtBottomRef.current = false;
+      return undefined;
+    }
+
+    const mq = window.matchMedia('(max-width: 767px)');
+
+    const isNearPageBottom = () => {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+      const scrollHeight = document.documentElement.scrollHeight;
+      return scrollTop + viewportHeight >= scrollHeight - 96;
+    };
+
+    const maybeOpenGuestUnlock = () => {
+      if (!mq.matches) return;
+      if (!guestPreviewHasScrolledRef.current) return;
+      if (useUserStore.getState().isLoginModalOpen) return;
+
+      const atBottom = isNearPageBottom();
+      if (atBottom && !guestWasAtBottomRef.current) {
+        openPreviewUnlockLogin();
+      }
+      guestWasAtBottomRef.current = atBottom;
+    };
+
+    const handleScroll = () => {
+      maybeOpenGuestUnlock();
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('touchmove', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('touchmove', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [isGuest, activeTab, openPreviewUnlockLogin, previewContentLength]);
+
+  useEffect(() => {
+    if (!isGuest || activeTab !== 'Book preview') return undefined;
+    const el = previewBottomSentinelRef.current;
+    if (!el) return undefined;
+
+    const mq = window.matchMedia('(max-width: 767px)');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!mq.matches) return;
+        if (!guestPreviewHasScrolledRef.current) return;
+        if (useUserStore.getState().isLoginModalOpen) return;
+        if (entries.some((entry) => entry.isIntersecting)) {
+          openPreviewUnlockLogin();
+          guestWasAtBottomRef.current = true;
+        }
+      },
+      { threshold: 0, rootMargin: '0px 0px 24px 0px' },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isGuest, activeTab, openPreviewUnlockLogin, previewContentLength]);
+
+  useEffect(() => {
+    if (!isGuest) return undefined;
+    return useUserStore.subscribe((state, prevState) => {
+      if (prevState.isLoginModalOpen && !state.isLoginModalOpen) {
+        guestWasAtBottomRef.current = true;
+      }
+    });
+  }, [isGuest]);
 
   //寄语
   const MAX_LINES = 10;
@@ -4871,8 +4981,15 @@ export default function PreviewPageWithTopNav() {
 
   const showViewModeToggle = activeTab === 'Book preview';
 
-  const previewBottomButtonLabel =
-    hideOthers || activeTab === 'Book preview' ? 'Complete My Book' : 'Continue to Checkout';
+  const previewBottomButtonLabel = isGuest
+    ? activeTab === 'Book preview'
+      ? t('continuePreview')
+      : t('continueToCheckout')
+    : hideOthers || activeTab === 'Book preview'
+      ? hideOthers
+        ? t('completeMyBook')
+        : t('chooseCoverAndFormat')
+      : t('continueToCheckout');
 
   const hidePreviewBottomBar = editField === 'giver' || pendingMomDrawingFile;
 
@@ -4937,7 +5054,12 @@ export default function PreviewPageWithTopNav() {
             </span>
           </div>
           {showViewModeToggle ? (
-            <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+            <>
+              <div className="w-6 md:hidden" aria-hidden="true" />
+              <div className="hidden md:block">
+                <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+              </div>
+            </>
           ) : (
             <div className="w-6" />
           )}
@@ -4957,12 +5079,14 @@ export default function PreviewPageWithTopNav() {
             </Link>
           )}
           {showViewModeToggle ? (
-            <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+            <div className="hidden md:block">
+              <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+            </div>
           ) : null}
         </div>
       </div>
 
-      <div className="mx-auto pb-[76px] overflow-x-hidden">
+      <div className={`mx-auto overflow-x-hidden ${isGuest ? 'pb-4 md:pb-[76px]' : 'pb-[76px]'}`}>
         {activeTab === 'Book preview' ? (
           <main className="flex-1 flex flex-col items-center justify-start w-full">
             <h1 className="text-[28px] mt-2 mb-4 text-center w-full">Your book for {recipient?.trim()}</h1>
@@ -5369,7 +5493,7 @@ export default function PreviewPageWithTopNav() {
                         (p34ComposeUploadedRef.current && isDedicationSubmitted);
 
                       // 单页模式：p3-4 始终拆成左右单页展示；有 final 时只把 final 当作底图，不再整张跨页显示。
-                      if (isGiverDedicationPage && viewMode === 'single') {
+                      if (isGiverDedicationPage && displayViewMode === 'single') {
                         if (isSwapping || pageFailed) {
                           return (
                             <div key={page.page_id} ref={setOpeningSpreadGiverOuterRef} className="w-full flex flex-col items-center">
@@ -5387,9 +5511,6 @@ export default function PreviewPageWithTopNav() {
                                   onImageLoaded={(loadedPageId) => {
                                     if (pageIdForStoryComingHide && loadedPageId === pageIdForStoryComingHide) {
                                       setIsStoryComingTargetPageLoaded(true);
-                                    }
-                                    if (sneakPeekNoticePageId && loadedPageId === sneakPeekNoticePageId) {
-                                      setIsSneakPeekNoticePageLoaded(true);
                                     }
                                   }}
                                 />
@@ -5547,7 +5668,7 @@ export default function PreviewPageWithTopNav() {
                           </button>
                         </div>
                       ) : null;
-                      const momCompositeButtonOverlay = momCompositeButton && viewMode !== 'single' ? (
+                      const momCompositeButtonOverlay = momCompositeButton && displayViewMode !== 'single' ? (
                         <div className="pointer-events-none hidden md:block absolute inset-0">
                           <div
                             className={`absolute right-0 w-1/2 flex justify-center ${
@@ -5561,17 +5682,17 @@ export default function PreviewPageWithTopNav() {
                         </div>
                       ) : null;
                       const momDrawingRightSingleGlow =
-                        viewMode === 'single' &&
+                        displayViewMode === 'single' &&
                         momCompositePageCode &&
                         !uploadedMomDrawingPageCodes.has(momCompositePageCode)
                           ? getMissingSectionClass(momDrawingPromptSectionId(momCompositePageCode))
                           : undefined;
                       const openingDoubleImageGlow =
-                        viewMode === 'double' && isGiverDedicationPage
+                        displayViewMode === 'double' && isGiverDedicationPage
                           ? `${getMissingSectionClass('giver')} ${getMissingSectionClass('dedication')}`.trim()
                           : undefined;
                       const momDoubleImageGlow =
-                        viewMode === 'double' &&
+                        displayViewMode === 'double' &&
                         !isGiverDedicationPage &&
                         momCompositePageCode &&
                         !uploadedMomDrawingPageCodes.has(momCompositePageCode)
@@ -5584,11 +5705,11 @@ export default function PreviewPageWithTopNav() {
                           isGiverDedicationPage
                             ? setOpeningSpreadBothRefs
                             : momCompositePageCode === 'p5-6'
-                              ? viewMode === 'single'
+                              ? displayViewMode === 'single'
                                 ? undefined
                                 : momDrawingP56Ref
                               : momCompositePageCode === 'p27-28'
-                                ? viewMode === 'single'
+                                ? displayViewMode === 'single'
                                   ? undefined
                                   : momDrawingP2728Ref
                                 : undefined
@@ -5606,7 +5727,7 @@ export default function PreviewPageWithTopNav() {
                                   ? p34FinalSrc
                                   : src
                             }
-                            viewMode={viewMode}
+                            viewMode={displayViewMode}
                             showOverlay={isSwapping || pageFailed}
                             progress={progress}
                             overlayMode={overlayMode as any}
@@ -5614,9 +5735,9 @@ export default function PreviewPageWithTopNav() {
                             doubleImageAreaClassName={openingDoubleImageGlow || momDoubleImageGlow}
                             rightSingleFrameClassName={momDrawingRightSingleGlow}
                             scrollAnchorSingleRightRef={
-                              viewMode === 'single' && momCompositePageCode === 'p5-6'
+                              displayViewMode === 'single' && momCompositePageCode === 'p5-6'
                                 ? momDrawingP56Ref
-                                : viewMode === 'single' && momCompositePageCode === 'p27-28'
+                                : displayViewMode === 'single' && momCompositePageCode === 'p27-28'
                                   ? momDrawingP2728Ref
                                   : undefined
                             }
@@ -5647,9 +5768,6 @@ export default function PreviewPageWithTopNav() {
                               if (pageIdForStoryComingHide && loadedPageId === pageIdForStoryComingHide) {
                                 setIsStoryComingTargetPageLoaded(true);
                               }
-                              if (sneakPeekNoticePageId && loadedPageId === sneakPeekNoticePageId) {
-                                setIsSneakPeekNoticePageLoaded(true);
-                              }
                               const readySrc =
                                 momCompositeLocalPreviewSrc ??
                                 (p34FinalSrc && isGiverDedicationPage && !p34HasLocalChanges
@@ -5665,7 +5783,7 @@ export default function PreviewPageWithTopNav() {
                                 : `${p34BaseSrc}:canvas`;
                             const showP34MobileButtons =
                               isGiverDedicationPage &&
-                              viewMode === 'double' &&
+                              displayViewMode === 'double' &&
                               !pageFailed &&
                               !isSwapping &&
                               isPreviewPageReady(page.page_id, p34InteractionReadyKey);
@@ -5696,7 +5814,7 @@ export default function PreviewPageWithTopNav() {
                             );
                           })()}
                           {momCompositeButton &&
-                            viewMode !== 'single' &&
+                            displayViewMode !== 'single' &&
                             isPreviewPageReady(
                               page.page_id,
                               momCompositeLocalPreviewSrc ?? src
@@ -5706,7 +5824,7 @@ export default function PreviewPageWithTopNav() {
                             </div>
                           )}
                           {momCompositeButton &&
-                            viewMode === 'single' &&
+                            displayViewMode === 'single' &&
                             isPreviewPageReady(
                               page.page_id,
                               momCompositeLocalPreviewSrc ?? src
@@ -5721,14 +5839,10 @@ export default function PreviewPageWithTopNav() {
                   });
                   })()}
                 </div>
-                {isSneakPeekNoticePageLoaded && (
-                  <p className="text-center text-[#999999] mt-8 whitespace-pre-line">
-                    {`Love this preview? Next step: complete your order ✨\nYour full book will be ready to review within 24 hours, before it goes to print.`}
-                  </p>
-                )}
               </div>
             )}
 
+            <div ref={previewBottomSentinelRef} className="h-4 w-full shrink-0" aria-hidden="true" />
           </main>
         ) : (
           // Others 标签页内容
@@ -6565,12 +6679,12 @@ export default function PreviewPageWithTopNav() {
       {/* 吸底 Complete / Continue 按钮 */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-50 bg-white items-center justify-end h-[76px] pt-4 pb-4 gap-3 shadow-[0px_0px_16px_0px_#0000000D] ${
-          hidePreviewBottomBar ? 'hidden' : 'flex'
+          hidePreviewBottomBar ? 'hidden' : isGuest ? 'hidden md:flex' : 'flex'
         } px-4 md:px-[120px]`}
       >
         <button
           type="button"
-          onClick={handleContinue}
+          onClick={handlePreviewPrimaryAction}
           disabled={isAddingToCart}
           className="bg-[#222222] text-[#F5E3E3] h-[44px] w-full md:w-auto md:min-w-[220px] px-8 rounded hover:bg-[#333333] disabled:bg-gray-400 disabled:cursor-not-allowed text-[16px] leading-[24px] tracking-[0.5px] flex items-center justify-center gap-2"
         >

@@ -30,7 +30,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const isEmbedMode = searchParams.get('embed') === 'true';
 
   // 在组件中
-  const { fetchCurrentUser, isLoggedIn, checkKickstarterStatus, isLoginModalOpen } = useUserStore();
+  const { fetchCurrentUser, isLoggedIn, checkKickstarterStatus, isLoginModalOpen, loginModalOptions } = useUserStore();
   const [isScrolled, setIsScrolled] = useState(false);
 
   // 获取当前页面的滚动到顶部按钮配置
@@ -78,8 +78,15 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
       {children}
       <KickstarterWelcomeModal />
       {isLoginModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <LoginModal useRedirect={false} showCloseButton={true} title='Continue' description='We’ll email you a secure code to save your order and preview.'/>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <LoginModal
+            useRedirect={false}
+            showCloseButton={true}
+            title={loginModalOptions?.title ?? 'Continue'}
+            description={loginModalOptions?.description ?? 'We’ll email you a secure code to save your order and preview.'}
+            footerNote={loginModalOptions?.footerNote}
+            sendCodeButtonLabel={loginModalOptions?.sendCodeButtonLabel}
+          />
         </div>
       )}
       {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isKickstarterConfigPage || isEmbedMode) && <Footer />}

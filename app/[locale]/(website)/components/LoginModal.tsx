@@ -16,11 +16,26 @@ import { FormSubmitSections } from './LoginModal/FormSubmitSections'
 import api from '@/utils/api'
 import { ApiResponse } from '@/types/api'
 
-export default function LoginModal({ showCloseButton = false, title = 'Welcome to Dreamaze', description = 'Sign in to access your account', useRedirect = true }: { showCloseButton?: boolean, useRedirect?:boolean, title?: string, description?: string }) {
+export default function LoginModal({
+  showCloseButton = false,
+  title = 'Welcome to Dreamaze',
+  description = 'Sign in to access your account',
+  footerNote,
+  sendCodeButtonLabel,
+  useRedirect = true,
+}: {
+  showCloseButton?: boolean
+  useRedirect?: boolean
+  title?: string
+  description?: string
+  footerNote?: string
+  sendCodeButtonLabel?: string
+}) {
   const t = useTranslations('LoginModal')
   const { state, updateState, setField, resetMessages, resetCodeFlow } = useLoginState()
   const {
     closeLoginModal,
+    loginModalOptions,
     register,
     login,
     sendResetPasswordLink,
@@ -101,7 +116,7 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
   // Helper: Get button label based on mode
   const getButtonLabelByMode = (): string => {
     if (state.mode === 'verifyCode') return t('verifyCode')
-    if (state.mode === 'codeLogin') return t('sendCode')
+    if (state.mode === 'codeLogin') return sendCodeButtonLabel || t('sendCode')
     if (state.mode === 'forgotPassword') return t('sendResetLink')
     if (state.mode === 'register') return t('register')
     return t('login')
@@ -114,11 +129,17 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
     return state.successMessage || ''
   }
 
+  const runLoginSuccessCallback = () => {
+    const callback = loginModalOptions?.onSuccess
+    callback?.()
+  }
+
   // OAuth handlers
   const handlePostLoginRedirect = (defaultPath = '/') => {
     if (!useRedirect) {
-      closeLoginModal();
-      return;
+      runLoginSuccessCallback()
+      closeLoginModal()
+      return
     }
     const urlRedirect = localStorage.getItem('redirectUrl')
     if (urlRedirect) {
@@ -418,6 +439,9 @@ export default function LoginModal({ showCloseButton = false, title = 'Welcome t
           }}
           email={state.email}
         />
+        {footerNote && state.mode === 'codeLogin' && (
+          <p className="text-center text-xs text-[#8E92A7] leading-relaxed">{footerNote}</p>
+        )}
       </form>
     </main>
   )

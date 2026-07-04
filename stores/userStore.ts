@@ -7,10 +7,19 @@ import { OrderDetail } from '@/types/order'
 import type { UserType, LoginData, RegisterData, GoogleLoginData, FacebookLoginData, KickstarterUserSummary } from '@/types/user'
 import { fbTrackCustom } from '@/utils/track'
 
+export type LoginModalOptions = {
+  title?: string
+  description?: string
+  footerNote?: string
+  sendCodeButtonLabel?: string
+  onSuccess?: () => void
+}
+
 interface UserState {
   // Modal state
   isLoginModalOpen: boolean
-  openLoginModal: () => void
+  loginModalOptions: LoginModalOptions | null
+  openLoginModal: (options?: LoginModalOptions) => void
   closeLoginModal: () => void
   toggleLoginModal: () => void
   setLoginUserToken: (userResponse:UserResponse) => void
@@ -53,9 +62,13 @@ interface UserState {
 const useUserStore = create<UserState>((set,get) => ({
   // Modal state - initially closed
   isLoginModalOpen: false,
-  openLoginModal: () => set({ isLoginModalOpen: true }),
-  closeLoginModal: () => set({ isLoginModalOpen: false }),
-  toggleLoginModal: () => set((state) => ({ isLoginModalOpen: !state.isLoginModalOpen })),
+  loginModalOptions: null,
+  openLoginModal: (options) => set({ isLoginModalOpen: true, loginModalOptions: options ?? null }),
+  closeLoginModal: () => set({ isLoginModalOpen: false, loginModalOptions: null }),
+  toggleLoginModal: () => set((state) => ({
+    isLoginModalOpen: !state.isLoginModalOpen,
+    loginModalOptions: state.isLoginModalOpen ? null : state.loginModalOptions,
+  })),
   // Post-login redirect state
   
   // User state - initially not logged in
