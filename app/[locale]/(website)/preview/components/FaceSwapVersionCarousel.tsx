@@ -4,16 +4,17 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import { ChevronLeft, ChevronRight } from '@/utils/icons';
+import { DreamazeFaceSwapLoadingBar } from './DreamazeFaceSwapLoadingBar';
 import DreamazeLogoRainbowLoader from './DreamazeLogoRainbowLoader';
 import {
   applySelectFaceSwapLogToPage,
   createFaceSwapLog,
   FACE_SWAP_RATE_LIMIT_MESSAGE,
   fetchPreviewBatch,
-  getCompletedFaceSwapLogs,
   getFaceSwapApiErrorMessage,
   getPreviewBatchPages,
   getSelectedFaceSwapLog,
+  getInProgressFaceSwapLogs,
   isFaceSwapRateLimited,
   pickPreviewPageIdFromBatchPage,
   resolvePreviewPageId,
@@ -40,9 +41,30 @@ type Props = {
   onImageLoaded?: (pageId: number) => void;
 };
 
+/** 按后端 logs 的原始顺序（过滤 failed），末尾固定 regenerate 页 */
 function buildSlides(logs: FaceSwapLog[]): VersionSlide[] {
-  const completed = getCompletedFaceSwapLogs(logs);
-  return [...completed.map((log) => ({ kind: 'log' as const, log })), { kind: 'regenerate' as const }];
+  const ordered = (logs ?? [])
+    .filter((log) => {
+    if (!log) return false;
+    if (log.status === 'failed') return false;
+    if (log.status === 'completed') {
+      return Boolean(String(log.final_image_url || '').trim());
+    }
+    // pending / processing
+    return true;
+    })
+    // 后端可能按 created_at 倒序返回；前端用稳定顺序避免 regenerate 时“跳到第一页/顺序互换”
+    .slice()
+    .sort((a, b) => {
+      const ida = typeof a.id === 'number' ? a.id : Number(a.id);
+      const idb = typeof b.id === 'number' ? b.id : Number(b.id);
+      if (Number.isFinite(ida) && Number.isFinite(idb)) return ida - idb;
+      const ta = typeof a.created_at === 'string' ? Date.parse(a.created_at) : NaN;
+      const tb = typeof b.created_at === 'string' ? Date.parse(b.created_at) : NaN;
+      if (Number.isFinite(ta) && Number.isFinite(tb)) return ta - tb;
+      return 0;
+    });
+  return [...ordered.map((log) => ({ kind: 'log' as const, log })), { kind: 'regenerate' as const }];
 }
 
 function findInitialSlideIndex(slides: VersionSlide[]): number {
@@ -54,10 +76,15 @@ function findInitialSlideIndex(slides: VersionSlide[]): number {
   return firstLogIdx >= 0 ? firstLogIdx : 0;
 }
 
+function isLogInProgress(log: FaceSwapLog): boolean {
+  return log.status === 'pending' || log.status === 'processing';
+}
+
 const navButtonClassName =
   'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-500/80 text-white disabled:cursor-not-allowed disabled:opacity-40';
 
 const protectedImgProps = getProtectedPreviewImageProps();
+const REGEN_PROGRESS_STEP = 98 / 300;
 
 export default function FaceSwapVersionCarousel({
   spuCode,
@@ -72,11 +99,26 @@ export default function FaceSwapVersionCarousel({
   const pageCode = String(page.page_code || '');
   const slides = useMemo(() => buildSlides(page.face_swap_logs ?? []), [page.face_swap_logs]);
   const [carouselIndex, setCarouselIndex] = useState(() => findInitialSlideIndex(slides));
-  const [isRegenerating, setIsRegenerating] = useState(false);
   const [regenerateError, setRegenerateError] = useState<string | null>(null);
+  const [regenerateProgress, setRegenerateProgress] = useState(() => {
+    // 避免轮播首次出现时短暂显示 0%：若已处于 processing，直接从 1% 开始
+    const inProgress = getInProgressFaceSwapLogs(page.face_swap_logs);
+    return inProgress.some((log) => log.status === 'processing') ? 1 : 0;
+  });
   const pendingLogIdRef = useRef<number | null>(null);
   const selectingLogIdRef = useRef<number | null>(null);
+  const regenerateProgressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastSelectedLogIdRef = useRef<number | null>(getSelectedFaceSwapLog(page.face_swap_logs)?.id ?? null);
+
+  const hasInProgressLog = getInProgressFaceSwapLogs(page.face_swap_logs).length > 0;
+  const isRegenerating = hasInProgressLog;
+
+  const clearRegenerateProgressTimer = useCallback(() => {
+    if (regenerateProgressTimerRef.current) {
+      clearInterval(regenerateProgressTimerRef.current);
+      regenerateProgressTimerRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     const selected = getSelectedFaceSwapLog(page.face_swap_logs);
@@ -90,39 +132,62 @@ export default function FaceSwapVersionCarousel({
   }, [slides.length]);
 
   useEffect(() => {
-    const pendingId = pendingLogIdRef.current;
-    if (!pendingId) return;
-    const tracked = (page.face_swap_logs ?? []).find((log) => log.id === pendingId);
-    if (!tracked) return;
+    const inProgress = getInProgressFaceSwapLogs(page.face_swap_logs);
+    if (inProgress.length > 0 && pendingLogIdRef.current == null) {
+      pendingLogIdRef.current = inProgress[inProgress.length - 1].id;
+    }
 
-    if (tracked.status === 'pending' || tracked.status === 'processing') {
-      setIsRegenerating(true);
-      setRegenerateError(null);
+    const pendingId = pendingLogIdRef.current;
+    if (!pendingId) {
+      clearRegenerateProgressTimer();
+      setRegenerateProgress(0);
       return;
     }
 
-    if (tracked.status === 'completed') {
-      setIsRegenerating(false);
+    const tracked = (page.face_swap_logs ?? []).find((log) => log.id === pendingId);
+    if (!tracked) return;
+
+    if (tracked.status === 'pending') {
       setRegenerateError(null);
-      pendingLogIdRef.current = null;
-      const nextSlides = buildSlides(page.face_swap_logs ?? []);
-      const newLogIdx = nextSlides.findIndex(
-        (slide) => slide.kind === 'log' && slide.log.id === tracked.id,
-      );
-      if (newLogIdx >= 0) {
-        setCarouselIndex(newLogIdx);
+      clearRegenerateProgressTimer();
+      setRegenerateProgress(0);
+      return;
+    }
+
+    if (tracked.status === 'processing') {
+      setRegenerateError(null);
+      if (!regenerateProgressTimerRef.current) {
+        setRegenerateProgress((prev) => (prev > 0 ? prev : 1));
+        regenerateProgressTimerRef.current = setInterval(() => {
+          setRegenerateProgress((prev) => {
+            if (prev >= 98) return prev;
+            return Math.min(98, prev + REGEN_PROGRESS_STEP);
+          });
+        }, 200);
       }
       return;
     }
 
+    clearRegenerateProgressTimer();
+
+    if (tracked.status === 'completed') {
+      setRegenerateProgress(100);
+      setRegenerateError(null);
+      pendingLogIdRef.current = null;
+      return;
+    }
+
     if (tracked.status === 'failed') {
-      setIsRegenerating(false);
+      setRegenerateProgress(0);
       setRegenerateError(
         tracked.error_message?.trim() || t('faceSwapRegenerateFailed'),
       );
       pendingLogIdRef.current = null;
+      setCarouselIndex(slides.length - 1);
     }
-  }, [page.face_swap_logs, t]);
+  }, [clearRegenerateProgressTimer, page.face_swap_logs, slides.length, t]);
+
+  useEffect(() => () => clearRegenerateProgressTimer(), [clearRegenerateProgressTimer]);
 
   const handleSelectLog = useCallback(
     async (log: FaceSwapLog) => {
@@ -149,6 +214,7 @@ export default function FaceSwapVersionCarousel({
   useEffect(() => {
     const slide = slides[carouselIndex];
     if (!slide || slide.kind !== 'log') return;
+    if (isLogInProgress(slide.log)) return;
     void handleSelectLog(slide.log);
   }, [carouselIndex, slides, handleSelectLog]);
 
@@ -181,7 +247,7 @@ export default function FaceSwapVersionCarousel({
     }
     if (isRegenerating) return;
 
-    setIsRegenerating(true);
+    const anchorIndex = carouselIndex;
     setRegenerateError(null);
     onRegenerateStarted?.();
 
@@ -194,10 +260,12 @@ export default function FaceSwapVersionCarousel({
       pendingLogIdRef.current = newLog.id;
       const mergedLogs = [...(page.face_swap_logs ?? []), newLog];
       onPageUpdated(pageCode, { ...page, face_swap_logs: mergedLogs });
-      setCarouselIndex(slides.length - 1);
+      // 保持在点击 regenerate 的那一页；pending slide 插入当前位置，末尾新增 regenerate 页
+      setCarouselIndex(anchorIndex);
     } catch (error) {
-      setIsRegenerating(false);
       pendingLogIdRef.current = null;
+      clearRegenerateProgressTimer();
+      setRegenerateProgress(0);
       if (isFaceSwapRateLimited(error)) {
         toast.error(FACE_SWAP_RATE_LIMIT_MESSAGE);
         return;
@@ -206,12 +274,13 @@ export default function FaceSwapVersionCarousel({
     }
   }, [
     batchId,
+    carouselIndex,
+    clearRegenerateProgressTimer,
     isRegenerating,
     onPageUpdated,
     onRegenerateStarted,
     page,
     pageCode,
-    slides.length,
     spuCode,
     t,
   ]);
@@ -226,12 +295,19 @@ export default function FaceSwapVersionCarousel({
   const displayImageSrc = useMemo(() => {
     if (!currentSlide) return baseImageSrc;
     if (currentSlide.kind === 'log') {
-      return buildImageUrl(String(currentSlide.log.final_image_url || ''));
+      if (currentSlide.log.status === 'completed' && currentSlide.log.final_image_url) {
+        return buildImageUrl(String(currentSlide.log.final_image_url));
+      }
+      return baseImageSrc;
     }
     return baseImageSrc;
   }, [baseImageSrc, buildImageUrl, currentSlide]);
 
   const isRegenerateSlide = currentSlide?.kind === 'regenerate';
+  const isQueuedLogSlide =
+    currentSlide?.kind === 'log' && currentSlide.log.status === 'pending';
+  const isProcessingLogSlide =
+    currentSlide?.kind === 'log' && currentSlide.log.status === 'processing';
   const totalSlides = slides.length;
   const counterLabel = `${carouselIndex + 1}/${totalSlides}`;
   const prevDisabled = carouselIndex <= 0 || isRegenerating;
@@ -263,14 +339,34 @@ export default function FaceSwapVersionCarousel({
               {...protectedImgProps}
             />
 
+            {isQueuedLogSlide && (
+              <div
+                className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/70"
+                style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}
+              >
+                <DreamazeLogoRainbowLoader size={60} />
+              </div>
+            )}
+
+            {isProcessingLogSlide && (
+              <div
+                className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/70"
+                style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}
+              >
+                {regenerateProgress > 0 ? (
+                  <DreamazeFaceSwapLoadingBar progress={regenerateProgress} />
+                ) : (
+                  <DreamazeLogoRainbowLoader size={60} />
+                )}
+              </div>
+            )}
+
             {isRegenerateSlide && (
               <div
                 className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/70"
                 style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}
               >
-                {isRegenerating ? (
-                  <DreamazeLogoRainbowLoader size={60} />
-                ) : regenerateError ? (
+                {regenerateError ? (
                   <div className="flex flex-col items-center gap-4 px-6 text-center">
                     <p className="max-w-xs text-sm text-gray-800">{regenerateError}</p>
                     <button
@@ -333,7 +429,10 @@ export default function FaceSwapVersionCarousel({
       <div className="flex items-center justify-center gap-2">
         {slides.map((slide, index) => {
           const isActive = index === carouselIndex;
-          const key = slide.kind === 'log' ? `log-${slide.log.id}` : 'regenerate';
+          const key =
+            slide.kind === 'log'
+              ? `log-${slide.log.id}-${slide.log.status}`
+              : 'regenerate';
           return (
             <span
               key={key}

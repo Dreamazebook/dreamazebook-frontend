@@ -3554,9 +3554,17 @@ export default function PreviewPageWithTopNav() {
             }
             // 否则：全量覆盖，基于 batch.pages 重建 preview_data，确保显示所有页面
             console.log('[Polling] Rebuilding preview_data from batch.pages');
+            const prevByPageCode: Record<string, any> = {};
+            try {
+              (prev?.preview_data || []).forEach((p: any) => {
+                const code = String(p?.page_code || '');
+                if (code) prevByPageCode[code] = p;
+              });
+            } catch {}
             const nextPreviewData = (batch.pages || []).map((bp: any, idx: number) => {
               const localP34Composed = p34LastComposedImageUrlRef.current;
               const useLocalP34 = Boolean(localP34Composed && isP34PageCode(bp.page_code));
+              const prevPage = prevByPageCode[String(bp.page_code || '')];
               const page = {
                 page_id: idx + 1,
                 page_code: bp.page_code,
@@ -3575,7 +3583,9 @@ export default function PreviewPageWithTopNav() {
                 queue_position: bp.queue_position,
                 queue_total: bp.queue_total,
                 preview_page_id: pickPreviewPageIdFromBatchPage(bp),
-                face_swap_logs: Array.isArray(bp.face_swap_logs) ? bp.face_swap_logs : [],
+                face_swap_logs: Array.isArray(bp.face_swap_logs)
+                  ? bp.face_swap_logs
+                  : (prevPage?.face_swap_logs ?? []),
                 page_type: bp.page_type,
                 is_cover: isCoverPage(bp),
               };
@@ -3743,7 +3753,9 @@ export default function PreviewPageWithTopNav() {
                     queue_position: match.queue_position,
                     queue_total: match.queue_total,
                     preview_page_id: pickPreviewPageIdFromBatchPage(match),
-                    face_swap_logs: Array.isArray(match.face_swap_logs) ? match.face_swap_logs : [],
+                    face_swap_logs: Array.isArray(match.face_swap_logs)
+                      ? match.face_swap_logs
+                      : (p.face_swap_logs ?? []),
                     page_type: match.page_type,
                     is_cover: isCoverPage(match),
                   };
@@ -5785,12 +5797,14 @@ export default function PreviewPageWithTopNav() {
                         !isGiverDedicationPage &&
                         !isMomCompositePage &&
                         faceSwapLogs.length > 0 &&
-                        !isSwapping &&
                         !pageFailed &&
                         !momCompositeLocalPreviewSrc;
                       if (showFaceSwapVersionCarousel) {
                         return (
-                          <div key={page.page_id} className="w-full flex flex-col items-center">
+                          <div
+                            key={`faceswap-${String((page as any)?.page_code || page.page_id)}`}
+                            className="w-full flex flex-col items-center"
+                          >
                             <FaceSwapVersionCarousel
                                 spuCode={String(searchParams.get('bookid') || '')}
                                 batchId={

@@ -113,6 +113,12 @@ export function getCompletedFaceSwapLogs(logs: FaceSwapLog[] | undefined | null)
   );
 }
 
+export function getInProgressFaceSwapLogs(logs: FaceSwapLog[] | undefined | null): FaceSwapLog[] {
+  return (logs ?? []).filter(
+    (log) => log.status === 'pending' || log.status === 'processing',
+  );
+}
+
 export function getSelectedFaceSwapLog(logs: FaceSwapLog[] | undefined | null): FaceSwapLog | undefined {
   return (logs ?? []).find((log) => log.selected_at != null);
 }
