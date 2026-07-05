@@ -55,6 +55,15 @@ export function getPreviewBatchPages(res: ApiResponse<any> | null | undefined): 
   return Array.isArray(batch?.pages) ? batch.pages : [];
 }
 
+function parsePositiveId(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) return value;
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  }
+  return undefined;
+}
+
 function pickPreviewPageIdFromFaceSwapLogs(
   logs: FaceSwapLog[] | undefined | null,
 ): number | undefined {
@@ -62,12 +71,8 @@ function pickPreviewPageIdFromFaceSwapLogs(
   const selected = logs.find((log) => log.selected_at != null);
   const candidates = selected ? [selected, ...logs] : logs;
   for (const log of candidates) {
-    const logId = log?.preview_page_id;
-    if (typeof logId === 'number' && Number.isFinite(logId) && logId > 0) return logId;
-    if (typeof logId === 'string' && logId.trim()) {
-      const parsed = Number(logId);
-      if (Number.isFinite(parsed) && parsed > 0) return parsed;
-    }
+    const parsed = parsePositiveId(log?.preview_page_id);
+    if (parsed) return parsed;
   }
   return undefined;
 }
@@ -86,16 +91,7 @@ export function pickPreviewPageIdFromBatchPage(
   );
   if (fromLogs) return fromLogs;
 
-  const direct = bp.preview_page_id;
-  if (typeof direct === 'number' && Number.isFinite(direct) && direct > 0) {
-    return direct;
-  }
-  if (typeof direct === 'string' && direct.trim()) {
-    const parsed = Number(direct);
-    if (Number.isFinite(parsed) && parsed > 0) return parsed;
-  }
-
-  return undefined;
+  return parsePositiveId(bp.preview_page_id);
 }
 
 export function resolvePreviewPageId(
@@ -108,16 +104,7 @@ export function resolvePreviewPageId(
   );
   if (fromLogs) return fromLogs;
 
-  const direct = page.preview_page_id;
-  if (typeof direct === 'number' && Number.isFinite(direct) && direct > 0) {
-    return direct;
-  }
-  if (typeof direct === 'string' && direct.trim()) {
-    const parsed = Number(direct);
-    if (Number.isFinite(parsed) && parsed > 0) return parsed;
-  }
-
-  return undefined;
+  return parsePositiveId(page.preview_page_id);
 }
 
 export function getCompletedFaceSwapLogs(logs: FaceSwapLog[] | undefined | null): FaceSwapLog[] {
