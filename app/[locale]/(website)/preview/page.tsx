@@ -147,6 +147,11 @@ const shouldShowInBookPreviewTab = (p: { page_code?: string; page_type?: string;
   return true;
 };
 
+/** Book preview 正文列表：始终过滤 cover_3/4 等封面页 */
+const getDisplayedPreviewPages = (pages: any[] | undefined | null): any[] => {
+  return (pages ?? []).filter((p) => shouldShowInBookPreviewTab(p));
+};
+
 const hasMeaningfulFinalImage = (page: any): boolean => {
   const finalRaw = String(page?.final_image_url || '').trim();
   if (!finalRaw) return false;
@@ -5452,8 +5457,8 @@ export default function PreviewPageWithTopNav() {
               <div className="w-full mb-8">
                 <div className="w-full flex flex-col items-center gap-8">
                   {(() => {
-                    // 在 Make it Personal 中只展示正文页；cover_3/4 属于 Gift Options 的封面预览，不在这里重复显示。
-                    const displayedPages = previewData.preview_data.filter((p: any) => shouldShowInBookPreviewTab(p));
+                    // 展示 batch 正文页；cover_3/4 等在 Gift Options 展示
+                    const displayedPages = getDisplayedPreviewPages(previewData.preview_data);
                     console.log('[Preview] Rendering', displayedPages.length, 'pages (previewPagesCount:', previewPagesCount, ', isQueued:', isQueued, ', isGenerating:', isGenerating, ')');
                     
                     // 修改判定逻辑：只要有页面数据就渲染，不强制要求 base_image
@@ -6652,7 +6657,7 @@ export default function PreviewPageWithTopNav() {
                   // 获取bookId（spu）
                   const bookId = searchParams.get('bookid');
                   // 找到显示giver的页面（通常是第二页，idx === 1）
-                  const displayedPages = previewData?.preview_data?.filter((p: any) => shouldShowInBookPreviewTab(p)) || [];
+                  const displayedPages = getDisplayedPreviewPages(previewData?.preview_data);
                   const giverPage = displayedPages.length > 1 ? displayedPages[1] : displayedPages[0];
                   const pageId = giverPage?.page_id;
                   const pageNumber = giverPage?.page_number;
