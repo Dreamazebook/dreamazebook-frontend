@@ -5,7 +5,6 @@ import { Link, useRouter } from '@/i18n/routing';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { Drawer } from "antd";
 import { create } from 'zustand';
-import { ViewModeToggle } from '../components/TopNavBarWithTabs';
 import { IoIosArrowBack } from '@/utils/icons';
 
 import Image from 'next/image';
@@ -15,6 +14,7 @@ import CoverNameCanvas from './components/CoverNameCanvas';
 import CoverSpreadFrame from './components/CoverSpreadFrame';
 import { DreamazeFaceSwapLoadingBar } from './components/DreamazeFaceSwapLoadingBar';
 import DreamazeLogoRainbowLoader from './components/DreamazeLogoRainbowLoader';
+import FaceSwapVersionCarousel from './components/FaceSwapVersionCarousel';
 import api, {
   GUEST_SESSION_HEADER,
   fetchDreamazebookApi,
@@ -39,6 +39,20 @@ import { ORDER_CHECKOUT_URL } from '@/constants/links';
 import DisplayPrice from '../components/component/DisplayPrice';
 import { fbTrack, getContentIdBySpu } from '@/utils/track';
 import { shouldBypassNextImageOptimization } from '@/utils/previewImageOptimization';
+import {
+  getProtectedPreviewImageProps,
+  pickLowResPreviewRaw,
+  PREVIEW_DISPLAY_QUALITY,
+  PREVIEW_PROTECTED_IMAGE_CLASS,
+  preventPreviewImageContextMenu,
+  toLowResPreviewSrc,
+} from '@/utils/previewImageProtection';
+import {
+  batchHasPendingFaceSwapLogs,
+  pickPreviewPageIdFromBatchPage,
+  type PreviewPageWithFaceSwapLogs,
+  unwrapPreviewBatch,
+} from '@/utils/previewFaceSwapVersions';
 import {
   buildCoverTextVariables,
   canDrawCoverTexts,
@@ -118,6 +132,21 @@ const isP34PageCode = (pageCode: unknown): boolean => {
   return code === 'p3-4' || code === 'p3-p4';
 };
 
+const isCoverPage = (p: { page_code?: string; page_type?: string } | null | undefined): boolean => {
+  if (!p) return false;
+  if (String(p.page_type || '').toLowerCase() === 'cover') return true;
+  const code = String(p.page_code || '');
+  return /^cover([_-]\d+)?$/i.test(code);
+};
+
+const shouldShowInBookPreviewTab = (p: { page_code?: string; page_type?: string; is_cover?: boolean } | null | undefined): boolean => {
+  if (!p) return false;
+  const pageCode = String(p.page_code || '').toLowerCase().replace(/-/g, '_');
+  if (pageCode === 'cover_3' || pageCode === 'cover_4') return false;
+  if (p.is_cover || isCoverPage(p)) return false;
+  return true;
+};
+
 const hasMeaningfulFinalImage = (page: any): boolean => {
   const finalRaw = String(page?.final_image_url || '').trim();
   if (!finalRaw) return false;
@@ -128,6 +157,8 @@ const hasMeaningfulFinalImage = (page: any): boolean => {
 };
 
 const getPreviewDisplayImageRaw = (page: any): string => {
+  const lowRes = pickLowResPreviewRaw(page);
+  if (lowRes) return lowRes;
   if (hasMeaningfulFinalImage(page)) return String(page?.final_image_url || '');
   return String(page?.base_image_url || page?.image_url || page?.final_image_url || '');
 };
@@ -508,19 +539,22 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
   }
 
   if (preferNativeImg) {
+    const protectedSrc = toLowResPreviewSrc(currentSrc);
+    const protectProps = getProtectedPreviewImageProps();
     return (
       <img
-        src={currentSrc}
+        src={protectedSrc}
         alt={alt}
         width={width}
         height={height}
-        className={className}
-        style={style}
+        className={[PREVIEW_PROTECTED_IMAGE_CLASS, className].filter(Boolean).join(' ')}
+        style={{ WebkitTouchCallout: 'none', ...style }}
         onError={handleNativeImgError}
         onLoad={(e) => {
           onLoad?.(e);
           onLoadingComplete?.(e.currentTarget);
         }}
+        {...protectProps}
         {...restImageProps}
       />
     );
@@ -532,8 +566,12 @@ const OptimizedImage = ({ src, alt, width, height, className, style, onError, on
       alt={alt}
       width={width}
       height={height}
-      className={className}
-      style={style}
+      className={[PREVIEW_PROTECTED_IMAGE_CLASS, className].filter(Boolean).join(' ')}
+      style={{ WebkitTouchCallout: 'none', ...style }}
+      quality={PREVIEW_DISPLAY_QUALITY}
+      draggable={false}
+      onContextMenu={preventPreviewImageContextMenu}
+      onDragStart={preventPreviewImageContextMenu}
       unoptimized={
         shouldBypassNextImageOptimization(src) ||
         shouldBypassNextImageOptimization(currentSrc)
@@ -723,7 +761,7 @@ const useStore = create<{
 }>((set) => ({
   activeStep: 2,
   activeTab: 'Book preview',
-  viewMode: 'single',
+  viewMode: 'double',
   dedication:
     ' ',
   giver: ' ',
@@ -786,6 +824,9 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   scrollAnchorSingleRightRef?: React.Ref<HTMLDivElement | null>;
 }) {
   const t = useTranslations('Preview');
+  const protectedImgProps = getProtectedPreviewImageProps();
+  const protectedImgClass = PREVIEW_PROTECTED_IMAGE_CLASS;
+  const protectedImgStyle = { WebkitTouchCallout: 'none' as const };
   const notifiedRef = useRef(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
@@ -829,13 +870,15 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                   <img
                     src={src}
                     alt={`Page ${pageNumber} - Left Half`}
-                    className="object-cover rounded-lg"
+                    className={`${protectedImgClass} object-cover rounded-lg`}
                     style={{ 
                       objectPosition: 'left center',
                       width: '100%',
-                      height: '100%'
+                      height: '100%',
+                      ...protectedImgStyle,
                     }}
                     onLoad={handleImageLoad}
+                    {...protectedImgProps}
                   />
                 </div>
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
@@ -855,11 +898,12 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                 <img
                   src={src}
                   alt={`Page ${pageNumber} - Left Half`}
-                  className="object-cover rounded-lg"
+                  className={`${protectedImgClass} object-cover rounded-lg`}
                   style={{ 
                     objectPosition: 'left center',
                     width: '100%',
-                    height: '100%'
+                    height: '100%',
+                    ...protectedImgStyle,
                   }}
                   onError={() => {
                     console.error(`图片加载失败: ${src}`);
@@ -868,6 +912,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                     console.log(`图片加载成功: ${src}`);
                     handleImageLoad();
                   }}
+                  {...protectedImgProps}
                 />
                 {imageLoadingPlaceholder}
               </div>
@@ -887,13 +932,15 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                   <img
                     src={src}
                     alt={`Page ${pageNumber} - Right Half`}
-                    className="object-cover rounded-lg"
+                    className={`${protectedImgClass} object-cover rounded-lg`}
                     style={{ 
                       objectPosition: 'right center',
                       width: '100%',
-                      height: '100%'
+                      height: '100%',
+                      ...protectedImgStyle,
                     }}
                     onLoad={handleImageLoad}
+                    {...protectedImgProps}
                   />
                 </div>
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
@@ -913,11 +960,12 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                 <img
                   src={src}
                   alt={`Page ${pageNumber} - Right Half`}
-                  className="object-cover rounded-lg"
+                  className={`${protectedImgClass} object-cover rounded-lg`}
                   style={{ 
                     objectPosition: 'right center',
                     width: '100%',
-                    height: '100%'
+                    height: '100%',
+                    ...protectedImgStyle,
                   }}
                   onError={() => {
                     console.error(`图片加载失败: ${src}`);
@@ -926,6 +974,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                     console.log(`图片加载成功: ${src}`);
                     handleImageLoad();
                   }}
+                  {...protectedImgProps}
                 />
                 {imageLoadingPlaceholder}
               </div>
@@ -1157,15 +1206,7 @@ export default function PreviewPageWithTopNav() {
     setEditField,
   } = useStore();
 
-  const [isMobilePreviewViewport, setIsMobilePreviewViewport] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)');
-    const update = () => setIsMobilePreviewViewport(mq.matches);
-    update();
-    mq.addEventListener('change', update);
-    return () => mq.removeEventListener('change', update);
-  }, []);
-  const displayViewMode: 'single' | 'double' = isMobilePreviewViewport ? 'double' : viewMode;
+  const displayViewMode = viewMode;
 
   const previewStoreUserData = usePreviewStore((s) => s.userData);
   const isGuest = !isLoggedIn;
@@ -1355,7 +1396,7 @@ export default function PreviewPageWithTopNav() {
           console.log('[Preview] Fetching batch directly:', url);
           
           const res = await api.get(url) as ApiResponse<any>;
-          const batch = res?.data?.batch;
+          const batch = unwrapPreviewBatch(res);
           
           if (batch) {
              console.log('[Preview] Loaded batch directly:', batch);
@@ -1401,6 +1442,10 @@ export default function PreviewPageWithTopNav() {
                     base_only: bp.base_only,
                     queue_position: bp.queue_position,
                     queue_total: bp.queue_total,
+                    preview_page_id: pickPreviewPageIdFromBatchPage(bp),
+                    face_swap_logs: Array.isArray(bp.face_swap_logs) ? bp.face_swap_logs : [],
+                    page_type: bp.page_type,
+                    is_cover: isCoverPage(bp),
                   })),
                   status: batch.status || 'processing',
                   batch_id: batch.batch_id,
@@ -1481,15 +1526,12 @@ export default function PreviewPageWithTopNav() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 首次渲染时根据屏幕宽度设置默认视图模式（窄屏 single，宽屏 double）
+  // 预览页固定使用 double page 视图
   const hasSetInitialViewMode = useRef(false);
   useEffect(() => {
     if (hasSetInitialViewMode.current) return;
     hasSetInitialViewMode.current = true;
-    try {
-      const isWide = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
-      setViewMode(isWide ? 'double' : 'single');
-    } catch {}
+    setViewMode('double');
   }, [setViewMode]);
 
   // 处理AI生成状态
@@ -3011,6 +3053,9 @@ export default function PreviewPageWithTopNav() {
     return normalized;
   };
 
+  const buildProtectedPreviewDisplayUrl = (imagePath: string) =>
+    toLowResPreviewSrc(buildImageUrl(imagePath));
+
   const buildCoverR2Urls = (rawBookId: string | null, option: CoverOption) => {
     const baseDomain = 'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks';
     if (!rawBookId) {
@@ -3337,13 +3382,6 @@ export default function PreviewPageWithTopNav() {
       e?.high_res_url
     );
   };
-  // 判断是否为封面页（优先使用 page_type，其次使用 page_code 前缀 cover_）
-  const isCoverPage = (p: { page_code?: string; page_type?: string } | any): boolean => {
-    if (!p) return false;
-    if (String(p.page_type || '').toLowerCase() === 'cover') return true;
-    const code = String(p.page_code || '');
-    return /^cover([_-]\d+)?$/i.test(code);
-  };
   // 从广播事件中提取 batch_id（兼容多种包裹层级）
   const extractBatchIdFromEvent = (evt: any): string | undefined => {
     const e = normalizeWsEvent(evt);
@@ -3365,6 +3403,8 @@ export default function PreviewPageWithTopNav() {
       page_number: p?.preview_order ?? idx + 1,
       image_url: p?.image_url,
       has_face_swap: !!p?.has_face_elements,
+      preview_page_id: pickPreviewPageIdFromBatchPage(p),
+      face_swap_logs: Array.isArray(p?.face_swap_logs) ? p.face_swap_logs : [],
     }));
     return {
       preview_id: undefined as any,
@@ -3376,6 +3416,7 @@ export default function PreviewPageWithTopNav() {
 
   // 批次轮询（作为 WS 以外的兜底）
   const batchPollTimerRef = useRef<any>(null);
+  const startBatchPollingRef = useRef<(spuCode: string, batchId: string) => void>(() => {});
   const clearBatchPolling = () => {
     if (batchPollTimerRef.current) {
       clearInterval(batchPollTimerRef.current);
@@ -3393,7 +3434,7 @@ export default function PreviewPageWithTopNav() {
         console.log('[Polling] Fetching:', url);
         const res = await api.get(url) as ApiResponse<any>;
         console.log('[Polling] Response:', res);
-        const batch = (res as any)?.data?.batch;
+        const batch = unwrapPreviewBatch(res);
         if (batch) {
           // 从最新的 batch 中获取 recipient_name 并更新
           // 注意：如果是从 personalized-product 进入的（store 中有数据），不覆盖 store 中的名字
@@ -3456,6 +3497,10 @@ export default function PreviewPageWithTopNav() {
                   base_only: bp.base_only,
                   queue_position: bp.queue_position,
                   queue_total: bp.queue_total,
+                  preview_page_id: pickPreviewPageIdFromBatchPage(bp),
+                  face_swap_logs: Array.isArray(bp.face_swap_logs) ? bp.face_swap_logs : [],
+                  page_type: bp.page_type,
+                  is_cover: isCoverPage(bp),
                 })),
                 status: batch.status || 'processing',
                 batch_id: batch.batch_id,
@@ -3489,6 +3534,10 @@ export default function PreviewPageWithTopNav() {
                   base_only: bp.base_only,
                   queue_position: bp.queue_position,
                   queue_total: bp.queue_total,
+                  preview_page_id: pickPreviewPageIdFromBatchPage(bp),
+                  face_swap_logs: Array.isArray(bp.face_swap_logs) ? bp.face_swap_logs : [],
+                  page_type: bp.page_type,
+                  is_cover: isCoverPage(bp),
                 })),
                 status: batch.status || 'processing',
                 batch_id: batch.batch_id,
@@ -3520,6 +3569,8 @@ export default function PreviewPageWithTopNav() {
                 base_only: bp.base_only,
                 queue_position: bp.queue_position,
                 queue_total: bp.queue_total,
+                preview_page_id: pickPreviewPageIdFromBatchPage(bp),
+                face_swap_logs: Array.isArray(bp.face_swap_logs) ? bp.face_swap_logs : [],
                 page_type: bp.page_type,
                 is_cover: isCoverPage(bp),
               };
@@ -3547,13 +3598,36 @@ export default function PreviewPageWithTopNav() {
           setIsProcessing(true);
         } else if (batch?.status === 'completed' || batch?.status === 'failed') {
           setIsProcessing(false);
-          clearBatchPolling();
+          if (!batchHasPendingFaceSwapLogs(batch)) {
+            clearBatchPolling();
+          }
         }
       } catch (_e) {
         console.error('[Polling] Error:', _e);
       }
     }, 3000);
   };
+  startBatchPollingRef.current = startBatchPolling;
+
+  const handleFaceSwapPageUpdated = useCallback((pageCode: string, nextPage: PreviewPageWithFaceSwapLogs) => {
+    setPreviewData((prev) => {
+      if (!prev?.preview_data) return prev as any;
+      return {
+        ...prev,
+        preview_data: prev.preview_data.map((p: any) =>
+          p.page_code === pageCode ? { ...p, ...nextPage, page_id: p.page_id } : p,
+        ),
+      };
+    });
+  }, []);
+
+  const handleFaceSwapRegenerateStarted = useCallback(() => {
+    const spu = searchParams.get('bookid');
+    const batchId = currentBatchIdRef.current || searchParams.get('previewid');
+    if (spu && batchId) {
+      startBatchPollingRef.current(spu, batchId);
+    }
+  }, [searchParams]);
 
   // 订阅预览专用频道并处理实时事件
   const subscribeToPreviewChannel = (spuCode: string, batchId: string) => {
@@ -3595,13 +3669,14 @@ export default function PreviewPageWithTopNav() {
         console.log('[WS] PreviewBatchCompleted:', _data);
         setIsProcessing(false);
         // 拉取最终结果，确保所有页同步
+        let latestBatch: any = null;
         try {
           const path = `/products/${spuCode}/preview/batches/${batchId}`;
           // 客户端强制走同域 /api 代理
           const url = path;
           const res = await api.get(url) as ApiResponse<any>;
-          const batch = (res as any)?.data?.batch;
-          if (batch) {
+          latestBatch = unwrapPreviewBatch(res);
+          if (latestBatch) {
             // 从最新的 batch 中获取 recipient_name 并更新
             // 注意：如果是从 personalized-product 进入的（store 中有数据），不覆盖 store 中的名字
             const storeUserData = usePreviewStore.getState().userData as any;
@@ -3609,20 +3684,20 @@ export default function PreviewPageWithTopNav() {
             
             // 只有在 store 中没有名字时，才从 batch 更新
             if (!storeName || !storeName.trim()) {
-              const recipientName = batch.recipient_name || batch.options?.recipient_name || batch.options?.full_name;
+              const recipientName = latestBatch.recipient_name || latestBatch.options?.recipient_name || latestBatch.options?.full_name;
               if (recipientName && typeof recipientName === 'string' && recipientName.trim()) {
                 setRecipient(recipientName);
                 console.log('[PreviewBatchCompleted] Updated recipient from batch:', recipientName);
               }
             }
           }
-          if (batch?.pages) {
+          if (latestBatch?.pages) {
             setPreviewData((prev) => {
               // 若 prev 为空，从 batch.pages 直接构造
               if (!prev || !prev.preview_data || prev.preview_data.length === 0) {
                 return {
                   preview_id: undefined as any,
-                  preview_data: batch.pages.map((bp: any, idx: number) => ({
+                  preview_data: latestBatch.pages.map((bp: any, idx: number) => ({
                     page_id: idx + 1,
                     page_code: bp.page_code,
                     page_number: bp.sort_order ?? idx + 1,
@@ -3634,18 +3709,22 @@ export default function PreviewPageWithTopNav() {
                     base_only: bp.base_only,
                     queue_position: bp.queue_position,
                     queue_total: bp.queue_total,
+                    preview_page_id: pickPreviewPageIdFromBatchPage(bp),
+                    face_swap_logs: Array.isArray(bp.face_swap_logs) ? bp.face_swap_logs : [],
+                    page_type: bp.page_type,
+                    is_cover: isCoverPage(bp),
                   })),
                 status: 'completed',
-                batch_id: batch.batch_id,
-                  queue_info: batch.queue,
-                  batch_options: batch.options ?? null,
+                batch_id: latestBatch.batch_id,
+                  queue_info: latestBatch.queue,
+                  batch_options: latestBatch.options ?? null,
                 } as any;
               }
             const updated = {
               ...prev,
-              batch_options: batch.options ?? (prev as any)?.batch_options ?? null,
+              batch_options: latestBatch.options ?? (prev as any)?.batch_options ?? null,
               preview_data: prev.preview_data.map((p: any) => {
-                const match = batch.pages.find((bp: any) => bp.page_code === p.page_code);
+                const match = latestBatch.pages.find((bp: any) => bp.page_code === p.page_code);
                   if (!match) return p;
                   const newUrl = match.final_image_url || match.base_image_url;
                   return {
@@ -3658,16 +3737,22 @@ export default function PreviewPageWithTopNav() {
                     base_only: match.base_only,
                     queue_position: match.queue_position,
                     queue_total: match.queue_total,
+                    preview_page_id: pickPreviewPageIdFromBatchPage(match),
+                    face_swap_logs: Array.isArray(match.face_swap_logs) ? match.face_swap_logs : [],
+                    page_type: match.page_type,
+                    is_cover: isCoverPage(match),
                   };
                 }),
                 status: 'completed',
-                queue_info: batch.queue,
+                queue_info: latestBatch.queue,
             } as any;
             return updated;
           });
         }
         } catch {}
+        if (!batchHasPendingFaceSwapLogs(latestBatch)) {
           clearBatchPolling();
+        }
       };
       ch.listen('.PreviewPageUpdated', onPreviewPageUpdated);
       ch.listen('.PreviewBatchCompleted', onPreviewBatchCompleted);
@@ -3984,7 +4069,7 @@ export default function PreviewPageWithTopNav() {
                     // 客户端强制走同域 /api 代理
                     const url = path;
                     api.get(url).then((res: any) => {
-                      const batch = res?.data?.batch;
+                      const batch = unwrapPreviewBatch(res);
                       if (batch) {
                         const recipientName = batch.recipient_name || batch.options?.recipient_name || batch.options?.full_name;
                         if (recipientName && typeof recipientName === 'string' && recipientName.trim()) {
@@ -4979,8 +5064,6 @@ export default function PreviewPageWithTopNav() {
     }
   }, [setActiveTab]);
 
-  const showViewModeToggle = activeTab === 'Book preview';
-
   const previewBottomButtonLabel = isGuest
     ? activeTab === 'Book preview'
       ? t('continuePreview')
@@ -5024,6 +5107,13 @@ export default function PreviewPageWithTopNav() {
         .dreamaze-missing-button-pulse {
           animation: dreamazeMissingButtonPulse 0.9s ease-in-out 2;
         }
+
+        .preview-protected-image {
+          -webkit-user-select: none;
+          user-select: none;
+          -webkit-touch-callout: none;
+          -webkit-user-drag: none;
+        }
       `}</style>
       <div
         ref={previewFixedNavShellRef}
@@ -5053,16 +5143,7 @@ export default function PreviewPageWithTopNav() {
               {previewHeaderTitle}
             </span>
           </div>
-          {showViewModeToggle ? (
-            <>
-              <div className="w-6 md:hidden" aria-hidden="true" />
-              <div className="hidden md:block">
-                <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-              </div>
-            </>
-          ) : (
-            <div className="w-6" />
-          )}
+          <div className="w-6 md:hidden" aria-hidden="true" />
         </div>
         <div className="hidden sm:flex items-center justify-between flex-1 min-w-0">
           {showBackToPreviewPage ? (
@@ -5078,11 +5159,7 @@ export default function PreviewPageWithTopNav() {
               <span className="mr-2">←</span> {previewBackLabel}
             </Link>
           )}
-          {showViewModeToggle ? (
-            <div className="hidden md:block">
-              <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-            </div>
-          ) : null}
+          <div className="hidden sm:block flex-1" aria-hidden="true" />
         </div>
       </div>
 
@@ -5155,7 +5232,7 @@ export default function PreviewPageWithTopNav() {
                         return code === target;
                       });
                       const raw = coverPage ? getPreviewDisplayImageRaw(coverPage) : '';
-                      const backendSrc = raw ? buildImageUrl(String(raw)) : '';
+                      const backendSrc = raw ? buildProtectedPreviewDisplayUrl(String(raw)) : '';
                       const coverHasSwap = !!(coverPage as any)?.has_face_swap;
                       const coverHasBase = !!(coverPage as any)?.base_image_url || !!(coverPage as any)?.image_url;
                       const coverFailed = String((coverPage as any)?.status || '').toLowerCase() === 'failed';
@@ -5286,7 +5363,7 @@ export default function PreviewPageWithTopNav() {
                         </div>
                       )}
                       <OptimizedImage
-                        src={buildImageUrl(bookInfo.default_cover)}
+                        src={buildProtectedPreviewDisplayUrl(bookInfo.default_cover)}
                         fallbackSrc={'/imgs/picbook/goodnight/封面1.jpg'}
                         alt="Book Cover"
                         width={fallbackCoverDims.width}
@@ -5372,14 +5449,11 @@ export default function PreviewPageWithTopNav() {
               return null;
             })()}
             {previewData?.preview_data && previewData.preview_data.length > 0 && (
-              <div className="w-full max-w-5xl mb-8">
+              <div className="w-full mb-8">
                 <div className="w-full flex flex-col items-center gap-8">
                   {(() => {
                     // 在 Make it Personal 中只展示正文页；cover_3/4 属于 Gift Options 的封面预览，不在这里重复显示。
-                    const displayedPages = previewData.preview_data.filter((p: any) => {
-                      const pageCode = String((p as any)?.page_code || '').toLowerCase().replace(/-/g, '_');
-                      return !(p as any).is_cover && pageCode !== 'cover_3' && pageCode !== 'cover_4';
-                    });
+                    const displayedPages = previewData.preview_data.filter((p: any) => shouldShowInBookPreviewTab(p));
                     console.log('[Preview] Rendering', displayedPages.length, 'pages (previewPagesCount:', previewPagesCount, ', isQueued:', isQueued, ', isGenerating:', isGenerating, ')');
                     
                     // 修改判定逻辑：只要有页面数据就渲染，不强制要求 base_image
@@ -5405,7 +5479,7 @@ export default function PreviewPageWithTopNav() {
                     // 展示策略：当 final 与 base/image 不同（说明最终图已更新）时优先展示 final；
                     // 否则展示 base/image（例如 create 流程里 final 可能为空或等同于 base）
                     const displayUrlRaw = getPreviewDisplayImageRaw(page);
-                    const src = buildImageUrl(String(displayUrlRaw || ''));
+                    const src = buildProtectedPreviewDisplayUrl(String(displayUrlRaw || ''));
                     const isReplaceablePage = replaceableTextPageIds.has(page.page_id) || replaceableTextPageNumbers.has(page.page_number);
                     // 仅在 p3-4（有的书返回 p3-p4）页面渲染 Giver & Dedication
                     const pageCode = String((page as any).page_code || '');
@@ -5439,7 +5513,7 @@ export default function PreviewPageWithTopNav() {
                       // 这样 edited book 能展示历史最终图；create book（final==base 或无 final）则会走 Canvas 展示默认寄语。
                       const p34FinalSrc =
                         isGiverDedicationPage && hasMeaningfulFinalImage(page)
-                          ? buildImageUrl(String((page as any).final_image_url || ''))
+                          ? buildProtectedPreviewDisplayUrl(String((page as any).final_image_url || ''))
                           : null;
                       // p3-4 分层模型：
                       // - 底图：只使用 base_stage_url（后端 base stage 纯底图）。
@@ -5698,6 +5772,42 @@ export default function PreviewPageWithTopNav() {
                         !uploadedMomDrawingPageCodes.has(momCompositePageCode)
                           ? getMissingSectionClass(momDrawingPromptSectionId(momCompositePageCode))
                           : undefined;
+                      const faceSwapLogs = Array.isArray((page as any).face_swap_logs)
+                        ? (page as any).face_swap_logs
+                        : [];
+                      const showFaceSwapVersionCarousel =
+                        hasSwap &&
+                        !isGiverDedicationPage &&
+                        !isMomCompositePage &&
+                        faceSwapLogs.length > 0 &&
+                        !isSwapping &&
+                        !pageFailed &&
+                        !momCompositeLocalPreviewSrc;
+                      if (showFaceSwapVersionCarousel) {
+                        return (
+                          <div key={page.page_id} className="w-full flex flex-col items-center">
+                            <FaceSwapVersionCarousel
+                                spuCode={String(searchParams.get('bookid') || '')}
+                                batchId={
+                                  currentBatchId ||
+                                  searchParams.get('previewid') ||
+                                  (previewData as any)?.batch_id ||
+                                  null
+                                }
+                                page={page as unknown as PreviewPageWithFaceSwapLogs}
+                                buildImageUrl={buildProtectedPreviewDisplayUrl}
+                                onPageUpdated={handleFaceSwapPageUpdated}
+                                onRegenerateStarted={handleFaceSwapRegenerateStarted}
+                                onImageLoaded={(loadedPageId) => {
+                                  if (pageIdForStoryComingHide && loadedPageId === pageIdForStoryComingHide) {
+                                    setIsStoryComingTargetPageLoaded(true);
+                                  }
+                                  markPreviewPageReady(loadedPageId, src);
+                                }}
+                              />
+                          </div>
+                        );
+                      }
                       return (
                       <div
                         key={page.page_id}
@@ -5923,7 +6033,7 @@ export default function PreviewPageWithTopNav() {
                             return code === target;
                           });
                           const raw = coverPage ? getPreviewDisplayImageRaw(coverPage) : '';
-                          const backendSrc = raw ? buildImageUrl(String(raw)) : '';
+                          const backendSrc = raw ? buildProtectedPreviewDisplayUrl(String(raw)) : '';
                           const coverHasSwap = !!(coverPage as any)?.has_face_swap;
                           const coverHasBase = !!(coverPage as any)?.base_image_url || !!(coverPage as any)?.image_url;
                           const coverFailed = String((coverPage as any)?.status || '').toLowerCase() === 'failed';
@@ -6542,7 +6652,7 @@ export default function PreviewPageWithTopNav() {
                   // 获取bookId（spu）
                   const bookId = searchParams.get('bookid');
                   // 找到显示giver的页面（通常是第二页，idx === 1）
-                  const displayedPages = previewData?.preview_data?.filter((p: any) => !(p as any).is_cover) || [];
+                  const displayedPages = previewData?.preview_data?.filter((p: any) => shouldShowInBookPreviewTab(p)) || [];
                   const giverPage = displayedPages.length > 1 ? displayedPages[1] : displayedPages[0];
                   const pageId = giverPage?.page_id;
                   const pageNumber = giverPage?.page_number;
