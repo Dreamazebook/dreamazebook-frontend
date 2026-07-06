@@ -1,6 +1,6 @@
 import { OrderDetail } from "@/types/order";
 
-export const ORDER_SUMMARY_URL = (orderId: number) => `/order-summary?orderId=${orderId}`;
+export const ORDER_SUMMARY_URL = (orderId: number) => `/order-summary/${orderId}`;
 /**
  * 生成结账页面的 URL
  * @param {number} orderId - 订单 ID

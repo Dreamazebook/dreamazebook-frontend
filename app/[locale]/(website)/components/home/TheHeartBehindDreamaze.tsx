@@ -1,37 +1,19 @@
 'use client';
 import { HOME_SPARKS } from '@/constants/cdn';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Image from '../common/Image';
 
 interface MediaItem {
   src: string;
-  mobileSrc?: string; // Optional mobile-specific source
+  mobileSrc?: string;
   alt: string;
   showStar: boolean;
   type: 'image' | 'video';
 }
 
-interface MediaItemProps {
-  item: MediaItem;
-  keyPrefix: string;
-  index: number;
-}
-
-// Reusable component to render individual media items
-function MediaItemComponent({ item, keyPrefix, index }: MediaItemProps) {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  const imageSrc = isMobile && item.mobileSrc ? item.mobileSrc : item.src;
-
+function MediaItemComponent({ item }: { item: MediaItem }) {
   return (
-    <div key={`${keyPrefix}-${index}`} className="w-[240px] h-[180px] md:w-[480px] md:h-[360px] flex-shrink-0 overflow-hidden rounded relative">
+    <div className="w-[240px] h-[180px] md:w-[480px] md:h-[360px] flex-shrink-0 overflow-hidden rounded relative">
       {item.type === 'video' ? (
         <video
           src={item.src}
@@ -40,25 +22,35 @@ function MediaItemComponent({ item, keyPrefix, index }: MediaItemProps) {
           loop
           muted
           playsInline
+          preload="none"
         />
       ) : (
-        <Image src={imageSrc} alt={item.alt} className="w-full h-full object-cover" />
+        <>
+          {/* Mobile image: visible on small screens */}
+          {item.mobileSrc && (
+            <Image
+              src={item.mobileSrc}
+              alt={item.alt}
+              className="w-full h-full object-cover md:hidden"
+            />
+          )}
+          {/* Desktop image: visible on md+ */}
+          <Image
+            src={item.src}
+            alt={item.alt}
+            className={`w-full h-full object-cover ${item.mobileSrc ? 'hidden md:block' : ''}`}
+          />
+        </>
       )}
     </div>
   );
 }
 
-// Reusable component to render media items list
-function MediaItemsList({ items, keyPrefix }: { items: MediaItem[]; keyPrefix: string }) {
+function MediaItemsList({ items }: { items: MediaItem[] }) {
   return (
     <div className="flex gap-[16px] md:gap-[24px]">
       {items.map((item, idx) => (
-        <MediaItemComponent
-          key={`${keyPrefix}-${idx}`}
-          item={item}
-          keyPrefix={keyPrefix}
-          index={idx}
-        />
+        <MediaItemComponent key={idx} item={item} />
       ))}
     </div>
   );
@@ -117,7 +109,6 @@ function TheHeartBehindDreamaze() {
 
   return (
     <div className="bg-white mt-[64px] md:mt-[88px] md:mb-[88px] space-y-[24px] text-center">
-      {/* Local styles for marquee animation */}
       <style jsx global>{`
         @keyframes marquee {
           0% { transform: translateX(0%); }
@@ -131,37 +122,30 @@ function TheHeartBehindDreamaze() {
           animation-timing-function: linear;
           animation-iteration-count: infinite;
         }
-        /* Pause animation on hover of the wrapper */
         .animate-marquee:hover { animation-play-state: paused; }
       `}</style>
-        {/* Hero Section */}
-          <h1 className="text-[24px] md:text-[40px] font-semibold">
-            The Heart Behind Dreamaze
-          </h1>
-          
-          <p className="text-[14px] md:text-[16px] text-[#222222] leading-relaxed px-[24px]">
-            When children see themselves in the story, reading becomes real bonding.
-          </p>
 
-        {/* Image Gallery - auto-scrolling marquee left-to-right */}
-        <div className="overflow-hidden relative">
-            {/* Track: duplicated content for seamless loop */}
-          <div
-            className="flex gap-4 items-center animate-marquee"
-            style={{
-              animationDuration: '38s', // adjust this to change speed (lower = faster)
-              animationTimingFunction: 'linear',
-              animationIterationCount: 'infinite',
-            }}
-          >
-            {/** First mapped copy **/}
-            <MediaItemsList items={mediaItems} keyPrefix="first" />
+      <h1 className="text-[24px] md:text-[40px] font-semibold">
+        The Heart Behind Dreamaze
+      </h1>
+      
+      <p className="text-[14px] md:text-[16px] text-[#222222] leading-relaxed px-[24px]">
+        When children see themselves in the story, reading becomes real bonding.
+      </p>
 
-            {/** Second mapped copy (duplicate) **/}
-            <MediaItemsList items={mediaItems} keyPrefix="second" />
-          </div>
+      <div className="overflow-hidden relative">
+        <div
+          className="flex gap-4 items-center animate-marquee"
+          style={{
+            animationDuration: '38s',
+            animationTimingFunction: 'linear',
+            animationIterationCount: 'infinite',
+          }}
+        >
+          <MediaItemsList items={mediaItems} />
+          <MediaItemsList items={mediaItems} />
         </div>
-
+      </div>
     </div>
   );
 }

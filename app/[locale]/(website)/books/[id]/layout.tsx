@@ -1,10 +1,5 @@
 import type { Metadata } from 'next';
 import { sharedMetadata } from '@/components/metadata';
-import {
-  ProductSchema,
-  BreadcrumbSchema,
-  FAQSchema,
-} from '@/app/components/StructuredDataSchemas';
 import { getBookAbsoluteUrl, resolveBookRouteFromParam } from '@/constants/bookRoutes';
 
 // ── Book SEO data ──────────────────────────────────────────────────────────
@@ -18,6 +13,7 @@ interface BookSeo {
   ogDescription: string;
   keywords: string[];
   primaryKeyword: string;
+  schemaDescription?: string;
   faqs: Array<{ question: string; answer: string }>;
 }
 
@@ -39,6 +35,7 @@ const BOOK_SEO: Record<string, BookSeo> = {
       'good night book for kids',
     ],
     primaryKeyword: 'personalized bedtime book',
+    schemaDescription: 'A personalized bedtime storybook where your child becomes the hero of a gentle goodnight adventure, made with their photo, name, and little details.',
     faqs: [
       {
         question: 'Can I preview the book before it’s printed?',
@@ -79,6 +76,7 @@ const BOOK_SEO: Record<string, BookSeo> = {
       'good night book for kids',
     ],
     primaryKeyword: 'personalized bedtime book',
+    schemaDescription: 'A personalized bedtime storybook where your child becomes the hero of a gentle goodnight adventure, made with their photo, name, and little details.',
     faqs: [
       {
         question: 'Can I preview the book before it’s printed?',
@@ -119,6 +117,7 @@ const BOOK_SEO: Record<string, BookSeo> = {
       'custom dad book with child photo',
     ],
     primaryKeyword: 'personalized book for dad',
+    schemaDescription: 'A personalized keepsake book for Dad, filled with everyday moments, family details, and a story made with your child at the heart.',
     faqs: [
       {
         question: 'Is this book only for Father’s Day?',
@@ -159,6 +158,7 @@ const BOOK_SEO: Record<string, BookSeo> = {
       'custom mom book with child photo',
     ],
     primaryKeyword: 'personalized book for mom',
+    schemaDescription: 'A personalized keepsake book that celebrates Mom through your child’s eyes, with heartfelt details, photos, and family love woven into the story.',
     faqs: [
       {
         question: 'Is this book only for Mother’s Day?',
@@ -183,9 +183,9 @@ const BOOK_SEO: Record<string, BookSeo> = {
     ],
   },
   PICBOOK_MELODY: {
-    name: 'Name Melody',
-    subtitle: 'A personalized baby book celebrating your child’s name, photo, and first little story.',
-    seoTitle: 'Name Melody: Personalized Baby Book | Dreamaze',
+    name: 'Your Melody',
+    subtitle: 'A personalized baby book that turns your child’s name, photo, and little details into a gentle musical keepsake.',
+    seoTitle: 'Your Melody: Personalized Baby Book | Dreamaze',
     metaDescription:
       'Create a gentle personalized baby book with your child’s real photo, name, and a musical story made for early memories.',
     ogTitle: 'A Personalized Baby Book Made for Their Name',
@@ -199,10 +199,11 @@ const BOOK_SEO: Record<string, BookSeo> = {
       'baby keepsake book',
     ],
     primaryKeyword: 'personalized baby book',
+    schemaDescription: 'A personalized baby book that turns your child’s name, photo, and little details into a gentle musical keepsake.',
     faqs: [
       {
-        question: 'What age is Name Melody suitable for?',
-        answer: 'Name Melody is designed for babies and toddlers aged 0–3. The gentle, musical story and simple illustrations are perfect for the earliest years.',
+        question: 'What age is Your Melody suitable for?',
+        answer: 'Your Melody is designed for babies and toddlers aged 0–3. The gentle, musical story and simple illustrations are perfect for the earliest years.',
       },
       {
         question: 'How does name personalization work?',
@@ -218,7 +219,7 @@ const BOOK_SEO: Record<string, BookSeo> = {
       },
       {
         question: 'Is this a good baby shower gift?',
-        answer: 'Absolutely! Name Melody makes a thoughtful and unique baby shower or newborn gift that parents will treasure for years.',
+        answer: 'Absolutely! Your Melody makes a thoughtful and unique baby shower or newborn gift that parents will treasure for years.',
       },
     ],
   },
@@ -239,6 +240,7 @@ const BOOK_SEO: Record<string, BookSeo> = {
       'child birthday book',
     ],
     primaryKeyword: 'personalized birthday book',
+    schemaDescription: 'A personalized birthday storybook starring your child’s photo, name, and celebration details in a joyful keepsake made for their special day.',
     faqs: [
       {
         question: 'What age is the birthday book for?',
@@ -263,9 +265,9 @@ const BOOK_SEO: Record<string, BookSeo> = {
     ],
   },
   PICBOOK_BRAVEY: {
-    name: 'You’re Brave',
-    subtitle: 'A personalized storybook that helps your child feel brave, seen, and celebrated.',
-    seoTitle: 'You’re Brave: Personalized Book for Kids | Dreamaze',
+    name: 'You’re Brave in Many Ways',
+    subtitle: 'A personalized storybook that helps your child feel brave, seen, and celebrated through a story made just for them.',
+    seoTitle: 'You\'re Brave in Many Ways: Personalized Book for Kids | Dreamaze',
     metaDescription:
       'Help your child see their courage in a personalized book made with their real photo, name, and everyday brave moments.',
     ogTitle: 'A Personalized Book That Celebrates Your Child’s Courage',
@@ -279,10 +281,11 @@ const BOOK_SEO: Record<string, BookSeo> = {
       'custom children\'s book',
     ],
     primaryKeyword: 'personalized book for kids',
+    schemaDescription: 'A personalized storybook that helps your child feel brave, seen, and celebrated through a story made just for them.',
     faqs: [
       {
-        question: 'What age range is You’re Brave for?',
-        answer: 'You’re Brave is designed for children aged 3–8. The story celebrates everyday courage that young children can relate to and feel proud of.',
+        question: 'What age range is You’re Brave in Many Ways for?',
+        answer: 'You’re Brave in Many Ways is designed for children aged 3–8. The story celebrates everyday courage that young children can relate to and feel proud of.',
       },
       {
         question: 'What does the bravery theme cover?',
@@ -319,6 +322,7 @@ const BOOK_SEO: Record<string, BookSeo> = {
       'custom Santa book',
     ],
     primaryKeyword: 'personalized Christmas book',
+    schemaDescription: 'A personalized Christmas storybook from Santa, starring your child’s photo, name, and festive details in a magical holiday keepsake.',
     faqs: [
       {
         question: 'Will my book arrive before Christmas?',
@@ -438,8 +442,7 @@ async function BookStructuredData({
   const seo = getBookSeo(productId);
 
   const bookName = seo?.name ?? 'Personalized Children\'s Book';
-  const bookDescription = seo?.metaDescription ?? '';
-  const bookSubtitle = seo?.subtitle;
+  const bookDescription = seo?.schemaDescription ?? seo?.metaDescription ?? '';
 
   // Fetch product data from API for price/image (server-side)
   let price = '29.99';
@@ -455,6 +458,8 @@ async function BookStructuredData({
       price = data.current_price ?? data.base_price ?? data.price ?? '29.99';
       currency = data.currencycode ?? data.currency ?? 'USD';
       productImage =
+        data.mainImageUrl ??
+        data.main_image_url ??
         data.primary_image ??
         (Array.isArray(data.images) ? data.images[0] : null) ??
         data.image ??
@@ -473,8 +478,8 @@ async function BookStructuredData({
 
   // Breadcrumb items
   const breadcrumbItems = [
-    { name: 'Home', url: 'https://dreamazebook.com' },
-    { name: 'Books', url: 'https://dreamazebook.com/books' },
+    { name: 'Home', url: 'https://dreamazebook.com/en' },
+    { name: 'Books', url: 'https://dreamazebook.com/en/books' },
     { name: bookName, url: bookUrl },
   ];
 
@@ -488,8 +493,8 @@ async function BookStructuredData({
             '@context': 'https://schema.org',
             '@type': 'Product',
             name: bookName,
+            sku: productId,
             description: bookDescription,
-            ...(bookSubtitle ? { slogan: bookSubtitle } : {}),
             image: imageUrl,
             brand: {
               '@type': 'Brand',

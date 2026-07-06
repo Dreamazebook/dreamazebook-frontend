@@ -92,9 +92,9 @@ export function getBookPath(productIdOrSlug: string): string {
   return `/books/${normalizeRouteSegment(productIdOrSlug)}`;
 }
 
-/** Absolute canonical URL (locale-less, matches SEO spec). */
+/** Absolute canonical URL with /en locale prefix. */
 export function getBookAbsoluteUrl(slug: string): string {
-  return `https://dreamazebook.com/books/${slug}`;
+  return `https://dreamazebook.com/en/books/${slug}`;
 }
 
 export function getBookAbsoluteUrlFromProductId(productIdOrSlug: string): string {

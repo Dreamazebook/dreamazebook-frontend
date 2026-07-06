@@ -11,10 +11,14 @@ import { getFormattedCartItemTitle, getOurBookDisplayName } from '@/utils/bookNa
 interface OrderSummaryProps {
   orderDetail?: OrderDetail;
   handleApplyCoupon: (code: string) => void;
+  handleRemoveCoupon?: () => void;
+  removingCoupon?: boolean;
 }
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
   handleApplyCoupon,
+  handleRemoveCoupon,
+  removingCoupon,
   orderDetail,
 }) => {
   const t = useTranslations('checkoutPage');
@@ -37,9 +41,20 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       <CouponInput onApply={handleApplyCoupon}  />
 
       {orderDetail?.coupon_code && (
-        <p className="text-green-600 text-sm mb-2">
-          {t("couponCode", {code: orderDetail?.coupon_code})}
-        </p>
+        <div className="flex items-center justify-between text-sm mb-2">
+          <p className="text-green-600">
+            {t("couponCode", {code: orderDetail?.coupon_code})}
+          </p>
+          {handleRemoveCoupon && (
+            <button
+              onClick={handleRemoveCoupon}
+              disabled={removingCoupon}
+              className="text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs underline"
+            >
+              {removingCoupon ? t("removing") : t("remove")}
+            </button>
+          )}
+        </div>
       )}
       
       {orderDetail &&

@@ -21,22 +21,12 @@ const faqData: FAQItem[] = [
     answer: "Our books are created for ages 0–99. Each story is centered around the child, but made to bring joy to siblings, parents, grandparents, and everyone who loves them. We hope every family member feels a little happiness through these books."
   },
   {
-    question: "How do I place an order?",
-    answer: "Choose a book → click Personalize → fill in the details. We'll process your order within 48 hours and send you a preview by email. You'll have 24 hours to review and confirm before we print."
+    question: "How do I create my book?",
+    answer: "Choose a story, add your child’s details, upload a clear photo, and create your private preview. Once you’re happy with the preview, you can place your order and we’ll prepare your personalized book for print."
   },
   {
-    question: "Do I need to send you photos?",
-    answer: (
-      <div className="space-y-3">
-        <p>Yes. To create true personalization and ensure your child recognizes themselves in the story, we ask for 1–3 clear, front-facing photos.</p>
-        <p>Your privacy matters deeply to us:</p>
-        <ul className="list-disc pl-5 space-y-1">
-          <li>Your photos are only used for book creation</li>
-          <li>They are automatically deleted within 7 days after your book is completed</li>
-          <li>We strictly follow data-protection standards (GDPR)</li>
-        </ul>
-      </div>
-    )
+    question: "Are my child’s photos safe?",
+    answer: "Yes. Your child’s photo is only used to create your private preview and personalized book. We do not show, share, or use your child’s photo publicly without your permission."
   },
   {
     question: "How fast will I receive my order?",
@@ -56,17 +46,8 @@ const faqData: FAQItem[] = [
     answer: "No. All Dreamaze books are hand-illustrated by real artists, and every story is original. AI is only used in the final step to gently transform the main character into your child — a little touch of magic that doesn't affect the beauty, detail, or authenticity of the illustrations."
   },
   {
-    question: "I made a mistake in my order. How can I correct it?",
-    answer: (
-      <div className="space-y-3">
-        <p>You have:</p>
-        <ul className="list-disc pl-5 space-y-1">
-          <li>4 hours after checkout to correct your information</li>
-          <li>24 hours after receiving your preview to request a change</li>
-        </ul>
-        <p>Please contact us through Contact Us if you need help. Once the 24-hour preview window has passed, your book will enter printing and can no longer be changed.</p>
-      </div>
-    )
+    question: "Can I change my details after placing an order?",
+    answer: "If your book has not entered production yet, you can contact us by email to request a change. You can also check your book’s progress in your account. Once the book is in production, we may not be able to make changes."
   },
   {
     question: "Do you offer books in different languages?",

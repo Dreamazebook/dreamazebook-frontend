@@ -152,10 +152,10 @@ export default function LoginModal({
 
   const fetchOAuthRedirect = async (provider: string) => {
     try {
-      const {data,success} = await api.get<ApiResponse<{ redirect_url: string, url: string }>>(OAUTH_REDIRECT(provider))
-      if (!success || !data) return null
+      const {url,success} = await api.get<any>(OAUTH_REDIRECT(provider))
+      if (!success || !url) return null
       localStorage.setItem('oauthProvider', provider)
-      return data.redirect_url ?? data.url ?? null
+      return url;
     } catch (e) {
       console.error('fetchOAuthRedirect error', e)
       return null

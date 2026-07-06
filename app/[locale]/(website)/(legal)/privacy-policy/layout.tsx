@@ -14,10 +14,10 @@ export const metadata: Metadata = {
     ...sharedMetadata.openGraph,
     title: 'Privacy Policy | Dreamaze',
     description: 'Read Dreamaze privacy policy.',
-    url: 'https://dreamazebook.com/privacy-policy',
+    url: 'https://dreamazebook.com/en/privacy-policy',
   },
   alternates: {
-    canonical: 'https://dreamazebook.com/privacy-policy',
+    canonical: 'https://dreamazebook.com/en/privacy-policy',
   },
 };
 

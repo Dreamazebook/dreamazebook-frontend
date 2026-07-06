@@ -46,16 +46,23 @@ export const WebsiteSchema = () => {
  * Product Schema for Book Detail Page
  */
 export const ProductSchema = ({ book }: { book: any }) => {
-  const bookUrl = getBookAbsoluteUrlFromProductId(String(book.id || book.spu_code || ''));
+  const productId = String(book.id || book.spu_code || book.productId || '');
+  const bookUrl = getBookAbsoluteUrlFromProductId(productId);
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: book.name || book.title || 'Personalized Children\'s Book',
+    sku: productId || undefined,
     description:
+      book.schemaDescription ||
       book.description ||
       'A personalized children\'s book where your child becomes the hero of their own magical story.',
     image:
-      book.image || book.imageCover || 'https://dreamazebook.com/landing-page/cover.png',
+      book.mainImageUrl ||
+      book.main_image_url ||
+      book.image ||
+      book.imageCover ||
+      'https://dreamazebook.com/landing-page/cover.png',
     brand: {
       '@type': 'Brand',
       name: 'Dreamaze',

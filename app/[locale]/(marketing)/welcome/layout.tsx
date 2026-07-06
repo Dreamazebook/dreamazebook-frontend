@@ -27,17 +27,17 @@ export const metadata: Metadata = {
   title: 'Join Dreamaze | Personalized Children\'s Books',
   description: 'Join the Dreamaze community and be the first to receive updates about our personalized children\'s books and exclusive offers.',
   robots: {
-    index: true,
+    index: false,
     follow: true,
   },
   openGraph: {
     ...sharedMetadata.openGraph,
     title: 'Join Dreamaze | Personalized Children\'s Books',
     description: 'Join the Dreamaze community for exclusive offers and updates.',
-    url: 'https://dreamazebook.com/welcome',
+    url: 'https://dreamazebook.com/en/welcome',
   },
   alternates: {
-    canonical: 'https://dreamazebook.com/welcome',
+    canonical: 'https://dreamazebook.com/en/welcome',
   },
 };
 

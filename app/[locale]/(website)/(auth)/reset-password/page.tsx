@@ -48,7 +48,7 @@ export default function ResetPasswordPage() {
       await api.post(API_RESET_PASSWORD, {
         token,
         password,
-        password_confirmationP: confirmPassword,
+        password_confirmation: confirmPassword,
       });
 
       setSuccess(true);
