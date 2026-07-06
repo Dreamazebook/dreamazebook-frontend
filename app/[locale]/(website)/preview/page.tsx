@@ -4647,13 +4647,13 @@ export default function PreviewPageWithTopNav() {
           
           if (contentId) {
             const cartValue = 0;
-            fbTrack('AddToCart', {
-              value: cartValue,
-              currency: 'USD',
-              content_ids: [contentId],
-              content_type: 'product',
-              contents: [{ id: contentId, quantity: 1 }]
-            });
+            // fbTrack('AddToCart', {
+            //   value: cartValue,
+            //   currency: 'USD',
+            //   content_ids: [contentId],
+            //   content_type: 'product',
+            //   contents: [{ id: contentId, quantity: 1 }]
+            // });
           }
         }
         
@@ -4673,13 +4673,13 @@ export default function PreviewPageWithTopNav() {
           if (contentId) {
             const cartValue = 0;
             
-            fbTrack('AddToCart', {
-              value: cartValue,
-              currency: 'USD',
-              content_ids: [contentId],
-              content_type: 'product',
-              contents: [{ id: contentId, quantity: 1 }]
-            });
+            // fbTrack('AddToCart', {
+            //   value: cartValue,
+            //   currency: 'USD',
+            //   content_ids: [contentId],
+            //   content_type: 'product',
+            //   contents: [{ id: contentId, quantity: 1 }]
+            // });
           }
         }
         

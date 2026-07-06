@@ -113,7 +113,7 @@ function CheckoutPageContent() {
         trackBeginCheckout(ga4Items, orderDetail.total_amount || 0);
 
         // GA4: Track add_to_cart event (when entering checkout)
-        trackAddToCart(ga4Items, orderDetail.total_amount || 0);
+        // trackAddToCart(ga4Items, orderDetail.total_amount || 0);
       }
     }
   }, [orderDetail]);
