@@ -1222,6 +1222,7 @@ export default function PreviewPageWithTopNav() {
       description: t('unlockFullBookDescription'),
       footerNote: t('unlockFullBookFooter'),
       sendCodeButtonLabel: t('continueWithEmailCode'),
+      loginSource: 'preview_unlock',
     });
   }, [openLoginModal, t]);
 
@@ -4701,13 +4702,13 @@ export default function PreviewPageWithTopNav() {
 
           if (contentId) {
             const cartValue = 0;
-            fbTrack('AddToCart', {
-              value: cartValue,
-              currency: 'USD',
-              content_ids: [contentId],
-              content_type: 'product',
-              contents: [{ id: contentId, quantity: 1 }]
-            });
+            // fbTrack('AddToCart', {
+            //   value: cartValue,
+            //   currency: 'USD',
+            //   content_ids: [contentId],
+            //   content_type: 'product',
+            //   contents: [{ id: contentId, quantity: 1 }]
+            // });
           }
         }
 
@@ -4734,15 +4735,15 @@ export default function PreviewPageWithTopNav() {
         addToCartTrackedRef.current = true;
         const contentId = getContentIdBySpu(bookInfo);
 
-        if (contentId) {
-          fbTrack('AddToCart', {
-            value: 0,
-            currency: 'USD',
-            content_ids: [contentId],
-            content_type: 'product',
-            contents: [{ id: contentId, quantity: 1 }]
-          });
-        }
+        // if (contentId) {
+        //   fbTrack('AddToCart', {
+        //     value: 0,
+        //     currency: 'USD',
+        //     content_ids: [contentId],
+        //     content_type: 'product',
+        //     contents: [{ id: contentId, quantity: 1 }]
+        //   });
+        // }
       }
 
       // Step 2: 创建订单（payload 与购物车页 useCheckout 一致）

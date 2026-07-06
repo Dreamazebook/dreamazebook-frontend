@@ -15,10 +15,10 @@ export const metadata: Metadata = {
     ...sharedMetadata.openGraph,
     title: 'Contact Us | Dreamaze',
     description: 'Get in touch with our Dreamaze team for support and questions.',
-    url: 'https://dreamazebook.com/contact-us',
+    url: 'https://dreamazebook.com/en/contact-us',
   },
   alternates: {
-    canonical: 'https://dreamazebook.com/contact-us',
+    canonical: 'https://dreamazebook.com/en/contact-us',
   },
 };
 

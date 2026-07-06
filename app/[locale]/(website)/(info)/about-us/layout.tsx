@@ -16,10 +16,10 @@ export const metadata: Metadata = {
     title: 'About Us | Dreamaze',
     description:
       'Learn about Dreamaze and our mission to create magical, personalized children\'s books.',
-    url: 'https://dreamazebook.com/about-us',
+    url: 'https://dreamazebook.com/en/about-us',
   },
   alternates: {
-    canonical: 'https://dreamazebook.com/about-us',
+    canonical: 'https://dreamazebook.com/en/about-us',
   },
 };
 

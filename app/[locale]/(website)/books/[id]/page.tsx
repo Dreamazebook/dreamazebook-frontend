@@ -1,42 +1,14 @@
-"use client";
-
-import { useParams } from 'next/navigation';
-import { useLocale } from 'next-intl';
-import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
-import { Link, useRouter } from "@/i18n/routing";
+import { resolveBookRouteFromParam } from '@/constants/bookRoutes';
 import api from "@/utils/api";
 import { apiCache } from "@/utils/apiCache";
-// Using new product detail schema
-import ReviewsSection from '../../components/reviews/Reviews';
-import BookDetailView from '../../components/BookDetailView';
-import BookSections from '../../components/books/BookSections';
-import BookDetailSkeleton from '../../components/books/BookDetailSkeleton';
-import BookDetailStickyBar from '../../components/books/BookDetailStickyBar';
-import { useTranslations } from 'next-intl';
-import { resolveBookRouteFromParam } from '@/constants/bookRoutes';
+import { WEBSITE_CDN_URL } from '@/constants/cdn';
+import BookDetailClient from './BookDetailClient';
 
 interface PagePic {
   id: number;
   pagenum: number;
   pagepic: string;
 }
-
-// 定义评论的类型
-interface Review {
-  reviewer_name: string;
-  rating: number;
-  comment: string; // 评论内容
-  review_date: string; // 评论日期
-  pagepic?: string; // 用户图片，可能是可选的
-}
-
-interface Keyword {
-  keyword: string;
-  count: number;
-}
-
-// legacy type no longer used
 
 interface Tag {
   tname: string;
@@ -112,178 +84,129 @@ const applyBookOverride = (bookData: any, override?: { name?: string; descriptio
   return patched;
 };
 
-const BookDetailPage = () => {
-  const t = useTranslations('BookDetail');
-  const params = useParams();
-  const id = params.id;
-  const locale = useLocale();
-  const router = useRouter();
-
-  const [book, setBook] = useState<any | null>(null);
-  //const [recommendedBooks, setRecommendedBooks] = useState<RecommendedBook[]>([]);
-  const [pagePics, setPagePics] = useState<PagePic[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [keywords, setKeywords] = useState<Keyword[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingGallery, setLoadingGallery] = useState(true);
-  const [availableLanguages, setAvailableLanguages] = useState<string[]>(['en', 'zh']);
+export default async function BookDetailPage({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>;
+}) {
+  const { locale, id } = await params;
 
   const routeParam = Array.isArray(id) ? id[0] : String(id || '');
   const { productId } = resolveBookRouteFromParam(routeParam);
 
-  // 检查是否在嵌入模式（用于抽屉显示）
-  const isEmbedMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === 'true';
+  let book: any = null;
+  let pagePics: PagePic[] = [];
+  let tags: Tag[] = [];
+  let availableLanguages: string[] = ['en', 'zh'];
 
-  useEffect(() => {
-    const fetchBookDetails = async () => {
-      setLoading(true);
-      setLoadingGallery(true);
-      try {
-        // 优先获取产品信息，让用户先看到页面内容
-        // 使用缓存，书籍详情缓存 10 分钟
-        const productResponse = await apiCache.request<any>(
-          () => api.get<any>(`/products/${productId}`, { params: { language: locale } }),
-          `/products/${productId}`,
-          { language: locale },
-          {
-            ttl: 10 * 60 * 1000, // 10分钟缓存
-            useCache: true,
-            useDedupe: true,
-          }
-        );
-        const data = productResponse?.data || productResponse;
-        const override = BOOK_DETAIL_OVERRIDES[productId];
-        const patchedData = applyBookOverride(data, override);
-        setBook(patchedData);
-        setLoading(false); // 产品信息加载完成，可以先显示页面
-        
-        try {
-          const langs = (data?.data?.customization_config?.languages
-            || data?.customization_config?.languages
-            || []) as string[];
-          if (Array.isArray(langs) && langs.length > 0) {
-            setAvailableLanguages(langs);
-          }
-        } catch {}
-        
-        setTags(override?.tags ?? []);
-        setReviews([]);
-        setKeywords([]);
-      } catch (error) {
-        console.error('Failed to fetch book details:', error);
-        setLoading(false);
-      }
-      
-      // 异步加载 gallery 资源（通过 API 中转 Cloudflare index.json），不阻塞页面显示
-      try {
-        // Good Night3 的静态 gallery 实际存放在 PICBOOK_GOODNIGHT 目录下
-        const galleryId =
-          String(productId) === 'PICBOOK_GOODNIGHT3'
-            ? 'PICBOOK_GOODNIGHT'
-            : String(productId);
-
-        const galleryBase = `/products/picbooks/${encodeURIComponent(
-          galleryId
-        )}/gallery`;
-
-        const resp = await fetch(`/api/local-gallery${galleryBase}`);
-        if (!resp.ok) {
-          throw new Error(`Failed to load gallery index: ${resp.status}`);
+  if (productId) {
+    // Fetch product details
+    try {
+      const productResponse = await apiCache.request<any>(
+        () => api.get<any>(`/products/${productId}`, { params: { language: locale } }),
+        `/products/${productId}`,
+        { language: locale },
+        {
+          ttl: 10 * 60 * 1000,
+          useCache: true,
+          useDedupe: true,
         }
+      );
+      const data = productResponse?.data || productResponse;
+      const override = BOOK_DETAIL_OVERRIDES[productId];
+      book = applyBookOverride(data, override);
 
-        const json = await resp.json();
-        const items = Array.isArray(json?.items)
-          ? json.items
-          : Array.isArray(json?.files)
-          ? json.files.map((src: string, idx: number) => ({
-              id: `legacy-${idx}`,
-              order: idx + 1,
-              src,
-            }))
-          : [];
+      try {
+        const langs = (data?.data?.customization_config?.languages
+          || data?.customization_config?.languages
+          || []) as string[];
+        if (Array.isArray(langs) && langs.length > 0) {
+          availableLanguages = langs;
+        }
+      } catch {}
 
-        const sortedItems = items
-          .map((item: any, idx: number) => ({
-            id: item.id ?? `item-${idx}`,
-            order:
-              typeof item.order === 'number'
-                ? item.order
-                : parseInt(String(item.order ?? idx + 1), 10) || idx + 1,
-            src: item.src,
-          }))
-          .filter((item: any) => typeof item.src === 'string' && item.src.length > 0)
-          .sort((a: any, b: any) => a.order - b.order);
-
-        const pages = sortedItems.map((item: any, index: number) => ({
-          id: item.id ?? index,
-          pagenum: item.order ?? index + 1,
-          pagepic: item.src,
-        }));
-
-        setPagePics(pages);
-      } catch (error) {
-        console.error('Failed to fetch gallery from API:', error);
-        setPagePics([]);
-      } finally {
-        setLoadingGallery(false);
-      }
-    };
-
-    if (productId) {
-      fetchBookDetails();
+      tags = override?.tags ?? [];
+    } catch (error) {
+      console.error('Failed to fetch book details:', error);
     }
-  }, [productId, locale]);
 
-  if (loading) return <BookDetailSkeleton />;
-  if (!book) return <div className="min-h-screen flex items-center justify-center">{t('noBookFound')}</div>;
+    // Fetch gallery directly from CDN
+    try {
+      const galleryId =
+        String(productId) === 'PICBOOK_GOODNIGHT3'
+          ? 'PICBOOK_GOODNIGHT'
+          : String(productId);
 
-  const description = book?.description || "No description available.";
+      const cdnBase = WEBSITE_CDN_URL.endsWith('/')
+        ? WEBSITE_CDN_URL
+        : `${WEBSITE_CDN_URL}/`;
+      const galleryBaseUrl = `${cdnBase}products/picbooks/${encodeURIComponent(galleryId)}/gallery`;
+      const indexUrl = `${galleryBaseUrl}/index.json`;
 
-  const handlePersonalizeClick = (e: React.MouseEvent, lang: string) => {
-    // 允许未登录用户直接进入首次个性化流程（不再强制跳转登录）
-    // 这里保持空实现即可：不阻止默认行为，让 Link 正常跳转到 /personalize
-    void e;
-    void lang;
-    void router;
-  };
+      const resp = await fetch(indexUrl, { cache: 'no-store' });
+      if (!resp.ok) {
+        throw new Error(`Failed to load gallery index: ${resp.status}`);
+      }
+
+      const json = await resp.json();
+      const rawItems = Array.isArray(json?.files)
+        ? json.files
+        : Array.isArray(json)
+        ? json
+        : [];
+
+      const normalizeSrc = (src: string) =>
+        src?.replace(/^\.\//, '').replace(/^\/+/, '');
+
+      const buildFullUrl = (src: string): string | null => {
+        if (!src) return null;
+        if (/^https?:\/\//i.test(src)) return src;
+        const cleaned = normalizeSrc(src);
+        return `${galleryBaseUrl}/${cleaned}`;
+      };
+
+      const items: Array<{ id: string; order: number; src: string }> = [];
+
+      rawItems.forEach((entry: any, idx: number) => {
+        if (typeof entry === 'string') {
+          const src = buildFullUrl(entry);
+          if (src) items.push({ id: `item-${idx}`, order: idx + 1, src });
+        } else if (entry && typeof entry === 'object') {
+          const src = buildFullUrl(entry.src || entry.url || entry.path);
+          if (src) {
+            items.push({
+              id: entry.id ?? `item-${idx}`,
+              order:
+                typeof entry.order === 'number'
+                  ? entry.order
+                  : parseInt(String(entry.order ?? idx + 1), 10) || idx + 1,
+              src,
+            });
+          }
+        }
+      });
+
+      const sortedItems = items
+        .filter((item) => typeof item.src === 'string' && item.src.length > 0)
+        .sort((a, b) => a.order - b.order);
+
+      pagePics = sortedItems.map((item: any, index: number) => ({
+        id: item.id ?? index,
+        pagenum: item.order ?? index + 1,
+        pagepic: item.src,
+      }));
+    } catch (error) {
+      console.error('Failed to fetch gallery from CDN:', error);
+    }
+  }
 
   return (
-    <>
-      <div className="pb-0">
-        <BookDetailView
-          book={book}
-          pagePics={pagePics}
-          tags={tags}
-          keywords={keywords}
-          reviews={reviews}
-          primaryButtonLabel={t('personalizeButton')}
-          primaryButtonHref={`/personalize?bookid=${productId}`}
-          onPrimaryClick={handlePersonalizeClick}
-          availableLanguages={availableLanguages}
-          bookId={productId}
-          hidePriceAndButton={isEmbedMode}
-        />
-        {!isEmbedMode && (
-          <>
-        <ReviewsSection book={book} keywords={keywords} reviews={reviews} />
-        {/* Book Sections - Dynamically rendered based on book config */}
-        <BookSections book={book} bookId={productId} />
-          </>
-        )}
-      </div>
-      {/* 手机端吸底栏 */}
-      {!isEmbedMode && (
-      <BookDetailStickyBar
-        book={book}
-        primaryButtonLabel={t('personalizeButton')}
-        primaryButtonHref={`/personalize?bookid=${productId}`}
-        onPrimaryClick={handlePersonalizeClick}
-        selectedLanguage={availableLanguages[0] || 'en'}
-      />
-      )}
-    </>
+    <BookDetailClient
+      book={book}
+      productId={productId}
+      pagePics={pagePics}
+      tags={tags}
+      availableLanguages={availableLanguages}
+    />
   );
 }
-
-export default BookDetailPage;

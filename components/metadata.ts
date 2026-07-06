@@ -27,7 +27,7 @@ export const sharedMetadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    url: 'https://dreamazebook.com',
+    url: 'https://dreamazebook.com/en',
     title: 'Personalized Storybooks with Your Child’s Real Photo | Dreamaze',
     description:
       'Turn your child’s real photo into a personalized storybook they’ll love. Create a keepsake gift for bedtime, birthdays, and family moments.',
@@ -53,11 +53,11 @@ export const sharedMetadata: Metadata = {
     site: '@dreamazebook',
   },
   robots: {
-    index: false,
+    index: true,
     follow: true,
     nocache: false,
     googleBot: {
-      index: false,
+      index: true,
       follow: true,
       noimageindex: false,
       'max-video-preview': -1,
@@ -70,7 +70,7 @@ export const sharedMetadata: Metadata = {
     yandex: 'yandex-verification-code', // Replace with actual verification code
   },
   alternates: {
-    canonical: 'https://dreamazebook.com',
+    canonical: 'https://dreamazebook.com/en',
     languages: {
       en: 'https://dreamazebook.com/en',
       fr: 'https://dreamazebook.com/fr',

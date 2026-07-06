@@ -3,7 +3,7 @@ import { BOOK_CANONICAL_SLUGS } from '@/constants/bookRoutes';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://dreamazebook.com';
-  const locales = ['en', 'fr', 'zh'];
+  const locales = ['en'];
 
   // Core static pages
   const staticPages = [
@@ -16,9 +16,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/terms-and-conditions',
     '/privacy-policy',
     '/return-policy',
-    '/personalize',
     '/christmas',
     '/mothers-day',
+    '/fathers-day'
   ];
 
   // Generate main entries with all languages

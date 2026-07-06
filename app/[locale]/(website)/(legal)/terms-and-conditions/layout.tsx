@@ -14,10 +14,10 @@ export const metadata: Metadata = {
     ...sharedMetadata.openGraph,
     title: 'Terms and Conditions | Dreamaze',
     description: 'Read the terms and conditions for Dreamaze.',
-    url: 'https://dreamazebook.com/terms-and-conditions',
+    url: 'https://dreamazebook.com/en/terms-and-conditions',
   },
   alternates: {
-    canonical: 'https://dreamazebook.com/terms-and-conditions',
+    canonical: 'https://dreamazebook.com/en/terms-and-conditions',
   },
 };
 

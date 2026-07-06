@@ -13,6 +13,8 @@ export type LoginModalOptions = {
   footerNote?: string
   sendCodeButtonLabel?: string
   onSuccess?: () => void
+  /** Tracks where the login was triggered from for LoginSuccess event */
+  loginSource?: 'preview_unlock' | 'account_entry' | 'unknown'
 }
 
 interface UserState {
@@ -247,7 +249,8 @@ const useUserStore = create<UserState>((set,get) => ({
         localStorage.setItem('token', response.data.token);
         set({ isLoggedIn: true, user: response.data?.user || null });
         // Track LoginSuccess for registration
-        fbTrackCustom('LoginSuccess', { login_method: 'email_password' });
+        const loginSource = get().loginModalOptions?.loginSource || 'unknown';
+        fbTrackCustom('LoginSuccess', { login_method: 'email_password', login_source: loginSource });
       }
       return response;
     } catch (error) {
@@ -260,7 +263,8 @@ const useUserStore = create<UserState>((set,get) => ({
       set({isLoggedIn:true, user:userResponse.user});
       localStorage.setItem('token', userResponse.token);
       // Track LoginSuccess
-      fbTrackCustom('LoginSuccess', {login_method: 'token'});
+      const loginSource = get().loginModalOptions?.loginSource || 'unknown';
+      fbTrackCustom('LoginSuccess', {login_method: 'token', login_source: loginSource});
     }
   },
   login: async (userData): Promise<ApiResponse<UserResponse> | null> => {
@@ -269,7 +273,8 @@ const useUserStore = create<UserState>((set,get) => ({
       if (response.success && response.data?.token) {
         get().setLoginUserToken(response.data);
         // Track LoginSuccess for email/password login
-        fbTrackCustom('LoginSuccess', { login_method: 'email_password' });
+        const loginSource = get().loginModalOptions?.loginSource || 'unknown';
+        fbTrackCustom('LoginSuccess', { login_method: 'email_password', login_source: loginSource });
       }
       return response;
     } catch (error) {
@@ -319,7 +324,8 @@ const useUserStore = create<UserState>((set,get) => ({
         localStorage.setItem('token', response.data.token);
         set({ isLoggedIn: true, user: response.data?.user || null });
         // Track LoginSuccess for Google login
-        fbTrackCustom('LoginSuccess', { login_method: 'google' });
+        const loginSource = get().loginModalOptions?.loginSource || 'unknown';
+        fbTrackCustom('LoginSuccess', { login_method: 'google', login_source: loginSource });
       }
       return response;
     } catch (error) {
@@ -342,7 +348,8 @@ const useUserStore = create<UserState>((set,get) => ({
         localStorage.setItem('token', response.data.token);
         set({ isLoggedIn: true, user: response.data?.user || null });
         // Track LoginSuccess for Facebook login
-        fbTrackCustom('LoginSuccess', { login_method: 'facebook' });
+        const loginSource = get().loginModalOptions?.loginSource || 'unknown';
+        fbTrackCustom('LoginSuccess', { login_method: 'facebook', login_source: loginSource });
       }
       return response;
     } catch (error) {

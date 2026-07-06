@@ -47,22 +47,22 @@ export const useCheckout = ({ selectedItems, couponCode, campaignCode }: UseChec
     }
   }, [selectedItems]);
 
-  const trackCheckoutAttempt = useCallback(async () => {
-    if (isLoggedIn || checkoutAttemptTracked) {
-      return;
-    }
+  // const trackCheckoutAttempt = useCallback(async () => {
+  //   if (isLoggedIn || checkoutAttemptTracked) {
+  //     return;
+  //   }
 
-    checkoutAttemptTracked = true;
-    const { content_ids, contents, orderTotal } = await getCartTrackingData();
-    fbTrackCustom('CheckoutAttempt', {
-      is_logged_in: false,
-      value: Number(orderTotal),
-      currency: 'USD',
-      content_ids,
-      content_type: 'product',
-      contents
-    });
-  }, [getCartTrackingData, isLoggedIn]);
+  //   checkoutAttemptTracked = true;
+  //   const { content_ids, contents, orderTotal } = await getCartTrackingData();
+  //   fbTrackCustom('CheckoutAttempt', {
+  //     is_logged_in: false,
+  //     value: Number(orderTotal),
+  //     currency: 'USD',
+  //     content_ids,
+  //     content_type: 'product',
+  //     contents
+  //   });
+  // }, [getCartTrackingData, isLoggedIn]);
 
   const handleCheckout = async (paymentMethod: 'card' | 'paypal' = 'card') => {
     if (selectedItems.length === 0) {
@@ -94,13 +94,13 @@ export const useCheckout = ({ selectedItems, couponCode, campaignCode }: UseChec
         setError('');
         router.push(ORDER_CHECKOUT_URL(data.order.id) + `&paymentMethod=${paymentMethod}`);
       } else if (code == 401) {
-        await trackCheckoutAttempt();
+        // await trackCheckoutAttempt();
         return openLoginModal();
         //router.push(`/login?redirect=/shopping-cart`);
       }
     } catch (err:any) {
       if (err?.status == 401) {
-        await trackCheckoutAttempt();
+        // await trackCheckoutAttempt();
         return openLoginModal();
       }
       setError('Almost there — tap "Create book" to continue ✨');

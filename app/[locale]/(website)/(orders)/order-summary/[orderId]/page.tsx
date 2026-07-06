@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { formatDate, OrderDetail } from "@/types/order";
 import useUserStore from "@/stores/userStore";
@@ -12,26 +12,27 @@ import {
   API_ORDER_STRIPE_PAID,
   API_ORDER_UPDATE_MESSAGE,
 } from "@/constants/api";
-import OrderSummaryPrices from "../../components/component/OrderSummaryPrices";
-import OrderSummaryDelivery from "../../components/component/OrderSummaryDelivery";
-import StripeReceiptLink from "../../components/component/StripeReceiptLink";
-import CartItemCard from "../shopping-cart/components/CartItemCard";
-import MessageModal from "./components/MessageModal";
+import OrderSummaryPrices from "../../../components/component/OrderSummaryPrices";
+import OrderSummaryDelivery from "../../../components/component/OrderSummaryDelivery";
+import StripeReceiptLink from "../../../components/component/StripeReceiptLink";
+import CartItemCard from "../../shopping-cart/components/CartItemCard";
+import MessageModal from "../components/MessageModal";
 import Image from "next/image";
 import { CartItem } from "@/types/cart";
-import OrderStatusLabel from "../../components/component/OrderStatusLabel";
-import OrderTitle from "./components/OrderTitle";
-import AddressEditModal from "../../components/component/AddressEditModal";
+import OrderStatusLabel from "../../../components/component/OrderStatusLabel";
+import OrderTitle from "../components/OrderTitle";
+import AddressEditModal from "../../../components/component/AddressEditModal";
 import { useAddressModal } from "@/hooks/useAddressModal";
-import { usePathname, useRouter } from "@/i18n/routing";
+import { useRouter } from "@/i18n/routing";
 import { fbTrack, getContentIdBySpu, trackPurchase } from "@/utils/track";
+import { ORDER_SUMMARY_URL } from "@/constants/links";
 
 const OrderSummary: React.FC = () => {
   const t = useTranslations("orderSummary");
   const router = useRouter();
   const { fetchOrderDetail, user, fetchCurrentUser } = useUserStore();
-  const searchParams = useSearchParams();
-  const orderId = searchParams.get("orderId");
+  const params = useParams();
+  const orderId = params.orderId as string;
 
   const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,7 +88,7 @@ const OrderSummary: React.FC = () => {
 
   useEffect(() => {
     if (!localStorage.getItem('token')) {
-      return router.push(`/login?redirect=/order-summary?orderId=${orderId}`)
+      return router.push(`/login?redirect=${ORDER_SUMMARY_URL(Number(orderId))}`)
     }
     const fetchSummaryOrder = async (orderId: string) => {
       try {
@@ -285,17 +286,6 @@ const OrderSummary: React.FC = () => {
                 handleClickEditShippingAddress={() => openAddressModal(orderDetail)}
                 showShipTo={true}
               />
-
-              {/* Coupon Info */}
-              {orderDetail.coupon_code && (
-                <div className="flex justify-between items-center text-[16px] text-green-600">
-                  <span>{t('couponDiscount')} ({orderDetail.coupon_code})</span>
-                  {orderDetail.coupon?.discount_amount ? (
-                    <span>-${orderDetail.coupon.discount_amount.toFixed(2)}</span>
-                  ) : null}
-                </div>
-              )}
-
               <OrderSummaryPrices orderDetail={orderDetail} />
             </>
           )}

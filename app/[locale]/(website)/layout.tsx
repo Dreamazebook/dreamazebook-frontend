@@ -43,6 +43,7 @@ import { sharedMetadata } from '@/components/metadata';
 import { OrganizationSchema, WebsiteSchema } from '@/app/components/StructuredDataSchemas';
 import MetaPixel from '@/app/components/MetaPixel';
 import GA4Script from '@/app/components/GA4Script';
+import ContentSquare from '@/app/components/ContentSquare';
 export const metadata: Metadata = sharedMetadata;
 
 export default async function LocaleLayout({
@@ -69,6 +70,7 @@ export default async function LocaleLayout({
         <OrganizationSchema />
         <WebsiteSchema />
         <MetaPixel />
+        <ContentSquare />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${roboto.variable} ${philosopher.variable} ${notoSansSC.variable} antialiased`}
