@@ -41,12 +41,12 @@ export const CodeInputField = memo(({ code, onCodeChange, successMessage }: Code
   return (
     <div>
       {successMessage && (
-        <div className="p-3 text-center" role="status" aria-live="polite">
-          <p>{successMessage}</p>
-        </div>
+        <p className="text-center text-[14px] leading-[20px] tracking-[0.25px] text-[#666666]" role="status" aria-live="polite">
+          {successMessage}
+        </p>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex gap-[8px]">
         {[0, 1, 2, 3, 4, 5].map((index) => (
           <input
             key={index}
@@ -57,7 +57,7 @@ export const CodeInputField = memo(({ code, onCodeChange, successMessage }: Code
             onChange={(e) => handleCodeInput(index, e.target.value)}
             onKeyDown={(e) => handleKeyDown(index, e)}
             onPaste={index === 0 ? handlePaste : undefined}
-            className="code-input w-12 h-12 text-center text-lg border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1BA7FF] focus:border-[#1BA7FF] outline-none"
+            className="code-input h-[36px] w-[36px] rounded-[4px] border border-[#222222] text-center text-[14px] leading-[20px] tracking-[0.25px] text-[#222222] outline-none focus:border-[#222222] focus:ring-0"
             required
             aria-label={`Code digit ${index + 1}`}
           />

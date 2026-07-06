@@ -1290,7 +1290,6 @@ export default function PreviewPageWithTopNav() {
   const openPreviewUnlockLogin = useCallback(() => {
     openLoginModal({
       title: t('unlockFullBookTitle'),
-      description: t('unlockFullBookDescription'),
       footerNote: t('unlockFullBookFooter'),
       sendCodeButtonLabel: t('continueWithEmailCode'),
       loginSource: 'preview_unlock',

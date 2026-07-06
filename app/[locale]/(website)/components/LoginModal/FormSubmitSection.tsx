@@ -1,10 +1,12 @@
-import { memo } from 'react'
+import { memo, type CSSProperties } from 'react'
 import Button from '@/app/components/Button'
 
 interface BaseSubmitProps {
   loading: boolean
   errorMessage: string
   children?: React.ReactNode
+  buttonClassName?: string
+  buttonStyle?: CSSProperties
 }
 
 interface LoginSubmitProps extends BaseSubmitProps {
@@ -31,11 +33,11 @@ interface CodeLoginSubmitProps extends BaseSubmitProps {
 }
 
 // Login Mode Submit Section
-export const LoginSubmitSection = memo(({ loading, errorMessage, buttonLabel, children }: LoginSubmitProps) => {
+export const LoginSubmitSection = memo(({ loading, errorMessage, buttonLabel, buttonClassName, buttonStyle, children }: LoginSubmitProps) => {
   return (
     <>
       <ErrorAlert message={errorMessage} />
-      <Button tl={buttonLabel} isLoading={loading} />
+      <Button tl={buttonLabel} isLoading={loading} className={buttonClassName} style={buttonStyle} />
       {children}
     </>
   )
@@ -43,11 +45,11 @@ export const LoginSubmitSection = memo(({ loading, errorMessage, buttonLabel, ch
 LoginSubmitSection.displayName = 'LoginSubmitSection'
 
 // Register Mode Submit Section
-export const RegisterSubmitSection = memo(({ loading, errorMessage, buttonLabel, children }: RegisterSubmitProps) => {
+export const RegisterSubmitSection = memo(({ loading, errorMessage, buttonLabel, buttonClassName, buttonStyle, children }: RegisterSubmitProps) => {
   return (
     <>
       <ErrorAlert message={errorMessage} />
-      <Button tl={buttonLabel} isLoading={loading} />
+      <Button tl={buttonLabel} isLoading={loading} className={buttonClassName} style={buttonStyle} />
       {children}
     </>
   )
@@ -61,6 +63,8 @@ export const ForgotPasswordSubmitSection = memo(({
   resetSent, 
   successMessage, 
   buttonLabel,
+  buttonClassName,
+  buttonStyle,
   children 
 }: ForgotPasswordSubmitProps) => {
   return (
@@ -69,7 +73,7 @@ export const ForgotPasswordSubmitSection = memo(({
       {resetSent ? (
         <SuccessAlert message={successMessage} />
       ) : (
-        <Button tl={buttonLabel} isLoading={loading} />
+        <Button tl={buttonLabel} isLoading={loading} className={buttonClassName} style={buttonStyle} />
       )}
       {children}
     </>
@@ -86,6 +90,8 @@ export const CodeLoginSubmitSection = memo(({
   verifyButtonLabel,
   sendButtonLabel,
   onResendCode,
+  buttonClassName,
+  buttonStyle,
   children,
 }: CodeLoginSubmitProps) => {
   return (
@@ -93,7 +99,7 @@ export const CodeLoginSubmitSection = memo(({
       <ErrorAlert message={errorMessage} />
       {codeSent ? (
         <>
-          <Button tl={verifyButtonLabel} isLoading={loading} />
+          <Button tl={verifyButtonLabel} isLoading={loading} className={buttonClassName} style={buttonStyle} />
           <div className="text-center text-sm">
             {countdown > 0 ? (
               <span className="text-gray-500">Resend in {countdown}s</span>
@@ -109,7 +115,7 @@ export const CodeLoginSubmitSection = memo(({
           </div>
         </>
       ) : (
-        <Button tl={sendButtonLabel} isLoading={loading} />
+        <Button tl={sendButtonLabel} isLoading={loading} className={buttonClassName} style={buttonStyle} />
       )}
       {children}
     </>
@@ -121,13 +127,9 @@ CodeLoginSubmitSection.displayName = 'CodeLoginSubmitSection'
 const ErrorAlert = memo(({ message }: { message: string }) => {
   if (!message) return null
   return (
-    <div
-      className="bg-red-50 p-3 rounded-md text-red-700 border border-red-200"
-      role="alert"
-      aria-live="polite"
-    >
-      <p>{message}</p>
-    </div>
+    <p className="text-[#CF0F02] text-sm" role="alert" aria-live="polite">
+      {message}
+    </p>
   )
 })
 ErrorAlert.displayName = 'ErrorAlert'

@@ -32,6 +32,7 @@ export default function LoginModal({
   sendCodeButtonLabel?: string
 }) {
   const t = useTranslations('LoginModal')
+  const tPreview = useTranslations('Preview')
   const { state, updateState, setField, resetMessages, resetCodeFlow } = useLoginState()
   const {
     closeLoginModal,
@@ -46,6 +47,46 @@ export default function LoginModal({
   } = useUserStore()
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  const isPreviewUnlock = loginModalOptions?.loginSource === 'preview_unlock'
+  // Unify ALL login UIs to match the preview unlock design.
+  const unifiedUI = true
+  const previewTitle = loginModalOptions?.title ?? tPreview('unlockFullBookTitle')
+  const previewFooterNote = loginModalOptions?.footerNote ?? tPreview('unlockFullBookFooter')
+  const previewSendCodeLabel = loginModalOptions?.sendCodeButtonLabel ?? tPreview('continueWithEmailCode')
+  const previewButtonStyle: React.CSSProperties = {
+    width: 312,
+    height: 36,
+    paddingTop: 8,
+    paddingRight: 12,
+    paddingBottom: 8,
+    paddingLeft: 12,
+    boxSizing: 'border-box',
+  }
+  const previewButtonClassName =
+    'gap-[10px] rounded-[4px] bg-[#222222] text-[14px] leading-[20px] tracking-[0.25px] font-normal text-white opacity-100'
+  const previewEmailWrapperStyle: React.CSSProperties = {
+    width: 312,
+    boxSizing: 'border-box',
+  }
+  const previewEmailWrapperClassName = 'flex flex-col gap-[4px] opacity-100'
+  const previewEmailInputStyle: React.CSSProperties = {
+    width: 312,
+    height: 36,
+    paddingTop: 8,
+    paddingRight: 16,
+    paddingBottom: 8,
+    paddingLeft: 16,
+    boxSizing: 'border-box',
+  }
+  const previewEmailInputClassName =
+    'shrink-0 rounded-[4px] border border-[#222222] opacity-100 text-[14px] leading-[20px] tracking-[0.25px] text-[#222]'
+  const previewEmailLabelClassName = 'shrink-0 text-[14px] leading-[20px] tracking-[0.25px] text-[#222]'
+  const previewModalStyle: React.CSSProperties = {
+    width: 360,
+    height: 416,
+    boxSizing: 'border-box',
+  }
 
   // Setup redirect on mode change
   useEffect(() => {
@@ -98,13 +139,13 @@ export default function LoginModal({
         return t('forgotPassword')
       case 'codeLogin':
       case 'verifyCode':
-        return title;
+        return isPreviewUnlock ? previewTitle : title;
       default:
         return title;
     }
   }
 
-  const getDescriptionByMode = (): string => {
+  const getDescriptionByMode = (): React.ReactNode => {
     switch (state.mode) {
       case 'login':
         return '';
@@ -113,6 +154,14 @@ export default function LoginModal({
       case 'forgotPassword':
         return "We'll email you a link to create a new password.";
       case 'codeLogin':
+        if (isPreviewUnlock) {
+          return (
+            <>
+              {tPreview('unlockFullBookDescriptionPrefix')}{' '}
+              <strong className="font-semibold text-[#666666]">{tPreview('unlockFullBookDescriptionHighlight')}</strong>
+            </>
+          )
+        }
         return description;
       case 'verifyCode':
         return `Enter the 6-digit code sent to ${state.email}`;
@@ -124,7 +173,10 @@ export default function LoginModal({
   // Helper: Get button label based on mode
   const getButtonLabelByMode = (): string => {
     if (state.mode === 'verifyCode') return t('verifyCode')
-    if (state.mode === 'codeLogin') return sendCodeButtonLabel || t('sendCode')
+    if (state.mode === 'codeLogin') {
+      if (isPreviewUnlock) return previewSendCodeLabel
+      return sendCodeButtonLabel || t('sendCode')
+    }
     if (state.mode === 'forgotPassword') return t('sendResetLink')
     if (state.mode === 'register') return t('register')
     return t('login')
@@ -323,6 +375,13 @@ export default function LoginModal({
           namePlaceholder={t('namePlaceholder')}
           emailPlaceholder={t('emailPlaceholder')}
           passwordPlaceholder={t('passwordPlaceholder')}
+          unifiedUI={unifiedUI}
+          inputWrapperStyle={unifiedUI ? previewEmailWrapperStyle : undefined}
+          inputWrapperClassName={unifiedUI ? previewEmailWrapperClassName : undefined}
+          inputStyle={unifiedUI ? previewEmailInputStyle : undefined}
+          inputClassName={unifiedUI ? previewEmailInputClassName : undefined}
+          labelClassName={unifiedUI ? previewEmailLabelClassName : undefined}
+          hideRequiredMark={unifiedUI}
         />
       )
     }
@@ -341,13 +400,20 @@ export default function LoginModal({
           emailPlaceholder={t('emailPlaceholder')}
           passwordPlaceholder={t('passwordPlaceholder')}
           nameLabel={t('name')}
+          unifiedUI={unifiedUI}
+          inputWrapperStyle={unifiedUI ? previewEmailWrapperStyle : undefined}
+          inputWrapperClassName={unifiedUI ? previewEmailWrapperClassName : undefined}
+          inputStyle={unifiedUI ? previewEmailInputStyle : undefined}
+          inputClassName={unifiedUI ? previewEmailInputClassName : undefined}
+          labelClassName={unifiedUI ? previewEmailLabelClassName : undefined}
+          hideRequiredMark={unifiedUI}
         />
       )
     }
 
     if (state.mode === 'forgotPassword') {
       return (
-        <fieldset className="space-y-4">
+        <fieldset className={unifiedUI ? 'space-y-[12px]' : 'space-y-4'}>
           <Input
             id="email"
             label={t('email')}
@@ -356,6 +422,12 @@ export default function LoginModal({
             onChange={(e) => setField('email', e.target.value)}
             placeholder={t('emailPlaceholder')}
             required
+            hideRequiredMark={unifiedUI}
+            wrapperStyle={unifiedUI ? previewEmailWrapperStyle : undefined}
+            wrapperClassName={unifiedUI ? previewEmailWrapperClassName : undefined}
+            inputStyle={unifiedUI ? previewEmailInputStyle : undefined}
+            inputClassName={unifiedUI ? previewEmailInputClassName : undefined}
+            labelClassName={unifiedUI ? previewEmailLabelClassName : undefined}
           />
         </fieldset>
       )
@@ -363,7 +435,7 @@ export default function LoginModal({
 
     if (state.mode === 'codeLogin') {
       return (
-        <fieldset className="space-y-4">
+        <fieldset className={unifiedUI ? 'space-y-[12px]' : isPreviewUnlock ? 'space-y-[12px]' : 'space-y-4'}>
           <Input
             id="email"
             label={t('email')}
@@ -372,6 +444,12 @@ export default function LoginModal({
             onChange={(e) => setField('email', e.target.value)}
             placeholder={t('emailPlaceholder')}
             required
+            hideRequiredMark={unifiedUI || isPreviewUnlock}
+            wrapperStyle={unifiedUI || isPreviewUnlock ? previewEmailWrapperStyle : undefined}
+            wrapperClassName={unifiedUI || isPreviewUnlock ? previewEmailWrapperClassName : undefined}
+            inputStyle={unifiedUI || isPreviewUnlock ? previewEmailInputStyle : undefined}
+            inputClassName={unifiedUI || isPreviewUnlock ? previewEmailInputClassName : undefined}
+            labelClassName={unifiedUI || isPreviewUnlock ? previewEmailLabelClassName : undefined}
           />
         </fieldset>
       )
@@ -391,29 +469,35 @@ export default function LoginModal({
   }
 
   return (
-    <main className="flex flex-col items-center justify-center bg-white rounded-lg p-4 w-96 gap-4 relative" role="main">
-      <div className="flex justify-between items-center w-full">
-        {state.mode !== 'codeLogin' && (
-          <button
-            type="button"
-            onClick={resetCodeFlow}
-            className="cursor-pointer text-gray-600 hover:text-gray-800 transition-colors focus:outline-none"
-            aria-label="Go back"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-        )}
-        {showCloseButton && <CloseButton onClose={closeLoginModal} />}
-      </div>
+    <main
+      className={`relative flex shrink-0 flex-col bg-white ${
+        unifiedUI ? 'gap-[12px] overflow-hidden rounded-[12px] p-[24px]' : isPreviewUnlock
+          ? 'gap-[12px] overflow-hidden rounded-[12px] p-[24px]'
+          : 'w-96 items-center justify-center gap-4 rounded-lg p-4'
+      }`}
+      style={unifiedUI || isPreviewUnlock ? previewModalStyle : undefined}
+      role="main"
+    >
+      {showCloseButton && (
+        <div className="flex w-full justify-end">
+          <CloseButton onClose={closeLoginModal} iconSize={12} />
+        </div>
+      )}
 
       <ModalHeader
         title={getTitleByMode()}
         description={getDescriptionByMode()}
+        variant={unifiedUI || isPreviewUnlock ? 'previewUnlock' : 'default'}
+        compact={unifiedUI || isPreviewUnlock}
       />
 
-      <form onSubmit={handleSubmit} className="space-y-4 text-[#222222] w-full" noValidate>
+      <form
+        onSubmit={handleSubmit}
+        className={`min-w-0 w-full text-[#222222] ${
+          unifiedUI || isPreviewUnlock ? 'flex min-h-0 flex-1 flex-col space-y-[12px] overflow-y-auto' : 'space-y-4'
+        }`}
+        noValidate
+      >
         {renderFormContent()}
 
         <FormSubmitSections
@@ -446,9 +530,14 @@ export default function LoginModal({
             orContinueWith: t('orContinueWith'),
           }}
           email={state.email}
+          unifiedUI={unifiedUI || isPreviewUnlock}
+          buttonClassName={unifiedUI || isPreviewUnlock ? previewButtonClassName : undefined}
+          buttonStyle={unifiedUI || isPreviewUnlock ? previewButtonStyle : undefined}
         />
-        {footerNote && state.mode === 'codeLogin' && (
-          <p className="text-center text-xs text-[#8E92A7] leading-relaxed">{footerNote}</p>
+        {(isPreviewUnlock ? previewFooterNote : footerNote) && state.mode === 'codeLogin' && (
+          <p className="text-center text-[14px] leading-[20px] tracking-[0.25px] font-normal text-[#999999]">
+            {isPreviewUnlock ? previewFooterNote : footerNote}
+          </p>
         )}
       </form>
     </main>
