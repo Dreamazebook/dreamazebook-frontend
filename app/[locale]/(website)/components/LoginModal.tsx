@@ -13,6 +13,7 @@ import { NameEmailPasswordFields } from './LoginModal/NameEmailPasswordFields'
 import { CodeInputField } from './LoginModal/CodeInputField'
 import { ModalHeader, CloseButton } from './LoginModal/ModalHeader'
 import { FormSubmitSections } from './LoginModal/FormSubmitSections'
+import { ErrorAlert } from './LoginModal/Alerts'
 import api from '@/utils/api'
 import { ApiResponse } from '@/types/api'
 
@@ -82,10 +83,12 @@ export default function LoginModal({
   const previewEmailInputClassName =
     'shrink-0 rounded-[4px] border border-[#222222] opacity-100 text-[14px] leading-[20px] tracking-[0.25px] text-[#222]'
   const previewEmailLabelClassName = 'shrink-0 text-[14px] leading-[20px] tracking-[0.25px] text-[#222]'
-  const previewModalStyle: React.CSSProperties = {
-    width: 360,
-    height: 416,
-    boxSizing: 'border-box',
+
+  const getSuccessMessage = (): string => {
+    if (state.mode === 'forgotPassword' && state.resetSent) {
+      return t('resetPasswordSent')
+    }
+    return state.successMessage || ''
   }
 
   // Setup redirect on mode change
@@ -170,6 +173,18 @@ export default function LoginModal({
     }
   }
 
+  const headerDescription = getDescriptionByMode()
+  const usePreviewHeaderLayout = Boolean(unifiedUI && headerDescription)
+  const usePreviewMinHeight = isPreviewUnlock && state.mode === 'codeLogin'
+  const needsFormScroll = state.mode === 'register'
+
+  const previewModalStyle: React.CSSProperties = {
+    width: 360,
+    ...(usePreviewMinHeight ? { minHeight: 416 } : {}),
+    height: 'auto',
+    boxSizing: 'border-box',
+  }
+
   // Helper: Get button label based on mode
   const getButtonLabelByMode = (): string => {
     if (state.mode === 'verifyCode') return t('verifyCode')
@@ -180,13 +195,6 @@ export default function LoginModal({
     if (state.mode === 'forgotPassword') return t('sendResetLink')
     if (state.mode === 'register') return t('register')
     return t('login')
-  }
-
-  const getSuccessMessage = (): string => {
-    if (state.mode === 'forgotPassword' && state.resetSent) {
-      return t('resetPasswordSent')
-    }
-    return state.successMessage || ''
   }
 
   const runLoginSuccessCallback = () => {
@@ -258,12 +266,29 @@ export default function LoginModal({
     }
   }
 
+  const getEmailValidationError = (email: string): string | null => {
+    const trimmed = email.trim()
+    if (!trimmed) return t('emailRequired')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return t('invalidEmail')
+    return null
+  }
+
   const handleSendLoginCode = async (email: string) => {
-    const response = await sendLoginCode(email)
+    const validationError = getEmailValidationError(email)
+    if (validationError) {
+      updateState({
+        errorMessage: validationError,
+        successMessage: '',
+      })
+      return
+    }
+
+    const trimmedEmail = email.trim()
+    const response = await sendLoginCode(trimmedEmail)
     if (response.success) {
       updateState({
         mode: 'verifyCode',
-        successMessage: `We've sent a 6 digit code to ${email}. It expires in 10 minutes.`,
+        successMessage: `We've sent a 6 digit code to ${trimmedEmail}. It expires in 10 minutes.`,
         countdown: 60,
         errorMessage: '',
       })
@@ -359,7 +384,8 @@ export default function LoginModal({
   const renderFormContent = () => {
     if (state.mode === 'register') {
       return (
-        <NameEmailPasswordFields
+        <>
+          <NameEmailPasswordFields
           showName
           name={state.name}
           onNameChange={(value) => setField('name', value)}
@@ -383,12 +409,15 @@ export default function LoginModal({
           labelClassName={unifiedUI ? previewEmailLabelClassName : undefined}
           hideRequiredMark={unifiedUI}
         />
+          <ErrorAlert message={state.errorMessage} />
+        </>
       )
     }
 
     if (state.mode === 'login') {
       return (
-        <NameEmailPasswordFields
+        <>
+          <NameEmailPasswordFields
           email={state.email}
           onEmailChange={(value) => setField('email', value)}
           showPassword={state.showPassword}
@@ -408,6 +437,8 @@ export default function LoginModal({
           labelClassName={unifiedUI ? previewEmailLabelClassName : undefined}
           hideRequiredMark={unifiedUI}
         />
+          <ErrorAlert message={state.errorMessage} />
+        </>
       )
     }
 
@@ -428,6 +459,7 @@ export default function LoginModal({
             inputStyle={unifiedUI ? previewEmailInputStyle : undefined}
             inputClassName={unifiedUI ? previewEmailInputClassName : undefined}
             labelClassName={unifiedUI ? previewEmailLabelClassName : undefined}
+            error={state.errorMessage}
           />
         </fieldset>
       )
@@ -450,6 +482,7 @@ export default function LoginModal({
             inputStyle={unifiedUI || isPreviewUnlock ? previewEmailInputStyle : undefined}
             inputClassName={unifiedUI || isPreviewUnlock ? previewEmailInputClassName : undefined}
             labelClassName={unifiedUI || isPreviewUnlock ? previewEmailLabelClassName : undefined}
+            error={state.errorMessage}
           />
         </fieldset>
       )
@@ -461,6 +494,7 @@ export default function LoginModal({
           code={state.code}
           onCodeChange={(value) => setField('code', value)}
           successMessage={state.successMessage}
+          errorMessage={state.errorMessage}
         />
       )
     }
@@ -471,9 +505,11 @@ export default function LoginModal({
   return (
     <main
       className={`relative flex shrink-0 flex-col bg-white ${
-        unifiedUI ? 'gap-[12px] overflow-hidden rounded-[12px] p-[24px]' : isPreviewUnlock
-          ? 'gap-[12px] overflow-hidden rounded-[12px] p-[24px]'
-          : 'w-96 items-center justify-center gap-4 rounded-lg p-4'
+        unifiedUI
+          ? 'gap-[12px] rounded-[12px] p-[24px]'
+          : isPreviewUnlock
+            ? 'gap-[12px] rounded-[12px] p-[24px]'
+            : 'w-96 items-center justify-center gap-4 rounded-lg p-4'
       }`}
       style={unifiedUI || isPreviewUnlock ? previewModalStyle : undefined}
       role="main"
@@ -486,15 +522,19 @@ export default function LoginModal({
 
       <ModalHeader
         title={getTitleByMode()}
-        description={getDescriptionByMode()}
-        variant={unifiedUI || isPreviewUnlock ? 'previewUnlock' : 'default'}
-        compact={unifiedUI || isPreviewUnlock}
+        description={headerDescription}
+        variant={usePreviewHeaderLayout ? 'previewUnlock' : unifiedUI ? 'compact' : 'default'}
+        compact={unifiedUI}
       />
 
       <form
         onSubmit={handleSubmit}
         className={`min-w-0 w-full text-[#222222] ${
-          unifiedUI || isPreviewUnlock ? 'flex min-h-0 flex-1 flex-col space-y-[12px] overflow-y-auto' : 'space-y-4'
+          unifiedUI || isPreviewUnlock
+            ? needsFormScroll
+              ? 'flex max-h-[280px] min-h-0 flex-col space-y-[12px] overflow-y-auto'
+              : 'space-y-[12px]'
+            : 'space-y-4'
         }`}
         noValidate
       >

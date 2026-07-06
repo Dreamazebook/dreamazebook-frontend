@@ -265,6 +265,8 @@
     "verificationCode": "Code de vérification",
     "namePlaceholder": "Entrez votre nom",
     "emailPlaceholder": "Entrez votre adresse email",
+    "emailRequired": "Veuillez entrer votre adresse email",
+    "invalidEmail": "Veuillez entrer une adresse email valide",
     "passwordPlaceholder": "Entrez votre mot de passe",
     "codeInputPlaceholder": "Entrez le code de vérification",
     "loginFailed": "Échec de la connexion. Veuillez vérifier votre email et votre mot de passe.",

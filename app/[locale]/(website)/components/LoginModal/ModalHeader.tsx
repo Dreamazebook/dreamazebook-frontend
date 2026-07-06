@@ -5,13 +5,18 @@ interface HeaderProps {
   title: string
   description?: ReactNode
   compact?: boolean
-  variant?: 'default' | 'previewUnlock'
+  variant?: 'default' | 'previewUnlock' | 'compact'
 }
 
 const previewUnlockHeaderStyle: CSSProperties = {
   width: 312,
   height: 100,
   paddingTop: 12,
+  boxSizing: 'border-box',
+}
+
+const compactHeaderStyle: CSSProperties = {
+  width: 312,
   boxSizing: 'border-box',
 }
 
@@ -22,19 +27,20 @@ export const ModalHeader = memo(({
   variant = 'default',
 }: HeaderProps) => {
   const isPreviewUnlock = variant === 'previewUnlock'
+  const isCompact = variant === 'compact'
 
   return (
     <header
       className={`relative text-center opacity-100 ${
-        isPreviewUnlock ? 'flex w-full flex-col gap-[12px]' : 'w-full'
+        isPreviewUnlock || isCompact ? 'flex w-full flex-col gap-[12px]' : 'w-full'
       }`}
-      style={isPreviewUnlock ? previewUnlockHeaderStyle : undefined}
+      style={isPreviewUnlock ? previewUnlockHeaderStyle : isCompact ? compactHeaderStyle : undefined}
     >
       <h1 className="text-[28px] leading-[36px] text-[#000]">{title}</h1>
       {description && (
         <p
           className={`text-[14px] leading-[20px] tracking-[-0.25px] text-[#666666] whitespace-pre-line ${
-            isPreviewUnlock ? '' : compact ? 'mt-[12px]' : 'mt-2'
+            isPreviewUnlock || isCompact ? '' : compact ? 'mt-[12px]' : 'mt-2'
           }`}
         >
           {description}

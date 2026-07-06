@@ -36,7 +36,6 @@ interface CodeLoginSubmitProps extends BaseSubmitProps {
 export const LoginSubmitSection = memo(({ loading, errorMessage, buttonLabel, buttonClassName, buttonStyle, children }: LoginSubmitProps) => {
   return (
     <>
-      <ErrorAlert message={errorMessage} />
       <Button tl={buttonLabel} isLoading={loading} className={buttonClassName} style={buttonStyle} />
       {children}
     </>
@@ -48,7 +47,6 @@ LoginSubmitSection.displayName = 'LoginSubmitSection'
 export const RegisterSubmitSection = memo(({ loading, errorMessage, buttonLabel, buttonClassName, buttonStyle, children }: RegisterSubmitProps) => {
   return (
     <>
-      <ErrorAlert message={errorMessage} />
       <Button tl={buttonLabel} isLoading={loading} className={buttonClassName} style={buttonStyle} />
       {children}
     </>
@@ -69,7 +67,6 @@ export const ForgotPasswordSubmitSection = memo(({
 }: ForgotPasswordSubmitProps) => {
   return (
     <>
-      <ErrorAlert message={errorMessage} />
       {resetSent ? (
         <SuccessAlert message={successMessage} />
       ) : (
@@ -96,7 +93,6 @@ export const CodeLoginSubmitSection = memo(({
 }: CodeLoginSubmitProps) => {
   return (
     <>
-      <ErrorAlert message={errorMessage} />
       {codeSent ? (
         <>
           <Button tl={verifyButtonLabel} isLoading={loading} className={buttonClassName} style={buttonStyle} />
@@ -122,17 +118,6 @@ export const CodeLoginSubmitSection = memo(({
   )
 })
 CodeLoginSubmitSection.displayName = 'CodeLoginSubmitSection'
-
-// Error Alert Component
-const ErrorAlert = memo(({ message }: { message: string }) => {
-  if (!message) return null
-  return (
-    <p className="text-[#CF0F02] text-sm" role="alert" aria-live="polite">
-      {message}
-    </p>
-  )
-})
-ErrorAlert.displayName = 'ErrorAlert'
 
 // Success Alert Component
 const SuccessAlert = memo(({ message }: { message?: string }) => {

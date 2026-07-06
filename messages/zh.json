@@ -274,6 +274,8 @@
     "verificationCode": "验证码",
     "namePlaceholder": "请输入您的姓名",
     "emailPlaceholder": "请输入您的邮箱地址",
+    "emailRequired": "请输入您的邮箱地址",
+    "invalidEmail": "请输入有效的邮箱地址",
     "passwordPlaceholder": "请输入您的密码",
     "codeInputPlaceholder": "请输入验证码",
     "loginFailed": "登录失败，请检查您的邮箱和密码。",
