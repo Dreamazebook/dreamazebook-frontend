@@ -55,6 +55,131 @@ export function getPreviewBatchPages(res: ApiResponse<any> | null | undefined): 
   return Array.isArray(batch?.pages) ? batch.pages : [];
 }
 
+function pickFirstNonEmptyString(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return undefined;
+}
+
+function normalizeBatchPageCodeKey(pageCode: unknown): string {
+  return String(pageCode || '')
+    .trim()
+    .toLowerCase()
+    .replace(/_/g, '-')
+    .replace(/^p(\d+)-p(\d+)$/, 'p$1-$2');
+}
+
+/** order_pages 与 pages 合并：换脸数据以 pages 为准，图片字段互相补齐 */
+function mergeBatchPageRecords(orderPage: any, previewPage: any): any {
+  const imageUrl = pickFirstNonEmptyString(
+    previewPage?.final_image_url,
+    previewPage?.base_image_url,
+    previewPage?.image_url,
+    previewPage?.composite_image_url,
+    previewPage?.preview_image,
+    previewPage?.base_stage_url,
+    previewPage?.final_stage_url,
+    previewPage?.template_image_url,
+    previewPage?.template_url,
+    orderPage?.final_image_url,
+    orderPage?.base_image_url,
+    orderPage?.image_url,
+    orderPage?.composite_image_url,
+    orderPage?.preview_image,
+    orderPage?.base_stage_url,
+    orderPage?.final_stage_url,
+    orderPage?.template_image_url,
+    orderPage?.template_url,
+  );
+  const baseImageUrl = pickFirstNonEmptyString(
+    previewPage?.base_image_url,
+    previewPage?.base_stage_url,
+    previewPage?.image_url,
+    previewPage?.preview_image,
+    orderPage?.base_image_url,
+    orderPage?.base_stage_url,
+    orderPage?.image_url,
+    orderPage?.preview_image,
+  );
+  const finalImageUrl = pickFirstNonEmptyString(
+    previewPage?.final_image_url,
+    previewPage?.composite_image_url,
+    orderPage?.final_image_url,
+    orderPage?.composite_image_url,
+    imageUrl,
+  );
+  const compositeImageUrl = pickFirstNonEmptyString(
+    previewPage?.composite_image_url,
+    orderPage?.composite_image_url,
+  );
+
+  return {
+    ...orderPage,
+    ...previewPage,
+    ...(imageUrl ? { image_url: imageUrl } : {}),
+    ...(baseImageUrl ? { base_image_url: baseImageUrl } : {}),
+    ...(finalImageUrl ? { final_image_url: finalImageUrl } : {}),
+    ...(compositeImageUrl ? { composite_image_url: compositeImageUrl } : {}),
+    face_swap_logs:
+      Array.isArray(previewPage?.face_swap_logs) && previewPage.face_swap_logs.length
+        ? previewPage.face_swap_logs
+        : orderPage?.face_swap_logs,
+    has_face_elements: previewPage?.has_face_elements ?? orderPage?.has_face_elements,
+  };
+}
+
+/** 从 batch page 原始记录中选取可展示的图片 URL（含 order_pages 的 preview_image 等字段） */
+export function pickBatchPageImageRaw(bp: Record<string, unknown> | null | undefined): string {
+  return (
+    pickFirstNonEmptyString(
+      bp?.composite_image_url,
+      bp?.final_image_url,
+      bp?.base_image_url,
+      bp?.image_url,
+      bp?.preview_image,
+      bp?.base_stage_url,
+      bp?.final_stage_url,
+      bp?.template_image_url,
+      bp?.template_url,
+    ) || ''
+  );
+}
+
+/**
+ * 展示用 pages：游客只看 preview pages；登录后合并 order_pages 显示整本书。
+ * 同 page_code 时 preview pages 优先（保留换脸/face_swap_logs），图片字段互相补齐。
+ */
+export function getBatchDisplayPages(
+  batch: any,
+  options?: { includeFullBook?: boolean },
+): any[] {
+  const previewPages = Array.isArray(batch?.pages) ? batch.pages : [];
+  if (!options?.includeFullBook) return previewPages;
+
+  const orderPages = Array.isArray(batch?.order_pages) ? batch.order_pages : [];
+  if (!orderPages.length) return previewPages;
+
+  const merged = new Map<string, any>();
+  for (const page of orderPages) {
+    const code = normalizeBatchPageCodeKey(page?.page_code);
+    if (code) merged.set(code, page);
+  }
+  for (const page of previewPages) {
+    const code = normalizeBatchPageCodeKey(page?.page_code);
+    if (!code) continue;
+    const existing = merged.get(code);
+    merged.set(code, existing ? mergeBatchPageRecords(existing, page) : page);
+  }
+
+  return Array.from(merged.values()).sort((a, b) => {
+    const sortA = a?.sort_order != null ? Number(a.sort_order) : Number.MAX_SAFE_INTEGER;
+    const sortB = b?.sort_order != null ? Number(b.sort_order) : Number.MAX_SAFE_INTEGER;
+    if (sortA !== sortB) return sortA - sortB;
+    return String(a?.page_code || '').localeCompare(String(b?.page_code || ''));
+  });
+}
+
 function parsePositiveId(value: unknown): number | undefined {
   if (typeof value === 'number' && Number.isFinite(value) && value > 0) return value;
   if (typeof value === 'string' && value.trim()) {
@@ -124,21 +249,34 @@ export function getSelectedFaceSwapLog(logs: FaceSwapLog[] | undefined | null): 
 }
 
 export function mapBatchPageToPreviewPage(bp: any, idx: number): PreviewPageWithFaceSwapLogs {
+  const displayImageRaw = pickBatchPageImageRaw(bp);
+  const baseImageUrl = pickFirstNonEmptyString(
+    bp?.base_image_url,
+    bp?.base_stage_url,
+    bp?.image_url,
+    bp?.preview_image,
+  );
+  const finalImageUrl = pickFirstNonEmptyString(
+    bp?.final_image_url,
+    bp?.composite_image_url,
+    displayImageRaw,
+  );
   return {
     page_id: idx + 1,
     page_code: bp.page_code,
     preview_page_id: pickPreviewPageIdFromBatchPage(bp),
     page_number: bp.sort_order != null ? Number(bp.sort_order) + 1 : idx + 1,
-    raw_image_url: bp.image_url,
+    raw_image_url: pickFirstNonEmptyString(bp?.image_url, bp?.preview_image, bp?.base_image_url) ?? bp.image_url,
     base_stage_url: bp.base_stage_url,
     final_stage_url: bp.final_stage_url,
     giver_data: bp.giver_data,
     template_image_url: bp.template_image_url || bp.template_url,
-    image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
+    image_url: displayImageRaw,
     has_face_swap: !!bp.has_face_elements,
     status: bp.status,
-    base_image_url: bp.base_image_url,
-    final_image_url: bp.final_image_url,
+    base_image_url: baseImageUrl,
+    final_image_url: finalImageUrl,
+    composite_image_url: bp.composite_image_url,
     base_only: bp.base_only,
     queue_position: bp.queue_position,
     queue_total: bp.queue_total,
@@ -156,10 +294,13 @@ export function mergeBatchPagesIntoPreviewData(
     isCoverPage?: (p: { page_code?: string; page_type?: string }) => boolean;
     localP34Composed?: string | null;
     isP34PageCode?: (code: unknown) => boolean;
+    includeFullBook?: boolean;
   },
 ): any {
-  const pages = batch?.pages;
-  if (!Array.isArray(pages)) return prev;
+  const pages = getBatchDisplayPages(batch, {
+    includeFullBook: options?.includeFullBook,
+  });
+  if (!Array.isArray(pages) || pages.length === 0) return prev;
 
   const nextPreviewData = pages.map((bp: any, idx: number) => {
     const useLocalP34 =

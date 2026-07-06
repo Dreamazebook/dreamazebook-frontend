@@ -49,6 +49,10 @@ import {
 } from '@/utils/previewImageProtection';
 import {
   batchHasPendingFaceSwapLogs,
+  fetchPreviewBatch,
+  getBatchDisplayPages,
+  mapBatchPageToPreviewPage,
+  pickBatchPageImageRaw,
   pickPreviewPageIdFromBatchPage,
   type PreviewPageWithFaceSwapLogs,
   unwrapPreviewBatch,
@@ -152,6 +156,67 @@ const getDisplayedPreviewPages = (pages: any[] | undefined | null): any[] => {
   return (pages ?? []).filter((p) => shouldShowInBookPreviewTab(p));
 };
 
+function getPreviewPageCodeLookupKey(pageCode: unknown): string {
+  return String(pageCode || '')
+    .trim()
+    .toLowerCase()
+    .replace(/_/g, '-')
+    .replace(/^p(\d+)-p(\d+)$/, 'p$1-$2');
+}
+
+function hasRenderablePreviewImage(page: any): boolean {
+  return Boolean(pickBatchPageImageRaw(page));
+}
+
+function preservePreviewImageFields(page: any, prevPage: any) {
+  if (!prevPage || hasRenderablePreviewImage(page)) return page;
+  if (!hasRenderablePreviewImage(prevPage)) return page;
+  return {
+    ...page,
+    image_url: prevPage.image_url ?? page.image_url,
+    final_image_url: prevPage.final_image_url ?? page.final_image_url,
+    base_image_url: prevPage.base_image_url ?? page.base_image_url,
+    composite_image_url: prevPage.composite_image_url ?? page.composite_image_url,
+    raw_image_url: prevPage.raw_image_url ?? page.raw_image_url,
+    base_stage_url: prevPage.base_stage_url ?? page.base_stage_url,
+    final_stage_url: prevPage.final_stage_url ?? page.final_stage_url,
+    template_image_url: prevPage.template_image_url ?? page.template_image_url,
+  };
+}
+
+function mapBatchToPreviewDataPages(
+  batch: any,
+  includeFullBook: boolean,
+  options?: {
+    localP34Composed?: string | null;
+    prevByPageCode?: Record<string, any>;
+  },
+) {
+  const sourcePages = getBatchDisplayPages(batch, { includeFullBook });
+  return sourcePages.map((bp: any, idx: number) => {
+    const prevPage = options?.prevByPageCode?.[getPreviewPageCodeLookupKey(bp.page_code)];
+    const page: PreviewPageWithFaceSwapLogs & { is_cover?: boolean; giver_data?: unknown } = {
+      ...mapBatchPageToPreviewPage(bp, idx),
+      is_cover: isCoverPage(bp),
+    };
+    if (isP34PageCode(bp.page_code) && (bp as any).giver_data === undefined && prevPage?.giver_data) {
+      page.giver_data = prevPage.giver_data;
+    }
+    if (prevPage?.face_swap_logs?.length && !(page.face_swap_logs?.length)) {
+      page.face_swap_logs = prevPage.face_swap_logs;
+    }
+    const localP34Composed = options?.localP34Composed;
+    if (localP34Composed && isP34PageCode(bp.page_code)) {
+      return {
+        ...page,
+        image_url: localP34Composed,
+        final_image_url: localP34Composed,
+      };
+    }
+    return preservePreviewImageFields(page, prevPage);
+  });
+}
+
 const hasMeaningfulFinalImage = (page: any): boolean => {
   const finalRaw = String(page?.final_image_url || '').trim();
   if (!finalRaw) return false;
@@ -162,9 +227,13 @@ const hasMeaningfulFinalImage = (page: any): boolean => {
 };
 
 const getPreviewDisplayImageRaw = (page: any): string => {
+  const compositeRaw = String(page?.composite_image_url || '').trim();
+  if (compositeRaw) return compositeRaw;
   const lowRes = pickLowResPreviewRaw(page);
   if (lowRes) return lowRes;
   if (hasMeaningfulFinalImage(page)) return String(page?.final_image_url || '');
+  const mapped = pickBatchPageImageRaw(page);
+  if (mapped) return mapped;
   return String(page?.base_image_url || page?.image_url || page?.final_image_url || '');
 };
 
@@ -804,6 +873,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   content,
   customOverlayContent,
   onImageLoaded,
+  showLoadingPlaceholder = true,
   doubleImageAreaClassName,
   leftSingleFrameClassName,
   rightSingleFrameClassName,
@@ -819,6 +889,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   content?: string | null;
   customOverlayContent?: React.ReactNode;
   onImageLoaded?: (pageId: number) => void;
+  showLoadingPlaceholder?: boolean;
   /** 双页模式：仅包住整页预览图区域（不含下方按钮） */
   doubleImageAreaClassName?: string;
   /** 单页模式左半图外框 class（如缺失项高亮） */
@@ -849,7 +920,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
     } catch {}
   };
 
-  const showImageLoadingPlaceholder = !showOverlay && !isImageLoaded;
+  const showImageLoadingPlaceholder = showLoadingPlaceholder && !showOverlay && !isImageLoaded;
 
   const imageLoadingPlaceholder = showImageLoadingPlaceholder ? (
     <div
@@ -1423,36 +1494,11 @@ export default function PreviewPageWithTopNav() {
                console.log('[Preview] Set recipient from batch:', recipientNameFromBatch);
              }
              
-             if (batch?.pages) {
+             if (getBatchDisplayPages(batch, { includeFullBook: isLoggedIn }).length > 0) {
                // 构造 previewData
                const initialData = {
                   preview_id: undefined as any,
-                  preview_data: batch.pages.map((bp: any, idx: number) => ({
-                    page_id: idx + 1,
-                    page_code: bp.page_code,
-                    page_number: bp.sort_order ?? idx + 1,
-                    // 保留后端原始 image_url（很多情况下它才是“未叠字/未合成”的底图）
-                    raw_image_url: bp.image_url,
-                    // 后端 stage 字段：用于前端“纯底图”选择
-                    base_stage_url: bp.base_stage_url,
-                    final_stage_url: bp.final_stage_url,
-                    // 分层模型：后端可选返回 p3-4 giver 图片数据（URL 或 data URL）
-                    giver_data: bp.giver_data,
-                    // 分层模型：后端可选返回“纯底图”（无 dedication / 无 giver）
-                    template_image_url: bp.template_image_url || bp.template_url,
-                    image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
-                    has_face_swap: !!bp.has_face_elements,
-                    status: bp.status,
-                    base_image_url: bp.base_image_url,
-                    final_image_url: bp.final_image_url,
-                    base_only: bp.base_only,
-                    queue_position: bp.queue_position,
-                    queue_total: bp.queue_total,
-                    preview_page_id: pickPreviewPageIdFromBatchPage(bp),
-                    face_swap_logs: Array.isArray(bp.face_swap_logs) ? bp.face_swap_logs : [],
-                    page_type: bp.page_type,
-                    is_cover: isCoverPage(bp),
-                  })),
+                  preview_data: mapBatchToPreviewDataPages(batch, isLoggedIn),
                   status: batch.status || 'processing',
                   batch_id: batch.batch_id,
                   queue_info: batch.queue,
@@ -1616,6 +1662,37 @@ export default function PreviewPageWithTopNav() {
   const [p34PendingCompose, setP34PendingCompose] = useState<P34PendingCompose | null>(null);
   const p34PendingComposeRef = useRef<P34PendingCompose | null>(null);
   const p34PreUploadSnapshotRef = useRef<P34PreUploadSnapshot | null>(null);
+
+  const refreshPreviewDataFromBatch = useCallback(
+    async (spuCode: string, batchId: string, includeFullBook: boolean) => {
+      const res = await fetchPreviewBatch(spuCode, batchId);
+      const batch = unwrapPreviewBatch(res);
+      if (!batch) return null;
+      setPreviewData((prev) => {
+        const prevByPageCode: Record<string, any> = {};
+        try {
+          (prev?.preview_data || []).forEach((p: any) => {
+            const code = getPreviewPageCodeLookupKey(p?.page_code);
+            if (code) prevByPageCode[code] = p;
+          });
+        } catch {}
+        return {
+          ...(prev || {}),
+          preview_data: mapBatchToPreviewDataPages(batch, includeFullBook, {
+            localP34Composed: p34LastComposedImageUrlRef.current,
+            prevByPageCode,
+          }),
+          status: batch.status || (prev as any)?.status || 'completed',
+          batch_id: batch.batch_id || (prev as any)?.batch_id,
+          queue_info: batch.queue ?? (prev as any)?.queue_info,
+          batch_options: batch.options ?? (prev as any)?.batch_options ?? null,
+        } as any;
+      });
+      return batch;
+    },
+    [],
+  );
+
   const [guestUploadRateLimitError, setGuestUploadRateLimitError] = useState<UploadRateLimitError | null>(null);
   // sidebar「Opening Photo」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
   const [isNameOnBookCompleted, setIsNameOnBookCompleted] = useState(true);
@@ -3525,7 +3602,7 @@ export default function PreviewPageWithTopNav() {
             }
           }
         }
-        if (batch?.pages) {
+        if (getBatchDisplayPages(batch, { includeFullBook: useUserStore.getState().isLoggedIn }).length > 0) {
           // 若后端提供了标准频道名，记录并进行订阅
           try {
             const channelName = batch?.channel;
@@ -3549,131 +3626,33 @@ export default function PreviewPageWithTopNav() {
             }
           } catch {}
           setPreviewData((prev) => {
-            // 若 prev 为空，从 batch.pages 直接构造初始数据
-            if (!prev || !prev.preview_data || prev.preview_data.length === 0) {
-              console.log('[Polling] Initializing previewData from batch.pages:', batch.pages.length, 'pages');
-              const initialData = {
-                preview_id: undefined as any,
-                preview_data: batch.pages.map((bp: any, idx: number) => ({
-                  page_id: idx + 1,
-                  page_code: bp.page_code,
-                  page_number: bp.sort_order ?? idx + 1,
-                  raw_image_url: bp.image_url,
-                  base_stage_url: bp.base_stage_url,
-                  final_stage_url: bp.final_stage_url,
-                  giver_data: bp.giver_data,
-                  template_image_url: bp.template_image_url || bp.template_url,
-                  image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
-                  has_face_swap: !!bp.has_face_elements,
-                  // 保存关键状态字段供UI使用
-                  status: bp.status,
-                  base_image_url: bp.base_image_url,
-                  final_image_url: bp.final_image_url,
-                  base_only: bp.base_only,
-                  queue_position: bp.queue_position,
-                  queue_total: bp.queue_total,
-                  preview_page_id: pickPreviewPageIdFromBatchPage(bp),
-                  face_swap_logs: Array.isArray(bp.face_swap_logs) ? bp.face_swap_logs : [],
-                  page_type: bp.page_type,
-                  is_cover: isCoverPage(bp),
-                })),
-                status: batch.status || 'processing',
-                batch_id: batch.batch_id,
-                // 保存batch级别的队列信息
-                queue_info: batch.queue,
-                batch_options: batch.options ?? null,
-              } as any;
-              console.log('[Polling] Created preview_data with', initialData.preview_data.length, 'pages');
-              console.log('[Polling] Sample page:', initialData.preview_data[0]);
-              return initialData;
-            }
-            // 如果preview_data存在但为空，也尝试从batch初始化
-            if (prev && prev.preview_data && prev.preview_data.length === 0 && batch.pages && batch.pages.length > 0) {
-              console.log('[Polling] Existing previewData is empty, reinitializing from batch.pages:', batch.pages.length, 'pages');
-              const reinitData = {
-                ...prev,
-                preview_data: batch.pages.map((bp: any, idx: number) => ({
-                  page_id: idx + 1,
-                  page_code: bp.page_code,
-                  page_number: bp.sort_order ?? idx + 1,
-                  raw_image_url: bp.image_url,
-                  base_stage_url: bp.base_stage_url,
-                  final_stage_url: bp.final_stage_url,
-                  giver_data: bp.giver_data,
-                  template_image_url: bp.template_image_url || bp.template_url,
-                  image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
-                  has_face_swap: !!bp.has_face_elements,
-                  status: bp.status,
-                  base_image_url: bp.base_image_url,
-                  final_image_url: bp.final_image_url,
-                  base_only: bp.base_only,
-                  queue_position: bp.queue_position,
-                  queue_total: bp.queue_total,
-                  preview_page_id: pickPreviewPageIdFromBatchPage(bp),
-                  face_swap_logs: Array.isArray(bp.face_swap_logs) ? bp.face_swap_logs : [],
-                  page_type: bp.page_type,
-                  is_cover: isCoverPage(bp),
-                })),
-                status: batch.status || 'processing',
-                batch_id: batch.batch_id,
-                queue_info: batch.queue,
-                batch_options: batch.options ?? (prev as any)?.batch_options ?? null,
-              } as any;
-              console.log('[Polling] Reinitialized preview_data with', reinitData.preview_data.length, 'pages');
-              return reinitData;
-            }
-            // 否则：全量覆盖，基于 batch.pages 重建 preview_data，确保显示所有页面
-            console.log('[Polling] Rebuilding preview_data from batch.pages');
+            const includeFullBook = useUserStore.getState().isLoggedIn;
             const prevByPageCode: Record<string, any> = {};
             try {
               (prev?.preview_data || []).forEach((p: any) => {
-                const code = String(p?.page_code || '');
+                const code = getPreviewPageCodeLookupKey(p?.page_code);
                 if (code) prevByPageCode[code] = p;
               });
             } catch {}
-            const nextPreviewData = (batch.pages || []).map((bp: any, idx: number) => {
-              const localP34Composed = p34LastComposedImageUrlRef.current;
-              const useLocalP34 = Boolean(localP34Composed && isP34PageCode(bp.page_code));
-              const prevPage = prevByPageCode[String(bp.page_code || '')];
-              const page = {
-                page_id: idx + 1,
-                page_code: bp.page_code,
-                page_number: ((bp.sort_order != null ? Number(bp.sort_order) : idx) + 1),
-                raw_image_url: bp.image_url,
-                base_stage_url: bp.base_stage_url,
-                final_stage_url: bp.final_stage_url,
-                // p3-4：后端在上传成功后的极短时间内可能尚未回传 giver_data（字段缺失），
-                // 若直接覆盖会导致按钮文案从 Change photo 闪回 Add a favorite photo。
-                // 这里仅在“字段明确存在”时才覆盖；否则沿用上一版（仅限 p3-4）。
-                giver_data:
-                  (bp as any).giver_data !== undefined
-                    ? (bp as any).giver_data
-                    : (isP34PageCode(bp.page_code) ? prevPage?.giver_data : (bp as any).giver_data),
-                template_image_url: bp.template_image_url || bp.template_url,
-                image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
-                has_face_swap: !!bp.has_face_elements,
-                status: bp.status,
-                base_image_url: bp.base_image_url,
-                final_image_url: bp.final_image_url,
-                base_only: bp.base_only,
-                queue_position: bp.queue_position,
-                queue_total: bp.queue_total,
-                preview_page_id: pickPreviewPageIdFromBatchPage(bp),
-                face_swap_logs: Array.isArray(bp.face_swap_logs)
-                  ? bp.face_swap_logs
-                  : (prevPage?.face_swap_logs ?? []),
-                page_type: bp.page_type,
-                is_cover: isCoverPage(bp),
-              };
-              if (useLocalP34) {
-                return {
-                  ...page,
-                  image_url: localP34Composed,
-                  final_image_url: localP34Composed,
-                };
-              }
-              return page;
+            const nextPreviewData = mapBatchToPreviewDataPages(batch, includeFullBook, {
+              localP34Composed: p34LastComposedImageUrlRef.current,
+              prevByPageCode,
             });
+            if (nextPreviewData.length === 0) return prev as any;
+
+            if (!prev || !prev.preview_data || prev.preview_data.length === 0) {
+              console.log('[Polling] Initializing previewData from batch pages:', nextPreviewData.length, 'pages');
+              return {
+                preview_id: undefined as any,
+                preview_data: nextPreviewData,
+                status: batch.status || 'processing',
+                batch_id: batch.batch_id,
+                queue_info: batch.queue,
+                batch_options: batch.options ?? null,
+              } as any;
+            }
+
+            console.log('[Polling] Rebuilding preview_data from batch pages:', nextPreviewData.length, 'pages');
             return {
               ...(prev || {}),
               preview_data: nextPreviewData,
@@ -3782,66 +3761,29 @@ export default function PreviewPageWithTopNav() {
               }
             }
           }
-          if (latestBatch?.pages) {
+          if (latestBatch?.pages || latestBatch?.order_pages) {
+            const includeFullBook = useUserStore.getState().isLoggedIn;
             setPreviewData((prev) => {
-              // 若 prev 为空，从 batch.pages 直接构造
-              if (!prev || !prev.preview_data || prev.preview_data.length === 0) {
-                return {
-                  preview_id: undefined as any,
-                  preview_data: latestBatch.pages.map((bp: any, idx: number) => ({
-                    page_id: idx + 1,
-                    page_code: bp.page_code,
-                    page_number: bp.sort_order ?? idx + 1,
-                    image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
-                    has_face_swap: !!bp.has_face_elements,
-                    status: bp.status,
-                    base_image_url: bp.base_image_url,
-                    final_image_url: bp.final_image_url,
-                    base_only: bp.base_only,
-                    queue_position: bp.queue_position,
-                    queue_total: bp.queue_total,
-                    preview_page_id: pickPreviewPageIdFromBatchPage(bp),
-                    face_swap_logs: Array.isArray(bp.face_swap_logs) ? bp.face_swap_logs : [],
-                    page_type: bp.page_type,
-                    is_cover: isCoverPage(bp),
-                  })),
-                status: 'completed',
-                batch_id: latestBatch.batch_id,
-                  queue_info: latestBatch.queue,
-                  batch_options: latestBatch.options ?? null,
-                } as any;
-              }
-            const updated = {
-              ...prev,
-              batch_options: latestBatch.options ?? (prev as any)?.batch_options ?? null,
-              preview_data: prev.preview_data.map((p: any) => {
-                const match = latestBatch.pages.find((bp: any) => bp.page_code === p.page_code);
-                  if (!match) return p;
-                  const newUrl = match.final_image_url || match.base_image_url;
-                  return {
-                    ...p,
-                    image_url: newUrl,
-                    has_face_swap: !!match.has_face_elements,
-                    status: match.status,
-                    base_image_url: match.base_image_url,
-                    final_image_url: match.final_image_url,
-                    base_only: match.base_only,
-                    queue_position: match.queue_position,
-                    queue_total: match.queue_total,
-                    preview_page_id: pickPreviewPageIdFromBatchPage(match),
-                    face_swap_logs: Array.isArray(match.face_swap_logs)
-                      ? match.face_swap_logs
-                      : (p.face_swap_logs ?? []),
-                    page_type: match.page_type,
-                    is_cover: isCoverPage(match),
-                  };
+              const prevByPageCode: Record<string, any> = {};
+              try {
+                (prev?.preview_data || []).forEach((p: any) => {
+                  const code = getPreviewPageCodeLookupKey(p?.page_code);
+                  if (code) prevByPageCode[code] = p;
+                });
+              } catch {}
+              return {
+                ...(prev || {}),
+                preview_data: mapBatchToPreviewDataPages(latestBatch, includeFullBook, {
+                  localP34Composed: p34LastComposedImageUrlRef.current,
+                  prevByPageCode,
                 }),
                 status: 'completed',
+                batch_id: latestBatch.batch_id,
                 queue_info: latestBatch.queue,
-            } as any;
-            return updated;
-          });
-        }
+                batch_options: latestBatch.options ?? (prev as any)?.batch_options ?? null,
+              } as any;
+            });
+          }
         } catch {}
         if (!batchHasPendingFaceSwapLogs(latestBatch)) {
           clearBatchPolling();
@@ -4886,6 +4828,29 @@ export default function PreviewPageWithTopNav() {
       }
     });
   }, [isGuest]);
+
+  const prevLoggedInRef = useRef(isLoggedIn);
+  const subscribeToPreviewChannelRef = useRef(subscribeToPreviewChannel);
+  subscribeToPreviewChannelRef.current = subscribeToPreviewChannel;
+
+  useEffect(() => {
+    const justLoggedIn = !prevLoggedInRef.current && isLoggedIn;
+    prevLoggedInRef.current = isLoggedIn;
+    if (!justLoggedIn) return;
+
+    const spuCode = searchParams.get('bookid');
+    const batchId = currentBatchIdRef.current || searchParams.get('previewid');
+    if (!spuCode || !batchId) return;
+
+    // 登录后切换到 user 频道，并重新拉取 batch（含 order_pages）以展示整本书
+    previewChannelNameRef.current = null;
+    subscribeToPreviewChannelRef.current(spuCode, batchId);
+    startBatchPollingRef.current(spuCode, batchId);
+
+    void refreshPreviewDataFromBatch(spuCode, batchId, true).catch((error) => {
+      console.warn('[Preview] Failed to refresh full book after login:', error);
+    });
+  }, [isLoggedIn, refreshPreviewDataFromBatch, searchParams]);
 
   //寄语
   const MAX_LINES = 10;
@@ -6003,6 +5968,7 @@ export default function PreviewPageWithTopNav() {
                             progress={progress}
                             overlayMode={overlayMode as any}
                             content={page.content}
+                            showLoadingPlaceholder={hasSwap || !displayUrlRaw}
                             doubleImageAreaClassName={openingDoubleImageGlow || momDoubleImageGlow}
                             rightSingleFrameClassName={momDrawingRightSingleGlow}
                             scrollAnchorSingleRightRef={
