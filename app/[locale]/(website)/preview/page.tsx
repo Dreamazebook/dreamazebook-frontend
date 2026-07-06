@@ -1600,6 +1600,21 @@ export default function PreviewPageWithTopNav() {
   const p34ComposeUploadedRef = useRef(false);
   /** 扉页寄语合成图上传成功后的 CDN URL；轮询重建 batch 时优先保留，避免被旧 final 覆盖 */
   const p34LastComposedImageUrlRef = useRef<string | null>(null);
+  type P34PendingCompose = {
+    giverUrl?: string;
+    dedication?: string;
+  };
+  type P34PreUploadSnapshot = {
+    giverImageUrl: string | null;
+    giverData: string | null;
+    dedication: string;
+    isDedicationSubmitted: boolean;
+    isNameOnBookCompleted: boolean;
+  };
+  const [p34ComposeUploading, setP34ComposeUploading] = useState(false);
+  const [p34PendingCompose, setP34PendingCompose] = useState<P34PendingCompose | null>(null);
+  const p34PendingComposeRef = useRef<P34PendingCompose | null>(null);
+  const p34PreUploadSnapshotRef = useRef<P34PreUploadSnapshot | null>(null);
   const [guestUploadRateLimitError, setGuestUploadRateLimitError] = useState<UploadRateLimitError | null>(null);
   // sidebar「Opening Photo」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
   const [isNameOnBookCompleted, setIsNameOnBookCompleted] = useState(true);
@@ -1658,7 +1673,60 @@ export default function PreviewPageWithTopNav() {
     p34ComposeUploadInFlightRef.current = false;
     p34ComposeUploadedRef.current = false;
     p34LastComposedImageUrlRef.current = null;
+    setP34ComposeUploading(false);
+    setP34PendingCompose(null);
+    p34PendingComposeRef.current = null;
+    p34PreUploadSnapshotRef.current = null;
   }, [p34CacheKey, setEditField, setGiverImageUrl]);
+
+  useEffect(() => {
+    p34PendingComposeRef.current = p34PendingCompose;
+  }, [p34PendingCompose]);
+
+  const saveP34PreUploadSnapshot = useCallback(() => {
+    p34PreUploadSnapshotRef.current = {
+      giverImageUrl,
+      giverData: p34GiverDataRef.current,
+      dedication,
+      isDedicationSubmitted,
+      isNameOnBookCompleted,
+    };
+  }, [giverImageUrl, dedication, isDedicationSubmitted, isNameOnBookCompleted]);
+
+  const revertP34PendingUpload = useCallback(() => {
+    const snap = p34PreUploadSnapshotRef.current;
+    if (snap) {
+      setGiverImageUrl(snap.giverImageUrl);
+      p34GiverDataRef.current = snap.giverData;
+      setDedication(snap.dedication);
+      setIsDedicationSubmitted(snap.isDedicationSubmitted);
+      setIsNameOnBookCompleted(snap.isNameOnBookCompleted);
+    }
+    const pendingGiverUrl = p34PendingComposeRef.current?.giverUrl;
+    if (pendingGiverUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(pendingGiverUrl);
+    }
+    setP34PendingCompose(null);
+    setP34ComposeUploading(false);
+    p34PreUploadSnapshotRef.current = null;
+    shouldUploadP34ComposedRef.current = false;
+    p34ComposeUploadedRef.current = false;
+    p34UploadCompletesNameOnBookRef.current = false;
+  }, [setGiverImageUrl, setDedication]);
+
+  const applyP34PendingUploadSuccess = useCallback((pending: P34PendingCompose | null) => {
+    if (pending?.dedication !== undefined) {
+      setDedication(pending.dedication);
+      setIsDedicationSubmitted(true);
+    }
+    if (pending?.giverUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(pending.giverUrl);
+      setGiverImageUrl(null);
+    }
+    setP34PendingCompose(null);
+    setP34ComposeUploading(false);
+    p34PreUploadSnapshotRef.current = null;
+  }, [setDedication, setGiverImageUrl]);
 
   useEffect(() => {
     p34BaseImageUrlRef.current = null;
@@ -1757,7 +1825,9 @@ export default function PreviewPageWithTopNav() {
         })();
       // 需要把 dedication 和 giver_data 一起持久化到后端：
       // - 即使 dedication 为空字符串，也显式传给后端（用于清空/同步）
-      const dedicationTextToPersist = typeof dedication === 'string' ? dedication.trim() : '';
+      const pendingDedication = p34PendingComposeRef.current?.dedication;
+      const dedicationSource = pendingDedication !== undefined ? pendingDedication : dedication;
+      const dedicationTextToPersist = typeof dedicationSource === 'string' ? dedicationSource.trim() : '';
       const resp: any = await api.post(
         `/products/${encodeURIComponent(spu)}/pages/p3-4/upload-special-image`,
         {
@@ -1779,6 +1849,7 @@ export default function PreviewPageWithTopNav() {
       console.log('[P3-4 Compose] upload response', { hasImageUrl: Boolean(imageUrl), imageUrl, hasBaseUrl: Boolean(baseUrl), baseUrl });
 
       if (imageUrl) {
+        applyP34PendingUploadSuccess(p34PendingComposeRef.current);
         setPreviewData((prev) => {
           if (!prev || !(prev as any).preview_data) return prev as any;
           return {
@@ -1809,6 +1880,8 @@ export default function PreviewPageWithTopNav() {
         setGuestUploadRateLimitError(null);
       } else {
         console.warn('[P3-4 Compose] uploaded but no image_url in response', resp);
+        revertP34PendingUpload();
+        toast.error('Upload failed, please try again.');
       }
     } catch (e) {
       console.error('[P3-4 Compose] upload failed', e);
@@ -1816,23 +1889,19 @@ export default function PreviewPageWithTopNav() {
       if (uploadRateLimitError) {
         // Canvas 会在依赖变化时反复触发 onRendered；429 后若仍保持 shouldUpload=true 会形成上传风暴并反复清空/弹出弹窗
         shouldUploadP34ComposedRef.current = false;
+        revertP34PendingUpload();
         setGuestUploadRateLimitError(uploadRateLimitError);
       } else {
+        revertP34PendingUpload();
         toast.error('Upload failed, please try again.');
       }
     } finally {
       p34ComposeUploadInFlightRef.current = false;
       p34UploadCompletesNameOnBookRef.current = false;
     }
-  }, [previewData, searchParams, dedication]);
+  }, [previewData, searchParams, dedication, applyP34PendingUploadSuccess, revertP34PendingUpload]);
 
-  // 一旦本地选择了 giver 图片（blob/objectURL 或远程 URL），就把 Opening Photo 标记为完成
-  useEffect(() => {
-    if (giverImageUrl) {
-      setIsNameOnBookCompleted(true);
-    }
-  }, [giverImageUrl]);
-  
+  // Opening Photo 完成态：仅在上传成功或已有后端 giver 时保持完成（见 uploadP34ComposedImage / 初始回填）
   // 处理Giver图片文件选择
   const handleGiverFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -3572,7 +3641,13 @@ export default function PreviewPageWithTopNav() {
                 raw_image_url: bp.image_url,
                 base_stage_url: bp.base_stage_url,
                 final_stage_url: bp.final_stage_url,
-                giver_data: bp.giver_data,
+                // p3-4：后端在上传成功后的极短时间内可能尚未回传 giver_data（字段缺失），
+                // 若直接覆盖会导致按钮文案从 Change photo 闪回 Add a favorite photo。
+                // 这里仅在“字段明确存在”时才覆盖；否则沿用上一版（仅限 p3-4）。
+                giver_data:
+                  (bp as any).giver_data !== undefined
+                    ? (bp as any).giver_data
+                    : (isP34PageCode(bp.page_code) ? prevPage?.giver_data : (bp as any).giver_data),
                 template_image_url: bp.template_image_url || bp.template_url,
                 image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
                 has_face_swap: !!bp.has_face_elements,
@@ -4979,20 +5054,71 @@ export default function PreviewPageWithTopNav() {
     if (trimmed !== savedTrimmed) {
       messageUserTouchedRef.current = true;
       setGuestUploadRateLimitError(null);
+      saveP34PreUploadSnapshot();
       shouldUploadP34ComposedRef.current = true;
       p34UploadCompletesNameOnBookRef.current = false;
       p34ComposeUploadedRef.current = false;
       p34LastComposedImageUrlRef.current = null;
-      setDedication(message);
-      setIsDedicationSubmitted(true);
+      setP34PendingCompose({ dedication: message });
+      setP34ComposeUploading(true);
     }
     setEditField(null);
-  }, [dedication, message, setDedication, setEditField]);
+  }, [dedication, message, saveP34PreUploadSnapshot, setEditField]);
 
   const getGiftMessageForCart = useCallback(
     () => (isDedicationSubmitted ? message.trim() : ''),
     [isDedicationSubmitted, message],
   );
+
+  const p34PageMetaForUpload = useMemo(() => {
+    const pages = (previewData as any)?.preview_data;
+    if (!Array.isArray(pages)) return null;
+    const p34 = pages.find((p: any) => {
+      const code = String(p?.page_code || '');
+      return code === 'p3-4' || code === 'p3-p4';
+    });
+    if (!p34) return null;
+    const templateRaw = (p34 as any).base_stage_url || p34BaseImageUrlRef.current;
+    return {
+      baseSrc: buildImageUrl(String(templateRaw || '')),
+      giverData: (p34 as any).giver_data || null,
+    };
+  }, [previewData, buildImageUrl]);
+
+  const p34UploadComposeProps = useMemo(() => {
+    if (!p34PendingCompose || !p34PageMetaForUpload) return null;
+    const dedicationForUpload = p34PendingCompose.dedication ?? dedication;
+    const isDadDefaultDedicationLeft =
+      isPicbookDad(bookId) &&
+      (dedicationForUpload || '').trim() === (defaultMessage || '').trim();
+    return {
+      giverImageUrl: p34PendingCompose.giverUrl ?? (giverImageUrl || p34PageMetaForUpload.giverData),
+      dedicationText: dedicationForUpload,
+      dedicationTextAlign:
+        isPicbookDad(bookId) &&
+        (dedicationForUpload || '').trim() === (defaultMessage || '').trim()
+          ? ('left' as const)
+          : ('center' as const),
+      dedicationSidePaddingRatio: isPicbookDad(bookId) ? 0.12 : 0.06,
+      dedicationSidePaddingLeftRatio: isDadDefaultDedicationLeft ? 0.2 : undefined,
+      giverImageScale:
+        (bookId || '').toUpperCase() === 'PICBOOK_BRAVEY' ||
+        (bookId || '').toUpperCase() === 'PICBOOK_BIRTHDAY'
+          ? 1.2
+          : ['PICBOOK_GOODNIGHT3', 'PICBOOK_MOM', 'PICBOOK_DAD', 'PICBOOK_SANTA', 'PICBOOK_MELODY'].includes(
+                (bookId || '').toUpperCase(),
+              )
+            ? 0.7
+            : undefined,
+    };
+  }, [
+    p34PendingCompose,
+    p34PageMetaForUpload,
+    dedication,
+    giverImageUrl,
+    bookId,
+    defaultMessage,
+  ]);
 
   //定义状态控制抽屉显示
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -5580,7 +5706,6 @@ export default function PreviewPageWithTopNav() {
                       const p34HasLocalChanges =
                         !!giverImageUrl ||
                         !!editField ||
-                        shouldUploadP34ComposedRef.current ||
                         (p34ComposeUploadedRef.current && isDedicationSubmitted);
 
                       // 单页模式：p3-4 始终拆成左右单页展示；有 final 时只把 final 当作底图，不再整张跨页显示。
@@ -5612,7 +5737,12 @@ export default function PreviewPageWithTopNav() {
                         if (p34FinalSrc && !p34HasLocalChanges) {
                           return (
                             <div key={page.page_id} className="w-full flex flex-col items-center">
-                              <div className="w-full max-w-5xl">
+                              <div className="w-full max-w-5xl relative">
+                                {p34ComposeUploading ? (
+                                  <div className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden rounded-lg bg-white/70">
+                                    <DreamazeLogoRainbowLoader size={60} />
+                                  </div>
+                                ) : null}
                                 <GiverDedicationCanvas
                                   className="w-full"
                                   imageUrl={p34FinalSrc}
@@ -5659,7 +5789,12 @@ export default function PreviewPageWithTopNav() {
                         }
                         return (
                         <div key={page.page_id} className="w-full flex flex-col items-center">
-                          <div className="w-full max-w-5xl">
+                          <div className="w-full max-w-5xl relative">
+                            {p34ComposeUploading ? (
+                              <div className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden rounded-lg bg-white/70">
+                                <DreamazeLogoRainbowLoader size={60} />
+                              </div>
+                            ) : null}
                             <GiverDedicationCanvas
                               className="w-full"
                               imageUrl={p34BaseSrc}
@@ -5671,7 +5806,6 @@ export default function PreviewPageWithTopNav() {
                               dedicationTextAlign={dedicationTextAlign}
                               dedicationSidePaddingRatio={dedicationSidePaddingRatio}
                               dedicationSidePaddingLeftRatio={dedicationSidePaddingLeftRatio}
-                              onRendered={uploadP34ComposedImage}
                               singleLeftHalfRef={giverRef}
                               singleRightHalfRef={dedicationRef}
                               leftImageFrameClassName={getMissingSectionClass('giver')}
@@ -5707,26 +5841,33 @@ export default function PreviewPageWithTopNav() {
                     }
                       // 双页模式：p3-4 默认展示 final（并保留操作按钮）；编辑时才用 Canvas overlay
                       const p34ButtonsOverlay = isGiverDedicationPage ? (
-                        <div className="pointer-events-none hidden md:block absolute inset-0">
-                          <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                giverFileInputRef.current?.click();
-                              }}
-                              className={`pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
-                            >
-                              {giverPhotoButtonLabel}
-                            </button>
-                          </div>
-                          <div className="absolute bottom-[20%] right-0 w-1/2 flex flex-col items-center">
-                            <button
-                              type="button"
-                              onClick={openDedicationEditor}
-                              className={`pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
-                            >
-                              {dedicationButtonLabel}
-                            </button>
+                        <div className="pointer-events-none absolute inset-0">
+                          {p34ComposeUploading ? (
+                            <div className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden rounded-lg bg-white/70">
+                              <DreamazeLogoRainbowLoader size={60} />
+                            </div>
+                          ) : null}
+                          <div className="hidden md:block">
+                            <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  giverFileInputRef.current?.click();
+                                }}
+                                className={`pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
+                              >
+                                {giverPhotoButtonLabel}
+                              </button>
+                            </div>
+                            <div className="absolute bottom-[20%] right-0 w-1/2 flex flex-col items-center">
+                              <button
+                                type="button"
+                                onClick={openDedicationEditor}
+                                className={`pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
+                              >
+                                {dedicationButtonLabel}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ) : null;
@@ -5873,6 +6014,11 @@ export default function PreviewPageWithTopNav() {
                             customOverlayContent={pageFailed ? undefined : (isGiverDedicationPage ? (
                               (p34FinalSrc && !p34HasLocalChanges) ? p34ButtonsOverlay : (
                                 <div className="w-full h-full relative">
+                                  {p34ComposeUploading ? (
+                                    <div className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden rounded-lg bg-white/70">
+                                      <DreamazeLogoRainbowLoader size={60} />
+                                    </div>
+                                  ) : null}
                                   <GiverDedicationCanvas
                                     className="w-full h-full"
                                     imageUrl={p34BaseSrc}
@@ -5884,7 +6030,6 @@ export default function PreviewPageWithTopNav() {
                                     dedicationTextAlign={dedicationTextAlign}
                                     dedicationSidePaddingRatio={dedicationSidePaddingRatio}
                                     dedicationSidePaddingLeftRatio={dedicationSidePaddingLeftRatio}
-                                    onRendered={uploadP34ComposedImage}
                                     overlayContent={p34ButtonsOverlay}
                                     onVisualReady={() =>
                                       markPreviewPageReady(page.page_id, `${p34BaseSrc}:canvas`)
@@ -6700,28 +6845,31 @@ export default function PreviewPageWithTopNav() {
                       onDone={() => {}}
                       resultMode="file"
                       onDoneFile={(file) => {
-                        // 用户上传后：先本地预览（不立刻发后端），等 Canvas 合成完成后再上传合成图
+                        // 用户上传后：等 Canvas 合成并上传成功后再更新展示
                         try {
                           setGuestUploadRateLimitError(null);
+                          saveP34PreUploadSnapshot();
                           const objUrl = URL.createObjectURL(file);
-                          setGiverImageUrl(objUrl);
-                          // 分层模型：把 giver 文件转成 data URL 存起来，后续 dedication 重绘/上传都带上最新 giver
-                          try {
-                            const reader = new FileReader();
-                            reader.onload = () => {
-                              const result = reader.result;
-                              if (typeof result === 'string' && result.startsWith('data:')) {
-                                p34GiverDataRef.current = result;
-                              }
-                            };
-                            reader.readAsDataURL(file);
-                          } catch {}
-                          shouldUploadP34ComposedRef.current = true;
-                          p34UploadCompletesNameOnBookRef.current = true;
-                          p34ComposeUploadedRef.current = false;
-                          // 上传图片即视为完成 Opening Photo（沿用原逻辑）；真正落 mark 在上传成功后
-                          setIsNameOnBookCompleted(true);
-                        } catch {}
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            const result = reader.result;
+                            if (typeof result === 'string' && result.startsWith('data:')) {
+                              p34GiverDataRef.current = result;
+                            }
+                            setP34PendingCompose({ giverUrl: objUrl });
+                            shouldUploadP34ComposedRef.current = true;
+                            p34UploadCompletesNameOnBookRef.current = true;
+                            p34ComposeUploadedRef.current = false;
+                            setP34ComposeUploading(true);
+                          };
+                          reader.onerror = () => {
+                            URL.revokeObjectURL(objUrl);
+                            toast.error('Upload failed, please try again.');
+                          };
+                          reader.readAsDataURL(file);
+                        } catch {
+                          toast.error('Upload failed, please try again.');
+                        }
                         setEditField(null);
                         setPendingGiverFile(null);
                         if (pendingGiverFile) {
@@ -6827,6 +6975,23 @@ export default function PreviewPageWithTopNav() {
           )}
         </button>
       </div>
+
+      {p34ComposeUploading && p34PageMetaForUpload?.baseSrc && p34UploadComposeProps && (
+        <div aria-hidden className="fixed -left-[9999px] top-0 h-px w-px overflow-hidden pointer-events-none">
+          <GiverDedicationCanvas
+            imageUrl={p34PageMetaForUpload.baseSrc}
+            mode="double"
+            giverText={giver}
+            dedicationText={p34UploadComposeProps.dedicationText}
+            giverImageUrl={p34UploadComposeProps.giverImageUrl}
+            giverImageScale={p34UploadComposeProps.giverImageScale}
+            dedicationTextAlign={p34UploadComposeProps.dedicationTextAlign}
+            dedicationSidePaddingRatio={p34UploadComposeProps.dedicationSidePaddingRatio}
+            dedicationSidePaddingLeftRatio={p34UploadComposeProps.dedicationSidePaddingLeftRatio}
+            onRendered={uploadP34ComposedImage}
+          />
+        </div>
+      )}
 
       {guestUploadRateLimitError && (
         <div
