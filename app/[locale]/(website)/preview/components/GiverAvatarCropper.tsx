@@ -383,7 +383,7 @@ export default function GiverAvatarCropper({
 
   const handleRateLimitLogin = useCallback(() => {
     setRateLimitError(null);
-    openLoginModal();
+    openLoginModal({ loginSource: 'preview_unlock' });
   }, [openLoginModal]);
 
   const rotateLeft = () => cropperRef.current?.cropper.rotate(-90);

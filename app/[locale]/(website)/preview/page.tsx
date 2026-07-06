@@ -1222,6 +1222,7 @@ export default function PreviewPageWithTopNav() {
       description: t('unlockFullBookDescription'),
       footerNote: t('unlockFullBookFooter'),
       sendCodeButtonLabel: t('continueWithEmailCode'),
+      loginSource: 'preview_unlock',
     });
   }, [openLoginModal, t]);
 

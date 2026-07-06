@@ -36,6 +36,7 @@ export default function LoginModal({
   const {
     closeLoginModal,
     loginModalOptions,
+    openLoginModal,
     register,
     login,
     sendResetPasswordLink,
@@ -54,6 +55,13 @@ export default function LoginModal({
       localStorage.setItem('redirectUrl', urlRedirect)
     }
   }, [state.mode, resetMessages, searchParams])
+
+  // Set login_source for redirect-based flows (login page, abandoned cart/preview emails)
+  useEffect(() => {
+    if (useRedirect && !loginModalOptions?.loginSource) {
+      openLoginModal({ loginSource: 'account_entry' })
+    }
+  }, [useRedirect])
 
   // Countdown timer
   useEffect(() => {
