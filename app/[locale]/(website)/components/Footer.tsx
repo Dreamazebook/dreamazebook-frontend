@@ -24,7 +24,7 @@ const footerMenus = [
   {
     title: "Dreamaze",
     items: [
-      { label: "About Us", href: "/about-us" },
+      { label: "About us", href: "/about-us" },
       { label: "Create With Us", href: "/survey" },
     ],
   },

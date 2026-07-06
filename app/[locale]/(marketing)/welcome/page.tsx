@@ -50,7 +50,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection btnId="email_submit_mid" redirectUrl={WELCOME_SUCCESS_URL} cssClass={"bg-[#F5E3E3]"} title={"Let Your Child Shine as the Hero"} desc={'Submit your email to receive updates and exclusive early bird perks'} btnText="Unlock Early Access & Perks!" />
+        <ReserveSection btnId="email_submit_mid" redirectUrl={WELCOME_SUCCESS_URL} cssClass={"bg-[#F5E3E3]"} title={"Let Your Child Shine as the Hero"} desc={'Submit your email to receive updates and exclusive early bird perks'} btnText="Unlock early access & perks!" />
       </AnimatedSection>
 
       <AnimatedSection>
@@ -68,7 +68,7 @@ export default function LandingPage() {
       </AnimatedSection>
 
       <AnimatedSection>
-        <ReserveSection btnId="email_submit_3rd" redirectUrl={WELCOME_SUCCESS_URL} cssClass={""} desc="Leave your email now to unlock behind-the-scenes peeks into our creation process — from sketch to storybook." btnText="Sign Up& Shape the Story With Us" />
+        <ReserveSection btnId="email_submit_3rd" redirectUrl={WELCOME_SUCCESS_URL} cssClass={""} desc="Leave your email now to unlock behind-the-scenes peeks into our creation process — from sketch to storybook." btnText="Sign up & shape the story with us" />
       </AnimatedSection>
 
       <AboutUs />
@@ -87,7 +87,7 @@ export default function LandingPage() {
           //cssClass={"text-white bg-(image:--vip-discount-app) md:bg-(image:--vip-discount)"}
           title={"Your Smartest Save Yet!"}
           desc="Be among the first to reserve and lock in our exclusive 40% VIP discount <br/> a once-only offer to reward early supporters who know a good thing when they see it."
-          btnText="Reserve Early & Save Big" />
+          btnText="Reserve early & save big" />
       </AnimatedSection>
 
       <FAQWelcome />

@@ -22,7 +22,7 @@ const UnderlineIcon = ({ color = "#012CCE" }: { color?: string }) => (
 
 const menuItems = [
   {
-    label: "Our Books",
+    label: "Our books",
     href: "/books",
     isActive: (pathname: string) => pathname?.includes("/books"),
   },
@@ -33,7 +33,7 @@ const menuItems = [
       pathname === "/fathers-day" || pathname?.endsWith("/fathers-day"),
   },
   {
-    label: "About Us",
+    label: "About us",
     href: "/about-us",
     isActive: (pathname: string) => pathname === "/about-us",
   },

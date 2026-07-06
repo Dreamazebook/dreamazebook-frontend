@@ -19,7 +19,7 @@ const slides = [
     id: 2,
     title: ["Turn Dad into", "Part of the", "Story"],
     color: "text-primary",
-    buttonText: "Create Yours",
+    buttonText: "Create yours",
     image: HOME_HERO("father-mobile.webp"),
     image_desktop: HOME_HERO("father-pc.webp"),
     description: "The most unique hand-illustrated gift for Father's Day.",

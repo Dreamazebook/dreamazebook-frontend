@@ -262,7 +262,7 @@ export default function AboutUsPage() {
               className="bg-[#222] flex items-center justify-center gap-[10px] mx-auto md:w-[360px] mt-5 text-[16px] p-[8px] rounded text-[#FCF2F2]"
               href={SURVEY_URL}
             >
-              <span>Submit Your Idea</span>
+              <span>Submit your idea</span>
               <img src="/images/common/arrow-white.svg" />
             </Link>
           </div>
@@ -308,7 +308,7 @@ export default function AboutUsPage() {
             className="bg-[#222] w-full md:w-[360px] flex items-center justify-center gap-[10px] mx-auto text-center mt-5 text-[16px] p-[8px] rounded text-[#FCF2F2]"
             href={BOOKS_URL}
           >
-            <span>Explore Our Books</span>
+            <span>Explore our books</span>
             <img src="/images/common/arrow-white.svg" />
           </Link>
         </section>
