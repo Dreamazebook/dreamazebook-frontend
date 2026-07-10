@@ -2261,12 +2261,17 @@ export default function PreviewPageWithTopNav() {
     return free || options.gift_box_options.find((o) => o.is_default) || options.gift_box_options[0];
   }, []);
 
-  // 默认预选 cover_1 / hardcover / free gift box（仅初始化一次；购物车预填可覆盖）
+  // 默认预选 cover_1 / hardcover / free gift box（仅初始化一次）
+  // 从购物车 Edit gift option / 编辑进入时，不要先写默认值，否则会挡住 cart 预填
   useEffect(() => {
     if (!bookOptions) return;
     if (hasAppliedDefaultOptionsRef.current) return;
     if (hasPrefilledOptionsRef.current) {
       hasAppliedDefaultOptionsRef.current = true;
+      return;
+    }
+    // 购物车编辑 options：等 cart 预填，不抢先写默认
+    if (searchParams.get('fromCartItemId') && searchParams.get('skipPrefillOptions') !== '1') {
       return;
     }
 
@@ -2314,6 +2319,7 @@ export default function PreviewPageWithTopNav() {
     findDefaultCoverOption,
     findDefaultBindingOption,
     findDefaultGiftBoxOption,
+    searchParams,
   ]);
   const [isLoadingOptions, setIsLoadingOptions] = useState(false);
   // Bravey 封面文案配置（根据 page_properties.json 绘制名字）
@@ -2384,6 +2390,8 @@ export default function PreviewPageWithTopNav() {
           adjustments.giftbox?.selected;
 
         let changed = false;
+        // 从购物车编辑进入：强制用 cart 选项覆盖（即使默认值已写入）
+        const forceFromCart = Boolean(fromCartItemIdParam);
 
         const cartOptionKeyMatches = (optKey: unknown, cartVal: unknown) =>
           String(optKey ?? '')
@@ -2392,43 +2400,54 @@ export default function PreviewPageWithTopNav() {
               .trim()
               .toLowerCase();
 
-        if (selectedBookCover == null && coverKey) {
+        if ((forceFromCart || selectedBookCover == null) && coverKey) {
           const cover = bookOptions?.cover_options?.find(
             (o) =>
               cartOptionKeyMatches(o.option_key, coverKey) || String(o.id) === String(coverKey),
           );
-          if (cover) {
+          if (cover && (forceFromCart || selectedBookCover == null)) {
+            skipNextCartOptionSyncRef.current = true;
             setSelectedBookCover(cover.id);
             changed = true;
           }
         }
 
-        if (selectedBinding == null && bindingKey) {
+        if ((forceFromCart || selectedBinding == null) && bindingKey) {
           const binding = bookOptions?.binding_options?.find(
             (o) =>
               cartOptionKeyMatches(o.option_key, bindingKey) || String(o.id) === String(bindingKey),
           );
-          if (binding) {
+          if (binding && (forceFromCart || selectedBinding == null)) {
+            skipNextCartOptionSyncRef.current = true;
             setSelectedBinding(binding.id);
             changed = true;
           }
         }
 
-        if (selectedGiftBox == null && giftKey) {
+        if ((forceFromCart || selectedGiftBox == null) && giftKey) {
           const gift = bookOptions?.gift_box_options?.find(
             (o) =>
               (o.option_key ? cartOptionKeyMatches(o.option_key, giftKey) : false) ||
               String(o.id) === String(giftKey) ||
               cartOptionKeyMatches(o.name, giftKey),
           );
-          if (gift) {
+          if (gift && (forceFromCart || selectedGiftBox == null)) {
+            skipNextCartOptionSyncRef.current = true;
             setSelectedGiftBox(gift.id);
             changed = true;
           }
         }
 
+        // 无论是否改动成功，只要匹配到 cart item 就标记已处理，避免默认选项再抢写
+        hasPrefilledOptionsRef.current = true;
+        hasAppliedDefaultOptionsRef.current = true;
         if (changed) {
-          hasPrefilledOptionsRef.current = true;
+          console.debug('[PreviewCart] Prefilled options from cart item', {
+            coverKey,
+            bindingKey,
+            giftKey,
+            fromCartItemId: fromCartItemIdParam,
+          });
         }
       } catch (e) {
         console.warn('预填选项失败，跳过:', e);

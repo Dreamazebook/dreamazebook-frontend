@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { CartItem as CartItemType, getCartCoverRatio, getFormatedCover, getFormatedGiftbox } from "@/types/cart";
+import { CartItem as CartItemType, getCartCoverRatio, getFormatedCover, getFormatedGiftbox, isCartItemCreateMode, isCartItemEditMode } from "@/types/cart";
 import DisplayPrice from "../../../components/component/DisplayPrice";
 import { useRouter } from "@/i18n/routing";
 import { useEffect, useState } from "react";
@@ -276,10 +276,8 @@ export default function CartItemCard({
     (item as any)?.attributes?.cover_type,
     (item as any)?.preview?.cover_type,
   );
-  // 后端新增字段：mode = create|edit，用于决定购物车 item 的按钮语义
-  // 兼容旧数据：无 mode 时用 preview_id 推断
-  const effectiveMode = (item as any)?.mode ?? (item.preview_id ? "edit" : "create");
-  const isEditMode = effectiveMode === "edit" && !!item.preview_id;
+  // 后端 mode：create / create_book / edit / edit_book
+  const isEditMode = isCartItemEditMode((item as any)?.mode, item.preview_id) && !!item.preview_id;
 
   const skuCover1ImageUrl = getPicbookCoverOptionImageUrl(skuSpuCode, "1", skuCustomizationAttrs);
   const skuSelectedCoverImageUrl = skuSelectedCoverId
@@ -292,8 +290,8 @@ export default function CartItemCard({
   const skuCartCoverSrc = skuPreviewCoverImageUrl || (isSkuGeneratedCoverOption
     ? skuGeneratedCoverFallbackImage || skuSelectedCoverImageUrl || skuCover1ImageUrl || item.book_cover || "/home-page/cover.png"
     : skuSelectedCoverImageUrl || skuGeneratedCoverFallbackImage || skuCover1ImageUrl || item.book_cover || "/home-page/cover.png");
-  // 需求：购物车中 item_type=sku 且 mode=create 的书本不要显示 cover / gift 细节（“Soft Cover | A Festive Gift Box” 那行）
-  const shouldShowCoverGiftDetails = !(item.item_type === "sku" && effectiveMode === "create");
+  // sku + create：不展示 cover / gift 细节（“Soft Cover | A Festive Gift Box” 那行）
+  const shouldShowCoverGiftDetails = !(item.item_type === "sku" && isCartItemCreateMode((item as any)?.mode, item.preview_id));
 
   const pkgSnapshot = (item as any)?.package_snapshot;
   const pkgName = (item as any)?.package_name || pkgSnapshot?.name?.en || packageCode || "Bundle";
@@ -872,8 +870,8 @@ export default function CartItemCard({
                           pi?.customization_data?.preview_id ||
                           (pi as any)?.preview?.preview_id ||
                           null
-                        const piMode = pi?.mode ?? (piPreviewId ? "edit" : "create")
-                        const piIsEdit = piMode === "edit" && !!piPreviewId
+                        const piMode = pi?.mode
+                        const piIsEdit = isCartItemEditMode(piMode, piPreviewId) && !!piPreviewId
 
                         const attrsBundle = (pi?.customization_data?.attributes || {}) as Record<string, unknown>;
                         const selectedBundleCoverId = resolveCartCoverId(
