@@ -326,7 +326,7 @@ export default function FaceSwapVersionCarousel({
           <ChevronLeft className="h-5 w-5" />
         </button>
 
-        <div className="relative w-full max-w-5xl min-w-0 px-3 md:px-0">
+        <div className="relative w-full max-w-5xl min-w-0">
           <div className="relative w-full rounded-lg bg-white">
             <img
               src={displayImageSrc}

@@ -7,6 +7,8 @@ interface OAuthButtonsProps {
   onFacebookClick: () => void
   label: string
   variant?: 'default' | 'labeled'
+  /** Full-width layout for mobile bottom sheet */
+  fluid?: boolean
 }
 
 const GoogleIcon = () => (
@@ -31,6 +33,7 @@ export const OAuthButtons = memo(({
   onFacebookClick,
   label,
   variant = 'default',
+  fluid = false,
 }: OAuthButtonsProps) => {
   if (variant === 'labeled') {
     return (
@@ -42,7 +45,7 @@ export const OAuthButtons = memo(({
         </div>
         <div
           className="mt-[12px] flex gap-[8px] opacity-80"
-          style={{ width: 312, height: 40, boxSizing: 'border-box' }}
+          style={{ width: fluid ? '100%' : 312, height: 40, boxSizing: 'border-box' }}
         >
           <button
             type="button"

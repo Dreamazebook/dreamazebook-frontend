@@ -35,6 +35,8 @@ interface FormSubmitSectionsProps {
   unifiedUI?: boolean
   buttonClassName?: string
   buttonStyle?: CSSProperties
+  /** Full-width OAuth row for mobile bottom sheet */
+  fluid?: boolean
 }
 
 export const FormSubmitSections = memo(({
@@ -57,6 +59,7 @@ export const FormSubmitSections = memo(({
   unifiedUI = false,
   buttonClassName,
   buttonStyle,
+  fluid = false,
 }: FormSubmitSectionsProps) => {
   const oauthVariant = unifiedUI ? ('labeled' as const) : ('default' as const)
   return (
@@ -86,6 +89,7 @@ export const FormSubmitSections = memo(({
               onFacebookClick={onFacebookLogin}
               label={translations.orContinueWith}
               variant={oauthVariant}
+              fluid={fluid}
             />
           </div>
         </LoginSubmitSection>
@@ -114,6 +118,7 @@ export const FormSubmitSections = memo(({
             onFacebookClick={onFacebookLogin}
             label={translations.orContinueWith}
             variant={oauthVariant}
+            fluid={fluid}
           />
         </RegisterSubmitSection>
       )}
@@ -142,6 +147,7 @@ export const FormSubmitSections = memo(({
             onFacebookClick={onFacebookLogin}
             label={translations.orContinueWith}
             variant={oauthVariant}
+            fluid={fluid}
           />
         </ForgotPasswordSubmitSection>
       )}
@@ -172,6 +178,7 @@ export const FormSubmitSections = memo(({
             onFacebookClick={onFacebookLogin}
             label={translations.orContinueWith}
             variant={oauthVariant}
+            fluid={fluid}
           />
         </CodeLoginSubmitSection>
       )}

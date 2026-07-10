@@ -24,6 +24,7 @@ export default function LoginModal({
   footerNote,
   sendCodeButtonLabel,
   useRedirect = true,
+  layout = 'modal',
 }: {
   showCloseButton?: boolean
   useRedirect?: boolean
@@ -31,6 +32,8 @@ export default function LoginModal({
   description?: string
   footerNote?: string
   sendCodeButtonLabel?: string
+  /** Mobile preview unlock uses antd bottom Drawer; desktop stays centered modal */
+  layout?: 'modal' | 'bottomSheet'
 }) {
   const t = useTranslations('LoginModal')
   const tPreview = useTranslations('Preview')
@@ -50,13 +53,15 @@ export default function LoginModal({
   const searchParams = useSearchParams()
 
   const isPreviewUnlock = loginModalOptions?.loginSource === 'preview_unlock'
+  const isBottomSheet = layout === 'bottomSheet'
   // Unify ALL login UIs to match the preview unlock design.
   const unifiedUI = true
   const previewTitle = loginModalOptions?.title ?? tPreview('unlockFullBookTitle')
   const previewFooterNote = loginModalOptions?.footerNote ?? tPreview('unlockFullBookFooter')
   const previewSendCodeLabel = loginModalOptions?.sendCodeButtonLabel ?? tPreview('continueWithEmailCode')
+  const previewFieldWidth = isBottomSheet ? '100%' : 312
   const previewButtonStyle: React.CSSProperties = {
-    width: 312,
+    width: previewFieldWidth,
     height: 36,
     paddingTop: 8,
     paddingRight: 12,
@@ -67,12 +72,12 @@ export default function LoginModal({
   const previewButtonClassName =
     'gap-[10px] rounded-[4px] bg-[#222222] text-[14px] leading-[20px] tracking-[0.25px] font-normal text-white opacity-100'
   const previewEmailWrapperStyle: React.CSSProperties = {
-    width: 312,
+    width: previewFieldWidth,
     boxSizing: 'border-box',
   }
   const previewEmailWrapperClassName = 'flex flex-col gap-[4px] opacity-100'
   const previewEmailInputStyle: React.CSSProperties = {
-    width: 312,
+    width: previewFieldWidth,
     height: 36,
     paddingTop: 8,
     paddingRight: 16,
@@ -179,8 +184,8 @@ export default function LoginModal({
   const needsFormScroll = state.mode === 'register'
 
   const previewModalStyle: React.CSSProperties = {
-    width: 360,
-    ...(usePreviewMinHeight ? { minHeight: 416 } : {}),
+    width: isBottomSheet ? '100%' : 360,
+    ...(usePreviewMinHeight && !isBottomSheet ? { minHeight: 416 } : {}),
     height: 'auto',
     boxSizing: 'border-box',
   }
@@ -505,15 +510,22 @@ export default function LoginModal({
   return (
     <main
       className={`relative flex shrink-0 flex-col bg-white ${
-        unifiedUI
-          ? 'gap-[12px] rounded-[12px] p-[24px]'
-          : isPreviewUnlock
+        isBottomSheet
+          ? 'w-full gap-[12px] rounded-t-[16px] px-[24px] pb-[calc(24px+env(safe-area-inset-bottom))] pt-[12px]'
+          : unifiedUI
             ? 'gap-[12px] rounded-[12px] p-[24px]'
-            : 'w-96 items-center justify-center gap-4 rounded-lg p-4'
+            : isPreviewUnlock
+              ? 'gap-[12px] rounded-[12px] p-[24px]'
+              : 'w-96 items-center justify-center gap-4 rounded-lg p-4'
       }`}
-      style={unifiedUI || isPreviewUnlock ? previewModalStyle : undefined}
+      style={unifiedUI || isPreviewUnlock || isBottomSheet ? previewModalStyle : undefined}
       role="main"
     >
+      {isBottomSheet && (
+        <div className="flex w-full justify-center pb-[4px]" aria-hidden="true">
+          <span className="h-1 w-10 rounded-full bg-[#D9D9D9]" />
+        </div>
+      )}
       {showCloseButton && (
         <div className="flex w-full justify-end">
           <CloseButton onClose={closeLoginModal} iconSize={12} />
@@ -525,6 +537,7 @@ export default function LoginModal({
         description={headerDescription}
         variant={usePreviewHeaderLayout ? 'previewUnlock' : unifiedUI ? 'compact' : 'default'}
         compact={unifiedUI}
+        fluid={isBottomSheet}
       />
 
       <form
@@ -573,6 +586,7 @@ export default function LoginModal({
           unifiedUI={unifiedUI || isPreviewUnlock}
           buttonClassName={unifiedUI || isPreviewUnlock ? previewButtonClassName : undefined}
           buttonStyle={unifiedUI || isPreviewUnlock ? previewButtonStyle : undefined}
+          fluid={isBottomSheet}
         />
         {(isPreviewUnlock ? previewFooterNote : footerNote) && state.mode === 'codeLogin' && (
           <p className="text-center text-[14px] leading-[20px] tracking-[0.25px] font-normal text-[#999999]">

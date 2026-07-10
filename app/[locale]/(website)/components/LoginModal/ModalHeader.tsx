@@ -6,6 +6,8 @@ interface HeaderProps {
   description?: ReactNode
   compact?: boolean
   variant?: 'default' | 'previewUnlock' | 'compact'
+  /** Full-width layout for mobile bottom sheet */
+  fluid?: boolean
 }
 
 const previewUnlockHeaderStyle: CSSProperties = {
@@ -25,16 +27,22 @@ export const ModalHeader = memo(({
   description = 'Sign in to access your account',
   compact = false,
   variant = 'default',
+  fluid = false,
 }: HeaderProps) => {
   const isPreviewUnlock = variant === 'previewUnlock'
   const isCompact = variant === 'compact'
+  const headerStyle = isPreviewUnlock
+    ? { ...previewUnlockHeaderStyle, ...(fluid ? { width: '100%' as const } : {}) }
+    : isCompact
+      ? { ...compactHeaderStyle, ...(fluid ? { width: '100%' as const } : {}) }
+      : undefined
 
   return (
     <header
       className={`relative text-center opacity-100 ${
         isPreviewUnlock || isCompact ? 'flex w-full flex-col gap-[12px]' : 'w-full'
       }`}
-      style={isPreviewUnlock ? previewUnlockHeaderStyle : isCompact ? compactHeaderStyle : undefined}
+      style={headerStyle}
     >
       <h1 className="text-[28px] leading-[36px] text-[#000]">{title}</h1>
       {description && (

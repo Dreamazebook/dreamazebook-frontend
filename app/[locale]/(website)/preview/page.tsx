@@ -168,6 +168,32 @@ function hasRenderablePreviewImage(page: any): boolean {
   return Boolean(pickBatchPageImageRaw(page));
 }
 
+/** Guest unlock gate：P10（或止于 10 的跨页）已有可展示图 */
+const isP10PageCode = (pageCode: unknown): boolean => {
+  const code = getPreviewPageCodeLookupKey(pageCode);
+  if (!code) return false;
+  if (code === 'p10') return true;
+  // 跨页如 p9-10 / p9-p10
+  return /^p\d+-10$/.test(code);
+};
+
+const hasGuestPreviewUnlockReady = (
+  pages: any[] | undefined | null,
+  previewPagesCount: number | null,
+): boolean => {
+  const displayed = getDisplayedPreviewPages(pages);
+  const p10 = displayed.find((p) => isP10PageCode(p?.page_code));
+  if (p10 && hasRenderablePreviewImage(p10)) return true;
+
+  // 无显式 p10 时：以产品配置的 preview 页数作为锁定边界
+  if (previewPagesCount != null && previewPagesCount > 0) {
+    const readyCount = displayed.filter((p) => hasRenderablePreviewImage(p)).length;
+    return readyCount >= previewPagesCount;
+  }
+
+  return false;
+};
+
 function preservePreviewImageFields(page: any, prevPage: any) {
   if (!prevPage || hasRenderablePreviewImage(page)) return page;
   if (!hasRenderablePreviewImage(prevPage)) return page;
@@ -4753,6 +4779,12 @@ export default function PreviewPageWithTopNav() {
   }, [isGuest]);
 
   const previewContentLength = previewData?.preview_data?.length ?? 0;
+  const guestUnlockReady = useMemo(
+    () => hasGuestPreviewUnlockReady(previewData?.preview_data, previewPagesCount),
+    [previewData?.preview_data, previewPagesCount],
+  );
+  const guestUnlockReadyRef = useRef(guestUnlockReady);
+  guestUnlockReadyRef.current = guestUnlockReady;
 
   useEffect(() => {
     if (!isGuest || activeTab !== 'Book preview') {
@@ -4771,6 +4803,7 @@ export default function PreviewPageWithTopNav() {
 
     const maybeOpenGuestUnlock = () => {
       if (!mq.matches) return;
+      if (!guestUnlockReadyRef.current) return;
       if (!guestPreviewHasScrolledRef.current) return;
       if (useUserStore.getState().isLoginModalOpen) return;
 
@@ -4789,15 +4822,18 @@ export default function PreviewPageWithTopNav() {
     window.addEventListener('touchmove', handleScroll, { passive: true });
     window.addEventListener('resize', handleScroll, { passive: true });
 
+    // P10 刚就绪且用户已在底部时，主动补一次检查
+    maybeOpenGuestUnlock();
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('touchmove', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
-  }, [isGuest, activeTab, openPreviewUnlockLogin, previewContentLength]);
+  }, [isGuest, activeTab, openPreviewUnlockLogin, previewContentLength, guestUnlockReady]);
 
   useEffect(() => {
-    if (!isGuest || activeTab !== 'Book preview') return undefined;
+    if (!isGuest || activeTab !== 'Book preview' || !guestUnlockReady) return undefined;
     const el = previewBottomSentinelRef.current;
     if (!el) return undefined;
 
@@ -4805,6 +4841,7 @@ export default function PreviewPageWithTopNav() {
     const observer = new IntersectionObserver(
       (entries) => {
         if (!mq.matches) return;
+        if (!guestUnlockReadyRef.current) return;
         if (!guestPreviewHasScrolledRef.current) return;
         if (useUserStore.getState().isLoginModalOpen) return;
         if (entries.some((entry) => entry.isIntersecting)) {
@@ -4817,7 +4854,7 @@ export default function PreviewPageWithTopNav() {
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [isGuest, activeTab, openPreviewUnlockLogin, previewContentLength]);
+  }, [isGuest, activeTab, openPreviewUnlockLogin, previewContentLength, guestUnlockReady]);
 
   useEffect(() => {
     if (!isGuest) return undefined;

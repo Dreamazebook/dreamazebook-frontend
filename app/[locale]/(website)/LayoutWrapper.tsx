@@ -13,6 +13,7 @@ import LoginModal from './components/LoginModal';
 import { Toaster } from 'react-hot-toast';
 import TopBanner from '@/app/components/TopBanner';
 import TawkScript from '@/app/components/TawkScript';
+import { Drawer } from 'antd';
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const segments = useSelectedLayoutSegments();
@@ -30,8 +31,14 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const isEmbedMode = searchParams.get('embed') === 'true';
 
   // 在组件中
-  const { fetchCurrentUser, isLoggedIn, checkKickstarterStatus, isLoginModalOpen, loginModalOptions } = useUserStore();
+  const { fetchCurrentUser, isLoggedIn, checkKickstarterStatus, isLoginModalOpen, loginModalOptions, closeLoginModal } = useUserStore();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+
+  const isPreviewUnlockSheet =
+    isLoginModalOpen &&
+    loginModalOptions?.loginSource === 'preview_unlock' &&
+    isMobileViewport;
 
   // 获取当前页面的滚动到顶部按钮配置
   // const scrollToTopConfig = getScrollToTopConfig(pathname);
@@ -53,6 +60,14 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const sync = () => setIsMobileViewport(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
   // 登录状态变化后检查Kickstarter套餐
   useEffect(() => {
     if (isLoggedIn) {
@@ -64,6 +79,18 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const showTopBanner = !isPreviewPage;
   const showHeader = !(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isEmbedMode);
   const headerIsWhite = isScrolled || !isFathersDayPage;
+
+  const loginModal = (
+    <LoginModal
+      useRedirect={false}
+      showCloseButton={true}
+      title={loginModalOptions?.title ?? 'Continue'}
+      description={loginModalOptions?.description ?? 'We’ll email you a secure code to save your order and preview.'}
+      footerNote={loginModalOptions?.footerNote}
+      sendCodeButtonLabel={loginModalOptions?.sendCodeButtonLabel}
+      layout={isPreviewUnlockSheet ? 'bottomSheet' : 'modal'}
+    />
+  );
 
   return (
     <>
@@ -77,17 +104,44 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
       )}
       {children}
       <KickstarterWelcomeModal />
-      {isLoginModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <LoginModal
-            useRedirect={false}
-            showCloseButton={true}
-            title={loginModalOptions?.title ?? 'Continue'}
-            description={loginModalOptions?.description ?? 'We’ll email you a secure code to save your order and preview.'}
-            footerNote={loginModalOptions?.footerNote}
-            sendCodeButtonLabel={loginModalOptions?.sendCodeButtonLabel}
-          />
-        </div>
+      {isPreviewUnlockSheet ? (
+        <Drawer
+          open={isLoginModalOpen}
+          placement="bottom"
+          onClose={closeLoginModal}
+          closable={false}
+          height="auto"
+          destroyOnClose
+          maskClosable
+          zIndex={1000}
+          styles={{
+            mask: { background: 'rgba(0, 0, 0, 0.45)' },
+            body: {
+              padding: 0,
+              maxHeight: 'min(90dvh, 90vh)',
+              overflowY: 'auto',
+              overscrollBehavior: 'contain',
+            },
+            content: {
+              borderRadius: '16px 16px 0 0',
+              overflow: 'hidden',
+            },
+            wrapper: {
+              height: 'auto',
+              maxHeight: 'min(90dvh, 90vh)',
+            },
+          }}
+          className="preview-unlock-bottom-sheet"
+          rootClassName="preview-unlock-bottom-sheet-root"
+        >
+          {loginModal}
+        </Drawer>
+      ) : (
+        isLoginModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            {loginModal}
+          </div>
+        )
       )}
       {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isKickstarterConfigPage || isEmbedMode) && <Footer />}
       {isBookDetailPage && !isEmbedMode && <div className="h-[92px] md:hidden" aria-hidden="true" />}
@@ -118,4 +172,4 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
       />
     </>
   );
-} 
+}
