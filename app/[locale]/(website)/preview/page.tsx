@@ -1655,6 +1655,16 @@ export default function PreviewPageWithTopNav() {
   const [selectedBookCover, setSelectedBookCover] = React.useState<number | null>(null);
   const [selectedBinding, setSelectedBinding] = React.useState<number | null>(null);
   const [selectedGiftBox, setSelectedGiftBox] = React.useState<number | null>(null);
+  /** preview 页持有的购物车条目：batch 就绪后创建，Checkout 时 update + create-order */
+  const [previewCartItemId, setPreviewCartItemId] = React.useState<number | null>(null);
+  const previewCartItemIdRef = useRef<number | null>(null);
+  const ensureCartInFlightRef = useRef(false);
+  const ensuredCartForPreviewIdRef = useRef<string | null>(null);
+  const skipNextCartOptionSyncRef = useRef(false);
+  /** 仅预填一次个性化产品的封面/装订/礼盒选项 */
+  const hasPrefilledOptionsRef = useRef(false);
+  /** 默认 cover_1 / hardcover / free gift 仅初始化一次 */
+  const hasAppliedDefaultOptionsRef = useRef(false);
   const [detailModal, setDetailModal] = React.useState<GiftBoxOption | null>(null);
   // 当前展示图片的索引，用于翻页
   const [currentIndex, setCurrentIndex] = React.useState(0);
@@ -1780,6 +1790,13 @@ export default function PreviewPageWithTopNav() {
     setP34PendingCompose(null);
     p34PendingComposeRef.current = null;
     p34PreUploadSnapshotRef.current = null;
+    previewCartItemIdRef.current = null;
+    setPreviewCartItemId(null);
+    ensureCartInFlightRef.current = false;
+    ensuredCartForPreviewIdRef.current = null;
+    skipNextCartOptionSyncRef.current = false;
+    hasPrefilledOptionsRef.current = false;
+    hasAppliedDefaultOptionsRef.current = false;
   }, [p34CacheKey, setEditField, setGiverImageUrl]);
 
   useEffect(() => {
@@ -2190,35 +2207,114 @@ export default function PreviewPageWithTopNav() {
   // cover_1 真实宽高比：cover_3/4 缩略图外框与之对齐
   const [coverThumbAspectRatio, setCoverThumbAspectRatio] = useState<number | null>(null);
 
-  // 圣诞 bundle：自动预选默认封面/装订（不让 Add to cart 引导去 option tab）
-  useEffect(() => {
-    if (!isHideOptions) return;
-    if (!bookOptions) return;
-
-    // cover: personalized -> cover_3，否则 cover_1
-    if (selectedBookCover == null && Array.isArray(bookOptions.cover_options) && bookOptions.cover_options.length > 0) {
+  const findDefaultCoverOption = useCallback(
+    (options: BookOptions | null): CoverOption | null => {
+      if (!options?.cover_options?.length) return null;
       const findCover = (coverId: '1' | '3') =>
-        bookOptions.cover_options.find(
+        options.cover_options.find(
           (o) =>
             String(o.id) === coverId ||
             o.option_key === coverId ||
             (typeof o.option_key === 'string' && o.option_key.toLowerCase().includes(`cover_${coverId}`)),
         ) || null;
-      const preferred = preferCover3AsDefault ? findCover('3') : findCover('1');
-      const fallback = preferCover3AsDefault ? findCover('1') : findCover('3');
-      const chosen = preferred || fallback || bookOptions.cover_options[0];
-      if (chosen?.id != null) setSelectedBookCover(chosen.id);
+      if (preferCover3AsDefault) {
+        return findCover('3') || findCover('1') || options.cover_options.find((o) => o.is_default) || options.cover_options[0];
+      }
+      return (
+        findCover('1') ||
+        options.cover_options.find((o) => o.is_default) ||
+        findCover('3') ||
+        options.cover_options[0]
+      );
+    },
+    [preferCover3AsDefault],
+  );
+
+  const findDefaultBindingOption = useCallback(
+    (options: BookOptions | null): BindingOption | null => {
+      if (!options?.binding_options?.length) return null;
+      if (bindingTypeParam) {
+        const fromUrl =
+          options.binding_options.find((o) => String(o.option_key || '').toLowerCase() === bindingTypeParam) ||
+          options.binding_options.find((o) => String(o.name || '').toLowerCase().includes(bindingTypeParam));
+        if (fromUrl) return fromUrl;
+      }
+      const hardcover =
+        options.binding_options.find((o) => String(o.option_key || '').toLowerCase() === 'hardcover') ||
+        options.binding_options.find((o) => {
+          const key = `${o.option_key || ''} ${o.name || ''}`.toLowerCase();
+          return key.includes('hard') && !key.includes('premium');
+        });
+      return hardcover || options.binding_options.find((o) => o.is_default) || options.binding_options[0];
+    },
+    [bindingTypeParam],
+  );
+
+  const findDefaultGiftBoxOption = useCallback((options: BookOptions | null): GiftBoxOption | null => {
+    if (!options?.gift_box_options?.length) return null;
+    const free =
+      options.gift_box_options.find((o) => Number(o.price) === 0) ||
+      options.gift_box_options.find((o) => {
+        const key = `${o.option_key || ''} ${o.name || ''}`.toLowerCase();
+        return key.includes('free') || key.includes('standard') || key.includes('included');
+      });
+    return free || options.gift_box_options.find((o) => o.is_default) || options.gift_box_options[0];
+  }, []);
+
+  // 默认预选 cover_1 / hardcover / free gift box（仅初始化一次；购物车预填可覆盖）
+  useEffect(() => {
+    if (!bookOptions) return;
+    if (hasAppliedDefaultOptionsRef.current) return;
+    if (hasPrefilledOptionsRef.current) {
+      hasAppliedDefaultOptionsRef.current = true;
+      return;
     }
 
-    // binding: 按 URL 的 binding_type 尝试匹配 option_key / name（例如 hardcover）
-    if (selectedBinding == null && bindingTypeParam && Array.isArray(bookOptions.binding_options)) {
-      const chosen =
-        bookOptions.binding_options.find((o: any) => String(o.option_key || '').toLowerCase() === bindingTypeParam) ||
-        bookOptions.binding_options.find((o: any) => String(o.name || '').toLowerCase().includes(bindingTypeParam)) ||
-        null;
-      if (chosen?.id != null) setSelectedBinding(chosen.id);
+    let changed = false;
+    if (selectedBookCover == null) {
+      const chosen = findDefaultCoverOption(bookOptions);
+      if (chosen?.id != null) {
+        skipNextCartOptionSyncRef.current = true;
+        setSelectedBookCover(chosen.id);
+        changed = true;
+      }
     }
-  }, [isHideOptions, bookOptions, preferCover3AsDefault, bindingTypeParam, selectedBookCover, selectedBinding]);
+    if (selectedBinding == null) {
+      const chosen = findDefaultBindingOption(bookOptions);
+      if (chosen?.id != null) {
+        skipNextCartOptionSyncRef.current = true;
+        setSelectedBinding(chosen.id);
+        changed = true;
+      }
+    }
+    if (selectedGiftBox == null) {
+      const chosen = findDefaultGiftBoxOption(bookOptions);
+      if (chosen?.id != null) {
+        skipNextCartOptionSyncRef.current = true;
+        setSelectedGiftBox(chosen.id);
+        changed = true;
+      }
+    }
+
+    // 三项都已有值，或至少成功写入过默认值后，标记完成，避免反复覆盖用户取消选择
+    if (
+      changed ||
+      (selectedBookCover != null && selectedBinding != null && selectedGiftBox != null)
+    ) {
+      hasAppliedDefaultOptionsRef.current = true;
+      if (changed) {
+        console.debug('[PreviewCart] Applied default cover/format/gift options');
+      }
+    }
+  }, [
+    bookOptions,
+    selectedBookCover,
+    selectedBinding,
+    selectedGiftBox,
+    findDefaultCoverOption,
+    findDefaultBindingOption,
+    findDefaultGiftBoxOption,
+  ]);
   const [isLoadingOptions, setIsLoadingOptions] = useState(false);
   // Bravey 封面文案配置（根据 page_properties.json 绘制名字）
   const [coverTextConfig, setCoverTextConfig] = useState<{
@@ -2235,7 +2331,6 @@ export default function PreviewPageWithTopNav() {
   } | null>(null);
 
   // 仅预填一次个性化产品的封面/装订/礼盒选项
-  const hasPrefilledOptionsRef = useRef(false);
   useEffect(() => {
     if (hasPrefilledOptionsRef.current) return;
     if (!bookOptions) return;
@@ -4534,7 +4629,7 @@ export default function PreviewPageWithTopNav() {
     }
   };
 
-  // 点击 Continue 按钮处理：创建订单并进入 checkout
+  // 点击 Continue / Checkout：更新已有购物车条目并创建订单
   const handleContinue = async () => {
     try {
       console.debug('[Checkout] Clicked');
@@ -4551,7 +4646,6 @@ export default function PreviewPageWithTopNav() {
 
       // 圣诞 bundle：不新增 SKU，改用 regenerate-preview 更新 bundle 内部子项，然后回购物车
       if (fromCartItemId && isHideOptions) {
-        // 圣诞 bundle 的 Next 也需要 loading（防止重复点击/重复触发 regenerate-preview）
         setIsAddingToCart(true);
         try {
           const storeUserData = usePreviewStore.getState().userData as any;
@@ -4565,26 +4659,20 @@ export default function PreviewPageWithTopNav() {
           const character = raw?.characters?.[0] || {};
           const payload = buildPreviewRenderPayload(searchParams.get('bookid') || '', character);
 
-          // 圣诞 bundle：fromCartItemId 实际是 packageItemId（cart.items[].items[].id），需要调用新的接口
           await api.post<any>(
             `/cart/package-items/${encodeURIComponent(String(fromCartItemId))}/regenerate-preview`,
             payload
           );
         } catch (e) {
           console.error('[ChristmasBundle] regenerate-preview failed:', e);
-          // 失败也回购物车，避免卡在 preview；购物车仍可继续 edit
         }
         router.push('/shopping-cart');
         return;
       }
 
-      // 购物车 Create book（create mode）会带 skipPrefillOptions=1：
-      // - 需要用户选择 Options 后，通过 /cart/add 更新当前购物车条目（不走“直接返回”快捷路径）
-      // personalized-products（从购物车编辑进入）仍保持原行为：不再次 add-to-cart；仅返回购物车
       const skipPrefillOptions = searchParams.get('skipPrefillOptions') === '1';
       console.debug('[Checkout] completedSections:', completedSections);
 
-      // 检查是否有预览数据（现在 preview_id 等于 batch_id，做兼容）
       const effectivePreviewId = previewData?.preview_id ?? (previewData as any)?.batch_id;
       console.debug('[Checkout] preview_id:', previewData?.preview_id, 'batch_id:', (previewData as any)?.batch_id, 'effective:', effectivePreviewId);
       if (!effectivePreviewId) {
@@ -4593,127 +4681,44 @@ export default function PreviewPageWithTopNav() {
 
       setIsAddingToCart(true);
 
-      const getCoverKey = (id: number | null) => {
-        if (id == null) return undefined;
-        const item = bookOptions?.cover_options?.find(o => o.id === id);
-        return item?.option_key ?? String(id);
-      };
-      const getBindingKey = (id: number | null) => {
-        if (id == null) return undefined;
-        const item = bookOptions?.binding_options?.find(o => o.id === id);
-        return item?.option_key ?? String(id);
-      };
-      const getGiftBoxKey = (id: number | null) => {
-        if (id == null) return undefined;
-        const item = bookOptions?.gift_box_options?.find(o => o.id === id);
-        return item?.option_key ?? String(id);
-      };
+      // 确保已有 cart item（batch 就绪时应已创建；此处兜底）
+      let cartItemId =
+        previewCartItemIdRef.current ||
+        (fromCartItemId ? Number(fromCartItemId) : null) ||
+        null;
+      if (!cartItemId || !Number.isFinite(cartItemId) || cartItemId <= 0) {
+        cartItemId = await ensurePreviewCartItem();
+      }
+      if (!cartItemId) {
+        console.error('[Checkout] Missing cart item id');
+        return;
+      }
+      rememberPreviewCartItemId(cartItemId);
 
-      // 构建加购数据（/cart/add 与 create-order 前置步骤共用）
-      const coverKey = getCoverKey(selectedBookCover);
-      const bindingKey = getBindingKey(selectedBinding);
-      const giftKey = getGiftBoxKey(selectedGiftBox);
+      // Step 1: 更新购物车选项
+      console.debug('[Checkout] Updating cart item:', cartItemId);
+      await updatePreviewCartItem(
+        cartItemId,
+        selectedBookCover,
+        selectedBinding,
+        selectedGiftBox,
+        { includeQuantity: Boolean(fromCartItemId && skipPrefillOptions) },
+      );
 
-      // 获取 old_preview_id（使用保存的原始 previewid，而不是当前 URL 中可能已更新的 previewid）
-      // 如果存在原始 previewid，说明是从 edit 或 add additional product 进入的，需要携带 old_preview_id
-      const oldPreviewId = originalPreviewIdRef.current;
-
-      const cartData: CartAddRequest = {
-        preview_id: effectivePreviewId as any,
-        ...(oldPreviewId ? { old_preview_id: oldPreviewId } : {}),
-        quantity: 1,
-        cover_style: coverKey,
-        customization_data: {
-          attributes: {
-            ...(bindingKey ? { binding_type: bindingKey } : {}),
-            ...(giftKey ? { giftbox: giftKey } : {}),
-            delivery_notes: '',
-            gift_message: getGiftMessageForCart(),
-            replace: false,
-          },
-        },
-      };
-
-      // 购物车内（包括普通商品 & 详情页 bundle 里的商品）：更新 options 必须用 PUT /cart/{id}
-      // 圣诞 bundle（hideOptions=1）不需要选择 option，且上方已走 regenerate-preview 分支，不在此处理。
+      // 从购物车进入（编辑 options / create mode）：更新后回购物车，不直接下单
       if (fromCartItemId) {
-        // 兼容不同后端实现：
-        // - 有的实现更新用顶层字段（binding_type/giftbox/gift_message...）
-        // - 有的实现沿用 /cart/add 的 customization_data.attributes
-        const languageKey =
-          (searchParams.get('lang') || displayLang || '').toLowerCase() || undefined;
-        const optionAttrs: any = {
-          ...(coverKey ? { cover_style: coverKey } : {}),
-          ...(bindingKey ? { binding_type: bindingKey } : {}),
-          ...(giftKey ? { giftbox: giftKey } : {}),
-          ...(languageKey ? { language: languageKey } : {}),
-          delivery_notes: '',
-          gift_message: getGiftMessageForCart(),
-          replace: false,
-        };
-        await api.put(API_CART_UPDATE(Number(fromCartItemId)), {
-          ...(skipPrefillOptions ? { quantity: 1 } : {}),
-          ...(coverKey ? { cover_style: coverKey } : {}),
-          // 顶层（最常见的 cart update 结构）
-          ...optionAttrs,
-          // 后端购物车 item 常见存储结构：attributes.{cover_style,binding_type,giftbox,language}
-          attributes: optionAttrs,
-          // 嵌套（与 /cart/add 对齐）
-          customization_data: { attributes: optionAttrs },
-        });
-
-        // Track AddToCart for updated cart item (fromCartItemId path)
         if (!addToCartTrackedRef.current) {
           addToCartTrackedRef.current = true;
-          const contentId = getContentIdBySpu(bookInfo);
-
-          if (contentId) {
-            const cartValue = 0;
-            // fbTrack('AddToCart', {
-            //   value: cartValue,
-            //   currency: 'USD',
-            //   content_ids: [contentId],
-            //   content_type: 'product',
-            //   contents: [{ id: contentId, quantity: 1 }]
-            // });
-          }
         }
-
         router.push('/shopping-cart');
-        return;
-      }
-
-      // Step 1: 加入购物车
-      console.debug('[Checkout] Sending request /cart/add with data:', cartData);
-      const addResponse = await api.post('/cart/add', cartData) as ApiResponse<CartAddResponse>;
-      console.debug('[Checkout] /cart/add response:', addResponse);
-
-      if (!addResponse.success) {
-        return;
-      }
-
-      const cartItemId = addResponse.data?.id ?? addResponse.data?.cart_item_id;
-      if (!cartItemId) {
-        console.error('[Checkout] Missing cart item id from /cart/add response');
         return;
       }
 
       if (!addToCartTrackedRef.current) {
         addToCartTrackedRef.current = true;
-        const contentId = getContentIdBySpu(bookInfo);
-
-        // if (contentId) {
-        //   fbTrack('AddToCart', {
-        //     value: 0,
-        //     currency: 'USD',
-        //     content_ids: [contentId],
-        //     content_type: 'product',
-        //     contents: [{ id: contentId, quantity: 1 }]
-        //   });
-        // }
       }
 
-      // Step 2: 创建订单（payload 与购物车页 useCheckout 一致）
+      // Step 2: 对已有 cart item 下单
       const orderBody = {
         cart_item_ids: [cartItemId],
         payment_method: 'card' as const,
@@ -4736,7 +4741,6 @@ export default function PreviewPageWithTopNav() {
       if (error?.status == 401 || error?.response?.status == 401) {
         openPreviewUnlockLogin();
       }
-      //toast.error(error.response?.data?.message || '创建订单失败，请重试');
     } finally {
       setIsAddingToCart(false);
     }
@@ -5071,6 +5075,260 @@ export default function PreviewPageWithTopNav() {
     () => (isDedicationSubmitted ? message.trim() : ''),
     [isDedicationSubmitted, message],
   );
+
+  const getCoverKey = useCallback(
+    (id: number | null) => {
+      if (id == null) return undefined;
+      const item = bookOptions?.cover_options?.find((o) => o.id === id);
+      return item?.option_key ?? String(id);
+    },
+    [bookOptions],
+  );
+  const getBindingKey = useCallback(
+    (id: number | null) => {
+      if (id == null) return undefined;
+      const item = bookOptions?.binding_options?.find((o) => o.id === id);
+      return item?.option_key ?? String(id);
+    },
+    [bookOptions],
+  );
+  const getGiftBoxKey = useCallback(
+    (id: number | null) => {
+      if (id == null) return undefined;
+      const item = bookOptions?.gift_box_options?.find((o) => o.id === id);
+      return item?.option_key ?? String(id);
+    },
+    [bookOptions],
+  );
+
+  const buildCartOptionAttrs = useCallback(
+    (coverId: number | null, bindingId: number | null, giftId: number | null) => {
+      const coverKey = getCoverKey(coverId);
+      const bindingKey = getBindingKey(bindingId);
+      const giftKey = getGiftBoxKey(giftId);
+      const languageKey =
+        (searchParams.get('lang') || displayLang || '').toLowerCase() || undefined;
+      return {
+        coverKey,
+        bindingKey,
+        giftKey,
+        optionAttrs: {
+          ...(coverKey ? { cover_style: coverKey } : {}),
+          ...(bindingKey ? { binding_type: bindingKey } : {}),
+          ...(giftKey ? { giftbox: giftKey } : {}),
+          ...(languageKey ? { language: languageKey } : {}),
+          delivery_notes: '',
+          gift_message: getGiftMessageForCart(),
+          replace: false,
+        } as Record<string, any>,
+      };
+    },
+    [displayLang, getBindingKey, getCoverKey, getGiftBoxKey, getGiftMessageForCart, searchParams],
+  );
+
+  const buildCartAddPayload = useCallback(
+    (previewId: string | number, coverId: number | null, bindingId: number | null, giftId: number | null): CartAddRequest => {
+      const { coverKey, bindingKey, giftKey } = buildCartOptionAttrs(coverId, bindingId, giftId);
+      const oldPreviewId = originalPreviewIdRef.current;
+      return {
+        preview_id: previewId,
+        ...(oldPreviewId ? { old_preview_id: oldPreviewId } : {}),
+        quantity: 1,
+        cover_style: coverKey,
+        customization_data: {
+          attributes: {
+            ...(bindingKey ? { binding_type: bindingKey } : {}),
+            ...(giftKey ? { giftbox: giftKey } : {}),
+            delivery_notes: '',
+            gift_message: getGiftMessageForCart(),
+            replace: false,
+          },
+        },
+      };
+    },
+    [buildCartOptionAttrs, getGiftMessageForCart],
+  );
+
+  const updatePreviewCartItem = useCallback(
+    async (
+      cartItemId: number,
+      coverId: number | null,
+      bindingId: number | null,
+      giftId: number | null,
+      options?: { includeQuantity?: boolean },
+    ) => {
+      const { coverKey, optionAttrs } = buildCartOptionAttrs(coverId, bindingId, giftId);
+      await api.put(API_CART_UPDATE(cartItemId), {
+        ...(options?.includeQuantity ? { quantity: 1 } : {}),
+        ...(coverKey ? { cover_style: coverKey } : {}),
+        ...optionAttrs,
+        attributes: optionAttrs,
+        customization_data: { attributes: optionAttrs },
+      });
+    },
+    [buildCartOptionAttrs],
+  );
+
+  const rememberPreviewCartItemId = useCallback((id: number | null) => {
+    previewCartItemIdRef.current = id;
+    setPreviewCartItemId(id);
+  }, []);
+
+  const ensurePreviewCartItem = useCallback(async (): Promise<number | null> => {
+    const fromCartItemIdParam = searchParams.get('fromCartItemId');
+    if (fromCartItemIdParam && !isHideOptions) {
+      const existingId = Number(fromCartItemIdParam);
+      if (Number.isFinite(existingId) && existingId > 0) {
+        rememberPreviewCartItemId(existingId);
+        ensuredCartForPreviewIdRef.current =
+          String(previewData?.preview_id ?? (previewData as any)?.batch_id ?? searchParams.get('previewid') ?? '');
+        return existingId;
+      }
+    }
+
+    if (previewCartItemIdRef.current) return previewCartItemIdRef.current;
+
+    const effectivePreviewId =
+      previewData?.preview_id ?? (previewData as any)?.batch_id ?? searchParams.get('previewid');
+    if (!effectivePreviewId) return null;
+    if (!bookOptions) return null;
+    if (selectedBookCover == null || selectedBinding == null || selectedGiftBox == null) return null;
+    // 圣诞 bundle 走 package regenerate，不在此建普通 cart item
+    if (isHideOptions) return null;
+    if (ensureCartInFlightRef.current) return previewCartItemIdRef.current;
+    if (ensuredCartForPreviewIdRef.current === String(effectivePreviewId) && previewCartItemIdRef.current) {
+      return previewCartItemIdRef.current;
+    }
+
+    ensureCartInFlightRef.current = true;
+    try {
+      // 若购物车已有同 preview 条目，复用而不是重复 add
+      try {
+        const res = await api.get(API_CART_LIST) as any;
+        const items = res?.data?.items || res?.data?.cart_items || res?.cart_items || [];
+        if (Array.isArray(items) && items.length > 0) {
+          const match = findCartItemForPreview(items, String(effectivePreviewId), fromCartItemIdParam);
+          const matchedId = Number(match?.id);
+          if (Number.isFinite(matchedId) && matchedId > 0) {
+            rememberPreviewCartItemId(matchedId);
+            ensuredCartForPreviewIdRef.current = String(effectivePreviewId);
+            console.debug('[PreviewCart] Reused existing cart item:', matchedId);
+            return matchedId;
+          }
+        }
+      } catch (e) {
+        console.warn('[PreviewCart] Failed to look up existing cart item:', e);
+      }
+
+      const cartData = buildCartAddPayload(effectivePreviewId, selectedBookCover, selectedBinding, selectedGiftBox);
+      console.debug('[PreviewCart] Creating cart item with defaults:', cartData);
+      const addResponse = await api.post('/cart/add', cartData) as ApiResponse<CartAddResponse>;
+      if (!addResponse.success) {
+        console.warn('[PreviewCart] /cart/add failed:', addResponse);
+        return null;
+      }
+      const cartItemId = addResponse.data?.id ?? addResponse.data?.cart_item_id;
+      if (!cartItemId) {
+        console.error('[PreviewCart] Missing cart item id from /cart/add');
+        return null;
+      }
+      rememberPreviewCartItemId(Number(cartItemId));
+      ensuredCartForPreviewIdRef.current = String(effectivePreviewId);
+      if (!addToCartTrackedRef.current) {
+        addToCartTrackedRef.current = true;
+      }
+      console.debug('[PreviewCart] Created cart item:', cartItemId);
+      return Number(cartItemId);
+    } catch (error) {
+      console.error('[PreviewCart] Failed to ensure cart item:', error);
+      return null;
+    } finally {
+      ensureCartInFlightRef.current = false;
+    }
+  }, [
+    bookOptions,
+    buildCartAddPayload,
+    isHideOptions,
+    previewData,
+    rememberPreviewCartItemId,
+    searchParams,
+    selectedBinding,
+    selectedBookCover,
+    selectedGiftBox,
+  ]);
+
+  // batch 就绪后立即用默认 cover/format/gift 创建购物车
+  useEffect(() => {
+    if (isHideOptions) return;
+    if (isGuest) return;
+    const effectivePreviewId =
+      previewData?.preview_id ?? (previewData as any)?.batch_id ?? searchParams.get('previewid');
+    if (!effectivePreviewId) return;
+    if (!bookOptions) return;
+    if (selectedBookCover == null || selectedBinding == null || selectedGiftBox == null) return;
+    if (previewCartItemIdRef.current) return;
+    if (ensuredCartForPreviewIdRef.current === String(effectivePreviewId)) return;
+
+    void ensurePreviewCartItem();
+  }, [
+    bookOptions,
+    ensurePreviewCartItem,
+    isGuest,
+    isHideOptions,
+    previewData,
+    searchParams,
+    selectedBinding,
+    selectedBookCover,
+    selectedGiftBox,
+  ]);
+
+  // 登录成功后补建购物车（游客期间 batch 已就绪但未建车）
+  useEffect(() => {
+    if (isGuest || isHideOptions) return;
+    if (previewCartItemIdRef.current) return;
+    const effectivePreviewId =
+      previewData?.preview_id ?? (previewData as any)?.batch_id ?? searchParams.get('previewid');
+    if (!effectivePreviewId) return;
+    if (selectedBookCover == null || selectedBinding == null || selectedGiftBox == null) return;
+    void ensurePreviewCartItem();
+  }, [
+    ensurePreviewCartItem,
+    isGuest,
+    isHideOptions,
+    previewData,
+    searchParams,
+    selectedBinding,
+    selectedBookCover,
+    selectedGiftBox,
+  ]);
+
+  // 用户修改 cover/format/gift 时同步更新购物车
+  useEffect(() => {
+    if (isHideOptions) return;
+    if (isGuest) return;
+    if (skipNextCartOptionSyncRef.current) {
+      skipNextCartOptionSyncRef.current = false;
+      return;
+    }
+    const cartItemId = previewCartItemIdRef.current;
+    if (!cartItemId) return;
+    if (selectedBookCover == null || selectedBinding == null || selectedGiftBox == null) return;
+
+    const timer = window.setTimeout(() => {
+      void updatePreviewCartItem(cartItemId, selectedBookCover, selectedBinding, selectedGiftBox).catch((error) => {
+        console.warn('[PreviewCart] Failed to sync option changes:', error);
+      });
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    isGuest,
+    isHideOptions,
+    selectedBinding,
+    selectedBookCover,
+    selectedGiftBox,
+    updatePreviewCartItem,
+  ]);
 
   const p34PageMetaForUpload = useMemo(() => {
     const pages = (previewData as any)?.preview_data;
