@@ -438,7 +438,7 @@ export default function SurveyPage() {
               disabled={isSubmitting}
               className="bg-[#222222] text-white px-8 py-3 rounded-[4px] font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Submitting...' : 'Send It In'}
+              {isSubmitting ? 'Submitting...' : 'Send it in'}
             </button>
           </div>
         </div>
@@ -473,7 +473,7 @@ export default function SurveyPage() {
                   disabled={isSignupSubmitting}
                   className="bg-[#222222] text-[#F5E3E3] h-9 px-4 rounded-[2px] hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full"
                 >
-                  {isSignupSubmitting ? 'Submitting...' : 'Send It In'}
+                  {isSignupSubmitting ? 'Submitting...' : 'Send it in'}
                 </button>
               </div>
             </form>

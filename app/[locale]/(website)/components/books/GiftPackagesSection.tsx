@@ -98,7 +98,7 @@ const GiftPackagesSection: React.FC<GiftPackagesSectionProps> = ({
                 href={`/mothers-day#bundle-promo`} 
                 className="inline-flex cursor-pointer items-center gap-2 text-[#222222] hover:text-primary transition-colors group text-[16px]"
               >
-                <span>Choose Books</span>
+                <span>Choose books</span>
                 <img src="/images/common/arrow-black.svg" className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>

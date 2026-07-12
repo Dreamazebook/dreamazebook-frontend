@@ -3,13 +3,14 @@ import { memo } from 'react'
 interface PasswordToggleProps {
   showPassword: boolean
   onToggle: () => void
+  className?: string
 }
 
-export const PasswordToggleButton = memo(({ showPassword, onToggle }: PasswordToggleProps) => (
+export const PasswordToggleButton = memo(({ showPassword, onToggle, className }: PasswordToggleProps) => (
   <button
     type="button"
     onClick={onToggle}
-    className="absolute right-3 top-[40px] cursor-pointer text-gray-500 hover:text-gray-700 focus:outline-none"
+    className={className ?? "absolute right-3 top-[40px] cursor-pointer text-gray-500 hover:text-gray-700 focus:outline-none"}
     aria-label={showPassword ? 'Hide password' : 'Show password'}
   >
     {showPassword ? (

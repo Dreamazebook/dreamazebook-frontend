@@ -59,7 +59,7 @@ export default function Preorder() {
         )}
 
 
-        <a href={STRIPE_PAYMENT_LINK} className="block bg-[#FFC023] text-white py-3 px-6 rounded mt-8 w-full mx-auto text-[16px] font-bold hover:bg-[#001e9c] transition-colors duration-200">Get My €1 VIP Access</a>
+        <a href={STRIPE_PAYMENT_LINK} className="block bg-[#FFC023] text-white py-3 px-6 rounded mt-8 w-full mx-auto text-[16px] font-bold hover:bg-[#001e9c] transition-colors duration-200">Get my €1 VIP access</a>
         </div>
 
       </div>
@@ -104,7 +104,7 @@ export default function Preorder() {
         ))}
 
         <a href={STRIPE_PAYMENT_LINK} className="w-full block bg-[#FFC023] hover:bg-[#001e9c] font-bold text-[16px] py-3 px-6 transition-colors">
-          Get My €1 VIP Access
+          Get my €1 VIP access
         </a>
       </div>
 

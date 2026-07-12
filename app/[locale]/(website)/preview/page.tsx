@@ -49,6 +49,10 @@ import {
 } from '@/utils/previewImageProtection';
 import {
   batchHasPendingFaceSwapLogs,
+  fetchPreviewBatch,
+  getBatchDisplayPages,
+  mapBatchPageToPreviewPage,
+  pickBatchPageImageRaw,
   pickPreviewPageIdFromBatchPage,
   type PreviewPageWithFaceSwapLogs,
   unwrapPreviewBatch,
@@ -152,6 +156,93 @@ const getDisplayedPreviewPages = (pages: any[] | undefined | null): any[] => {
   return (pages ?? []).filter((p) => shouldShowInBookPreviewTab(p));
 };
 
+function getPreviewPageCodeLookupKey(pageCode: unknown): string {
+  return String(pageCode || '')
+    .trim()
+    .toLowerCase()
+    .replace(/_/g, '-')
+    .replace(/^p(\d+)-p(\d+)$/, 'p$1-$2');
+}
+
+function hasRenderablePreviewImage(page: any): boolean {
+  return Boolean(pickBatchPageImageRaw(page));
+}
+
+/** Guest unlock gate：P10（或止于 10 的跨页）已有可展示图 */
+const isP10PageCode = (pageCode: unknown): boolean => {
+  const code = getPreviewPageCodeLookupKey(pageCode);
+  if (!code) return false;
+  if (code === 'p10') return true;
+  // 跨页如 p9-10 / p9-p10
+  return /^p\d+-10$/.test(code);
+};
+
+const hasGuestPreviewUnlockReady = (
+  pages: any[] | undefined | null,
+  previewPagesCount: number | null,
+): boolean => {
+  const displayed = getDisplayedPreviewPages(pages);
+  const p10 = displayed.find((p) => isP10PageCode(p?.page_code));
+  if (p10 && hasRenderablePreviewImage(p10)) return true;
+
+  // 无显式 p10 时：以产品配置的 preview 页数作为锁定边界
+  if (previewPagesCount != null && previewPagesCount > 0) {
+    const readyCount = displayed.filter((p) => hasRenderablePreviewImage(p)).length;
+    return readyCount >= previewPagesCount;
+  }
+
+  return false;
+};
+
+function preservePreviewImageFields(page: any, prevPage: any) {
+  if (!prevPage || hasRenderablePreviewImage(page)) return page;
+  if (!hasRenderablePreviewImage(prevPage)) return page;
+  return {
+    ...page,
+    image_url: prevPage.image_url ?? page.image_url,
+    final_image_url: prevPage.final_image_url ?? page.final_image_url,
+    base_image_url: prevPage.base_image_url ?? page.base_image_url,
+    composite_image_url: prevPage.composite_image_url ?? page.composite_image_url,
+    raw_image_url: prevPage.raw_image_url ?? page.raw_image_url,
+    base_stage_url: prevPage.base_stage_url ?? page.base_stage_url,
+    final_stage_url: prevPage.final_stage_url ?? page.final_stage_url,
+    template_image_url: prevPage.template_image_url ?? page.template_image_url,
+  };
+}
+
+function mapBatchToPreviewDataPages(
+  batch: any,
+  includeFullBook: boolean,
+  options?: {
+    localP34Composed?: string | null;
+    prevByPageCode?: Record<string, any>;
+  },
+) {
+  const sourcePages = getBatchDisplayPages(batch, { includeFullBook });
+  return sourcePages.map((bp: any, idx: number) => {
+    const prevPage = options?.prevByPageCode?.[getPreviewPageCodeLookupKey(bp.page_code)];
+    const page: PreviewPageWithFaceSwapLogs & { is_cover?: boolean; giver_data?: unknown } = {
+      ...mapBatchPageToPreviewPage(bp, idx),
+      is_cover: isCoverPage(bp),
+    };
+    if (isP34PageCode(bp.page_code) && (bp as any).giver_data === undefined && prevPage?.giver_data) {
+      page.giver_data = prevPage.giver_data;
+    }
+    if (prevPage?.face_swap_logs?.length && !(page.face_swap_logs?.length)) {
+      page.face_swap_logs = prevPage.face_swap_logs;
+    }
+    const localP34Composed = options?.localP34Composed;
+    if (localP34Composed && isP34PageCode(bp.page_code)) {
+      return {
+        ...page,
+        image_url: localP34Composed,
+        final_image_url: localP34Composed,
+      };
+    }
+    return preservePreviewImageFields(page, prevPage);
+  });
+}
+
 const hasMeaningfulFinalImage = (page: any): boolean => {
   const finalRaw = String(page?.final_image_url || '').trim();
   if (!finalRaw) return false;
@@ -162,9 +253,13 @@ const hasMeaningfulFinalImage = (page: any): boolean => {
 };
 
 const getPreviewDisplayImageRaw = (page: any): string => {
+  const compositeRaw = String(page?.composite_image_url || '').trim();
+  if (compositeRaw) return compositeRaw;
   const lowRes = pickLowResPreviewRaw(page);
   if (lowRes) return lowRes;
   if (hasMeaningfulFinalImage(page)) return String(page?.final_image_url || '');
+  const mapped = pickBatchPageImageRaw(page);
+  if (mapped) return mapped;
   return String(page?.base_image_url || page?.image_url || page?.final_image_url || '');
 };
 
@@ -804,6 +899,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   content,
   customOverlayContent,
   onImageLoaded,
+  showLoadingPlaceholder = true,
   doubleImageAreaClassName,
   leftSingleFrameClassName,
   rightSingleFrameClassName,
@@ -819,6 +915,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   content?: string | null;
   customOverlayContent?: React.ReactNode;
   onImageLoaded?: (pageId: number) => void;
+  showLoadingPlaceholder?: boolean;
   /** 双页模式：仅包住整页预览图区域（不含下方按钮） */
   doubleImageAreaClassName?: string;
   /** 单页模式左半图外框 class（如缺失项高亮） */
@@ -849,7 +946,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
     } catch {}
   };
 
-  const showImageLoadingPlaceholder = !showOverlay && !isImageLoaded;
+  const showImageLoadingPlaceholder = showLoadingPlaceholder && !showOverlay && !isImageLoaded;
 
   const imageLoadingPlaceholder = showImageLoadingPlaceholder ? (
     <div
@@ -1219,7 +1316,6 @@ export default function PreviewPageWithTopNav() {
   const openPreviewUnlockLogin = useCallback(() => {
     openLoginModal({
       title: t('unlockFullBookTitle'),
-      description: t('unlockFullBookDescription'),
       footerNote: t('unlockFullBookFooter'),
       sendCodeButtonLabel: t('continueWithEmailCode'),
       loginSource: 'preview_unlock',
@@ -1423,36 +1519,11 @@ export default function PreviewPageWithTopNav() {
                console.log('[Preview] Set recipient from batch:', recipientNameFromBatch);
              }
              
-             if (batch?.pages) {
+             if (getBatchDisplayPages(batch, { includeFullBook: isLoggedIn }).length > 0) {
                // 构造 previewData
                const initialData = {
                   preview_id: undefined as any,
-                  preview_data: batch.pages.map((bp: any, idx: number) => ({
-                    page_id: idx + 1,
-                    page_code: bp.page_code,
-                    page_number: bp.sort_order ?? idx + 1,
-                    // 保留后端原始 image_url（很多情况下它才是“未叠字/未合成”的底图）
-                    raw_image_url: bp.image_url,
-                    // 后端 stage 字段：用于前端“纯底图”选择
-                    base_stage_url: bp.base_stage_url,
-                    final_stage_url: bp.final_stage_url,
-                    // 分层模型：后端可选返回 p3-4 giver 图片数据（URL 或 data URL）
-                    giver_data: bp.giver_data,
-                    // 分层模型：后端可选返回“纯底图”（无 dedication / 无 giver）
-                    template_image_url: bp.template_image_url || bp.template_url,
-                    image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
-                    has_face_swap: !!bp.has_face_elements,
-                    status: bp.status,
-                    base_image_url: bp.base_image_url,
-                    final_image_url: bp.final_image_url,
-                    base_only: bp.base_only,
-                    queue_position: bp.queue_position,
-                    queue_total: bp.queue_total,
-                    preview_page_id: pickPreviewPageIdFromBatchPage(bp),
-                    face_swap_logs: Array.isArray(bp.face_swap_logs) ? bp.face_swap_logs : [],
-                    page_type: bp.page_type,
-                    is_cover: isCoverPage(bp),
-                  })),
+                  preview_data: mapBatchToPreviewDataPages(batch, isLoggedIn),
                   status: batch.status || 'processing',
                   batch_id: batch.batch_id,
                   queue_info: batch.queue,
@@ -1584,6 +1655,16 @@ export default function PreviewPageWithTopNav() {
   const [selectedBookCover, setSelectedBookCover] = React.useState<number | null>(null);
   const [selectedBinding, setSelectedBinding] = React.useState<number | null>(null);
   const [selectedGiftBox, setSelectedGiftBox] = React.useState<number | null>(null);
+  /** preview 页持有的购物车条目：batch 就绪后创建，Checkout 时 update + create-order */
+  const [previewCartItemId, setPreviewCartItemId] = React.useState<number | null>(null);
+  const previewCartItemIdRef = useRef<number | null>(null);
+  const ensureCartInFlightRef = useRef(false);
+  const ensuredCartForPreviewIdRef = useRef<string | null>(null);
+  const skipNextCartOptionSyncRef = useRef(false);
+  /** 仅预填一次个性化产品的封面/装订/礼盒选项 */
+  const hasPrefilledOptionsRef = useRef(false);
+  /** 默认 cover_1 / hardcover / free gift 仅初始化一次 */
+  const hasAppliedDefaultOptionsRef = useRef(false);
   const [detailModal, setDetailModal] = React.useState<GiftBoxOption | null>(null);
   // 当前展示图片的索引，用于翻页
   const [currentIndex, setCurrentIndex] = React.useState(0);
@@ -1601,6 +1682,52 @@ export default function PreviewPageWithTopNav() {
   const p34ComposeUploadedRef = useRef(false);
   /** 扉页寄语合成图上传成功后的 CDN URL；轮询重建 batch 时优先保留，避免被旧 final 覆盖 */
   const p34LastComposedImageUrlRef = useRef<string | null>(null);
+  type P34PendingCompose = {
+    giverUrl?: string;
+    dedication?: string;
+  };
+  type P34PreUploadSnapshot = {
+    giverImageUrl: string | null;
+    giverData: string | null;
+    dedication: string;
+    isDedicationSubmitted: boolean;
+    isNameOnBookCompleted: boolean;
+  };
+  const [p34ComposeUploading, setP34ComposeUploading] = useState(false);
+  const [p34PendingCompose, setP34PendingCompose] = useState<P34PendingCompose | null>(null);
+  const p34PendingComposeRef = useRef<P34PendingCompose | null>(null);
+  const p34PreUploadSnapshotRef = useRef<P34PreUploadSnapshot | null>(null);
+
+  const refreshPreviewDataFromBatch = useCallback(
+    async (spuCode: string, batchId: string, includeFullBook: boolean) => {
+      const res = await fetchPreviewBatch(spuCode, batchId);
+      const batch = unwrapPreviewBatch(res);
+      if (!batch) return null;
+      setPreviewData((prev) => {
+        const prevByPageCode: Record<string, any> = {};
+        try {
+          (prev?.preview_data || []).forEach((p: any) => {
+            const code = getPreviewPageCodeLookupKey(p?.page_code);
+            if (code) prevByPageCode[code] = p;
+          });
+        } catch {}
+        return {
+          ...(prev || {}),
+          preview_data: mapBatchToPreviewDataPages(batch, includeFullBook, {
+            localP34Composed: p34LastComposedImageUrlRef.current,
+            prevByPageCode,
+          }),
+          status: batch.status || (prev as any)?.status || 'completed',
+          batch_id: batch.batch_id || (prev as any)?.batch_id,
+          queue_info: batch.queue ?? (prev as any)?.queue_info,
+          batch_options: batch.options ?? (prev as any)?.batch_options ?? null,
+        } as any;
+      });
+      return batch;
+    },
+    [],
+  );
+
   const [guestUploadRateLimitError, setGuestUploadRateLimitError] = useState<UploadRateLimitError | null>(null);
   // sidebar「Opening Photo」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
   const [isNameOnBookCompleted, setIsNameOnBookCompleted] = useState(true);
@@ -1659,7 +1786,67 @@ export default function PreviewPageWithTopNav() {
     p34ComposeUploadInFlightRef.current = false;
     p34ComposeUploadedRef.current = false;
     p34LastComposedImageUrlRef.current = null;
+    setP34ComposeUploading(false);
+    setP34PendingCompose(null);
+    p34PendingComposeRef.current = null;
+    p34PreUploadSnapshotRef.current = null;
+    previewCartItemIdRef.current = null;
+    setPreviewCartItemId(null);
+    ensureCartInFlightRef.current = false;
+    ensuredCartForPreviewIdRef.current = null;
+    skipNextCartOptionSyncRef.current = false;
+    hasPrefilledOptionsRef.current = false;
+    hasAppliedDefaultOptionsRef.current = false;
   }, [p34CacheKey, setEditField, setGiverImageUrl]);
+
+  useEffect(() => {
+    p34PendingComposeRef.current = p34PendingCompose;
+  }, [p34PendingCompose]);
+
+  const saveP34PreUploadSnapshot = useCallback(() => {
+    p34PreUploadSnapshotRef.current = {
+      giverImageUrl,
+      giverData: p34GiverDataRef.current,
+      dedication,
+      isDedicationSubmitted,
+      isNameOnBookCompleted,
+    };
+  }, [giverImageUrl, dedication, isDedicationSubmitted, isNameOnBookCompleted]);
+
+  const revertP34PendingUpload = useCallback(() => {
+    const snap = p34PreUploadSnapshotRef.current;
+    if (snap) {
+      setGiverImageUrl(snap.giverImageUrl);
+      p34GiverDataRef.current = snap.giverData;
+      setDedication(snap.dedication);
+      setIsDedicationSubmitted(snap.isDedicationSubmitted);
+      setIsNameOnBookCompleted(snap.isNameOnBookCompleted);
+    }
+    const pendingGiverUrl = p34PendingComposeRef.current?.giverUrl;
+    if (pendingGiverUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(pendingGiverUrl);
+    }
+    setP34PendingCompose(null);
+    setP34ComposeUploading(false);
+    p34PreUploadSnapshotRef.current = null;
+    shouldUploadP34ComposedRef.current = false;
+    p34ComposeUploadedRef.current = false;
+    p34UploadCompletesNameOnBookRef.current = false;
+  }, [setGiverImageUrl, setDedication]);
+
+  const applyP34PendingUploadSuccess = useCallback((pending: P34PendingCompose | null) => {
+    if (pending?.dedication !== undefined) {
+      setDedication(pending.dedication);
+      setIsDedicationSubmitted(true);
+    }
+    if (pending?.giverUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(pending.giverUrl);
+      setGiverImageUrl(null);
+    }
+    setP34PendingCompose(null);
+    setP34ComposeUploading(false);
+    p34PreUploadSnapshotRef.current = null;
+  }, [setDedication, setGiverImageUrl]);
 
   useEffect(() => {
     p34BaseImageUrlRef.current = null;
@@ -1758,7 +1945,9 @@ export default function PreviewPageWithTopNav() {
         })();
       // 需要把 dedication 和 giver_data 一起持久化到后端：
       // - 即使 dedication 为空字符串，也显式传给后端（用于清空/同步）
-      const dedicationTextToPersist = typeof dedication === 'string' ? dedication.trim() : '';
+      const pendingDedication = p34PendingComposeRef.current?.dedication;
+      const dedicationSource = pendingDedication !== undefined ? pendingDedication : dedication;
+      const dedicationTextToPersist = typeof dedicationSource === 'string' ? dedicationSource.trim() : '';
       const resp: any = await api.post(
         `/products/${encodeURIComponent(spu)}/pages/p3-4/upload-special-image`,
         {
@@ -1780,6 +1969,7 @@ export default function PreviewPageWithTopNav() {
       console.log('[P3-4 Compose] upload response', { hasImageUrl: Boolean(imageUrl), imageUrl, hasBaseUrl: Boolean(baseUrl), baseUrl });
 
       if (imageUrl) {
+        applyP34PendingUploadSuccess(p34PendingComposeRef.current);
         setPreviewData((prev) => {
           if (!prev || !(prev as any).preview_data) return prev as any;
           return {
@@ -1810,6 +2000,8 @@ export default function PreviewPageWithTopNav() {
         setGuestUploadRateLimitError(null);
       } else {
         console.warn('[P3-4 Compose] uploaded but no image_url in response', resp);
+        revertP34PendingUpload();
+        toast.error('Upload failed, please try again.');
       }
     } catch (e) {
       console.error('[P3-4 Compose] upload failed', e);
@@ -1817,23 +2009,19 @@ export default function PreviewPageWithTopNav() {
       if (uploadRateLimitError) {
         // Canvas 会在依赖变化时反复触发 onRendered；429 后若仍保持 shouldUpload=true 会形成上传风暴并反复清空/弹出弹窗
         shouldUploadP34ComposedRef.current = false;
+        revertP34PendingUpload();
         setGuestUploadRateLimitError(uploadRateLimitError);
       } else {
+        revertP34PendingUpload();
         toast.error('Upload failed, please try again.');
       }
     } finally {
       p34ComposeUploadInFlightRef.current = false;
       p34UploadCompletesNameOnBookRef.current = false;
     }
-  }, [previewData, searchParams, dedication]);
+  }, [previewData, searchParams, dedication, applyP34PendingUploadSuccess, revertP34PendingUpload]);
 
-  // 一旦本地选择了 giver 图片（blob/objectURL 或远程 URL），就把 Opening Photo 标记为完成
-  useEffect(() => {
-    if (giverImageUrl) {
-      setIsNameOnBookCompleted(true);
-    }
-  }, [giverImageUrl]);
-  
+  // Opening Photo 完成态：仅在上传成功或已有后端 giver 时保持完成（见 uploadP34ComposedImage / 初始回填）
   // 处理Giver图片文件选择
   const handleGiverFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -2019,35 +2207,120 @@ export default function PreviewPageWithTopNav() {
   // cover_1 真实宽高比：cover_3/4 缩略图外框与之对齐
   const [coverThumbAspectRatio, setCoverThumbAspectRatio] = useState<number | null>(null);
 
-  // 圣诞 bundle：自动预选默认封面/装订（不让 Add to cart 引导去 option tab）
-  useEffect(() => {
-    if (!isHideOptions) return;
-    if (!bookOptions) return;
-
-    // cover: personalized -> cover_3，否则 cover_1
-    if (selectedBookCover == null && Array.isArray(bookOptions.cover_options) && bookOptions.cover_options.length > 0) {
+  const findDefaultCoverOption = useCallback(
+    (options: BookOptions | null): CoverOption | null => {
+      if (!options?.cover_options?.length) return null;
       const findCover = (coverId: '1' | '3') =>
-        bookOptions.cover_options.find(
+        options.cover_options.find(
           (o) =>
             String(o.id) === coverId ||
             o.option_key === coverId ||
             (typeof o.option_key === 'string' && o.option_key.toLowerCase().includes(`cover_${coverId}`)),
         ) || null;
-      const preferred = preferCover3AsDefault ? findCover('3') : findCover('1');
-      const fallback = preferCover3AsDefault ? findCover('1') : findCover('3');
-      const chosen = preferred || fallback || bookOptions.cover_options[0];
-      if (chosen?.id != null) setSelectedBookCover(chosen.id);
+      if (preferCover3AsDefault) {
+        return findCover('3') || findCover('1') || options.cover_options.find((o) => o.is_default) || options.cover_options[0];
+      }
+      return (
+        findCover('1') ||
+        options.cover_options.find((o) => o.is_default) ||
+        findCover('3') ||
+        options.cover_options[0]
+      );
+    },
+    [preferCover3AsDefault],
+  );
+
+  const findDefaultBindingOption = useCallback(
+    (options: BookOptions | null): BindingOption | null => {
+      if (!options?.binding_options?.length) return null;
+      if (bindingTypeParam) {
+        const fromUrl =
+          options.binding_options.find((o) => String(o.option_key || '').toLowerCase() === bindingTypeParam) ||
+          options.binding_options.find((o) => String(o.name || '').toLowerCase().includes(bindingTypeParam));
+        if (fromUrl) return fromUrl;
+      }
+      const hardcover =
+        options.binding_options.find((o) => String(o.option_key || '').toLowerCase() === 'hardcover') ||
+        options.binding_options.find((o) => {
+          const key = `${o.option_key || ''} ${o.name || ''}`.toLowerCase();
+          return key.includes('hard') && !key.includes('premium');
+        });
+      return hardcover || options.binding_options.find((o) => o.is_default) || options.binding_options[0];
+    },
+    [bindingTypeParam],
+  );
+
+  const findDefaultGiftBoxOption = useCallback((options: BookOptions | null): GiftBoxOption | null => {
+    if (!options?.gift_box_options?.length) return null;
+    const free =
+      options.gift_box_options.find((o) => Number(o.price) === 0) ||
+      options.gift_box_options.find((o) => {
+        const key = `${o.option_key || ''} ${o.name || ''}`.toLowerCase();
+        return key.includes('free') || key.includes('standard') || key.includes('included');
+      });
+    return free || options.gift_box_options.find((o) => o.is_default) || options.gift_box_options[0];
+  }, []);
+
+  // 默认预选 cover_1 / hardcover / free gift box（仅初始化一次）
+  // 从购物车 Edit gift option / 编辑进入时，不要先写默认值，否则会挡住 cart 预填
+  useEffect(() => {
+    if (!bookOptions) return;
+    if (hasAppliedDefaultOptionsRef.current) return;
+    if (hasPrefilledOptionsRef.current) {
+      hasAppliedDefaultOptionsRef.current = true;
+      return;
+    }
+    // 购物车编辑 options：等 cart 预填，不抢先写默认
+    if (searchParams.get('fromCartItemId') && searchParams.get('skipPrefillOptions') !== '1') {
+      return;
     }
 
-    // binding: 按 URL 的 binding_type 尝试匹配 option_key / name（例如 hardcover）
-    if (selectedBinding == null && bindingTypeParam && Array.isArray(bookOptions.binding_options)) {
-      const chosen =
-        bookOptions.binding_options.find((o: any) => String(o.option_key || '').toLowerCase() === bindingTypeParam) ||
-        bookOptions.binding_options.find((o: any) => String(o.name || '').toLowerCase().includes(bindingTypeParam)) ||
-        null;
-      if (chosen?.id != null) setSelectedBinding(chosen.id);
+    let changed = false;
+    if (selectedBookCover == null) {
+      const chosen = findDefaultCoverOption(bookOptions);
+      if (chosen?.id != null) {
+        skipNextCartOptionSyncRef.current = true;
+        setSelectedBookCover(chosen.id);
+        changed = true;
+      }
     }
-  }, [isHideOptions, bookOptions, preferCover3AsDefault, bindingTypeParam, selectedBookCover, selectedBinding]);
+    if (selectedBinding == null) {
+      const chosen = findDefaultBindingOption(bookOptions);
+      if (chosen?.id != null) {
+        skipNextCartOptionSyncRef.current = true;
+        setSelectedBinding(chosen.id);
+        changed = true;
+      }
+    }
+    if (selectedGiftBox == null) {
+      const chosen = findDefaultGiftBoxOption(bookOptions);
+      if (chosen?.id != null) {
+        skipNextCartOptionSyncRef.current = true;
+        setSelectedGiftBox(chosen.id);
+        changed = true;
+      }
+    }
+
+    // 三项都已有值，或至少成功写入过默认值后，标记完成，避免反复覆盖用户取消选择
+    if (
+      changed ||
+      (selectedBookCover != null && selectedBinding != null && selectedGiftBox != null)
+    ) {
+      hasAppliedDefaultOptionsRef.current = true;
+      if (changed) {
+        console.debug('[PreviewCart] Applied default cover/format/gift options');
+      }
+    }
+  }, [
+    bookOptions,
+    selectedBookCover,
+    selectedBinding,
+    selectedGiftBox,
+    findDefaultCoverOption,
+    findDefaultBindingOption,
+    findDefaultGiftBoxOption,
+    searchParams,
+  ]);
   const [isLoadingOptions, setIsLoadingOptions] = useState(false);
   // Bravey 封面文案配置（根据 page_properties.json 绘制名字）
   const [coverTextConfig, setCoverTextConfig] = useState<{
@@ -2064,7 +2337,6 @@ export default function PreviewPageWithTopNav() {
   } | null>(null);
 
   // 仅预填一次个性化产品的封面/装订/礼盒选项
-  const hasPrefilledOptionsRef = useRef(false);
   useEffect(() => {
     if (hasPrefilledOptionsRef.current) return;
     if (!bookOptions) return;
@@ -2118,6 +2390,8 @@ export default function PreviewPageWithTopNav() {
           adjustments.giftbox?.selected;
 
         let changed = false;
+        // 从购物车编辑进入：强制用 cart 选项覆盖（即使默认值已写入）
+        const forceFromCart = Boolean(fromCartItemIdParam);
 
         const cartOptionKeyMatches = (optKey: unknown, cartVal: unknown) =>
           String(optKey ?? '')
@@ -2126,43 +2400,54 @@ export default function PreviewPageWithTopNav() {
               .trim()
               .toLowerCase();
 
-        if (selectedBookCover == null && coverKey) {
+        if ((forceFromCart || selectedBookCover == null) && coverKey) {
           const cover = bookOptions?.cover_options?.find(
             (o) =>
               cartOptionKeyMatches(o.option_key, coverKey) || String(o.id) === String(coverKey),
           );
-          if (cover) {
+          if (cover && (forceFromCart || selectedBookCover == null)) {
+            skipNextCartOptionSyncRef.current = true;
             setSelectedBookCover(cover.id);
             changed = true;
           }
         }
 
-        if (selectedBinding == null && bindingKey) {
+        if ((forceFromCart || selectedBinding == null) && bindingKey) {
           const binding = bookOptions?.binding_options?.find(
             (o) =>
               cartOptionKeyMatches(o.option_key, bindingKey) || String(o.id) === String(bindingKey),
           );
-          if (binding) {
+          if (binding && (forceFromCart || selectedBinding == null)) {
+            skipNextCartOptionSyncRef.current = true;
             setSelectedBinding(binding.id);
             changed = true;
           }
         }
 
-        if (selectedGiftBox == null && giftKey) {
+        if ((forceFromCart || selectedGiftBox == null) && giftKey) {
           const gift = bookOptions?.gift_box_options?.find(
             (o) =>
               (o.option_key ? cartOptionKeyMatches(o.option_key, giftKey) : false) ||
               String(o.id) === String(giftKey) ||
               cartOptionKeyMatches(o.name, giftKey),
           );
-          if (gift) {
+          if (gift && (forceFromCart || selectedGiftBox == null)) {
+            skipNextCartOptionSyncRef.current = true;
             setSelectedGiftBox(gift.id);
             changed = true;
           }
         }
 
+        // 无论是否改动成功，只要匹配到 cart item 就标记已处理，避免默认选项再抢写
+        hasPrefilledOptionsRef.current = true;
+        hasAppliedDefaultOptionsRef.current = true;
         if (changed) {
-          hasPrefilledOptionsRef.current = true;
+          console.debug('[PreviewCart] Prefilled options from cart item', {
+            coverKey,
+            bindingKey,
+            giftKey,
+            fromCartItemId: fromCartItemIdParam,
+          });
         }
       } catch (e) {
         console.warn('预填选项失败，跳过:', e);
@@ -3456,7 +3741,7 @@ export default function PreviewPageWithTopNav() {
             }
           }
         }
-        if (batch?.pages) {
+        if (getBatchDisplayPages(batch, { includeFullBook: useUserStore.getState().isLoggedIn }).length > 0) {
           // 若后端提供了标准频道名，记录并进行订阅
           try {
             const channelName = batch?.channel;
@@ -3480,125 +3765,33 @@ export default function PreviewPageWithTopNav() {
             }
           } catch {}
           setPreviewData((prev) => {
-            // 若 prev 为空，从 batch.pages 直接构造初始数据
-            if (!prev || !prev.preview_data || prev.preview_data.length === 0) {
-              console.log('[Polling] Initializing previewData from batch.pages:', batch.pages.length, 'pages');
-              const initialData = {
-                preview_id: undefined as any,
-                preview_data: batch.pages.map((bp: any, idx: number) => ({
-                  page_id: idx + 1,
-                  page_code: bp.page_code,
-                  page_number: bp.sort_order ?? idx + 1,
-                  raw_image_url: bp.image_url,
-                  base_stage_url: bp.base_stage_url,
-                  final_stage_url: bp.final_stage_url,
-                  giver_data: bp.giver_data,
-                  template_image_url: bp.template_image_url || bp.template_url,
-                  image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
-                  has_face_swap: !!bp.has_face_elements,
-                  // 保存关键状态字段供UI使用
-                  status: bp.status,
-                  base_image_url: bp.base_image_url,
-                  final_image_url: bp.final_image_url,
-                  base_only: bp.base_only,
-                  queue_position: bp.queue_position,
-                  queue_total: bp.queue_total,
-                  preview_page_id: pickPreviewPageIdFromBatchPage(bp),
-                  face_swap_logs: Array.isArray(bp.face_swap_logs) ? bp.face_swap_logs : [],
-                  page_type: bp.page_type,
-                  is_cover: isCoverPage(bp),
-                })),
-                status: batch.status || 'processing',
-                batch_id: batch.batch_id,
-                // 保存batch级别的队列信息
-                queue_info: batch.queue,
-                batch_options: batch.options ?? null,
-              } as any;
-              console.log('[Polling] Created preview_data with', initialData.preview_data.length, 'pages');
-              console.log('[Polling] Sample page:', initialData.preview_data[0]);
-              return initialData;
-            }
-            // 如果preview_data存在但为空，也尝试从batch初始化
-            if (prev && prev.preview_data && prev.preview_data.length === 0 && batch.pages && batch.pages.length > 0) {
-              console.log('[Polling] Existing previewData is empty, reinitializing from batch.pages:', batch.pages.length, 'pages');
-              const reinitData = {
-                ...prev,
-                preview_data: batch.pages.map((bp: any, idx: number) => ({
-                  page_id: idx + 1,
-                  page_code: bp.page_code,
-                  page_number: bp.sort_order ?? idx + 1,
-                  raw_image_url: bp.image_url,
-                  base_stage_url: bp.base_stage_url,
-                  final_stage_url: bp.final_stage_url,
-                  giver_data: bp.giver_data,
-                  template_image_url: bp.template_image_url || bp.template_url,
-                  image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
-                  has_face_swap: !!bp.has_face_elements,
-                  status: bp.status,
-                  base_image_url: bp.base_image_url,
-                  final_image_url: bp.final_image_url,
-                  base_only: bp.base_only,
-                  queue_position: bp.queue_position,
-                  queue_total: bp.queue_total,
-                  preview_page_id: pickPreviewPageIdFromBatchPage(bp),
-                  face_swap_logs: Array.isArray(bp.face_swap_logs) ? bp.face_swap_logs : [],
-                  page_type: bp.page_type,
-                  is_cover: isCoverPage(bp),
-                })),
-                status: batch.status || 'processing',
-                batch_id: batch.batch_id,
-                queue_info: batch.queue,
-                batch_options: batch.options ?? (prev as any)?.batch_options ?? null,
-              } as any;
-              console.log('[Polling] Reinitialized preview_data with', reinitData.preview_data.length, 'pages');
-              return reinitData;
-            }
-            // 否则：全量覆盖，基于 batch.pages 重建 preview_data，确保显示所有页面
-            console.log('[Polling] Rebuilding preview_data from batch.pages');
+            const includeFullBook = useUserStore.getState().isLoggedIn;
             const prevByPageCode: Record<string, any> = {};
             try {
               (prev?.preview_data || []).forEach((p: any) => {
-                const code = String(p?.page_code || '');
+                const code = getPreviewPageCodeLookupKey(p?.page_code);
                 if (code) prevByPageCode[code] = p;
               });
             } catch {}
-            const nextPreviewData = (batch.pages || []).map((bp: any, idx: number) => {
-              const localP34Composed = p34LastComposedImageUrlRef.current;
-              const useLocalP34 = Boolean(localP34Composed && isP34PageCode(bp.page_code));
-              const prevPage = prevByPageCode[String(bp.page_code || '')];
-              const page = {
-                page_id: idx + 1,
-                page_code: bp.page_code,
-                page_number: ((bp.sort_order != null ? Number(bp.sort_order) : idx) + 1),
-                raw_image_url: bp.image_url,
-                base_stage_url: bp.base_stage_url,
-                final_stage_url: bp.final_stage_url,
-                giver_data: bp.giver_data,
-                template_image_url: bp.template_image_url || bp.template_url,
-                image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
-                has_face_swap: !!bp.has_face_elements,
-                status: bp.status,
-                base_image_url: bp.base_image_url,
-                final_image_url: bp.final_image_url,
-                base_only: bp.base_only,
-                queue_position: bp.queue_position,
-                queue_total: bp.queue_total,
-                preview_page_id: pickPreviewPageIdFromBatchPage(bp),
-                face_swap_logs: Array.isArray(bp.face_swap_logs)
-                  ? bp.face_swap_logs
-                  : (prevPage?.face_swap_logs ?? []),
-                page_type: bp.page_type,
-                is_cover: isCoverPage(bp),
-              };
-              if (useLocalP34) {
-                return {
-                  ...page,
-                  image_url: localP34Composed,
-                  final_image_url: localP34Composed,
-                };
-              }
-              return page;
+            const nextPreviewData = mapBatchToPreviewDataPages(batch, includeFullBook, {
+              localP34Composed: p34LastComposedImageUrlRef.current,
+              prevByPageCode,
             });
+            if (nextPreviewData.length === 0) return prev as any;
+
+            if (!prev || !prev.preview_data || prev.preview_data.length === 0) {
+              console.log('[Polling] Initializing previewData from batch pages:', nextPreviewData.length, 'pages');
+              return {
+                preview_id: undefined as any,
+                preview_data: nextPreviewData,
+                status: batch.status || 'processing',
+                batch_id: batch.batch_id,
+                queue_info: batch.queue,
+                batch_options: batch.options ?? null,
+              } as any;
+            }
+
+            console.log('[Polling] Rebuilding preview_data from batch pages:', nextPreviewData.length, 'pages');
             return {
               ...(prev || {}),
               preview_data: nextPreviewData,
@@ -3707,66 +3900,29 @@ export default function PreviewPageWithTopNav() {
               }
             }
           }
-          if (latestBatch?.pages) {
+          if (latestBatch?.pages || latestBatch?.order_pages) {
+            const includeFullBook = useUserStore.getState().isLoggedIn;
             setPreviewData((prev) => {
-              // 若 prev 为空，从 batch.pages 直接构造
-              if (!prev || !prev.preview_data || prev.preview_data.length === 0) {
-                return {
-                  preview_id: undefined as any,
-                  preview_data: latestBatch.pages.map((bp: any, idx: number) => ({
-                    page_id: idx + 1,
-                    page_code: bp.page_code,
-                    page_number: bp.sort_order ?? idx + 1,
-                    image_url: bp.final_image_url || bp.base_image_url || bp.image_url,
-                    has_face_swap: !!bp.has_face_elements,
-                    status: bp.status,
-                    base_image_url: bp.base_image_url,
-                    final_image_url: bp.final_image_url,
-                    base_only: bp.base_only,
-                    queue_position: bp.queue_position,
-                    queue_total: bp.queue_total,
-                    preview_page_id: pickPreviewPageIdFromBatchPage(bp),
-                    face_swap_logs: Array.isArray(bp.face_swap_logs) ? bp.face_swap_logs : [],
-                    page_type: bp.page_type,
-                    is_cover: isCoverPage(bp),
-                  })),
-                status: 'completed',
-                batch_id: latestBatch.batch_id,
-                  queue_info: latestBatch.queue,
-                  batch_options: latestBatch.options ?? null,
-                } as any;
-              }
-            const updated = {
-              ...prev,
-              batch_options: latestBatch.options ?? (prev as any)?.batch_options ?? null,
-              preview_data: prev.preview_data.map((p: any) => {
-                const match = latestBatch.pages.find((bp: any) => bp.page_code === p.page_code);
-                  if (!match) return p;
-                  const newUrl = match.final_image_url || match.base_image_url;
-                  return {
-                    ...p,
-                    image_url: newUrl,
-                    has_face_swap: !!match.has_face_elements,
-                    status: match.status,
-                    base_image_url: match.base_image_url,
-                    final_image_url: match.final_image_url,
-                    base_only: match.base_only,
-                    queue_position: match.queue_position,
-                    queue_total: match.queue_total,
-                    preview_page_id: pickPreviewPageIdFromBatchPage(match),
-                    face_swap_logs: Array.isArray(match.face_swap_logs)
-                      ? match.face_swap_logs
-                      : (p.face_swap_logs ?? []),
-                    page_type: match.page_type,
-                    is_cover: isCoverPage(match),
-                  };
+              const prevByPageCode: Record<string, any> = {};
+              try {
+                (prev?.preview_data || []).forEach((p: any) => {
+                  const code = getPreviewPageCodeLookupKey(p?.page_code);
+                  if (code) prevByPageCode[code] = p;
+                });
+              } catch {}
+              return {
+                ...(prev || {}),
+                preview_data: mapBatchToPreviewDataPages(latestBatch, includeFullBook, {
+                  localP34Composed: p34LastComposedImageUrlRef.current,
+                  prevByPageCode,
                 }),
                 status: 'completed',
+                batch_id: latestBatch.batch_id,
                 queue_info: latestBatch.queue,
-            } as any;
-            return updated;
-          });
-        }
+                batch_options: latestBatch.options ?? (prev as any)?.batch_options ?? null,
+              } as any;
+            });
+          }
         } catch {}
         if (!batchHasPendingFaceSwapLogs(latestBatch)) {
           clearBatchPolling();
@@ -4492,7 +4648,7 @@ export default function PreviewPageWithTopNav() {
     }
   };
 
-  // 点击 Continue 按钮处理：创建订单并进入 checkout
+  // 点击 Continue / Checkout：更新已有购物车条目并创建订单
   const handleContinue = async () => {
     try {
       console.debug('[Checkout] Clicked');
@@ -4509,7 +4665,6 @@ export default function PreviewPageWithTopNav() {
 
       // 圣诞 bundle：不新增 SKU，改用 regenerate-preview 更新 bundle 内部子项，然后回购物车
       if (fromCartItemId && isHideOptions) {
-        // 圣诞 bundle 的 Next 也需要 loading（防止重复点击/重复触发 regenerate-preview）
         setIsAddingToCart(true);
         try {
           const storeUserData = usePreviewStore.getState().userData as any;
@@ -4523,26 +4678,20 @@ export default function PreviewPageWithTopNav() {
           const character = raw?.characters?.[0] || {};
           const payload = buildPreviewRenderPayload(searchParams.get('bookid') || '', character);
 
-          // 圣诞 bundle：fromCartItemId 实际是 packageItemId（cart.items[].items[].id），需要调用新的接口
           await api.post<any>(
             `/cart/package-items/${encodeURIComponent(String(fromCartItemId))}/regenerate-preview`,
             payload
           );
         } catch (e) {
           console.error('[ChristmasBundle] regenerate-preview failed:', e);
-          // 失败也回购物车，避免卡在 preview；购物车仍可继续 edit
         }
         router.push('/shopping-cart');
         return;
       }
 
-      // 购物车 Create book（create mode）会带 skipPrefillOptions=1：
-      // - 需要用户选择 Options 后，通过 /cart/add 更新当前购物车条目（不走“直接返回”快捷路径）
-      // personalized-products（从购物车编辑进入）仍保持原行为：不再次 add-to-cart；仅返回购物车
       const skipPrefillOptions = searchParams.get('skipPrefillOptions') === '1';
       console.debug('[Checkout] completedSections:', completedSections);
 
-      // 检查是否有预览数据（现在 preview_id 等于 batch_id，做兼容）
       const effectivePreviewId = previewData?.preview_id ?? (previewData as any)?.batch_id;
       console.debug('[Checkout] preview_id:', previewData?.preview_id, 'batch_id:', (previewData as any)?.batch_id, 'effective:', effectivePreviewId);
       if (!effectivePreviewId) {
@@ -4551,127 +4700,44 @@ export default function PreviewPageWithTopNav() {
 
       setIsAddingToCart(true);
 
-      const getCoverKey = (id: number | null) => {
-        if (id == null) return undefined;
-        const item = bookOptions?.cover_options?.find(o => o.id === id);
-        return item?.option_key ?? String(id);
-      };
-      const getBindingKey = (id: number | null) => {
-        if (id == null) return undefined;
-        const item = bookOptions?.binding_options?.find(o => o.id === id);
-        return item?.option_key ?? String(id);
-      };
-      const getGiftBoxKey = (id: number | null) => {
-        if (id == null) return undefined;
-        const item = bookOptions?.gift_box_options?.find(o => o.id === id);
-        return item?.option_key ?? String(id);
-      };
+      // 确保已有 cart item（batch 就绪时应已创建；此处兜底）
+      let cartItemId =
+        previewCartItemIdRef.current ||
+        (fromCartItemId ? Number(fromCartItemId) : null) ||
+        null;
+      if (!cartItemId || !Number.isFinite(cartItemId) || cartItemId <= 0) {
+        cartItemId = await ensurePreviewCartItem();
+      }
+      if (!cartItemId) {
+        console.error('[Checkout] Missing cart item id');
+        return;
+      }
+      rememberPreviewCartItemId(cartItemId);
 
-      // 构建加购数据（/cart/add 与 create-order 前置步骤共用）
-      const coverKey = getCoverKey(selectedBookCover);
-      const bindingKey = getBindingKey(selectedBinding);
-      const giftKey = getGiftBoxKey(selectedGiftBox);
+      // Step 1: 更新购物车选项
+      console.debug('[Checkout] Updating cart item:', cartItemId);
+      await updatePreviewCartItem(
+        cartItemId,
+        selectedBookCover,
+        selectedBinding,
+        selectedGiftBox,
+        { includeQuantity: Boolean(fromCartItemId && skipPrefillOptions) },
+      );
 
-      // 获取 old_preview_id（使用保存的原始 previewid，而不是当前 URL 中可能已更新的 previewid）
-      // 如果存在原始 previewid，说明是从 edit 或 add additional product 进入的，需要携带 old_preview_id
-      const oldPreviewId = originalPreviewIdRef.current;
-
-      const cartData: CartAddRequest = {
-        preview_id: effectivePreviewId as any,
-        ...(oldPreviewId ? { old_preview_id: oldPreviewId } : {}),
-        quantity: 1,
-        cover_style: coverKey,
-        customization_data: {
-          attributes: {
-            ...(bindingKey ? { binding_type: bindingKey } : {}),
-            ...(giftKey ? { giftbox: giftKey } : {}),
-            delivery_notes: '',
-            gift_message: getGiftMessageForCart(),
-            replace: false,
-          },
-        },
-      };
-
-      // 购物车内（包括普通商品 & 详情页 bundle 里的商品）：更新 options 必须用 PUT /cart/{id}
-      // 圣诞 bundle（hideOptions=1）不需要选择 option，且上方已走 regenerate-preview 分支，不在此处理。
+      // 从购物车进入（编辑 options / create mode）：更新后回购物车，不直接下单
       if (fromCartItemId) {
-        // 兼容不同后端实现：
-        // - 有的实现更新用顶层字段（binding_type/giftbox/gift_message...）
-        // - 有的实现沿用 /cart/add 的 customization_data.attributes
-        const languageKey =
-          (searchParams.get('lang') || displayLang || '').toLowerCase() || undefined;
-        const optionAttrs: any = {
-          ...(coverKey ? { cover_style: coverKey } : {}),
-          ...(bindingKey ? { binding_type: bindingKey } : {}),
-          ...(giftKey ? { giftbox: giftKey } : {}),
-          ...(languageKey ? { language: languageKey } : {}),
-          delivery_notes: '',
-          gift_message: getGiftMessageForCart(),
-          replace: false,
-        };
-        await api.put(API_CART_UPDATE(Number(fromCartItemId)), {
-          ...(skipPrefillOptions ? { quantity: 1 } : {}),
-          ...(coverKey ? { cover_style: coverKey } : {}),
-          // 顶层（最常见的 cart update 结构）
-          ...optionAttrs,
-          // 后端购物车 item 常见存储结构：attributes.{cover_style,binding_type,giftbox,language}
-          attributes: optionAttrs,
-          // 嵌套（与 /cart/add 对齐）
-          customization_data: { attributes: optionAttrs },
-        });
-
-        // Track AddToCart for updated cart item (fromCartItemId path)
         if (!addToCartTrackedRef.current) {
           addToCartTrackedRef.current = true;
-          const contentId = getContentIdBySpu(bookInfo);
-
-          if (contentId) {
-            const cartValue = 0;
-            // fbTrack('AddToCart', {
-            //   value: cartValue,
-            //   currency: 'USD',
-            //   content_ids: [contentId],
-            //   content_type: 'product',
-            //   contents: [{ id: contentId, quantity: 1 }]
-            // });
-          }
         }
-
         router.push('/shopping-cart');
-        return;
-      }
-
-      // Step 1: 加入购物车
-      console.debug('[Checkout] Sending request /cart/add with data:', cartData);
-      const addResponse = await api.post('/cart/add', cartData) as ApiResponse<CartAddResponse>;
-      console.debug('[Checkout] /cart/add response:', addResponse);
-
-      if (!addResponse.success) {
-        return;
-      }
-
-      const cartItemId = addResponse.data?.id ?? addResponse.data?.cart_item_id;
-      if (!cartItemId) {
-        console.error('[Checkout] Missing cart item id from /cart/add response');
         return;
       }
 
       if (!addToCartTrackedRef.current) {
         addToCartTrackedRef.current = true;
-        const contentId = getContentIdBySpu(bookInfo);
-
-        // if (contentId) {
-        //   fbTrack('AddToCart', {
-        //     value: 0,
-        //     currency: 'USD',
-        //     content_ids: [contentId],
-        //     content_type: 'product',
-        //     contents: [{ id: contentId, quantity: 1 }]
-        //   });
-        // }
       }
 
-      // Step 2: 创建订单（payload 与购物车页 useCheckout 一致）
+      // Step 2: 对已有 cart item 下单
       const orderBody = {
         cart_item_ids: [cartItemId],
         payment_method: 'card' as const,
@@ -4694,7 +4760,6 @@ export default function PreviewPageWithTopNav() {
       if (error?.status == 401 || error?.response?.status == 401) {
         openPreviewUnlockLogin();
       }
-      //toast.error(error.response?.data?.message || '创建订单失败，请重试');
     } finally {
       setIsAddingToCart(false);
     }
@@ -4737,6 +4802,12 @@ export default function PreviewPageWithTopNav() {
   }, [isGuest]);
 
   const previewContentLength = previewData?.preview_data?.length ?? 0;
+  const guestUnlockReady = useMemo(
+    () => hasGuestPreviewUnlockReady(previewData?.preview_data, previewPagesCount),
+    [previewData?.preview_data, previewPagesCount],
+  );
+  const guestUnlockReadyRef = useRef(guestUnlockReady);
+  guestUnlockReadyRef.current = guestUnlockReady;
 
   useEffect(() => {
     if (!isGuest || activeTab !== 'Book preview') {
@@ -4755,6 +4826,7 @@ export default function PreviewPageWithTopNav() {
 
     const maybeOpenGuestUnlock = () => {
       if (!mq.matches) return;
+      if (!guestUnlockReadyRef.current) return;
       if (!guestPreviewHasScrolledRef.current) return;
       if (useUserStore.getState().isLoginModalOpen) return;
 
@@ -4773,15 +4845,18 @@ export default function PreviewPageWithTopNav() {
     window.addEventListener('touchmove', handleScroll, { passive: true });
     window.addEventListener('resize', handleScroll, { passive: true });
 
+    // P10 刚就绪且用户已在底部时，主动补一次检查
+    maybeOpenGuestUnlock();
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('touchmove', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
-  }, [isGuest, activeTab, openPreviewUnlockLogin, previewContentLength]);
+  }, [isGuest, activeTab, openPreviewUnlockLogin, previewContentLength, guestUnlockReady]);
 
   useEffect(() => {
-    if (!isGuest || activeTab !== 'Book preview') return undefined;
+    if (!isGuest || activeTab !== 'Book preview' || !guestUnlockReady) return undefined;
     const el = previewBottomSentinelRef.current;
     if (!el) return undefined;
 
@@ -4789,6 +4864,7 @@ export default function PreviewPageWithTopNav() {
     const observer = new IntersectionObserver(
       (entries) => {
         if (!mq.matches) return;
+        if (!guestUnlockReadyRef.current) return;
         if (!guestPreviewHasScrolledRef.current) return;
         if (useUserStore.getState().isLoginModalOpen) return;
         if (entries.some((entry) => entry.isIntersecting)) {
@@ -4801,7 +4877,7 @@ export default function PreviewPageWithTopNav() {
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [isGuest, activeTab, openPreviewUnlockLogin, previewContentLength]);
+  }, [isGuest, activeTab, openPreviewUnlockLogin, previewContentLength, guestUnlockReady]);
 
   useEffect(() => {
     if (!isGuest) return undefined;
@@ -4811,6 +4887,29 @@ export default function PreviewPageWithTopNav() {
       }
     });
   }, [isGuest]);
+
+  const prevLoggedInRef = useRef(isLoggedIn);
+  const subscribeToPreviewChannelRef = useRef(subscribeToPreviewChannel);
+  subscribeToPreviewChannelRef.current = subscribeToPreviewChannel;
+
+  useEffect(() => {
+    const justLoggedIn = !prevLoggedInRef.current && isLoggedIn;
+    prevLoggedInRef.current = isLoggedIn;
+    if (!justLoggedIn) return;
+
+    const spuCode = searchParams.get('bookid');
+    const batchId = currentBatchIdRef.current || searchParams.get('previewid');
+    if (!spuCode || !batchId) return;
+
+    // 登录后切换到 user 频道，并重新拉取 batch（含 order_pages）以展示整本书
+    previewChannelNameRef.current = null;
+    subscribeToPreviewChannelRef.current(spuCode, batchId);
+    startBatchPollingRef.current(spuCode, batchId);
+
+    void refreshPreviewDataFromBatch(spuCode, batchId, true).catch((error) => {
+      console.warn('[Preview] Failed to refresh full book after login:', error);
+    });
+  }, [isLoggedIn, refreshPreviewDataFromBatch, searchParams]);
 
   //寄语
   const MAX_LINES = 10;
@@ -4980,20 +5079,325 @@ export default function PreviewPageWithTopNav() {
     if (trimmed !== savedTrimmed) {
       messageUserTouchedRef.current = true;
       setGuestUploadRateLimitError(null);
+      saveP34PreUploadSnapshot();
       shouldUploadP34ComposedRef.current = true;
       p34UploadCompletesNameOnBookRef.current = false;
       p34ComposeUploadedRef.current = false;
       p34LastComposedImageUrlRef.current = null;
-      setDedication(message);
-      setIsDedicationSubmitted(true);
+      setP34PendingCompose({ dedication: message });
+      setP34ComposeUploading(true);
     }
     setEditField(null);
-  }, [dedication, message, setDedication, setEditField]);
+  }, [dedication, message, saveP34PreUploadSnapshot, setEditField]);
 
   const getGiftMessageForCart = useCallback(
     () => (isDedicationSubmitted ? message.trim() : ''),
     [isDedicationSubmitted, message],
   );
+
+  const getCoverKey = useCallback(
+    (id: number | null) => {
+      if (id == null) return undefined;
+      const item = bookOptions?.cover_options?.find((o) => o.id === id);
+      return item?.option_key ?? String(id);
+    },
+    [bookOptions],
+  );
+  const getBindingKey = useCallback(
+    (id: number | null) => {
+      if (id == null) return undefined;
+      const item = bookOptions?.binding_options?.find((o) => o.id === id);
+      return item?.option_key ?? String(id);
+    },
+    [bookOptions],
+  );
+  const getGiftBoxKey = useCallback(
+    (id: number | null) => {
+      if (id == null) return undefined;
+      const item = bookOptions?.gift_box_options?.find((o) => o.id === id);
+      return item?.option_key ?? String(id);
+    },
+    [bookOptions],
+  );
+
+  const buildCartOptionAttrs = useCallback(
+    (coverId: number | null, bindingId: number | null, giftId: number | null) => {
+      const coverKey = getCoverKey(coverId);
+      const bindingKey = getBindingKey(bindingId);
+      const giftKey = getGiftBoxKey(giftId);
+      const languageKey =
+        (searchParams.get('lang') || displayLang || '').toLowerCase() || undefined;
+      return {
+        coverKey,
+        bindingKey,
+        giftKey,
+        optionAttrs: {
+          ...(coverKey ? { cover_style: coverKey } : {}),
+          ...(bindingKey ? { binding_type: bindingKey } : {}),
+          ...(giftKey ? { giftbox: giftKey } : {}),
+          ...(languageKey ? { language: languageKey } : {}),
+          delivery_notes: '',
+          gift_message: getGiftMessageForCart(),
+          replace: false,
+        } as Record<string, any>,
+      };
+    },
+    [displayLang, getBindingKey, getCoverKey, getGiftBoxKey, getGiftMessageForCart, searchParams],
+  );
+
+  const buildCartAddPayload = useCallback(
+    (previewId: string | number, coverId: number | null, bindingId: number | null, giftId: number | null): CartAddRequest => {
+      const { coverKey, bindingKey, giftKey } = buildCartOptionAttrs(coverId, bindingId, giftId);
+      const oldPreviewId = originalPreviewIdRef.current;
+      return {
+        preview_id: previewId,
+        ...(oldPreviewId ? { old_preview_id: oldPreviewId } : {}),
+        quantity: 1,
+        cover_style: coverKey,
+        customization_data: {
+          attributes: {
+            ...(bindingKey ? { binding_type: bindingKey } : {}),
+            ...(giftKey ? { giftbox: giftKey } : {}),
+            delivery_notes: '',
+            gift_message: getGiftMessageForCart(),
+            replace: false,
+          },
+        },
+      };
+    },
+    [buildCartOptionAttrs, getGiftMessageForCart],
+  );
+
+  const updatePreviewCartItem = useCallback(
+    async (
+      cartItemId: number,
+      coverId: number | null,
+      bindingId: number | null,
+      giftId: number | null,
+      options?: { includeQuantity?: boolean },
+    ) => {
+      const { coverKey, optionAttrs } = buildCartOptionAttrs(coverId, bindingId, giftId);
+      await api.put(API_CART_UPDATE(cartItemId), {
+        ...(options?.includeQuantity ? { quantity: 1 } : {}),
+        ...(coverKey ? { cover_style: coverKey } : {}),
+        ...optionAttrs,
+        attributes: optionAttrs,
+        customization_data: { attributes: optionAttrs },
+      });
+    },
+    [buildCartOptionAttrs],
+  );
+
+  const rememberPreviewCartItemId = useCallback((id: number | null) => {
+    previewCartItemIdRef.current = id;
+    setPreviewCartItemId(id);
+  }, []);
+
+  const ensurePreviewCartItem = useCallback(async (): Promise<number | null> => {
+    const fromCartItemIdParam = searchParams.get('fromCartItemId');
+    if (fromCartItemIdParam && !isHideOptions) {
+      const existingId = Number(fromCartItemIdParam);
+      if (Number.isFinite(existingId) && existingId > 0) {
+        rememberPreviewCartItemId(existingId);
+        ensuredCartForPreviewIdRef.current =
+          String(previewData?.preview_id ?? (previewData as any)?.batch_id ?? searchParams.get('previewid') ?? '');
+        return existingId;
+      }
+    }
+
+    if (previewCartItemIdRef.current) return previewCartItemIdRef.current;
+
+    const effectivePreviewId =
+      previewData?.preview_id ?? (previewData as any)?.batch_id ?? searchParams.get('previewid');
+    if (!effectivePreviewId) return null;
+    if (!bookOptions) return null;
+    if (selectedBookCover == null || selectedBinding == null || selectedGiftBox == null) return null;
+    // 圣诞 bundle 走 package regenerate，不在此建普通 cart item
+    if (isHideOptions) return null;
+    if (ensureCartInFlightRef.current) return previewCartItemIdRef.current;
+    if (ensuredCartForPreviewIdRef.current === String(effectivePreviewId) && previewCartItemIdRef.current) {
+      return previewCartItemIdRef.current;
+    }
+
+    ensureCartInFlightRef.current = true;
+    try {
+      // 若购物车已有同 preview 条目，复用而不是重复 add
+      try {
+        const res = await api.get(API_CART_LIST) as any;
+        const items = res?.data?.items || res?.data?.cart_items || res?.cart_items || [];
+        if (Array.isArray(items) && items.length > 0) {
+          const match = findCartItemForPreview(items, String(effectivePreviewId), fromCartItemIdParam);
+          const matchedId = Number(match?.id);
+          if (Number.isFinite(matchedId) && matchedId > 0) {
+            rememberPreviewCartItemId(matchedId);
+            ensuredCartForPreviewIdRef.current = String(effectivePreviewId);
+            console.debug('[PreviewCart] Reused existing cart item:', matchedId);
+            return matchedId;
+          }
+        }
+      } catch (e) {
+        console.warn('[PreviewCart] Failed to look up existing cart item:', e);
+      }
+
+      const cartData = buildCartAddPayload(effectivePreviewId, selectedBookCover, selectedBinding, selectedGiftBox);
+      console.debug('[PreviewCart] Creating cart item with defaults:', cartData);
+      const addResponse = await api.post('/cart/add', cartData) as ApiResponse<CartAddResponse>;
+      if (!addResponse.success) {
+        console.warn('[PreviewCart] /cart/add failed:', addResponse);
+        return null;
+      }
+      const cartItemId = addResponse.data?.id ?? addResponse.data?.cart_item_id;
+      if (!cartItemId) {
+        console.error('[PreviewCart] Missing cart item id from /cart/add');
+        return null;
+      }
+      rememberPreviewCartItemId(Number(cartItemId));
+      ensuredCartForPreviewIdRef.current = String(effectivePreviewId);
+      if (!addToCartTrackedRef.current) {
+        addToCartTrackedRef.current = true;
+      }
+      console.debug('[PreviewCart] Created cart item:', cartItemId);
+      return Number(cartItemId);
+    } catch (error) {
+      console.error('[PreviewCart] Failed to ensure cart item:', error);
+      return null;
+    } finally {
+      ensureCartInFlightRef.current = false;
+    }
+  }, [
+    bookOptions,
+    buildCartAddPayload,
+    isHideOptions,
+    previewData,
+    rememberPreviewCartItemId,
+    searchParams,
+    selectedBinding,
+    selectedBookCover,
+    selectedGiftBox,
+  ]);
+
+  // batch 就绪后立即用默认 cover/format/gift 创建购物车
+  useEffect(() => {
+    if (isHideOptions) return;
+    if (isGuest) return;
+    const effectivePreviewId =
+      previewData?.preview_id ?? (previewData as any)?.batch_id ?? searchParams.get('previewid');
+    if (!effectivePreviewId) return;
+    if (!bookOptions) return;
+    if (selectedBookCover == null || selectedBinding == null || selectedGiftBox == null) return;
+    if (previewCartItemIdRef.current) return;
+    if (ensuredCartForPreviewIdRef.current === String(effectivePreviewId)) return;
+
+    void ensurePreviewCartItem();
+  }, [
+    bookOptions,
+    ensurePreviewCartItem,
+    isGuest,
+    isHideOptions,
+    previewData,
+    searchParams,
+    selectedBinding,
+    selectedBookCover,
+    selectedGiftBox,
+  ]);
+
+  // 登录成功后补建购物车（游客期间 batch 已就绪但未建车）
+  useEffect(() => {
+    if (isGuest || isHideOptions) return;
+    if (previewCartItemIdRef.current) return;
+    const effectivePreviewId =
+      previewData?.preview_id ?? (previewData as any)?.batch_id ?? searchParams.get('previewid');
+    if (!effectivePreviewId) return;
+    if (selectedBookCover == null || selectedBinding == null || selectedGiftBox == null) return;
+    void ensurePreviewCartItem();
+  }, [
+    ensurePreviewCartItem,
+    isGuest,
+    isHideOptions,
+    previewData,
+    searchParams,
+    selectedBinding,
+    selectedBookCover,
+    selectedGiftBox,
+  ]);
+
+  // 用户修改 cover/format/gift 时同步更新购物车
+  useEffect(() => {
+    if (isHideOptions) return;
+    if (isGuest) return;
+    if (skipNextCartOptionSyncRef.current) {
+      skipNextCartOptionSyncRef.current = false;
+      return;
+    }
+    const cartItemId = previewCartItemIdRef.current;
+    if (!cartItemId) return;
+    if (selectedBookCover == null || selectedBinding == null || selectedGiftBox == null) return;
+
+    const timer = window.setTimeout(() => {
+      void updatePreviewCartItem(cartItemId, selectedBookCover, selectedBinding, selectedGiftBox).catch((error) => {
+        console.warn('[PreviewCart] Failed to sync option changes:', error);
+      });
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    isGuest,
+    isHideOptions,
+    selectedBinding,
+    selectedBookCover,
+    selectedGiftBox,
+    updatePreviewCartItem,
+  ]);
+
+  const p34PageMetaForUpload = useMemo(() => {
+    const pages = (previewData as any)?.preview_data;
+    if (!Array.isArray(pages)) return null;
+    const p34 = pages.find((p: any) => {
+      const code = String(p?.page_code || '');
+      return code === 'p3-4' || code === 'p3-p4';
+    });
+    if (!p34) return null;
+    const templateRaw = (p34 as any).base_stage_url || p34BaseImageUrlRef.current;
+    return {
+      baseSrc: buildImageUrl(String(templateRaw || '')),
+      giverData: (p34 as any).giver_data || null,
+    };
+  }, [previewData, buildImageUrl]);
+
+  const p34UploadComposeProps = useMemo(() => {
+    if (!p34PendingCompose || !p34PageMetaForUpload) return null;
+    const dedicationForUpload = p34PendingCompose.dedication ?? dedication;
+    const isDadDefaultDedicationLeft =
+      isPicbookDad(bookId) &&
+      (dedicationForUpload || '').trim() === (defaultMessage || '').trim();
+    return {
+      giverImageUrl: p34PendingCompose.giverUrl ?? (giverImageUrl || p34PageMetaForUpload.giverData),
+      dedicationText: dedicationForUpload,
+      dedicationTextAlign:
+        isPicbookDad(bookId) &&
+        (dedicationForUpload || '').trim() === (defaultMessage || '').trim()
+          ? ('left' as const)
+          : ('center' as const),
+      dedicationSidePaddingRatio: isPicbookDad(bookId) ? 0.12 : 0.06,
+      dedicationSidePaddingLeftRatio: isDadDefaultDedicationLeft ? 0.2 : undefined,
+      giverImageScale:
+        (bookId || '').toUpperCase() === 'PICBOOK_BRAVEY' ||
+        (bookId || '').toUpperCase() === 'PICBOOK_BIRTHDAY'
+          ? 1.2
+          : ['PICBOOK_GOODNIGHT3', 'PICBOOK_MOM', 'PICBOOK_DAD', 'PICBOOK_SANTA', 'PICBOOK_MELODY'].includes(
+                (bookId || '').toUpperCase(),
+              )
+            ? 0.7
+            : undefined,
+    };
+  }, [
+    p34PendingCompose,
+    p34PageMetaForUpload,
+    dedication,
+    giverImageUrl,
+    bookId,
+    defaultMessage,
+  ]);
 
   //定义状态控制抽屉显示
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -5581,7 +5985,6 @@ export default function PreviewPageWithTopNav() {
                       const p34HasLocalChanges =
                         !!giverImageUrl ||
                         !!editField ||
-                        shouldUploadP34ComposedRef.current ||
                         (p34ComposeUploadedRef.current && isDedicationSubmitted);
 
                       // 单页模式：p3-4 始终拆成左右单页展示；有 final 时只把 final 当作底图，不再整张跨页显示。
@@ -5613,7 +6016,12 @@ export default function PreviewPageWithTopNav() {
                         if (p34FinalSrc && !p34HasLocalChanges) {
                           return (
                             <div key={page.page_id} className="w-full flex flex-col items-center">
-                              <div className="w-full max-w-5xl">
+                              <div className="w-full max-w-5xl relative">
+                                {p34ComposeUploading ? (
+                                  <div className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden rounded-lg bg-white/70">
+                                    <DreamazeLogoRainbowLoader size={60} />
+                                  </div>
+                                ) : null}
                                 <GiverDedicationCanvas
                                   className="w-full"
                                   imageUrl={p34FinalSrc}
@@ -5660,7 +6068,12 @@ export default function PreviewPageWithTopNav() {
                         }
                         return (
                         <div key={page.page_id} className="w-full flex flex-col items-center">
-                          <div className="w-full max-w-5xl">
+                          <div className="w-full max-w-5xl relative">
+                            {p34ComposeUploading ? (
+                              <div className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden rounded-lg bg-white/70">
+                                <DreamazeLogoRainbowLoader size={60} />
+                              </div>
+                            ) : null}
                             <GiverDedicationCanvas
                               className="w-full"
                               imageUrl={p34BaseSrc}
@@ -5672,7 +6085,6 @@ export default function PreviewPageWithTopNav() {
                               dedicationTextAlign={dedicationTextAlign}
                               dedicationSidePaddingRatio={dedicationSidePaddingRatio}
                               dedicationSidePaddingLeftRatio={dedicationSidePaddingLeftRatio}
-                              onRendered={uploadP34ComposedImage}
                               singleLeftHalfRef={giverRef}
                               singleRightHalfRef={dedicationRef}
                               leftImageFrameClassName={getMissingSectionClass('giver')}
@@ -5708,26 +6120,33 @@ export default function PreviewPageWithTopNav() {
                     }
                       // 双页模式：p3-4 默认展示 final（并保留操作按钮）；编辑时才用 Canvas overlay
                       const p34ButtonsOverlay = isGiverDedicationPage ? (
-                        <div className="pointer-events-none hidden md:block absolute inset-0">
-                          <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                giverFileInputRef.current?.click();
-                              }}
-                              className={`pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
-                            >
-                              {giverPhotoButtonLabel}
-                            </button>
-                          </div>
-                          <div className="absolute bottom-[20%] right-0 w-1/2 flex flex-col items-center">
-                            <button
-                              type="button"
-                              onClick={openDedicationEditor}
-                              className={`pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
-                            >
-                              {dedicationButtonLabel}
-                            </button>
+                        <div className="pointer-events-none absolute inset-0">
+                          {p34ComposeUploading ? (
+                            <div className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden rounded-lg bg-white/70">
+                              <DreamazeLogoRainbowLoader size={60} />
+                            </div>
+                          ) : null}
+                          <div className="hidden md:block">
+                            <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  giverFileInputRef.current?.click();
+                                }}
+                                className={`pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
+                              >
+                                {giverPhotoButtonLabel}
+                              </button>
+                            </div>
+                            <div className="absolute bottom-[20%] right-0 w-1/2 flex flex-col items-center">
+                              <button
+                                type="button"
+                                onClick={openDedicationEditor}
+                                className={`pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('dedication')}`}
+                              >
+                                {dedicationButtonLabel}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ) : null;
@@ -5862,6 +6281,7 @@ export default function PreviewPageWithTopNav() {
                             progress={progress}
                             overlayMode={overlayMode as any}
                             content={page.content}
+                            showLoadingPlaceholder={hasSwap || !displayUrlRaw}
                             doubleImageAreaClassName={openingDoubleImageGlow || momDoubleImageGlow}
                             rightSingleFrameClassName={momDrawingRightSingleGlow}
                             scrollAnchorSingleRightRef={
@@ -5874,6 +6294,11 @@ export default function PreviewPageWithTopNav() {
                             customOverlayContent={pageFailed ? undefined : (isGiverDedicationPage ? (
                               (p34FinalSrc && !p34HasLocalChanges) ? p34ButtonsOverlay : (
                                 <div className="w-full h-full relative">
+                                  {p34ComposeUploading ? (
+                                    <div className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden rounded-lg bg-white/70">
+                                      <DreamazeLogoRainbowLoader size={60} />
+                                    </div>
+                                  ) : null}
                                   <GiverDedicationCanvas
                                     className="w-full h-full"
                                     imageUrl={p34BaseSrc}
@@ -5885,7 +6310,6 @@ export default function PreviewPageWithTopNav() {
                                     dedicationTextAlign={dedicationTextAlign}
                                     dedicationSidePaddingRatio={dedicationSidePaddingRatio}
                                     dedicationSidePaddingLeftRatio={dedicationSidePaddingLeftRatio}
-                                    onRendered={uploadP34ComposedImage}
                                     overlayContent={p34ButtonsOverlay}
                                     onVisualReady={() =>
                                       markPreviewPageReady(page.page_id, `${p34BaseSrc}:canvas`)
@@ -6701,28 +7125,31 @@ export default function PreviewPageWithTopNav() {
                       onDone={() => {}}
                       resultMode="file"
                       onDoneFile={(file) => {
-                        // 用户上传后：先本地预览（不立刻发后端），等 Canvas 合成完成后再上传合成图
+                        // 用户上传后：等 Canvas 合成并上传成功后再更新展示
                         try {
                           setGuestUploadRateLimitError(null);
+                          saveP34PreUploadSnapshot();
                           const objUrl = URL.createObjectURL(file);
-                          setGiverImageUrl(objUrl);
-                          // 分层模型：把 giver 文件转成 data URL 存起来，后续 dedication 重绘/上传都带上最新 giver
-                          try {
-                            const reader = new FileReader();
-                            reader.onload = () => {
-                              const result = reader.result;
-                              if (typeof result === 'string' && result.startsWith('data:')) {
-                                p34GiverDataRef.current = result;
-                              }
-                            };
-                            reader.readAsDataURL(file);
-                          } catch {}
-                          shouldUploadP34ComposedRef.current = true;
-                          p34UploadCompletesNameOnBookRef.current = true;
-                          p34ComposeUploadedRef.current = false;
-                          // 上传图片即视为完成 Opening Photo（沿用原逻辑）；真正落 mark 在上传成功后
-                          setIsNameOnBookCompleted(true);
-                        } catch {}
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            const result = reader.result;
+                            if (typeof result === 'string' && result.startsWith('data:')) {
+                              p34GiverDataRef.current = result;
+                            }
+                            setP34PendingCompose({ giverUrl: objUrl });
+                            shouldUploadP34ComposedRef.current = true;
+                            p34UploadCompletesNameOnBookRef.current = true;
+                            p34ComposeUploadedRef.current = false;
+                            setP34ComposeUploading(true);
+                          };
+                          reader.onerror = () => {
+                            URL.revokeObjectURL(objUrl);
+                            toast.error('Upload failed, please try again.');
+                          };
+                          reader.readAsDataURL(file);
+                        } catch {
+                          toast.error('Upload failed, please try again.');
+                        }
                         setEditField(null);
                         setPendingGiverFile(null);
                         if (pendingGiverFile) {
@@ -6828,6 +7255,23 @@ export default function PreviewPageWithTopNav() {
           )}
         </button>
       </div>
+
+      {p34ComposeUploading && p34PageMetaForUpload?.baseSrc && p34UploadComposeProps && (
+        <div aria-hidden className="fixed -left-[9999px] top-0 h-px w-px overflow-hidden pointer-events-none">
+          <GiverDedicationCanvas
+            imageUrl={p34PageMetaForUpload.baseSrc}
+            mode="double"
+            giverText={giver}
+            dedicationText={p34UploadComposeProps.dedicationText}
+            giverImageUrl={p34UploadComposeProps.giverImageUrl}
+            giverImageScale={p34UploadComposeProps.giverImageScale}
+            dedicationTextAlign={p34UploadComposeProps.dedicationTextAlign}
+            dedicationSidePaddingRatio={p34UploadComposeProps.dedicationSidePaddingRatio}
+            dedicationSidePaddingLeftRatio={p34UploadComposeProps.dedicationSidePaddingLeftRatio}
+            onRendered={uploadP34ComposedImage}
+          />
+        </div>
+      )}
 
       {guestUploadRateLimitError && (
         <div

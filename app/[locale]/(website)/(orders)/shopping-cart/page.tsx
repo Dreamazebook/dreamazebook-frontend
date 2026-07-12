@@ -8,7 +8,7 @@ import { useTranslations } from 'next-intl';
 import api from '@/utils/api';
 import { ApiResponse } from '@/types/api';
 import { API_CART_LIST, API_CART_UPDATE, API_KS_PACKAGE_STATUS } from '@/constants/api';
-import { CartItem, CartItems } from '@/types/cart';
+import { CartItem, CartItems, isCartItemCreateMode } from '@/types/cart';
 import { useOrderSummary } from '@/hooks/useOrderSummary';
 import { useCheckout } from '@/hooks/useCheckout';
 
@@ -176,8 +176,7 @@ export default function ShoppingCartPage() {
   useEffect(() => {
     if (error && error.includes('Create')) {
       const needsCreateItem = cartItems.find((item: any) => {
-        const effectiveMode = item.mode ?? (item.preview_id ? 'edit' : 'create');
-        return effectiveMode === 'create' && selectedItems.includes(item.id);
+        return isCartItemCreateMode(item.mode, item.preview_id) && selectedItems.includes(item.id);
       });
       
       if (needsCreateItem) {

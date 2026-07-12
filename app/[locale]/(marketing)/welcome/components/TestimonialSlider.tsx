@@ -22,7 +22,7 @@ const TestimonialSlider: React.FC = () => {
       </div>
 
       <div className="mt-10 max-w-[334px] mx-auto">
-        <Button url={KICKSTARTER_URL} tl={'Unlock 40% Off Early'} />
+        <Button url={KICKSTARTER_URL} tl={'Unlock 40% off early'} />
       </div>
 
     </div>

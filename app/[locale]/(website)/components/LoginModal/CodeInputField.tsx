@@ -5,9 +5,10 @@ interface CodeInputFieldProps {
   code: string
   onCodeChange: (value: string) => void
   successMessage: string
+  errorMessage?: string
 }
 
-export const CodeInputField = memo(({ code, onCodeChange, successMessage }: CodeInputFieldProps) => {
+export const CodeInputField = memo(({ code, onCodeChange, successMessage, errorMessage = '' }: CodeInputFieldProps) => {
   const handleCodeInput = (index: number, value: string) => {
     if (value && !/^\d$/.test(value)) return
     const newCode = code.split('')
@@ -39,14 +40,14 @@ export const CodeInputField = memo(({ code, onCodeChange, successMessage }: Code
   }
 
   return (
-    <div>
+    <div className="w-full">
       {successMessage && (
-        <div className="p-3 text-center" role="status" aria-live="polite">
-          <p>{successMessage}</p>
-        </div>
+        <p className="text-center text-[14px] leading-[20px] tracking-[0.25px] text-[#666666]" role="status" aria-live="polite">
+          {successMessage}
+        </p>
       )}
 
-      <div className="flex gap-2">
+      <div className="grid w-full grid-cols-6 gap-[8px]">
         {[0, 1, 2, 3, 4, 5].map((index) => (
           <input
             key={index}
@@ -57,12 +58,19 @@ export const CodeInputField = memo(({ code, onCodeChange, successMessage }: Code
             onChange={(e) => handleCodeInput(index, e.target.value)}
             onKeyDown={(e) => handleKeyDown(index, e)}
             onPaste={index === 0 ? handlePaste : undefined}
-            className="code-input w-12 h-12 text-center text-lg border border-gray-300 rounded-md focus:ring-2 focus:ring-[#1BA7FF] focus:border-[#1BA7FF] outline-none"
+            className={`code-input aspect-square w-full min-w-0 rounded-[4px] border text-center text-[14px] leading-[20px] tracking-[0.25px] outline-none focus:ring-0 ${
+              errorMessage ? 'border-red-500 focus:border-red-500' : 'border-[#222222] focus:border-[#222222]'
+            } text-[#222222]`}
             required
             aria-label={`Code digit ${index + 1}`}
           />
         ))}
       </div>
+      {errorMessage && (
+        <p className="mt-1 text-sm text-[#CF0F02]" role="alert" aria-live="polite">
+          {errorMessage}
+        </p>
+      )}
     </div>
   )
 })

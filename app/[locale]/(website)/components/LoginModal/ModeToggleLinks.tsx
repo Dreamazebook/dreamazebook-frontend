@@ -41,14 +41,23 @@ interface CodeLoginCodeLinksProps {
 // Login Mode Links
 export const LoginLinks = memo(({ onForgotPassword, onCodeLogin, translations }: LoginLinksProps) => {
   return (
-    <div className="flex flex-col space-y-2 text-sm">
+    <div className="flex flex-col gap-[4px]">
       <button
         type="button"
-        className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+        className="cursor-pointer text-[14px] leading-[20px] tracking-[0.25px] text-[#666666] underline underline-offset-2 hover:text-[#222222] transition-colors focus:outline-none"
         onClick={onForgotPassword}
       >
         {translations.forgotPasswordQuestion}
       </button>
+      {translations.loginWithCode && (
+        <button
+          type="button"
+          className="cursor-pointer text-[14px] leading-[20px] tracking-[0.25px] text-[#666666] underline underline-offset-2 hover:text-[#222222] transition-colors focus:outline-none"
+          onClick={onCodeLogin}
+        >
+          {translations.loginWithCode}
+        </button>
+      )}
     </div>
   )
 })
@@ -57,12 +66,12 @@ LoginLinks.displayName = 'LoginLinks'
 // Register Mode Links
 export const RegisterLinks = memo(({ onLogin, translations }: RegisterLinksProps) => {
   return (
-    <div className="text-sm">
+    <div className="text-[14px] leading-[20px] tracking-[0.25px] text-[#666666]">
       <span>
         {translations.haveAccount}{' '}
         <button
           type="button"
-          className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+          className="cursor-pointer underline underline-offset-2 text-[#666666] hover:text-[#222222] transition-colors focus:outline-none"
           onClick={onLogin}
         >
           {translations.login}
@@ -78,7 +87,7 @@ export const ForgotPasswordLinks = memo(({ onLogin, translations }: ForgotPasswo
   return (
       <button
         type="button"
-        className="cursor-pointer text-center w-full text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+        className="cursor-pointer w-full text-center text-[14px] leading-[20px] tracking-[0.25px] text-[#666666] underline underline-offset-2 hover:text-[#222222] transition-colors focus:outline-none"
         onClick={onLogin}
       >
         {translations.loginWithCode}
@@ -92,7 +101,7 @@ export const CodeLoginEmailLinks = memo(({ onLogin, translations }: CodeLoginEma
   return (
     <button
       type="button"
-      className="cursor-pointer w-full text-center text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+      className="cursor-pointer w-full text-center text-[14px] leading-[20px] tracking-[0.25px] text-[#666666] underline underline-offset-2 hover:text-[#222222] transition-colors focus:outline-none"
       onClick={onLogin}
     >
       {translations.usePasswordInstead}
@@ -104,10 +113,10 @@ CodeLoginEmailLinks.displayName = 'CodeLoginEmailLinks'
 // Code Login - Code Input Links
 export const CodeLoginCodeLinks = memo(({ onChangeEmail, translations }: CodeLoginCodeLinksProps) => {
   return (
-    <div className="text-sm">
+    <div className="text-center">
       <button
         type="button"
-        className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+        className="cursor-pointer text-[14px] leading-[20px] tracking-[0.25px] text-[#666666] underline underline-offset-2 hover:text-[#222222] transition-colors focus:outline-none"
         onClick={onChangeEmail}
       >
         {translations.changeEmail}

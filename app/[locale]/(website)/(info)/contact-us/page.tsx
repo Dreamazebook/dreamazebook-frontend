@@ -409,7 +409,7 @@ export default function ContactUsPage() {
                     Sending...
                   </span>
                 ) : (
-                  'Submit Request'
+                  'Submit request'
                 )}
               </button>
             </div>

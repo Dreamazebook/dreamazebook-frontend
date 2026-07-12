@@ -70,7 +70,7 @@ const PERSONALIZE_TITLE_WHO =
 const PERSONALIZE_TITLE_BRING_STORY =
   'Let\u2019s Bring Your Story to Life \u2728';
 
-const PERSONALIZE_BTN_CREATE_PREVIEW = 'Create My Preview';
+const PERSONALIZE_BTN_CREATE_PREVIEW = 'Create my preview';
 
 function getPersonalizeLastStep(
   formType: 'SINGLE1' | 'SINGLE2',
@@ -84,10 +84,10 @@ function getPersonalizeLastStep(
 
 function getPersonalizeNextStepLabel(currentStep: number, totalSteps: number): string {
   if (totalSteps === 3) {
-    if (currentStep === 1) return 'Next Step · 1/3';
-    if (currentStep === 2) return 'Next Step · 2/3';
+    if (currentStep === 1) return 'Next step · 1/3';
+    if (currentStep === 2) return 'Next step · 2/3';
   }
-  return 'Next Step · 1/2';
+  return 'Next step · 1/2';
 }
 
 // Track ViewContent only once per page load

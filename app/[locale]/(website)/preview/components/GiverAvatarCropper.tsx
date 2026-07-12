@@ -492,6 +492,9 @@ export default function GiverAvatarCropper({
           }
           const base64Data = await blobToBase64(blob);
           const url = await uploadSpecialImage(base64Data);
+          if (!url) {
+            throw new Error('Upload failed. Please try again.');
+          }
           onDone(url);
         }
       } catch (e: unknown) {

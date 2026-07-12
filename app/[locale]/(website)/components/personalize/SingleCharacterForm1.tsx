@@ -231,7 +231,6 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       handleDragEnter,
       handleDragLeave,
       handleDragOver,
-      handleDrop,
       getUploadedPaths,
       initializeWithUrls,
     } = useMultiImageUpload(uploadOptions?.maxImages ?? 1, {
@@ -424,6 +423,15 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       setPendingPreviewUrl(firstUrl);
       setIsCropperOpen(true);
       onCropperOpenChange?.(true);
+    };
+
+    const handlePhotosDrop = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      handleDragLeave(e);
+      const files = e.dataTransfer.files ? Array.from(e.dataTransfer.files) : [];
+      if (files.length > 0) {
+        void handlePhotosUpload(files);
+      }
     };
 
     const handleCroppedFile = async (file: File) => {
@@ -920,7 +928,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
                       onDragEnter={handleDragEnter}
                       onDragLeave={handleDragLeave}
                       onDragOver={handleDragOver}
-                      onDrop={handleDrop}
+                      onDrop={handlePhotosDrop}
                     />
                   )}
                   {touched.photo && errors.photo && (
