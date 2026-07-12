@@ -146,9 +146,38 @@ export function pickBatchPageImageRaw(bp: Record<string, unknown> | null | undef
   );
 }
 
+/** 游客登录前展示的锁定页（如 p11-12）：仅底图 + 蒙版，不展示换脸结果 */
+export function isGuestLockedPreviewPageCode(pageCode: unknown): boolean {
+  const code = normalizeBatchPageCodeKey(pageCode);
+  if (!code) return false;
+  if (code === 'p12') return true;
+  return /^p\d+-12$/.test(code);
+}
+
+/** 锁定页展示底图（不含 final / 换脸图） */
+export function pickGuestLockedPageBaseImageRaw(
+  bp: Record<string, unknown> | null | undefined,
+): string {
+  const baseOnly = pickFirstNonEmptyString(
+    bp?.base_image_url,
+    bp?.base_stage_url,
+    bp?.template_image_url,
+    bp?.template_url,
+    bp?.preview_image,
+  );
+  if (baseOnly) return baseOnly;
+
+  // 映射后的 preview page 可能只有 image_url（与底图相同）；有 final 时不回退 image_url
+  const finalRaw = String(bp?.final_image_url || '').trim();
+  const imageRaw = String(bp?.image_url || '').trim();
+  if (imageRaw && (!finalRaw || imageRaw === finalRaw)) return imageRaw;
+
+  return '';
+}
+
 /**
- * 展示用 pages：游客只看 preview pages；登录后合并 order_pages 显示整本书。
- * 同 page_code 时 preview pages 优先（保留换脸/face_swap_logs），图片字段互相补齐。
+ * 展示用 pages：直接使用 batch.pages（含游客可见的 p11-12 等锁定页）。
+ * includeFullBook 为 true 时，若 batch 含 order_pages 则合并整本书（兼容旧接口）。
  */
 export function getBatchDisplayPages(
   batch: any,

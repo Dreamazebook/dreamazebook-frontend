@@ -32,6 +32,7 @@ import { getApiBaseUrl } from '@/utils/apiBaseUrl';
 import { getBirthdayCoverSeasonFromCharacterLike } from '@/utils/birthdayPersonalizeHelpers';
 import toast from 'react-hot-toast';
 import { IoCloseOutline, IoCheckmarkOutline } from '@/utils/icons';
+import { LockKeyhole } from 'lucide-react';
 import { PreviewResponse, PreviewCharacter, PreviewPage, FaceSwapBatch, ApiResponse, CartAddRequest, CartAddResponse } from '@/types/api';
 import { BaseBook, DetailedBook } from '@/types/book';
 import { API_CART_LIST, API_CART_UPDATE, API_ORDER_CREATE } from '@/constants/api';
@@ -51,8 +52,10 @@ import {
   batchHasPendingFaceSwapLogs,
   fetchPreviewBatch,
   getBatchDisplayPages,
+  isGuestLockedPreviewPageCode,
   mapBatchPageToPreviewPage,
   pickBatchPageImageRaw,
+  pickGuestLockedPageBaseImageRaw,
   pickPreviewPageIdFromBatchPage,
   type PreviewPageWithFaceSwapLogs,
   unwrapPreviewBatch,
@@ -168,13 +171,13 @@ function hasRenderablePreviewImage(page: any): boolean {
   return Boolean(pickBatchPageImageRaw(page));
 }
 
-/** Guest unlock gate：P10（或止于 10 的跨页）已有可展示图 */
-const isP10PageCode = (pageCode: unknown): boolean => {
-  const code = getPreviewPageCodeLookupKey(pageCode);
-  if (!code) return false;
-  if (code === 'p10') return true;
-  // 跨页如 p9-10 / p9-p10
-  return /^p\d+-10$/.test(code);
+/** Guest unlock gate：P12（或止于 12 的跨页，如 p11-12）已有可展示底图 */
+const isP12PageCode = (pageCode: unknown): boolean => {
+  return isGuestLockedPreviewPageCode(pageCode);
+};
+
+const hasGuestLockedPageBaseReady = (page: any): boolean => {
+  return Boolean(pickGuestLockedPageBaseImageRaw(page));
 };
 
 const hasGuestPreviewUnlockReady = (
@@ -182,10 +185,10 @@ const hasGuestPreviewUnlockReady = (
   previewPagesCount: number | null,
 ): boolean => {
   const displayed = getDisplayedPreviewPages(pages);
-  const p10 = displayed.find((p) => isP10PageCode(p?.page_code));
-  if (p10 && hasRenderablePreviewImage(p10)) return true;
+  const p12 = displayed.find((p) => isP12PageCode(p?.page_code));
+  if (p12 && hasGuestLockedPageBaseReady(p12)) return true;
 
-  // 无显式 p10 时：以产品配置的 preview 页数作为锁定边界
+  // 无显式 p12 时：以产品配置的 preview 页数作为锁定边界
   if (previewPagesCount != null && previewPagesCount > 0) {
     const readyCount = displayed.filter((p) => hasRenderablePreviewImage(p)).length;
     return readyCount >= previewPagesCount;
@@ -887,6 +890,19 @@ function PageRenderFailedOverlay({ message }: { message: string }) {
   );
 }
 
+/** 游客锁定页蒙版内容：背景由外层与换脸/regenerate 相同的 bg-white/70 蒙版提供 */
+function GuestLockedPageOverlay() {
+  const t = useTranslations('Preview');
+  return (
+    <div className="flex flex-col items-center px-6 text-center">
+      <LockKeyhole className="mb-3 h-10 w-10 text-gray-800" strokeWidth={1.75} aria-hidden="true" />
+      <p className="whitespace-pre-line text-center text-[22px] leading-[28px] text-gray-900">
+        {t('guestLockedPagesMessage')}
+      </p>
+    </div>
+  );
+}
+
 // 记忆化的单页预览组件，尽量只在相关 props 变化时重渲染
 const PreviewPageItem = React.memo(function PreviewPageItem({
   pageId,
@@ -911,7 +927,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   viewMode: 'single' | 'double';
   showOverlay: boolean;
   progress: number;
-  overlayMode?: 'progress' | 'loading' | 'failed';
+  overlayMode?: 'progress' | 'loading' | 'failed' | 'guestLocked';
   content?: string | null;
   customOverlayContent?: React.ReactNode;
   onImageLoaded?: (pageId: number) => void;
@@ -984,7 +1000,9 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                   />
                 </div>
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-                  {overlayMode === 'failed' ? (
+                  {overlayMode === 'guestLocked' ? (
+                    <GuestLockedPageOverlay />
+                  ) : overlayMode === 'failed' ? (
                     <PageRenderFailedOverlay message={t('pageRenderFailedMessage')} />
                   ) : overlayMode === 'progress' ? (
                     <DreamazeFaceSwapLoadingBar progress={progress} />
@@ -1046,7 +1064,9 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                   />
                 </div>
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-                  {overlayMode === 'failed' ? (
+                  {overlayMode === 'guestLocked' ? (
+                    <GuestLockedPageOverlay />
+                  ) : overlayMode === 'failed' ? (
                     <PageRenderFailedOverlay message={t('pageRenderFailedMessage')} />
                   ) : overlayMode === 'progress' ? (
                     <DreamazeFaceSwapLoadingBar progress={progress} />
@@ -1114,7 +1134,9 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
             onLoadingComplete={() => handleImageLoad()}
           />
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-            {overlayMode === 'failed' ? (
+            {overlayMode === 'guestLocked' ? (
+              <GuestLockedPageOverlay />
+            ) : overlayMode === 'failed' ? (
               <PageRenderFailedOverlay message={t('pageRenderFailedMessage')} />
             ) : overlayMode === 'progress' ? (
               <DreamazeFaceSwapLoadingBar progress={progress} />
@@ -3900,7 +3922,7 @@ export default function PreviewPageWithTopNav() {
               }
             }
           }
-          if (latestBatch?.pages || latestBatch?.order_pages) {
+          if (latestBatch?.pages) {
             const includeFullBook = useUserStore.getState().isLoggedIn;
             setPreviewData((prev) => {
               const prevByPageCode: Record<string, any> = {};
@@ -4845,7 +4867,7 @@ export default function PreviewPageWithTopNav() {
     window.addEventListener('touchmove', handleScroll, { passive: true });
     window.addEventListener('resize', handleScroll, { passive: true });
 
-    // P10 刚就绪且用户已在底部时，主动补一次检查
+    // P12 刚就绪且用户已在底部时，主动补一次检查
     maybeOpenGuestUnlock();
 
     return () => {
@@ -4901,7 +4923,7 @@ export default function PreviewPageWithTopNav() {
     const batchId = currentBatchIdRef.current || searchParams.get('previewid');
     if (!spuCode || !batchId) return;
 
-    // 登录后切换到 user 频道，并重新拉取 batch（含 order_pages）以展示整本书
+    // 登录后切换到 user 频道，并重新拉取 batch 以展示完整预览
     previewChannelNameRef.current = null;
     subscribeToPreviewChannelRef.current(spuCode, batchId);
     startBatchPollingRef.current(spuCode, batchId);
@@ -5905,6 +5927,15 @@ export default function PreviewPageWithTopNav() {
                     const isReplaceablePage = replaceableTextPageIds.has(page.page_id) || replaceableTextPageNumbers.has(page.page_number);
                     // 仅在 p3-4（有的书返回 p3-p4）页面渲染 Giver & Dedication
                     const pageCode = String((page as any).page_code || '');
+                    const isGuestLockedPage = isGuest && isGuestLockedPreviewPageCode(pageCode);
+                    const guestLockedBaseRaw = isGuestLockedPage
+                      ? pickGuestLockedPageBaseImageRaw(page as any)
+                      : '';
+                    if (isGuestLockedPage && !guestLockedBaseRaw) return null;
+                    const showGuestLockOverlay = isGuestLockedPage && Boolean(guestLockedBaseRaw);
+                    const guestLockedBaseSrc = showGuestLockOverlay
+                      ? buildProtectedPreviewDisplayUrl(String(guestLockedBaseRaw))
+                      : '';
                     const isGiverDedicationPage = pageCode === 'p3-4' || pageCode === 'p3-p4';
                     const momCompositePageCode = isMomBook ? toMomCompositeUploadPageCode(pageCode) : null;
                     const isMomCompositePage = Boolean(momCompositePageCode);
@@ -5930,6 +5961,8 @@ export default function PreviewPageWithTopNav() {
                         : null;
                     // 轮到该页前（progress 为 0）显示 loading；开始后显示进度；失败页显示说明
                     const overlayMode = pageFailed ? 'failed' : (progress > 0 ? 'progress' : 'loading');
+                    const pageOverlayMode = showGuestLockOverlay ? 'guestLocked' : overlayMode;
+                    const showPageOverlay = showGuestLockOverlay || isSwapping || pageFailed;
 
                       // p3-4 展示策略同上：只有当 final 与 base/image 不同，才默认展示 final。
                       // 这样 edited book 能展示历史最终图；create book（final==base 或无 final）则会走 Canvas 展示默认寄语。
@@ -6214,6 +6247,7 @@ export default function PreviewPageWithTopNav() {
                         : [];
                       const showFaceSwapVersionCarousel =
                         hasSwap &&
+                        !showGuestLockOverlay &&
                         !isGiverDedicationPage &&
                         !isMomCompositePage &&
                         faceSwapLogs.length > 0 &&
@@ -6270,16 +6304,18 @@ export default function PreviewPageWithTopNav() {
                             pageId={page.page_id}
                             pageNumber={page.page_number}
                             src={
-                              momCompositeLocalPreviewSrc
+                              showGuestLockOverlay
+                                ? guestLockedBaseSrc
+                                : momCompositeLocalPreviewSrc
                                 ? momCompositeLocalPreviewSrc
                                 : (p34FinalSrc && isGiverDedicationPage && !p34HasLocalChanges)
                                   ? p34FinalSrc
                                   : src
                             }
                             viewMode={displayViewMode}
-                            showOverlay={isSwapping || pageFailed}
+                            showOverlay={showPageOverlay}
                             progress={progress}
-                            overlayMode={overlayMode as any}
+                            overlayMode={pageOverlayMode as any}
                             content={page.content}
                             showLoadingPlaceholder={hasSwap || !displayUrlRaw}
                             doubleImageAreaClassName={openingDoubleImageGlow || momDoubleImageGlow}
