@@ -50,14 +50,14 @@ const OrderHistory = () => {
     },
     {
       id: 'processing',
-      label: t('digitalProduction'),
-      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'processing').length
+      label: t('inProduction'),
+      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'processing').length + orderList.filter(order => orderStatusMapping?.[order.status] === 'confirmed').length
     },
-    {
-      id: 'confirmed',
-      label: t('printProduction'),
-      count: orderList.filter(order => orderStatusMapping?.[order.status] === 'confirmed').length
-    },
+      // {
+      //   id: 'confirmed',
+      //   label: t('printProduction'),
+      //   count: orderList.filter(order => orderStatusMapping?.[order.status] === 'confirmed').length
+      // },
     {
       id: 'shipping',
       label: t('inTransit'),
