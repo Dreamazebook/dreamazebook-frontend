@@ -57,11 +57,13 @@ export default function LoginModal({
   // Unify ALL login UIs to match the preview unlock design.
   const unifiedUI = true
   const previewTitle = loginModalOptions?.title ?? tPreview('unlockFullBookTitle')
-  const previewFooterNote = loginModalOptions?.footerNote ?? tPreview('unlockFullBookFooter')
-  const previewSendCodeLabel = loginModalOptions?.sendCodeButtonLabel ?? tPreview('continueWithEmailCode')
   const showNotCreatorPrompt = Boolean(
     isPreviewUnlock && loginModalOptions?.showNotCreatorPrompt && loginModalOptions?.personalizeHref,
   )
+  const previewFooterNote = showNotCreatorPrompt
+    ? undefined
+    : (loginModalOptions?.footerNote ?? tPreview('unlockFullBookFooter'))
+  const previewSendCodeLabel = loginModalOptions?.sendCodeButtonLabel ?? tPreview('continueWithEmailCode')
   const previewFieldWidth = isBottomSheet ? '100%' : 312
   const previewButtonStyle: React.CSSProperties = {
     width: previewFieldWidth,

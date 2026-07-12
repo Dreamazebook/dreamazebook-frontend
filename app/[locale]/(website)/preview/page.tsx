@@ -1430,7 +1430,7 @@ export default function PreviewPageWithTopNav() {
     }
     openLoginModal({
       title: t('unlockFullBookTitle'),
-      footerNote: t('unlockFullBookFooter'),
+      footerNote: isNotCreator ? undefined : t('unlockFullBookFooter'),
       sendCodeButtonLabel: t('continueWithEmailCode'),
       loginSource: 'preview_unlock',
       personalizeHref,
