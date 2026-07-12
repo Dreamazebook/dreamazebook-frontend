@@ -5799,7 +5799,7 @@ export default function PreviewPageWithTopNav() {
   const previewBackLabel = isCartOptionEdit
     ? 'Back to shopping cart'
     : activeTab === 'Others' && !hideOthers
-      ? 'Back to the preview page'
+      ? 'Back to preview'
       : 'Back to edit';
 
   const showBackToPreviewPage = activeTab === 'Others' && !hideOthers && !isCartOptionEdit;
@@ -5880,10 +5880,13 @@ export default function PreviewPageWithTopNav() {
               <button
                 type="button"
                 onClick={handlePreviewBackToBookPreview}
-                className="flex items-center text-gray-700 hover:text-blue-500"
+                className="flex items-center min-w-0 text-gray-700 hover:text-blue-500"
                 aria-label={previewBackLabel}
               >
-                <IoIosArrowBack size={24} />
+                <IoIosArrowBack size={24} className="shrink-0" />
+                <span className="ml-1 text-[#222222] text-[16px] leading-[24px] tracking-[0.15px] font-medium truncate">
+                  {previewBackLabel}
+                </span>
               </button>
             ) : (
               <Link
@@ -5897,11 +5900,13 @@ export default function PreviewPageWithTopNav() {
           ) : (
             <div className="w-6 shrink-0" aria-hidden="true" />
           )}
-          <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center">
-            <span className="text-[#222222] text-[16px] leading-[24px] tracking-[0.15px] font-medium text-center truncate max-w-[200px]">
-              {previewHeaderTitle}
-            </span>
-          </div>
+          {!showBackToPreviewPage ? (
+            <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center">
+              <span className="text-[#222222] text-[16px] leading-[24px] tracking-[0.15px] font-medium text-center truncate max-w-[200px]">
+                {previewHeaderTitle}
+              </span>
+            </div>
+          ) : null}
           <div className="w-6 md:hidden" aria-hidden="true" />
         </div>
         <div className="hidden sm:flex items-center justify-between flex-1 min-w-0">
