@@ -51,6 +51,7 @@ import {
 import {
   batchHasPendingFaceSwapLogs,
   fetchPreviewBatch,
+  filterGuestVisiblePreviewPages,
   getBatchDisplayPages,
   isGuestLockedPreviewPageCode,
   mapBatchPageToPreviewPage,
@@ -160,6 +161,16 @@ const getDisplayedPreviewPages = (pages: any[] | undefined | null): any[] => {
   return (pages ?? []).filter((p) => shouldShowInBookPreviewTab(p));
 };
 
+/** 按当前用户身份返回应渲染的正文页（游客截断至锁定跨页） */
+const getPreviewPagesForViewer = (
+  pages: any[] | undefined | null,
+  options: { isGuest: boolean; bookId?: string | null },
+): any[] => {
+  const displayed = getDisplayedPreviewPages(pages);
+  if (!options.isGuest) return displayed;
+  return filterGuestVisiblePreviewPages(displayed, options.bookId);
+};
+
 function getPreviewPageCodeLookupKey(pageCode: unknown): string {
   return String(pageCode || '')
     .trim()
@@ -198,29 +209,18 @@ const isGuestPreviewPageDisplayReady = (page: any, bookId?: string | null): bool
 /** Guest unlock gate：游客可见页（至锁定跨页）全部换脸完毕后再允许弹出登录 */
 const hasGuestPreviewUnlockReady = (
   pages: any[] | undefined | null,
-  previewPagesCount: number | null,
+  _previewPagesCount: number | null,
   bookId?: string | null,
 ): boolean => {
-  const displayed = getDisplayedPreviewPages(pages);
-  if (displayed.length === 0) return false;
+  const guestVisiblePages = filterGuestVisiblePreviewPages(getDisplayedPreviewPages(pages), bookId);
+  if (guestVisiblePages.length === 0) return false;
 
-  const lockPage = displayed.find((p) =>
+  const hasLockPage = guestVisiblePages.some((p) =>
     isGuestLockedPreviewPageCode(p?.page_code, bookId),
   );
+  if (!hasLockPage) return false;
 
-  if (lockPage) {
-    const lockIdx = displayed.indexOf(lockPage);
-    const guestVisiblePages = displayed.slice(0, lockIdx + 1);
-    return guestVisiblePages.every((p) => isGuestPreviewPageDisplayReady(p, bookId));
-  }
-
-  if (previewPagesCount != null && previewPagesCount > 0) {
-    if (displayed.length < previewPagesCount) return false;
-    const guestVisiblePages = displayed.slice(0, previewPagesCount);
-    return guestVisiblePages.every((p) => isGuestPreviewPageDisplayReady(p, bookId));
-  }
-
-  return false;
+  return guestVisiblePages.every((p) => isGuestPreviewPageDisplayReady(p, bookId));
 };
 
 function preservePreviewImageFields(page: any, prevPage: any) {
@@ -4901,10 +4901,17 @@ export default function PreviewPageWithTopNav() {
     };
   }, [isGuest]);
 
-  const previewContentLength = previewData?.preview_data?.length ?? 0;
+  const previewContentLength = useMemo(
+    () =>
+      getPreviewPagesForViewer(previewData?.preview_data, {
+        isGuest,
+        bookId: previewBookId,
+      }).length,
+    [previewData?.preview_data, isGuest, previewBookId],
+  );
   const guestUnlockReady = useMemo(
     () => hasGuestPreviewUnlockReady(previewData?.preview_data, previewPagesCount, previewBookId),
-    [previewData?.preview_data, previewPagesCount, previewBookId],
+    [previewData?.preview_data, previewBookId],
   );
   const guestUnlockReadyRef = useRef(guestUnlockReady);
   guestUnlockReadyRef.current = guestUnlockReady;
@@ -6090,7 +6097,10 @@ export default function PreviewPageWithTopNav() {
                 <div className="w-full flex flex-col items-center gap-8">
                   {(() => {
                     // 展示 batch 正文页；cover_3/4 等在 Gift Options 展示
-                    const displayedPages = getDisplayedPreviewPages(previewData.preview_data);
+                    const displayedPages = getPreviewPagesForViewer(previewData.preview_data, {
+                      isGuest,
+                      bookId: previewBookId,
+                    });
                     console.log('[Preview] Rendering', displayedPages.length, 'pages (previewPagesCount:', previewPagesCount, ', isQueued:', isQueued, ', isGenerating:', isGenerating, ')');
                     
                     // 修改判定逻辑：只要有页面数据就渲染，不强制要求 base_image

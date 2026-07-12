@@ -180,6 +180,53 @@ export function isGuestLockedPreviewPageCode(
   return new RegExp(`^p\\d+-${end}$`).test(code);
 }
 
+/** 从跨页 page_code 解析右页码（p11-12 → 12）；无法解析时返回 null */
+export function parsePreviewSpreadEndPageNumber(
+  pageCode: unknown,
+  pageNumber?: unknown,
+): number | null {
+  const code = normalizeBatchPageCodeKey(pageCode);
+  if (code) {
+    const spread = code.match(/^p(\d+)-(\d+)$/);
+    if (spread) return Math.max(Number(spread[1]), Number(spread[2]));
+    const single = code.match(/^p(\d+)$/);
+    if (single) return Number(single[1]);
+  }
+  const num = Number(pageNumber);
+  if (Number.isFinite(num) && num > 0) return num;
+  return null;
+}
+
+/** 页码是否在游客预览范围内（含锁定跨页，默认至 p11-12 / Melody p13-14） */
+export function isWithinGuestPreviewPageRange(
+  page: { page_code?: unknown; page_number?: unknown } | null | undefined,
+  bookId?: string | null,
+): boolean {
+  const lockEnd = getGuestLockedSpreadEndPageNumber(bookId);
+  const spreadEnd = parsePreviewSpreadEndPageNumber(page?.page_code, page?.page_number);
+  if (spreadEnd == null) return true;
+  return spreadEnd <= lockEnd;
+}
+
+/**
+ * 游客未登录：只保留锁定跨页及之前的正文页（后端 batch 可能返回更多页，由前端截断）。
+ * 已过滤 cover_3/4 等封面页后传入。
+ */
+export function filterGuestVisiblePreviewPages(
+  pages: any[] | undefined | null,
+  bookId?: string | null,
+): any[] {
+  const list = pages ?? [];
+  if (list.length === 0) return [];
+
+  const lockIdx = list.findIndex((p) => isGuestLockedPreviewPageCode(p?.page_code, bookId));
+  if (lockIdx >= 0) {
+    return list.slice(0, lockIdx + 1);
+  }
+
+  return list.filter((p) => isWithinGuestPreviewPageRange(p, bookId));
+}
+
 /** 锁定页展示底图（不含 final / 换脸图） */
 export function pickGuestLockedPageBaseImageRaw(
   bp: Record<string, unknown> | null | undefined,
