@@ -102,7 +102,7 @@ export default function Thankyou() {
             <div className="bg-[#f8f8f8] p-3 mt-6 md:mt-12">
               <p className="text-[18px] md:text-xl font-bold mb-3 flex items-center gap-2">
                 <span className="bg-[#4099FF] px-2 rounded text-white">1</span>
-                <span>Get Your {KICKSTARTER} Ready</span>
+                <span>Get your {KICKSTARTER} ready</span>
               </p>
               <ul className="text-xl font-light mb-3 list-disc ml-6">
                 <li>Bookmark our Kickstarter page now 📌</li>
@@ -114,7 +114,7 @@ export default function Thankyou() {
 
               <div className="flex justify-center">
                 <Button
-                  tl="👉 Set Up My Access"
+                  tl="👉 Set up my access"
                   className="w-full"
                   target="_blank"
                   url={KICKSTARTER_URL}
@@ -123,14 +123,14 @@ export default function Thankyou() {
 
               <p className="text-[18px] md:text-xl font-bold mt-6 md:mt-12 mb-3 flex items-center gap-2">
                 <span className="bg-[#4099FF] px-2 rounded text-white">2</span>
-                <span>Add to Calendar</span>
+                <span>Add to calendar</span>
               </p>
               <ul className="text-xl font-light mb-3 list-disc ml-6">
                 <li>Get a reminder right on your phone.</li>
               </ul>
               <div className="flex justify-center">
                 <Button
-                  tl="Add to Calendar"
+                  tl="Add to calendar"
                   className="w-full"
                   url="https://www.addevent.com/event/hV26670576"
                   target="_blank"

@@ -128,7 +128,7 @@ export default function Reserve() {
           ))}
           </div>
 
-          <Button tl={'Reserve Your Gift Bundle for $1'} url={NEXT_PUBLIC_STRIPE_PAYMENT_LINK} onClick={handlePayClick} />
+          <Button tl={'Reserve your gift bundle for $1'} url={NEXT_PUBLIC_STRIPE_PAYMENT_LINK} onClick={handlePayClick} />
           <a href={FACEBOOK_GROUP_URL} className="block cursor-pointer w-full p-3 text-center mt-3">Want to learn more? Join the Club!</a>
         </div>
 
@@ -157,7 +157,7 @@ export default function Reserve() {
 
       {/* <Footer /> */}
       <section className="bg-white py-3 px-6 text-center fixed bottom-0 left-0 w-full">
-        <a href={NEXT_PUBLIC_STRIPE_PAYMENT_LINK} className="inline-block rounded-4xl bg-[#FFC023] text-[19px] font-bold text-[#222222] mb-3 py-3 px-6">Claim Your $1 VIP Pass</a>
+        <a href={NEXT_PUBLIC_STRIPE_PAYMENT_LINK} className="inline-block rounded-4xl bg-[#FFC023] text-[19px] font-bold text-[#222222] mb-3 py-3 px-6">Claim your $1 VIP pass</a>
         <p className="text-[#999999] font-light text-[13px]">Only available for a limited time before launch</p>
       </section>
 

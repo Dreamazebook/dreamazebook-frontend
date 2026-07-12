@@ -18,6 +18,14 @@ interface NameEmailPasswordFieldsProps {
   nameLabel: string
   emailLabel: string
   passwordLabel: string
+  /** Use the unified preview-like login styles */
+  unifiedUI?: boolean
+  inputWrapperStyle?: React.CSSProperties
+  inputWrapperClassName?: string
+  inputStyle?: React.CSSProperties
+  inputClassName?: string
+  labelClassName?: string
+  hideRequiredMark?: boolean
 }
 
 export const NameEmailPasswordFields = memo(({
@@ -36,8 +44,15 @@ export const NameEmailPasswordFields = memo(({
   nameLabel,
   emailLabel,
   passwordLabel,
+  unifiedUI = false,
+  inputWrapperStyle,
+  inputWrapperClassName,
+  inputStyle,
+  inputClassName,
+  labelClassName,
+  hideRequiredMark = false,
 }: NameEmailPasswordFieldsProps) => (
-  <fieldset className="space-y-4">
+  <fieldset className={unifiedUI ? 'space-y-[12px]' : 'space-y-4'}>
     {showName && onNameChange && (
       <Input
         id="name"
@@ -47,6 +62,12 @@ export const NameEmailPasswordFields = memo(({
         onChange={(e) => onNameChange(e.target.value)}
         placeholder={namePlaceholder}
         required
+        wrapperStyle={inputWrapperStyle}
+        wrapperClassName={inputWrapperClassName}
+        inputStyle={inputStyle}
+        inputClassName={inputClassName}
+        labelClassName={labelClassName}
+        hideRequiredMark={hideRequiredMark}
       />
     )}
 
@@ -58,6 +79,12 @@ export const NameEmailPasswordFields = memo(({
       onChange={(e) => onEmailChange(e.target.value)}
       placeholder={emailPlaceholder}
       required
+      wrapperStyle={inputWrapperStyle}
+      wrapperClassName={inputWrapperClassName}
+      inputStyle={inputStyle}
+      inputClassName={inputClassName}
+      labelClassName={labelClassName}
+      hideRequiredMark={hideRequiredMark}
     />
 
     <PasswordField
@@ -69,6 +96,13 @@ export const NameEmailPasswordFields = memo(({
       required
       showPassword={showPassword}
       onPasswordToggle={onPasswordToggle}
+      unifiedUI={unifiedUI}
+      inputWrapperStyle={inputWrapperStyle}
+      inputWrapperClassName={inputWrapperClassName}
+      inputStyle={inputStyle}
+      inputClassName={inputClassName}
+      labelClassName={labelClassName}
+      hideRequiredMark={hideRequiredMark}
     />
   </fieldset>
 ))

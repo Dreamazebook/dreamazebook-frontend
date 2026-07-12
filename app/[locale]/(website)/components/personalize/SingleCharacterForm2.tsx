@@ -98,7 +98,6 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
     handleDragEnter,
     handleDragLeave,
     handleDragOver,
-    handleDrop,
     getUploadedPaths,
     initializeWithUrls,
   } = useMultiImageUpload(uploadOptions?.maxImages ?? 1, { allowedTypes: uploadOptions?.allowedTypes, maxFileSize: uploadOptions?.maxFileSize });
@@ -162,6 +161,15 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
     const firstUrl = URL.createObjectURL(filesToProcess[0]);
     setPendingPreviewUrl(firstUrl);
     setIsCropperOpen(true);
+  };
+
+  const handlePhotosDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    handleDragLeave(e);
+    const files = e.dataTransfer.files ? Array.from(e.dataTransfer.files) : [];
+    if (files.length > 0) {
+      void handlePhotosUpload(files);
+    }
   };
 
   const handleCroppedFile = async (file: File) => {
@@ -406,7 +414,7 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
                 onDragEnter={handleDragEnter}
                 onDragLeave={handleDragLeave}
                 onDragOver={handleDragOver}
-              onDrop={handleDrop}
+              onDrop={handlePhotosDrop}
               />
               {touched.photo && errors.photo && (
                 <p className="text-red-500 text-sm mt-1">{errors.photo}</p>

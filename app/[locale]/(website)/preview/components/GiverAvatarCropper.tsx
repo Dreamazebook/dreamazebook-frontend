@@ -4,6 +4,7 @@ import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Cropper } from 'react-cropper';
 import type { ReactCropperElement } from 'react-cropper';
 import EasyCrop, { type Area } from 'react-easy-crop';
+import 'react-easy-crop/react-easy-crop.css';
 import api from '@/utils/api';
 import { getApiOrigin } from '@/utils/apiBaseUrl';
 import { MdRotateLeft, MdRotateRight, MdFlip, MdRefresh } from '@/utils/icons';
@@ -260,6 +261,7 @@ function PersonalizeCircleCropEditor({
           onCropChange={setCrop}
           onZoomChange={setZoom}
           onCropComplete={handleCropComplete}
+          style={{ mediaStyle: { maxWidth: 'unset' } }}
           classes={{
             containerClassName: '!absolute !inset-0',
             cropAreaClassName: '!border-2 !border-white/90 !shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]',
@@ -381,7 +383,7 @@ export default function GiverAvatarCropper({
 
   const handleRateLimitLogin = useCallback(() => {
     setRateLimitError(null);
-    openLoginModal();
+    openLoginModal({ loginSource: 'preview_unlock' });
   }, [openLoginModal]);
 
   const rotateLeft = () => cropperRef.current?.cropper.rotate(-90);
@@ -490,6 +492,9 @@ export default function GiverAvatarCropper({
           }
           const base64Data = await blobToBase64(blob);
           const url = await uploadSpecialImage(base64Data);
+          if (!url) {
+            throw new Error('Upload failed. Please try again.');
+          }
           onDone(url);
         }
       } catch (e: unknown) {

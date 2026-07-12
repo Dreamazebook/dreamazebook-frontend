@@ -247,7 +247,13 @@
     "queueTip": "L'aperçu du livre est actuellement dans la file d'attente pour la génération. Vous êtes actuellement à la position {pos}/{tot}. Vous pouvez passer à l'onglet Others.",
     "queueTipNoPos": "L'aperçu du livre est actuellement dans la file d'attente pour la génération. Vous pouvez passer à l'onglet Others.",
     "selectOptions": "Vous pouvez d'abord sélectionner {options}",
-    "pageRenderFailedMessage": "Trop de personnes créent un aperçu en ce moment. Réessayez dans quelques minutes."
+    "pageRenderFailedMessage": "Trop de personnes créent un aperçu en ce moment. Réessayez dans quelques minutes.",
+    "tryAnotherVersion": "Essayer une autre version",
+    "faceSwapRegenerateFailed": "Impossible de générer une nouvelle version. Veuillez réessayer.",
+    "faceSwapSelectFailed": "Impossible de passer à cette version. Veuillez réessayer.",
+    "faceSwapMissingPageId": "Page d'aperçu indisponible. Actualisez et réessayez.",
+    "faceSwapPreviousVersion": "Version précédente",
+    "faceSwapNextVersion": "Version suivante"
   },
   "LoginModal": {
     "login": "Connexion",
@@ -260,6 +266,8 @@
     "verificationCode": "Code de vérification",
     "namePlaceholder": "Entrez votre nom",
     "emailPlaceholder": "Entrez votre adresse email",
+    "emailRequired": "Veuillez entrer votre adresse email",
+    "invalidEmail": "Veuillez entrer une adresse email valide",
     "passwordPlaceholder": "Entrez votre mot de passe",
     "codeInputPlaceholder": "Entrez le code de vérification",
     "loginFailed": "Échec de la connexion. Veuillez vérifier votre email et votre mot de passe.",

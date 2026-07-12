@@ -75,8 +75,8 @@ export interface CartItem {
   full_name?: string;
   recipient_name: string;
   item_type: string;
-  // create: 需要新建绘本, edit: 可以编辑已完成的绘本（后端返回）
-  mode?: "create" | "edit";
+  // 后端返回 create / create_book / edit / edit_book；前端统一归一化
+  mode?: "create" | "create_book" | "edit" | "edit_book" | string;
   sku_id: number;
   sku_code: string;
   sku_name: string;
@@ -123,6 +123,18 @@ export interface CartItems {
   cart_summary: any;
   selection: any;
 }
+
+/** 后端 mode 可能是 create / create_book / edit / edit_book */
+export const isCartItemEditMode = (mode: unknown, previewId?: unknown): boolean => {
+  const normalized = String(mode || '').trim().toLowerCase();
+  if (normalized === 'edit' || normalized === 'edit_book') return true;
+  if (normalized === 'create' || normalized === 'create_book') return false;
+  // 兼容旧数据：无 mode 时用 preview_id 推断
+  return Boolean(previewId);
+};
+
+export const isCartItemCreateMode = (mode: unknown, previewId?: unknown): boolean =>
+  !isCartItemEditMode(mode, previewId);
 
 export const getFormatedCover = (item:CartItem) => {
   const binding_type = item?.customization_data?.attributes?.binding_type || item?.attributes?.binding_type;

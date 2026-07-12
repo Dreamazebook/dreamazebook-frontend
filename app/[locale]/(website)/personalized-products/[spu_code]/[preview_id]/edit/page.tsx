@@ -39,7 +39,7 @@ const PERSONALIZE_PAGE_TITLE_CLASS =
 
 const PERSONALIZE_TITLE_WHO = 'Who Are You Making This Book For?';
 const PERSONALIZE_TITLE_BRING_STORY = "Let's Bring Your Story to Life ✨";
-const PERSONALIZE_BTN_UPDATE_PREVIEW = 'Update My Preview';
+const PERSONALIZE_BTN_UPDATE_PREVIEW = 'Update my preview';
 
 function getPersonalizeLastStep(isBirthday: boolean, isMom: boolean, isDad: boolean): number {
   if (isBirthday || isMom || isDad) return 3;
@@ -48,10 +48,10 @@ function getPersonalizeLastStep(isBirthday: boolean, isMom: boolean, isDad: bool
 
 function getPersonalizeNextStepLabel(currentStep: number, totalSteps: number): string {
   if (totalSteps === 3) {
-    if (currentStep === 1) return 'Next Step · 1/3';
-    if (currentStep === 2) return 'Next Step · 2/3';
+    if (currentStep === 1) return 'Next step · 1/3';
+    if (currentStep === 2) return 'Next step · 2/3';
   }
-  return 'Next Step · 1/2';
+  return 'Next step · 1/2';
 }
 
 const skinColors = ['#FFE2CF', '#DCB593', '#665444'];
@@ -1048,7 +1048,7 @@ export default function EditPersonalizedProductPage() {
   return (
     <div className="min-h-screen bg-[#F8F8F8]">
       {/* 顶部导航栏 */}
-      <div className="h-14 bg-white flex items-center px-4 sm:px-32">
+      <div className="h-12 bg-white flex items-center px-4 sm:px-32 md:sticky md:top-12 md:z-50">
         <div className="flex items-center justify-between w-full sm:hidden">
           <a 
             onClick={(e) => {

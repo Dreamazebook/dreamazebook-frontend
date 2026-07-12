@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, type CSSProperties, type ReactNode } from 'react'
 import { LoginLinks, RegisterLinks, ForgotPasswordLinks, CodeLoginEmailLinks, CodeLoginCodeLinks } from './ModeToggleLinks'
 import { LoginSubmitSection, RegisterSubmitSection, ForgotPasswordSubmitSection, CodeLoginSubmitSection } from './FormSubmitSection'
 import { OAuthButtons } from './OAuthButtons'
@@ -31,6 +31,14 @@ interface FormSubmitSectionsProps {
     orContinueWith: string
   }
   email: string
+  /** Use the unified preview-like login styles */
+  unifiedUI?: boolean
+  buttonClassName?: string
+  buttonStyle?: CSSProperties
+  /** Full-width OAuth row for mobile bottom sheet */
+  fluid?: boolean
+  /** 渲染在 OAuth 按钮下方（如 preview 非创建者引导） */
+  oauthFooter?: ReactNode
 }
 
 export const FormSubmitSections = memo(({
@@ -50,7 +58,13 @@ export const FormSubmitSections = memo(({
   onFacebookLogin,
   translations,
   email,
+  unifiedUI = false,
+  buttonClassName,
+  buttonStyle,
+  fluid = false,
+  oauthFooter,
 }: FormSubmitSectionsProps) => {
+  const oauthVariant = unifiedUI ? ('labeled' as const) : ('default' as const)
   return (
     <>
       {/* Login Mode */}
@@ -59,6 +73,8 @@ export const FormSubmitSections = memo(({
           loading={loading}
           errorMessage={errorMessage}
           buttonLabel={buttonLabel}
+          buttonClassName={buttonClassName}
+          buttonStyle={buttonStyle}
         >
           <div className="flex flex-col gap-2">
             <LoginLinks
@@ -75,6 +91,8 @@ export const FormSubmitSections = memo(({
               onGoogleClick={onGoogleLogin}
               onFacebookClick={onFacebookLogin}
               label={translations.orContinueWith}
+              variant={oauthVariant}
+              fluid={fluid}
             />
           </div>
         </LoginSubmitSection>
@@ -86,6 +104,8 @@ export const FormSubmitSections = memo(({
           loading={loading}
           errorMessage={errorMessage}
           buttonLabel={buttonLabel}
+          buttonClassName={buttonClassName}
+          buttonStyle={buttonStyle}
         >
           <RegisterLinks
             onLogin={() => onModeChange('login')}
@@ -100,6 +120,8 @@ export const FormSubmitSections = memo(({
             onGoogleClick={onGoogleLogin}
             onFacebookClick={onFacebookLogin}
             label={translations.orContinueWith}
+            variant={oauthVariant}
+            fluid={fluid}
           />
         </RegisterSubmitSection>
       )}
@@ -112,6 +134,8 @@ export const FormSubmitSections = memo(({
           resetSent={resetSent}
           successMessage={successMessage}
           buttonLabel={buttonLabel}
+          buttonClassName={buttonClassName}
+          buttonStyle={buttonStyle}
         >
           <ForgotPasswordLinks
             onLogin={() => onModeChange('codeLogin')}
@@ -125,6 +149,8 @@ export const FormSubmitSections = memo(({
             onGoogleClick={onGoogleLogin}
             onFacebookClick={onFacebookLogin}
             label={translations.orContinueWith}
+            variant={oauthVariant}
+            fluid={fluid}
           />
         </ForgotPasswordSubmitSection>
       )}
@@ -139,6 +165,8 @@ export const FormSubmitSections = memo(({
           verifyButtonLabel=""
           sendButtonLabel={buttonLabel}
           onResendCode={() => onSendLoginCode(email)}
+          buttonClassName={buttonClassName}
+          buttonStyle={buttonStyle}
         >
           <CodeLoginEmailLinks
             onLogin={() => onModeChange('login')}
@@ -152,7 +180,10 @@ export const FormSubmitSections = memo(({
             onGoogleClick={onGoogleLogin}
             onFacebookClick={onFacebookLogin}
             label={translations.orContinueWith}
+            variant={oauthVariant}
+            fluid={fluid}
           />
+          {oauthFooter}
         </CodeLoginSubmitSection>
       )}
 
@@ -166,13 +197,15 @@ export const FormSubmitSections = memo(({
           verifyButtonLabel={buttonLabel}
           sendButtonLabel=""
           onResendCode={() => onSendLoginCode(email)}
+          buttonClassName={buttonClassName}
+          buttonStyle={buttonStyle}
         >
-          {/* <CodeLoginCodeLinks
+          <CodeLoginCodeLinks
             onChangeEmail={onResetCodeFlow}
             translations={{
               changeEmail: translations.changeEmail,
             }}
-          /> */}
+          />
         </CodeLoginSubmitSection>
       )}
     </>

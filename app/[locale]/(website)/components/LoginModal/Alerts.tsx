@@ -10,11 +10,14 @@ interface SuccessAlertProps {
   actionLabel?: string
 }
 
-export const ErrorAlert = memo(({ message }: ErrorAlertProps) => (
-  <div className="bg-red-50 p-3 rounded-md text-red-700 border border-red-200" role="alert" aria-live="polite">
-    <p>{message}</p>
-  </div>
-))
+export const ErrorAlert = memo(({ message }: ErrorAlertProps) => {
+  if (!message) return null
+  return (
+    <p className="text-[#CF0F02] text-sm" role="alert" aria-live="polite">
+      {message}
+    </p>
+  )
+})
 
 ErrorAlert.displayName = 'ErrorAlert'
 

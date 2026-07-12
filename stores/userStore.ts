@@ -7,10 +7,26 @@ import { OrderDetail } from '@/types/order'
 import type { UserType, LoginData, RegisterData, GoogleLoginData, FacebookLoginData, KickstarterUserSummary } from '@/types/user'
 import { fbTrackCustom } from '@/utils/track'
 
+export type LoginModalOptions = {
+  title?: string
+  description?: string
+  footerNote?: string
+  sendCodeButtonLabel?: string
+  onSuccess?: () => void
+  /** Tracks where the login was triggered from for LoginSuccess event */
+  loginSource?: 'preview_unlock' | 'account_entry' | 'unknown'
+  /** 非创建者预览：登录弹窗内「Create your own book」跳转链接 */
+  personalizeHref?: string
+  /** 是否在 OAuth 按钮下方展示「Not the creator?」提示 */
+  showNotCreatorPrompt?: boolean
+}
+
 interface UserState {
   // Modal state
   isLoginModalOpen: boolean
-  openLoginModal: () => void
+  loginModalOptions: LoginModalOptions | null
+  openLoginModal: (options?: LoginModalOptions) => void
+  setLoginModalOptions: (options: LoginModalOptions) => void
   closeLoginModal: () => void
   toggleLoginModal: () => void
   setLoginUserToken: (userResponse:UserResponse) => void
@@ -53,9 +69,14 @@ interface UserState {
 const useUserStore = create<UserState>((set,get) => ({
   // Modal state - initially closed
   isLoginModalOpen: false,
-  openLoginModal: () => set({ isLoginModalOpen: true }),
-  closeLoginModal: () => set({ isLoginModalOpen: false }),
-  toggleLoginModal: () => set((state) => ({ isLoginModalOpen: !state.isLoginModalOpen })),
+  loginModalOptions: null,
+  openLoginModal: (options) => set({ isLoginModalOpen: true, loginModalOptions: options ?? null }),
+  setLoginModalOptions: (options) => set({ loginModalOptions: options }),
+  closeLoginModal: () => set({ isLoginModalOpen: false, loginModalOptions: null }),
+  toggleLoginModal: () => set((state) => ({
+    isLoginModalOpen: !state.isLoginModalOpen,
+    loginModalOptions: state.isLoginModalOpen ? null : state.loginModalOptions,
+  })),
   // Post-login redirect state
   
   // User state - initially not logged in
@@ -234,7 +255,8 @@ const useUserStore = create<UserState>((set,get) => ({
         localStorage.setItem('token', response.data.token);
         set({ isLoggedIn: true, user: response.data?.user || null });
         // Track LoginSuccess for registration
-        fbTrackCustom('LoginSuccess', { login_method: 'email_password' });
+        const loginSource = get().loginModalOptions?.loginSource || 'unknown';
+        fbTrackCustom('LoginSuccess', { login_method: 'email_password', login_source: loginSource });
       }
       return response;
     } catch (error) {
@@ -247,7 +269,8 @@ const useUserStore = create<UserState>((set,get) => ({
       set({isLoggedIn:true, user:userResponse.user});
       localStorage.setItem('token', userResponse.token);
       // Track LoginSuccess
-      fbTrackCustom('LoginSuccess', {login_method: 'token'});
+      const loginSource = get().loginModalOptions?.loginSource || 'unknown';
+      fbTrackCustom('LoginSuccess', {login_method: 'token', login_source: loginSource});
     }
   },
   login: async (userData): Promise<ApiResponse<UserResponse> | null> => {
@@ -256,7 +279,8 @@ const useUserStore = create<UserState>((set,get) => ({
       if (response.success && response.data?.token) {
         get().setLoginUserToken(response.data);
         // Track LoginSuccess for email/password login
-        fbTrackCustom('LoginSuccess', { login_method: 'email_password' });
+        const loginSource = get().loginModalOptions?.loginSource || 'unknown';
+        fbTrackCustom('LoginSuccess', { login_method: 'email_password', login_source: loginSource });
       }
       return response;
     } catch (error) {
@@ -306,7 +330,8 @@ const useUserStore = create<UserState>((set,get) => ({
         localStorage.setItem('token', response.data.token);
         set({ isLoggedIn: true, user: response.data?.user || null });
         // Track LoginSuccess for Google login
-        fbTrackCustom('LoginSuccess', { login_method: 'google' });
+        const loginSource = get().loginModalOptions?.loginSource || 'unknown';
+        fbTrackCustom('LoginSuccess', { login_method: 'google', login_source: loginSource });
       }
       return response;
     } catch (error) {
@@ -329,7 +354,8 @@ const useUserStore = create<UserState>((set,get) => ({
         localStorage.setItem('token', response.data.token);
         set({ isLoggedIn: true, user: response.data?.user || null });
         // Track LoginSuccess for Facebook login
-        fbTrackCustom('LoginSuccess', { login_method: 'facebook' });
+        const loginSource = get().loginModalOptions?.loginSource || 'unknown';
+        fbTrackCustom('LoginSuccess', { login_method: 'facebook', login_source: loginSource });
       }
       return response;
     } catch (error) {

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { type CSSProperties } from 'react';
 
 interface Option {
   value: string;
@@ -17,7 +17,13 @@ interface InputProps {
   options?: Option[];
   placeholder?: string;
   required?: boolean;
+  hideRequiredMark?: boolean;
   className?: string;
+  inputClassName?: string;
+  labelClassName?: string;
+  wrapperClassName?: string;
+  wrapperStyle?: CSSProperties;
+  inputStyle?: CSSProperties;
 }
 
 const Input: React.FC<InputProps> = ({
@@ -30,18 +36,30 @@ const Input: React.FC<InputProps> = ({
   options,
   placeholder,
   required = false,
-  className = ''
+  hideRequiredMark = false,
+  className = '',
+  inputClassName = '',
+  labelClassName = '',
+  wrapperClassName = '',
+  wrapperStyle,
+  inputStyle,
 }) => {
+  const inputBorderClass = error ? 'border-red-500' : inputClassName ? '' : 'border-gray-300';
+  const inputPaddingClass = inputClassName ? '' : 'p-2';
+  const inputStyles = `w-full border rounded-md ${inputPaddingClass} ${inputBorderClass} ${inputClassName}`.trim();
+  const labelStyles = labelClassName || 'text-[16px] font-medium text-[#222] mb-1';
+  const containerClassName = wrapperClassName || className;
+
   return (
-    <div className={className}>
-      <label htmlFor={id} className="block text-[16px] font-medium text-[#222] mb-1">
-        {label}{required && <span className="text-red-500 ml-1">*</span>}
+    <div className={containerClassName} style={wrapperStyle}>
+      <label htmlFor={id} className={`block ${labelStyles}`}>
+        {label}{required && !hideRequiredMark && <span className="text-red-500 ml-1">*</span>}
       </label>
       
       {type === 'select' ? (
         <select
           id={id}
-          className={`w-full p-2 border rounded ${error ? 'border-red-500' : 'border-gray-300'}`}
+          className={`w-full p-2 border rounded ${error ? 'border-red-500' : 'border-gray-300'} ${inputClassName}`}
           value={value}
           onChange={onChange}
           required={required}
@@ -57,7 +75,8 @@ const Input: React.FC<InputProps> = ({
         <input
           type={type}
           id={id}
-          className={`w-full p-2 border rounded-md ${error ? 'border-red-500' : 'border-gray-300'}`}
+          className={inputStyles}
+          style={inputStyle}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
@@ -65,7 +84,7 @@ const Input: React.FC<InputProps> = ({
         />
       )}
       
-      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+      {error && <p className="text-sm text-[#CF0F02]">{error}</p>}
     </div>
   );
 };

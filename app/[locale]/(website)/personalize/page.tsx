@@ -70,7 +70,7 @@ const PERSONALIZE_TITLE_WHO =
 const PERSONALIZE_TITLE_BRING_STORY =
   'Let\u2019s Bring Your Story to Life \u2728';
 
-const PERSONALIZE_BTN_CREATE_PREVIEW = 'Create My Preview';
+const PERSONALIZE_BTN_CREATE_PREVIEW = 'Create my preview';
 
 function getPersonalizeLastStep(
   formType: 'SINGLE1' | 'SINGLE2',
@@ -84,10 +84,10 @@ function getPersonalizeLastStep(
 
 function getPersonalizeNextStepLabel(currentStep: number, totalSteps: number): string {
   if (totalSteps === 3) {
-    if (currentStep === 1) return 'Next Step · 1/3';
-    if (currentStep === 2) return 'Next Step · 2/3';
+    if (currentStep === 1) return 'Next step · 1/3';
+    if (currentStep === 2) return 'Next step · 2/3';
   }
-  return 'Next Step · 1/2';
+  return 'Next step · 1/2';
 }
 
 // Track ViewContent only once per page load
@@ -450,10 +450,10 @@ export default function PersonalizeApiDrivenPage() {
     const element = document.getElementById(elementId);
     
     if (element) {
-      // 计算偏移量：考虑手机端吸底栏高度（76px）和顶部导航栏高度（56px）
+      // 计算偏移量：考虑手机端吸底栏高度（76px）和顶部导航栏高度（48px）
       const isMobile = window.innerWidth < 768; // md breakpoint
       const stickyBarHeight = isMobile ? 76 : 0;
-      const headerHeight = 56; // h-14 = 56px
+      const headerHeight = isMobile ? 92 : 96; // promotion banner + page header (44+48 mobile, 48+48 desktop)
       const offset = stickyBarHeight + headerHeight + 20; // 额外 20px 间距
       
       const elementPosition = element.getBoundingClientRect().top;
@@ -505,7 +505,7 @@ export default function PersonalizeApiDrivenPage() {
             if (element) {
               const isMobile = window.innerWidth < 768;
               const stickyBarHeight = isMobile ? 76 : 0;
-              const headerHeight = 56;
+              const headerHeight = isMobile ? 92 : 96;
               const offset = stickyBarHeight + headerHeight + 20;
               const elementPosition = element.getBoundingClientRect().top;
               const offsetPosition = elementPosition + window.pageYOffset - offset;
@@ -886,7 +886,7 @@ export default function PersonalizeApiDrivenPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F8F8]">
-      <div className="h-14 bg-white flex items-center px-4 sm:px-32">
+      <div className="sticky top-11 z-50 h-12 bg-white flex items-center px-4 sm:px-32 md:top-12">
         <div className="relative flex items-center justify-between w-full sm:hidden">
           {canGoToPreviousStep ? (
             <button

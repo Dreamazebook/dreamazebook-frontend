@@ -8,7 +8,7 @@ export const AboutUs = () => {
   return (
     <AnimatedSection style={{backgroundImage: `url(${ABOUT_US_BG})`}} className="bg-blue-50 py-16 bg-cover h-screen flex items-center">
     <div className="container mx-auto px-4">
-      <ContainerTitle cssClass="mb-6">About Us</ContainerTitle>
+      <ContainerTitle cssClass="mb-6">About us</ContainerTitle>
       <ContainerDesc cssClass="max-w-3xl mx-auto">
         The heart of Dreamaze is simple:<br/>
         <b>everyone deserves to be the hero of their own story.</b><br/>

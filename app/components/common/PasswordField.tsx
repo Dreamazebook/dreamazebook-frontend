@@ -14,6 +14,13 @@ interface PasswordFieldProps {
   error?: string;
   showPassword?: boolean;
   onPasswordToggle?: () => void;
+  unifiedUI?: boolean
+  inputWrapperStyle?: React.CSSProperties
+  inputWrapperClassName?: string
+  inputStyle?: React.CSSProperties
+  inputClassName?: string
+  labelClassName?: string
+  hideRequiredMark?: boolean
 }
 
 const PasswordField: React.FC<PasswordFieldProps> = ({
@@ -26,6 +33,13 @@ const PasswordField: React.FC<PasswordFieldProps> = ({
   error,
   showPassword: externalShowPassword,
   onPasswordToggle: externalOnToggle,
+  unifiedUI = false,
+  inputWrapperStyle,
+  inputWrapperClassName,
+  inputStyle,
+  inputClassName,
+  labelClassName,
+  hideRequiredMark = false,
 }) => {
   const [internalShowPassword, setInternalShowPassword] = useState(false);
 
@@ -43,8 +57,22 @@ const PasswordField: React.FC<PasswordFieldProps> = ({
         placeholder={placeholder}
         required={required}
         error={error}
+        wrapperStyle={inputWrapperStyle}
+        wrapperClassName={inputWrapperClassName}
+        inputStyle={inputStyle}
+        inputClassName={inputClassName}
+        labelClassName={labelClassName}
+        hideRequiredMark={hideRequiredMark}
       />
-      <PasswordToggleButton showPassword={showPassword} onToggle={onToggle} />
+      <PasswordToggleButton
+        showPassword={showPassword}
+        onToggle={onToggle}
+        className={
+          unifiedUI
+            ? 'absolute right-4 top-[32px] cursor-pointer text-gray-500 hover:text-gray-700 focus:outline-none'
+            : undefined
+        }
+      />
     </div>
   );
 };

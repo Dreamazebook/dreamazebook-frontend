@@ -17,7 +17,7 @@ export default function OAuthCallbackContent({
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const { setLoginUserToken } = useUserStore();
+  const { setLoginUserToken, loginModalOptions } = useUserStore();
 
   useEffect(() => {
     const processOAuthCallback = async () => {
