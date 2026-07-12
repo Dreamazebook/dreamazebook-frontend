@@ -5177,8 +5177,9 @@ export default function PreviewPageWithTopNav() {
     if (!isUnlockedSpreadRevealReady(lockedPage)) return;
 
     if (unlockedSpreadRevealProgress < 98) {
+      // ~5s 从 1% 到 98%（每 100ms +2），再停 300ms 揭开
       const accel = window.setInterval(() => {
-        setUnlockedSpreadRevealProgress((prev) => Math.min(98, prev + 6));
+        setUnlockedSpreadRevealProgress((prev) => Math.min(98, prev + 2));
       }, 100);
       return () => window.clearInterval(accel);
     }
