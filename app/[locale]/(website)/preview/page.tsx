@@ -953,8 +953,12 @@ function GuestLockedPageOverlay() {
   const t = useTranslations('Preview');
   return (
     <div className="flex flex-col items-center px-6 text-center">
-      <LockKeyhole className="mb-3 h-10 w-10 text-gray-800" strokeWidth={1.75} aria-hidden="true" />
-      <p className="whitespace-pre-line text-center text-[16px] leading-[24px] tracking-[0.15px] md:text-[22px] md:leading-[28px] text-gray-900">
+      <LockKeyhole
+        className="mb-2 h-7 w-7 text-gray-500 md:mb-3 md:h-10 md:w-10 md:text-gray-800"
+        strokeWidth={1.75}
+        aria-hidden="true"
+      />
+      <p className="whitespace-pre-line text-center text-[13px] leading-[18px] tracking-[0.15px] text-gray-500 md:text-[22px] md:leading-[28px] md:text-gray-900">
         {t('guestLockedPagesMessage')}
       </p>
     </div>
