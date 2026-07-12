@@ -34,6 +34,19 @@ export interface PreviewPageWithFaceSwapLogs {
   [key: string]: unknown;
 }
 
+/** 从 batch 详情响应解析 is_own（是否为当前用户创建的预览） */
+export function resolveBatchIsOwn(
+  res?: ApiResponse<any> | null,
+  batch?: any | null,
+): boolean | null {
+  const data = res?.data;
+  if (typeof data?.is_own === 'boolean') return data.is_own;
+  if (typeof data?.batch?.is_own === 'boolean') return data.batch.is_own;
+  if (typeof data?.preview?.is_own === 'boolean') return data.preview.is_own;
+  if (typeof batch?.is_own === 'boolean') return batch.is_own;
+  return null;
+}
+
 /** 实际接口: data.batch.pages；OpenAPI 文档: data.pages；兼容 data.preview.pages */
 export function unwrapPreviewBatch(res: ApiResponse<any> | null | undefined): any | null {
   const data = res?.data;

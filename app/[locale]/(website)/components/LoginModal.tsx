@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from '@/i18n/routing'
+import { Link, useRouter } from '@/i18n/routing'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import useUserStore from '@/stores/userStore'
@@ -59,6 +59,9 @@ export default function LoginModal({
   const previewTitle = loginModalOptions?.title ?? tPreview('unlockFullBookTitle')
   const previewFooterNote = loginModalOptions?.footerNote ?? tPreview('unlockFullBookFooter')
   const previewSendCodeLabel = loginModalOptions?.sendCodeButtonLabel ?? tPreview('continueWithEmailCode')
+  const showNotCreatorPrompt = Boolean(
+    isPreviewUnlock && loginModalOptions?.showNotCreatorPrompt && loginModalOptions?.personalizeHref,
+  )
   const previewFieldWidth = isBottomSheet ? '100%' : 312
   const previewButtonStyle: React.CSSProperties = {
     width: previewFieldWidth,
@@ -507,6 +510,19 @@ export default function LoginModal({
     return null
   }
 
+  const previewOAuthFooter = showNotCreatorPrompt ? (
+    <p className="text-center text-[14px] leading-[20px] tracking-[0.25px] text-[#999999]">
+      {tPreview('notCreatorQuestion')}{' '}
+      <Link
+        href={loginModalOptions!.personalizeHref!}
+        onClick={closeLoginModal}
+        className="font-medium text-[#222222] underline underline-offset-2"
+      >
+        {tPreview('createYourOwnBook')}
+      </Link>
+    </p>
+  ) : null
+
   return (
     <main
       className={`relative flex shrink-0 flex-col bg-white ${
@@ -587,6 +603,7 @@ export default function LoginModal({
           buttonClassName={unifiedUI || isPreviewUnlock ? previewButtonClassName : undefined}
           buttonStyle={unifiedUI || isPreviewUnlock ? previewButtonStyle : undefined}
           fluid={isBottomSheet}
+          oauthFooter={previewOAuthFooter}
         />
         {(isPreviewUnlock ? previewFooterNote : footerNote) && state.mode === 'codeLogin' && (
           <p className="text-center text-[14px] leading-[20px] tracking-[0.25px] font-normal text-[#999999]">

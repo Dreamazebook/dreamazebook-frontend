@@ -57,6 +57,7 @@ import {
   pickBatchPageImageRaw,
   pickGuestLockedPageBaseImageRaw,
   pickPreviewPageIdFromBatchPage,
+  resolveBatchIsOwn,
   type PreviewPageWithFaceSwapLogs,
   unwrapPreviewBatch,
 } from '@/utils/previewFaceSwapVersions';
@@ -1360,15 +1361,48 @@ export default function PreviewPageWithTopNav() {
   const previewStoreUserData = usePreviewStore((s) => s.userData);
   const isGuest = !isLoggedIn;
   const previewBookId = (searchParams.get('bookid') || '').toUpperCase();
+  const [batchIsOwn, setBatchIsOwn] = useState<boolean | null>(null);
+  const batchIsOwnRef = useRef<boolean | null>(null);
+  const nonCreatorLoginPromptedRef = useRef(false);
+  const isNotPreviewCreator = batchIsOwn === false;
+  const applyBatchIsOwn = useCallback((res?: ApiResponse<any> | null, batch?: any | null) => {
+    const isOwn = resolveBatchIsOwn(res, batch);
+    if (isOwn !== null) {
+      batchIsOwnRef.current = isOwn;
+      setBatchIsOwn(isOwn);
+    }
+  }, []);
 
   const openPreviewUnlockLogin = useCallback(() => {
+    const isNotCreator = batchIsOwnRef.current === false;
+    let personalizeHref: string | undefined;
+    if (isNotCreator) {
+      const params = new URLSearchParams();
+      const bookIdParam = searchParams.get('bookid');
+      if (bookIdParam) params.set('book', bookIdParam);
+      const lang = searchParams.get('lang');
+      if (lang) params.set('language', lang);
+      if (searchParams.get('ks') === '1') params.set('ks', '1');
+      if (searchParams.get('hideOptions') === '1') params.set('hideOptions', '1');
+      const packageItemId = searchParams.get('package_item_id');
+      if (packageItemId) params.set('package_item_id', packageItemId);
+      const packageId = searchParams.get('package_id');
+      if (packageId) params.set('package_id', packageId);
+      const coverType = searchParams.get('cover_type');
+      if (coverType) params.set('cover_type', coverType);
+      const bindingType = searchParams.get('binding_type');
+      if (bindingType) params.set('binding_type', bindingType);
+      personalizeHref = `/personalize?${params.toString()}`;
+    }
     openLoginModal({
       title: t('unlockFullBookTitle'),
       footerNote: t('unlockFullBookFooter'),
       sendCodeButtonLabel: t('continueWithEmailCode'),
       loginSource: 'preview_unlock',
+      personalizeHref,
+      showNotCreatorPrompt: isNotCreator,
     });
-  }, [openLoginModal, t]);
+  }, [openLoginModal, searchParams, t]);
 
   const handleGuestRateLimitLogin = useCallback(() => {
     setGuestUploadRateLimitError(null);
@@ -1547,6 +1581,7 @@ export default function PreviewPageWithTopNav() {
           
           const res = await api.get(url) as ApiResponse<any>;
           const batch = unwrapPreviewBatch(res);
+          applyBatchIsOwn(res, batch);
           
           if (batch) {
              console.log('[Preview] Loaded batch directly:', batch);
@@ -1753,6 +1788,7 @@ export default function PreviewPageWithTopNav() {
       const res = await fetchPreviewBatch(spuCode, batchId);
       const batch = unwrapPreviewBatch(res);
       if (!batch) return null;
+      applyBatchIsOwn(res, batch);
       setPreviewData((prev) => {
         const prevByPageCode: Record<string, any> = {};
         try {
@@ -1775,8 +1811,15 @@ export default function PreviewPageWithTopNav() {
       });
       return batch;
     },
-    [],
+    [applyBatchIsOwn],
   );
+
+  // 非创建者游客：进入预览后需先登录
+  useEffect(() => {
+    if (!isGuest || batchIsOwn !== false || nonCreatorLoginPromptedRef.current) return;
+    nonCreatorLoginPromptedRef.current = true;
+    openPreviewUnlockLogin();
+  }, [batchIsOwn, isGuest, openPreviewUnlockLogin]);
 
   const [guestUploadRateLimitError, setGuestUploadRateLimitError] = useState<UploadRateLimitError | null>(null);
   // sidebar「Opening Photo」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
@@ -1848,6 +1891,9 @@ export default function PreviewPageWithTopNav() {
     skipNextCartOptionSyncRef.current = false;
     hasPrefilledOptionsRef.current = false;
     hasAppliedDefaultOptionsRef.current = false;
+    batchIsOwnRef.current = null;
+    setBatchIsOwn(null);
+    nonCreatorLoginPromptedRef.current = false;
   }, [p34CacheKey, setEditField, setGiverImageUrl]);
 
   useEffect(() => {
@@ -3777,6 +3823,7 @@ export default function PreviewPageWithTopNav() {
         const res = await api.get(url) as ApiResponse<any>;
         console.log('[Polling] Response:', res);
         const batch = unwrapPreviewBatch(res);
+        applyBatchIsOwn(res, batch);
         if (batch) {
           // 从最新的 batch 中获取 recipient_name 并更新
           // 注意：如果是从 personalized-product 进入的（store 中有数据），不覆盖 store 中的名字
@@ -3936,6 +3983,7 @@ export default function PreviewPageWithTopNav() {
           const url = path;
           const res = await api.get(url) as ApiResponse<any>;
           latestBatch = unwrapPreviewBatch(res);
+          applyBatchIsOwn(res, latestBatch);
           if (latestBatch) {
             // 从最新的 batch 中获取 recipient_name 并更新
             // 注意：如果是从 personalized-product 进入的（store 中有数据），不覆盖 store 中的名字
@@ -4295,6 +4343,7 @@ export default function PreviewPageWithTopNav() {
                     const url = path;
                     api.get(url).then((res: any) => {
                       const batch = unwrapPreviewBatch(res);
+                      applyBatchIsOwn(res, batch);
                       if (batch) {
                         const recipientName = batch.recipient_name || batch.options?.recipient_name || batch.options?.full_name;
                         if (recipientName && typeof recipientName === 'string' && recipientName.trim()) {
@@ -5600,6 +5649,27 @@ export default function PreviewPageWithTopNav() {
     return `/personalize?${params.toString()}`;
   }, [searchParams, isKs, isHideOptions, isCartOptionEdit]);
 
+  const createNewBookHref = useMemo(() => {
+    const params = new URLSearchParams();
+    const bookIdParam = searchParams.get('bookid');
+    if (bookIdParam) params.set('book', bookIdParam);
+    const lang = searchParams.get('lang');
+    if (lang) params.set('language', lang);
+    if (isKs) params.set('ks', '1');
+    const packageItemId = searchParams.get('package_item_id');
+    if (packageItemId) params.set('package_item_id', packageItemId);
+    const packageId = searchParams.get('package_id');
+    if (packageId) params.set('package_id', packageId);
+    if (isHideOptions) params.set('hideOptions', '1');
+    const coverType = searchParams.get('cover_type');
+    if (coverType) params.set('cover_type', coverType);
+    const bindingType = searchParams.get('binding_type');
+    if (bindingType) params.set('binding_type', bindingType);
+    return `/personalize?${params.toString()}`;
+  }, [searchParams, isKs, isHideOptions]);
+
+  const showBackToEditNav = !isNotPreviewCreator || isCartOptionEdit;
+
   const previewBackLabel = isCartOptionEdit
     ? 'Back to shopping cart'
     : activeTab === 'Others' && !hideOthers
@@ -5626,6 +5696,14 @@ export default function PreviewPageWithTopNav() {
       : t('continueToCheckout');
 
   const hidePreviewBottomBar = editField === 'giver' || pendingMomDrawingFile;
+  const previewBottomBarClassName = hidePreviewBottomBar
+    ? 'hidden'
+    : isNotPreviewCreator
+      ? 'flex'
+      : isGuest
+        ? 'hidden md:flex'
+        : 'flex';
+  const showNonCreatorCreateBookButton = isNotPreviewCreator;
 
   return (
     <div className="min-h-screen bg-[#F8F8F8]">
@@ -5671,23 +5749,27 @@ export default function PreviewPageWithTopNav() {
         className="sticky top-0 z-50 h-12 bg-white flex items-center px-4 sm:px-32"
       >
         <div className="relative flex items-center justify-between w-full sm:hidden">
-          {showBackToPreviewPage ? (
-            <button
-              type="button"
-              onClick={handlePreviewBackToBookPreview}
-              className="flex items-center text-gray-700 hover:text-blue-500"
-              aria-label={previewBackLabel}
-            >
-              <IoIosArrowBack size={24} />
-            </button>
+          {showBackToEditNav ? (
+            showBackToPreviewPage ? (
+              <button
+                type="button"
+                onClick={handlePreviewBackToBookPreview}
+                className="flex items-center text-gray-700 hover:text-blue-500"
+                aria-label={previewBackLabel}
+              >
+                <IoIosArrowBack size={24} />
+              </button>
+            ) : (
+              <Link
+                href={previewBackHref}
+                className="flex items-center text-gray-700 hover:text-blue-500"
+                aria-label={previewBackLabel}
+              >
+                <IoIosArrowBack size={24} />
+              </Link>
+            )
           ) : (
-            <Link
-              href={previewBackHref}
-              className="flex items-center text-gray-700 hover:text-blue-500"
-              aria-label={previewBackLabel}
-            >
-              <IoIosArrowBack size={24} />
-            </Link>
+            <div className="w-6 shrink-0" aria-hidden="true" />
           )}
           <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center justify-center">
             <span className="text-[#222222] text-[16px] leading-[24px] tracking-[0.15px] font-medium text-center truncate max-w-[200px]">
@@ -5697,24 +5779,28 @@ export default function PreviewPageWithTopNav() {
           <div className="w-6 md:hidden" aria-hidden="true" />
         </div>
         <div className="hidden sm:flex items-center justify-between flex-1 min-w-0">
-          {showBackToPreviewPage ? (
-            <button
-              type="button"
-              onClick={handlePreviewBackToBookPreview}
-              className="flex items-center text-sm shrink-0"
-            >
-              <span className="mr-2">←</span> {previewBackLabel}
-            </button>
+          {showBackToEditNav ? (
+            showBackToPreviewPage ? (
+              <button
+                type="button"
+                onClick={handlePreviewBackToBookPreview}
+                className="flex items-center text-sm shrink-0"
+              >
+                <span className="mr-2">←</span> {previewBackLabel}
+              </button>
+            ) : (
+              <Link href={previewBackHref} className="flex items-center text-sm shrink-0">
+                <span className="mr-2">←</span> {previewBackLabel}
+              </Link>
+            )
           ) : (
-            <Link href={previewBackHref} className="flex items-center text-sm shrink-0">
-              <span className="mr-2">←</span> {previewBackLabel}
-            </Link>
+            <div className="shrink-0" aria-hidden="true" />
           )}
           <div className="hidden sm:block flex-1" aria-hidden="true" />
         </div>
       </div>
 
-      <div className={`mx-auto overflow-x-hidden ${isGuest ? 'pb-4 md:pb-[76px]' : 'pb-[76px]'}`}>
+      <div className={`mx-auto overflow-x-hidden ${isGuest && !isNotPreviewCreator ? 'pb-4 md:pb-[76px]' : 'pb-[76px]'}`}>
         {activeTab === 'Book preview' ? (
           <main className="flex-1 flex flex-col items-center justify-start w-full">
             <h1 className="text-[28px] mt-2 mb-4 text-center w-full">Your book for {recipient?.trim()}</h1>
@@ -7380,25 +7466,44 @@ export default function PreviewPageWithTopNav() {
 
       {/* 吸底 Complete / Continue 按钮 */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-50 bg-white items-center justify-end h-[76px] pt-4 pb-4 gap-3 shadow-[0px_0px_16px_0px_#0000000D] ${
-          hidePreviewBottomBar ? 'hidden' : isGuest ? 'hidden md:flex' : 'flex'
-        } px-4 md:px-[120px]`}
+        className={`fixed bottom-0 left-0 right-0 z-50 bg-white items-center justify-end h-[76px] pt-4 pb-4 gap-3 shadow-[0px_0px_16px_0px_#0000000D] ${previewBottomBarClassName} px-4 md:px-[120px]`}
       >
-        <button
-          type="button"
-          onClick={handlePreviewPrimaryAction}
-          disabled={isAddingToCart}
-          className="bg-[#222222] text-[#F5E3E3] h-[44px] w-full md:w-auto md:min-w-[220px] px-8 rounded hover:bg-[#333333] disabled:bg-gray-400 disabled:cursor-not-allowed text-[16px] leading-[24px] tracking-[0.5px] flex items-center justify-center gap-2"
-        >
-          {isAddingToCart ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#F5E3E3]" />
-              Processing...
-            </>
-          ) : (
-            previewBottomButtonLabel
-          )}
-        </button>
+        {showNonCreatorCreateBookButton ? (
+          <div className="flex w-full items-center justify-end gap-3">
+            {isGuest ? (
+              <button
+                type="button"
+                onClick={handlePreviewPrimaryAction}
+                disabled={isAddingToCart}
+                className="bg-white text-[#222222] h-[44px] flex-1 md:flex-none md:min-w-[180px] px-6 rounded border border-[#222222] hover:bg-[#F8F8F8] disabled:opacity-50 disabled:cursor-not-allowed text-[16px] leading-[24px] tracking-[0.5px] flex items-center justify-center gap-2"
+              >
+                {previewBottomButtonLabel}
+              </button>
+            ) : null}
+            <Link
+              href={createNewBookHref}
+              className="bg-[#222222] text-[#F5E3E3] h-[44px] flex-1 md:flex-none md:min-w-[220px] px-8 rounded hover:bg-[#333333] text-[16px] leading-[24px] tracking-[0.5px] flex items-center justify-center text-center"
+            >
+              {t('createANewBook')}
+            </Link>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={handlePreviewPrimaryAction}
+            disabled={isAddingToCart}
+            className="bg-[#222222] text-[#F5E3E3] h-[44px] w-full md:w-auto md:min-w-[220px] px-8 rounded hover:bg-[#333333] disabled:bg-gray-400 disabled:cursor-not-allowed text-[16px] leading-[24px] tracking-[0.5px] flex items-center justify-center gap-2"
+          >
+            {isAddingToCart ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#F5E3E3]" />
+                Processing...
+              </>
+            ) : (
+              previewBottomButtonLabel
+            )}
+          </button>
+        )}
       </div>
 
       {p34ComposeUploading && p34PageMetaForUpload?.baseSrc && p34UploadComposeProps && (

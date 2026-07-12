@@ -260,6 +260,9 @@
     "continuePreview": "Continue preview",
     "continueWithEmailCode": "Continue with email code",
     "guestLockedPagesMessage": "More pages are waiting\nSign in to keep reading",
+    "notCreatorQuestion": "Not the creator?",
+    "createYourOwnBook": "Create your own book",
+    "createANewBook": "Create a new book",
     "chooseCoverAndFormat": "Choose cover & format",
     "continueToCheckout": "Continue to checkout",
     "completeMyBook": "Complete my book"
