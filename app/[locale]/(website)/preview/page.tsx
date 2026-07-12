@@ -299,28 +299,29 @@ const getPreviewDisplayImageRaw = (page: any): string => {
   return String(page?.base_image_url || page?.image_url || page?.final_image_url || '');
 };
 
-/** 登录解锁后：游客锁定跨页（p11-12 / p13-14）在换脸完成前应显示百分比彩虹 loading */
-const shouldShowUnlockedSpreadLoadingOverlay = (
+/** 前一跨页是否已完整露出（无换脸蒙版），用于游客锁定页延后出现 */
+const isPreviewSpreadFullyAppeared = (
   page: any,
-  options: {
-    isGuest: boolean;
-    bookId?: string | null;
-    isPostLoginSyncing: boolean;
-    isProcessingLike: boolean;
-  },
+  completedOverlayHold: Set<number>,
 ): boolean => {
-  if (options.isGuest) return false;
-  const pageCode = String(page?.page_code || '');
-  if (!isGuestLockedPreviewPageCode(pageCode, options.bookId)) return false;
-
+  if (!page) return true;
   const pageFailed = String(page?.status || '').toLowerCase() === 'failed';
-  if (pageFailed || hasMeaningfulFinalImage(page)) return false;
+  if (pageFailed) return hasRenderablePreviewImage(page);
+  if (page?.has_face_swap) {
+    if (!hasMeaningfulFinalImage(page)) return false;
+    if (completedOverlayHold.has(Number(page.page_id))) return false;
+    return true;
+  }
+  return hasRenderablePreviewImage(page);
+};
 
-  const hasSwap = !!page?.has_face_swap;
-  const hasBase = !!(page?.base_image_url || page?.image_url);
-  const isSwapping = hasSwap && hasBase && !hasMeaningfulFinalImage(page);
-
-  return options.isPostLoginSyncing || isSwapping || (options.isProcessingLike && hasBase);
+/** 登录解锁后的锁定跨页是否已可揭开（有 final，或无需换脸且有可展示图） */
+const isUnlockedSpreadRevealReady = (page: any): boolean => {
+  if (!page) return false;
+  const pageFailed = String(page?.status || '').toLowerCase() === 'failed';
+  if (pageFailed) return true;
+  if (page?.has_face_swap) return hasMeaningfulFinalImage(page);
+  return hasRenderablePreviewImage(page);
 };
 
 /** 与预览页 buildImageUrl 对齐，用于上传成功后预解码 CDN（避免 revoke blob 早于下方 img 切图导致闪白） */
@@ -5095,9 +5096,37 @@ export default function PreviewPageWithTopNav() {
 
   const prevLoggedInRef = useRef(isLoggedIn);
   const pendingPostLoginSyncRef = useRef(false);
-  const [isPostLoginSyncing, setIsPostLoginSyncing] = useState(false);
+  /** 游客登录解锁后：强制在 p11-12 / p13-14 上播百分比彩虹 loading，不论后端是否已完成 */
+  const [unlockedSpreadRevealLoading, setUnlockedSpreadRevealLoading] = useState(false);
+  const [unlockedSpreadRevealProgress, setUnlockedSpreadRevealProgress] = useState(0);
+  const unlockedSpreadRevealTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const subscribeToPreviewChannelRef = useRef(subscribeToPreviewChannel);
   subscribeToPreviewChannelRef.current = subscribeToPreviewChannel;
+
+  const startUnlockedSpreadRevealLoading = useCallback(() => {
+    if (unlockedSpreadRevealTimerRef.current) {
+      clearInterval(unlockedSpreadRevealTimerRef.current);
+      unlockedSpreadRevealTimerRef.current = null;
+    }
+    setUnlockedSpreadRevealLoading(true);
+    setUnlockedSpreadRevealProgress(1);
+    const step = 98 / 300;
+    unlockedSpreadRevealTimerRef.current = setInterval(() => {
+      setUnlockedSpreadRevealProgress((prev) => {
+        if (prev >= 98) return prev;
+        return Math.min(98, prev + step);
+      });
+    }, 200);
+  }, []);
+
+  const clearUnlockedSpreadRevealLoading = useCallback(() => {
+    if (unlockedSpreadRevealTimerRef.current) {
+      clearInterval(unlockedSpreadRevealTimerRef.current);
+      unlockedSpreadRevealTimerRef.current = null;
+    }
+    setUnlockedSpreadRevealProgress(100);
+    setUnlockedSpreadRevealLoading(false);
+  }, []);
 
   const runPostLoginPreviewSync = useCallback(async () => {
     const spuCode = searchParams.get('bookid');
@@ -5106,19 +5135,17 @@ export default function PreviewPageWithTopNav() {
 
     previewChannelNameRef.current = null;
     setPreviewPageReadySrcById({});
-    setIsPostLoginSyncing(true);
+    startUnlockedSpreadRevealLoading();
 
     try {
       await refreshPreviewDataFromBatch(spuCode, batchId, true);
     } catch (error) {
       console.warn('[Preview] Failed to refresh full book after login:', error);
-    } finally {
-      setIsPostLoginSyncing(false);
     }
 
     subscribeToPreviewChannelRef.current(spuCode, batchId, { force: true });
     startBatchPollingRef.current(spuCode, batchId);
-  }, [refreshPreviewDataFromBatch, searchParams]);
+  }, [refreshPreviewDataFromBatch, searchParams, startUnlockedSpreadRevealLoading]);
 
   useEffect(() => {
     if (!prevLoggedInRef.current && isLoggedIn) {
@@ -5127,6 +5154,7 @@ export default function PreviewPageWithTopNav() {
     prevLoggedInRef.current = isLoggedIn;
     if (!isLoggedIn) {
       pendingPostLoginSyncRef.current = false;
+      clearUnlockedSpreadRevealLoading();
       return;
     }
     if (!pendingPostLoginSyncRef.current) return;
@@ -5136,7 +5164,47 @@ export default function PreviewPageWithTopNav() {
 
     pendingPostLoginSyncRef.current = false;
     void runPostLoginPreviewSync();
-  }, [isLoggedIn, user?.id, runPostLoginPreviewSync]);
+  }, [isLoggedIn, user?.id, runPostLoginPreviewSync, clearUnlockedSpreadRevealLoading]);
+
+  // 登录解锁 loading：不论是否已完成都先播百分比；已可揭开时加速到 98% 再收起
+  useEffect(() => {
+    if (!unlockedSpreadRevealLoading || isGuest) return;
+
+    const lockedPage = (previewData?.preview_data || []).find((p: any) =>
+      isGuestLockedPreviewPageCode(p?.page_code, previewBookId),
+    );
+    if (!lockedPage) return;
+    if (!isUnlockedSpreadRevealReady(lockedPage)) return;
+
+    if (unlockedSpreadRevealProgress < 98) {
+      const accel = window.setInterval(() => {
+        setUnlockedSpreadRevealProgress((prev) => Math.min(98, prev + 6));
+      }, 100);
+      return () => window.clearInterval(accel);
+    }
+
+    setUnlockedSpreadRevealProgress(100);
+    const timer = window.setTimeout(() => {
+      clearUnlockedSpreadRevealLoading();
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [
+    unlockedSpreadRevealLoading,
+    unlockedSpreadRevealProgress,
+    isGuest,
+    previewData?.preview_data,
+    previewBookId,
+    clearUnlockedSpreadRevealLoading,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      if (unlockedSpreadRevealTimerRef.current) {
+        clearInterval(unlockedSpreadRevealTimerRef.current);
+        unlockedSpreadRevealTimerRef.current = null;
+      }
+    };
+  }, []);
 
   //寄语
   const MAX_LINES = 10;
@@ -6247,7 +6315,6 @@ export default function PreviewPageWithTopNav() {
                     // 换脸页失败：不要无限 loading，用 PageRenderFailedOverlay
                     const needsProcessingOverlay = hasSwap && hasBase && !hasFinal && !pageFailed;
                     const isSwapping = needsProcessingOverlay;
-                    const progress = Math.round(pageProgress[page.page_id] ?? 0);
                     // 展示策略：当 final 与 base/image 不同（说明最终图已更新）时优先展示 final；
                     // 否则展示 base/image（例如 create 流程里 final 可能为空或等同于 base）
                     const displayUrlRaw = getPreviewDisplayImageRaw(page);
@@ -6255,10 +6322,18 @@ export default function PreviewPageWithTopNav() {
                     const isReplaceablePage = replaceableTextPageIds.has(page.page_id) || replaceableTextPageNumbers.has(page.page_number);
                     // 仅在 p3-4（有的书返回 p3-p4）页面渲染 Giver & Dedication
                     const pageCode = String((page as any).page_code || '');
+                    const isLockedSpreadPageCode = isGuestLockedPreviewPageCode(pageCode, previewBookId);
                     const isGuestLockedPage =
                       isGuest &&
                       batchIsOwn !== false &&
-                      isGuestLockedPreviewPageCode(pageCode, previewBookId);
+                      isLockedSpreadPageCode;
+                    // 游客：前一跨页（如 p9-10）完全出现后，才展示锁定的 p11-12 / p13-14
+                    if (isGuestLockedPage) {
+                      const prevPage = displayedPages[idx - 1];
+                      if (prevPage && !isPreviewSpreadFullyAppeared(prevPage, completedOverlayHold)) {
+                        return null;
+                      }
+                    }
                     const guestLockedBaseRaw = isGuestLockedPage
                       ? pickGuestLockedPageBaseImageRaw(page as any)
                       : '';
@@ -6267,6 +6342,12 @@ export default function PreviewPageWithTopNav() {
                     const guestLockedBaseSrc = showGuestLockOverlay
                       ? buildProtectedPreviewDisplayUrl(String(guestLockedBaseRaw))
                       : '';
+                    // 登录解锁：锁定跨页强制百分比彩虹 loading（不论后端是否已完成）
+                    const showUnlockedSpreadLoading =
+                      unlockedSpreadRevealLoading && !isGuest && isLockedSpreadPageCode;
+                    const progress = showUnlockedSpreadLoading
+                      ? Math.max(1, Math.round(unlockedSpreadRevealProgress))
+                      : Math.round(pageProgress[page.page_id] ?? 0);
                     const isGiverDedicationPage = pageCode === 'p3-4' || pageCode === 'p3-p4';
                     const momCompositePageCode = isMomBook ? toMomCompositeUploadPageCode(pageCode) : null;
                     const isMomCompositePage = Boolean(momCompositePageCode);
@@ -6290,20 +6371,13 @@ export default function PreviewPageWithTopNav() {
                       momCompositePageCode && momPendingCompositeUrlByPage[momCompositePageCode]
                         ? momPendingCompositeUrlByPage[momCompositePageCode]
                         : null;
-                    const showUnlockedSpreadLoadingOverlay = shouldShowUnlockedSpreadLoadingOverlay(page, {
-                      isGuest,
-                      bookId: previewBookId,
-                      isPostLoginSyncing,
-                      isProcessingLike,
-                    });
                     // 轮到该页前（progress 为 0）显示 loading；开始后显示进度；失败页显示说明
-                    // 登录解锁的 p11-12 / p13-14 始终用百分比彩虹 loading，与其它换脸页一致
                     const overlayMode = pageFailed
                       ? 'failed'
-                      : (showUnlockedSpreadLoadingOverlay || progress > 0 ? 'progress' : 'loading');
+                      : (showUnlockedSpreadLoading || progress > 0 ? 'progress' : 'loading');
                     const pageOverlayMode = showGuestLockOverlay ? 'guestLocked' : overlayMode;
                     const showPageOverlay =
-                      showGuestLockOverlay || isSwapping || pageFailed || showUnlockedSpreadLoadingOverlay;
+                      showGuestLockOverlay || isSwapping || pageFailed || showUnlockedSpreadLoading;
 
                       // p3-4 展示策略同上：只有当 final 与 base/image 不同，才默认展示 final。
                       // 这样 edited book 能展示历史最终图；create book（final==base 或无 final）则会走 Canvas 展示默认寄语。
@@ -6580,6 +6654,7 @@ export default function PreviewPageWithTopNav() {
                       const showFaceSwapVersionCarousel =
                         hasSwap &&
                         !showGuestLockOverlay &&
+                        !showUnlockedSpreadLoading &&
                         !isGiverDedicationPage &&
                         !isMomCompositePage &&
                         faceSwapLogs.length > 0 &&
