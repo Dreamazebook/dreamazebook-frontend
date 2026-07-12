@@ -2698,6 +2698,16 @@ export default function PreviewPageWithTopNav() {
   // 预览专用频道（preview.user-*/guest.*.batchId）
   const previewChannelNameRef = useRef<string | null>(null);
   const subscribedPreviewChannelRef = useRef<string | null>(null);
+
+  const resolvePreviewChannelName = (batchId: string): string => {
+    const loggedInUserId = useUserStore.getState().user?.id;
+    if (loggedInUserId) {
+      return `preview.user-${loggedInUserId}.${batchId}`;
+    }
+    const guestChannel = previewChannelNameRef.current?.trim();
+    if (guestChannel) return guestChannel;
+    return `preview.guest.${batchId}`;
+  };
   
   // 面向 UI 的状态聚合（使用顶层 status）
   const faceSwapStatus = (previewData as any)?.status;
@@ -3843,9 +3853,15 @@ export default function PreviewPageWithTopNav() {
           // 若后端提供了标准频道名，记录并进行订阅
           try {
             const channelName = batch?.channel;
-            if (channelName && channelName !== previewChannelNameRef.current) {
+            const isLoggedInNow = useUserStore.getState().isLoggedIn;
+            if (!isLoggedInNow && channelName && channelName !== previewChannelNameRef.current) {
               previewChannelNameRef.current = channelName;
-              subscribeToPreviewChannel(spuCode, batchId);
+              subscribeToPreviewChannel(spuCode, batchId, { force: true });
+            } else if (isLoggedInNow) {
+              const expectedUserChannel = resolvePreviewChannelName(batchId);
+              if (subscribedPreviewChannelRef.current !== expectedUserChannel) {
+                subscribeToPreviewChannel(spuCode, batchId, { force: true });
+              }
             }
           } catch {}
           // 更新队列状态：从batch.queue和pages中提取
@@ -3937,15 +3953,27 @@ export default function PreviewPageWithTopNav() {
   }, [searchParams]);
 
   // 订阅预览专用频道并处理实时事件
-  const subscribeToPreviewChannel = (spuCode: string, batchId: string) => {
+  const subscribeToPreviewChannel = (
+    spuCode: string,
+    batchId: string,
+    options?: { force?: boolean },
+  ) => {
     if (!echo) return;
     try {
-      const inferred = `preview.${user?.id ? `user-${user.id}` : 'guest'}.${batchId}`;
-      const channelName = previewChannelNameRef.current || inferred;
-      if (subscribedPreviewChannelRef.current && subscribedPreviewChannelRef.current !== channelName) {
-        try { (echo as any).leave(subscribedPreviewChannelRef.current); } catch {}
+      const channelName = resolvePreviewChannelName(batchId);
+      if (!options?.force && subscribedPreviewChannelRef.current === channelName) {
+        return;
+      }
+      if (subscribedPreviewChannelRef.current) {
+        try {
+          (echo as any).leave(subscribedPreviewChannelRef.current);
+        } catch {}
       }
       subscribedPreviewChannelRef.current = channelName;
+      if (!useUserStore.getState().isLoggedIn) {
+        previewChannelNameRef.current = channelName;
+      }
+      console.log('[Preview WS] subscribe', channelName);
       const ch = (echo as any).channel(channelName);
         const onPreviewPageUpdated = (data: any) => {
         console.log('[WS] PreviewPageUpdated:', data);
@@ -3954,22 +3982,38 @@ export default function PreviewPageWithTopNav() {
         if (!pageCode || !imageUrl) return;
         setPreviewData((prev) => {
             if (!prev || !prev.preview_data) return prev as any;
-            const next = {
+            const existingIdx = prev.preview_data.findIndex(
+              (p: any) => String(p?.page_code || '') === String(pageCode),
+            );
+            if (existingIdx >= 0) {
+              return {
+                ...prev,
+                preview_data: prev.preview_data.map((p: any, idx: number) =>
+                  idx === existingIdx
+                    ? {
+                        ...p,
+                        image_url: imageUrl,
+                        has_face_swap: !!data?.has_face_elements,
+                        base_only: data?.base_only ?? p.base_only,
+                        final_image_url: data?.final_image_url ?? p.final_image_url,
+                        base_image_url: data?.base_image_url ?? p.base_image_url,
+                      }
+                    : p,
+                ),
+              } as any;
+            }
+            const appended = {
+              ...mapBatchPageToPreviewPage(data, prev.preview_data.length),
+              page_id: data?.page_id ?? prev.preview_data.length + 1,
+              image_url: imageUrl,
+              has_face_swap: !!data?.has_face_elements,
+              final_image_url: data?.final_image_url,
+              base_image_url: data?.base_image_url,
+            };
+            return {
               ...prev,
-              preview_data: prev.preview_data.map((p: any) =>
-                p.page_code === pageCode
-                  ? { 
-                      ...p, 
-                      image_url: imageUrl, 
-                      has_face_swap: !!data?.has_face_elements,
-                      base_only: data?.base_only ?? p.base_only,
-                      final_image_url: data?.final_image_url ?? p.final_image_url,
-                      base_image_url: data?.base_image_url ?? p.base_image_url,
-                    }
-                  : p
-              ),
+              preview_data: [...prev.preview_data, appended],
             } as any;
-            return next;
         });
       };
       const onPreviewBatchCompleted = async (_data: any) => {
@@ -4996,29 +5040,45 @@ export default function PreviewPageWithTopNav() {
   }, [isGuest]);
 
   const prevLoggedInRef = useRef(isLoggedIn);
+  const pendingPostLoginSyncRef = useRef(false);
   const subscribeToPreviewChannelRef = useRef(subscribeToPreviewChannel);
   subscribeToPreviewChannelRef.current = subscribeToPreviewChannel;
 
-  useEffect(() => {
-    const justLoggedIn = !prevLoggedInRef.current && isLoggedIn;
-    prevLoggedInRef.current = isLoggedIn;
-    if (!justLoggedIn) return;
-
+  const runPostLoginPreviewSync = useCallback(async () => {
     const spuCode = searchParams.get('bookid');
     const batchId = currentBatchIdRef.current || searchParams.get('previewid');
     if (!spuCode || !batchId) return;
 
-    // 登录后切换到 user 频道，并重新拉取 batch 以展示完整预览
     previewChannelNameRef.current = null;
-    subscribeToPreviewChannelRef.current(spuCode, batchId);
-    startBatchPollingRef.current(spuCode, batchId);
-    // 登录后 page_id / 图片 URL 可能变化，清空 ready 缓存以免 p3-4 按钮被误判为未就绪
     setPreviewPageReadySrcById({});
 
-    void refreshPreviewDataFromBatch(spuCode, batchId, true).catch((error) => {
+    try {
+      await refreshPreviewDataFromBatch(spuCode, batchId, true);
+    } catch (error) {
       console.warn('[Preview] Failed to refresh full book after login:', error);
-    });
-  }, [isLoggedIn, refreshPreviewDataFromBatch, searchParams]);
+    }
+
+    subscribeToPreviewChannelRef.current(spuCode, batchId, { force: true });
+    startBatchPollingRef.current(spuCode, batchId);
+  }, [refreshPreviewDataFromBatch, searchParams]);
+
+  useEffect(() => {
+    if (!prevLoggedInRef.current && isLoggedIn) {
+      pendingPostLoginSyncRef.current = true;
+    }
+    prevLoggedInRef.current = isLoggedIn;
+    if (!isLoggedIn) {
+      pendingPostLoginSyncRef.current = false;
+      return;
+    }
+    if (!pendingPostLoginSyncRef.current) return;
+
+    const userId = user?.id ?? useUserStore.getState().user?.id;
+    if (!userId) return;
+
+    pendingPostLoginSyncRef.current = false;
+    void runPostLoginPreviewSync();
+  }, [isLoggedIn, user?.id, runPostLoginPreviewSync]);
 
   //寄语
   const MAX_LINES = 10;
