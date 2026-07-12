@@ -37,6 +37,10 @@ type Props = {
   page: PreviewPageWithFaceSwapLogs;
   buildImageUrl: (path: string) => string;
   onPageUpdated: (pageCode: string, nextPage: PreviewPageWithFaceSwapLogs) => void;
+  /** false 时仅可浏览版本，不可 select / regenerate */
+  mutationsEnabled?: boolean;
+  /** regenerate 等写操作被拦截时回调（如非 owner 弹登录） */
+  onMutationBlocked?: () => void;
   onRegenerateStarted?: () => void;
   onImageLoaded?: (pageId: number) => void;
 };
@@ -92,6 +96,8 @@ export default function FaceSwapVersionCarousel({
   page,
   buildImageUrl,
   onPageUpdated,
+  mutationsEnabled = true,
+  onMutationBlocked,
   onRegenerateStarted,
   onImageLoaded,
 }: Props) {
@@ -191,6 +197,7 @@ export default function FaceSwapVersionCarousel({
 
   const handleSelectLog = useCallback(
     async (log: FaceSwapLog) => {
+      if (!mutationsEnabled) return;
       if (log.status !== 'completed' || !log.final_image_url) return;
       if (lastSelectedLogIdRef.current === log.id) return;
       if (selectingLogIdRef.current === log.id) return;
@@ -208,7 +215,7 @@ export default function FaceSwapVersionCarousel({
         selectingLogIdRef.current = null;
       }
     },
-    [onPageUpdated, page, pageCode, spuCode, t],
+    [mutationsEnabled, onPageUpdated, page, pageCode, spuCode, t],
   );
 
   useEffect(() => {
@@ -219,6 +226,10 @@ export default function FaceSwapVersionCarousel({
   }, [carouselIndex, slides, handleSelectLog]);
 
   const handleRegenerate = useCallback(async () => {
+    if (!mutationsEnabled) {
+      onMutationBlocked?.();
+      return;
+    }
     if (!spuCode) {
       toast.error(t('faceSwapMissingPageId'));
       return;
@@ -277,6 +288,8 @@ export default function FaceSwapVersionCarousel({
     carouselIndex,
     clearRegenerateProgressTimer,
     isRegenerating,
+    mutationsEnabled,
+    onMutationBlocked,
     onPageUpdated,
     onRegenerateStarted,
     page,

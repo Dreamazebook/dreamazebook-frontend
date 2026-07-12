@@ -161,13 +161,13 @@ const getDisplayedPreviewPages = (pages: any[] | undefined | null): any[] => {
   return (pages ?? []).filter((p) => shouldShowInBookPreviewTab(p));
 };
 
-/** 按当前用户身份返回应渲染的正文页（游客截断至锁定跨页） */
+/** 按当前用户身份返回应渲染的正文页（创建者游客截断至锁定跨页；非 owner 可看全书） */
 const getPreviewPagesForViewer = (
   pages: any[] | undefined | null,
-  options: { isGuest: boolean; bookId?: string | null },
+  options: { isGuest: boolean; bookId?: string | null; isPreviewOwner?: boolean | null },
 ): any[] => {
   const displayed = getDisplayedPreviewPages(pages);
-  if (!options.isGuest) return displayed;
+  if (!options.isGuest || options.isPreviewOwner === false) return displayed;
   return filterGuestVisiblePreviewPages(displayed, options.bookId);
 };
 
@@ -206,19 +206,26 @@ const isGuestPreviewPageDisplayReady = (page: any, bookId?: string | null): bool
   return hasRenderablePreviewImage(page);
 };
 
-/** Guest unlock gate：游客可见页（至锁定跨页）全部换脸完毕后再允许弹出登录 */
+/** Guest unlock gate：创建者游客需锁定跨页就绪；非 owner 按全书页判断 */
 const hasGuestPreviewUnlockReady = (
   pages: any[] | undefined | null,
   _previewPagesCount: number | null,
   bookId?: string | null,
+  isPreviewOwner?: boolean | null,
 ): boolean => {
-  const guestVisiblePages = filterGuestVisiblePreviewPages(getDisplayedPreviewPages(pages), bookId);
+  const displayed = getDisplayedPreviewPages(pages);
+  const guestVisiblePages =
+    isPreviewOwner === false
+      ? displayed
+      : filterGuestVisiblePreviewPages(displayed, bookId);
   if (guestVisiblePages.length === 0) return false;
 
-  const hasLockPage = guestVisiblePages.some((p) =>
-    isGuestLockedPreviewPageCode(p?.page_code, bookId),
-  );
-  if (!hasLockPage) return false;
+  if (isPreviewOwner !== false) {
+    const hasLockPage = guestVisiblePages.some((p) =>
+      isGuestLockedPreviewPageCode(p?.page_code, bookId),
+    );
+    if (!hasLockPage) return false;
+  }
 
   return guestVisiblePages.every((p) => isGuestPreviewPageDisplayReady(p, bookId));
 };
@@ -290,6 +297,30 @@ const getPreviewDisplayImageRaw = (page: any): string => {
   const mapped = pickBatchPageImageRaw(page);
   if (mapped) return mapped;
   return String(page?.base_image_url || page?.image_url || page?.final_image_url || '');
+};
+
+/** 登录解锁后：游客锁定跨页（p11-12 / p13-14）在换脸完成前应显示百分比彩虹 loading */
+const shouldShowUnlockedSpreadLoadingOverlay = (
+  page: any,
+  options: {
+    isGuest: boolean;
+    bookId?: string | null;
+    isPostLoginSyncing: boolean;
+    isProcessingLike: boolean;
+  },
+): boolean => {
+  if (options.isGuest) return false;
+  const pageCode = String(page?.page_code || '');
+  if (!isGuestLockedPreviewPageCode(pageCode, options.bookId)) return false;
+
+  const pageFailed = String(page?.status || '').toLowerCase() === 'failed';
+  if (pageFailed || hasMeaningfulFinalImage(page)) return false;
+
+  const hasSwap = !!page?.has_face_swap;
+  const hasBase = !!(page?.base_image_url || page?.image_url);
+  const isSwapping = hasSwap && hasBase && !hasMeaningfulFinalImage(page);
+
+  return options.isPostLoginSyncing || isSwapping || (options.isProcessingLike && hasBase);
 };
 
 /** 与预览页 buildImageUrl 对齐，用于上传成功后预解码 CDN（避免 revoke blob 早于下方 img 切图导致闪白） */
@@ -1363,8 +1394,11 @@ export default function PreviewPageWithTopNav() {
   const previewBookId = (searchParams.get('bookid') || '').toUpperCase();
   const [batchIsOwn, setBatchIsOwn] = useState<boolean | null>(null);
   const batchIsOwnRef = useRef<boolean | null>(null);
-  const nonCreatorLoginPromptedRef = useRef(false);
   const isNotPreviewCreator = batchIsOwn === false;
+  const shouldIncludeFullBookInBatch = useCallback(
+    () => useUserStore.getState().isLoggedIn || batchIsOwnRef.current === false,
+    [],
+  );
   const applyBatchIsOwn = useCallback((res?: ApiResponse<any> | null, batch?: any | null) => {
     const isOwn = resolveBatchIsOwn(res, batch);
     if (isOwn !== null) {
@@ -1403,6 +1437,13 @@ export default function PreviewPageWithTopNav() {
       showNotCreatorPrompt: isNotCreator,
     });
   }, [openLoginModal, searchParams, t]);
+
+  /** 非 owner：编辑操作前弹出登录；owner / 未知归属则放行 */
+  const requirePreviewOwnerForEdit = useCallback(() => {
+    if (batchIsOwnRef.current !== false) return true;
+    openPreviewUnlockLogin();
+    return false;
+  }, [openPreviewUnlockLogin]);
 
   const handleGuestRateLimitLogin = useCallback(() => {
     setGuestUploadRateLimitError(null);
@@ -1602,11 +1643,11 @@ export default function PreviewPageWithTopNav() {
                console.log('[Preview] Set recipient from batch:', recipientNameFromBatch);
              }
              
-             if (getBatchDisplayPages(batch, { includeFullBook: isLoggedIn }).length > 0) {
+             if (getBatchDisplayPages(batch, { includeFullBook: shouldIncludeFullBookInBatch() }).length > 0) {
                // 构造 previewData
                const initialData = {
                   preview_id: undefined as any,
-                  preview_data: mapBatchToPreviewDataPages(batch, isLoggedIn),
+                  preview_data: mapBatchToPreviewDataPages(batch, shouldIncludeFullBookInBatch()),
                   status: batch.status || 'processing',
                   batch_id: batch.batch_id,
                   queue_info: batch.queue,
@@ -1814,13 +1855,6 @@ export default function PreviewPageWithTopNav() {
     [applyBatchIsOwn],
   );
 
-  // 非创建者游客：进入预览后需先登录
-  useEffect(() => {
-    if (!isGuest || batchIsOwn !== false || nonCreatorLoginPromptedRef.current) return;
-    nonCreatorLoginPromptedRef.current = true;
-    openPreviewUnlockLogin();
-  }, [batchIsOwn, isGuest, openPreviewUnlockLogin]);
-
   const [guestUploadRateLimitError, setGuestUploadRateLimitError] = useState<UploadRateLimitError | null>(null);
   // sidebar「Opening Photo」完成态：用户上传过图片也算完成（且上传合成后清空 giverImageUrl 时不回退）
   const [isNameOnBookCompleted, setIsNameOnBookCompleted] = useState(true);
@@ -1893,7 +1927,6 @@ export default function PreviewPageWithTopNav() {
     hasAppliedDefaultOptionsRef.current = false;
     batchIsOwnRef.current = null;
     setBatchIsOwn(null);
-    nonCreatorLoginPromptedRef.current = false;
   }, [p34CacheKey, setEditField, setGiverImageUrl]);
 
   useEffect(() => {
@@ -2119,10 +2152,19 @@ export default function PreviewPageWithTopNav() {
   }, [previewData, searchParams, dedication, applyP34PendingUploadSuccess, revertP34PendingUpload]);
 
   // Opening Photo 完成态：仅在上传成功或已有后端 giver 时保持完成（见 uploadP34ComposedImage / 初始回填）
+  const handleOpenGiverPhotoPicker = useCallback(() => {
+    if (!requirePreviewOwnerForEdit()) return;
+    giverFileInputRef.current?.click();
+  }, [requirePreviewOwnerForEdit]);
+
   // 处理Giver图片文件选择
   const handleGiverFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!requirePreviewOwnerForEdit()) {
+      if (giverFileInputRef.current) giverFileInputRef.current.value = '';
+      return;
+    }
     const url = URL.createObjectURL(file);
     setPendingGiverFile(url);
     setEditField('giver');
@@ -2130,19 +2172,30 @@ export default function PreviewPageWithTopNav() {
     if (giverFileInputRef.current) {
       giverFileInputRef.current.value = '';
     }
-  }, []);
+  }, [requirePreviewOwnerForEdit, setEditField]);
+
+  const handleOpenMomDrawingPicker = useCallback((pageCode: 'p5-6' | 'p27-28') => {
+    if (!requirePreviewOwnerForEdit()) return;
+    activeMomDrawingPageCodeRef.current = pageCode;
+    setActiveMomDrawingPageCode(pageCode);
+    momDrawingFileInputRef.current?.click();
+  }, [requirePreviewOwnerForEdit]);
 
   const handleMomDrawingFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     const targetPageCode = activeMomDrawingPageCodeRef.current || activeMomDrawingPageCode;
     if (!file || !targetPageCode) return;
+    if (!requirePreviewOwnerForEdit()) {
+      if (momDrawingFileInputRef.current) momDrawingFileInputRef.current.value = '';
+      return;
+    }
     const url = URL.createObjectURL(file);
     setActiveMomDrawingPageCode(targetPageCode);
     setPendingMomDrawingFile(url);
     if (momDrawingFileInputRef.current) {
       momDrawingFileInputRef.current.value = '';
     }
-  }, [activeMomDrawingPageCode]);
+  }, [activeMomDrawingPageCode, requirePreviewOwnerForEdit]);
 
   const closeMomDrawingCropper = useCallback(() => {
     if (pendingMomDrawingFile) {
@@ -3849,7 +3902,7 @@ export default function PreviewPageWithTopNav() {
             }
           }
         }
-        if (getBatchDisplayPages(batch, { includeFullBook: useUserStore.getState().isLoggedIn }).length > 0) {
+        if (getBatchDisplayPages(batch, { includeFullBook: shouldIncludeFullBookInBatch() }).length > 0) {
           // 若后端提供了标准频道名，记录并进行订阅
           try {
             const channelName = batch?.channel;
@@ -3879,7 +3932,7 @@ export default function PreviewPageWithTopNav() {
             }
           } catch {}
           setPreviewData((prev) => {
-            const includeFullBook = useUserStore.getState().isLoggedIn;
+            const includeFullBook = shouldIncludeFullBookInBatch();
             const prevByPageCode: Record<string, any> = {};
             try {
               (prev?.preview_data || []).forEach((p: any) => {
@@ -4044,7 +4097,7 @@ export default function PreviewPageWithTopNav() {
             }
           }
           if (latestBatch?.pages) {
-            const includeFullBook = useUserStore.getState().isLoggedIn;
+            const includeFullBook = shouldIncludeFullBookInBatch();
             setPreviewData((prev) => {
               const prevByPageCode: Record<string, any> = {};
               try {
@@ -4950,18 +5003,19 @@ export default function PreviewPageWithTopNav() {
       getPreviewPagesForViewer(previewData?.preview_data, {
         isGuest,
         bookId: previewBookId,
+        isPreviewOwner: batchIsOwn,
       }).length,
-    [previewData?.preview_data, isGuest, previewBookId],
+    [previewData?.preview_data, isGuest, previewBookId, batchIsOwn],
   );
   const guestUnlockReady = useMemo(
-    () => hasGuestPreviewUnlockReady(previewData?.preview_data, previewPagesCount, previewBookId),
-    [previewData?.preview_data, previewBookId],
+    () => hasGuestPreviewUnlockReady(previewData?.preview_data, previewPagesCount, previewBookId, batchIsOwn),
+    [previewData?.preview_data, previewBookId, batchIsOwn],
   );
   const guestUnlockReadyRef = useRef(guestUnlockReady);
   guestUnlockReadyRef.current = guestUnlockReady;
 
   useEffect(() => {
-    if (!isGuest || activeTab !== 'Book preview') {
+    if (!isGuest || isNotPreviewCreator || activeTab !== 'Book preview') {
       guestWasAtBottomRef.current = false;
       return undefined;
     }
@@ -5004,10 +5058,10 @@ export default function PreviewPageWithTopNav() {
       window.removeEventListener('touchmove', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
-  }, [isGuest, activeTab, openPreviewUnlockLogin, previewContentLength, guestUnlockReady]);
+  }, [isGuest, isNotPreviewCreator, activeTab, openPreviewUnlockLogin, previewContentLength, guestUnlockReady]);
 
   useEffect(() => {
-    if (!isGuest || activeTab !== 'Book preview' || !guestUnlockReady) return undefined;
+    if (!isGuest || isNotPreviewCreator || activeTab !== 'Book preview' || !guestUnlockReady) return undefined;
     const el = previewBottomSentinelRef.current;
     if (!el) return undefined;
 
@@ -5028,7 +5082,7 @@ export default function PreviewPageWithTopNav() {
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [isGuest, activeTab, openPreviewUnlockLogin, previewContentLength, guestUnlockReady]);
+  }, [isGuest, isNotPreviewCreator, activeTab, openPreviewUnlockLogin, previewContentLength, guestUnlockReady]);
 
   useEffect(() => {
     if (!isGuest) return undefined;
@@ -5041,6 +5095,7 @@ export default function PreviewPageWithTopNav() {
 
   const prevLoggedInRef = useRef(isLoggedIn);
   const pendingPostLoginSyncRef = useRef(false);
+  const [isPostLoginSyncing, setIsPostLoginSyncing] = useState(false);
   const subscribeToPreviewChannelRef = useRef(subscribeToPreviewChannel);
   subscribeToPreviewChannelRef.current = subscribeToPreviewChannel;
 
@@ -5051,11 +5106,14 @@ export default function PreviewPageWithTopNav() {
 
     previewChannelNameRef.current = null;
     setPreviewPageReadySrcById({});
+    setIsPostLoginSyncing(true);
 
     try {
       await refreshPreviewDataFromBatch(spuCode, batchId, true);
     } catch (error) {
       console.warn('[Preview] Failed to refresh full book after login:', error);
+    } finally {
+      setIsPostLoginSyncing(false);
     }
 
     subscribeToPreviewChannelRef.current(spuCode, batchId, { force: true });
@@ -5236,9 +5294,10 @@ export default function PreviewPageWithTopNav() {
   };
 
   const openDedicationEditor = useCallback(() => {
+    if (!requirePreviewOwnerForEdit()) return;
     setMessage(dedication);
     setEditField('dedication');
-  }, [dedication, setEditField]);
+  }, [dedication, requirePreviewOwnerForEdit, setEditField]);
 
   const handleDedicationCancel = useCallback(() => {
     setMessage(dedication);
@@ -6160,6 +6219,7 @@ export default function PreviewPageWithTopNav() {
                     const displayedPages = getPreviewPagesForViewer(previewData.preview_data, {
                       isGuest,
                       bookId: previewBookId,
+                      isPreviewOwner: batchIsOwn,
                     });
                     console.log('[Preview] Rendering', displayedPages.length, 'pages (previewPagesCount:', previewPagesCount, ', isQueued:', isQueued, ', isGenerating:', isGenerating, ')');
                     
@@ -6191,7 +6251,9 @@ export default function PreviewPageWithTopNav() {
                     // 仅在 p3-4（有的书返回 p3-p4）页面渲染 Giver & Dedication
                     const pageCode = String((page as any).page_code || '');
                     const isGuestLockedPage =
-                      isGuest && isGuestLockedPreviewPageCode(pageCode, previewBookId);
+                      isGuest &&
+                      batchIsOwn !== false &&
+                      isGuestLockedPreviewPageCode(pageCode, previewBookId);
                     const guestLockedBaseRaw = isGuestLockedPage
                       ? pickGuestLockedPageBaseImageRaw(page as any)
                       : '';
@@ -6223,10 +6285,20 @@ export default function PreviewPageWithTopNav() {
                       momCompositePageCode && momPendingCompositeUrlByPage[momCompositePageCode]
                         ? momPendingCompositeUrlByPage[momCompositePageCode]
                         : null;
+                    const showUnlockedSpreadLoadingOverlay = shouldShowUnlockedSpreadLoadingOverlay(page, {
+                      isGuest,
+                      bookId: previewBookId,
+                      isPostLoginSyncing,
+                      isProcessingLike,
+                    });
                     // 轮到该页前（progress 为 0）显示 loading；开始后显示进度；失败页显示说明
-                    const overlayMode = pageFailed ? 'failed' : (progress > 0 ? 'progress' : 'loading');
+                    // 登录解锁的 p11-12 / p13-14 始终用百分比彩虹 loading，与其它换脸页一致
+                    const overlayMode = pageFailed
+                      ? 'failed'
+                      : (showUnlockedSpreadLoadingOverlay || progress > 0 ? 'progress' : 'loading');
                     const pageOverlayMode = showGuestLockOverlay ? 'guestLocked' : overlayMode;
-                    const showPageOverlay = showGuestLockOverlay || isSwapping || pageFailed;
+                    const showPageOverlay =
+                      showGuestLockOverlay || isSwapping || pageFailed || showUnlockedSpreadLoadingOverlay;
 
                       // p3-4 展示策略同上：只有当 final 与 base/image 不同，才默认展示 final。
                       // 这样 edited book 能展示历史最终图；create book（final==base 或无 final）则会走 Canvas 展示默认寄语。
@@ -6339,9 +6411,7 @@ export default function PreviewPageWithTopNav() {
                                     <div className="mt-2 w-full flex justify-center">
                                       <button
                                         type="button"
-                                        onClick={() => {
-                                          giverFileInputRef.current?.click();
-                                        }}
+                                        onClick={handleOpenGiverPhotoPicker}
                                         className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
                                       >
                                         {giverPhotoButtonLabel}
@@ -6391,9 +6461,7 @@ export default function PreviewPageWithTopNav() {
                                 <div className="mt-2 w-full flex justify-center">
                                   <button
                                     type="button"
-                                    onClick={() => {
-                                      giverFileInputRef.current?.click();
-                                    }}
+                                    onClick={handleOpenGiverPhotoPicker}
                                     className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
                                   >
                                     {giverPhotoButtonLabel}
@@ -6428,9 +6496,7 @@ export default function PreviewPageWithTopNav() {
                             <div className="absolute bottom-[20%] left-0 w-1/2 flex justify-center">
                               <button
                                 type="button"
-                                onClick={() => {
-                                  giverFileInputRef.current?.click();
-                                }}
+                                onClick={handleOpenGiverPhotoPicker}
                                 className={`pointer-events-auto text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
                               >
                                 {giverPhotoButtonLabel}
@@ -6452,11 +6518,7 @@ export default function PreviewPageWithTopNav() {
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                           <button
                             type="button"
-                            onClick={() => {
-                              activeMomDrawingPageCodeRef.current = momCompositePageCode;
-                              setActiveMomDrawingPageCode(momCompositePageCode);
-                              momDrawingFileInputRef.current?.click();
-                            }}
+                            onClick={() => handleOpenMomDrawingPicker(momCompositePageCode)}
                             disabled={momDrawingUploadingPageCode === momCompositePageCode}
                           className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${
                             momCompositePageCode &&
@@ -6535,6 +6597,8 @@ export default function PreviewPageWithTopNav() {
                                 page={page as unknown as PreviewPageWithFaceSwapLogs}
                                 buildImageUrl={buildProtectedPreviewDisplayUrl}
                                 onPageUpdated={handleFaceSwapPageUpdated}
+                                mutationsEnabled={!isNotPreviewCreator}
+                                onMutationBlocked={openPreviewUnlockLogin}
                                 onRegenerateStarted={handleFaceSwapRegenerateStarted}
                                 onImageLoaded={(loadedPageId) => {
                                   if (pageIdForStoryComingHide && loadedPageId === pageIdForStoryComingHide) {
@@ -6648,9 +6712,7 @@ export default function PreviewPageWithTopNav() {
                                 <div className="w-full flex justify-center">
                                   <button
                                     type="button"
-                                    onClick={() => {
-                                      giverFileInputRef.current?.click();
-                                    }}
+                                    onClick={handleOpenGiverPhotoPicker}
                                     className={`text-black rounded border border-black py-2 px-4 text-sm sm:text-base md:text-base bg-white/80 backdrop-blur-sm ${getMissingButtonClass('giver')}`}
                                   >
                                     {giverPhotoButtonLabel}
@@ -7540,16 +7602,6 @@ export default function PreviewPageWithTopNav() {
       >
         {showNonCreatorCreateBookButton ? (
           <div className="flex w-full items-center justify-end gap-3">
-            {isGuest ? (
-              <button
-                type="button"
-                onClick={handlePreviewPrimaryAction}
-                disabled={isAddingToCart}
-                className="bg-white text-[#222222] h-[44px] flex-1 md:flex-none md:min-w-[180px] px-6 rounded border border-[#222222] hover:bg-[#F8F8F8] disabled:opacity-50 disabled:cursor-not-allowed text-[16px] leading-[24px] tracking-[0.5px] flex items-center justify-center gap-2"
-              >
-                {previewBottomButtonLabel}
-              </button>
-            ) : null}
             <Link
               href={createNewBookHref}
               className="bg-[#222222] text-[#F5E3E3] h-[44px] flex-1 md:flex-none md:min-w-[220px] px-8 rounded hover:bg-[#333333] text-[16px] leading-[24px] tracking-[0.5px] flex items-center justify-center text-center"
