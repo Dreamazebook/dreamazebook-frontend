@@ -69,7 +69,8 @@
     "failedToLoadOrders": "Failed to load orders. Please try again later.",
     "noOrdersFound": "No orders found",
     "showInvoice": "Show Invoice",
-    "buyNow": "Buy now"
+    "buyNow": "Buy now",
+    "inProduction": "In Production"
   },
   "orderHistoryCard": {
     "shipTo": "Ship to:",

@@ -69,7 +69,8 @@
     "failedToLoadOrders": "Échec du chargement des commandes. Veuillez réessayer plus tard.",
     "noOrdersFound": "Aucune commande trouvée",
     "showInvoice": "Afficher la facture",
-    "buyNow": "Acheter maintenant"
+    "buyNow": "Acheter maintenant",
+    "inProduction": "En production"
   },
   "orderHistoryCard": {
     "shipTo": "Expédier à :",

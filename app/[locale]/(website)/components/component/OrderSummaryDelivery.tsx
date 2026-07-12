@@ -63,6 +63,11 @@ const OrderSummaryDelivery = ({ orderDetail, noPadding=false, showStatusText, ha
         )}
       </div>}
 
+      {orderDetail.delivered_at &&
+        <OrderHistoryTextStyle
+          label={t("deliveryDate")}
+          value={formatDate(orderDetail.delivered_at)}
+        />}
       <OrderHistoryTextStyle label={t('books')} value={getBooksCountFromOrder(orderDetail)} />
 
       {showStatusText && (orderDetail.status != 'unpaid') && 

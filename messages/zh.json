@@ -69,7 +69,8 @@
     "failedToLoadOrders": "加载订单失败，请稍后重试。",
     "noOrdersFound": "未找到订单",
     "showInvoice": "查看发票",
-    "buyNow": "立即购买"
+    "buyNow": "立即购买",
+    "inProduction": "制作中"
   },
   "orderHistoryCard": {
     "shipTo": "配送至：",
