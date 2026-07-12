@@ -26,6 +26,7 @@ interface UserState {
   isLoginModalOpen: boolean
   loginModalOptions: LoginModalOptions | null
   openLoginModal: (options?: LoginModalOptions) => void
+  setLoginModalOptions: (options: LoginModalOptions) => void
   closeLoginModal: () => void
   toggleLoginModal: () => void
   setLoginUserToken: (userResponse:UserResponse) => void
@@ -70,6 +71,7 @@ const useUserStore = create<UserState>((set,get) => ({
   isLoginModalOpen: false,
   loginModalOptions: null,
   openLoginModal: (options) => set({ isLoginModalOpen: true, loginModalOptions: options ?? null }),
+  setLoginModalOptions: (options) => set({ loginModalOptions: options }),
   closeLoginModal: () => set({ isLoginModalOpen: false, loginModalOptions: null }),
   toggleLoginModal: () => set((state) => ({
     isLoginModalOpen: !state.isLoginModalOpen,

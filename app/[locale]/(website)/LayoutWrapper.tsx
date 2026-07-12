@@ -26,6 +26,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const isKickstarterConfigPage = segments.includes("kickstarter-config");
   const isBookDetailPage = segments[0] === 'books' && segments.length > 1;
   const isFathersDayPage = pathname === '/fathers-day' || pathname?.endsWith('/fathers-day');
+  const isLoginPage = pathname === '/login' || pathname?.endsWith('/login');
 
   // 检查是否在嵌入模式（用于抽屉显示）
   const isEmbedMode = searchParams.get('embed') === 'true';
@@ -137,7 +138,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
           {loginModal}
         </Drawer>
       ) : (
-        isLoginModalOpen && (
+        isLoginModalOpen && !isLoginPage && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             {loginModal}
           </div>
