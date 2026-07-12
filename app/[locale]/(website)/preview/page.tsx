@@ -171,24 +171,23 @@ function hasRenderablePreviewImage(page: any): boolean {
   return Boolean(pickBatchPageImageRaw(page));
 }
 
-/** Guest unlock gate：P12（或止于 12 的跨页，如 p11-12）已有可展示底图 */
-const isP12PageCode = (pageCode: unknown): boolean => {
-  return isGuestLockedPreviewPageCode(pageCode);
-};
-
 const hasGuestLockedPageBaseReady = (page: any): boolean => {
   return Boolean(pickGuestLockedPageBaseImageRaw(page));
 };
 
+/** Guest unlock gate：锁定跨页（默认 p11-12，Melody 为 p13-14）已有可展示底图 */
 const hasGuestPreviewUnlockReady = (
   pages: any[] | undefined | null,
   previewPagesCount: number | null,
+  bookId?: string | null,
 ): boolean => {
   const displayed = getDisplayedPreviewPages(pages);
-  const p12 = displayed.find((p) => isP12PageCode(p?.page_code));
-  if (p12 && hasGuestLockedPageBaseReady(p12)) return true;
+  const lockPage = displayed.find((p) =>
+    isGuestLockedPreviewPageCode(p?.page_code, bookId),
+  );
+  if (lockPage && hasGuestLockedPageBaseReady(lockPage)) return true;
 
-  // 无显式 p12 时：以产品配置的 preview 页数作为锁定边界
+  // 无显式锁定页时：以产品配置的 preview 页数作为锁定边界
   if (previewPagesCount != null && previewPagesCount > 0) {
     const readyCount = displayed.filter((p) => hasRenderablePreviewImage(p)).length;
     return readyCount >= previewPagesCount;
@@ -1334,6 +1333,7 @@ export default function PreviewPageWithTopNav() {
 
   const previewStoreUserData = usePreviewStore((s) => s.userData);
   const isGuest = !isLoggedIn;
+  const previewBookId = (searchParams.get('bookid') || '').toUpperCase();
 
   const openPreviewUnlockLogin = useCallback(() => {
     openLoginModal({
@@ -1702,6 +1702,8 @@ export default function PreviewPageWithTopNav() {
   const p34UploadCompletesNameOnBookRef = useRef(false);
   const p34ComposeUploadInFlightRef = useRef(false);
   const p34ComposeUploadedRef = useRef(false);
+  /** 每个 preview 仅自动提交默认寄语一次 */
+  const p34AutoDefaultDedicationAttemptedRef = useRef(false);
   /** 扉页寄语合成图上传成功后的 CDN URL；轮询重建 batch 时优先保留，避免被旧 final 覆盖 */
   const p34LastComposedImageUrlRef = useRef<string | null>(null);
   type P34PendingCompose = {
@@ -1807,6 +1809,7 @@ export default function PreviewPageWithTopNav() {
     p34UploadCompletesNameOnBookRef.current = false;
     p34ComposeUploadInFlightRef.current = false;
     p34ComposeUploadedRef.current = false;
+    p34AutoDefaultDedicationAttemptedRef.current = false;
     p34LastComposedImageUrlRef.current = null;
     setP34ComposeUploading(false);
     setP34PendingCompose(null);
@@ -4825,8 +4828,8 @@ export default function PreviewPageWithTopNav() {
 
   const previewContentLength = previewData?.preview_data?.length ?? 0;
   const guestUnlockReady = useMemo(
-    () => hasGuestPreviewUnlockReady(previewData?.preview_data, previewPagesCount),
-    [previewData?.preview_data, previewPagesCount],
+    () => hasGuestPreviewUnlockReady(previewData?.preview_data, previewPagesCount, previewBookId),
+    [previewData?.preview_data, previewPagesCount, previewBookId],
   );
   const guestUnlockReadyRef = useRef(guestUnlockReady);
   guestUnlockReadyRef.current = guestUnlockReady;
@@ -4867,7 +4870,7 @@ export default function PreviewPageWithTopNav() {
     window.addEventListener('touchmove', handleScroll, { passive: true });
     window.addEventListener('resize', handleScroll, { passive: true });
 
-    // P12 刚就绪且用户已在底部时，主动补一次检查
+    // 锁定页刚就绪且用户已在底部时，主动补一次检查
     maybeOpenGuestUnlock();
 
     return () => {
@@ -4927,6 +4930,8 @@ export default function PreviewPageWithTopNav() {
     previewChannelNameRef.current = null;
     subscribeToPreviewChannelRef.current(spuCode, batchId);
     startBatchPollingRef.current(spuCode, batchId);
+    // 登录后 page_id / 图片 URL 可能变化，清空 ready 缓存以免 p3-4 按钮被误判为未就绪
+    setPreviewPageReadySrcById({});
 
     void refreshPreviewDataFromBatch(spuCode, batchId, true).catch((error) => {
       console.warn('[Preview] Failed to refresh full book after login:', error);
@@ -5011,6 +5016,9 @@ export default function PreviewPageWithTopNav() {
   const prevDefaultMessageRef = React.useRef(defaultMessage);
   /** 用户是否在寄语输入框中操作过（含整段删除）；用于区分「未改动」与「刻意留空」 */
   const messageUserTouchedRef = React.useRef(false);
+  useEffect(() => {
+    messageUserTouchedRef.current = false;
+  }, [p34CacheKey]);
   React.useEffect(() => {
     const prev = prevDefaultMessageRef.current;
     const userHasNotEdited =
@@ -5419,6 +5427,79 @@ export default function PreviewPageWithTopNav() {
     giverImageUrl,
     bookId,
     defaultMessage,
+  ]);
+
+  // p3-4 底图就绪后，自动用默认寄语合成并上传（无需用户手动点 Submit）
+  const triggerP34DefaultDedicationUpload = useCallback(() => {
+    if (p34AutoDefaultDedicationAttemptedRef.current) return;
+    if (isDedicationSubmitted) return;
+    if (p34ComposeUploadedRef.current) return;
+    if (p34ComposeUploading || p34ComposeUploadInFlightRef.current) return;
+    if (messageUserTouchedRef.current) return;
+
+    const dedicationToUpload = (dedication || defaultMessage || '').trim();
+    if (!dedicationToUpload) return;
+    if (!p34PageMetaForUpload?.baseSrc) return;
+
+    const spu = searchParams.get('bookid');
+    const batchId = (previewData as any)?.batch_id || searchParams.get('previewid');
+    if (!spu || !batchId) return;
+
+    const pages = (previewData as any)?.preview_data;
+    if (Array.isArray(pages)) {
+      const p34 = pages.find((p: any) => {
+        const code = String(p?.page_code || '');
+        return code === 'p3-4' || code === 'p3-p4';
+      });
+      // 后端已有独立 final（如编辑回显）且非本次会话上传：不自动覆盖
+      if (p34 && hasMeaningfulFinalImage(p34) && !p34LastComposedImageUrlRef.current) {
+        return;
+      }
+    }
+
+    p34AutoDefaultDedicationAttemptedRef.current = true;
+    shouldUploadP34ComposedRef.current = true;
+    p34UploadCompletesNameOnBookRef.current = false;
+    p34ComposeUploadedRef.current = false;
+    p34LastComposedImageUrlRef.current = null;
+    setP34PendingCompose({ dedication: dedicationToUpload });
+    setP34ComposeUploading(true);
+  }, [
+    dedication,
+    defaultMessage,
+    isDedicationSubmitted,
+    p34ComposeUploading,
+    p34PageMetaForUpload,
+    previewData,
+    searchParams,
+  ]);
+
+  useEffect(() => {
+    triggerP34DefaultDedicationUpload();
+  }, [triggerP34DefaultDedicationUpload]);
+
+  // 寄语提交后同步 gift_message 到购物车（含自动默认寄语）
+  useEffect(() => {
+    if (isGuest || isHideOptions || !isDedicationSubmitted) return;
+    const cartItemId = previewCartItemIdRef.current;
+    if (!cartItemId) return;
+    if (selectedBookCover == null || selectedBinding == null || selectedGiftBox == null) return;
+    const timer = window.setTimeout(() => {
+      void updatePreviewCartItem(cartItemId, selectedBookCover, selectedBinding, selectedGiftBox).catch((error) => {
+        console.warn('[PreviewCart] Failed to sync dedication to cart:', error);
+      });
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [
+    isDedicationSubmitted,
+    isGuest,
+    isHideOptions,
+    message,
+    previewCartItemId,
+    selectedBinding,
+    selectedBookCover,
+    selectedGiftBox,
+    updatePreviewCartItem,
   ]);
 
   //定义状态控制抽屉显示
@@ -5927,7 +6008,8 @@ export default function PreviewPageWithTopNav() {
                     const isReplaceablePage = replaceableTextPageIds.has(page.page_id) || replaceableTextPageNumbers.has(page.page_number);
                     // 仅在 p3-4（有的书返回 p3-p4）页面渲染 Giver & Dedication
                     const pageCode = String((page as any).page_code || '');
-                    const isGuestLockedPage = isGuest && isGuestLockedPreviewPageCode(pageCode);
+                    const isGuestLockedPage =
+                      isGuest && isGuestLockedPreviewPageCode(pageCode, previewBookId);
                     const guestLockedBaseRaw = isGuestLockedPage
                       ? pickGuestLockedPageBaseImageRaw(page as any)
                       : '';
@@ -6018,6 +6100,7 @@ export default function PreviewPageWithTopNav() {
                       const p34HasLocalChanges =
                         !!giverImageUrl ||
                         !!editField ||
+                        !!p34PendingCompose ||
                         (p34ComposeUploadedRef.current && isDedicationSubmitted);
 
                       // 单页模式：p3-4 始终拆成左右单页展示；有 final 时只把 final 当作底图，不再整张跨页显示。

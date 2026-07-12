@@ -146,12 +146,25 @@ export function pickBatchPageImageRaw(bp: Record<string, unknown> | null | undef
   );
 }
 
-/** 游客登录前展示的锁定页（如 p11-12）：仅底图 + 蒙版，不展示换脸结果 */
-export function isGuestLockedPreviewPageCode(pageCode: unknown): boolean {
+/** 按书籍配置游客锁定跨页的右页码（如 12 → p11-12，14 → p13-14） */
+export function getGuestLockedSpreadEndPageNumber(bookId?: string | null): number {
+  const id = String(bookId || '')
+    .trim()
+    .toUpperCase();
+  if (id === 'PICBOOK_MELODY') return 14;
+  return 12;
+}
+
+/** 游客登录前展示的锁定页：仅底图 + 蒙版，不展示换脸结果 */
+export function isGuestLockedPreviewPageCode(
+  pageCode: unknown,
+  bookId?: string | null,
+): boolean {
   const code = normalizeBatchPageCodeKey(pageCode);
   if (!code) return false;
-  if (code === 'p12') return true;
-  return /^p\d+-12$/.test(code);
+  const end = getGuestLockedSpreadEndPageNumber(bookId);
+  if (code === `p${end}`) return true;
+  return new RegExp(`^p\\d+-${end}$`).test(code);
 }
 
 /** 锁定页展示底图（不含 final / 换脸图） */
@@ -176,7 +189,7 @@ export function pickGuestLockedPageBaseImageRaw(
 }
 
 /**
- * 展示用 pages：直接使用 batch.pages（含游客可见的 p11-12 等锁定页）。
+ * 展示用 pages：直接使用 batch.pages（含游客可见的锁定页，如 p11-12 / p13-14）。
  * includeFullBook 为 true 时，若 batch 含 order_pages 则合并整本书（兼容旧接口）。
  */
 export function getBatchDisplayPages(
