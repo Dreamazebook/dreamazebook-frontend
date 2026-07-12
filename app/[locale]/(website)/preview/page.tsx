@@ -175,22 +175,48 @@ const hasGuestLockedPageBaseReady = (page: any): boolean => {
   return Boolean(pickGuestLockedPageBaseImageRaw(page));
 };
 
-/** Guest unlock gate：锁定跨页（默认 p11-12，Melody 为 p13-14）已有可展示底图 */
+/** 单页是否已对游客完整可展示（换脸完成或锁定页底图就绪） */
+const isGuestPreviewPageDisplayReady = (page: any, bookId?: string | null): boolean => {
+  const pageCode = String(page?.page_code || '');
+  if (isGuestLockedPreviewPageCode(pageCode, bookId)) {
+    return hasGuestLockedPageBaseReady(page);
+  }
+
+  const hasSwap = !!page?.has_face_swap;
+  const pageFailed = String(page?.status || '').toLowerCase() === 'failed';
+  if (hasSwap) {
+    if (pageFailed) return true;
+    const hasBase = Boolean(page?.base_image_url || page?.image_url);
+    if (!hasBase) return false;
+    return hasMeaningfulFinalImage(page);
+  }
+
+  return hasRenderablePreviewImage(page);
+};
+
+/** Guest unlock gate：游客可见页（至锁定跨页）全部换脸完毕后再允许弹出登录 */
 const hasGuestPreviewUnlockReady = (
   pages: any[] | undefined | null,
   previewPagesCount: number | null,
   bookId?: string | null,
 ): boolean => {
   const displayed = getDisplayedPreviewPages(pages);
+  if (displayed.length === 0) return false;
+
   const lockPage = displayed.find((p) =>
     isGuestLockedPreviewPageCode(p?.page_code, bookId),
   );
-  if (lockPage && hasGuestLockedPageBaseReady(lockPage)) return true;
 
-  // 无显式锁定页时：以产品配置的 preview 页数作为锁定边界
+  if (lockPage) {
+    const lockIdx = displayed.indexOf(lockPage);
+    const guestVisiblePages = displayed.slice(0, lockIdx + 1);
+    return guestVisiblePages.every((p) => isGuestPreviewPageDisplayReady(p, bookId));
+  }
+
   if (previewPagesCount != null && previewPagesCount > 0) {
-    const readyCount = displayed.filter((p) => hasRenderablePreviewImage(p)).length;
-    return readyCount >= previewPagesCount;
+    if (displayed.length < previewPagesCount) return false;
+    const guestVisiblePages = displayed.slice(0, previewPagesCount);
+    return guestVisiblePages.every((p) => isGuestPreviewPageDisplayReady(p, bookId));
   }
 
   return false;
@@ -895,7 +921,7 @@ function GuestLockedPageOverlay() {
   return (
     <div className="flex flex-col items-center px-6 text-center">
       <LockKeyhole className="mb-3 h-10 w-10 text-gray-800" strokeWidth={1.75} aria-hidden="true" />
-      <p className="whitespace-pre-line text-center text-[22px] leading-[28px] text-gray-900">
+      <p className="whitespace-pre-line text-center text-[16px] leading-[24px] tracking-[0.15px] md:text-[22px] md:leading-[28px] text-gray-900">
         {t('guestLockedPagesMessage')}
       </p>
     </div>
