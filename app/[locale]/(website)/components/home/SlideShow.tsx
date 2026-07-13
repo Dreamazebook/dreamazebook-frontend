@@ -17,12 +17,12 @@ const slides = [
   // },
   {
     id: 2,
-    title: ["Turn Dad into", "Part of the", "Story"],
+    title: ["Make Your Child ", "the Hero."],
     color: "text-primary",
     buttonText: "Create yours",
-    image: HOME_HERO("father-mobile.webp"),
-    image_desktop: HOME_HERO("father-pc.webp"),
-    description: "The most unique hand-illustrated gift for Father's Day.",
+    image: HOME_HERO("hero20260713-mobile.webp"),
+    image_desktop: HOME_HERO("hero20260713.webp"),
+    description: "A personalized storybook made from their photo.",
   },
 ];
 
