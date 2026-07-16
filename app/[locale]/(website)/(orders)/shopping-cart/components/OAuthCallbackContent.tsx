@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from '@/i18n/routing';
+import { toRouterPath } from '@/utils/localePath';
 import { OAUTH_CALLBACK } from '@/constants/api';
 import useUserStore from '@/stores/userStore';
 import { getStoredIpGeoInfo, fetchIpInfo, storeIpGeoInfo } from '@/utils/ipGeo';
@@ -56,14 +57,15 @@ export default function OAuthCallbackContent({
         const {user, token, success} = await api.get<any>(OAUTH_CALLBACK(provider) + `?${params.toString()}`);
 
         if (success) {
-          const redirectUrl = localStorage.getItem('redirectUrl') || '/shopping-cart';
+          const rawRedirect = localStorage.getItem('redirectUrl') || '/shopping-cart';
+          const redirectUrl = toRouterPath(rawRedirect);
           setLoginUserToken({token, user});
           localStorage.removeItem('redirectUrl');
           localStorage.removeItem('oauthProvider');
           if (onSuccess) {
             onSuccess();
           }
-          router.push(redirectUrl);
+          router.replace(redirectUrl);
         }
       } catch (err: any) {
         console.error('OAuth callback error:', err);

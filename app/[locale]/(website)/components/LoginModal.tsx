@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import { Link, useRouter } from '@/i18n/routing'
+import { Link, useRouter, usePathname } from '@/i18n/routing'
+import { toRouterPath } from '@/utils/localePath'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import useUserStore from '@/stores/userStore'
@@ -50,6 +51,7 @@ export default function LoginModal({
     verifyLoginCode,
   } = useUserStore()
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
 
   const isPreviewUnlock = loginModalOptions?.loginSource === 'preview_unlock'
@@ -106,7 +108,7 @@ export default function LoginModal({
     resetMessages()
     const urlRedirect = searchParams.get('redirect')
     if (urlRedirect) {
-      localStorage.setItem('redirectUrl', urlRedirect)
+      localStorage.setItem('redirectUrl', toRouterPath(urlRedirect))
     }
   }, [state.mode, resetMessages, searchParams])
 
@@ -222,7 +224,7 @@ export default function LoginModal({
     const urlRedirect = localStorage.getItem('redirectUrl')
     if (urlRedirect) {
       localStorage.removeItem('redirectUrl')
-      router.push(urlRedirect)
+      router.push(toRouterPath(urlRedirect))
     } else {
       router.push(defaultPath)
     }
@@ -254,7 +256,9 @@ export default function LoginModal({
       if (url) {
         // Modal flows (e.g. preview unlock) keep the user on the current page after OAuth.
         if (!useRedirect) {
-          localStorage.setItem('redirectUrl', window.location.pathname + window.location.search)
+          const query = searchParams.toString()
+          const returnPath = query ? `${pathname}?${query}` : pathname
+          localStorage.setItem('redirectUrl', returnPath)
           if (loginModalOptions?.loginSource === 'preview_unlock') {
             sessionStorage.setItem('previewPostLoginSync', '1')
           }
