@@ -5100,6 +5100,8 @@ export default function PreviewPageWithTopNav() {
 
   const prevLoggedInRef = useRef(isLoggedIn);
   const pendingPostLoginSyncRef = useRef(false);
+  /** OAuth 回跳后登录态可能尚未从 token 恢复，避免过早清掉待同步标记 */
+  const oauthReturnSyncRef = useRef(false);
   /** 游客登录解锁后：强制在 p11-12 / p13-14 上播百分比彩虹 loading，不论后端是否已完成 */
   const [unlockedSpreadRevealLoading, setUnlockedSpreadRevealLoading] = useState(false);
   const [unlockedSpreadRevealProgress, setUnlockedSpreadRevealProgress] = useState(0);
@@ -5155,6 +5157,7 @@ export default function PreviewPageWithTopNav() {
   useEffect(() => {
     if (sessionStorage.getItem('previewPostLoginSync') === '1') {
       sessionStorage.removeItem('previewPostLoginSync');
+      oauthReturnSyncRef.current = true;
       pendingPostLoginSyncRef.current = true;
     }
   }, []);
@@ -5165,10 +5168,14 @@ export default function PreviewPageWithTopNav() {
     }
     prevLoggedInRef.current = isLoggedIn;
     if (!isLoggedIn) {
-      pendingPostLoginSyncRef.current = false;
+      if (!oauthReturnSyncRef.current) {
+        pendingPostLoginSyncRef.current = false;
+      }
       clearUnlockedSpreadRevealLoading();
       return;
     }
+
+    oauthReturnSyncRef.current = false;
     if (!pendingPostLoginSyncRef.current) return;
 
     const userId = user?.id ?? useUserStore.getState().user?.id;

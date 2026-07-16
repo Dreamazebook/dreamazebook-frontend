@@ -8,7 +8,7 @@ import { OAUTH_CALLBACK } from '@/constants/api';
 import useUserStore from '@/stores/userStore';
 import { getStoredIpGeoInfo, fetchIpInfo, storeIpGeoInfo } from '@/utils/ipGeo';
 import api from '@/utils/api';
-import { ApiResponse } from '@/types/api';
+import { ApiResponse, UserResponse } from '@/types/api';
 
 export default function OAuthCallbackContent({
   onSuccess,
@@ -54,12 +54,14 @@ export default function OAuthCallbackContent({
         if (ipInfo.ip) params.set('ip', ipInfo.ip);
         if (ipInfo.country) params.set('country', ipInfo.country);
 
-        const {user, token, success} = await api.get<any>(OAUTH_CALLBACK(provider) + `?${params.toString()}`);
+        const response = await api.get<ApiResponse<UserResponse>>(
+          OAUTH_CALLBACK(provider) + `?${params.toString()}`,
+        );
 
-        if (success) {
+        if (response.success && response.data?.token) {
           const rawRedirect = localStorage.getItem('redirectUrl') || '/shopping-cart';
           const redirectUrl = toRouterPath(rawRedirect);
-          setLoginUserToken({token, user});
+          setLoginUserToken(response.data);
           localStorage.removeItem('redirectUrl');
           localStorage.removeItem('oauthProvider');
           if (onSuccess) {
