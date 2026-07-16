@@ -5151,6 +5151,14 @@ export default function PreviewPageWithTopNav() {
     startBatchPollingRef.current(spuCode, batchId);
   }, [refreshPreviewDataFromBatch, searchParams, startUnlockedSpreadRevealLoading]);
 
+  // OAuth 从 Google 跳回时 isLoggedIn 可能已是 true，需靠 session 标记触发解锁同步
+  useEffect(() => {
+    if (sessionStorage.getItem('previewPostLoginSync') === '1') {
+      sessionStorage.removeItem('previewPostLoginSync');
+      pendingPostLoginSyncRef.current = true;
+    }
+  }, []);
+
   useEffect(() => {
     if (!prevLoggedInRef.current && isLoggedIn) {
       pendingPostLoginSyncRef.current = true;

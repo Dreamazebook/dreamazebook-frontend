@@ -252,6 +252,13 @@ export default function LoginModal({
       }
       const url = await fetchOAuthRedirect(provider)
       if (url) {
+        // Modal flows (e.g. preview unlock) keep the user on the current page after OAuth.
+        if (!useRedirect) {
+          localStorage.setItem('redirectUrl', window.location.pathname + window.location.search)
+          if (loginModalOptions?.loginSource === 'preview_unlock') {
+            sessionStorage.setItem('previewPostLoginSync', '1')
+          }
+        }
         return window.location.href = url
       } else {
         updateState({ errorMessage: t(`${provider.toLowerCase()}OAuthError`) })
