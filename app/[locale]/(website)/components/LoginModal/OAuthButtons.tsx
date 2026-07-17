@@ -35,6 +35,7 @@ export const OAuthButtons = memo(({
   variant = 'default',
   fluid = false,
 }: OAuthButtonsProps) => {
+  return null;
   if (variant === 'labeled') {
     return (
       <div>
