@@ -11,6 +11,20 @@ import { getStoredIpGeoInfo, fetchIpInfo, storeIpGeoInfo } from '@/utils/ipGeo';
 import api from '@/utils/api';
 import type { ApiResponse, UserResponse } from '@/types/api';
 
+function readOAuthReturnUrl(): string {
+  return (
+    localStorage.getItem('redirectUrl') ||
+    sessionStorage.getItem('oauthReturnUrl') ||
+    '/shopping-cart'
+  );
+}
+
+function clearOAuthReturnUrl() {
+  localStorage.removeItem('redirectUrl');
+  sessionStorage.removeItem('oauthReturnUrl');
+  localStorage.removeItem('oauthProvider');
+}
+
 export default function OAuthCallbackContent({
   onSuccess,
 }: {
@@ -19,19 +33,24 @@ export default function OAuthCallbackContent({
   const searchParams = useSearchParams();
   const router = useRouter();
   const inFlightRef = useRef(false);
+  const finishedRef = useRef(false);
+  const onSuccessRef = useRef(onSuccess);
+  onSuccessRef.current = onSuccess;
 
   const { setLoginUserToken } = useUserStore();
 
   useEffect(() => {
     const processOAuthCallback = async () => {
+      if (finishedRef.current) return;
+
       const code = searchParams.get('code');
       const oauthError = searchParams.get('error');
 
       const finishRedirect = () => {
-        const rawRedirect = localStorage.getItem('redirectUrl') || '/shopping-cart';
-        const redirectUrl = toRouterPath(rawRedirect);
-        localStorage.removeItem('redirectUrl');
-        localStorage.removeItem('oauthProvider');
+        if (finishedRef.current) return;
+        finishedRef.current = true;
+        const redirectUrl = toRouterPath(readOAuthReturnUrl());
+        clearOAuthReturnUrl();
         router.replace(redirectUrl);
       };
 
@@ -45,6 +64,7 @@ export default function OAuthCallbackContent({
 
       const codeSessionKey = getOAuthCodeSessionKey(code);
       if (sessionStorage.getItem(codeSessionKey) === '1') {
+        // Already exchanged this code; just leave the cart callback URL.
         finishRedirect();
         return;
       }
@@ -76,8 +96,10 @@ export default function OAuthCallbackContent({
         if (userResponse?.token) {
           sessionStorage.setItem(codeSessionKey, '1');
           setLoginUserToken(userResponse);
-          if (onSuccess) {
-            onSuccess();
+          try {
+            onSuccessRef.current?.();
+          } catch (err) {
+            console.error('OAuth onSuccess error:', err);
           }
           finishRedirect();
           return;
@@ -94,7 +116,8 @@ export default function OAuthCallbackContent({
     };
 
     void processOAuthCallback();
-  }, [searchParams, router, setLoginUserToken, onSuccess]);
+    // Intentionally omit onSuccess — use ref to avoid re-running after cart fetch.
+  }, [searchParams, router, setLoginUserToken]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-6">

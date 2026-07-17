@@ -255,10 +255,13 @@ export default function LoginModal({
       const url = await fetchOAuthRedirect(provider)
       if (url) {
         // Modal flows (e.g. preview unlock) keep the user on the current page after OAuth.
+        // Persist in both storages: callback may clear localStorage.redirectUrl on a
+        // re-run (Strict Mode / unstable onSuccess) and otherwise fall back to /shopping-cart.
         if (!useRedirect) {
           const query = searchParams.toString()
           const returnPath = query ? `${pathname}?${query}` : pathname
           localStorage.setItem('redirectUrl', returnPath)
+          sessionStorage.setItem('oauthReturnUrl', returnPath)
           if (loginModalOptions?.loginSource === 'preview_unlock') {
             sessionStorage.setItem('previewPostLoginSync', '1')
           }
