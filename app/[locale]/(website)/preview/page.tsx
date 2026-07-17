@@ -5153,20 +5153,19 @@ export default function PreviewPageWithTopNav() {
     startBatchPollingRef.current(spuCode, batchId);
   }, [refreshPreviewDataFromBatch, searchParams, startUnlockedSpreadRevealLoading]);
 
-  // OAuth 从 Google 跳回时 isLoggedIn 可能已是 true，需靠 session 标记触发解锁同步
+  // 邮箱登录：同页 isLoggedIn false→true；Google OAuth：整页回跳时 isLoggedIn 已是 true，
+  // 必须靠 sessionStorage.previewPostLoginSync。标记只在真正开始 sync 时清除，避免 Strict Mode 丢标记。
   useEffect(() => {
-    if (sessionStorage.getItem('previewPostLoginSync') === '1') {
-      sessionStorage.removeItem('previewPostLoginSync');
+    const oauthPending = sessionStorage.getItem('previewPostLoginSync') === '1';
+    if (oauthPending) {
       oauthReturnSyncRef.current = true;
       pendingPostLoginSyncRef.current = true;
     }
-  }, []);
-
-  useEffect(() => {
     if (!prevLoggedInRef.current && isLoggedIn) {
       pendingPostLoginSyncRef.current = true;
     }
     prevLoggedInRef.current = isLoggedIn;
+
     if (!isLoggedIn) {
       if (!oauthReturnSyncRef.current) {
         pendingPostLoginSyncRef.current = false;
@@ -5175,13 +5174,17 @@ export default function PreviewPageWithTopNav() {
       return;
     }
 
-    oauthReturnSyncRef.current = false;
     if (!pendingPostLoginSyncRef.current) return;
 
     const userId = user?.id ?? useUserStore.getState().user?.id;
-    if (!userId) return;
+    // OAuth 回跳时 user 可能稍后才由 fetchCurrentUser 补齐；有 token 也可强制同步
+    const hasToken =
+      typeof window !== 'undefined' && Boolean(localStorage.getItem('token'));
+    if (!userId && !hasToken) return;
 
     pendingPostLoginSyncRef.current = false;
+    oauthReturnSyncRef.current = false;
+    sessionStorage.removeItem('previewPostLoginSync');
     void runPostLoginPreviewSync();
   }, [isLoggedIn, user?.id, runPostLoginPreviewSync, clearUnlockedSpreadRevealLoading]);
 

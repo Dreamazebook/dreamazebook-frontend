@@ -50,6 +50,10 @@ export default function OAuthCallbackContent({
         if (finishedRef.current) return;
         finishedRef.current = true;
         const redirectUrl = toRouterPath(readOAuthReturnUrl());
+        // Ensure preview remount can still trigger full-book batch sync after OAuth.
+        if (redirectUrl.includes('/preview')) {
+          sessionStorage.setItem('previewPostLoginSync', '1');
+        }
         clearOAuthReturnUrl();
         router.replace(redirectUrl);
       };

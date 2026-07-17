@@ -262,7 +262,11 @@ export default function LoginModal({
           const returnPath = query ? `${pathname}?${query}` : pathname
           localStorage.setItem('redirectUrl', returnPath)
           sessionStorage.setItem('oauthReturnUrl', returnPath)
-          if (loginModalOptions?.loginSource === 'preview_unlock') {
+          // Preview unlock (and any modal OAuth from /preview) must refetch full batch after return.
+          if (
+            loginModalOptions?.loginSource === 'preview_unlock' ||
+            pathname.includes('/preview')
+          ) {
             sessionStorage.setItem('previewPostLoginSync', '1')
           }
         }
