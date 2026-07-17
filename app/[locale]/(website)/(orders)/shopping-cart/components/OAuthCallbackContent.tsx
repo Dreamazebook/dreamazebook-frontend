@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from '@/i18n/routing';
 import { toRouterPath } from '@/utils/localePath';
+import { getOAuthCodeSessionKey, normalizeOAuthUserResponse } from '@/utils/oauth';
 import { OAUTH_CALLBACK } from '@/constants/api';
 import useUserStore from '@/stores/userStore';
 import { getStoredIpGeoInfo, fetchIpInfo, storeIpGeoInfo } from '@/utils/ipGeo';
 import api from '@/utils/api';
-import { ApiResponse, UserResponse } from '@/types/api';
+import type { ApiResponse, UserResponse } from '@/types/api';
 
 export default function OAuthCallbackContent({
   onSuccess,
@@ -17,29 +18,43 @@ export default function OAuthCallbackContent({
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const inFlightRef = useRef(false);
 
-  const { setLoginUserToken, loginModalOptions } = useUserStore();
+  const { setLoginUserToken } = useUserStore();
 
   useEffect(() => {
     const processOAuthCallback = async () => {
+      const code = searchParams.get('code');
+      const oauthError = searchParams.get('error');
+
+      const finishRedirect = () => {
+        const rawRedirect = localStorage.getItem('redirectUrl') || '/shopping-cart';
+        const redirectUrl = toRouterPath(rawRedirect);
+        localStorage.removeItem('redirectUrl');
+        localStorage.removeItem('oauthProvider');
+        router.replace(redirectUrl);
+      };
+
+      if (oauthError) {
+        console.error('OAuth error:', oauthError);
+        finishRedirect();
+        return;
+      }
+
+      if (!code) return;
+
+      const codeSessionKey = getOAuthCodeSessionKey(code);
+      if (sessionStorage.getItem(codeSessionKey) === '1') {
+        finishRedirect();
+        return;
+      }
+
+      if (inFlightRef.current) return;
+      inFlightRef.current = true;
+
       try {
-        const code = searchParams.get('code');
-        const oauthError = searchParams.get('error');
-
-        if (oauthError) {
-          console.error('OAuth error:', oauthError);
-          return;
-        }
-
-        if (!code) {
-          // console.error('No authorization code');
-          return;
-        }
-
         const provider = localStorage.getItem('oauthProvider') || 'google';
 
-        // Ensure IP/country info is available (fetched in LoginModal before redirect,
-        // but fetch again as fallback in case it wasn't persisted)
         let ipInfo = getStoredIpGeoInfo();
         if (!ipInfo.ip || !ipInfo.country) {
           const fresh = await fetchIpInfo();
@@ -49,7 +64,6 @@ export default function OAuthCallbackContent({
           }
         }
 
-        // Build query params with code, ip, country
         const params = new URLSearchParams({ code });
         if (ipInfo.ip) params.set('ip', ipInfo.ip);
         if (ipInfo.country) params.set('country', ipInfo.country);
@@ -58,24 +72,29 @@ export default function OAuthCallbackContent({
           OAUTH_CALLBACK(provider) + `?${params.toString()}`,
         );
 
-        if (response.success && response.data?.token) {
-          const rawRedirect = localStorage.getItem('redirectUrl') || '/shopping-cart';
-          const redirectUrl = toRouterPath(rawRedirect);
-          setLoginUserToken(response.data);
-          localStorage.removeItem('redirectUrl');
-          localStorage.removeItem('oauthProvider');
+        const userResponse = normalizeOAuthUserResponse(response);
+        if (userResponse?.token) {
+          sessionStorage.setItem(codeSessionKey, '1');
+          setLoginUserToken(userResponse);
           if (onSuccess) {
             onSuccess();
           }
-          router.replace(redirectUrl);
+          finishRedirect();
+          return;
         }
-      } catch (err: any) {
+
+        console.error('OAuth callback: unexpected response shape', response);
+        finishRedirect();
+      } catch (err: unknown) {
         console.error('OAuth callback error:', err);
+        finishRedirect();
+      } finally {
+        inFlightRef.current = false;
       }
     };
 
-    processOAuthCallback();
-  }, []);
+    void processOAuthCallback();
+  }, [searchParams, router, setLoginUserToken, onSuccess]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-6">
