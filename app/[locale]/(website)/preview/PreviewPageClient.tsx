@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useRouter } from '@/i18n/routing';
-import { useSearchParams, usePathname } from 'next/navigation';
+import { useParams, useSearchParams, usePathname } from 'next/navigation';
 import { Drawer } from "antd";
 import { create } from 'zustand';
 import { IoIosArrowBack } from '@/utils/icons';
@@ -76,6 +76,14 @@ import {
   shouldCropCoverRightHalf,
 } from '@/utils/coverSpreadHelpers';
 import { isPicbookDad } from '@/utils/isPicbookDad';
+import {
+  getBookCreatePath,
+  getPreviewFormatsPath,
+  getPreviewPath,
+  PENDING_PREVIEW_TOKEN,
+} from '@/constants/bookRoutes';
+
+export type PreviewPageMode = 'preview' | 'formats';
 
 // 封面文字配置缓存：避免在同一会话内反复请求 R2
 const coverTextsCache: Record<string, Array<{
@@ -1342,38 +1350,49 @@ interface BookOptions {
   gift_box_options: Array<GiftBoxOption>;
 }
 
-export default function PreviewPageWithTopNav() {
+export default function PreviewPageClient({ mode = 'preview' }: { mode?: PreviewPageMode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const routeParams = useParams<{ 'preview-token'?: string }>();
   const { user, isLoggedIn, openLoginModal } = useUserStore();
   const t = useTranslations('Preview');
   // 严格以 URL 段判定展示语言，避免受到浏览器/cookie 影响
   const pathname = usePathname?.() as string;
   const urlLocale = (typeof pathname === 'string' && pathname.split('/')[1]) || '';
   const displayLang: 'en' | 'zh' = urlLocale.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+  const isFormatsMode = mode === 'formats';
+  const previewTokenParam = decodeURIComponent(String(routeParams?.['preview-token'] || ''));
+  const urlPreviewId =
+    (previewTokenParam && previewTokenParam !== PENDING_PREVIEW_TOKEN ? previewTokenParam : '') ||
+    searchParams.get('previewid') ||
+    '';
+  const previewQueryParams = useMemo(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('previewid');
+    params.delete('tab');
+    return params;
+  }, [searchParams]);
   
-  // 更新 URL 中的 previewid 参数（使用 window.history 避免触发页面重新加载）
+  // 更新 URL path 中的 preview token（使用 window.history 避免触发页面重新加载）
   const updatePreviewIdInUrl = useCallback((newPreviewId: string) => {
-    const currentPreviewId = searchParams.get('previewid');
-    if (currentPreviewId !== newPreviewId) {
-      try {
-        const bookId = searchParams.get('bookid');
-        const newSearchParams = new URLSearchParams(searchParams.toString());
-        newSearchParams.set('previewid', newPreviewId);
-        if (bookId) {
-          newSearchParams.set('bookid', bookId);
-        }
-        // 使用 window.history.replaceState 更新 URL，不触发页面重新加载
-        const newUrl = `${pathname}?${newSearchParams.toString()}`;
-        if (typeof window !== 'undefined') {
-          window.history.replaceState(null, '', newUrl);
-          console.log('[Preview] Updated URL previewid:', currentPreviewId, '->', newPreviewId);
-        }
-      } catch (e) {
-        console.warn('[Preview] Failed to update URL previewid:', e);
+    if (!newPreviewId || newPreviewId === PENDING_PREVIEW_TOKEN) return;
+    const currentPreviewId = urlPreviewId;
+    if (currentPreviewId === newPreviewId) return;
+    try {
+      if (typeof window === 'undefined') return;
+      const parts = window.location.pathname.split('/');
+      const previewIdx = parts.indexOf('preview');
+      if (previewIdx >= 0 && parts[previewIdx + 1]) {
+        parts[previewIdx + 1] = encodeURIComponent(newPreviewId);
       }
+      const qs = previewQueryParams.toString();
+      const newUrl = `${parts.join('/')}${qs ? `?${qs}` : ''}`;
+      window.history.replaceState(null, '', newUrl);
+      console.log('[Preview] Updated URL preview token:', currentPreviewId, '->', newPreviewId);
+    } catch (e) {
+      console.warn('[Preview] Failed to update URL preview token:', e);
     }
-  }, [searchParams, pathname]);
+  }, [urlPreviewId, previewQueryParams]);
   
   const {
     activeTab,
@@ -1416,22 +1435,23 @@ export default function PreviewPageWithTopNav() {
     const isNotCreator = batchIsOwnRef.current === false;
     let personalizeHref: string | undefined;
     if (isNotCreator) {
-      const params = new URLSearchParams();
       const bookIdParam = searchParams.get('bookid');
-      if (bookIdParam) params.set('book', bookIdParam);
-      const lang = searchParams.get('lang');
-      if (lang) params.set('language', lang);
-      if (searchParams.get('ks') === '1') params.set('ks', '1');
-      if (searchParams.get('hideOptions') === '1') params.set('hideOptions', '1');
-      const packageItemId = searchParams.get('package_item_id');
-      if (packageItemId) params.set('package_item_id', packageItemId);
-      const packageId = searchParams.get('package_id');
-      if (packageId) params.set('package_id', packageId);
-      const coverType = searchParams.get('cover_type');
-      if (coverType) params.set('cover_type', coverType);
-      const bindingType = searchParams.get('binding_type');
-      if (bindingType) params.set('binding_type', bindingType);
-      personalizeHref = `/personalize?${params.toString()}`;
+      if (bookIdParam) {
+        const params: Record<string, string> = {};
+        const lang = searchParams.get('lang');
+        if (lang) params.language = lang;
+        if (searchParams.get('ks') === '1') params.ks = '1';
+        if (searchParams.get('hideOptions') === '1') params.hideOptions = '1';
+        const packageItemId = searchParams.get('package_item_id');
+        if (packageItemId) params.package_item_id = packageItemId;
+        const packageId = searchParams.get('package_id');
+        if (packageId) params.package_id = packageId;
+        const coverType = searchParams.get('cover_type');
+        if (coverType) params.cover_type = coverType;
+        const bindingType = searchParams.get('binding_type');
+        if (bindingType) params.binding_type = bindingType;
+        personalizeHref = getBookCreatePath(bookIdParam, params);
+      }
     }
     openLoginModal({
       title: t('unlockFullBookTitle'),
@@ -1460,9 +1480,17 @@ export default function PreviewPageWithTopNav() {
   // 圣诞 bundle：通过查询参数关闭 Others(Options) 标签
   const isHideOptions = searchParams.get('hideOptions') === '1';
   const tabParam = searchParams.get('tab');
+  const formatsSection = searchParams.get('section');
   const isCartOptionEdit =
     !!searchParams.get('fromCartItemId') &&
-    (tabParam === 'giftOptions' || tabParam === 'options' || tabParam === 'giftBox' || tabParam === 'addons');
+    (tabParam === 'giftOptions' ||
+      tabParam === 'options' ||
+      tabParam === 'giftBox' ||
+      tabParam === 'addons' ||
+      formatsSection === 'giftOptions' ||
+      formatsSection === 'options' ||
+      formatsSection === 'giftBox' ||
+      formatsSection === 'addons');
   // regenerate-preview 复用当前 batch、或从购物车只编辑 options 时，不再用本地 previewUserData 触发二次 render
   const shouldSkipInitialRender = searchParams.get('skipRender') === '1' || isCartOptionEdit;
   const hideOthers = isKs || isHideOptions;
@@ -1534,7 +1562,7 @@ export default function PreviewPageWithTopNav() {
   // 从购物车列表预填充 message（若存在）
   // 注意：recipient_name 现在优先从 /products/{bookid}/preview/batches/{previewid} 获取
   useEffect(() => {
-    const previewIdParam = searchParams.get('previewid');
+    const previewIdParam = urlPreviewId;
     // 仅编辑流程（带 previewid）下启用
     if (!previewIdParam) return;
     (async () => {
@@ -1597,7 +1625,7 @@ export default function PreviewPageWithTopNav() {
 
   // 编辑流程：检查 create-by-picbook 状态，决定直接使用结果或继续走 WS
   useEffect(() => {
-    const previewIdParam = searchParams.get('previewid');
+    const previewIdParam = urlPreviewId;
     const bookIdParam = searchParams.get('bookid');
     if (!previewIdParam || !bookIdParam) return;
     
@@ -1881,13 +1909,17 @@ export default function PreviewPageWithTopNav() {
   const [uploadedMomDrawingPageCodes, setUploadedMomDrawingPageCodes] = React.useState<Set<string>>(() => new Set());
 
   // 当 previewid/bookid 变化时重置缓存，避免跨不同预览复用旧数据
-  const p34CacheKey = `${searchParams.get('bookid') || ''}_${searchParams.get('previewid') || ''}`;
+  const p34CacheKey = `${searchParams.get('bookid') || ''}_${urlPreviewId || ''}`;
 
   useEffect(() => {
+    if (isFormatsMode) {
+      setActiveTab('Others');
+      return;
+    }
     const tabParam = searchParams.get('tab');
     if (tabParam === 'giftBox' || tabParam === 'addons' || tabParam === 'giftOptions' || tabParam === 'options') return;
     setActiveTab('Book preview');
-  }, [p34CacheKey, searchParams, setActiveTab]);
+  }, [p34CacheKey, searchParams, setActiveTab, isFormatsMode]);
 
   // 切换到不同 preview 时重置 Submit 状态（后续若从后端/购物车回填到真实寄语，会再置为 true）
   useEffect(() => {
@@ -2023,7 +2055,7 @@ export default function PreviewPageWithTopNav() {
 
     const spu = searchParams.get('bookid');
     // batch_id 的兜底：优先用 previewData.batch_id；否则用 URL previewid（该项目里 previewid 通常等于 batch_id）
-    const batchId = (previewData as any)?.batch_id || searchParams.get('previewid');
+    const batchId = (previewData as any)?.batch_id || urlPreviewId;
 
     console.log('[P3-4 Compose] attempting upload', {
       spu,
@@ -2218,7 +2250,7 @@ export default function PreviewPageWithTopNav() {
   ): Promise<'ok' | 'rate_limited' | 'skipped'> => {
     const spu = (searchParams.get('bookid') || '').toUpperCase();
     const previewForMom = previewData as MomCompositePreviewData | null;
-    const batchId = previewForMom?.batch_id || searchParams.get('previewid');
+    const batchId = previewForMom?.batch_id || urlPreviewId;
 
     if (spu !== 'PICBOOK_MOM' || !batchId) {
       console.warn('[Mom Composite] skip upload: invalid book or missing batch_id', { spu, batchId, pageCode });
@@ -2495,7 +2527,7 @@ export default function PreviewPageWithTopNav() {
   useEffect(() => {
     if (hasPrefilledOptionsRef.current) return;
     if (!bookOptions) return;
-    const previewIdParam = searchParams.get('previewid');
+    const previewIdParam = urlPreviewId;
     if (!previewIdParam) return;
     // 仅用于“购物车 create book”流程：不从购物车条目里预选封面/装订/礼盒，避免误导用户
     if (searchParams.get('skipPrefillOptions') === '1') return;
@@ -3470,23 +3502,25 @@ export default function PreviewPageWithTopNav() {
   // 显式打开调试：在 URL 上加 ?debugCoverR2=1
   const debugCoverR2 = process.env.NODE_ENV === 'development' && searchParams.get('debugCoverR2') === '1';
 
-  // 监听 URL tab 参数，跳转到指定部分
+  // 按路由 mode / section 同步 Formats（原 Others）页
   useEffect(() => {
-    const tabParam = searchParams.get('tab');
-    if (!hideOthers && (tabParam === 'giftOptions' || tabParam === 'options')) {
-      setActiveTab('Others');
+    if (hideOthers) {
+      setActiveTab('Book preview');
       return;
     }
-    if (!hideOthers && (tabParam === 'giftBox' || tabParam === 'addons')) {
+    if (isFormatsMode) {
       setActiveTab('Others');
-      // 延迟滚动以确保 DOM 渲染
-      setTimeout(() => {
-        if (giftBoxRef.current) {
-          scrollPreviewTargetIntoComfortableCenter(giftBoxRef.current);
-        }
-      }, 300);
+      if (formatsSection === 'giftBox' || formatsSection === 'addons' || tabParam === 'giftBox' || tabParam === 'addons') {
+        setTimeout(() => {
+          if (giftBoxRef.current) {
+            scrollPreviewTargetIntoComfortableCenter(giftBoxRef.current);
+          }
+        }, 300);
+      }
+      return;
     }
-  }, [hideOthers, searchParams, setActiveTab]);
+    setActiveTab('Book preview');
+  }, [hideOthers, isFormatsMode, formatsSection, tabParam, setActiveTab]);
   
   // 构建图片URL的辅助函数（移除 public/ 前缀，优先使用站内相对路径）
   const buildImageUrl = (imagePath: string) => {
@@ -4004,7 +4038,7 @@ export default function PreviewPageWithTopNav() {
 
   const handleFaceSwapRegenerateStarted = useCallback(() => {
     const spu = searchParams.get('bookid');
-    const batchId = currentBatchIdRef.current || searchParams.get('previewid');
+    const batchId = currentBatchIdRef.current || urlPreviewId;
     if (spu && batchId) {
       startBatchPollingRef.current(spu, batchId);
     }
@@ -4530,7 +4564,7 @@ export default function PreviewPageWithTopNav() {
         const storeUserData = usePreviewStore.getState().userData as any;
         const userData = storeUserData ? JSON.stringify(storeUserData) : localStorage.getItem('previewUserData');
         const bookId = searchParams.get('bookid') || localStorage.getItem('previewBookId');
-        const previewIdParam = searchParams.get('previewid');
+        const previewIdParam = urlPreviewId;
         if (shouldSkipInitialRender && previewIdParam) {
           console.log('[Preview] skip initial render for reused preview:', previewIdParam);
           setIsProcessing(false);
@@ -4973,10 +5007,8 @@ export default function PreviewPageWithTopNav() {
       return;
     }
     if (!hideOthers && activeTab === 'Book preview') {
-      setActiveTab('Others');
-      if (typeof window !== 'undefined') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
+      const token = currentBatchIdRef.current || urlPreviewId || PENDING_PREVIEW_TOKEN;
+      router.push(getPreviewFormatsPath(token, previewQueryParams));
       return;
     }
     await handleContinue();
@@ -5136,7 +5168,7 @@ export default function PreviewPageWithTopNav() {
 
   const runPostLoginPreviewSync = useCallback(async () => {
     const spuCode = searchParams.get('bookid');
-    const batchId = currentBatchIdRef.current || searchParams.get('previewid');
+    const batchId = currentBatchIdRef.current || urlPreviewId;
     if (!spuCode || !batchId) return;
 
     previewChannelNameRef.current = null;
@@ -5522,7 +5554,7 @@ export default function PreviewPageWithTopNav() {
       if (Number.isFinite(existingId) && existingId > 0) {
         rememberPreviewCartItemId(existingId);
         ensuredCartForPreviewIdRef.current =
-          String(previewData?.preview_id ?? (previewData as any)?.batch_id ?? searchParams.get('previewid') ?? '');
+          String(previewData?.preview_id ?? (previewData as any)?.batch_id ?? urlPreviewId ?? '');
         return existingId;
       }
     }
@@ -5530,7 +5562,7 @@ export default function PreviewPageWithTopNav() {
     if (previewCartItemIdRef.current) return previewCartItemIdRef.current;
 
     const effectivePreviewId =
-      previewData?.preview_id ?? (previewData as any)?.batch_id ?? searchParams.get('previewid');
+      previewData?.preview_id ?? (previewData as any)?.batch_id ?? urlPreviewId;
     if (!effectivePreviewId) return null;
     if (!bookOptions) return null;
     if (selectedBookCover == null || selectedBinding == null || selectedGiftBox == null) return null;
@@ -5603,7 +5635,7 @@ export default function PreviewPageWithTopNav() {
     if (isHideOptions) return;
     if (isGuest) return;
     const effectivePreviewId =
-      previewData?.preview_id ?? (previewData as any)?.batch_id ?? searchParams.get('previewid');
+      previewData?.preview_id ?? (previewData as any)?.batch_id ?? urlPreviewId;
     if (!effectivePreviewId) return;
     if (!bookOptions) return;
     if (selectedBookCover == null || selectedBinding == null || selectedGiftBox == null) return;
@@ -5628,7 +5660,7 @@ export default function PreviewPageWithTopNav() {
     if (isGuest || isHideOptions) return;
     if (previewCartItemIdRef.current) return;
     const effectivePreviewId =
-      previewData?.preview_id ?? (previewData as any)?.batch_id ?? searchParams.get('previewid');
+      previewData?.preview_id ?? (previewData as any)?.batch_id ?? urlPreviewId;
     if (!effectivePreviewId) return;
     if (selectedBookCover == null || selectedBinding == null || selectedGiftBox == null) return;
     void ensurePreviewCartItem();
@@ -5734,7 +5766,7 @@ export default function PreviewPageWithTopNav() {
     if (!p34PageMetaForUpload?.baseSrc) return;
 
     const spu = searchParams.get('bookid');
-    const batchId = (previewData as any)?.batch_id || searchParams.get('previewid');
+    const batchId = (previewData as any)?.batch_id || urlPreviewId;
     if (!spu || !batchId) return;
 
     const pages = (previewData as any)?.preview_data;
@@ -5845,44 +5877,49 @@ export default function PreviewPageWithTopNav() {
       return '/shopping-cart';
     }
 
-    const params = new URLSearchParams();
-    const fromCartItemId = searchParams.get('fromCartItemId');
+    if ((isFormatsMode || activeTab === 'Others') && !hideOthers) {
+      const token = currentBatchIdRef.current || urlPreviewId || PENDING_PREVIEW_TOKEN;
+      return getPreviewPath(token, previewQueryParams);
+    }
+
     const bookIdParam = searchParams.get('bookid');
-    if (bookIdParam) params.set('book', bookIdParam);
+    if (!bookIdParam) return '/books';
+    const params: Record<string, string> = {};
+    const fromCartItemId = searchParams.get('fromCartItemId');
     const lang = searchParams.get('lang');
-    if (lang) params.set('language', lang);
-    if (isKs) params.set('ks', '1');
+    if (lang) params.language = lang;
+    if (isKs) params.ks = '1';
     const packageItemId = searchParams.get('package_item_id');
-    if (packageItemId) params.set('package_item_id', packageItemId);
+    if (packageItemId) params.package_item_id = packageItemId;
     const packageId = searchParams.get('package_id');
-    if (packageId) params.set('package_id', packageId);
-    if (fromCartItemId) params.set('fromCartItemId', fromCartItemId);
-    if (isHideOptions) params.set('hideOptions', '1');
-    if (searchParams.get('skipPrefillOptions') === '1') params.set('skipPrefillOptions', '1');
+    if (packageId) params.package_id = packageId;
+    if (fromCartItemId) params.fromCartItemId = fromCartItemId;
+    if (isHideOptions) params.hideOptions = '1';
+    if (searchParams.get('skipPrefillOptions') === '1') params.skipPrefillOptions = '1';
     const coverType = searchParams.get('cover_type');
-    if (coverType) params.set('cover_type', coverType);
+    if (coverType) params.cover_type = coverType;
     const bindingType = searchParams.get('binding_type');
-    if (bindingType) params.set('binding_type', bindingType);
-    return `/personalize?${params.toString()}`;
-  }, [searchParams, isKs, isHideOptions, isCartOptionEdit]);
+    if (bindingType) params.binding_type = bindingType;
+    return getBookCreatePath(bookIdParam, params);
+  }, [searchParams, isKs, isHideOptions, isCartOptionEdit, isFormatsMode, activeTab, hideOthers, urlPreviewId, previewQueryParams]);
 
   const createNewBookHref = useMemo(() => {
-    const params = new URLSearchParams();
     const bookIdParam = searchParams.get('bookid');
-    if (bookIdParam) params.set('book', bookIdParam);
+    if (!bookIdParam) return '/books';
+    const params: Record<string, string> = {};
     const lang = searchParams.get('lang');
-    if (lang) params.set('language', lang);
-    if (isKs) params.set('ks', '1');
+    if (lang) params.language = lang;
+    if (isKs) params.ks = '1';
     const packageItemId = searchParams.get('package_item_id');
-    if (packageItemId) params.set('package_item_id', packageItemId);
+    if (packageItemId) params.package_item_id = packageItemId;
     const packageId = searchParams.get('package_id');
-    if (packageId) params.set('package_id', packageId);
-    if (isHideOptions) params.set('hideOptions', '1');
+    if (packageId) params.package_id = packageId;
+    if (isHideOptions) params.hideOptions = '1';
     const coverType = searchParams.get('cover_type');
-    if (coverType) params.set('cover_type', coverType);
+    if (coverType) params.cover_type = coverType;
     const bindingType = searchParams.get('binding_type');
-    if (bindingType) params.set('binding_type', bindingType);
-    return `/personalize?${params.toString()}`;
+    if (bindingType) params.binding_type = bindingType;
+    return getBookCreatePath(bookIdParam, params);
   }, [searchParams, isKs, isHideOptions]);
 
   const showBackToEditNav = !isNotPreviewCreator || isCartOptionEdit;
@@ -5896,11 +5933,9 @@ export default function PreviewPageWithTopNav() {
   const showBackToPreviewPage = activeTab === 'Others' && !hideOthers && !isCartOptionEdit;
 
   const handlePreviewBackToBookPreview = useCallback(() => {
-    setActiveTab('Book preview');
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [setActiveTab]);
+    const token = currentBatchIdRef.current || urlPreviewId || PENDING_PREVIEW_TOKEN;
+    router.push(getPreviewPath(token, previewQueryParams));
+  }, [router, urlPreviewId, previewQueryParams]);
 
   const previewBottomButtonLabel = isGuest
     ? activeTab === 'Book preview'
@@ -6693,7 +6728,7 @@ export default function PreviewPageWithTopNav() {
                                 spuCode={String(searchParams.get('bookid') || '')}
                                 batchId={
                                   currentBatchId ||
-                                  searchParams.get('previewid') ||
+                                  urlPreviewId ||
                                   (previewData as any)?.batch_id ||
                                   null
                                 }

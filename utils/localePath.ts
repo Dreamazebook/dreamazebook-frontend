@@ -2,7 +2,7 @@ import { routing, type Locale } from '@/i18n/routing';
 
 /**
  * Normalize a path for next-intl router.push — strips a leading locale segment if present.
- * e.g. "/en/preview?bookid=1" → "/preview?bookid=1"
+ * e.g. "/en/preview/abc123?bookid=1" → "/preview/abc123?bookid=1"
  */
 export function toRouterPath(href: string): string {
   if (!href) return href;

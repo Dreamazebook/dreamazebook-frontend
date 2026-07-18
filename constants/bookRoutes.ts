@@ -115,3 +115,49 @@ export function resolveBookRouteFromParam(param: string): {
   const slug = getBookSlug(fallbackId) ?? fallbackId;
   return { productId: fallbackId, slug };
 }
+
+/** Placeholder path token used before a real preview batch id exists. */
+export const PENDING_PREVIEW_TOKEN = 'new';
+
+function toQueryString(
+  query?: Record<string, string | undefined | null> | URLSearchParams
+): string {
+  if (!query) return '';
+  const params =
+    query instanceof URLSearchParams
+      ? query
+      : new URLSearchParams(
+          Object.entries(query).flatMap(([key, value]) =>
+            value == null || value === '' ? [] : [[key, String(value)]]
+          )
+        );
+  const qs = params.toString();
+  return qs ? `?${qs}` : '';
+}
+
+/** Editor entry: `/books/{slug}/create` */
+export function getBookCreatePath(
+  productIdOrSlug: string,
+  query?: Record<string, string | undefined | null> | URLSearchParams
+): string {
+  const { slug } = resolveBookRouteFromParam(productIdOrSlug);
+  return `/books/${slug}/create${toQueryString(query)}`;
+}
+
+/** Preview book: `/preview/{previewToken}` */
+export function getPreviewPath(
+  previewToken: string,
+  query?: Record<string, string | undefined | null> | URLSearchParams
+): string {
+  const token = normalizeRouteSegment(previewToken || PENDING_PREVIEW_TOKEN);
+  return `/preview/${encodeURIComponent(token)}${toQueryString(query)}`;
+}
+
+/** Format / cover selection: `/preview/{previewToken}/formats` */
+export function getPreviewFormatsPath(
+  previewToken: string,
+  query?: Record<string, string | undefined | null> | URLSearchParams
+): string {
+  const token = normalizeRouteSegment(previewToken || PENDING_PREVIEW_TOKEN);
+  return `/preview/${encodeURIComponent(token)}/formats${toQueryString(query)}`;
+}

@@ -19,12 +19,12 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const segments = useSelectedLayoutSegments();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const isPersonalizePage = segments.includes("personalize");
+  const isPersonalizePage = segments.includes("books") && segments.includes("create");
   const isPersonalizedProductsPage = segments.includes("personalized-products");
   const isPreviewPage = segments.includes("preview");
   const isSelectBookContentPage = segments.includes("select-book-content");
   const isKickstarterConfigPage = segments.includes("kickstarter-config");
-  const isBookDetailPage = segments[0] === 'books' && segments.length > 1;
+  const isBookDetailPage = segments[0] === 'books' && segments.length === 2;
   const isFathersDayPage = pathname === '/fathers-day' || pathname?.endsWith('/fathers-day');
   const isLoginPage = pathname === '/login' || pathname?.endsWith('/login');
 

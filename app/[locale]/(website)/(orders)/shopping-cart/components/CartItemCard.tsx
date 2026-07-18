@@ -10,6 +10,7 @@ import KickstarterInlineCard from "./KickstarterInlineCard";
 import { getR2BookCover } from "@/utils/bookCovers";
 import { getOurBookDisplayName, getFormattedCartItemTitle } from "@/utils/bookNames";
 import { WEBSITE_CDN_URL } from "@/constants/cdn";
+import { getBookCreatePath, getPreviewFormatsPath } from "@/constants/bookRoutes";
 import { getPicbookCoverOptionImageUrl, normalizeSpuForCover } from "@/utils/picbookCoverImage";
 import CoverNameCanvas from "@/app/[locale]/(website)/preview/components/CoverNameCanvas";
 import { buildCoverTextVariables, canDrawCoverTexts } from "@/utils/coverTextVariables";
@@ -628,7 +629,11 @@ export default function CartItemCard({
                               setIsGiftOptionLoading(true);
                               try {
                                 await router.push(
-                                  `/preview?bookid=${item.spu_code}&previewid=${item.preview_id}&fromCartItemId=${item.id}&tab=giftOptions`
+                                  getPreviewFormatsPath(String(item.preview_id), {
+                                    bookid: item.spu_code,
+                                    fromCartItemId: String(item.id),
+                                    section: 'giftOptions',
+                                  })
                                 );
                               } catch (e) {
                                 setIsGiftOptionLoading(false);
@@ -655,17 +660,18 @@ export default function CartItemCard({
                               (item as any)?.picbook?.id;
                             let url = "";
                             if (bookId) {
-                              const fromCartParam = `&fromCartItemId=${encodeURIComponent(String(item.id))}`;
-                              const ksParams = isSubItem
-                                ? `&ks=1&package_item_id=${
-                                    (item as any)?.id || ""
-                                  }&package_id=${
-                                    (item as any)?.package_id || ""
-                                  }`
-                                : "";
-                              // 关键：把 cart item id 透传给 personalize/preview，用于后续 regenerate-preview 绑定，避免重复新增
+                              // 关键：把 cart item id 透传给 create/preview，用于后续 regenerate-preview 绑定，避免重复新增
                               // Create mode从购物车进入：不要在 preview 页预选 Options（仅影响该 create 流程，不影响编辑/其他入口）
-                              url = `/personalize?bookid=${bookId}${ksParams}${fromCartParam}&skipPrefillOptions=1`;
+                              const createQuery: Record<string, string> = {
+                                fromCartItemId: String(item.id),
+                                skipPrefillOptions: '1',
+                              };
+                              if (isSubItem) {
+                                createQuery.ks = '1';
+                                createQuery.package_item_id = String((item as any)?.id || '');
+                                createQuery.package_id = String((item as any)?.package_id || '');
+                              }
+                              url = getBookCreatePath(bookId, createQuery);
                             } else {
                               url = "/shopping-cart";
                             }
@@ -694,11 +700,15 @@ export default function CartItemCard({
                               (item as any)?.picbook?.id;
                             if (item.preview_id) {
                               await router.push(
-                                `/preview?bookid=${item.spu_code}&previewid=${item.preview_id}&fromCartItemId=${item.id}&tab=giftBox`
+                                getPreviewFormatsPath(String(item.preview_id), {
+                                  bookid: item.spu_code,
+                                  fromCartItemId: String(item.id),
+                                  section: 'giftBox',
+                                })
                               );
                             } else if (bookId) {
                               await router.push(
-                                `/personalize?bookid=${bookId}&step=addons`
+                                getBookCreatePath(bookId, { step: 'addons' })
                               );
                             } else {
                               await router.push("/shopping-cart");
@@ -913,7 +923,12 @@ export default function CartItemCard({
                         const ctaHref = piIsEdit
                           ? `/personalized-products/${spuCode}/${encodeURIComponent(String(piPreviewId))}/edit?fromCartItemId=${encodeURIComponent(String(pi?.id ?? ''))}`
                           // 圣诞 bundle：跳转到 preview 后不展示 option tab
-                          : `/personalize?bookid=${spuCode}&hideOptions=1&fromCartItemId=${encodeURIComponent(String(pi?.id ?? ''))}${coverType ? `&cover_type=${encodeURIComponent(coverType)}` : ''}${bindingType ? `&binding_type=${encodeURIComponent(bindingType)}` : ''}`
+                          : getBookCreatePath(spuCode, {
+                              hideOptions: '1',
+                              fromCartItemId: String(pi?.id ?? ''),
+                              ...(coverType ? { cover_type: coverType } : {}),
+                              ...(bindingType ? { binding_type: bindingType } : {}),
+                            })
 
                         return (
                           <div key={pi?.id || `${spuCode}-${pi?.item_index}`} className="flex md:h-[120px] items-center">
