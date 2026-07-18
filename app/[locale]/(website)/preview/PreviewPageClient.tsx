@@ -80,7 +80,9 @@ import {
   getBookCreatePath,
   getPreviewFormatsPath,
   getPreviewPath,
+  normalizePreviewQuery,
   PENDING_PREVIEW_TOKEN,
+  resolveBookRouteFromParam,
 } from '@/constants/bookRoutes';
 
 export type PreviewPageMode = 'preview' | 'formats';
@@ -1367,11 +1369,22 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     searchParams.get('previewid') ||
     '';
   const previewQueryParams = useMemo(() => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = normalizePreviewQuery(searchParams);
     params.delete('previewid');
     params.delete('tab');
     return params;
   }, [searchParams]);
+
+  const bookRouteParam = searchParams.get('bookid') || searchParams.get('book') || '';
+  const { productId: previewBookId, slug: previewBookSlug } = resolveBookRouteFromParam(bookRouteParam);
+
+  // 地址栏 bookid 统一为 SEO slug（兼容旧 PICBOOK_* query，不跳转）
+  useEffect(() => {
+    if (typeof window === 'undefined' || !bookRouteParam || !previewBookSlug) return;
+    if (bookRouteParam === previewBookSlug) return;
+    const qs = previewQueryParams.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
+  }, [bookRouteParam, previewBookSlug, previewQueryParams]);
   
   // 更新 URL path 中的 preview token（使用 window.history 避免触发页面重新加载）
   const updatePreviewIdInUrl = useCallback((newPreviewId: string) => {
@@ -1415,7 +1428,6 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
 
   const previewStoreUserData = usePreviewStore((s) => s.userData);
   const isGuest = !isLoggedIn;
-  const previewBookId = (searchParams.get('bookid') || '').toUpperCase();
   const [batchIsOwn, setBatchIsOwn] = useState<boolean | null>(null);
   const batchIsOwnRef = useRef<boolean | null>(null);
   const isNotPreviewCreator = batchIsOwn === false;
@@ -1435,7 +1447,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     const isNotCreator = batchIsOwnRef.current === false;
     let personalizeHref: string | undefined;
     if (isNotCreator) {
-      const bookIdParam = searchParams.get('bookid');
+      const bookIdParam = previewBookId;
       if (bookIdParam) {
         const params: Record<string, string> = {};
         const lang = searchParams.get('lang');
@@ -1461,7 +1473,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       personalizeHref,
       showNotCreatorPrompt: isNotCreator,
     });
-  }, [openLoginModal, searchParams, t]);
+  }, [openLoginModal, searchParams, t, previewBookId]);
 
   /** 非 owner：编辑操作前弹出登录；owner / 未知归属则放行 */
   const requirePreviewOwnerForEdit = useCallback(() => {
@@ -1626,7 +1638,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   // 编辑流程：检查 create-by-picbook 状态，决定直接使用结果或继续走 WS
   useEffect(() => {
     const previewIdParam = urlPreviewId;
-    const bookIdParam = searchParams.get('bookid');
+    const bookIdParam = previewBookId;
     if (!previewIdParam || !bookIdParam) return;
     
     // 保存原始的 previewid（仅在首次加载时保存，避免后续 URL 更新时覆盖）
@@ -1909,7 +1921,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   const [uploadedMomDrawingPageCodes, setUploadedMomDrawingPageCodes] = React.useState<Set<string>>(() => new Set());
 
   // 当 previewid/bookid 变化时重置缓存，避免跨不同预览复用旧数据
-  const p34CacheKey = `${searchParams.get('bookid') || ''}_${urlPreviewId || ''}`;
+  const p34CacheKey = `${previewBookId || ''}_${urlPreviewId || ''}`;
 
   useEffect(() => {
     if (isFormatsMode) {
@@ -2053,7 +2065,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       return;
     }
 
-    const spu = searchParams.get('bookid');
+    const spu = previewBookId;
     // batch_id 的兜底：优先用 previewData.batch_id；否则用 URL previewid（该项目里 previewid 通常等于 batch_id）
     const batchId = (previewData as any)?.batch_id || urlPreviewId;
 
@@ -2248,7 +2260,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     file: File,
     options?: { overlayMode?: 'placement' | 'full-page' },
   ): Promise<'ok' | 'rate_limited' | 'skipped'> => {
-    const spu = (searchParams.get('bookid') || '').toUpperCase();
+    const spu = (previewBookId || '').toUpperCase();
     const previewForMom = previewData as MomCompositePreviewData | null;
     const batchId = previewForMom?.batch_id || urlPreviewId;
 
@@ -2645,7 +2657,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   // 为当前书籍的当前封面（如果 R2 上存在 page_properties.json）加载文字配置，用于在封面上绘制名字
   const lastCoverTextConfigKeyRef = useRef<string | null>(null);
   useEffect(() => {
-    const bookIdParam = searchParams.get('bookid');
+    const bookIdParam = previewBookId;
     let upperBookId = (bookIdParam || '').toUpperCase();
     if (upperBookId === 'PICBOOK_GOODNIGHT3') {
       upperBookId = 'PICBOOK_GOODNIGHT';
@@ -2974,7 +2986,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   // 获取 book options 的函数
   const fetchBookOptions = useCallback(async () => {
     try {
-      const bookId = searchParams.get('bookid');
+      const bookId = previewBookId;
       if (!bookId) {
         console.warn('缺少书籍ID');
         return;
@@ -3382,7 +3394,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   // 获取书籍基本信息及 pages（用于定位 has_replaceable_text==2 的页）
   const fetchBookInfo = useCallback(async () => {
     try {
-      const bookId = searchParams.get('bookid');
+      const bookId = previewBookId;
       if (!bookId) {
         console.warn('缺少书籍ID');
         return;
@@ -3422,18 +3434,18 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
 
   // 在组件加载时获取 options
   useEffect(() => {
-    const bookId = searchParams.get('bookid');
+    const bookId = previewBookId;
     if (bookId) {
       fetchBookInfo();
       fetchBookOptions();
     }
-  }, [searchParams.get('bookid'), fetchBookInfo]);
+  }, [previewBookId, fetchBookInfo]);
 
 
 
   // 占位数组移除，使用 API 返回的 binding_options 与 gift_box_options
 
-  const isMomBook = (searchParams.get('bookid') || '').toUpperCase() === 'PICBOOK_MOM';
+  const isMomBook = (previewBookId || '').toUpperCase() === 'PICBOOK_MOM';
   const hasMomCompositePages = useMemo(
     () => isMomBook,
     [isMomBook],
@@ -3619,7 +3631,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   // 测量 cover_1 真实宽高比，供 cover_3/4 缩略图裁切框使用
   useEffect(() => {
     try {
-      const bookId = searchParams.get('bookid');
+      const bookId = previewBookId;
       if (!bookId) {
         setCoverThumbAspectRatio(null);
         return;
@@ -4037,7 +4049,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   }, []);
 
   const handleFaceSwapRegenerateStarted = useCallback(() => {
-    const spu = searchParams.get('bookid');
+    const spu = previewBookId;
     const batchId = currentBatchIdRef.current || urlPreviewId;
     if (spu && batchId) {
       startBatchPollingRef.current(spu, batchId);
@@ -4366,7 +4378,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   // 获取预览数据
   const fetchPreviewData = useCallback(async () => {
     try {
-      const bookId = searchParams.get('bookid');
+      const bookId = previewBookId;
       if (!bookId) {
         console.warn('缺少书籍ID');
         return;
@@ -4424,7 +4436,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
             if (bid) {
               currentBatchIdRef.current = bid;
               setCurrentBatchId(bid);
-              const spu = String(searchParams.get('bookid') || bookId || '').toLowerCase();
+              const spu = String(previewBookId || bookId || '').toLowerCase();
               if (spu && bid) startBatchPolling(spu, bid);
             }
           } catch {}
@@ -4462,7 +4474,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
               currentBatchIdRef.current = bid;
               setCurrentBatchId(bid);
               updatePreviewIdInUrl(bid);
-              const spu = String(searchParams.get('bookid') || bookId || '').toLowerCase();
+              const spu = String(previewBookId || bookId || '').toLowerCase();
               if (spu && bid) {
                 startBatchPolling(spu, bid);
                 subscribeToPreviewChannel(spu, bid);
@@ -4563,7 +4575,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
         // 优先从内存中获取用户数据
         const storeUserData = usePreviewStore.getState().userData as any;
         const userData = storeUserData ? JSON.stringify(storeUserData) : localStorage.getItem('previewUserData');
-        const bookId = searchParams.get('bookid') || localStorage.getItem('previewBookId');
+        const bookId = previewBookId || localStorage.getItem('previewBookId');
         const previewIdParam = urlPreviewId;
         if (shouldSkipInitialRender && previewIdParam) {
           console.log('[Preview] skip initial render for reused preview:', previewIdParam);
@@ -4912,7 +4924,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
           })();
 
           const character = raw?.characters?.[0] || {};
-          const payload = buildPreviewRenderPayload(searchParams.get('bookid') || '', character);
+          const payload = buildPreviewRenderPayload(previewBookId || '', character);
 
           await api.post<any>(
             `/cart/package-items/${encodeURIComponent(String(fromCartItemId))}/regenerate-preview`,
@@ -5167,7 +5179,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   }, []);
 
   const runPostLoginPreviewSync = useCallback(async () => {
-    const spuCode = searchParams.get('bookid');
+    const spuCode = previewBookId;
     const batchId = currentBatchIdRef.current || urlPreviewId;
     if (!spuCode || !batchId) return;
 
@@ -5270,7 +5282,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   const selectedLang = (searchParams.get('lang') || 'en').toLowerCase();
   const isZhLang = selectedLang.startsWith('zh');
   // 获取bookId用于匹配不同的寄语模板
-  const bookId = searchParams.get('bookid') || (bookInfo?.id != null ? String(bookInfo.id) : '') || bookInfo?.spu_code || '';
+  const bookId = previewBookId || (bookInfo?.id != null ? String(bookInfo.id) : '') || bookInfo?.spu_code || '';
   // Dad 默认寄语含段落空行（\n\n），拆行后超过通用 10 行上限，需单独放宽编辑限制
   const dedicationMaxLines = isPicbookDad(bookId) ? 14 : MAX_LINES;
   const buildDefaultMessage = (name: string, lang: string, bookIdParam?: string) => {
@@ -5765,7 +5777,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     if (!dedicationToUpload) return;
     if (!p34PageMetaForUpload?.baseSrc) return;
 
-    const spu = searchParams.get('bookid');
+    const spu = previewBookId;
     const batchId = (previewData as any)?.batch_id || urlPreviewId;
     if (!spu || !batchId) return;
 
@@ -5882,7 +5894,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       return getPreviewPath(token, previewQueryParams);
     }
 
-    const bookIdParam = searchParams.get('bookid');
+    const bookIdParam = previewBookId;
     if (!bookIdParam) return '/books';
     const params: Record<string, string> = {};
     const fromCartItemId = searchParams.get('fromCartItemId');
@@ -5901,10 +5913,10 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     const bindingType = searchParams.get('binding_type');
     if (bindingType) params.binding_type = bindingType;
     return getBookCreatePath(bookIdParam, params);
-  }, [searchParams, isKs, isHideOptions, isCartOptionEdit, isFormatsMode, activeTab, hideOthers, urlPreviewId, previewQueryParams]);
+  }, [searchParams, isKs, isHideOptions, isCartOptionEdit, isFormatsMode, activeTab, hideOthers, urlPreviewId, previewQueryParams, previewBookId]);
 
   const createNewBookHref = useMemo(() => {
-    const bookIdParam = searchParams.get('bookid');
+    const bookIdParam = previewBookId;
     if (!bookIdParam) return '/books';
     const params: Record<string, string> = {};
     const lang = searchParams.get('lang');
@@ -5920,7 +5932,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     const bindingType = searchParams.get('binding_type');
     if (bindingType) params.binding_type = bindingType;
     return getBookCreatePath(bookIdParam, params);
-  }, [searchParams, isKs, isHideOptions]);
+  }, [searchParams, isKs, isHideOptions, previewBookId]);
 
   const showBackToEditNav = !isNotPreviewCreator || isCartOptionEdit;
 
@@ -6108,9 +6120,9 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
 
                   const coverUrls =
                     activeOption
-                      ? buildCoverR2Urls(searchParams.get('bookid'), activeOption)
-                      : searchParams.get('bookid')
-                        ? buildCoverR2Urls(searchParams.get('bookid'), { id: 1, option_key: '1' } as CoverOption)
+                      ? buildCoverR2Urls(previewBookId, activeOption)
+                      : previewBookId
+                        ? buildCoverR2Urls(previewBookId, { id: 1, option_key: '1' } as CoverOption)
                         : null;
 
                   if (coverUrls) {
@@ -6201,7 +6213,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                     if (activeOption && coverTextConfig && canDrawCoverTexts(coverTextConfig.texts, coverTextVariables)) {
                       const coverIdInner = resolveCoverNumericId(activeOption);
                       // 仅当配置对应当前封面时启用
-                      let expectedBookId = (searchParams.get('bookid') || '').toUpperCase();
+                      let expectedBookId = (previewBookId || '').toUpperCase();
                       if (expectedBookId === 'PICBOOK_GOODNIGHT3') {
                         expectedBookId = 'PICBOOK_GOODNIGHT';
                       }
@@ -6461,7 +6473,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                       const dedicationButtonLabel = isDedicationSubmitted
                         ? 'Edit your message'
                         : 'Write a dedication';
-                      const upperBookId = (searchParams.get('bookid') || '').toUpperCase();
+                      const upperBookId = (previewBookId || '').toUpperCase();
                       const giverImageScale =
                         upperBookId === 'PICBOOK_BRAVEY' ||
                         upperBookId === 'PICBOOK_BIRTHDAY'
@@ -6725,7 +6737,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                             className="w-full flex flex-col items-center"
                           >
                             <FaceSwapVersionCarousel
-                                spuCode={String(searchParams.get('bookid') || '')}
+                                spuCode={String(previewBookId || '')}
                                 batchId={
                                   currentBatchId ||
                                   urlPreviewId ||
@@ -6934,7 +6946,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                     >
                       {(() => {
                         // 接口不再提供封面图片，封面缩略图统一走 R2（buildCoverR2Urls）
-                        const coverUrls = buildCoverR2Urls(searchParams.get('bookid'), option);
+                        const coverUrls = buildCoverR2Urls(previewBookId, option);
                         // 如果缺少 bookid，则回退到本地占位图
                         if (!coverUrls) {
                           return (
@@ -6958,7 +6970,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                           return (
                             <div className="relative w-full mb-2 overflow-hidden">
                               <CoverOptionImageWithName
-                                bookId={searchParams.get('bookid')}
+                                bookId={previewBookId}
                                 option={option}
                                 // 同样使用本地域名代理地址，保证缩略图 Canvas 也能正常叠加名字
                                 baseSrc={canvasBase}
@@ -7595,7 +7607,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
               <div className="bg-white w-[860px] max-w-[95vw] rounded-sm pt-6 pr-6 pb-4 pl-6 flex flex-col gap-4">
                 {(() => {
                   // 获取bookId（spu）
-                  const bookId = searchParams.get('bookid');
+                  const bookId = previewBookId;
                   // 找到显示giver的页面（通常是第二页，idx === 1）
                   const displayedPages = getDisplayedPreviewPages(previewData?.preview_data);
                   const giverPage = displayedPages.length > 1 ? displayedPages[1] : displayedPages[0];

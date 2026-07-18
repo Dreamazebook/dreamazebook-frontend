@@ -119,20 +119,43 @@ export function resolveBookRouteFromParam(param: string): {
 /** Placeholder path token used before a real preview batch id exists. */
 export const PENDING_PREVIEW_TOKEN = 'new';
 
+function toSearchParams(
+  query?: Record<string, string | undefined | null> | URLSearchParams
+): URLSearchParams {
+  if (!query) return new URLSearchParams();
+  if (query instanceof URLSearchParams) {
+    return new URLSearchParams(query.toString());
+  }
+  return new URLSearchParams(
+    Object.entries(query).flatMap(([key, value]) =>
+      value == null || value === '' ? [] : [[key, String(value)]]
+    )
+  );
+}
+
 function toQueryString(
   query?: Record<string, string | undefined | null> | URLSearchParams
 ): string {
-  if (!query) return '';
-  const params =
-    query instanceof URLSearchParams
-      ? query
-      : new URLSearchParams(
-          Object.entries(query).flatMap(([key, value]) =>
-            value == null || value === '' ? [] : [[key, String(value)]]
-          )
-        );
-  const qs = params.toString();
+  const qs = toSearchParams(query).toString();
   return qs ? `?${qs}` : '';
+}
+
+/**
+ * Normalize preview query so `bookid` is always the SEO slug in the URL.
+ * Accepts legacy PICBOOK_* / book / spu and rewrites to canonical slug.
+ */
+export function normalizePreviewQuery(
+  query?: Record<string, string | undefined | null> | URLSearchParams
+): URLSearchParams {
+  const params = toSearchParams(query);
+  const book = params.get('bookid') || params.get('book') || params.get('spu') || '';
+  if (book) {
+    const { slug } = resolveBookRouteFromParam(book);
+    params.set('bookid', slug);
+    params.delete('book');
+    params.delete('spu');
+  }
+  return params;
 }
 
 /** Editor entry: `/books/{slug}/create` */
@@ -150,7 +173,7 @@ export function getPreviewPath(
   query?: Record<string, string | undefined | null> | URLSearchParams
 ): string {
   const token = normalizeRouteSegment(previewToken || PENDING_PREVIEW_TOKEN);
-  return `/preview/${encodeURIComponent(token)}${toQueryString(query)}`;
+  return `/preview/${encodeURIComponent(token)}${toQueryString(normalizePreviewQuery(query))}`;
 }
 
 /** Format / cover selection: `/preview/{previewToken}/formats` */
@@ -159,5 +182,5 @@ export function getPreviewFormatsPath(
   query?: Record<string, string | undefined | null> | URLSearchParams
 ): string {
   const token = normalizeRouteSegment(previewToken || PENDING_PREVIEW_TOKEN);
-  return `/preview/${encodeURIComponent(token)}/formats${toQueryString(query)}`;
+  return `/preview/${encodeURIComponent(token)}/formats${toQueryString(normalizePreviewQuery(query))}`;
 }
