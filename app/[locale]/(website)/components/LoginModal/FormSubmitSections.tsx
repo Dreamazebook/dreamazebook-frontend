@@ -17,8 +17,9 @@ interface FormSubmitSectionsProps {
   onSendLoginCode: (email: string) => void
   googleLoading: boolean
   facebookLoading: boolean
-  onGoogleLogin: () => void
+  onGoogleLogin: ((...args: any[]) => any) | (() => void)
   onFacebookLogin: () => void
+  onGoogleCredential?: (credential: string) => any
   translations: {
     forgotPasswordQuestion: string
     loginWithCode: string
@@ -56,6 +57,7 @@ export const FormSubmitSections = memo(({
   facebookLoading,
   onGoogleLogin,
   onFacebookLogin,
+  onGoogleCredential,
   translations,
   email,
   unifiedUI = false,
@@ -90,6 +92,7 @@ export const FormSubmitSections = memo(({
               facebookLoading={facebookLoading}
               onGoogleClick={onGoogleLogin}
               onFacebookClick={onFacebookLogin}
+              onGoogleCredential={onGoogleCredential}
               label={translations.orContinueWith}
               variant={oauthVariant}
               fluid={fluid}
@@ -119,6 +122,7 @@ export const FormSubmitSections = memo(({
             facebookLoading={facebookLoading}
             onGoogleClick={onGoogleLogin}
             onFacebookClick={onFacebookLogin}
+            onGoogleCredential={onGoogleCredential}
             label={translations.orContinueWith}
             variant={oauthVariant}
             fluid={fluid}
@@ -148,6 +152,7 @@ export const FormSubmitSections = memo(({
             facebookLoading={facebookLoading}
             onGoogleClick={onGoogleLogin}
             onFacebookClick={onFacebookLogin}
+            onGoogleCredential={onGoogleCredential}
             label={translations.orContinueWith}
             variant={oauthVariant}
             fluid={fluid}
@@ -179,6 +184,7 @@ export const FormSubmitSections = memo(({
             facebookLoading={facebookLoading}
             onGoogleClick={onGoogleLogin}
             onFacebookClick={onFacebookLogin}
+            onGoogleCredential={onGoogleCredential}
             label={translations.orContinueWith}
             variant={oauthVariant}
             fluid={fluid}

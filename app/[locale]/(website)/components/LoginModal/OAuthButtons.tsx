@@ -1,15 +1,41 @@
-import { memo } from 'react'
+import { memo, useEffect, useRef, useCallback } from 'react'
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: {
+            client_id: string
+            ux_mode?: string
+            callback: (response: { credential: string }) => void
+          }) => void
+          renderButton: (element: HTMLElement, options: {
+            type: string
+            theme: string
+            size: string
+          }) => void
+          prompt: () => void
+        }
+      }
+    }
+  }
+}
 
 interface OAuthButtonsProps {
   googleLoading: boolean
   facebookLoading: boolean
-  onGoogleClick: () => void
+  onGoogleClick?: (...args: any[]) => any
   onFacebookClick: () => void
   label: string
   variant?: 'default' | 'labeled'
   /** Full-width layout for mobile bottom sheet */
   fluid?: boolean
+  /** Called with the Google credential (ID token) for popup login flow */
+  onGoogleCredential?: (credential: string) => void
 }
+
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
 const GoogleIcon = () => (
   <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
@@ -26,6 +52,89 @@ const FacebookIcon = () => (
   </svg>
 )
 
+/** Renders a Google Identity Services popup button using the standard GIS UI */
+const GooglePopupButton = memo(({
+  disabled,
+  onCredential,
+  variant,
+}: {
+  disabled: boolean
+  onCredential: (credential: string) => any
+  variant: 'default' | 'labeled'
+}) => {
+  const buttonRef = useRef<HTMLDivElement>(null)
+  const initialized = useRef(false)
+
+  const initGis = useCallback(() => {
+    if (initialized.current || !buttonRef.current || !GOOGLE_CLIENT_ID) return
+    initialized.current = true
+
+    window.google?.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      ux_mode: 'popup',
+      callback: (response: { credential: string }) => {
+        onCredential(response.credential)
+      },
+    })
+
+    window.google?.accounts.id.renderButton(buttonRef.current, {
+      type: 'standard',
+      theme: 'outline',
+      size: 'large',
+    })
+  }, [onCredential])
+
+  useEffect(() => {
+    // GIS script may already be loaded
+    if (window.google?.accounts) {
+      initGis()
+    } else {
+      // Poll for GIS availability (script loads async)
+      const interval = setInterval(() => {
+        if (window.google?.accounts) {
+          clearInterval(interval)
+          initGis()
+        }
+      }, 200)
+      return () => clearInterval(interval)
+    }
+  }, [initGis])
+
+  // If GOOGLE_CLIENT_ID is not set, fall back to a regular icon button
+  if (!GOOGLE_CLIENT_ID) {
+    return (
+      <button
+        type="button"
+        disabled={disabled}
+        className="flex h-full flex-1 cursor-pointer items-center justify-center gap-2 rounded-md border border-[#E0E0E0] bg-white px-4 text-sm font-normal text-[#222222] transition-colors hover:bg-gray-50 disabled:opacity-50"
+        aria-label="Login with Google"
+      >
+        <GoogleIcon />
+        {variant === 'labeled' && 'Google'}
+      </button>
+    )
+  }
+
+  if (variant === 'labeled') {
+    return (
+      <div
+        ref={buttonRef}
+        className="flex h-full flex-1 items-center justify-center"
+        style={{ opacity: disabled ? 0.5 : 1, pointerEvents: disabled ? 'none' : 'auto' }}
+      />
+    )
+  }
+
+  return (
+    <div
+      ref={buttonRef}
+      style={{ opacity: disabled ? 0.5 : 1, pointerEvents: disabled ? 'none' : 'auto' }}
+    />
+  )
+})
+
+GooglePopupButton.displayName = 'GooglePopupButton'
+
 export const OAuthButtons = memo(({
   googleLoading,
   facebookLoading,
@@ -34,6 +143,7 @@ export const OAuthButtons = memo(({
   label,
   variant = 'default',
   fluid = false,
+  onGoogleCredential,
 }: OAuthButtonsProps) => {
   if (variant === 'labeled') {
     return (
@@ -47,7 +157,7 @@ export const OAuthButtons = memo(({
           className="mt-[12px] flex gap-[8px] opacity-80"
           style={{ width: fluid ? '100%' : 312, height: 40, boxSizing: 'border-box' }}
         >
-          <button
+          {/* <button
             type="button"
             onClick={onFacebookClick}
             disabled={facebookLoading}
@@ -56,17 +166,12 @@ export const OAuthButtons = memo(({
           >
             <FacebookIcon />
             Facebook
-          </button>
-          <button
-            type="button"
-            onClick={onGoogleClick}
+          </button> */}
+          <GooglePopupButton
             disabled={googleLoading}
-            className="flex h-full flex-1 cursor-pointer items-center justify-center gap-2 rounded-md border border-[#E0E0E0] bg-white px-4 text-sm font-normal text-[#222222] transition-colors hover:bg-gray-50 disabled:opacity-50"
-            aria-label="Login with Google"
-          >
-            <GoogleIcon />
-            Google
-          </button>
+            onCredential={onGoogleCredential ?? (() => {})}
+            variant="labeled"
+          />
         </div>
       </div>
     )
@@ -76,16 +181,12 @@ export const OAuthButtons = memo(({
     <div className="pt-2 border-t border-gray-200">
       <p className="text-sm text-gray-600 text-center mb-3">{label}</p>
       <div className="flex items-center justify-center gap-[24px]">
-        <button
-          type="button"
-          onClick={onGoogleClick}
+        <GooglePopupButton
           disabled={googleLoading}
-          className="cursor-pointer hover:bg-gray-50 disabled:opacity-50 transition-colors"
-          aria-label="Login with Google"
-        >
-          <GoogleIcon />
-        </button>
-        <button
+          onCredential={onGoogleCredential ?? (() => {})}
+          variant="default"
+        />
+        {/* <button
           type="button"
           onClick={onFacebookClick}
           disabled={facebookLoading}
@@ -93,7 +194,7 @@ export const OAuthButtons = memo(({
           aria-label="Login with Facebook"
         >
           <FacebookIcon />
-        </button>
+        </button> */}
       </div>
     </div>
   )
