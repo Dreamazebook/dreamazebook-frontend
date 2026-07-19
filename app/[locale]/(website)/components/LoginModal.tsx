@@ -16,6 +16,7 @@ import { FormSubmitSections } from './LoginModal/FormSubmitSections'
 import { ErrorAlert } from './LoginModal/Alerts'
 import api from '@/utils/api'
 import { ApiResponse } from '@/types/api'
+import { readGuestSessionId, writeGuestSessionId } from '@/utils/api'
 
 export default function LoginModal({
   showCloseButton = false,
@@ -44,6 +45,7 @@ export default function LoginModal({
     setLoginModalOptions,
     register,
     login,
+    setLoginUserToken,
     sendResetPasswordLink,
     checkKickstarterStatus,
     sendLoginCode,
@@ -213,7 +215,7 @@ export default function LoginModal({
   }
 
   // OAuth handlers
-  const handlePostLoginRedirect = (defaultPath = '/') => {
+  const handlePostLoginRedirect = (defaultPath = '/shopping-cart') => {
     if (!useRedirect) {
       runLoginSuccessCallback()
       closeLoginModal()
@@ -264,7 +266,47 @@ export default function LoginModal({
     }
   }
 
-  const handleGoogleLogin = () => startOAuth('google', 'googleLoading')
+  const handleGoogleCredentialLogin = async (credential: string) => {
+    setField('googleLoading', true)
+    updateState({ errorMessage: '' })
+    try {
+      const ipInfo = await fetchIpInfo()
+      if (ipInfo) {
+        storeIpGeoInfo(ipInfo)
+      }
+
+      const headers: Record<string, string> = {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      }
+
+      const guestSessionId = readGuestSessionId()
+      if (guestSessionId) {
+        headers['X-Guest-Session-Id'] = guestSessionId
+      }
+
+      const response = await api.post<{success: boolean, message: string, user: any, token: string}>('/auth/google/credential', { credential }, { headers })
+
+      const responseGuestSessionId = (response as any)?.headers?.['x-guest-session-id'] ||
+        (response as any)?.headers?.['X-Guest-Session-Id']
+      if (responseGuestSessionId) {
+        writeGuestSessionId(responseGuestSessionId)
+      }
+
+      if (response.success) {
+        setLoginUserToken({user: response.user, token: response.token});
+        checkKickstarterStatus()
+        handlePostLoginRedirect()
+      } else {
+        updateState({ errorMessage: response.message || t('googleLoginError') })
+      }
+    } catch (err) {
+      console.error('Google login error:', err)
+      updateState({ errorMessage: t('googleLoginError') })
+    } finally {
+      setField('googleLoading', false)
+    }
+  }
   const handleFacebookLogin = () => startOAuth('facebook', 'facebookLoading')
 
   // Form handlers
@@ -587,8 +629,9 @@ export default function LoginModal({
           onSendLoginCode={handleSendLoginCode}
           googleLoading={state.googleLoading}
           facebookLoading={state.facebookLoading}
-          onGoogleLogin={handleGoogleLogin}
+          onGoogleLogin={handleGoogleCredentialLogin}
           onFacebookLogin={handleFacebookLogin}
+          onGoogleCredential={handleGoogleCredentialLogin}
           translations={{
             forgotPasswordQuestion: t('forgotPasswordQuestion'),
             loginWithCode: t('loginWithCode'),
