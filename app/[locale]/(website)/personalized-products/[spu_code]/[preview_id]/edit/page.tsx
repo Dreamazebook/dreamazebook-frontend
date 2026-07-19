@@ -30,6 +30,7 @@ import {
   buildDadFormFieldsFromRecords,
   type DadQuestionConfig,
 } from '@/utils/dadPersonalizeHelpers';
+import { getPreviewPath } from '@/constants/bookRoutes';
 
 interface ApiResponse<T=any> { success: boolean; code: number; message: string; data: T }
 interface DetailedBook { character_count: number }
@@ -1030,14 +1031,13 @@ export default function EditPersonalizedProductPage() {
 
       // 不再“再次添加购物车”；跳转到 preview 展示结果，Add to cart 仅返回购物车
       // 重要：圣诞 bundle 需要透传 packageItemId（preview 页会走 /cart/package-items/:id/regenerate-preview）
-      const previewParams = new URLSearchParams({
+      const previewParams: Record<string, string> = {
         bookid: bookId,
-        previewid: nextPreviewId,
         fromCartItemId: String(effectiveItemId),
-      });
-      if (isPackageItem) previewParams.set('hideOptions', '1');
-      if (shouldSkipPreviewRender) previewParams.set('skipRender', '1');
-      router.push(`/preview?${previewParams.toString()}`);
+      };
+      if (isPackageItem) previewParams.hideOptions = '1';
+      if (shouldSkipPreviewRender) previewParams.skipRender = '1';
+      router.push(getPreviewPath(String(nextPreviewId), previewParams));
       // 注意：成功 push 后保持 loading，直到页面卸载（与详情页 personalize 按钮一致）
     } catch (e) {
       console.error('Continue failed:', e);
