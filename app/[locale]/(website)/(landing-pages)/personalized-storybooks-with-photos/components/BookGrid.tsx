@@ -101,12 +101,8 @@ export default async function BookGrid({ locale }: { locale: string }) {
 
   return (
     <section className="px-4 py-10 max-w-5xl mx-auto">
-      {/* Mobile heading */}
-      <h2 className="md:hidden text-2xl font-bold text-gray-900 mb-6 leading-tight">
-        You can have even more options
-      </h2>
       {/* Desktop heading */}
-      <h2 className="hidden md:block text-4xl font-bold text-gray-900 text-center mb-10 leading-tight">
+      <h2 className="block text-4xl font-bold text-gray-900 text-center mb-10 leading-tight">
         Choose a story they&apos;ll love
       </h2>
 

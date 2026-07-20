@@ -5,6 +5,8 @@ import BookGrid from './components/BookGrid';
 import OurStandard from './components/OurStandard';
 import PersonalizedBookSection from './components/PersonalizedBookSection';
 import ThatsMeSection from './components/ThatsMeSection';
+import FAQ from '@/app/[locale]/(marketing)/components/FAQ';
+import { personalizedStorybooksFaqs } from './data/faqs';
 
 export const metadata: Metadata = {
   title: "Personalized Storybooks with Photos | Dreamaze Book",
@@ -35,6 +37,7 @@ export default async function PersonalizedStorybooks({ params }: { params: Promi
       <OurStandard />
       <PersonalizedBookSection />
       <ThatsMeSection />
+      <FAQ FAQs={personalizedStorybooksFaqs} />
     </main>
   );
 }

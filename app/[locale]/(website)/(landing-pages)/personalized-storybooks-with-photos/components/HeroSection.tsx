@@ -77,8 +77,8 @@ function FeatureCards() {
     <div className="bg-[#F5F0EB] rounded-2xl flex divide-x divide-[#E0D8D0]">
       {[
         { icon: "child" as const, label: "Your child", sub: "the hero" },
-        { icon: "book" as const, label: "Hand-drawn", sub: "illustrations" },
-        { icon: "heart" as const, label: "A keepsake", sub: "they'll treasure" },
+        { icon: "book" as const, label: " Artist-drawn", sub: "storybook" },
+        { icon: "heart" as const, label: "Made to", sub: "treasure" },
       ].map((f) => (
         <div key={f.icon} className="flex-1 flex flex-col items-center gap-2 py-5 px-2">
           <FeatureIcon type={f.icon} />
