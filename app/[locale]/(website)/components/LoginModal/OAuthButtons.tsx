@@ -145,7 +145,6 @@ export const OAuthButtons = memo(({
   fluid = false,
   onGoogleCredential,
 }: OAuthButtonsProps) => {
-  return null;
   if (variant === 'labeled') {
     return (
       <div>
