@@ -96,7 +96,7 @@ export default function HeroSection() {
   return (
     <div className="font-sans antialiased">
       {/* ── MOBILE ── */}
-      <div className="md:hidden min-h-screen flex flex-col bg-[#F5F0EB]">
+      <div className="md:hidden flex flex-col bg-[#F5F0EB]">
         {/* Hero image */}
         <div className="relative w-full" style={{ paddingBottom: "100%" }}>
           <img
@@ -109,7 +109,7 @@ export default function HeroSection() {
 
           {/* Headline over image */}
           <div className="absolute bottom-6 left-5 right-5">
-            <h1 className="text-4xl font-extrabold text-blue-600 leading-tight">
+            <h1 className="text-[36px] font-[500] text-primary leading-tight">
               Make Your Child<br />the Hero.
             </h1>
           </div>
@@ -157,8 +157,8 @@ export default function HeroSection() {
         </div>
 
         {/* Left content */}
-        <div className="relative z-10 flex flex-col justify-center min-h-screen px-12 lg:px-20 pt-20 pb-12 max-w-[620px]">
-          <h1 className="text-5xl lg:text-6xl xl:text-7xl font-extrabold text-blue-600 leading-tight mb-7">
+        <div className="relative z-10 flex flex-col justify-center min-h-screen px-12 lg:px-20 pt-20 pb-12 max-w-4xl">
+          <h1 className="text-[18px] lg:text-[64px] text-primary font-[500] leading-tight mb-7">
             Where your child becomes the hero of their own story
           </h1>
 

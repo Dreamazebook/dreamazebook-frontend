@@ -24,8 +24,8 @@ const steps = [
 export default function MeaningfulGifts() {
   return (
     <section
-      style={{ backgroundColor: "#edeae4" }}
-      className="w-full min-h-screen flex items-center justify-center px-6 py-16"
+      style={{ backgroundColor: "#F7F5F0" }}
+      className="w-full flex items-center justify-center px-6 py-16"
     >
       <div className="w-full max-w-8xl">
         <h1

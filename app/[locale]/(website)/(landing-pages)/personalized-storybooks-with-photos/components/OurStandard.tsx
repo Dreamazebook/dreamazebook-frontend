@@ -62,10 +62,15 @@ function DashedArrow() {
 }
 
 export default function OurStandard() {
+  const bgImage = PERSONALIZED_STORYBOOKS('ourstandard-bg.webp');
+
   return (
     <section className="w-full font-sans">
       {/* ── MOBILE ── */}
-      <div className="md:hidden bg-[#fdf9f6] px-5 py-10">
+      <div
+        className="md:hidden px-5 py-10 bg-cover bg-center"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      >
         <h2 className="text-[1.65rem] font-bold text-gray-900 text-center leading-tight mb-10">
           Our standard
           <br />
@@ -90,7 +95,10 @@ export default function OurStandard() {
       </div>
 
       {/* ── DESKTOP ── */}
-      <div className="hidden md:block relative overflow-hidden bg-gradient-to-br from-[#fdf9f6] via-[#f5f0fb] to-[#fdf6ee] min-h-[660px]">
+      <div
+        className="hidden md:block relative overflow-hidden min-h-[660px] bg-cover bg-center"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      >
         {/* Background watermark mountain-like shape */}
         <div className="absolute inset-0 pointer-events-none select-none">
           <svg
@@ -106,10 +114,10 @@ export default function OurStandard() {
 
         <div className="relative max-w-[1280px] mx-auto px-12 pt-14 pb-16">
           {/* Header */}
-          <h2 className="text-[2.6rem] font-bold text-gray-900 leading-tight mb-3 max-w-xl">
+          <h2 className="text-[2.6rem] font-bold text-gray-900 leading-tight mb-3">
             Stories shaped by artists' hands
           </h2>
-          <p className="text-gray-500 text-base mb-16 max-w-lg">
+          <p className="text-gray-500 text-base mb-16">
             Before your child becomes the hero, we create a world worth stepping into.
           </p>
 

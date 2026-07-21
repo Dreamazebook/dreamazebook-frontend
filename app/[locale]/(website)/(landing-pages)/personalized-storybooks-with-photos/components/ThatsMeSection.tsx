@@ -342,10 +342,15 @@ const ReviewStrip = ({ isMobile }: { isMobile: boolean }) => {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ThatsMeSection() {
+  const bgImage = PERSONALIZED_STORYBOOKS('thatsme-bg.webp');
+
   return (
     <>
       {/* Mobile */}
-      <div className="block md:hidden bg-[#f0ede8] min-h-screen">
+      <div
+        className="block md:hidden min-h-screen bg-cover bg-center"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      >
         <div className="pt-10 pb-2 px-4 text-center">
           <h2 className="text-[28px] font-bold text-gray-900 leading-tight">
             The &ldquo;That&rsquo;s me!&rdquo; moment
@@ -360,7 +365,10 @@ export default function ThatsMeSection() {
       </div>
 
       {/* Desktop */}
-      <div className="hidden md:block bg-[#f0ede8] min-h-screen">
+      <div
+        className="hidden md:block min-h-screen bg-cover bg-center"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      >
         <div className="pt-14 pb-2 text-center">
           <h2 className="text-[42px] font-semibold text-gray-900 tracking-tight leading-tight">
             The &ldquo;That&rsquo;s me!&rdquo; moment
