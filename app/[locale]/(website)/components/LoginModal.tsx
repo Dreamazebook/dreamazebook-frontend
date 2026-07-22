@@ -211,13 +211,11 @@ export default function LoginModal({
 
   // Countdown timer
   useEffect(() => {
-    let timer: NodeJS.Timeout
-    if (state.countdown > 0) {
-      timer = setInterval(() => {
-        setField('countdown', (prev:number) => prev - 1)
-      }, 1000)
-    }
-    return () => clearInterval(timer)
+    if (state.countdown <= 0) return undefined
+    const timer = setTimeout(() => {
+      setField('countdown', state.countdown - 1)
+    }, 1000)
+    return () => clearTimeout(timer)
   }, [state.countdown, setField])
 
   // Auto-submit when code reaches 6 digits
@@ -456,6 +454,16 @@ export default function LoginModal({
         errorMessage: response.message || t('sendCodeFailed'),
         successMessage: '',
       })
+    }
+  }
+
+  const handleResendLoginCode = async (email: string) => {
+    if (state.loading || state.countdown > 0) return
+    setField('loading', true)
+    try {
+      await handleSendLoginCode(email)
+    } finally {
+      setField('loading', false)
     }
   }
 
@@ -817,7 +825,7 @@ export default function LoginModal({
             resetCodeFlow()
             setField('resetSent', false)
           }}
-          onSendLoginCode={handleSendLoginCode}
+          onSendLoginCode={handleResendLoginCode}
           googleLoading={state.googleLoading}
           facebookLoading={state.facebookLoading}
           onGoogleLogin={handleGoogleCredentialLogin}
@@ -833,6 +841,9 @@ export default function LoginModal({
             usePasswordInstead: 'Use password instead',
             changeEmail: t('changeEmail'),
             orContinueWith: t('orContinueWith'),
+            resendCode: t('resendCode'),
+            resendIn: t.raw('resendIn') as string,
+            codeDeliveryHint: t('codeDeliveryHint'),
           }}
           email={state.email}
           unifiedUI={unifiedUI || isPreviewUnlock}

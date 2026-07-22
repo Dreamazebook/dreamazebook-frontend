@@ -30,6 +30,9 @@ interface FormSubmitSectionsProps {
     usePasswordInstead: string
     changeEmail: string
     orContinueWith: string
+    resendCode: string
+    resendIn: string
+    codeDeliveryHint: string
   }
   email: string
   /** Use the unified preview-like login styles */
@@ -173,6 +176,9 @@ export const FormSubmitSections = memo(({
           verifyButtonLabel=""
           sendButtonLabel={buttonLabel}
           onResendCode={() => onSendLoginCode(email)}
+          resendLabel={translations.resendCode}
+          resendCountdownLabel={translations.resendIn}
+          deliveryHint={translations.codeDeliveryHint}
           buttonClassName={buttonClassName}
           buttonStyle={buttonStyle}
         >
@@ -208,6 +214,9 @@ export const FormSubmitSections = memo(({
           verifyButtonLabel={buttonLabel}
           sendButtonLabel=""
           onResendCode={() => onSendLoginCode(email)}
+          resendLabel={translations.resendCode}
+          resendCountdownLabel={translations.resendIn}
+          deliveryHint={translations.codeDeliveryHint}
           buttonClassName={buttonClassName}
           buttonStyle={buttonStyle}
         >

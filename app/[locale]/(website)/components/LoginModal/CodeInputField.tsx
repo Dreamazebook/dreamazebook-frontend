@@ -8,7 +8,12 @@ interface CodeInputFieldProps {
   errorMessage?: string
 }
 
-export const CodeInputField = memo(({ code, onCodeChange, successMessage, errorMessage = '' }: CodeInputFieldProps) => {
+export const CodeInputField = memo(({
+  code,
+  onCodeChange,
+  successMessage,
+  errorMessage = '',
+}: CodeInputFieldProps) => {
   const handleCodeInput = (index: number, value: string) => {
     if (value && !/^\d$/.test(value)) return
     const newCode = code.split('')
@@ -46,7 +51,6 @@ export const CodeInputField = memo(({ code, onCodeChange, successMessage, errorM
           {successMessage}
         </p>
       )}
-
       <div className="grid w-full grid-cols-6 gap-[8px]">
         {[0, 1, 2, 3, 4, 5].map((index) => (
           <input

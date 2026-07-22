@@ -29,6 +29,9 @@ interface CodeLoginSubmitProps extends BaseSubmitProps {
   verifyButtonLabel: string
   sendButtonLabel: string
   onResendCode: () => void
+  resendLabel: string
+  resendCountdownLabel: string
+  deliveryHint: string
   children?: React.ReactNode
 }
 
@@ -87,6 +90,9 @@ export const CodeLoginSubmitSection = memo(({
   verifyButtonLabel,
   sendButtonLabel,
   onResendCode,
+  resendLabel,
+  resendCountdownLabel,
+  deliveryHint,
   buttonClassName,
   buttonStyle,
   children,
@@ -98,17 +104,27 @@ export const CodeLoginSubmitSection = memo(({
           <Button tl={verifyButtonLabel} isLoading={loading} className={buttonClassName} style={buttonStyle} />
           <div className="text-center text-sm">
             {countdown > 0 ? (
-              <span className="text-gray-500">Resend in {countdown}s</span>
+              <button
+                type="button"
+                disabled
+                className="text-gray-500 disabled:cursor-not-allowed"
+              >
+                {resendCountdownLabel.replace('{seconds}', String(countdown))}
+              </button>
             ) : (
               <button
                 type="button"
                 onClick={onResendCode}
-                className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+                disabled={loading}
+                className="cursor-pointer text-[#1BA7FF] transition-colors hover:text-[#1689E6] focus:outline-none focus:underline disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Resend code
+                {loading ? 'Sending...' : resendLabel}
               </button>
             )}
           </div>
+          <p className="text-center text-[13px] leading-[18px] text-[#666666]">
+            {deliveryHint}
+          </p>
         </>
       ) : (
         <Button tl={sendButtonLabel} isLoading={loading} className={buttonClassName} style={buttonStyle} />
@@ -187,6 +203,9 @@ export const FormSubmitSection = memo(({
           verifyButtonLabel=""
           sendButtonLabel={buttonLabel}
           onResendCode={onResendCode}
+          resendLabel="Resend"
+          resendCountdownLabel="Resend in {seconds}s"
+          deliveryHint=""
         >
           {children}
         </CodeLoginSubmitSection>
@@ -201,6 +220,9 @@ export const FormSubmitSection = memo(({
           verifyButtonLabel={buttonLabel}
           sendButtonLabel=""
           onResendCode={onResendCode}
+          resendLabel="Resend"
+          resendCountdownLabel="Resend in {seconds}s"
+          deliveryHint=""
         >
           {children}
         </CodeLoginSubmitSection>
