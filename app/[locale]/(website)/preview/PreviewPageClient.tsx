@@ -5082,6 +5082,8 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   );
   const guestUnlockReadyRef = useRef(guestUnlockReady);
   guestUnlockReadyRef.current = guestUnlockReady;
+  const isPreviewEditingRef = useRef(false);
+  isPreviewEditingRef.current = Boolean(editField || pendingGiverFile || pendingMomDrawingFile);
 
   useEffect(() => {
     if (!isGuest || isNotPreviewCreator || activeTab !== 'Book preview') {
@@ -5102,6 +5104,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       if (!mq.matches) return;
       if (!guestUnlockReadyRef.current) return;
       if (!guestPreviewHasScrolledRef.current) return;
+      if (isPreviewEditingRef.current) return;
       if (useUserStore.getState().isLoginModalOpen) return;
 
       const atBottom = isNearPageBottom();
@@ -5140,6 +5143,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
         if (!mq.matches) return;
         if (!guestUnlockReadyRef.current) return;
         if (!guestPreviewHasScrolledRef.current) return;
+        if (isPreviewEditingRef.current) return;
         if (useUserStore.getState().isLoginModalOpen) return;
         if (entries.some((entry) => entry.isIntersecting)) {
           openPreviewUnlockLogin();
