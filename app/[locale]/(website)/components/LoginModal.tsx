@@ -175,6 +175,7 @@ export default function LoginModal({
         return "We'll email you a link to create a new password.";
       case 'codeLogin':
         if (isPreviewUnlock) {
+          if (isBottomSheet) return '';
           return (
             <>
               {tPreview('unlockFullBookDescriptionPrefix')}{' '}
@@ -734,7 +735,7 @@ export default function LoginModal({
           oauthFooter={previewOAuthFooter}
           hidePasswordLogin={isPreviewUnlock}
         />
-        {(isPreviewUnlock ? previewFooterNote : footerNote) && state.mode === 'codeLogin' && (
+        {!isBottomSheet && (isPreviewUnlock ? previewFooterNote : footerNote) && state.mode === 'codeLogin' && (
           <p className="text-center text-[14px] leading-[20px] tracking-[0.25px] font-normal text-[#999999]">
             {isPreviewUnlock ? previewFooterNote : footerNote}
           </p>
