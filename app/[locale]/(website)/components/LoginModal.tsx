@@ -181,8 +181,9 @@ export default function LoginModal({
     paddingLeft: 16,
     boxSizing: 'border-box',
   }
-  const previewEmailInputClassName =
-    'shrink-0 rounded-[4px] border border-[#222222] opacity-100 text-[14px] leading-[20px] tracking-[0.25px] text-[#222]'
+  const previewEmailInputClassName = `shrink-0 rounded-[4px] border border-[#222222] opacity-100 ${
+    isBottomSheet ? 'text-[16px]' : 'text-[14px]'
+  } leading-[20px] tracking-[0.25px] text-[#222]`
   const previewEmailLabelClassName = 'shrink-0 text-[14px] leading-[20px] tracking-[0.25px] text-[#222]'
 
   const getSuccessMessage = (): string => {
