@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useRouter, usePathname } from '@/i18n/routing'
 import { toRouterPath } from '@/utils/localePath'
 import { useSearchParams } from 'next/navigation'
@@ -61,6 +61,90 @@ export default function LoginModal({
   const isPreviewUnlock = loginModalOptions?.loginSource === 'preview_unlock'
   const isBottomSheet = layout === 'bottomSheet'
   const [showMobileUnlockLanding, setShowMobileUnlockLanding] = useState(true)
+  const sheetDragStartYRef = useRef<number | null>(null)
+  const sheetDragStartTimeRef = useRef(0)
+  const sheetDragOffsetRef = useRef(0)
+  const sheetDrawerWrapperRef = useRef<HTMLElement | null>(null)
+  const sheetDragTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const clearSheetDragTimer = () => {
+    if (!sheetDragTimerRef.current) return
+    clearTimeout(sheetDragTimerRef.current)
+    sheetDragTimerRef.current = null
+  }
+  const resetSheetWrapperStyle = (wrapper: HTMLElement) => {
+    wrapper.style.transition = 'transform 200ms ease-out'
+    wrapper.style.transform = 'translateY(0)'
+    sheetDragTimerRef.current = setTimeout(() => {
+      wrapper.style.removeProperty('transition')
+      wrapper.style.removeProperty('transform')
+      wrapper.style.removeProperty('will-change')
+      sheetDragTimerRef.current = null
+    }, 200)
+  }
+  const handleSheetDragStart = (event: React.TouchEvent<HTMLButtonElement>) => {
+    clearSheetDragTimer()
+    sheetDragStartYRef.current = event.touches[0]?.clientY ?? null
+    sheetDragStartTimeRef.current = Date.now()
+    sheetDragOffsetRef.current = 0
+    const wrapper = event.currentTarget.closest('.ant-drawer-content-wrapper') as HTMLElement | null
+    sheetDrawerWrapperRef.current = wrapper
+    if (wrapper) {
+      wrapper.style.transition = 'none'
+      wrapper.style.willChange = 'transform'
+    }
+  }
+  const handleSheetDragMove = (event: React.TouchEvent<HTMLButtonElement>) => {
+    if (sheetDragStartYRef.current == null) return
+    const offset = Math.max(0, (event.touches[0]?.clientY ?? sheetDragStartYRef.current) - sheetDragStartYRef.current)
+    sheetDragOffsetRef.current = offset
+    if (sheetDrawerWrapperRef.current) {
+      sheetDrawerWrapperRef.current.style.transform = `translateY(${offset}px)`
+    }
+  }
+  const handleSheetDragEnd = () => {
+    const dragDuration = Date.now() - sheetDragStartTimeRef.current
+    const shouldClose =
+      sheetDragOffsetRef.current >= 24 ||
+      (sheetDragOffsetRef.current >= 12 && dragDuration <= 250)
+    const wrapper = sheetDrawerWrapperRef.current
+    sheetDragStartYRef.current = null
+    sheetDragStartTimeRef.current = 0
+    sheetDragOffsetRef.current = 0
+    sheetDrawerWrapperRef.current = null
+    if (shouldClose) {
+      if (!wrapper) {
+        closeLoginModal()
+        return
+      }
+      wrapper.style.transition = 'transform 180ms ease-out'
+      wrapper.style.transform = 'translateY(100%)'
+      sheetDragTimerRef.current = setTimeout(() => {
+        sheetDragTimerRef.current = null
+        closeLoginModal()
+      }, 180)
+      return
+    }
+    if (wrapper) resetSheetWrapperStyle(wrapper)
+  }
+  const handleSheetDragCancel = () => {
+    const wrapper = sheetDrawerWrapperRef.current
+    sheetDragStartYRef.current = null
+    sheetDragStartTimeRef.current = 0
+    sheetDragOffsetRef.current = 0
+    sheetDrawerWrapperRef.current = null
+    if (wrapper) resetSheetWrapperStyle(wrapper)
+  }
+  useEffect(() => {
+    return () => {
+      if (sheetDragTimerRef.current) clearTimeout(sheetDragTimerRef.current)
+      const wrapper = sheetDrawerWrapperRef.current
+      if (wrapper) {
+        wrapper.style.removeProperty('transition')
+        wrapper.style.removeProperty('transform')
+        wrapper.style.removeProperty('will-change')
+      }
+    }
+  }, [])
   // Unify ALL login UIs to match the preview unlock design.
   const unifiedUI = true
   const previewTitle = loginModalOptions?.title ?? tPreview('unlockFullBookTitle')
@@ -592,12 +676,22 @@ export default function LoginModal({
   if (isBottomSheet && isPreviewUnlock && state.mode === 'codeLogin' && showMobileUnlockLanding) {
     return (
       <main
+        data-login-modal="true"
         className="relative flex w-full shrink-0 flex-col rounded-t-[16px] bg-white px-3 pb-[calc(20px+env(safe-area-inset-bottom))] pt-3 text-[#20202A]"
         role="main"
       >
-        <div className="flex w-full justify-center pb-3" aria-hidden="true">
+        <button
+          type="button"
+          aria-label="Swipe down to close"
+          className="absolute inset-x-0 top-0 z-20 flex h-16 w-full touch-none justify-center pt-3"
+          onTouchStart={handleSheetDragStart}
+          onTouchMove={handleSheetDragMove}
+          onTouchEnd={handleSheetDragEnd}
+          onTouchCancel={handleSheetDragCancel}
+        >
           <span className="h-1 w-10 rounded-full bg-[#D9D9D9]" />
-        </div>
+        </button>
+        <div className="h-4 shrink-0" aria-hidden="true" />
 
         <div className="mb-4 flex items-center justify-center gap-3">
           <Sparkles className="h-6 w-6 shrink-0 text-[#FFD45A]" strokeWidth={2} aria-hidden="true" />
@@ -663,12 +757,24 @@ export default function LoginModal({
               : 'w-96 items-center justify-center gap-4 rounded-lg p-4'
       }`}
       style={unifiedUI || isPreviewUnlock || isBottomSheet ? previewModalStyle : undefined}
+      data-login-modal="true"
       role="main"
     >
       {isBottomSheet && (
-        <div className="flex w-full justify-center pb-[4px]" aria-hidden="true">
-          <span className="h-1 w-10 rounded-full bg-[#D9D9D9]" />
-        </div>
+        <>
+          <button
+            type="button"
+            aria-label="Swipe down to close"
+            className="absolute inset-x-0 top-0 z-20 flex h-16 w-full touch-none justify-center pt-3"
+            onTouchStart={handleSheetDragStart}
+            onTouchMove={handleSheetDragMove}
+            onTouchEnd={handleSheetDragEnd}
+            onTouchCancel={handleSheetDragCancel}
+          >
+            <span className="h-1 w-10 rounded-full bg-[#D9D9D9]" />
+          </button>
+          <div className="h-2 shrink-0" aria-hidden="true" />
+        </>
       )}
       {showCloseButton && !isBottomSheet && (
         <div className="flex w-full justify-end">

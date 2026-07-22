@@ -69,6 +69,47 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     return () => mq.removeEventListener('change', sync);
   }, []);
 
+  // 登录弹窗打开时锁定背景滚动；避免 position:fixed，防止底部空白与打开卡顿
+  useEffect(() => {
+    if (!isLoginModalOpen || isLoginPage) return undefined;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+    const prevHtmlOverscroll = html.style.overscrollBehavior;
+    const prevBodyOverscroll = body.style.overscrollBehavior;
+
+    html.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    html.style.overscrollBehavior = 'none';
+    body.style.overscrollBehavior = 'none';
+
+    const isInsideLoginSheet = (target: EventTarget | null) => {
+      const el = target instanceof Element ? target : null;
+      return Boolean(
+        el?.closest('[data-login-modal="true"]') ||
+          el?.closest('.preview-unlock-bottom-sheet') ||
+          el?.closest('.ant-drawer-content'),
+      );
+    };
+
+    const preventBackgroundTouchMove = (event: TouchEvent) => {
+      if (isInsideLoginSheet(event.target)) return;
+      event.preventDefault();
+    };
+
+    document.addEventListener('touchmove', preventBackgroundTouchMove, { passive: false });
+
+    return () => {
+      document.removeEventListener('touchmove', preventBackgroundTouchMove);
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
+      html.style.overscrollBehavior = prevHtmlOverscroll;
+      body.style.overscrollBehavior = prevBodyOverscroll;
+    };
+  }, [isLoginModalOpen, isLoginPage]);
+
   // 登录状态变化后检查Kickstarter套餐
   useEffect(() => {
     if (isLoggedIn) {
@@ -116,16 +157,19 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
           maskClosable
           zIndex={1000}
           styles={{
-            mask: { background: 'rgba(0, 0, 0, 0.45)' },
+            mask: { background: 'rgba(0, 0, 0, 0.45)', touchAction: 'none' },
             body: {
               padding: 0,
+              height: 'auto',
               maxHeight: 'min(90dvh, 90vh)',
               overflowY: 'auto',
               overscrollBehavior: 'contain',
+              touchAction: 'pan-y',
             },
             content: {
               borderRadius: '16px 16px 0 0',
               overflow: 'hidden',
+              height: 'auto',
             },
             wrapper: {
               height: 'auto',
