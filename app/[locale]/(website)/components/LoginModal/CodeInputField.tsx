@@ -58,7 +58,7 @@ export const CodeInputField = memo(({ code, onCodeChange, successMessage, errorM
             onChange={(e) => handleCodeInput(index, e.target.value)}
             onKeyDown={(e) => handleKeyDown(index, e)}
             onPaste={index === 0 ? handlePaste : undefined}
-            className={`code-input aspect-square w-full min-w-0 rounded-[4px] border text-center text-[14px] leading-[20px] tracking-[0.25px] outline-none focus:ring-0 ${
+            className={`code-input aspect-square w-full min-w-0 rounded-[4px] border text-center text-[16px] leading-[20px] tracking-[0.25px] outline-none focus:ring-0 md:text-[14px] ${
               errorMessage ? 'border-red-500 focus:border-red-500' : 'border-[#222222] focus:border-[#222222]'
             } text-[#222222]`}
             required
