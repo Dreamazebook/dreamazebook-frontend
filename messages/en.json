@@ -3,7 +3,7 @@
     "shoppingCart": "Shopping Cart",
     "noItemsSelected": "Please select at least one item to checkout",
     "couponApplied": "Coupon applied successfully!",
-    "couponDiscount": "Code",
+    "couponDiscount": "Promo Code",
     "applyingCoupon": "Applying coupon...",
     "invalidCoupon": "Invalid coupon code",
     "loading": "Loading your cart...",
@@ -210,7 +210,7 @@
       "transport": "transport",
       "receiveBooks": "receive books"
     },
-    "couponDiscount": "Code",
+    "couponDiscount": "Promo Code",
     "orderSummary": {
         "title": "summary",
       "subtotal": "Subtotal",
