@@ -627,21 +627,21 @@ export default function LoginModal({
 
         <div className="mt-4 grid grid-cols-[1fr_1px_1fr] items-center gap-5">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F5F7FF]">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F7FF]">
               <Zap className="h-5 w-5 text-[#4768E9]" strokeWidth={1.8} aria-hidden="true" />
             </span>
             <div className="min-w-0">
-              <p className="text-[11px] font-medium leading-4">{tPreview('quickAccess')}</p>
+              <p className="text-[12px] font-semibold leading-4">{tPreview('quickAccess')}</p>
               <p className="text-[9px] leading-[14px] text-[#777780]">{tPreview('noPasswordRequired')}</p>
             </div>
           </div>
           <span className="h-10 bg-[#E8E8EC]" aria-hidden="true" />
           <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F5F7FF]">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F7FF]">
               <Gift className="h-5 w-5 text-[#4768E9]" strokeWidth={1.8} aria-hidden="true" />
             </span>
             <div className="min-w-0">
-              <p className="text-[11px] font-medium leading-4">{tPreview('welcomeOffer')}</p>
+              <p className="text-[12px] font-semibold leading-4">{tPreview('welcomeOffer')}</p>
               <p className="text-[9px] leading-[14px] text-[#777780]">{tPreview('welcomeOfferCheckout')}</p>
             </div>
           </div>
