@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useRouter, usePathname } from '@/i18n/routing'
 import { toRouterPath } from '@/utils/localePath'
 import { useSearchParams } from 'next/navigation'
@@ -14,7 +14,9 @@ import { NameEmailPasswordFields } from './LoginModal/NameEmailPasswordFields'
 import { CodeInputField } from './LoginModal/CodeInputField'
 import { ModalHeader, CloseButton } from './LoginModal/ModalHeader'
 import { FormSubmitSections } from './LoginModal/FormSubmitSections'
+import { GoogleIcon } from './LoginModal/OAuthButtons'
 import { ErrorAlert } from './LoginModal/Alerts'
+import { Gift, Mail, Sparkles, Zap } from 'lucide-react'
 import api from '@/utils/api'
 import { ApiResponse } from '@/types/api'
 import { readGuestSessionId, writeGuestSessionId } from '@/utils/api'
@@ -58,6 +60,7 @@ export default function LoginModal({
 
   const isPreviewUnlock = loginModalOptions?.loginSource === 'preview_unlock'
   const isBottomSheet = layout === 'bottomSheet'
+  const [showMobileUnlockLanding, setShowMobileUnlockLanding] = useState(true)
   // Unify ALL login UIs to match the preview unlock design.
   const unifiedUI = true
   const previewTitle = loginModalOptions?.title ?? tPreview('unlockFullBookTitle')
@@ -585,6 +588,68 @@ export default function LoginModal({
     </p>
   ) : null
 
+  if (isBottomSheet && isPreviewUnlock && state.mode === 'codeLogin' && showMobileUnlockLanding) {
+    return (
+      <main
+        className="relative flex w-full shrink-0 flex-col rounded-t-[16px] bg-white px-6 pb-[calc(20px+env(safe-area-inset-bottom))] pt-3 text-[#20202A]"
+        role="main"
+      >
+        <div className="flex w-full justify-center pb-3" aria-hidden="true">
+          <span className="h-1 w-10 rounded-full bg-[#D9D9D9]" />
+        </div>
+
+        <div className="mb-4 flex items-center justify-center gap-3">
+          <Sparkles className="h-6 w-6 shrink-0 text-[#FFD45A]" strokeWidth={2} aria-hidden="true" />
+          <h1 className="text-center text-[22px] font-semibold leading-7">
+            {tPreview('continueReadingTitle')}
+          </h1>
+        </div>
+
+        <div className="flex flex-col gap-[10px]">
+          <button
+            type="button"
+            onClick={() => startOAuth('google', 'googleLoading')}
+            disabled={state.googleLoading}
+            className="flex h-[50px] w-full items-center justify-center gap-3 rounded-[10px] bg-[#171717] text-[15px] font-normal text-white transition-opacity disabled:opacity-60"
+          >
+            <GoogleIcon />
+            {tPreview('continueWithGoogle')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowMobileUnlockLanding(false)}
+            className="flex h-[48px] w-full items-center justify-center gap-3 rounded-[10px] border border-[#D2D2D7] bg-white text-[15px] font-normal text-[#20202A]"
+          >
+            <Mail className="h-5 w-5" strokeWidth={1.8} aria-hidden="true" />
+            {tPreview('continueWithEmail')}
+          </button>
+        </div>
+
+        <div className="mt-4 grid grid-cols-[1fr_1px_1fr] items-center gap-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F5F7FF]">
+              <Zap className="h-5 w-5 text-[#4768E9]" strokeWidth={1.8} aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-medium leading-4">{tPreview('quickAccess')}</p>
+              <p className="text-[9px] leading-[14px] text-[#777780]">{tPreview('noPasswordRequired')}</p>
+            </div>
+          </div>
+          <span className="h-10 bg-[#E8E8EC]" aria-hidden="true" />
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F5F7FF]">
+              <Gift className="h-5 w-5 text-[#4768E9]" strokeWidth={1.8} aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-medium leading-4">{tPreview('welcomeOffer')}</p>
+              <p className="text-[9px] leading-[14px] text-[#777780]">{tPreview('welcomeOfferCheckout')}</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main
       className={`relative flex shrink-0 flex-col bg-white ${
@@ -604,7 +669,7 @@ export default function LoginModal({
           <span className="h-1 w-10 rounded-full bg-[#D9D9D9]" />
         </div>
       )}
-      {showCloseButton && (
+      {showCloseButton && !isBottomSheet && (
         <div className="flex w-full justify-end">
           <CloseButton onClose={closeLoginModal} iconSize={12} />
         </div>
@@ -667,6 +732,7 @@ export default function LoginModal({
           buttonStyle={unifiedUI || isPreviewUnlock ? previewButtonStyle : undefined}
           fluid={isBottomSheet}
           oauthFooter={previewOAuthFooter}
+          hidePasswordLogin={isPreviewUnlock}
         />
         {(isPreviewUnlock ? previewFooterNote : footerNote) && state.mode === 'codeLogin' && (
           <p className="text-center text-[14px] leading-[20px] tracking-[0.25px] font-normal text-[#999999]">
