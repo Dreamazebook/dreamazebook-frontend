@@ -85,7 +85,7 @@ export default function CouponInput({ onApply, onRemove, coupon, couponApplying,
         <button
           onClick={handleApply}
           disabled={couponApplying || !couponCode.trim()}
-          className="px-4 py-2 text-[#222222] whitespace-nowrap disabled:opacity-50 font-medium text-sm flex items-center gap-1.5 shrink-0"
+          className="px-4 py-2 text-white bg-[#222222] whitespace-nowrap disabled:opacity-50 font-medium text-sm flex items-center gap-1.5 shrink-0"
         >
           {couponApplying ? (
             <svg className="animate-spin h-4 w-4 text-[#666666]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

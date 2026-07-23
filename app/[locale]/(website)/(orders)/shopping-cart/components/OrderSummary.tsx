@@ -24,6 +24,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
 }) => {
   const t = useTranslations('ShoppingCart');
   const [promoOpen, setPromoOpen] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState(false);
 
   const LoadingSpinner = () => (
     <>
@@ -104,11 +105,10 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
 
   const renderContent = () => (
     <>
-      <div className="bg-white rounded-[12px] p-4 shadow mb-4">
       {/* Promo Code — collapsible */}
+      <div className={`bg-white rounded-[12px] p-4 shadow mb-4 ${mobileExpanded ? '' : 'hidden lg:block'}`}>
       {onApplyCoupon && (
         <div className="mt-3">
-          {/* Toggle row — entire row clickable */}
           <div
             className="flex items-center justify-between cursor-pointer select-none"
             onClick={() => setPromoOpen((prev) => !prev)}
@@ -126,8 +126,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
               <path d="M6 9l6 6 6-6" />
             </svg>
           </div>
-
-          {/* Collapsible content */}
           <div
             className={`grid transition-all duration-200 ease-in-out ${
               promoOpen ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0 mt-0'
@@ -148,7 +146,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       </div>
 
       {/* Summary Card */}
-      <div className="bg-white p-4 rounded shadow">
+      <div className={`bg-white p-4 rounded shadow ${mobileExpanded ? '' : 'hidden lg:block'}`}>
         <SummaryLines />
       </div>
 
@@ -158,34 +156,35 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       </div>
 
       {/* Bottom Trust Section */}
-      <div className="mt-6 grid grid-cols-3 text-center">
-        {/* Secure Checkout */}
-        <div className="flex flex-col items-center">
-          <svg className="w-6 h-6 text-[#222222]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <div className={`mt-6 flex items-center justify-between gap-3 ${mobileExpanded ? '' : 'hidden lg:flex'}`}>
+        <div className="flex items-center gap-3">
+          <svg className="w-6 h-6 text-[#222222] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0110 0v4" />
           </svg>
-          <p className="text-[14px] font-medium text-[#222222] mt-1.5">Secure checkout</p>
-          <p className="text-[12px] text-[#666666] mt-0.5">SSL encrypted</p>
+          <div>
+            <p className="text-[14px] font-medium text-[#222222]">Secure checkout</p>
+            <p className="text-[12px] text-[#666666]">SSL encrypted</p>
+          </div>
         </div>
-
-        {/* Free Shipping */}
-        <div className="flex flex-col items-center">
-          <svg className="w-6 h-6 text-[#222222]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <div className="flex items-center gap-3">
+          <svg className="w-6 h-6 text-[#222222] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
             <circle cx="12" cy="12" r="3" />
           </svg>
-          <p className="text-[14px] font-medium text-[#222222] mt-1.5">Free shipping</p>
-          <p className="text-[12px] text-[#666666] mt-0.5">On orders over $49</p>
+          <div>
+            <p className="text-[14px] font-medium text-[#222222]">Free shipping</p>
+            <p className="text-[12px] text-[#666666]">On orders over $49</p>
+          </div>
         </div>
-
-        {/* Need Help */}
-        <div className="flex flex-col items-center">
-          <svg className="w-6 h-6 text-[#222222]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <div className="flex items-center gap-3">
+          <svg className="w-6 h-6 text-[#222222] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
           </svg>
-          <p className="text-[14px] font-medium text-[#222222] mt-1.5">Need help?</p>
-          <p className="text-[12px] text-[#666666] mt-0.5">Contact us</p>
+          <div>
+            <p className="text-[14px] font-medium text-[#222222]">Need help?</p>
+            <p className="text-[12px] text-[#666666]">Contact us</p>
+          </div>
         </div>
       </div>
     </>
@@ -201,9 +200,32 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         </div>
       </div>
 
-      {/* Mobile: fixed to bottom, shares same renderContent */}
+      {/* Mobile: fixed bottom bar, same renderContent, toggle expandable sections */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-xl z-10 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-        <div className="max-w-screen-md mx-auto px-4 py-3">
+        <div className="max-w-screen-md mx-auto px-4 pt-3 pb-3">
+          {/* Toggle: total row is clickable to expand/collapse */}
+          <div
+            className="flex items-center justify-between cursor-pointer select-none"
+            onClick={() => setMobileExpanded((prev) => !prev)}
+          >
+            {!mobileExpanded && (
+              <div className="flex justify-between font-bold text-lg flex-1">
+                <p>{t('total')}</p>
+                <p className="text-[#165C52]">${total.toFixed(2)}</p>
+              </div>
+            )}
+            <svg
+              className={`w-5 h-5 text-[#666666] ml-auto shrink-0 transition-transform duration-200 ${mobileExpanded ? 'rotate-180' : ''}`}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </div>
           {renderContent()}
         </div>
       </div>
