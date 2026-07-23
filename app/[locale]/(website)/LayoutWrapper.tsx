@@ -27,6 +27,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const isBookDetailPage = segments[0] === 'books' && segments.length === 2;
   const isFathersDayPage = pathname === '/fathers-day' || pathname?.endsWith('/fathers-day');
   const isLoginPage = pathname === '/login' || pathname?.endsWith('/login');
+  const isHomePage = pathname === '/' || pathname?.endsWith('/en') || pathname?.endsWith('/fr') || pathname?.endsWith('/zh');
 
   // 检查是否在嵌入模式（用于抽屉显示）
   const isEmbedMode = searchParams.get('embed') === 'true';
@@ -190,7 +191,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
       )}
       {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isKickstarterConfigPage || isEmbedMode) && <Footer />}
       {isBookDetailPage && !isEmbedMode && <div className="h-[92px] md:hidden" aria-hidden="true" />}
-      <TawkScript visible={!isBookDetailPage} />
+      <TawkScript visible={isHomePage} />
       {/* {scrollToTopConfig.enabled && (
         <ScrollToTopButton
           threshold={scrollToTopConfig.threshold}
