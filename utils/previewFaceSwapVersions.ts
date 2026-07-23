@@ -165,6 +165,7 @@ export function getGuestLockedSpreadEndPageNumber(bookId?: string | null): numbe
     .trim()
     .toUpperCase();
   if (id === 'PICBOOK_MELODY') return 14;
+  if (id === 'PICBOOK_GOODNIGHT' || id === 'PICBOOK_GOODNIGHT3') return 10;
   return 12;
 }
 
@@ -197,7 +198,7 @@ export function parsePreviewSpreadEndPageNumber(
   return null;
 }
 
-/** 页码是否在游客预览范围内（含锁定跨页，默认至 p11-12 / Melody p13-14） */
+/** 页码是否在游客预览范围内（含锁定跨页，Good Night p9-10 / Melody p13-14 / 其他 p11-12） */
 export function isWithinGuestPreviewPageRange(
   page: { page_code?: unknown; page_number?: unknown } | null | undefined,
   bookId?: string | null,

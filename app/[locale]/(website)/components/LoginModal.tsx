@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useRouter, usePathname } from '@/i18n/routing'
 import { toRouterPath } from '@/utils/localePath'
 import { useSearchParams } from 'next/navigation'
@@ -14,7 +14,9 @@ import { NameEmailPasswordFields } from './LoginModal/NameEmailPasswordFields'
 import { CodeInputField } from './LoginModal/CodeInputField'
 import { ModalHeader, CloseButton } from './LoginModal/ModalHeader'
 import { FormSubmitSections } from './LoginModal/FormSubmitSections'
+import { GoogleIcon } from './LoginModal/OAuthButtons'
 import { ErrorAlert } from './LoginModal/Alerts'
+import { Gift, Mail, Sparkles, Zap } from 'lucide-react'
 import api from '@/utils/api'
 import { ApiResponse } from '@/types/api'
 import { readGuestSessionId, writeGuestSessionId } from '@/utils/api'
@@ -58,6 +60,91 @@ export default function LoginModal({
 
   const isPreviewUnlock = loginModalOptions?.loginSource === 'preview_unlock'
   const isBottomSheet = layout === 'bottomSheet'
+  const [showMobileUnlockLanding, setShowMobileUnlockLanding] = useState(true)
+  const sheetDragStartYRef = useRef<number | null>(null)
+  const sheetDragStartTimeRef = useRef(0)
+  const sheetDragOffsetRef = useRef(0)
+  const sheetDrawerWrapperRef = useRef<HTMLElement | null>(null)
+  const sheetDragTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const clearSheetDragTimer = () => {
+    if (!sheetDragTimerRef.current) return
+    clearTimeout(sheetDragTimerRef.current)
+    sheetDragTimerRef.current = null
+  }
+  const resetSheetWrapperStyle = (wrapper: HTMLElement) => {
+    wrapper.style.transition = 'transform 200ms ease-out'
+    wrapper.style.transform = 'translateY(0)'
+    sheetDragTimerRef.current = setTimeout(() => {
+      wrapper.style.removeProperty('transition')
+      wrapper.style.removeProperty('transform')
+      wrapper.style.removeProperty('will-change')
+      sheetDragTimerRef.current = null
+    }, 200)
+  }
+  const handleSheetDragStart = (event: React.TouchEvent<HTMLButtonElement>) => {
+    clearSheetDragTimer()
+    sheetDragStartYRef.current = event.touches[0]?.clientY ?? null
+    sheetDragStartTimeRef.current = Date.now()
+    sheetDragOffsetRef.current = 0
+    const wrapper = event.currentTarget.closest('.ant-drawer-content-wrapper') as HTMLElement | null
+    sheetDrawerWrapperRef.current = wrapper
+    if (wrapper) {
+      wrapper.style.transition = 'none'
+      wrapper.style.willChange = 'transform'
+    }
+  }
+  const handleSheetDragMove = (event: React.TouchEvent<HTMLButtonElement>) => {
+    if (sheetDragStartYRef.current == null) return
+    const offset = Math.max(0, (event.touches[0]?.clientY ?? sheetDragStartYRef.current) - sheetDragStartYRef.current)
+    sheetDragOffsetRef.current = offset
+    if (sheetDrawerWrapperRef.current) {
+      sheetDrawerWrapperRef.current.style.transform = `translateY(${offset}px)`
+    }
+  }
+  const handleSheetDragEnd = () => {
+    const dragDuration = Date.now() - sheetDragStartTimeRef.current
+    const shouldClose =
+      sheetDragOffsetRef.current >= 24 ||
+      (sheetDragOffsetRef.current >= 12 && dragDuration <= 250)
+    const wrapper = sheetDrawerWrapperRef.current
+    sheetDragStartYRef.current = null
+    sheetDragStartTimeRef.current = 0
+    sheetDragOffsetRef.current = 0
+    sheetDrawerWrapperRef.current = null
+    if (shouldClose) {
+      if (!wrapper) {
+        closeLoginModal()
+        return
+      }
+      wrapper.style.transition = 'transform 180ms ease-out'
+      wrapper.style.transform = 'translateY(100%)'
+      sheetDragTimerRef.current = setTimeout(() => {
+        sheetDragTimerRef.current = null
+        closeLoginModal()
+      }, 180)
+      return
+    }
+    if (wrapper) resetSheetWrapperStyle(wrapper)
+  }
+  const handleSheetDragCancel = () => {
+    const wrapper = sheetDrawerWrapperRef.current
+    sheetDragStartYRef.current = null
+    sheetDragStartTimeRef.current = 0
+    sheetDragOffsetRef.current = 0
+    sheetDrawerWrapperRef.current = null
+    if (wrapper) resetSheetWrapperStyle(wrapper)
+  }
+  useEffect(() => {
+    return () => {
+      if (sheetDragTimerRef.current) clearTimeout(sheetDragTimerRef.current)
+      const wrapper = sheetDrawerWrapperRef.current
+      if (wrapper) {
+        wrapper.style.removeProperty('transition')
+        wrapper.style.removeProperty('transform')
+        wrapper.style.removeProperty('will-change')
+      }
+    }
+  }, [])
   // Unify ALL login UIs to match the preview unlock design.
   const unifiedUI = true
   const previewTitle = loginModalOptions?.title ?? tPreview('unlockFullBookTitle')
@@ -94,8 +181,9 @@ export default function LoginModal({
     paddingLeft: 16,
     boxSizing: 'border-box',
   }
-  const previewEmailInputClassName =
-    'shrink-0 rounded-[4px] border border-[#222222] opacity-100 text-[14px] leading-[20px] tracking-[0.25px] text-[#222]'
+  const previewEmailInputClassName = `shrink-0 rounded-[4px] border border-[#222222] opacity-100 ${
+    isBottomSheet ? 'text-[16px]' : 'text-[14px]'
+  } leading-[20px] tracking-[0.25px] text-[#222]`
   const previewEmailLabelClassName = 'shrink-0 text-[14px] leading-[20px] tracking-[0.25px] text-[#222]'
 
   const getSuccessMessage = (): string => {
@@ -123,13 +211,11 @@ export default function LoginModal({
 
   // Countdown timer
   useEffect(() => {
-    let timer: NodeJS.Timeout
-    if (state.countdown > 0) {
-      timer = setInterval(() => {
-        setField('countdown', (prev:number) => prev - 1)
-      }, 1000)
-    }
-    return () => clearInterval(timer)
+    if (state.countdown <= 0) return undefined
+    const timer = setTimeout(() => {
+      setField('countdown', state.countdown - 1)
+    }, 1000)
+    return () => clearTimeout(timer)
   }, [state.countdown, setField])
 
   // Auto-submit when code reaches 6 digits
@@ -172,6 +258,7 @@ export default function LoginModal({
         return "We'll email you a link to create a new password.";
       case 'codeLogin':
         if (isPreviewUnlock) {
+          if (isBottomSheet) return '';
           return (
             <>
               {tPreview('unlockFullBookDescriptionPrefix')}{' '}
@@ -367,6 +454,16 @@ export default function LoginModal({
         errorMessage: response.message || t('sendCodeFailed'),
         successMessage: '',
       })
+    }
+  }
+
+  const handleResendLoginCode = async (email: string) => {
+    if (state.loading || state.countdown > 0) return
+    setField('loading', true)
+    try {
+      await handleSendLoginCode(email)
+    } finally {
+      setField('loading', false)
     }
   }
 
@@ -585,6 +682,78 @@ export default function LoginModal({
     </p>
   ) : null
 
+  if (isBottomSheet && isPreviewUnlock && state.mode === 'codeLogin' && showMobileUnlockLanding) {
+    return (
+      <main
+        data-login-modal="true"
+        className="relative flex w-full shrink-0 flex-col rounded-t-[16px] bg-white px-3 pb-[calc(20px+env(safe-area-inset-bottom))] pt-3 text-[#20202A]"
+        role="main"
+      >
+        <button
+          type="button"
+          aria-label="Swipe down to close"
+          className="absolute inset-x-0 top-0 z-20 flex h-16 w-full touch-none justify-center pt-3"
+          onTouchStart={handleSheetDragStart}
+          onTouchMove={handleSheetDragMove}
+          onTouchEnd={handleSheetDragEnd}
+          onTouchCancel={handleSheetDragCancel}
+        >
+          <span className="h-1 w-10 rounded-full bg-[#D9D9D9]" />
+        </button>
+        <div className="h-4 shrink-0" aria-hidden="true" />
+
+        <div className="mb-4 flex items-center justify-center gap-3">
+          <Sparkles className="h-6 w-6 shrink-0 text-[#FFD45A]" strokeWidth={2} aria-hidden="true" />
+          <h1 className="text-center text-[22px] font-semibold leading-7">
+            {tPreview('continueReadingTitle')}
+          </h1>
+        </div>
+
+        <div className="flex flex-col gap-[10px]">
+          <button
+            type="button"
+            onClick={() => startOAuth('google', 'googleLoading')}
+            disabled={state.googleLoading}
+            className="flex h-[50px] w-full items-center justify-center gap-3 rounded-[10px] bg-[#171717] text-[15px] font-normal text-white transition-opacity disabled:opacity-60"
+          >
+            <GoogleIcon />
+            {tPreview('continueWithGoogle')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowMobileUnlockLanding(false)}
+            className="flex h-[48px] w-full items-center justify-center gap-3 rounded-[10px] border border-[#D2D2D7] bg-white text-[15px] font-normal text-[#20202A]"
+          >
+            <Mail className="h-5 w-5" strokeWidth={1.8} aria-hidden="true" />
+            {tPreview('continueWithEmail')}
+          </button>
+        </div>
+
+        <div className="mt-4 grid grid-cols-[1fr_1px_1fr] items-center gap-5">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F7FF]">
+              <Zap className="h-5 w-5 text-[#4768E9]" strokeWidth={1.8} aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[12px] font-semibold leading-4">{tPreview('quickAccess')}</p>
+              <p className="text-[12px] leading-[14px] text-[#666666]">{tPreview('noPasswordRequired')}</p>
+            </div>
+          </div>
+          <span className="h-10 bg-[#E8E8EC]" aria-hidden="true" />
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F7FF]">
+              <Gift className="h-5 w-5 text-[#4768E9]" strokeWidth={1.8} aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[12px] font-semibold leading-4">{tPreview('welcomeOffer')}</p>
+              <p className="text-[12px] leading-[14px] text-[#666666]">{tPreview('welcomeOfferCheckout')}</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main
       className={`relative flex shrink-0 flex-col bg-white ${
@@ -597,14 +766,26 @@ export default function LoginModal({
               : 'w-96 items-center justify-center gap-4 rounded-lg p-4'
       }`}
       style={unifiedUI || isPreviewUnlock || isBottomSheet ? previewModalStyle : undefined}
+      data-login-modal="true"
       role="main"
     >
       {isBottomSheet && (
-        <div className="flex w-full justify-center pb-[4px]" aria-hidden="true">
-          <span className="h-1 w-10 rounded-full bg-[#D9D9D9]" />
-        </div>
+        <>
+          <button
+            type="button"
+            aria-label="Swipe down to close"
+            className="absolute inset-x-0 top-0 z-20 flex h-16 w-full touch-none justify-center pt-3"
+            onTouchStart={handleSheetDragStart}
+            onTouchMove={handleSheetDragMove}
+            onTouchEnd={handleSheetDragEnd}
+            onTouchCancel={handleSheetDragCancel}
+          >
+            <span className="h-1 w-10 rounded-full bg-[#D9D9D9]" />
+          </button>
+          <div className="h-2 shrink-0" aria-hidden="true" />
+        </>
       )}
-      {showCloseButton && (
+      {showCloseButton && !isBottomSheet && (
         <div className="flex w-full justify-end">
           <CloseButton onClose={closeLoginModal} iconSize={12} />
         </div>
@@ -644,7 +825,7 @@ export default function LoginModal({
             resetCodeFlow()
             setField('resetSent', false)
           }}
-          onSendLoginCode={handleSendLoginCode}
+          onSendLoginCode={handleResendLoginCode}
           googleLoading={state.googleLoading}
           facebookLoading={state.facebookLoading}
           onGoogleLogin={handleGoogleCredentialLogin}
@@ -660,6 +841,9 @@ export default function LoginModal({
             usePasswordInstead: 'Use password instead',
             changeEmail: t('changeEmail'),
             orContinueWith: t('orContinueWith'),
+            resendCode: t('resendCode'),
+            resendIn: t.raw('resendIn') as string,
+            codeDeliveryHint: t('codeDeliveryHint'),
           }}
           email={state.email}
           unifiedUI={unifiedUI || isPreviewUnlock}
@@ -667,8 +851,9 @@ export default function LoginModal({
           buttonStyle={unifiedUI || isPreviewUnlock ? previewButtonStyle : undefined}
           fluid={isBottomSheet}
           oauthFooter={previewOAuthFooter}
+          hidePasswordLogin={isPreviewUnlock}
         />
-        {(isPreviewUnlock ? previewFooterNote : footerNote) && state.mode === 'codeLogin' && (
+        {!isBottomSheet && (isPreviewUnlock ? previewFooterNote : footerNote) && state.mode === 'codeLogin' && (
           <p className="text-center text-[14px] leading-[20px] tracking-[0.25px] font-normal text-[#999999]">
             {isPreviewUnlock ? previewFooterNote : footerNote}
           </p>

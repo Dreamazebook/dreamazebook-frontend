@@ -8,7 +8,12 @@ interface CodeInputFieldProps {
   errorMessage?: string
 }
 
-export const CodeInputField = memo(({ code, onCodeChange, successMessage, errorMessage = '' }: CodeInputFieldProps) => {
+export const CodeInputField = memo(({
+  code,
+  onCodeChange,
+  successMessage,
+  errorMessage = '',
+}: CodeInputFieldProps) => {
   const handleCodeInput = (index: number, value: string) => {
     if (value && !/^\d$/.test(value)) return
     const newCode = code.split('')
@@ -46,7 +51,6 @@ export const CodeInputField = memo(({ code, onCodeChange, successMessage, errorM
           {successMessage}
         </p>
       )}
-
       <div className="grid w-full grid-cols-6 gap-[8px]">
         {[0, 1, 2, 3, 4, 5].map((index) => (
           <input
@@ -58,7 +62,7 @@ export const CodeInputField = memo(({ code, onCodeChange, successMessage, errorM
             onChange={(e) => handleCodeInput(index, e.target.value)}
             onKeyDown={(e) => handleKeyDown(index, e)}
             onPaste={index === 0 ? handlePaste : undefined}
-            className={`code-input aspect-square w-full min-w-0 rounded-[4px] border text-center text-[14px] leading-[20px] tracking-[0.25px] outline-none focus:ring-0 ${
+            className={`code-input aspect-square w-full min-w-0 rounded-[4px] border text-center text-[16px] leading-[20px] tracking-[0.25px] outline-none focus:ring-0 md:text-[14px] ${
               errorMessage ? 'border-red-500 focus:border-red-500' : 'border-[#222222] focus:border-[#222222]'
             } text-[#222222]`}
             required

@@ -958,17 +958,19 @@ function PageRenderFailedOverlay({ message }: { message: string }) {
   );
 }
 
-/** 游客锁定页蒙版内容：背景由外层与换脸/regenerate 相同的 bg-white/70 蒙版提供 */
+/** 游客锁定页蒙版内容：移动端使用黑色半透明模糊蒙版，桌面端保留原样 */
 function GuestLockedPageOverlay() {
   const t = useTranslations('Preview');
   return (
     <div className="flex flex-col items-center px-6 text-center">
-      <LockKeyhole
-        className="mb-2 h-7 w-7 text-gray-500 md:mb-3 md:h-10 md:w-10 md:text-gray-800"
-        strokeWidth={1.75}
-        aria-hidden="true"
-      />
-      <p className="whitespace-pre-line text-center text-[13px] leading-[18px] tracking-[0.15px] text-gray-500 md:text-[22px] md:leading-[28px] md:text-gray-900">
+      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 md:h-auto md:w-auto md:bg-transparent">
+        <LockKeyhole
+          className="h-6 w-6 text-[#333333] md:h-10 md:w-10 md:text-gray-800"
+          strokeWidth={1.75}
+          aria-hidden="true"
+        />
+      </span>
+      <p className="mt-5 whitespace-pre-line text-center text-[16px] font-normal leading-[24px] text-white md:mt-3 md:text-[22px] md:leading-[28px] md:text-gray-900">
         {t('guestLockedPagesMessage')}
       </p>
     </div>
@@ -1071,7 +1073,13 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                     {...protectedImgProps}
                   />
                 </div>
-                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                <div
+                  className={`absolute inset-0 z-10 flex items-center justify-center rounded-lg ${
+                    overlayMode === 'guestLocked'
+                      ? 'bg-black/[0.45] backdrop-blur-[10px] md:bg-white/70 md:backdrop-blur-none'
+                      : 'bg-white/70'
+                  }`}
+                >
                   {overlayMode === 'guestLocked' ? (
                     <GuestLockedPageOverlay />
                   ) : overlayMode === 'failed' ? (
@@ -1135,7 +1143,13 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                     {...protectedImgProps}
                   />
                 </div>
-                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                <div
+                  className={`absolute inset-0 z-10 flex items-center justify-center rounded-lg ${
+                    overlayMode === 'guestLocked'
+                      ? 'bg-black/[0.45] backdrop-blur-[10px] md:bg-white/70 md:backdrop-blur-none'
+                      : 'bg-white/70'
+                  }`}
+                >
                   {overlayMode === 'guestLocked' ? (
                     <GuestLockedPageOverlay />
                   ) : overlayMode === 'failed' ? (
@@ -1205,7 +1219,13 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
             onLoad={handleImageLoad}
             onLoadingComplete={() => handleImageLoad()}
           />
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+          <div
+            className={`absolute inset-0 z-10 flex items-center justify-center rounded-lg ${
+              overlayMode === 'guestLocked'
+                ? 'bg-black/[0.45] backdrop-blur-[10px] md:bg-white/70 md:backdrop-blur-none'
+                : 'bg-white/70'
+            }`}
+          >
             {overlayMode === 'guestLocked' ? (
               <GuestLockedPageOverlay />
             ) : overlayMode === 'failed' ? (
@@ -1466,7 +1486,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       }
     }
     openLoginModal({
-      title: t('unlockFullBookTitle'),
+      title: t('continueReadingTitle'),
       footerNote: isNotCreator ? undefined : t('unlockFullBookFooter'),
       sendCodeButtonLabel: t('continueWithEmailCode'),
       loginSource: 'preview_unlock',
@@ -5062,6 +5082,8 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   );
   const guestUnlockReadyRef = useRef(guestUnlockReady);
   guestUnlockReadyRef.current = guestUnlockReady;
+  const isPreviewEditingRef = useRef(false);
+  isPreviewEditingRef.current = Boolean(editField || pendingGiverFile || pendingMomDrawingFile);
 
   useEffect(() => {
     if (!isGuest || isNotPreviewCreator || activeTab !== 'Book preview') {
@@ -5082,6 +5104,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       if (!mq.matches) return;
       if (!guestUnlockReadyRef.current) return;
       if (!guestPreviewHasScrolledRef.current) return;
+      if (isPreviewEditingRef.current) return;
       if (useUserStore.getState().isLoginModalOpen) return;
 
       const atBottom = isNearPageBottom();
@@ -5120,6 +5143,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
         if (!mq.matches) return;
         if (!guestUnlockReadyRef.current) return;
         if (!guestPreviewHasScrolledRef.current) return;
+        if (isPreviewEditingRef.current) return;
         if (useUserStore.getState().isLoginModalOpen) return;
         if (entries.some((entry) => entry.isIntersecting)) {
           openPreviewUnlockLogin();
