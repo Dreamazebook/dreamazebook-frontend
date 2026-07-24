@@ -248,12 +248,15 @@
     "queueTipNoPos": "L'aperçu du livre est actuellement dans la file d'attente pour la génération. Vous pouvez passer à l'onglet Others.",
     "selectOptions": "Vous pouvez d'abord sélectionner {options}",
     "pageRenderFailedMessage": "Trop de personnes créent un aperçu en ce moment. Réessayez dans quelques minutes.",
-    "tryAnotherVersion": "Essayer une autre version",
+    "tryAnotherVersion": "Créer une autre version",
+    "faceSwapSelectedVersionNotice": "La version sélectionnée sera utilisée dans votre livre.",
     "faceSwapRegenerateFailed": "Impossible de générer une nouvelle version. Veuillez réessayer.",
     "faceSwapSelectFailed": "Impossible de passer à cette version. Veuillez réessayer.",
     "faceSwapMissingPageId": "Page d'aperçu indisponible. Actualisez et réessayez.",
     "faceSwapPreviousVersion": "Version précédente",
-    "faceSwapNextVersion": "Version suivante"
+    "faceSwapNextVersion": "Version suivante",
+    "faceSwapDifferentVersionHintBefore": "Vous voulez une autre version ? Appuyez sur",
+    "faceSwapDifferentVersionHintAfter": "pour en créer une"
   },
   "LoginModal": {
     "login": "Connexion",
