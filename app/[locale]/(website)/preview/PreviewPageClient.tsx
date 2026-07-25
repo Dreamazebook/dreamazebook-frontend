@@ -83,6 +83,7 @@ import {
   normalizePreviewQuery,
   PENDING_PREVIEW_TOKEN,
   resolveBookRouteFromParam,
+  getShortBookSlug
 } from '@/constants/bookRoutes';
 
 export type PreviewPageMode = 'preview' | 'formats';
@@ -1502,6 +1503,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       title: t('continueReadingTitle'),
       sendCodeButtonLabel: t('continueWithEmailCode'),
       loginSource: 'preview_unlock',
+      bookSlug: getShortBookSlug(previewBookId),
       personalizeHref,
       showNotCreatorPrompt: isNotCreator,
     });

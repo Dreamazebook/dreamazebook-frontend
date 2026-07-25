@@ -39,6 +39,14 @@ export function getBookSlug(productId: string): string | undefined {
   return BOOK_SLUG_BY_PRODUCT_ID[normalizeProductId(productId)];
 }
 
+/** Short book slug for tracking (e.g. 'good-night-to-you') */
+export function getShortBookSlug(productId: string): string | undefined {
+  const fullSlug = getBookSlug(productId);
+  if (!fullSlug) return undefined;
+  // Extract the meaningful prefix: 'good-night-to-you-personalized-bedtime-book' -> 'good-night-to-you'
+  return fullSlug.replace(/-personalized.*$/, '');
+}
+
 /**
  * If the route segment is a legacy product ID, return its canonical slug.
  * Returns null when the segment is already a slug or unknown.
