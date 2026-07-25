@@ -25,8 +25,8 @@ const BOOK_DETAIL_OVERRIDES: Record<
   PICBOOK_GOODNIGHT3: {
     name: 'Good Night to You',
     description:
-      'Introduce your little one to a world of peaceful dreams with Good Night to You. As they embark on a magical journey after falling asleep, each animal they encounter serves as a gentle reminder of the beauty and calmness of bedtime. This personalized story sparks imagination while creating the perfect, soothing atmosphere for sleep, making it a cherished part of any bedtime routine.',
-    tags: [{ tname: 'Bedtime Story' }, { tname: 'Imaginative Journey' }],
+      'Make bedtime a moment they look forward to.<br/>In this gentle dream adventure, your child will fly around the world and say goodnight to friendly animals along the way.<br/>A calming invitation to bedtime—making an everyday routine feel sweeter, closer, and a little more magical.',
+    tags: [{ tname: 'Bedtime favorite' }, { tname: 'Perfect starter book' }],
   },
   PICBOOK_MOM: {
     name: 'The Way I See You, Mama',

@@ -131,7 +131,7 @@ const PICBOOK_DAD_REVIEW_DATA: BookReviewData = {
 };
 
 const GOODNIGHT_REVIEW_DATA: BookReviewData = {
-  title: "What Parents Are Saying",
+  title: 'Loved by parents',
   rating: 5.0, // 平均评分
   reviewsCount: 137, // 评论总数
   keywords: [

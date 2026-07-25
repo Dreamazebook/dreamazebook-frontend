@@ -161,7 +161,12 @@ const GOODNIGHT_BASE_CONFIG: Omit<BookConfig, 'id'> = {
     faqs: [
       {
         question: 'How is the book personalized?',
-        answer: SINGLE_HERO_PERSONALIZE_ANSWER,
+        answer: `@ Make them the hero
+Add their name and a few personal details.
+@ See the magic (free!)
+Upload a photo to instantly watch your child step into the story.
+@ Make it extra special
+Add a free custom dedication or a gift-ready cover.`,
       },
       {
         question: 'Why children love it?',
@@ -228,26 +233,26 @@ const GOODNIGHT_BASE_CONFIG: Omit<BookConfig, 'id'> = {
         className: 'py-[48px] mx-auto md:w-full md:px-0 md:h-[860px] md:pt-[88px] md:pb-[128px]',
         items: [
           {
-            title: 'Makes bedtime easier',
-            description: 'Kids calm down faster when they see themselves in the story.',
+            title: 'Makes bedtime calmer',
+            description: 'Kids settle faster when they are in the story.',
             backgroundImage:
               'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-1.png',
           },
           {
             title: 'Builds self-recognition',
-            description: 'Like a mirror in story form, helping children feel seen and valued.',
+            description: 'A gentle mirror that helps children feel seen.',
             backgroundImage:
               'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-2.png',
           },
           {
-            title: 'Strengthens bonding',
-            description: 'Creates meaningful parent–child moments you’ll both remember.',
+            title: 'Strengthens connection',
+            description: 'Creates warm little moments you’ll both treasure.',
             backgroundImage:
               'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-3.png',
           },
           {
             title: 'A keepsake for life',
-            description: 'More than a book, it’s a treasure you’ll want to keep forever.',
+            description: 'Not just a book, but a memory you can hold.',
             backgroundImage:
               'https://pub-9cf31543472247c2936bb3ad6524d445.r2.dev/products/picbooks/PICBOOK_GOODNIGHT/bg-benefit-card-4.png',
           },
