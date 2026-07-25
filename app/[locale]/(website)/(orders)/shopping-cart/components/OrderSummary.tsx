@@ -65,7 +65,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
           </div>
           {discountInfo?.applicable && discountAmount > 0 && (
             <div className="flex justify-between text-[#165C52] text-sm">
-              <p>{t(itemsCount > 1 ? 'multiBookDiscount' : 'discount')}</p>
+              <p>{t('savings')}</p>
               <p className="font-bold">-${discountAmount.toFixed(2)} ({discountInfo.percentage}%)</p>
             </div>
           )}
@@ -89,14 +89,14 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       <button
         onClick={() => onCheckout('card')}
         disabled={itemsCount === 0 || checkoutLoading}
-        className="w-full h-[52px] sm:h-[56px] cursor-pointer bg-[#222222] text-white rounded-[10px] sm:rounded-[12px] hover:bg-gray-800 disabled:bg-gray-400 flex items-center justify-center gap-2 font-medium text-base"
+        className="w-full h-[56px] cursor-pointer bg-[#222222] text-white rounded-[12px] hover:bg-gray-800 disabled:bg-gray-400 flex items-center justify-center gap-2 font-medium text-base"
       >
         {checkoutLoading ? <LoadingSpinner /> : t('checkout')}
       </button>
       <button
         onClick={() => onCheckout('paypal')}
         disabled={itemsCount === 0 || paypalCheckoutLoading}
-        className="w-full h-[52px] sm:h-[56px] cursor-pointer bg-[#0070BA] text-white rounded-[10px] sm:rounded-[12px] hover:bg-[#003087] disabled:bg-blue-300 flex items-center justify-center gap-2 font-medium text-base"
+        className="w-full h-[56px] cursor-pointer bg-[#0070BA] text-white rounded-[12px] hover:bg-[#003087] disabled:bg-blue-300 flex items-center justify-center gap-2 font-medium text-base"
       >
         {paypalCheckoutLoading ? <LoadingSpinner /> : t('checkoutWithPayPal')}
       </button>
@@ -106,9 +106,9 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   const renderContent = () => (
     <>
       {/* Promo Code — collapsible */}
-      <div className={`bg-white rounded-[12px] p-4 shadow mb-4 ${mobileExpanded ? '' : 'hidden lg:block'}`}>
+      <div className={`bg-[#F8FAFC] border border-[#E3E6EA] rounded-[12px] p-4 mb-4 ${mobileExpanded ? '' : 'hidden lg:block'}`}>
       {onApplyCoupon && (
-        <div className="mt-3">
+        <>
           <div
             className="flex items-center justify-between cursor-pointer select-none"
             onClick={() => setPromoOpen((prev) => !prev)}
@@ -141,7 +141,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
               />
             </div>
           </div>
-        </div>
+        </>
       )}
       </div>
 
@@ -156,36 +156,43 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       </div>
 
       {/* Bottom Trust Section */}
-      <div className={`mt-6 flex items-center justify-between gap-3 ${mobileExpanded ? '' : 'hidden lg:flex'}`}>
-        <div className="flex items-center gap-3">
+      <div className={`mt-6 grid grid-cols-3 gap-2 ${mobileExpanded ? '' : 'hidden lg:grid'}`}>
+        <div className="flex items-center gap-2">
           <svg className="w-6 h-6 text-[#222222] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0110 0v4" />
           </svg>
           <div>
-            <p className="text-[14px] font-medium text-[#222222]">Secure checkout</p>
-            <p className="text-[12px] text-[#666666]">SSL encrypted</p>
+            <p className="text-[14px] font-medium text-[#222222] leading-tight">Secure checkout</p>
+            <p className="text-[12px] text-[#666666] leading-tight">SSL encrypted</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <svg className="w-6 h-6 text-[#222222] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
             <circle cx="12" cy="12" r="3" />
           </svg>
           <div>
-            <p className="text-[14px] font-medium text-[#222222]">Free shipping</p>
-            <p className="text-[12px] text-[#666666]">On orders over $49</p>
+            <p className="text-[14px] font-medium text-[#222222] leading-tight">Free shipping</p>
+            <p className="text-[12px] text-[#666666] leading-tight">On 2+ books</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <button
+          className="flex items-center gap-2 text-left cursor-pointer"
+          onClick={() => {
+            if (typeof window !== 'undefined' && window.Tawk_API?.maximize) {
+              window.Tawk_API.maximize();
+            }
+          }}
+        >
           <svg className="w-6 h-6 text-[#222222] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
           </svg>
           <div>
-            <p className="text-[14px] font-medium text-[#222222]">Need help?</p>
-            <p className="text-[12px] text-[#666666]">Contact us</p>
+            <p className="text-[14px] font-medium text-[#222222] leading-tight whitespace-nowrap">Need help</p>
+            <p className="text-[12px] text-[#666666] leading-tight whitespace-nowrap">Contact us</p>
           </div>
-        </div>
+        </button>
       </div>
     </>
   );
@@ -215,7 +222,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
               </div>
             )}
             <svg
-              className={`w-5 h-5 text-[#666666] ml-auto shrink-0 transition-transform duration-200 ${mobileExpanded ? 'rotate-180' : ''}`}
+              className={`w-5 h-5 text-[#666666] ml-auto shrink-0 transition-transform duration-200 ${mobileExpanded ? '' : 'rotate-180'}`}
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
