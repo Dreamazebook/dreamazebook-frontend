@@ -1500,7 +1500,6 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     }
     openLoginModal({
       title: t('continueReadingTitle'),
-      footerNote: isNotCreator ? undefined : t('unlockFullBookFooter'),
       sendCodeButtonLabel: t('continueWithEmailCode'),
       loginSource: 'preview_unlock',
       personalizeHref,
@@ -1513,7 +1512,6 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       const isNotCreator = batchIsOwnRef.current === false;
       return {
         title: t('continueReadingTitle'),
-        footerNote: isNotCreator ? undefined : t('unlockFullBookFooter'),
         sendCodeButtonLabel: t('continueWithEmailCode'),
         loginSource: 'preview_unlock' as const,
         showNotCreatorPrompt: isNotCreator,

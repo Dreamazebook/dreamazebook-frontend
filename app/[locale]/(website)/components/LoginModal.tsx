@@ -184,7 +184,7 @@ export default function LoginModal({
   )
   const previewFooterNote = showNotCreatorPrompt
     ? undefined
-    : (loginModalOptions?.footerNote ?? tPreview('unlockFullBookFooter'))
+    : loginModalOptions?.footerNote
   const previewSendCodeLabel = loginModalOptions?.sendCodeButtonLabel ?? tPreview('continueWithEmailCode')
   const previewFieldWidth = isBottomSheet ? '100%' : 312
   const previewButtonStyle: React.CSSProperties = {
