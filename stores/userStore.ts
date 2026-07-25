@@ -17,6 +17,10 @@ export type LoginModalOptions = {
   loginSource?: 'preview_unlock' | 'account_entry' | 'unknown'
   /** Book slug for LoginSuccess tracking (e.g. 'good-night-to-you') */
   bookSlug?: string
+  /** Book ID (spu_code) for login_start tracking */
+  bookId?: string
+  /** Draft book ID for login_start tracking */
+  draftBookId?: string
   /** 非创建者预览：登录弹窗内「Create your own book」跳转链接 */
   personalizeHref?: string
   /** 是否在 OAuth 按钮下方展示「Not the creator?」提示 */

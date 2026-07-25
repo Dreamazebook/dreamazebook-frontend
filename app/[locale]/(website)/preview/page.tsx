@@ -1440,6 +1440,7 @@ export default function PreviewPageWithTopNav() {
       sendCodeButtonLabel: t('continueWithEmailCode'),
       loginSource: 'preview_unlock',
       bookSlug: getShortBookSlug(previewBookId),
+      bookId: previewBookId,
       personalizeHref,
       showNotCreatorPrompt: isNotCreator,
     });

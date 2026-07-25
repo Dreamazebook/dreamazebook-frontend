@@ -17,6 +17,7 @@ import { ErrorAlert } from './LoginModal/Alerts'
 import api from '@/utils/api'
 import { ApiResponse } from '@/types/api'
 import { readGuestSessionId, writeGuestSessionId } from '@/utils/api'
+import { trackLoginStart } from '@/utils/track'
 
 export default function LoginModal({
   showCloseButton = false,
@@ -267,6 +268,12 @@ export default function LoginModal({
   }
 
   const handleGoogleCredentialLogin = async (credential: string) => {
+    trackLoginStart(
+      'google',
+      loginModalOptions?.loginSource || 'unknown',
+      loginModalOptions?.bookId,
+      loginModalOptions?.draftBookId,
+    )
     setField('googleLoading', true)
     updateState({ errorMessage: '' })
     try {
@@ -334,6 +341,13 @@ export default function LoginModal({
       })
       return
     }
+
+    trackLoginStart(
+      'email_code',
+      loginModalOptions?.loginSource || 'unknown',
+      loginModalOptions?.bookId,
+      loginModalOptions?.draftBookId,
+    )
 
     const trimmedEmail = email.trim()
     const response = await sendLoginCode(trimmedEmail)

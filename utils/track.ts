@@ -214,6 +214,42 @@ export const trackPurchase = (
 };
 
 /**
+ * GA4: login_start event
+ * Trigger: When user clicks Google login or submits email for code login
+ */
+export const trackLoginStart = (
+  loginMethod: 'email_code' | 'google',
+  loginSource: string,
+  bookId?: string,
+  draftBookId?: string,
+): void => {
+  const params: GA4EventParams = {
+    login_method: loginMethod,
+    login_source: loginSource,
+  };
+  if (bookId) {
+    params.book_id = bookId;
+  }
+  if (draftBookId) {
+    params.draft_book_id = draftBookId;
+  }
+  gtag('login_start', params);
+
+  // FB Pixel tracking
+  const fbParams: FacebookEventParams = {
+    login_method: loginMethod,
+    login_source: loginSource,
+  };
+  if (bookId) {
+    fbParams.book_id = bookId;
+  }
+  if (draftBookId) {
+    fbParams.draft_book_id = draftBookId;
+  }
+  fbTrackCustom('login_start', fbParams);
+};
+
+/**
  * GA4 + FB: choose_format_start event
  * Trigger: When user selects a cover or binding on preview page
  */
