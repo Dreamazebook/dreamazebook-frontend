@@ -83,6 +83,60 @@ function normalizeBatchPageCodeKey(pageCode: unknown): string {
     .replace(/^p(\d+)-p(\d+)$/, 'p$1-$2');
 }
 
+/** 从 p1-2 / p3-p4 等跨页 code 解析起始页码，用于书本阅读顺序排序 */
+export function parseSpreadStartFromPageCode(pageCode: unknown): number | null {
+  const normalized = normalizeBatchPageCodeKey(pageCode);
+  const match = normalized.match(/^p(\d+)-(\d+)$/);
+  if (!match) return null;
+  const start = Number(match[1]);
+  return Number.isFinite(start) ? start : null;
+}
+
+function parseCoverIndexFromPageCode(pageCode: unknown): number | null {
+  const normalized = String(pageCode || '')
+    .trim()
+    .toLowerCase()
+    .replace(/_/g, '-');
+  const match = normalized.match(/^cover-(\d+)$/);
+  if (!match) return null;
+  const index = Number(match[1]);
+  return Number.isFinite(index) ? index : null;
+}
+
+/**
+ * batch.pages 排序：封面按 cover 序号，正文跨页按 p 起始页码。
+ * 避免 special 页（如 p3-4）因后端 sort_order 与 cover_3 重复而排到 p1-2 之前。
+ */
+export function compareBatchPagesForDisplay(a: any, b: any): number {
+  const spreadA = parseSpreadStartFromPageCode(a?.page_code);
+  const spreadB = parseSpreadStartFromPageCode(b?.page_code);
+  const coverA = parseCoverIndexFromPageCode(a?.page_code);
+  const coverB = parseCoverIndexFromPageCode(b?.page_code);
+
+  const groupA = spreadA != null ? 1 : coverA != null ? 0 : 2;
+  const groupB = spreadB != null ? 1 : coverB != null ? 0 : 2;
+  if (groupA !== groupB) return groupA - groupB;
+
+  if (spreadA != null && spreadB != null && spreadA !== spreadB) {
+    return spreadA - spreadB;
+  }
+  if (coverA != null && coverB != null && coverA !== coverB) {
+    return coverA - coverB;
+  }
+
+  const sortA = a?.sort_order != null ? Number(a.sort_order) : Number.MAX_SAFE_INTEGER;
+  const sortB = b?.sort_order != null ? Number(b.sort_order) : Number.MAX_SAFE_INTEGER;
+  if (sortA !== sortB) return sortA - sortB;
+
+  return normalizeBatchPageCodeKey(a?.page_code).localeCompare(
+    normalizeBatchPageCodeKey(b?.page_code),
+  );
+}
+
+function sortBatchPagesForDisplay(pages: any[]): any[] {
+  return [...pages].sort(compareBatchPagesForDisplay);
+}
+
 /** order_pages 与 pages 合并：换脸数据以 pages 为准，图片字段互相补齐 */
 function mergeBatchPageRecords(orderPage: any, previewPage: any): any {
   const imageUrl = pickFirstNonEmptyString(
@@ -258,10 +312,12 @@ export function getBatchDisplayPages(
   options?: { includeFullBook?: boolean },
 ): any[] {
   const previewPages = Array.isArray(batch?.pages) ? batch.pages : [];
-  if (!options?.includeFullBook) return previewPages;
+  if (!options?.includeFullBook) {
+    return sortBatchPagesForDisplay(previewPages);
+  }
 
   const orderPages = Array.isArray(batch?.order_pages) ? batch.order_pages : [];
-  if (!orderPages.length) return previewPages;
+  if (!orderPages.length) return sortBatchPagesForDisplay(previewPages);
 
   const merged = new Map<string, any>();
   for (const page of orderPages) {
@@ -275,12 +331,7 @@ export function getBatchDisplayPages(
     merged.set(code, existing ? mergeBatchPageRecords(existing, page) : page);
   }
 
-  return Array.from(merged.values()).sort((a, b) => {
-    const sortA = a?.sort_order != null ? Number(a.sort_order) : Number.MAX_SAFE_INTEGER;
-    const sortB = b?.sort_order != null ? Number(b.sort_order) : Number.MAX_SAFE_INTEGER;
-    if (sortA !== sortB) return sortA - sortB;
-    return String(a?.page_code || '').localeCompare(String(b?.page_code || ''));
-  });
+  return sortBatchPagesForDisplay(Array.from(merged.values()));
 }
 
 function parsePositiveId(value: unknown): number | undefined {

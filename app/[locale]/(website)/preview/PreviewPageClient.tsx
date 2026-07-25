@@ -991,6 +991,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   customOverlayContent,
   onImageLoaded,
   showLoadingPlaceholder = true,
+  allowOverlayBeforeImageLoad = false,
   doubleImageAreaClassName,
   leftSingleFrameClassName,
   rightSingleFrameClassName,
@@ -1007,6 +1008,8 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   customOverlayContent?: React.ReactNode;
   onImageLoaded?: (pageId: number) => void;
   showLoadingPlaceholder?: boolean;
+  /** 为 true 时 customOverlayContent 不等待 img onLoad（如 p3-4 已合成 final 图上的 Edit 按钮） */
+  allowOverlayBeforeImageLoad?: boolean;
   /** 双页模式：仅包住整页预览图区域（不含下方按钮） */
   doubleImageAreaClassName?: string;
   /** 单页模式左半图外框 class（如缺失项高亮） */
@@ -1022,11 +1025,20 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
   const protectedImgStyle = { WebkitTouchCallout: 'none' as const };
   const notifiedRef = useRef(false);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const normalizedSrcRef = useRef('');
 
   useEffect(() => {
+    const normalized = String(src || '').split('?')[0];
+    if (normalizedSrcRef.current === normalized && isImageLoaded) return;
+    normalizedSrcRef.current = normalized;
     setIsImageLoaded(false);
     notifiedRef.current = false;
-  }, [src]);
+  }, [src, isImageLoaded]);
+
+  const showCustomOverlay =
+    Boolean(customOverlayContent) &&
+    !showOverlay &&
+    (isImageLoaded || allowOverlayBeforeImageLoad);
 
   const handleImageLoad = () => {
     setIsImageLoaded(true);
@@ -1188,7 +1200,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                 {imageLoadingPlaceholder}
               </div>
             )}
-            {customOverlayContent && isImageLoaded && !showOverlay && (
+            {showCustomOverlay && (
               <div className="absolute inset-0 z-10 pointer-events-none">
                 {customOverlayContent}
               </div>
@@ -1239,7 +1251,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
               </div>
             )}
           </div>
-          {customOverlayContent && isImageLoaded && !showOverlay && (
+          {showCustomOverlay && (
             <div className="absolute inset-0 z-10 pointer-events-none">
               {customOverlayContent}
             </div>
@@ -1263,7 +1275,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
             onLoadingComplete={() => handleImageLoad()}
           />
           {imageLoadingPlaceholder}
-          {customOverlayContent && isImageLoaded && (
+          {showCustomOverlay && (
             <div className="absolute inset-0 z-10 pointer-events-none">
               {customOverlayContent}
             </div>
@@ -1292,7 +1304,8 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
     prev.doubleImageAreaClassName === next.doubleImageAreaClassName &&
     prev.leftSingleFrameClassName === next.leftSingleFrameClassName &&
     prev.rightSingleFrameClassName === next.rightSingleFrameClassName &&
-    prev.scrollAnchorSingleRightRef === next.scrollAnchorSingleRightRef
+    prev.scrollAnchorSingleRightRef === next.scrollAnchorSingleRightRef &&
+    prev.allowOverlayBeforeImageLoad === next.allowOverlayBeforeImageLoad
   );
 });
 
@@ -1488,7 +1501,6 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     }
     openLoginModal({
       title: t('continueReadingTitle'),
-      footerNote: isNotCreator ? undefined : t('unlockFullBookFooter'),
       sendCodeButtonLabel: t('continueWithEmailCode'),
       loginSource: 'preview_unlock',
       bookSlug: getShortBookSlug(previewBookId),
@@ -1502,7 +1514,6 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       const isNotCreator = batchIsOwnRef.current === false;
       return {
         title: t('continueReadingTitle'),
-        footerNote: isNotCreator ? undefined : t('unlockFullBookFooter'),
         sendCodeButtonLabel: t('continueWithEmailCode'),
         loginSource: 'preview_unlock' as const,
         showNotCreatorPrompt: isNotCreator,
@@ -1859,17 +1870,23 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   // - 只有当 p3-4 出现且该页图片 onLoad 后才隐藏
   const [isStoryComingTargetPageLoaded, setIsStoryComingTargetPageLoaded] = useState(false);
   const storyComingTargetPageIdRef = useRef<number | null>(null);
-  /** 预览页底图 onLoad / Canvas 绘制完成标记，用于延迟显示 p3-4 等交互按钮 */
-  const [previewPageReadySrcById, setPreviewPageReadySrcById] = useState<Record<number, string>>({});
-  const markPreviewPageReady = useCallback((pageId: number, readySrc: string) => {
-    setPreviewPageReadySrcById(prev => {
-      if (prev[pageId] === readySrc) return prev;
-      return { ...prev, [pageId]: readySrc };
+  /** 预览页底图 onLoad / Canvas 绘制完成标记，用于延迟显示 p3-4 等交互按钮（按 page_code 追踪，避免轮询重建 page_id 后按钮消失） */
+  const [previewPageReadySrcByCode, setPreviewPageReadySrcByCode] = useState<Record<string, string>>({});
+  const markPreviewPageReady = useCallback((pageCode: string, readySrc: string) => {
+    const key = getPreviewPageCodeLookupKey(pageCode);
+    if (!key) return;
+    setPreviewPageReadySrcByCode(prev => {
+      if (prev[key] === readySrc) return prev;
+      return { ...prev, [key]: readySrc };
     });
   }, []);
   const isPreviewPageReady = useCallback(
-    (pageId: number, expectedSrc: string) => previewPageReadySrcById[pageId] === expectedSrc,
-    [previewPageReadySrcById]
+    (pageCode: string, expectedSrc: string) => {
+      const key = getPreviewPageCodeLookupKey(pageCode);
+      if (!key) return false;
+      return previewPageReadySrcByCode[key] === expectedSrc;
+    },
+    [previewPageReadySrcByCode]
   );
 
   // 为 Others 标签页添加局部状态，用于记录选中的选项
@@ -5290,7 +5307,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     if (!spuCode || !batchId) return;
 
     previewChannelNameRef.current = null;
-    setPreviewPageReadySrcById({});
+    setPreviewPageReadySrcByCode({});
     startUnlockedSpreadRevealLoading();
 
     try {
@@ -6860,7 +6877,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                                   if (pageIdForStoryComingHide && loadedPageId === pageIdForStoryComingHide) {
                                     setIsStoryComingTargetPageLoaded(true);
                                   }
-                                  markPreviewPageReady(loadedPageId, src);
+                                  markPreviewPageReady(pageCode, src);
                                 }}
                               />
                           </div>
@@ -6868,7 +6885,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                       }
                       return (
                       <div
-                        key={page.page_id}
+                        key={getPreviewPageCodeLookupKey(pageCode) || page.page_id}
                         ref={
                           showGuestLockOverlay
                             ? guestLockedPreviewRef
@@ -6905,6 +6922,10 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                             overlayMode={pageOverlayMode as any}
                             content={page.content}
                             showLoadingPlaceholder={hasSwap || !displayUrlRaw}
+                            allowOverlayBeforeImageLoad={
+                              isGiverDedicationPage &&
+                              Boolean(p34FinalSrc && !p34HasLocalChanges)
+                            }
                             doubleImageAreaClassName={openingDoubleImageGlow || momDoubleImageGlow}
                             rightSingleFrameClassName={momDrawingRightSingleGlow}
                             scrollAnchorSingleRightRef={
@@ -6935,7 +6956,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                                     dedicationSidePaddingLeftRatio={dedicationSidePaddingLeftRatio}
                                     overlayContent={p34ButtonsOverlay}
                                     onVisualReady={() =>
-                                      markPreviewPageReady(page.page_id, `${p34BaseSrc}:canvas`)
+                                      markPreviewPageReady(pageCode, `${p34BaseSrc}:canvas`)
                                     }
                                   />
                                 </div>
@@ -6950,7 +6971,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                                 (p34FinalSrc && isGiverDedicationPage && !p34HasLocalChanges
                                   ? p34FinalSrc
                                   : src);
-                              markPreviewPageReady(loadedPageId, readySrc);
+                              markPreviewPageReady(pageCode, readySrc);
                             }}
                           />
                           {(() => {
@@ -6963,7 +6984,8 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                               displayViewMode === 'double' &&
                               !pageFailed &&
                               !isSwapping &&
-                              isPreviewPageReady(page.page_id, p34InteractionReadyKey);
+                              (isPreviewPageReady(pageCode, p34InteractionReadyKey) ||
+                                Boolean(p34FinalSrc && !p34HasLocalChanges));
                             if (!showP34MobileButtons) return null;
                             return (
                               <div className="mt-2 w-full grid grid-cols-2 gap-2 md:hidden">
@@ -6991,7 +7013,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                           {momCompositeButton &&
                             displayViewMode !== 'single' &&
                             isPreviewPageReady(
-                              page.page_id,
+                              pageCode,
                               momCompositeLocalPreviewSrc ?? src
                             ) && (
                             <div className="mt-2 w-full flex justify-center md:hidden">
@@ -7001,7 +7023,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                           {momCompositeButton &&
                             displayViewMode === 'single' &&
                             isPreviewPageReady(
-                              page.page_id,
+                              pageCode,
                               momCompositeLocalPreviewSrc ?? src
                             ) && (
                             <div className="mt-6 w-full flex justify-center">
@@ -7713,6 +7735,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                 onDone={() => {}}
                 resultMode="file"
                 onDoneFile={(file) => {
+                  if (!(file instanceof File)) return;
                   const pageCode =
                     activeMomDrawingPageCode ?? activeMomDrawingPageCodeRef.current ?? null;
                   if (!pageCode) {
@@ -7764,6 +7787,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                       onDone={() => {}}
                       resultMode="file"
                       onDoneFile={(file) => {
+                        if (!(file instanceof File)) return;
                         // 用户上传后：等 Canvas 合成并上传成功后再更新展示
                         try {
                           setGuestUploadRateLimitError(null);
