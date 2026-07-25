@@ -76,6 +76,7 @@ import {
   shouldCropCoverRightHalf,
 } from '@/utils/coverSpreadHelpers';
 import { isPicbookDad } from '@/utils/isPicbookDad';
+import { getShortBookSlug } from '@/constants/bookRoutes';
 
 // 封面文字配置缓存：避免在同一会话内反复请求 R2
 const coverTextsCache: Record<string, Array<{
@@ -1438,6 +1439,7 @@ export default function PreviewPageWithTopNav() {
       footerNote: isNotCreator ? undefined : t('unlockFullBookFooter'),
       sendCodeButtonLabel: t('continueWithEmailCode'),
       loginSource: 'preview_unlock',
+      bookSlug: getShortBookSlug(previewBookId),
       personalizeHref,
       showNotCreatorPrompt: isNotCreator,
     });
