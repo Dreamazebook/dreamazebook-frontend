@@ -7674,6 +7674,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                 onDone={() => {}}
                 resultMode="file"
                 onDoneFile={(file) => {
+                  if (!(file instanceof File)) return;
                   const pageCode =
                     activeMomDrawingPageCode ?? activeMomDrawingPageCodeRef.current ?? null;
                   if (!pageCode) {
@@ -7725,6 +7726,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                       onDone={() => {}}
                       resultMode="file"
                       onDoneFile={(file) => {
+                        if (!(file instanceof File)) return;
                         // 用户上传后：等 Canvas 合成并上传成功后再更新展示
                         try {
                           setGuestUploadRateLimitError(null);

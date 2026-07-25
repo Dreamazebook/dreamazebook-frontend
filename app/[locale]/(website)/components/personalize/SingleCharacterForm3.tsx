@@ -9,13 +9,15 @@ import MultiImageUpload from './MultiImageUpload';
 import { PERSONALIZE_PHOTO_CONSENT_PREFIX } from './PersonalizePhotoUploadTips';
 import useMultiImageUpload from '../../hooks/useMultiImageUpload';
 // Date of Birth 组件已移除
-import GiverAvatarCropper from '../../preview/components/GiverAvatarCropper';
+import GiverAvatarCropper, { type PersonalizeCropResult } from '../../preview/components/GiverAvatarCropper';
+import { fileToDataUrl, isPersonalizeCropResult } from '@/utils/personalizePhotoFiles';
 
 export interface PersonalizeFormData3 extends BasicInfoData {
   ageStage: AgeStage;
-  photos: string[]; // 添加多图片支持
-  relationship?: string; // Relationship to the child
-  consent?: boolean; // Consent checkbox
+  photos: string[];
+  originalPhotos: string[];
+  relationship?: string;
+  consent?: boolean;
 }
 
 export interface SingleCharacterForm3Handle {
@@ -45,7 +47,8 @@ interface SingleCharacterForm3Props {
     hairstyle?: string;
     hairColor?: string;
     photo?: { path: string } | null;
-    photos?: string[]; // 支持多张图片初始化
+    photos?: string[];
+    originalPhotos?: string[];
     relationship?: string;
     consent?: boolean;
   };
@@ -95,6 +98,7 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
     ageStage: '',
     fromWhom: '',
     photos: [],
+    originalPhotos: initialData?.originalPhotos ?? [],
     relationship: initialData?.relationship ?? 'Parent/Guardian',
     consent: initialData?.consent ?? !!defaultConsentChecked,
   });
@@ -205,8 +209,21 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
     }
   };
 
-  const handleCroppedFile = async (file: File) => {
-    const newlyUploadedPaths = await handleImageUpload([file]);
+  const handleCroppedFile = async (input: File | PersonalizeCropResult) => {
+    const croppedFile = isPersonalizeCropResult(input) ? input.croppedFile : input;
+    const originalPath = isPersonalizeCropResult(input)
+      ? await fileToDataUrl(input.originalFile)
+      : null;
+
+    const originalIndex = getUploadedPaths().length;
+    const newlyUploadedPaths = await handleImageUpload([croppedFile]);
+    if (originalPath) {
+      setFormData(prev => {
+        const next = [...(prev.originalPhotos || [])];
+        next[originalIndex] = originalPath;
+        return { ...prev, originalPhotos: next };
+      });
+    }
     if (newlyUploadedPaths.length > 0 && !formData.photo) {
       handleBasicInfoChange('photo', { path: newlyUploadedPaths[0] });
       handleErrorChange('photo', '');
@@ -506,24 +523,21 @@ const SingleCharacterForm3 = forwardRef<SingleCharacterForm3Handle, SingleCharac
 
       {/* 裁剪弹窗：复用 Preview 页 Giver 的裁剪组件，但改为返回裁剪后的 File */}
       {isCropperOpen && pendingPreviewUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white w-full sm:w-[860px] sm:max-w-[95vw] sm:mx-auto rounded-sm overflow-hidden pt-6 pb-4 sm:px-6 max-h-[calc(100dvh-2rem)] overflow-y-auto">
-            <GiverAvatarCropper
-              resultMode="file"
-              uiVariant="personalize"
-              initialSrc={pendingPreviewUrl}
-              maxSize={1024}
-              exportMime="image/jpeg"
-              exportQuality={0.92}
-              spu={undefined}
-              page={undefined}
-              batchId={undefined}
-              onCancel={handleCropperCancel}
-              onDone={() => {}}
-              onDoneFile={handleCroppedFile}
-            />
-          </div>
-        </div>
+        <GiverAvatarCropper
+          resultMode="file"
+          uiVariant="personalize"
+          initialSrc={pendingPreviewUrl}
+          originalFile={pendingFiles[currentCropIndex] ?? pendingFiles[0]}
+          maxSize={1024}
+          exportMime="image/jpeg"
+          exportQuality={0.92}
+          spu={undefined}
+          page={undefined}
+          batchId={undefined}
+          onCancel={handleCropperCancel}
+          onDone={() => {}}
+          onDoneFile={handleCroppedFile}
+        />
       )}
 
     </div>

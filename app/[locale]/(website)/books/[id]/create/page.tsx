@@ -622,6 +622,7 @@ export default function PersonalizeApiDrivenPage() {
     let hairColorRaw = '';
     let relationshipRaw: string | undefined;
     let photosData: string[] = [];
+    let originalPhotosData: string[] = [];
     let ageStageRaw: string | undefined;
     let fromWhomRaw = '';
 
@@ -640,6 +641,7 @@ export default function PersonalizeApiDrivenPage() {
       hairColorRaw = f.hairColor;
       relationshipRaw = (f as any).relationship;
       photosData = (f as any).photos || [];
+      originalPhotosData = (f as any).originalPhotos || [];
       ageStageRaw = f.ageStage;
       fromWhomRaw = String(f.fromWhom || '').trim();
     } else if (formType === 'SINGLE2' && (useForm3 ? !!form3Ref.current : !!form2Ref.current)) {
@@ -657,6 +659,7 @@ export default function PersonalizeApiDrivenPage() {
       hairColorRaw = f.hairColor;
       relationshipRaw = (f as any).relationship;
       photosData = (f as any).photos || [];
+      originalPhotosData = (f as any).originalPhotos || [];
       ageStageRaw = (f as any).ageStage;
       fromWhomRaw = String((f as any).fromWhom || '').trim();
     } else {
@@ -740,6 +743,7 @@ export default function PersonalizeApiDrivenPage() {
             photo:
               (isMomBookPersonalize ? photosData[1] : isDadBookPersonalize ? photosData[2] : photosData[0]) || '',
             photos: photosData,
+            original_photos: originalPhotosData,
             attributes: {
               skin_tone: mapSkinToBackend(skinColorRaw),
               hair_style: mapHairstyleToBackend(hairstyleCode),
