@@ -301,6 +301,7 @@
     "codeDeliveryHint": "Check spam or promotions if it hasn't arrived.",
     "resendCode": "Resend",
     "resendIn": "Resend in {seconds}s",
+    "resendCodeSent": "A new code has been sent.\nPlease use the code in the latest email.",
     "resetPasswordSent": "Password reset link has been sent to your email address.",
     "returnToLogin": "Return to login",
     "noAccount": "No account?",

@@ -31,6 +31,7 @@ interface CodeLoginSubmitProps extends BaseSubmitProps {
   onResendCode: () => void
   resendLabel: string
   resendCountdownLabel: string
+  resendCodeMessage?: string
   deliveryHint: string
   children?: React.ReactNode
 }
@@ -92,6 +93,7 @@ export const CodeLoginSubmitSection = memo(({
   onResendCode,
   resendLabel,
   resendCountdownLabel,
+  resendCodeMessage,
   deliveryHint,
   buttonClassName,
   buttonStyle,
@@ -122,6 +124,15 @@ export const CodeLoginSubmitSection = memo(({
               </button>
             )}
           </div>
+          {resendCodeMessage && (
+            <p
+              className="text-center text-[13px] leading-[18px] text-[#666666] whitespace-pre-line"
+              role="status"
+              aria-live="polite"
+            >
+              {resendCodeMessage}
+            </p>
+          )}
           <p className="text-center text-[13px] leading-[18px] text-[#666666]">
             {deliveryHint}
           </p>

@@ -302,6 +302,7 @@
     "codeDeliveryHint": "如果尚未收到，请检查垃圾邮件或推广邮件。",
     "resendCode": "重新发送",
     "resendIn": "{seconds} 秒后重新发送",
+    "resendCodeSent": "新验证码已发送。\n请使用最新邮件中的验证码。",
     "resetPasswordSent": "重置密码链接已发送到您的邮箱地址。",
     "returnToLogin": "返回登录",
     "noAccount": "没有账户？",

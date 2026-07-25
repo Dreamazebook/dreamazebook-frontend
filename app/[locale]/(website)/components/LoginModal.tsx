@@ -461,12 +461,13 @@ export default function LoginModal({
     return null
   }
 
-  const handleSendLoginCode = async (email: string) => {
+  const handleSendLoginCode = async (email: string, options?: { isResend?: boolean }) => {
     const validationError = getEmailValidationError(email)
     if (validationError) {
       updateState({
         errorMessage: validationError,
         successMessage: '',
+        resendCodeMessage: '',
       })
       return
     }
@@ -474,16 +475,27 @@ export default function LoginModal({
     const trimmedEmail = email.trim()
     const response = await sendLoginCode(trimmedEmail)
     if (response.success) {
-      updateState({
-        mode: 'verifyCode',
-        successMessage: `We've sent a 6 digit code to ${trimmedEmail}. It expires in 10 minutes.`,
-        countdown: 60,
-        errorMessage: '',
-      })
+      if (options?.isResend && isPreviewUnlock) {
+        updateState({
+          mode: 'verifyCode',
+          resendCodeMessage: t('resendCodeSent'),
+          countdown: 60,
+          errorMessage: '',
+        })
+      } else {
+        updateState({
+          mode: 'verifyCode',
+          successMessage: `We've sent a 6 digit code to ${trimmedEmail}. It expires in 10 minutes.`,
+          resendCodeMessage: '',
+          countdown: 60,
+          errorMessage: '',
+        })
+      }
     } else {
       updateState({
         errorMessage: response.message || t('sendCodeFailed'),
         successMessage: '',
+        resendCodeMessage: '',
       })
     }
   }
@@ -492,7 +504,7 @@ export default function LoginModal({
     if (state.loading || state.countdown > 0) return
     setField('loading', true)
     try {
-      await handleSendLoginCode(email)
+      await handleSendLoginCode(email, { isResend: true })
     } finally {
       setField('loading', false)
     }
@@ -880,6 +892,7 @@ export default function LoginModal({
           resetSent={state.resetSent}
           successMessage={getSuccessMessage()}
           countdown={state.countdown}
+          resendCodeMessage={state.resendCodeMessage}
           buttonLabel={getButtonLabelByMode()}
           onModeChange={handleModeChange}
           onResetCodeFlow={() => {

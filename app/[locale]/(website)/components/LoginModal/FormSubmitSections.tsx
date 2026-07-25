@@ -11,6 +11,7 @@ interface FormSubmitSectionsProps {
   resetSent: boolean
   successMessage: string
   countdown: number
+  resendCodeMessage?: string
   buttonLabel: string
   onModeChange: (newMode: LoginMode) => void
   onResetCodeFlow: () => void
@@ -54,6 +55,7 @@ export const FormSubmitSections = memo(({
   resetSent,
   successMessage,
   countdown,
+  resendCodeMessage,
   buttonLabel,
   onModeChange,
   onResetCodeFlow,
@@ -178,6 +180,7 @@ export const FormSubmitSections = memo(({
           onResendCode={() => onSendLoginCode(email)}
           resendLabel={translations.resendCode}
           resendCountdownLabel={translations.resendIn}
+          resendCodeMessage={resendCodeMessage}
           deliveryHint={translations.codeDeliveryHint}
           buttonClassName={buttonClassName}
           buttonStyle={buttonStyle}
@@ -216,6 +219,7 @@ export const FormSubmitSections = memo(({
           onResendCode={() => onSendLoginCode(email)}
           resendLabel={translations.resendCode}
           resendCountdownLabel={translations.resendIn}
+          resendCodeMessage={resendCodeMessage}
           deliveryHint={translations.codeDeliveryHint}
           buttonClassName={buttonClassName}
           buttonStyle={buttonStyle}
