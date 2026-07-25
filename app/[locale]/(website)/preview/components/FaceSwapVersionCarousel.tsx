@@ -43,6 +43,8 @@ type Props = {
   onMutationBlocked?: () => void;
   onRegenerateStarted?: () => void;
   onImageLoaded?: (pageId: number) => void;
+  /** 仅在需要换脸的第一页显示提示文案 */
+  showDifferentVersionHint?: boolean;
 };
 
 /** 按后端 logs 的原始顺序（过滤 failed），末尾固定 regenerate 页 */
@@ -100,6 +102,7 @@ export default function FaceSwapVersionCarousel({
   onMutationBlocked,
   onRegenerateStarted,
   onImageLoaded,
+  showDifferentVersionHint = false,
 }: Props) {
   const t = useTranslations('Preview');
   const pageCode = String(page.page_code || '');
@@ -426,11 +429,13 @@ export default function FaceSwapVersionCarousel({
         </button>
       </div>
 
-      <p className="flex flex-wrap items-center justify-center gap-x-1 px-4 text-center text-sm text-gray-900 sm:text-base md:text-lg">
-        <span>{t('faceSwapDifferentVersionHintBefore')}</span>
-        <ChevronRight className="h-5 w-5 text-[#012CCE]" aria-hidden="true" />
-        <span>{t('faceSwapDifferentVersionHintAfter')}</span>
-      </p>
+      {showDifferentVersionHint && (
+        <p className="flex flex-wrap items-center justify-center gap-x-1 px-4 text-center text-sm text-gray-900 sm:text-base md:text-lg">
+          <span>{t('faceSwapDifferentVersionHintBefore')}</span>
+          <ChevronRight className="h-5 w-5 text-[#012CCE]" aria-hidden="true" />
+          <span>{t('faceSwapDifferentVersionHintAfter')}</span>
+        </p>
+      )}
 
       <div className="flex items-center justify-center gap-2">
         {slides.map((slide, index) => {

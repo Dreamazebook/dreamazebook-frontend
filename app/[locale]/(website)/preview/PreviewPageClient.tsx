@@ -6497,6 +6497,14 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                     }
                     const firstSwapping = displayedPages.find((p) => p.has_face_swap && isGenerating && !swappedPageIds.has(p.page_id));
                     const firstSwappingPageId = firstSwapping ? firstSwapping.page_id : null;
+                    // 需要换脸的第一页（排除寄语页 / Mom 合成页，这两类不用版本轮播）
+                    const firstFaceSwapCarouselPageId = displayedPages.find((p) => {
+                      if (!p?.has_face_swap) return false;
+                      const code = String((p as any)?.page_code || '');
+                      if (code === 'p3-4' || code === 'p3-p4') return false;
+                      if (isMomBook && toMomCompositeUploadPageCode(code)) return false;
+                      return true;
+                    })?.page_id ?? null;
                     return displayedPages.map((page, idx) => {
                     // 根据batch返回的状态判断是否需要显示蒙版
                     // 需要换脸 且 已有基础图 且 尚无最终图 → 显示蒙版 + 进度
@@ -6873,6 +6881,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                                 mutationsEnabled={!isNotPreviewCreator}
                                 onMutationBlocked={openPreviewUnlockLogin}
                                 onRegenerateStarted={handleFaceSwapRegenerateStarted}
+                                showDifferentVersionHint={page.page_id === firstFaceSwapCarouselPageId}
                                 onImageLoaded={(loadedPageId) => {
                                   if (pageIdForStoryComingHide && loadedPageId === pageIdForStoryComingHide) {
                                     setIsStoryComingTargetPageLoaded(true);
