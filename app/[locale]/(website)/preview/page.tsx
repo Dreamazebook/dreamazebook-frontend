@@ -38,7 +38,7 @@ import { BaseBook, DetailedBook } from '@/types/book';
 import { API_CART_LIST, API_CART_UPDATE, API_ORDER_CREATE } from '@/constants/api';
 import { ORDER_CHECKOUT_URL } from '@/constants/links';
 import DisplayPrice from '../components/component/DisplayPrice';
-import { fbTrack, getContentIdBySpu } from '@/utils/track';
+import { fbTrack, getContentIdBySpu, trackChooseFormatStart } from '@/utils/track';
 import { shouldBypassNextImageOptimization } from '@/utils/previewImageOptimization';
 import {
   getProtectedPreviewImageProps,
@@ -4967,6 +4967,25 @@ export default function PreviewPageWithTopNav() {
     }
   };
 
+  const handleFormatChange = useCallback(
+    (type: 'cover' | 'binding', option: { id: number; name: string }) => {
+      const contentId = getContentIdBySpu(previewBookId) || previewBookId;
+      const bookName = bookInfo?.default_name || '';
+      if (type === 'cover') {
+        trackChooseFormatStart(contentId, bookName, { id: option.id, name: option.name }, null);
+      } else {
+        const selectedCover = bookOptions?.cover_options?.find((c) => c.id === selectedBookCover);
+        trackChooseFormatStart(
+          contentId,
+          bookName,
+          selectedCover ? { id: selectedCover.id, name: selectedCover.name } : null,
+          { id: option.id, name: option.name }
+        );
+      }
+    },
+    [previewBookId, bookInfo, bookOptions, selectedBookCover]
+  );
+
   const handlePreviewPrimaryAction = async () => {
     if (isGuest) {
       openPreviewUnlockLogin();
@@ -6872,7 +6891,13 @@ export default function PreviewPageWithTopNav() {
                   {bookOptions.cover_options.map((option) => (
                     <div
                       key={option.id}
-                      onClick={() => setSelectedBookCover(selectedBookCover === option.id ? null : option.id)}
+                      onClick={() => {
+                        const isSelecting = selectedBookCover !== option.id;
+                        setSelectedBookCover(isSelecting ? option.id : null);
+                        if (isSelecting) {
+                          handleFormatChange('cover', { id: option.id, name: option.name });
+                        }
+                      }}
                       className={`bg-white p-4 rounded flex flex-col items-center cursor-pointer ${
                         selectedBookCover === option.id
                           ? 'border-2 border-[#012CCE]'
@@ -7063,7 +7088,13 @@ export default function PreviewPageWithTopNav() {
                   ].map((option) => (
                     <div
                       key={option.id}
-                      onClick={() => setSelectedBookCover(selectedBookCover === option.id ? null : option.id)}
+                      onClick={() => {
+                        const isSelecting = selectedBookCover !== option.id;
+                        setSelectedBookCover(isSelecting ? option.id : null);
+                        if (isSelecting) {
+                          handleFormatChange('cover', { id: option.id, name: option.name });
+                        }
+                      }}
                       className={`bg-white p-4 rounded flex flex-col items-center cursor-pointer ${
                         selectedBookCover === option.id
                           ? 'border-2 border-[#012CCE]'
@@ -7133,7 +7164,13 @@ export default function PreviewPageWithTopNav() {
                   return (
                   <div
                     key={option.id}
-                    onClick={() => setSelectedBinding(selectedBinding === option.id ? null : option.id)}
+                    onClick={() => {
+                      const isSelecting = selectedBinding !== option.id;
+                      setSelectedBinding(isSelecting ? option.id : null);
+                      if (isSelecting) {
+                        handleFormatChange('binding', { id: option.id, name: option.name });
+                      }
+                    }}
                     className={`bg-white p-4 rounded flex flex-col cursor-pointer relative ${
                       selectedBinding === option.id
                         ? 'border-2 border-[#012CCE]'

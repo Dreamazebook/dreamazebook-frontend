@@ -30,7 +30,6 @@ export const fbTrack = (
   extra?: { eventID?: string }
 ): void => {
   if (typeof window !== 'undefined' && (window as any).fbq) {
-    console.log(eventName, options, extra);
     (window as any).fbq('track', eventName, options, extra);
   }
 }
@@ -212,4 +211,50 @@ export const trackPurchase = (
     value,
     items,
   });
+};
+
+/**
+ * GA4 + FB: choose_format_start event
+ * Trigger: When user selects a cover or binding on preview page
+ */
+export const trackChooseFormatStart = (
+  bookId: string,
+  bookName: string,
+  cover?: { id: number; name: string } | null,
+  binding?: { id: number; name: string } | null
+): void => {
+  const params: GA4EventParams = {
+    item_id: bookId,
+    item_name: bookName,
+    items: [
+      {
+        item_id: bookId,
+        item_name: bookName,
+      },
+    ],
+  };
+  if (cover) {
+    params.cover_id = cover.id;
+    params.cover_name = cover.name;
+  }
+  if (binding) {
+    params.binding_id = binding.id;
+    params.binding_name = binding.name;
+  }
+  gtag('choose_format_start', params);
+
+  // FB Pixel tracking
+  const fbParams: FacebookEventParams = {
+    content_ids: getContentIdBySpu(bookId) || bookId,
+    content_name: bookName,
+  };
+  if (cover) {
+    fbParams.cover_id = cover.id;
+    fbParams.cover_name = cover.name;
+  }
+  if (binding) {
+    fbParams.binding_id = binding.id;
+    fbParams.binding_name = binding.name;
+  }
+  fbTrack('choose_format_start', fbParams);
 };
