@@ -958,19 +958,19 @@ function PageRenderFailedOverlay({ message }: { message: string }) {
   );
 }
 
-/** 游客锁定页蒙版内容：移动端使用黑色半透明模糊蒙版，桌面端保留原样 */
+/** 游客锁定页蒙版内容 */
 function GuestLockedPageOverlay() {
   const t = useTranslations('Preview');
   return (
     <div className="flex flex-col items-center px-6 text-center">
-      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 md:h-auto md:w-auto md:bg-transparent">
+      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90">
         <LockKeyhole
-          className="h-6 w-6 text-[#333333] md:h-10 md:w-10 md:text-gray-800"
+          className="h-6 w-6 text-[#333333] md:h-8 md:w-8"
           strokeWidth={1.75}
           aria-hidden="true"
         />
       </span>
-      <p className="mt-5 whitespace-pre-line text-center text-[16px] font-normal leading-[24px] text-white md:mt-3 md:text-[22px] md:leading-[28px] md:text-gray-900">
+      <p className="mt-5 whitespace-pre-line text-center text-[16px] font-normal leading-[24px] text-white md:mt-3 md:text-[22px] md:leading-[28px]">
         {t('guestLockedPagesMessage')}
       </p>
     </div>
@@ -1076,7 +1076,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                 <div
                   className={`absolute inset-0 z-10 flex items-center justify-center rounded-lg ${
                     overlayMode === 'guestLocked'
-                      ? 'bg-black/[0.45] backdrop-blur-[10px] md:bg-white/70 md:backdrop-blur-none'
+                      ? 'bg-black/[0.45] backdrop-blur-[10px]'
                       : 'bg-white/70'
                   }`}
                 >
@@ -1146,7 +1146,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
                 <div
                   className={`absolute inset-0 z-10 flex items-center justify-center rounded-lg ${
                     overlayMode === 'guestLocked'
-                      ? 'bg-black/[0.45] backdrop-blur-[10px] md:bg-white/70 md:backdrop-blur-none'
+                      ? 'bg-black/[0.45] backdrop-blur-[10px]'
                       : 'bg-white/70'
                   }`}
                 >
@@ -1222,7 +1222,7 @@ const PreviewPageItem = React.memo(function PreviewPageItem({
           <div
             className={`absolute inset-0 z-10 flex items-center justify-center rounded-lg ${
               overlayMode === 'guestLocked'
-                ? 'bg-black/[0.45] backdrop-blur-[10px] md:bg-white/70 md:backdrop-blur-none'
+                ? 'bg-black/[0.45] backdrop-blur-[10px]'
                 : 'bg-white/70'
             }`}
           >
@@ -1494,6 +1494,36 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       showNotCreatorPrompt: isNotCreator,
     });
   }, [openLoginModal, searchParams, t, previewBookId]);
+
+  const buildPreviewUnlockLoginOptions = useCallback(
+    (sheetState: 'header' | 'expanded') => {
+      const isNotCreator = batchIsOwnRef.current === false;
+      return {
+        title: t('continueReadingTitle'),
+        footerNote: isNotCreator ? undefined : t('unlockFullBookFooter'),
+        sendCodeButtonLabel: t('continueWithEmailCode'),
+        loginSource: 'preview_unlock' as const,
+        showNotCreatorPrompt: isNotCreator,
+        previewUnlockSheetState: sheetState,
+      };
+    },
+    [t],
+  );
+
+  /** 锁图页出现：底部 Header peek，无灰色蒙层 */
+  const openPreviewUnlockHeader = useCallback(() => {
+    openLoginModal(buildPreviewUnlockLoginOptions('header'));
+  }, [openLoginModal, buildPreviewUnlockLoginOptions]);
+
+  /** 滑到底部：完整展开 sheet + 灰色蒙层（已打开时只切换 snap） */
+  const openPreviewUnlockExpanded = useCallback(() => {
+    const store = useUserStore.getState();
+    if (store.isLoginModalOpen && store.loginModalOptions?.loginSource === 'preview_unlock') {
+      store.setPreviewUnlockSheetSnap('expanded');
+      return;
+    }
+    openLoginModal(buildPreviewUnlockLoginOptions('expanded'));
+  }, [openLoginModal, buildPreviewUnlockLoginOptions]);
 
   /** 非 owner：编辑操作前弹出登录；owner / 未知归属则放行 */
   const requirePreviewOwnerForEdit = useCallback(() => {
@@ -1863,6 +1893,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   const p34GiverDataRef = useRef<string | null>(null);
   const shouldUploadP34ComposedRef = useRef(false);
   const previewBottomSentinelRef = useRef<HTMLDivElement>(null);
+  const guestLockedPreviewRef = useRef<HTMLDivElement>(null);
   const guestPreviewHasScrolledRef = useRef(false);
   const guestWasAtBottomRef = useRef(false);
   /** 仅「用户裁剪上传 Giver」触发的上传成功后才应勾选 Opening Photo；纯提交寄语不走此项 */
@@ -5105,6 +5136,37 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   isPreviewEditingRef.current = Boolean(editField || pendingGiverFile || pendingMomDrawingFile);
 
   useEffect(() => {
+    if (!isGuest || isNotPreviewCreator || activeTab !== 'Book preview' || !guestUnlockReady) return undefined;
+    const el = guestLockedPreviewRef.current;
+    if (!el) return undefined;
+
+    const mq = window.matchMedia('(max-width: 767px)');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!mq.matches) return;
+        if (!guestPreviewHasScrolledRef.current) return;
+        if (isPreviewEditingRef.current) return;
+        const store = useUserStore.getState();
+        if (store.isLoginModalOpen) return;
+        if (entries.some((entry) => entry.isIntersecting)) {
+          openPreviewUnlockHeader();
+        }
+      },
+      { threshold: 0.15 },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [
+    isGuest,
+    isNotPreviewCreator,
+    activeTab,
+    guestUnlockReady,
+    previewContentLength,
+    openPreviewUnlockHeader,
+  ]);
+
+  useEffect(() => {
     if (!isGuest || isNotPreviewCreator || activeTab !== 'Book preview') {
       guestWasAtBottomRef.current = false;
       return undefined;
@@ -5119,22 +5181,22 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       return scrollTop + viewportHeight >= scrollHeight - 96;
     };
 
-    const maybeOpenGuestUnlock = () => {
+    const maybeExpandGuestUnlock = () => {
       if (!mq.matches) return;
       if (!guestUnlockReadyRef.current) return;
       if (!guestPreviewHasScrolledRef.current) return;
       if (isPreviewEditingRef.current) return;
-      if (useUserStore.getState().isLoginModalOpen) return;
 
       const atBottom = isNearPageBottom();
       if (atBottom && !guestWasAtBottomRef.current) {
-        openPreviewUnlockLogin();
+        // 滑到底部：完整展开 + 灰色蒙层
+        openPreviewUnlockExpanded();
       }
       guestWasAtBottomRef.current = atBottom;
     };
 
     const handleScroll = () => {
-      maybeOpenGuestUnlock();
+      maybeExpandGuestUnlock();
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -5142,14 +5204,14 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     window.addEventListener('resize', handleScroll, { passive: true });
 
     // 锁定页刚就绪且用户已在底部时，主动补一次检查
-    maybeOpenGuestUnlock();
+    maybeExpandGuestUnlock();
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('touchmove', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
-  }, [isGuest, isNotPreviewCreator, activeTab, openPreviewUnlockLogin, previewContentLength, guestUnlockReady]);
+  }, [isGuest, isNotPreviewCreator, activeTab, openPreviewUnlockExpanded, previewContentLength, guestUnlockReady]);
 
   useEffect(() => {
     if (!isGuest || isNotPreviewCreator || activeTab !== 'Book preview' || !guestUnlockReady) return undefined;
@@ -5163,9 +5225,8 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
         if (!guestUnlockReadyRef.current) return;
         if (!guestPreviewHasScrolledRef.current) return;
         if (isPreviewEditingRef.current) return;
-        if (useUserStore.getState().isLoginModalOpen) return;
         if (entries.some((entry) => entry.isIntersecting)) {
-          openPreviewUnlockLogin();
+          openPreviewUnlockExpanded();
           guestWasAtBottomRef.current = true;
         }
       },
@@ -5174,7 +5235,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [isGuest, isNotPreviewCreator, activeTab, openPreviewUnlockLogin, previewContentLength, guestUnlockReady]);
+  }, [isGuest, isNotPreviewCreator, activeTab, openPreviewUnlockExpanded, previewContentLength, guestUnlockReady]);
 
   useEffect(() => {
     if (!isGuest) return undefined;
@@ -6807,7 +6868,9 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                       <div
                         key={page.page_id}
                         ref={
-                          isGiverDedicationPage
+                          showGuestLockOverlay
+                            ? guestLockedPreviewRef
+                            : isGiverDedicationPage
                             ? setOpeningSpreadBothRefs
                             : momCompositePageCode === 'p5-6'
                               ? displayViewMode === 'single'

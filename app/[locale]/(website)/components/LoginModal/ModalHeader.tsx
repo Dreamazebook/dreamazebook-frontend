@@ -12,7 +12,6 @@ interface HeaderProps {
 
 const previewUnlockHeaderStyle: CSSProperties = {
   width: 312,
-  height: 100,
   paddingTop: 12,
   boxSizing: 'border-box',
 }
@@ -40,11 +39,23 @@ export const ModalHeader = memo(({
   return (
     <header
       className={`relative text-center opacity-100 ${
-        isPreviewUnlock || isCompact ? 'flex w-full flex-col gap-[12px]' : 'w-full'
+        isPreviewUnlock
+          ? `flex w-full flex-col ${fluid ? 'gap-[12px]' : 'gap-[8px]'}`
+          : isCompact
+            ? 'flex w-full flex-col gap-[12px]'
+            : 'w-full'
       }`}
       style={headerStyle}
     >
-      <h1 className="text-[28px] leading-[36px] text-[#000]">{title}</h1>
+      <h1
+        className={
+          isPreviewUnlock && !fluid
+            ? 'whitespace-nowrap text-[24px] leading-[32px] text-[#000]'
+            : 'text-[28px] leading-[36px] text-[#000]'
+        }
+      >
+        {title}
+      </h1>
       {description && (
         <p
           className={`text-[14px] leading-[20px] tracking-[-0.25px] text-[#666666] whitespace-pre-line ${

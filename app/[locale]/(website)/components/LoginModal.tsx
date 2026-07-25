@@ -29,6 +29,9 @@ export default function LoginModal({
   sendCodeButtonLabel,
   useRedirect = true,
   layout = 'modal',
+  sheetState = 'expanded',
+  onSheetExpand,
+  onSheetCollapse,
 }: {
   showCloseButton?: boolean
   useRedirect?: boolean
@@ -38,6 +41,9 @@ export default function LoginModal({
   sendCodeButtonLabel?: string
   /** Mobile preview unlock uses antd bottom Drawer; desktop stays centered modal */
   layout?: 'modal' | 'bottomSheet'
+  sheetState?: 'header' | 'expanded'
+  onSheetExpand?: () => void
+  onSheetCollapse?: () => void
 }) {
   const t = useTranslations('LoginModal')
   const tPreview = useTranslations('Preview')
@@ -66,14 +72,23 @@ export default function LoginModal({
   const sheetDragOffsetRef = useRef(0)
   const sheetDrawerWrapperRef = useRef<HTMLElement | null>(null)
   const sheetDragTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const clearSheetDragTimer = () => {
     if (!sheetDragTimerRef.current) return
     clearTimeout(sheetDragTimerRef.current)
     sheetDragTimerRef.current = null
   }
+
+  const getDrawerWrapper = (from?: HTMLElement | null) =>
+    (from?.closest('.ant-drawer-content-wrapper') as HTMLElement | null) ??
+    (document.querySelector(
+      '.preview-unlock-bottom-sheet-root .ant-drawer-content-wrapper',
+    ) as HTMLElement | null)
+
   const resetSheetWrapperStyle = (wrapper: HTMLElement) => {
     wrapper.style.transition = 'transform 200ms ease-out'
     wrapper.style.transform = 'translateY(0)'
+    wrapper.style.removeProperty('bottom')
     sheetDragTimerRef.current = setTimeout(() => {
       wrapper.style.removeProperty('transition')
       wrapper.style.removeProperty('transform')
@@ -81,51 +96,55 @@ export default function LoginModal({
       sheetDragTimerRef.current = null
     }, 200)
   }
+
+  // Header 态只渲染白条，不做 peek 裁切；拖拽仅用于手势判定
   const handleSheetDragStart = (event: React.TouchEvent<HTMLButtonElement>) => {
     clearSheetDragTimer()
     sheetDragStartYRef.current = event.touches[0]?.clientY ?? null
     sheetDragStartTimeRef.current = Date.now()
     sheetDragOffsetRef.current = 0
-    const wrapper = event.currentTarget.closest('.ant-drawer-content-wrapper') as HTMLElement | null
+    const wrapper = getDrawerWrapper(event.currentTarget)
     sheetDrawerWrapperRef.current = wrapper
     if (wrapper) {
       wrapper.style.transition = 'none'
       wrapper.style.willChange = 'transform'
+      wrapper.style.removeProperty('bottom')
     }
   }
+
   const handleSheetDragMove = (event: React.TouchEvent<HTMLButtonElement>) => {
     if (sheetDragStartYRef.current == null) return
-    const offset = Math.max(0, (event.touches[0]?.clientY ?? sheetDragStartYRef.current) - sheetDragStartYRef.current)
+    const rawOffset =
+      (event.touches[0]?.clientY ?? sheetDragStartYRef.current) - sheetDragStartYRef.current
+    // header: 只响应上滑；expanded: 只响应下拉
+    const offset =
+      sheetState === 'header' ? Math.min(0, rawOffset) : Math.max(0, rawOffset)
     sheetDragOffsetRef.current = offset
     if (sheetDrawerWrapperRef.current) {
       sheetDrawerWrapperRef.current.style.transform = `translateY(${offset}px)`
     }
   }
+
   const handleSheetDragEnd = () => {
     const dragDuration = Date.now() - sheetDragStartTimeRef.current
-    const shouldClose =
-      sheetDragOffsetRef.current >= 24 ||
-      (sheetDragOffsetRef.current >= 12 && dragDuration <= 250)
+    const shouldChangeState =
+      Math.abs(sheetDragOffsetRef.current) >= 24 ||
+      (Math.abs(sheetDragOffsetRef.current) >= 12 && dragDuration <= 250)
     const wrapper = sheetDrawerWrapperRef.current
     sheetDragStartYRef.current = null
     sheetDragStartTimeRef.current = 0
     sheetDragOffsetRef.current = 0
     sheetDrawerWrapperRef.current = null
-    if (shouldClose) {
-      if (!wrapper) {
-        closeLoginModal()
-        return
-      }
-      wrapper.style.transition = 'transform 180ms ease-out'
-      wrapper.style.transform = 'translateY(100%)'
-      sheetDragTimerRef.current = setTimeout(() => {
-        sheetDragTimerRef.current = null
-        closeLoginModal()
-      }, 180)
+
+    if (shouldChangeState) {
+      if (wrapper) resetSheetWrapperStyle(wrapper)
+      if (sheetState === 'header') onSheetExpand?.()
+      else onSheetCollapse?.()
       return
     }
     if (wrapper) resetSheetWrapperStyle(wrapper)
   }
+
   const handleSheetDragCancel = () => {
     const wrapper = sheetDrawerWrapperRef.current
     sheetDragStartYRef.current = null
@@ -134,13 +153,25 @@ export default function LoginModal({
     sheetDrawerWrapperRef.current = null
     if (wrapper) resetSheetWrapperStyle(wrapper)
   }
+
+  useEffect(() => {
+    // 切换 header/expanded 时清掉残留 transform，避免白条错位
+    const wrapper = getDrawerWrapper()
+    if (!wrapper) return
+    wrapper.style.removeProperty('transition')
+    wrapper.style.removeProperty('transform')
+    wrapper.style.removeProperty('bottom')
+    wrapper.style.removeProperty('will-change')
+  }, [sheetState])
+
   useEffect(() => {
     return () => {
       if (sheetDragTimerRef.current) clearTimeout(sheetDragTimerRef.current)
-      const wrapper = sheetDrawerWrapperRef.current
+      const wrapper = sheetDrawerWrapperRef.current ?? getDrawerWrapper()
       if (wrapper) {
         wrapper.style.removeProperty('transition')
         wrapper.style.removeProperty('transform')
+        wrapper.style.removeProperty('bottom')
         wrapper.style.removeProperty('will-change')
       }
     }
@@ -682,6 +713,36 @@ export default function LoginModal({
     </p>
   ) : null
 
+  // Header 态：只渲染白条（标题），避免 peek 裁切露出下方内容
+  if (isBottomSheet && isPreviewUnlock && sheetState === 'header') {
+    return (
+      <main
+        data-login-modal="true"
+        className="relative w-full shrink-0 rounded-t-[16px] bg-white px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 text-[#20202A]"
+        role="main"
+      >
+        <button
+          type="button"
+          aria-label="Expand sign in options"
+          className="flex w-full touch-none flex-col items-center"
+          onClick={onSheetExpand}
+          onTouchStart={handleSheetDragStart}
+          onTouchMove={handleSheetDragMove}
+          onTouchEnd={handleSheetDragEnd}
+          onTouchCancel={handleSheetDragCancel}
+        >
+          <span className="h-1 w-10 rounded-full bg-[#D9D9D9]" />
+          <span className="mt-4 flex items-center justify-center gap-3">
+            <Sparkles className="h-6 w-6 shrink-0 text-[#FFD45A]" strokeWidth={2} aria-hidden="true" />
+            <span className="text-center text-[20px] font-semibold leading-7">
+              {tPreview('continueReadingTitle')}
+            </span>
+          </span>
+        </button>
+      </main>
+    )
+  }
+
   if (isBottomSheet && isPreviewUnlock && state.mode === 'codeLogin' && showMobileUnlockLanding) {
     return (
       <main
@@ -691,7 +752,7 @@ export default function LoginModal({
       >
         <button
           type="button"
-          aria-label="Swipe down to close"
+          aria-label="Collapse sign in options"
           className="absolute inset-x-0 top-0 z-20 flex h-16 w-full touch-none justify-center pt-3"
           onTouchStart={handleSheetDragStart}
           onTouchMove={handleSheetDragMove}
@@ -760,7 +821,7 @@ export default function LoginModal({
         isBottomSheet
           ? 'w-full gap-[12px] rounded-t-[16px] px-[24px] pb-[calc(24px+env(safe-area-inset-bottom))] pt-[12px]'
           : unifiedUI
-            ? 'gap-[12px] rounded-[12px] p-[24px]'
+            ? `${isPreviewUnlock ? 'gap-[12px]' : 'gap-[12px]'} rounded-[12px] p-[24px]`
             : isPreviewUnlock
               ? 'gap-[12px] rounded-[12px] p-[24px]'
               : 'w-96 items-center justify-center gap-4 rounded-lg p-4'
@@ -773,7 +834,7 @@ export default function LoginModal({
         <>
           <button
             type="button"
-            aria-label="Swipe down to close"
+            aria-label="Collapse sign in options"
             className="absolute inset-x-0 top-0 z-20 flex h-16 w-full touch-none justify-center pt-3"
             onTouchStart={handleSheetDragStart}
             onTouchMove={handleSheetDragMove}

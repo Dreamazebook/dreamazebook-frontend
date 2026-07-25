@@ -3,7 +3,7 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Cropper } from 'react-cropper';
 import type { ReactCropperElement } from 'react-cropper';
-import EasyCrop, { type Area } from 'react-easy-crop';
+import EasyCrop, { type MediaSize, type Point, type Size } from 'react-easy-crop';
 import 'react-easy-crop/react-easy-crop.css';
 import api from '@/utils/api';
 import { getApiOrigin } from '@/utils/apiBaseUrl';
@@ -57,7 +57,7 @@ type Props = {
 const CROPPER_COPY: Record<'personalize' | 'openingPage', { title: string; subtitle: string }> = {
   personalize: {
     title: 'Add image',
-    subtitle: 'Place the full head inside the circle',
+    subtitle: 'Place the full head and hair inside the oval',
   },
   openingPage: {
     title: 'Add a Photo for the Opening Page of Your Book',
@@ -158,16 +158,62 @@ function toAbsoluteUrl(raw: string): string {
   return `${getApiOrigin()}/${cleanPath}`;
 }
 
-const getRadianAngle = (degree: number) => (degree * Math.PI) / 180;
+const PERSONALIZE_OUTPUT_SIZE = 1024;
+const PERSONALIZE_EXPORT_RATIO = 0.76;
+const PERSONALIZE_MIN_ZOOM = 0.5;
+const PERSONALIZE_MAX_ZOOM = 6;
+const PERSONALIZE_MAX_BLANK_RATIO = 0.3;
+const PERSONALIZE_BACKGROUND = '#f5f5f5';
 
-const getSafeAreaSize = (width: number, height: number) =>
-  Math.ceil(Math.max(width, height) * Math.SQRT2);
+type PersonalizeCompositionState = {
+  crop: Point;
+  zoom: number;
+  mediaSize: MediaSize | null;
+  cropSize: Size | null;
+};
 
-async function getCroppedCanvasFromArea(
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
+
+/**
+ * react-easy-crop 的 restrictPosition=false 会允许图片完全离开画布。
+ * 这里允许每侧最多露出 30% 画布；对于本身非常窄/扁的图片，保持居中是唯一
+ * 不会进一步增加空白的安全位置。
+ */
+const constrainPersonalizeCrop = (
+  position: Point,
+  mediaSize: MediaSize | null,
+  cropSize: Size | null,
+  zoom: number
+): Point => {
+  if (!mediaSize || !cropSize) return position;
+
+  const horizontalLimit = Math.max(
+    0,
+    (mediaSize.width * zoom) / 2 -
+      cropSize.width * (0.5 - PERSONALIZE_MAX_BLANK_RATIO)
+  );
+  const verticalLimit = Math.max(
+    0,
+    (mediaSize.height * zoom) / 2 -
+      cropSize.height * (0.5 - PERSONALIZE_MAX_BLANK_RATIO)
+  );
+
+  return {
+    x: clamp(position.x, -horizontalLimit, horizontalLimit),
+    y: clamp(position.y, -verticalLimit, verticalLimit),
+  };
+};
+
+async function createPersonalizeCompositionCanvas(
   imageSrc: string,
-  crop: Area,
-  rotation: number
+  composition: PersonalizeCompositionState
 ): Promise<HTMLCanvasElement> {
+  const { crop, zoom, mediaSize, cropSize } = composition;
+  if (!mediaSize || !cropSize) {
+    throw new Error('Image is still loading. Please try again in a moment.');
+  }
+
   const image = await new Promise<HTMLImageElement>((resolve, reject) => {
     const img = new window.Image();
     img.onload = () => resolve(img);
@@ -175,36 +221,26 @@ async function getCroppedCanvasFromArea(
     img.src = imageSrc;
   });
 
-  const rotationRad = getRadianAngle(rotation);
-  const safeSize = getSafeAreaSize(image.width, image.height);
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Could not process this image.');
 
-  canvas.width = safeSize;
-  canvas.height = safeSize;
-  ctx.translate(safeSize / 2, safeSize / 2);
-  ctx.rotate(rotationRad);
-  ctx.translate(-safeSize / 2, -safeSize / 2);
+  canvas.width = PERSONALIZE_OUTPUT_SIZE;
+  canvas.height = PERSONALIZE_OUTPUT_SIZE;
+  ctx.fillStyle = PERSONALIZE_BACKGROUND;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
 
-  const x = (safeSize - image.width) / 2;
-  const y = (safeSize - image.height) / 2;
-  ctx.drawImage(image, x, y);
+  const scaleX = canvas.width / cropSize.width;
+  const scaleY = canvas.height / cropSize.height;
+  const drawWidth = mediaSize.width * zoom * scaleX;
+  const drawHeight = mediaSize.height * zoom * scaleY;
+  const drawX = ((cropSize.width - mediaSize.width * zoom) / 2 + crop.x) * scaleX;
+  const drawY = ((cropSize.height - mediaSize.height * zoom) / 2 + crop.y) * scaleY;
 
-  const data = ctx.getImageData(
-    Math.round(x + crop.x),
-    Math.round(y + crop.y),
-    Math.round(crop.width),
-    Math.round(crop.height)
-  );
-
-  const out = document.createElement('canvas');
-  out.width = Math.round(crop.width);
-  out.height = Math.round(crop.height);
-  const outCtx = out.getContext('2d');
-  if (!outCtx) throw new Error('Could not process this image.');
-  outCtx.putImageData(data, 0, 0);
-  return out;
+  ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+  return canvas;
 }
 
 type PersonalizeCircleCropEditorProps = {
@@ -214,7 +250,7 @@ type PersonalizeCircleCropEditorProps = {
   onCancel: () => void;
   onApply: () => void;
   onReadyChange: (ready: boolean) => void;
-  cropStateRef: React.MutableRefObject<{ area: Area | null; rotation: number }>;
+  cropStateRef: React.MutableRefObject<PersonalizeCompositionState>;
 };
 
 function PersonalizeCircleCropEditor({
@@ -228,44 +264,98 @@ function PersonalizeCircleCropEditor({
 }: PersonalizeCircleCropEditorProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
+  const [mediaSize, setMediaSize] = useState<MediaSize | null>(null);
+  const [cropSize, setCropSize] = useState<Size | null>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     onReadyChange(false);
-    cropStateRef.current = { area: null, rotation: 0 };
+    cropStateRef.current = { crop: { x: 0, y: 0 }, zoom: 1, mediaSize: null, cropSize: null };
     setCrop({ x: 0, y: 0 });
     setZoom(1);
+    setMediaSize(null);
   }, [src, onReadyChange, cropStateRef]);
 
-  const handleCropComplete = useCallback(
-    (_: Area, croppedAreaPixels: Area) => {
-      cropStateRef.current = { area: croppedAreaPixels, rotation: 0 };
-      onReadyChange(true);
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    const updateSize = () => {
+      const width = viewport.getBoundingClientRect().width;
+      if (width > 0) {
+        const exportSize = width * PERSONALIZE_EXPORT_RATIO;
+        setCropSize({ width: exportSize, height: exportSize });
+      }
+    };
+    updateSize();
+
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(viewport);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    cropStateRef.current = { crop, zoom, mediaSize, cropSize };
+    if (mediaSize && cropSize) onReadyChange(true);
+  }, [crop, zoom, mediaSize, cropSize, cropStateRef, onReadyChange]);
+
+  useEffect(() => {
+    setCrop((currentCrop) => {
+      const constrained = constrainPersonalizeCrop(currentCrop, mediaSize, cropSize, zoom);
+      return constrained.x === currentCrop.x && constrained.y === currentCrop.y
+        ? currentCrop
+        : constrained;
+    });
+  }, [mediaSize, cropSize, zoom]);
+
+  const handleCropChange = useCallback(
+    (nextCrop: Point) => {
+      setCrop(constrainPersonalizeCrop(nextCrop, mediaSize, cropSize, zoom));
     },
-    [cropStateRef, onReadyChange]
+    [mediaSize, cropSize, zoom]
+  );
+
+  const handleZoomChange = useCallback(
+    (nextZoom: number) => {
+      setZoom(nextZoom);
+      setCrop((currentCrop) =>
+        constrainPersonalizeCrop(currentCrop, mediaSize, cropSize, nextZoom)
+      );
+    },
+    [mediaSize, cropSize]
   );
 
   return (
     <>
-      <div className="relative w-full aspect-square bg-[#111111] md:max-w-[400px] md:mx-auto">
+      <div
+        ref={viewportRef}
+        className="relative w-full aspect-square overflow-hidden bg-[#F5F5F5] md:max-w-[400px] md:mx-auto"
+      >
         <EasyCrop
           image={src}
           crop={crop}
           zoom={zoom}
           rotation={0}
           aspect={1}
-          cropShape="round"
+          cropShape="rect"
+          cropSize={cropSize ?? undefined}
           showGrid={false}
           zoomWithScroll
-          restrictPosition
-          objectFit="cover"
-          onCropChange={setCrop}
-          onZoomChange={setZoom}
-          onCropComplete={handleCropComplete}
-          style={{ mediaStyle: { maxWidth: 'unset' } }}
+          restrictPosition={false}
+          objectFit="contain"
+          minZoom={PERSONALIZE_MIN_ZOOM}
+          maxZoom={PERSONALIZE_MAX_ZOOM}
+          onCropChange={handleCropChange}
+          onZoomChange={handleZoomChange}
+          onMediaLoaded={setMediaSize}
           classes={{
             containerClassName: '!absolute !inset-0',
-            cropAreaClassName: '!border-2 !border-white/90 !shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]',
+            cropAreaClassName: '!border-0 !shadow-none',
           }}
+        />
+        <div
+          className="pointer-events-none absolute left-[21%] top-[12%] z-[2] h-[76%] w-[58%] rounded-[50%] border-2 border-dashed border-white/90 shadow-[0_0_0_9999px_rgba(0,0,0,0.18)]"
+          aria-hidden="true"
         />
       </div>
 
@@ -315,7 +405,12 @@ export default function GiverAvatarCropper({
   const openLoginModal = useUserStore((s) => s.openLoginModal);
   const [src, setSrc] = useState<string | undefined>(initialSrc);
   const cropperRef = useRef<ReactCropperElement>(null);
-  const personalizeCropRef = useRef<{ area: Area | null; rotation: number }>({ area: null, rotation: 0 });
+  const personalizeCropRef = useRef<PersonalizeCompositionState>({
+    crop: { x: 0, y: 0 },
+    zoom: 1,
+    mediaSize: null,
+    cropSize: null,
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isApplyingRef = useRef(false);
   const [sx, setSx] = useState(1);
@@ -524,12 +619,11 @@ export default function GiverAvatarCropper({
       let canvas: HTMLCanvasElement | null = null;
 
       if (isPersonalizeCircle) {
-        const { area, rotation } = personalizeCropRef.current;
-        if (!area || !src || !isCropperReady) {
+        const composition = personalizeCropRef.current;
+        if (!composition.mediaSize || !composition.cropSize || !src || !isCropperReady) {
           throw new Error('Image is still loading. Please try again in a moment.');
         }
-        canvas = await getCroppedCanvasFromArea(src, area, rotation);
-        canvas = scaleCanvasToMaxSize(canvas, maxSize);
+        canvas = await createPersonalizeCompositionCanvas(src, composition);
       } else {
         const cropper = cropperRef.current?.cropper;
         if (!cropper || !isCropperReady) {
