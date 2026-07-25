@@ -7,6 +7,7 @@ declare global {
   var Tawk_API: {
     hideWidget?: () => void;
     showWidget?: () => void;
+    maximize?: () => void;
     onLoad?: (() => void) | undefined;
     onBeforeLoad?: (() => void) | undefined;
   } | undefined;
