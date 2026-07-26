@@ -411,10 +411,10 @@ export function mapBatchPageToPreviewPage(bp: any, idx: number): PreviewPageWith
     bp?.image_url,
     bp?.preview_image,
   );
+  // 不要把底图/模板回填进 final_image_url，否则未换脸初始图会被当成已完成最终图直接展示
   const finalImageUrl = pickFirstNonEmptyString(
     bp?.final_image_url,
     bp?.composite_image_url,
-    displayImageRaw,
   );
   return {
     page_id: idx + 1,

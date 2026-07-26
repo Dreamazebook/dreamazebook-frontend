@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useRouter } from '@/i18n/routing';
 import { useParams, useSearchParams, usePathname } from 'next/navigation';
 import { Drawer } from "antd";
@@ -53,8 +53,10 @@ import {
   fetchPreviewBatch,
   filterGuestVisiblePreviewPages,
   getBatchDisplayPages,
+  getGuestLockedSpreadEndPageNumber,
   isGuestLockedPreviewPageCode,
   mapBatchPageToPreviewPage,
+  parsePreviewSpreadEndPageNumber,
   pickBatchPageImageRaw,
   pickGuestLockedPageBaseImageRaw,
   pickPreviewPageIdFromBatchPage,
@@ -296,7 +298,20 @@ const hasMeaningfulFinalImage = (page: any): boolean => {
   const imageRaw = String(page?.image_url || '').trim();
   const baseRaw = String(page?.base_image_url || '').trim();
   const compareBase = baseRaw || (imageRaw && imageRaw !== finalRaw ? imageRaw : '');
-  return !compareBase || finalRaw !== compareBase;
+  // 有可区分的底图：final 必须与底图不同才算已换脸
+  if (compareBase) return finalRaw !== compareBase;
+  // 仅有一张图时：换脸进行中不能把初始图当成最终图
+  if (page?.has_face_swap) {
+    const status = String(page?.status || '').toLowerCase();
+    if (status === 'pending' || status === 'processing') return false;
+    const logs = Array.isArray(page?.face_swap_logs) ? page.face_swap_logs : [];
+    const hasCompletedLog = logs.some(
+      (log: any) =>
+        log?.status === 'completed' && Boolean(String(log?.final_image_url || '').trim()),
+    );
+    if (logs.length > 0 && !hasCompletedLog) return false;
+  }
+  return true;
 };
 
 const getPreviewDisplayImageRaw = (page: any): string => {
@@ -326,13 +341,23 @@ const isPreviewSpreadFullyAppeared = (
   return hasRenderablePreviewImage(page);
 };
 
-/** 登录解锁后的锁定跨页是否已可揭开（有 final，或无需换脸且有可展示图） */
+/** 登录解锁后的锁定跨页是否已可揭开（只看本页；勿等全书换脸完成） */
 const isUnlockedSpreadRevealReady = (page: any): boolean => {
   if (!page) return false;
   const pageFailed = String(page?.status || '').toLowerCase() === 'failed';
   if (pageFailed) return true;
+  const status = String(page?.status || '').toLowerCase();
+  if (status === 'pending' || status === 'processing') return false;
   if (page?.has_face_swap) return hasMeaningfulFinalImage(page);
   return hasRenderablePreviewImage(page);
+};
+
+/** 是否在游客锁定边界页之后（如 p13-14 之后的正文页） */
+const isBeyondGuestLockedSpread = (page: any, bookId?: string | null): boolean => {
+  const lockEnd = getGuestLockedSpreadEndPageNumber(bookId);
+  const spreadEnd = parsePreviewSpreadEndPageNumber(page?.page_code, page?.page_number);
+  if (spreadEnd == null) return false;
+  return spreadEnd > lockEnd;
 };
 
 /** 与预览页 buildImageUrl 对齐，用于上传成功后预解码 CDN（避免 revoke blob 早于下方 img 切图导致闪白） */
@@ -5322,14 +5347,19 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
 
   // 邮箱登录：同页 isLoggedIn false→true；Google OAuth：整页回跳时 isLoggedIn 已是 true，
   // 必须靠 sessionStorage.previewPostLoginSync。标记只在真正开始 sync 时清除，避免 Strict Mode 丢标记。
-  useEffect(() => {
+  // 用 useLayoutEffect：在绘制前启动解锁 loading，避免 isGuest 变 false 后先闪出未换脸底图。
+  useLayoutEffect(() => {
     const oauthPending = sessionStorage.getItem('previewPostLoginSync') === '1';
     if (oauthPending) {
       oauthReturnSyncRef.current = true;
       pendingPostLoginSyncRef.current = true;
+      // OAuth 整页回跳：首屏已是登录态，须立刻挡住未换脸底图
+      startUnlockedSpreadRevealLoading();
     }
     if (!prevLoggedInRef.current && isLoggedIn) {
       pendingPostLoginSyncRef.current = true;
+      // 同步进入解锁 loading，挡住登录当帧摘掉游客蒙版后的未换脸底图
+      startUnlockedSpreadRevealLoading();
     }
     prevLoggedInRef.current = isLoggedIn;
 
@@ -5353,9 +5383,15 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     oauthReturnSyncRef.current = false;
     sessionStorage.removeItem('previewPostLoginSync');
     void runPostLoginPreviewSync();
-  }, [isLoggedIn, user?.id, runPostLoginPreviewSync, clearUnlockedSpreadRevealLoading]);
+  }, [
+    isLoggedIn,
+    user?.id,
+    runPostLoginPreviewSync,
+    clearUnlockedSpreadRevealLoading,
+    startUnlockedSpreadRevealLoading,
+  ]);
 
-  // 登录解锁 loading：不论是否已完成都先播百分比；已可揭开时加速到 98% 再收起
+  // 登录解锁 loading：只等锁定边界页本页就绪；已可揭开时加速到 98% 再收起
   useEffect(() => {
     if (!unlockedSpreadRevealLoading || isGuest) return;
 
@@ -6524,6 +6560,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                     // 仅在 p3-4（有的书返回 p3-p4）页面渲染 Giver & Dedication
                     const pageCode = String((page as any).page_code || '');
                     const isLockedSpreadPageCode = isGuestLockedPreviewPageCode(pageCode, previewBookId);
+                    const isBeyondLockedSpread = isBeyondGuestLockedSpread(page, previewBookId);
                     const isGuestLockedPage =
                       isGuest &&
                       batchIsOwn !== false &&
@@ -6539,16 +6576,25 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                       ? pickGuestLockedPageBaseImageRaw(page as any)
                       : '';
                     if (isGuestLockedPage && !guestLockedBaseRaw) return null;
-                    const showGuestLockOverlay = isGuestLockedPage && Boolean(guestLockedBaseRaw);
+                    // 登录解锁：仅锁定边界页播解锁百分比；边界之后的页统一 loading，等 batch 换脸后再走页面百分比
+                    const showUnlockedSpreadLoading =
+                      unlockedSpreadRevealLoading && !isGuest && isLockedSpreadPageCode;
+                    // 边界页之后：登录后先 loading；batch 进入换脸后由 pageProgress 显示百分比
+                    const showBeyondLockLoading =
+                      !isGuest &&
+                      isBeyondLockedSpread &&
+                      !pageFailed &&
+                      !hasFinal &&
+                      (hasSwap || isProcessingLike);
+                    const showGuestLockOverlay =
+                      isGuestLockedPage && Boolean(guestLockedBaseRaw);
                     const guestLockedBaseSrc = showGuestLockOverlay
                       ? buildProtectedPreviewDisplayUrl(String(guestLockedBaseRaw))
                       : '';
-                    // 登录解锁：锁定跨页强制百分比彩虹 loading（不论后端是否已完成）
-                    const showUnlockedSpreadLoading =
-                      unlockedSpreadRevealLoading && !isGuest && isLockedSpreadPageCode;
+                    const pageProgressValue = Math.round(pageProgress[page.page_id] ?? 0);
                     const progress = showUnlockedSpreadLoading
                       ? Math.max(1, Math.round(unlockedSpreadRevealProgress))
-                      : Math.round(pageProgress[page.page_id] ?? 0);
+                      : pageProgressValue;
                     const isGiverDedicationPage = pageCode === 'p3-4' || pageCode === 'p3-p4';
                     const momCompositePageCode = isMomBook ? toMomCompositeUploadPageCode(pageCode) : null;
                     const isMomCompositePage = Boolean(momCompositePageCode);
@@ -6578,7 +6624,11 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                       : (showUnlockedSpreadLoading || progress > 0 ? 'progress' : 'loading');
                     const pageOverlayMode = showGuestLockOverlay ? 'guestLocked' : overlayMode;
                     const showPageOverlay =
-                      showGuestLockOverlay || isSwapping || pageFailed || showUnlockedSpreadLoading;
+                      showGuestLockOverlay ||
+                      isSwapping ||
+                      pageFailed ||
+                      showUnlockedSpreadLoading ||
+                      showBeyondLockLoading;
 
                       // p3-4 展示策略同上：只有当 final 与 base/image 不同，才默认展示 final。
                       // 这样 edited book 能展示历史最终图；create book（final==base 或无 final）则会走 Canvas 展示默认寄语。
