@@ -17,7 +17,7 @@ import { ErrorAlert } from './LoginModal/Alerts'
 import api from '@/utils/api'
 import { ApiResponse } from '@/types/api'
 import { readGuestSessionId, writeGuestSessionId } from '@/utils/api'
-import { trackLoginStart } from '@/utils/track'
+import { trackLoginStart, trackCodeSent, trackLoginAttempt, trackLoginSuccess } from '@/utils/track'
 
 export default function LoginModal({
   showCloseButton = false,
@@ -301,6 +301,12 @@ export default function LoginModal({
       }
 
       if (response.success) {
+        trackLoginSuccess(
+          'google',
+          loginModalOptions?.loginSource || 'unknown',
+          loginModalOptions?.bookId,
+          loginModalOptions?.draftBookId,
+        )
         setLoginUserToken({user: response.user, token: response.token});
         checkKickstarterStatus()
         handlePostLoginRedirect()
@@ -332,7 +338,7 @@ export default function LoginModal({
     return null
   }
 
-  const handleSendLoginCode = async (email: string) => {
+  const handleSendLoginCode = async (email: string, isResend = false) => {
     const validationError = getEmailValidationError(email)
     if (validationError) {
       updateState({
@@ -342,16 +348,24 @@ export default function LoginModal({
       return
     }
 
-    trackLoginStart(
-      'email_code',
-      loginModalOptions?.loginSource || 'unknown',
-      loginModalOptions?.bookId,
-      loginModalOptions?.draftBookId,
-    )
+    if (!isResend) {
+      trackLoginStart(
+        'email_code',
+        loginModalOptions?.loginSource || 'unknown',
+        loginModalOptions?.bookId,
+        loginModalOptions?.draftBookId,
+      )
+    }
 
     const trimmedEmail = email.trim()
     const response = await sendLoginCode(trimmedEmail)
     if (response.success) {
+      trackCodeSent(
+        isResend,
+        loginModalOptions?.loginSource || 'unknown',
+        loginModalOptions?.bookId,
+        loginModalOptions?.draftBookId,
+      )
       updateState({
         mode: 'verifyCode',
         successMessage: `We've sent a 6 digit code to ${trimmedEmail}. It expires in 10 minutes.`,
@@ -368,7 +382,20 @@ export default function LoginModal({
 
   const handleVerifyLoginCode = async (email: string, code: string) => {
     const response = await verifyLoginCode(email, code)
+    const attemptResult = response?.success ? 'success' : 'failed'
+    trackLoginAttempt(
+      attemptResult,
+      loginModalOptions?.loginSource || 'unknown',
+      loginModalOptions?.bookId,
+      loginModalOptions?.draftBookId,
+    )
     if (response?.success) {
+      trackLoginSuccess(
+        'email_code',
+        loginModalOptions?.loginSource || 'unknown',
+        loginModalOptions?.bookId,
+        loginModalOptions?.draftBookId,
+      )
       checkKickstarterStatus()
       handlePostLoginRedirect()
     } else {

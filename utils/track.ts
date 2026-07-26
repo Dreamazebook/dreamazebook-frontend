@@ -213,9 +213,32 @@ export const trackPurchase = (
   });
 };
 
+// ====================== LOGIN TRACKING ======================
+
+type LoginTrackingParams = {
+  login_method: string;
+  login_source: string;
+  book_id?: string;
+  draft_book_id?: string;
+};
+
 /**
- * GA4: login_start event
- * Trigger: When user clicks Google login or submits email for code login
+ * Build shared login tracking params (GA4 + FB)
+ */
+const getLoginParams = (loginMethod: string, loginSource: string, bookId?: string, draftBookId?: string): LoginTrackingParams => {
+  const params: LoginTrackingParams = {
+    login_method: loginMethod,
+    login_source: loginSource,
+  };
+  if (bookId) params.book_id = bookId;
+  if (draftBookId) params.draft_book_id = draftBookId;
+  return params;
+};
+
+/**
+ * GA4 + FB: login_start event
+ * Same book + same method + same session → only fires once
+ * Trigger: Email (valid email → click Send Code) or Google (click Continue with Google)
  */
 export const trackLoginStart = (
   loginMethod: 'email_code' | 'google',
@@ -223,30 +246,71 @@ export const trackLoginStart = (
   bookId?: string,
   draftBookId?: string,
 ): void => {
-  const params: GA4EventParams = {
-    login_method: loginMethod,
-    login_source: loginSource,
-  };
-  if (bookId) {
-    params.book_id = bookId;
+  const dedupeKey = `login_start:${draftBookId || ''}:${loginMethod}:${loginSource}`;
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    if (sessionStorage.getItem(dedupeKey)) return;
+    sessionStorage.setItem(dedupeKey, 'true');
   }
-  if (draftBookId) {
-    params.draft_book_id = draftBookId;
-  }
+  const params = getLoginParams(loginMethod, loginSource, bookId, draftBookId);
   gtag('login_start', params);
+  fbTrackCustom('login_start', params);
+};
 
-  // FB Pixel tracking
-  const fbParams: FacebookEventParams = {
-    login_method: loginMethod,
-    login_source: loginSource,
+/**
+ * GA4 + FB: code_sent event
+ * Trigger: After backend confirms verification code was sent successfully
+ */
+export const trackCodeSent = (
+  isResend: boolean,
+  loginSource: string,
+  bookId?: string,
+  draftBookId?: string,
+): void => {
+  const params = {
+    ...getLoginParams('email_code', loginSource, bookId, draftBookId),
+    send_type: isResend ? 'resend' : 'initial',
   };
-  if (bookId) {
-    fbParams.book_id = bookId;
+  gtag('code_sent', params);
+  fbTrackCustom('code_sent', params);
+};
+
+/**
+ * GA4 + FB: login_attempt event
+ * Trigger: Every time user submits email verification code
+ */
+export const trackLoginAttempt = (
+  attemptResult: 'success' | 'failed',
+  loginSource: string,
+  bookId?: string,
+  draftBookId?: string,
+): void => {
+  const params = {
+    ...getLoginParams('email_code', loginSource, bookId, draftBookId),
+    attempt_result: attemptResult,
+  };
+  gtag('login_attempt', params);
+  fbTrackCustom('login_attempt', params);
+};
+
+/**
+ * GA4 + FB: login_success event
+ * Same preview book + same session → only fires once
+ * Trigger: User successfully logs in and unlocks the full preview
+ */
+export const trackLoginSuccess = (
+  loginMethod: 'email_code' | 'google',
+  loginSource: string,
+  bookId?: string,
+  draftBookId?: string,
+): void => {
+  const dedupeKey = `login_success:${draftBookId || ''}:${loginSource}`;
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    if (sessionStorage.getItem(dedupeKey)) return;
+    sessionStorage.setItem(dedupeKey, 'true');
   }
-  if (draftBookId) {
-    fbParams.draft_book_id = draftBookId;
-  }
-  fbTrackCustom('login_start', fbParams);
+  const params = getLoginParams(loginMethod, loginSource, bookId, draftBookId);
+  gtag('login_success', params);
+  fbTrackCustom('login_success', params);
 };
 
 /**

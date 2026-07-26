@@ -14,7 +14,7 @@ interface FormSubmitSectionsProps {
   buttonLabel: string
   onModeChange: (newMode: LoginMode) => void
   onResetCodeFlow: () => void
-  onSendLoginCode: (email: string) => void
+  onSendLoginCode: (email: string, isResend?: boolean) => void
   googleLoading: boolean
   facebookLoading: boolean
   onGoogleLogin: ((...args: any[]) => any) | (() => void)
@@ -169,7 +169,7 @@ export const FormSubmitSections = memo(({
           countdown={0}
           verifyButtonLabel=""
           sendButtonLabel={buttonLabel}
-          onResendCode={() => onSendLoginCode(email)}
+          onResendCode={() => onSendLoginCode(email, true)}
           buttonClassName={buttonClassName}
           buttonStyle={buttonStyle}
         >
@@ -202,7 +202,7 @@ export const FormSubmitSections = memo(({
           countdown={countdown}
           verifyButtonLabel={buttonLabel}
           sendButtonLabel=""
-          onResendCode={() => onSendLoginCode(email)}
+          onResendCode={() => onSendLoginCode(email, true)}
           buttonClassName={buttonClassName}
           buttonStyle={buttonStyle}
         >

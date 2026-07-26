@@ -5,8 +5,6 @@ import { create } from 'zustand'
 import { Address } from '@/types/address'
 import { OrderDetail } from '@/types/order'
 import type { UserType, LoginData, RegisterData, GoogleLoginData, FacebookLoginData, KickstarterUserSummary } from '@/types/user'
-import { fbTrackCustom } from '@/utils/track'
-
 export type LoginModalOptions = {
   title?: string
   description?: string
@@ -71,17 +69,6 @@ interface UserState {
   checkKickstarterStatus: () => Promise<void>
   closeKickstarterWelcome: () => void
 }
-
-const buildLoginSuccessParams = (loginMethod: string, loginModalOptions: LoginModalOptions | null) => {
-  const params: Record<string, string> = {
-    login_method: loginMethod,
-    login_source: loginModalOptions?.loginSource || 'unknown',
-  };
-  if (loginModalOptions?.bookSlug) {
-    params.book_slug = loginModalOptions.bookSlug;
-  }
-  return params;
-};
 
 const useUserStore = create<UserState>((set,get) => ({
   // Modal state - initially closed
@@ -271,8 +258,6 @@ const useUserStore = create<UserState>((set,get) => ({
       if (response.success && response.data?.token) {
         localStorage.setItem('token', response.data.token);
         set({ isLoggedIn: true, user: response.data?.user || null });
-        // Track LoginSuccess for registration
-        fbTrackCustom('LoginSuccess', buildLoginSuccessParams('email_password', get().loginModalOptions));
       }
       return response;
     } catch (error) {
@@ -284,8 +269,6 @@ const useUserStore = create<UserState>((set,get) => ({
     if (userResponse.token) {
       set({isLoggedIn:true, user:userResponse.user});
       localStorage.setItem('token', userResponse.token);
-      // Track LoginSuccess (email code / token login)
-      fbTrackCustom('LoginSuccess', buildLoginSuccessParams('email_code', get().loginModalOptions));
     }
   },
   login: async (userData): Promise<ApiResponse<UserResponse> | null> => {
@@ -293,8 +276,6 @@ const useUserStore = create<UserState>((set,get) => ({
       const response = await api.post<ApiResponse<UserResponse>>(API_USER_LOGIN, userData);
       if (response.success && response.data?.token) {
         get().setLoginUserToken(response.data);
-        // Track LoginSuccess for email/password login
-        fbTrackCustom('LoginSuccess', buildLoginSuccessParams('email_password', get().loginModalOptions));
       }
       return response;
     } catch (error) {
@@ -343,8 +324,6 @@ const useUserStore = create<UserState>((set,get) => ({
       if (response.success && response.data?.token) {
         localStorage.setItem('token', response.data.token);
         set({ isLoggedIn: true, user: response.data?.user || null });
-        // Track LoginSuccess for Google login
-        fbTrackCustom('LoginSuccess', buildLoginSuccessParams('google', get().loginModalOptions));
       }
       return response;
     } catch (error) {
@@ -366,8 +345,6 @@ const useUserStore = create<UserState>((set,get) => ({
       if (response.success && response.data?.token) {
         localStorage.setItem('token', response.data.token);
         set({ isLoggedIn: true, user: response.data?.user || null });
-        // Track LoginSuccess for Facebook login
-        fbTrackCustom('LoginSuccess', buildLoginSuccessParams('facebook', get().loginModalOptions));
       }
       return response;
     } catch (error) {
