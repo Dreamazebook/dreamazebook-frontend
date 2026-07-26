@@ -267,13 +267,16 @@ export default function LoginModal({
     }
   }
 
-  const handleGoogleCredentialLogin = async (credential: string) => {
+  const handleGoogleClick = () => {
     trackLoginStart(
       'google',
       loginModalOptions?.loginSource || 'unknown',
       loginModalOptions?.bookId,
       loginModalOptions?.draftBookId,
     )
+  }
+
+  const handleGoogleCredentialLogin = async (credential: string) => {
     setField('googleLoading', true)
     updateState({ errorMessage: '' })
     try {
@@ -670,7 +673,7 @@ export default function LoginModal({
           onSendLoginCode={handleSendLoginCode}
           googleLoading={state.googleLoading}
           facebookLoading={state.facebookLoading}
-          onGoogleLogin={handleGoogleCredentialLogin}
+          onGoogleLogin={handleGoogleClick}
           onFacebookLogin={handleFacebookLogin}
           onGoogleCredential={handleGoogleCredentialLogin}
           translations={{

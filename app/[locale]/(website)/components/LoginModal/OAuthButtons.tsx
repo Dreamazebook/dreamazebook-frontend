@@ -56,10 +56,12 @@ const FacebookIcon = () => (
 const GooglePopupButton = memo(({
   disabled,
   onCredential,
+  onGoogleClick,
   variant,
 }: {
   disabled: boolean
   onCredential: (credential: string) => any
+  onGoogleClick?: (...args: any[]) => any
   variant: 'default' | 'labeled'
 }) => {
   const buttonRef = useRef<HTMLDivElement>(null)
@@ -106,6 +108,7 @@ const GooglePopupButton = memo(({
       <button
         type="button"
         disabled={disabled}
+        onClick={onGoogleClick}
         className="flex h-full flex-1 cursor-pointer items-center justify-center gap-2 rounded-md border border-[#E0E0E0] bg-white px-4 text-sm font-normal text-[#222222] transition-colors hover:bg-gray-50 disabled:opacity-50"
         aria-label="Login with Google"
       >
@@ -119,6 +122,7 @@ const GooglePopupButton = memo(({
     return (
       <div
         ref={buttonRef}
+        onClick={onGoogleClick}
         className="flex h-full flex-1 items-center justify-center"
         style={{ opacity: disabled ? 0.5 : 1, pointerEvents: disabled ? 'none' : 'auto' }}
       />
@@ -128,6 +132,7 @@ const GooglePopupButton = memo(({
   return (
     <div
       ref={buttonRef}
+      onClick={onGoogleClick}
       style={{ opacity: disabled ? 0.5 : 1, pointerEvents: disabled ? 'none' : 'auto' }}
     />
   )
@@ -170,6 +175,7 @@ export const OAuthButtons = memo(({
           <GooglePopupButton
             disabled={googleLoading}
             onCredential={onGoogleCredential ?? (() => {})}
+            onGoogleClick={onGoogleClick}
             variant="labeled"
           />
         </div>
@@ -184,6 +190,7 @@ export const OAuthButtons = memo(({
         <GooglePopupButton
           disabled={googleLoading}
           onCredential={onGoogleCredential ?? (() => {})}
+          onGoogleClick={onGoogleClick}
           variant="default"
         />
         {/* <button
