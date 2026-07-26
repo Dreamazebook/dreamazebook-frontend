@@ -36,25 +36,25 @@ function redirectLegacyBookUrl(
   request: NextRequest,
   pathname: string
 ): NextResponse | null {
-  const withLocale = pathname.match(/^\/(en|fr|zh)\/books\/([^/]+)\/?$/)
+  const withLocale = pathname.match(/^\/(en|fr|zh)\/books\/([^/]+)(\/create)?\/?$/)
   if (withLocale) {
-    const [, locale, segment] = withLocale
+    const [, locale, segment, createSuffix = ''] = withLocale
     const canonicalSlug = getCanonicalBookSlug(segment)
     if (canonicalSlug && canonicalSlug !== segment) {
       const url = request.nextUrl.clone()
-      url.pathname = `/${locale}/books/${canonicalSlug}`
+      url.pathname = `/${locale}/books/${canonicalSlug}${createSuffix}`
       return NextResponse.redirect(url, 301)
     }
     return null
   }
 
-  const withoutLocale = pathname.match(/^\/books\/([^/]+)\/?$/)
+  const withoutLocale = pathname.match(/^\/books\/([^/]+)(\/create)?\/?$/)
   if (withoutLocale) {
-    const [, segment] = withoutLocale
+    const [, segment, createSuffix = ''] = withoutLocale
     const canonicalSlug = getCanonicalBookSlug(segment)
     if (canonicalSlug && canonicalSlug !== segment) {
       const url = request.nextUrl.clone()
-      url.pathname = `/${getLocale(request)}/books/${canonicalSlug}`
+      url.pathname = `/${getLocale(request)}/books/${canonicalSlug}${createSuffix}`
       return NextResponse.redirect(url, 301)
     }
   }

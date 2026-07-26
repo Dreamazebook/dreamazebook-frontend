@@ -29,6 +29,10 @@ interface CodeLoginSubmitProps extends BaseSubmitProps {
   verifyButtonLabel: string
   sendButtonLabel: string
   onResendCode: () => void
+  resendLabel?: string
+  resendCountdownLabel?: string
+  resendCodeMessage?: string
+  deliveryHint?: string
   children?: React.ReactNode
 }
 
@@ -87,6 +91,10 @@ export const CodeLoginSubmitSection = memo(({
   verifyButtonLabel,
   sendButtonLabel,
   onResendCode,
+  resendLabel = 'Resend',
+  resendCountdownLabel = 'Resend in {seconds}s',
+  resendCodeMessage,
+  deliveryHint = '',
   buttonClassName,
   buttonStyle,
   children,
@@ -98,17 +106,38 @@ export const CodeLoginSubmitSection = memo(({
           <Button tl={verifyButtonLabel} isLoading={loading} className={buttonClassName} style={buttonStyle} />
           <div className="text-center text-sm">
             {countdown > 0 ? (
-              <span className="text-gray-500">Resend in {countdown}s</span>
+              <button
+                type="button"
+                disabled
+                className="text-gray-500 disabled:cursor-not-allowed"
+              >
+                {resendCountdownLabel.replace('{seconds}', String(countdown))}
+              </button>
             ) : (
               <button
                 type="button"
                 onClick={onResendCode}
-                className="cursor-pointer text-[#1BA7FF] hover:text-[#1689E6] transition-colors focus:outline-none focus:underline"
+                disabled={loading}
+                className="cursor-pointer text-[#1BA7FF] transition-colors hover:text-[#1689E6] focus:outline-none focus:underline disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Resend code
+                {loading ? 'Sending...' : resendLabel}
               </button>
             )}
           </div>
+          {resendCodeMessage && (
+            <p
+              className="text-center text-[13px] leading-[18px] text-[#666666] whitespace-pre-line"
+              role="status"
+              aria-live="polite"
+            >
+              {resendCodeMessage}
+            </p>
+          )}
+          {deliveryHint ? (
+            <p className="text-center text-[13px] leading-[18px] text-[#666666]">
+              {deliveryHint}
+            </p>
+          ) : null}
         </>
       ) : (
         <Button tl={sendButtonLabel} isLoading={loading} className={buttonClassName} style={buttonStyle} />
@@ -134,80 +163,3 @@ const SuccessAlert = memo(({ message }: { message?: string }) => {
 })
 SuccessAlert.displayName = 'SuccessAlert'
 
-// Legacy component for backward compatibility (optional, can be removed)
-interface FormSubmitSectionProps {
-  mode: 'login' | 'register' | 'forgotPassword' | 'codeLogin' | 'verifyCode'
-  loading: boolean
-  resetSent: boolean
-  codeSent: boolean
-  countdown: number
-  errorMessage: string
-  successMessage?: string
-  buttonLabel: string
-  onResendCode: () => void
-  children?: React.ReactNode
-}
-
-export const FormSubmitSection = memo(({
-  mode,
-  loading,
-  resetSent,
-  codeSent,
-  countdown,
-  errorMessage,
-  successMessage,
-  buttonLabel,
-  onResendCode,
-  children,
-}: FormSubmitSectionProps) => {
-  switch (mode) {
-    case 'login':
-      return <LoginSubmitSection loading={loading} errorMessage={errorMessage} buttonLabel={buttonLabel}>{children}</LoginSubmitSection>
-    case 'register':
-      return <RegisterSubmitSection loading={loading} errorMessage={errorMessage} buttonLabel={buttonLabel}>{children}</RegisterSubmitSection>
-    case 'forgotPassword':
-      return (
-        <ForgotPasswordSubmitSection
-          loading={loading}
-          errorMessage={errorMessage}
-          resetSent={resetSent}
-          successMessage={successMessage}
-          buttonLabel={buttonLabel}
-        >
-          {children}
-        </ForgotPasswordSubmitSection>
-      )
-    case 'codeLogin':
-      return (
-        <CodeLoginSubmitSection
-          loading={loading}
-          errorMessage={errorMessage}
-          codeSent={false}
-          countdown={0}
-          verifyButtonLabel=""
-          sendButtonLabel={buttonLabel}
-          onResendCode={onResendCode}
-        >
-          {children}
-        </CodeLoginSubmitSection>
-      )
-    case 'verifyCode':
-      return (
-        <CodeLoginSubmitSection
-          loading={loading}
-          errorMessage={errorMessage}
-          codeSent={true}
-          countdown={countdown}
-          verifyButtonLabel={buttonLabel}
-          sendButtonLabel=""
-          onResendCode={onResendCode}
-        >
-          {children}
-        </CodeLoginSubmitSection>
-      )
-    default:
-      return null
-  }
-})
-
-FormSubmitSection.displayName = 'FormSubmitSection'

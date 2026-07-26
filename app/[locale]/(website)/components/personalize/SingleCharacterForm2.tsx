@@ -13,11 +13,13 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 //import { ConfigProvider, DatePicker } from 'antd';
-import GiverAvatarCropper from '../../preview/components/GiverAvatarCropper';
+import GiverAvatarCropper, { type PersonalizeCropResult } from '../../preview/components/GiverAvatarCropper';
+import { fileToDataUrl, isPersonalizeCropResult } from '@/utils/personalizePhotoFiles';
 
 export interface PersonalizeFormData2 extends BasicInfoData {
   birthSeason: '' | 'spring' | 'summer' | 'autumn' | 'winter';
   dob: Date | null;
+  originalPhotos: string[];
 }
 
 export interface SingleCharacterForm2Handle {
@@ -45,6 +47,7 @@ interface SingleCharacterForm2Props {
     hairstyle?: string;
     hairColor?: string;
     photo?: { path: string } | null;
+    originalPhotos?: string[];
   };
   bookId?: string;
   // Optional backend-driven values
@@ -70,6 +73,7 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
     photo: initialData?.photo ? { path: initialData.photo.path } as any : null,
     birthSeason: '',
     dob: null,
+    originalPhotos: initialData?.originalPhotos ?? [],
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof PersonalizeFormData2, boolean>>>({});
@@ -172,8 +176,21 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
     }
   };
 
-  const handleCroppedFile = async (file: File) => {
-    const newlyUploadedPaths = await handleImageUpload([file]);
+  const handleCroppedFile = async (input: File | PersonalizeCropResult) => {
+    const croppedFile = isPersonalizeCropResult(input) ? input.croppedFile : input;
+    const originalPath = isPersonalizeCropResult(input)
+      ? await fileToDataUrl(input.originalFile)
+      : null;
+
+    const originalIndex = getUploadedPaths().length;
+    const newlyUploadedPaths = await handleImageUpload([croppedFile]);
+    if (originalPath) {
+      setFormData(prev => {
+        const next = [...(prev.originalPhotos || [])];
+        next[originalIndex] = originalPath;
+        return { ...prev, originalPhotos: next };
+      });
+    }
     if (newlyUploadedPaths.length > 0 && !formData.photo) {
       handleBasicInfoChange('photo', { path: newlyUploadedPaths[0] });
       handleErrorChange('photo', '');
@@ -426,24 +443,21 @@ const SingleCharacterForm2 = forwardRef<SingleCharacterForm2Handle, SingleCharac
 
       {/* 裁剪弹窗：复用 Preview 页 Giver 的裁剪组件，但改为返回裁剪后的 File */}
       {isCropperOpen && pendingPreviewUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white w-full sm:w-[860px] sm:max-w-[95vw] sm:mx-auto rounded-sm overflow-hidden pt-6 pb-4 sm:px-6 max-h-[calc(100dvh-2rem)] overflow-y-auto">
-            <GiverAvatarCropper
-              resultMode="file"
-              uiVariant="personalize"
-              initialSrc={pendingPreviewUrl}
-              maxSize={1024}
-              exportMime="image/jpeg"
-              exportQuality={0.92}
-              spu={undefined}
-              page={undefined}
-              batchId={undefined}
-              onCancel={handleCropperCancel}
-              onDone={() => {}}
-              onDoneFile={handleCroppedFile}
-            />
-          </div>
-        </div>
+        <GiverAvatarCropper
+          resultMode="file"
+          uiVariant="personalize"
+          initialSrc={pendingPreviewUrl}
+          originalFile={pendingFiles[currentCropIndex] ?? pendingFiles[0]}
+          maxSize={1024}
+          exportMime="image/jpeg"
+          exportQuality={0.92}
+          spu={undefined}
+          page={undefined}
+          batchId={undefined}
+          onCancel={handleCropperCancel}
+          onDone={() => {}}
+          onDoneFile={handleCroppedFile}
+        />
       )}
 
       {/* 侧边栏 */}

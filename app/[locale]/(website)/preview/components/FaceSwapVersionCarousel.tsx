@@ -43,6 +43,8 @@ type Props = {
   onMutationBlocked?: () => void;
   onRegenerateStarted?: () => void;
   onImageLoaded?: (pageId: number) => void;
+  /** 仅在需要换脸的第一页显示提示文案 */
+  showDifferentVersionHint?: boolean;
 };
 
 /** 按后端 logs 的原始顺序（过滤 failed），末尾固定 regenerate 页 */
@@ -100,6 +102,7 @@ export default function FaceSwapVersionCarousel({
   onMutationBlocked,
   onRegenerateStarted,
   onImageLoaded,
+  showDifferentVersionHint = false,
 }: Props) {
   const t = useTranslations('Preview');
   const pageCode = String(page.page_code || '');
@@ -322,7 +325,6 @@ export default function FaceSwapVersionCarousel({
   const isProcessingLogSlide =
     currentSlide?.kind === 'log' && currentSlide.log.status === 'processing';
   const totalSlides = slides.length;
-  const counterLabel = `${carouselIndex + 1}/${totalSlides}`;
   const prevDisabled = carouselIndex <= 0 || isRegenerating;
   const nextDisabled = carouselIndex >= totalSlides - 1 || isRegenerating;
 
@@ -375,36 +377,24 @@ export default function FaceSwapVersionCarousel({
             )}
 
             {isRegenerateSlide && (
-              <div
-                className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/70"
-                style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}
-              >
-                {regenerateError ? (
-                  <div className="flex flex-col items-center gap-4 px-6 text-center">
-                    <p className="max-w-xs text-sm text-gray-800">{regenerateError}</p>
-                    <button
-                      type="button"
-                      onClick={() => void handleRegenerate()}
-                      className="rounded border border-black bg-[#F5F5F0] px-6 py-2 text-sm text-black"
-                    >
-                      {t('tryAnotherVersion')}
-                    </button>
-                  </div>
-                ) : (
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-black/[0.45] backdrop-blur-[10px]">
+                <div className="flex flex-col items-center gap-4 px-6 text-center">
+                  {regenerateError && (
+                    <p className="max-w-xs text-sm text-white">{regenerateError}</p>
+                  )}
                   <button
                     type="button"
                     onClick={() => void handleRegenerate()}
-                    className="rounded border border-black bg-[#F5F5F0] px-6 py-2 text-sm text-black"
+                    className="rounded border border-black bg-[#F5F5F0] px-6 py-2 text-sm text-black md:text-lg"
                   >
                     {t('tryAnotherVersion')}
                   </button>
-                )}
+                  <p className="max-w-sm text-sm text-white md:text-lg">
+                    {t('faceSwapSelectedVersionNotice')}
+                  </p>
+                </div>
               </div>
             )}
-
-            <div className="absolute top-3 right-3 z-20 rounded bg-white/80 px-2 py-0.5 text-xs text-gray-800">
-              {counterLabel}
-            </div>
 
             <button
               type="button"
@@ -438,6 +428,14 @@ export default function FaceSwapVersionCarousel({
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>
+
+      {showDifferentVersionHint && (
+        <p className="flex flex-wrap items-center justify-center gap-x-1 px-4 text-center text-sm text-gray-900 sm:text-base md:text-lg">
+          <span>{t('faceSwapDifferentVersionHintBefore')}</span>
+          <ChevronRight className="h-5 w-5 text-[#012CCE]" aria-hidden="true" />
+          <span>{t('faceSwapDifferentVersionHintAfter')}</span>
+        </p>
+      )}
 
       <div className="flex items-center justify-center gap-2">
         {slides.map((slide, index) => {

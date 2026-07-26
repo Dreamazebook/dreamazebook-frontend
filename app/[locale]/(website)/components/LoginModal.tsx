@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect } from 'react'
-import { Link, useRouter } from '@/i18n/routing'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useRouter, usePathname } from '@/i18n/routing'
+import { toRouterPath } from '@/utils/localePath'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import useUserStore from '@/stores/userStore'
@@ -13,7 +14,9 @@ import { NameEmailPasswordFields } from './LoginModal/NameEmailPasswordFields'
 import { CodeInputField } from './LoginModal/CodeInputField'
 import { ModalHeader, CloseButton } from './LoginModal/ModalHeader'
 import { FormSubmitSections } from './LoginModal/FormSubmitSections'
+import { GoogleIcon } from './LoginModal/OAuthButtons'
 import { ErrorAlert } from './LoginModal/Alerts'
+import { Gift, Mail, Sparkles, Zap } from 'lucide-react'
 import api from '@/utils/api'
 import { ApiResponse } from '@/types/api'
 import { readGuestSessionId, writeGuestSessionId } from '@/utils/api'
@@ -27,6 +30,9 @@ export default function LoginModal({
   sendCodeButtonLabel,
   useRedirect = true,
   layout = 'modal',
+  sheetState = 'expanded',
+  onSheetExpand,
+  onSheetCollapse,
 }: {
   showCloseButton?: boolean
   useRedirect?: boolean
@@ -36,6 +42,9 @@ export default function LoginModal({
   sendCodeButtonLabel?: string
   /** Mobile preview unlock uses antd bottom Drawer; desktop stays centered modal */
   layout?: 'modal' | 'bottomSheet'
+  sheetState?: 'header' | 'expanded'
+  onSheetExpand?: () => void
+  onSheetCollapse?: () => void
 }) {
   const t = useTranslations('LoginModal')
   const tPreview = useTranslations('Preview')
@@ -53,10 +62,121 @@ export default function LoginModal({
     verifyLoginCode,
   } = useUserStore()
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
 
   const isPreviewUnlock = loginModalOptions?.loginSource === 'preview_unlock'
   const isBottomSheet = layout === 'bottomSheet'
+  const [showMobileUnlockLanding, setShowMobileUnlockLanding] = useState(true)
+  const sheetDragStartYRef = useRef<number | null>(null)
+  const sheetDragStartTimeRef = useRef(0)
+  const sheetDragOffsetRef = useRef(0)
+  const sheetDrawerWrapperRef = useRef<HTMLElement | null>(null)
+  const sheetDragTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const clearSheetDragTimer = () => {
+    if (!sheetDragTimerRef.current) return
+    clearTimeout(sheetDragTimerRef.current)
+    sheetDragTimerRef.current = null
+  }
+
+  const getDrawerWrapper = (from?: HTMLElement | null) =>
+    (from?.closest('.ant-drawer-content-wrapper') as HTMLElement | null) ??
+    (document.querySelector(
+      '.preview-unlock-bottom-sheet-root .ant-drawer-content-wrapper',
+    ) as HTMLElement | null)
+
+  const resetSheetWrapperStyle = (wrapper: HTMLElement) => {
+    wrapper.style.transition = 'transform 200ms ease-out'
+    wrapper.style.transform = 'translateY(0)'
+    wrapper.style.removeProperty('bottom')
+    sheetDragTimerRef.current = setTimeout(() => {
+      wrapper.style.removeProperty('transition')
+      wrapper.style.removeProperty('transform')
+      wrapper.style.removeProperty('will-change')
+      sheetDragTimerRef.current = null
+    }, 200)
+  }
+
+  // Header 态只渲染白条，不做 peek 裁切；拖拽仅用于手势判定
+  const handleSheetDragStart = (event: React.TouchEvent<HTMLButtonElement>) => {
+    clearSheetDragTimer()
+    sheetDragStartYRef.current = event.touches[0]?.clientY ?? null
+    sheetDragStartTimeRef.current = Date.now()
+    sheetDragOffsetRef.current = 0
+    const wrapper = getDrawerWrapper(event.currentTarget)
+    sheetDrawerWrapperRef.current = wrapper
+    if (wrapper) {
+      wrapper.style.transition = 'none'
+      wrapper.style.willChange = 'transform'
+      wrapper.style.removeProperty('bottom')
+    }
+  }
+
+  const handleSheetDragMove = (event: React.TouchEvent<HTMLButtonElement>) => {
+    if (sheetDragStartYRef.current == null) return
+    const rawOffset =
+      (event.touches[0]?.clientY ?? sheetDragStartYRef.current) - sheetDragStartYRef.current
+    // header: 只响应上滑；expanded: 只响应下拉
+    const offset =
+      sheetState === 'header' ? Math.min(0, rawOffset) : Math.max(0, rawOffset)
+    sheetDragOffsetRef.current = offset
+    if (sheetDrawerWrapperRef.current) {
+      sheetDrawerWrapperRef.current.style.transform = `translateY(${offset}px)`
+    }
+  }
+
+  const handleSheetDragEnd = () => {
+    const dragDuration = Date.now() - sheetDragStartTimeRef.current
+    const shouldChangeState =
+      Math.abs(sheetDragOffsetRef.current) >= 24 ||
+      (Math.abs(sheetDragOffsetRef.current) >= 12 && dragDuration <= 250)
+    const wrapper = sheetDrawerWrapperRef.current
+    sheetDragStartYRef.current = null
+    sheetDragStartTimeRef.current = 0
+    sheetDragOffsetRef.current = 0
+    sheetDrawerWrapperRef.current = null
+
+    if (shouldChangeState) {
+      if (wrapper) resetSheetWrapperStyle(wrapper)
+      if (sheetState === 'header') onSheetExpand?.()
+      else onSheetCollapse?.()
+      return
+    }
+    if (wrapper) resetSheetWrapperStyle(wrapper)
+  }
+
+  const handleSheetDragCancel = () => {
+    const wrapper = sheetDrawerWrapperRef.current
+    sheetDragStartYRef.current = null
+    sheetDragStartTimeRef.current = 0
+    sheetDragOffsetRef.current = 0
+    sheetDrawerWrapperRef.current = null
+    if (wrapper) resetSheetWrapperStyle(wrapper)
+  }
+
+  useEffect(() => {
+    // 切换 header/expanded 时清掉残留 transform，避免白条错位
+    const wrapper = getDrawerWrapper()
+    if (!wrapper) return
+    wrapper.style.removeProperty('transition')
+    wrapper.style.removeProperty('transform')
+    wrapper.style.removeProperty('bottom')
+    wrapper.style.removeProperty('will-change')
+  }, [sheetState])
+
+  useEffect(() => {
+    return () => {
+      if (sheetDragTimerRef.current) clearTimeout(sheetDragTimerRef.current)
+      const wrapper = sheetDrawerWrapperRef.current ?? getDrawerWrapper()
+      if (wrapper) {
+        wrapper.style.removeProperty('transition')
+        wrapper.style.removeProperty('transform')
+        wrapper.style.removeProperty('bottom')
+        wrapper.style.removeProperty('will-change')
+      }
+    }
+  }, [])
   // Unify ALL login UIs to match the preview unlock design.
   const unifiedUI = true
   const previewTitle = loginModalOptions?.title ?? tPreview('unlockFullBookTitle')
@@ -65,7 +185,7 @@ export default function LoginModal({
   )
   const previewFooterNote = showNotCreatorPrompt
     ? undefined
-    : (loginModalOptions?.footerNote ?? tPreview('unlockFullBookFooter'))
+    : loginModalOptions?.footerNote
   const previewSendCodeLabel = loginModalOptions?.sendCodeButtonLabel ?? tPreview('continueWithEmailCode')
   const previewFieldWidth = isBottomSheet ? '100%' : 312
   const previewButtonStyle: React.CSSProperties = {
@@ -93,8 +213,9 @@ export default function LoginModal({
     paddingLeft: 16,
     boxSizing: 'border-box',
   }
-  const previewEmailInputClassName =
-    'shrink-0 rounded-[4px] border border-[#222222] opacity-100 text-[14px] leading-[20px] tracking-[0.25px] text-[#222]'
+  const previewEmailInputClassName = `shrink-0 rounded-[4px] border border-[#222222] opacity-100 ${
+    isBottomSheet ? 'text-[16px]' : 'text-[14px]'
+  } leading-[20px] tracking-[0.25px] text-[#222]`
   const previewEmailLabelClassName = 'shrink-0 text-[14px] leading-[20px] tracking-[0.25px] text-[#222]'
 
   const getSuccessMessage = (): string => {
@@ -109,7 +230,7 @@ export default function LoginModal({
     resetMessages()
     const urlRedirect = searchParams.get('redirect')
     if (urlRedirect) {
-      localStorage.setItem('redirectUrl', urlRedirect)
+      localStorage.setItem('redirectUrl', toRouterPath(urlRedirect))
     }
   }, [state.mode, resetMessages, searchParams])
 
@@ -122,13 +243,11 @@ export default function LoginModal({
 
   // Countdown timer
   useEffect(() => {
-    let timer: NodeJS.Timeout
-    if (state.countdown > 0) {
-      timer = setInterval(() => {
-        setField('countdown', (prev:number) => prev - 1)
-      }, 1000)
-    }
-    return () => clearInterval(timer)
+    if (state.countdown <= 0) return undefined
+    const timer = setTimeout(() => {
+      setField('countdown', state.countdown - 1)
+    }, 1000)
+    return () => clearTimeout(timer)
   }, [state.countdown, setField])
 
   // Auto-submit when code reaches 6 digits
@@ -171,6 +290,7 @@ export default function LoginModal({
         return "We'll email you a link to create a new password.";
       case 'codeLogin':
         if (isPreviewUnlock) {
+          if (isBottomSheet) return '';
           return (
             <>
               {tPreview('unlockFullBookDescriptionPrefix')}{' '}
@@ -225,7 +345,7 @@ export default function LoginModal({
     const urlRedirect = localStorage.getItem('redirectUrl')
     if (urlRedirect) {
       localStorage.removeItem('redirectUrl')
-      router.push(urlRedirect)
+      router.push(toRouterPath(urlRedirect))
     } else {
       router.push(defaultPath)
     }
@@ -255,6 +375,22 @@ export default function LoginModal({
       }
       const url = await fetchOAuthRedirect(provider)
       if (url) {
+        // Modal flows (e.g. preview unlock) keep the user on the current page after OAuth.
+        // Persist in both storages: callback may clear localStorage.redirectUrl on a
+        // re-run (Strict Mode / unstable onSuccess) and otherwise fall back to /shopping-cart.
+        if (!useRedirect) {
+          const query = searchParams.toString()
+          const returnPath = query ? `${pathname}?${query}` : pathname
+          localStorage.setItem('redirectUrl', returnPath)
+          sessionStorage.setItem('oauthReturnUrl', returnPath)
+          // Preview unlock (and any modal OAuth from /preview) must refetch full batch after return.
+          if (
+            loginModalOptions?.loginSource === 'preview_unlock' ||
+            pathname.includes('/preview')
+          ) {
+            sessionStorage.setItem('previewPostLoginSync', '1')
+          }
+        }
         return window.location.href = url
       } else {
         updateState({ errorMessage: t(`${provider.toLowerCase()}OAuthError`) })
@@ -341,17 +477,18 @@ export default function LoginModal({
     return null
   }
 
-  const handleSendLoginCode = async (email: string, isResend = false) => {
+  const handleSendLoginCode = async (email: string, options?: { isResend?: boolean }) => {
     const validationError = getEmailValidationError(email)
     if (validationError) {
       updateState({
         errorMessage: validationError,
         successMessage: '',
+        resendCodeMessage: '',
       })
       return
     }
 
-    if (!isResend) {
+    if (!options?.isResend) {
       trackLoginStart(
         'email_code',
         loginModalOptions?.loginSource || 'unknown',
@@ -363,23 +500,38 @@ export default function LoginModal({
     const trimmedEmail = email.trim()
     const response = await sendLoginCode(trimmedEmail)
     if (response.success) {
-      trackCodeSent(
-        isResend,
-        loginModalOptions?.loginSource || 'unknown',
-        loginModalOptions?.bookId,
-        loginModalOptions?.draftBookId,
-      )
-      updateState({
-        mode: 'verifyCode',
-        successMessage: `We've sent a 6 digit code to ${trimmedEmail}. It expires in 10 minutes.`,
-        countdown: 60,
-        errorMessage: '',
-      })
+      if (options?.isResend && isPreviewUnlock) {
+        updateState({
+          mode: 'verifyCode',
+          resendCodeMessage: t('resendCodeSent'),
+          countdown: 60,
+          errorMessage: '',
+        })
+      } else {
+        updateState({
+          mode: 'verifyCode',
+          successMessage: `We've sent a 6 digit code to ${trimmedEmail}. It expires in 10 minutes.`,
+          resendCodeMessage: '',
+          countdown: 60,
+          errorMessage: '',
+        })
+      }
     } else {
       updateState({
         errorMessage: response.message || t('sendCodeFailed'),
         successMessage: '',
+        resendCodeMessage: '',
       })
+    }
+  }
+
+  const handleResendLoginCode = async (email: string) => {
+    if (state.loading || state.countdown > 0) return
+    setField('loading', true)
+    try {
+      await handleSendLoginCode(email, { isResend: true })
+    } finally {
+      setField('loading', false)
     }
   }
 
@@ -611,26 +763,140 @@ export default function LoginModal({
     </p>
   ) : null
 
+  // Header 态：只渲染白条（标题），避免 peek 裁切露出下方内容
+  if (isBottomSheet && isPreviewUnlock && sheetState === 'header') {
+    return (
+      <main
+        data-login-modal="true"
+        className="relative w-full shrink-0 rounded-t-[16px] bg-white px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 text-[#20202A]"
+        role="main"
+      >
+        <button
+          type="button"
+          aria-label="Expand sign in options"
+          className="flex w-full touch-none flex-col items-center"
+          onClick={onSheetExpand}
+          onTouchStart={handleSheetDragStart}
+          onTouchMove={handleSheetDragMove}
+          onTouchEnd={handleSheetDragEnd}
+          onTouchCancel={handleSheetDragCancel}
+        >
+          <span className="h-1 w-10 rounded-full bg-[#D9D9D9]" />
+          <span className="mt-4 flex items-center justify-center gap-3">
+            <Sparkles className="h-6 w-6 shrink-0 text-[#FFD45A]" strokeWidth={2} aria-hidden="true" />
+            <span className="text-center text-[20px] font-semibold leading-7">
+              {tPreview('continueReadingTitle')}
+            </span>
+          </span>
+        </button>
+      </main>
+    )
+  }
+
+  if (isBottomSheet && isPreviewUnlock && state.mode === 'codeLogin' && showMobileUnlockLanding) {
+    return (
+      <main
+        data-login-modal="true"
+        className="relative flex w-full shrink-0 flex-col rounded-t-[16px] bg-white px-3 pb-[calc(20px+env(safe-area-inset-bottom))] pt-3 text-[#20202A]"
+        role="main"
+      >
+        <button
+          type="button"
+          aria-label="Collapse sign in options"
+          className="absolute inset-x-0 top-0 z-20 flex h-16 w-full touch-none justify-center pt-3"
+          onTouchStart={handleSheetDragStart}
+          onTouchMove={handleSheetDragMove}
+          onTouchEnd={handleSheetDragEnd}
+          onTouchCancel={handleSheetDragCancel}
+        >
+          <span className="h-1 w-10 rounded-full bg-[#D9D9D9]" />
+        </button>
+        <div className="h-4 shrink-0" aria-hidden="true" />
+
+        <div className="mb-4 flex items-center justify-center gap-3">
+          <Sparkles className="h-6 w-6 shrink-0 text-[#FFD45A]" strokeWidth={2} aria-hidden="true" />
+          <h1 className="text-center text-[22px] font-semibold leading-7">
+            {tPreview('continueReadingTitle')}
+          </h1>
+        </div>
+
+        <div className="flex flex-col gap-[10px]">
+          <button
+            type="button"
+            onClick={() => startOAuth('google', 'googleLoading')}
+            disabled={state.googleLoading}
+            className="flex h-[50px] w-full items-center justify-center gap-3 rounded-[10px] bg-[#171717] text-[15px] font-normal text-white transition-opacity disabled:opacity-60"
+          >
+            <GoogleIcon />
+            {tPreview('continueWithGoogle')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowMobileUnlockLanding(false)}
+            className="flex h-[48px] w-full items-center justify-center gap-3 rounded-[10px] border border-[#D2D2D7] bg-white text-[15px] font-normal text-[#20202A]"
+          >
+            <Mail className="h-5 w-5" strokeWidth={1.8} aria-hidden="true" />
+            {tPreview('continueWithEmail')}
+          </button>
+        </div>
+
+        <div className="mt-4 grid grid-cols-[1fr_1px_1fr] items-center gap-5">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F7FF]">
+              <Zap className="h-5 w-5 text-[#4768E9]" strokeWidth={1.8} aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[12px] font-semibold leading-4">{tPreview('quickAccess')}</p>
+              <p className="text-[12px] leading-[14px] text-[#666666]">{tPreview('noPasswordRequired')}</p>
+            </div>
+          </div>
+          <span className="h-10 bg-[#E8E8EC]" aria-hidden="true" />
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F7FF]">
+              <Gift className="h-5 w-5 text-[#4768E9]" strokeWidth={1.8} aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[12px] font-semibold leading-4">{tPreview('welcomeOffer')}</p>
+              <p className="text-[12px] leading-[14px] text-[#666666]">{tPreview('welcomeOfferCheckout')}</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
   return (
     <main
       className={`relative flex shrink-0 flex-col bg-white ${
         isBottomSheet
           ? 'w-full gap-[12px] rounded-t-[16px] px-[24px] pb-[calc(24px+env(safe-area-inset-bottom))] pt-[12px]'
           : unifiedUI
-            ? 'gap-[12px] rounded-[12px] p-[24px]'
+            ? `${isPreviewUnlock ? 'gap-[12px]' : 'gap-[12px]'} rounded-[12px] p-[24px]`
             : isPreviewUnlock
               ? 'gap-[12px] rounded-[12px] p-[24px]'
               : 'w-96 items-center justify-center gap-4 rounded-lg p-4'
       }`}
       style={unifiedUI || isPreviewUnlock || isBottomSheet ? previewModalStyle : undefined}
+      data-login-modal="true"
       role="main"
     >
       {isBottomSheet && (
-        <div className="flex w-full justify-center pb-[4px]" aria-hidden="true">
-          <span className="h-1 w-10 rounded-full bg-[#D9D9D9]" />
-        </div>
+        <>
+          <button
+            type="button"
+            aria-label="Collapse sign in options"
+            className="absolute inset-x-0 top-0 z-20 flex h-16 w-full touch-none justify-center pt-3"
+            onTouchStart={handleSheetDragStart}
+            onTouchMove={handleSheetDragMove}
+            onTouchEnd={handleSheetDragEnd}
+            onTouchCancel={handleSheetDragCancel}
+          >
+            <span className="h-1 w-10 rounded-full bg-[#D9D9D9]" />
+          </button>
+          <div className="h-2 shrink-0" aria-hidden="true" />
+        </>
       )}
-      {showCloseButton && (
+      {showCloseButton && !isBottomSheet && (
         <div className="flex w-full justify-end">
           <CloseButton onClose={closeLoginModal} iconSize={12} />
         </div>
@@ -664,13 +930,14 @@ export default function LoginModal({
           resetSent={state.resetSent}
           successMessage={getSuccessMessage()}
           countdown={state.countdown}
+          resendCodeMessage={state.resendCodeMessage}
           buttonLabel={getButtonLabelByMode()}
           onModeChange={handleModeChange}
           onResetCodeFlow={() => {
             resetCodeFlow()
             setField('resetSent', false)
           }}
-          onSendLoginCode={handleSendLoginCode}
+          onSendLoginCode={handleResendLoginCode}
           googleLoading={state.googleLoading}
           facebookLoading={state.facebookLoading}
           onGoogleLogin={handleGoogleClick}
@@ -686,6 +953,9 @@ export default function LoginModal({
             usePasswordInstead: 'Use password instead',
             changeEmail: t('changeEmail'),
             orContinueWith: t('orContinueWith'),
+            resendCode: t('resendCode'),
+            resendIn: t.raw('resendIn') as string,
+            codeDeliveryHint: t('codeDeliveryHint'),
           }}
           email={state.email}
           unifiedUI={unifiedUI || isPreviewUnlock}
@@ -693,8 +963,9 @@ export default function LoginModal({
           buttonStyle={unifiedUI || isPreviewUnlock ? previewButtonStyle : undefined}
           fluid={isBottomSheet}
           oauthFooter={previewOAuthFooter}
+          hidePasswordLogin={isPreviewUnlock}
         />
-        {(isPreviewUnlock ? previewFooterNote : footerNote) && state.mode === 'codeLogin' && (
+        {!isBottomSheet && (isPreviewUnlock ? previewFooterNote : footerNote) && state.mode === 'codeLogin' && (
           <p className="text-center text-[14px] leading-[20px] tracking-[0.25px] font-normal text-[#999999]">
             {isPreviewUnlock ? previewFooterNote : footerNote}
           </p>

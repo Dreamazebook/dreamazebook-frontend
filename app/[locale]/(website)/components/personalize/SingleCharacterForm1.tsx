@@ -17,7 +17,8 @@ import {
   useDadMomChildPhotoSlots,
   type DadMomChildSlotIndex,
 } from '../../hooks/useDadMomChildPhotoSlots';
-import GiverAvatarCropper from '../../preview/components/GiverAvatarCropper';
+import GiverAvatarCropper, { type PersonalizeCropResult } from '../../preview/components/GiverAvatarCropper';
+import { fileToDataUrl, isPersonalizeCropResult } from '@/utils/personalizePhotoFiles';
 import BirthdayBringThemToLifeStep from './BirthdayBringThemToLifeStep';
 import { isPicbookBirthday } from '@/utils/isPicbookBirthday';
 import { isPicbookMom } from '@/utils/isPicbookMom';
@@ -30,6 +31,7 @@ const BIRTHDAY_TRAITS_REQUIRED = 4;
 
 export interface PersonalizeFormData extends BasicInfoData {
   photos: string[];
+  originalPhotos: string[];
   relationship?: string;
   consent?: boolean;
   /** PICBOOK_BIRTHDAY：生日与特质 */
@@ -87,6 +89,7 @@ interface SingleCharacterForm1Props {
     fromWhom?: string;
     photo?: { path: string } | null;
     photos?: string[];
+    originalPhotos?: string[];
     birthDate?: string;
     personalityTraitIds?: string[];
     momCallsMe?: string;
@@ -147,6 +150,7 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       fromWhom: initialData?.fromWhom ?? '',
       photo: initialData?.photo ? ({ path: initialData.photo.path } as any) : null,
       photos: [],
+      originalPhotos: initialData?.originalPhotos ?? [],
       relationship: initialData?.relationship ?? 'Parent/Guardian',
       consent: initialData?.consent ?? !!defaultConsentChecked,
       birthDate: parseBirthDateIso(initialData?.birthDate) ?? null,
@@ -434,9 +438,23 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       }
     };
 
-    const handleCroppedFile = async (file: File) => {
+    const upsertOriginalPhotoAt = (index: number, originalPath: string) => {
+      setFormData(prev => {
+        const next = [...(prev.originalPhotos || [])];
+        next[index] = originalPath;
+        return { ...prev, originalPhotos: next };
+      });
+    };
+
+    const handleCroppedFile = async (input: File | PersonalizeCropResult) => {
+      const croppedFile = isPersonalizeCropResult(input) ? input.croppedFile : input;
+      const originalPath = isPersonalizeCropResult(input)
+        ? await fileToDataUrl(input.originalFile)
+        : null;
+
       if (isDadBook && pendingDadSlot !== null) {
-        const path = await uploadToDadSlot(pendingDadSlot, file);
+        const path = await uploadToDadSlot(pendingDadSlot, croppedFile);
+        if (originalPath) upsertOriginalPhotoAt(pendingDadSlot, originalPath);
         setTouched(prev => ({ ...prev, photo: true }));
         if (path) {
           handleErrorChange('photo', '');
@@ -453,7 +471,8 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
       }
 
       if (isMomBook && pendingMomSlot !== null) {
-        const path = await uploadToSlot(pendingMomSlot, file);
+        const path = await uploadToSlot(pendingMomSlot, croppedFile);
+        if (originalPath) upsertOriginalPhotoAt(pendingMomSlot, originalPath);
         setTouched(prev => ({ ...prev, photo: true }));
         if (path) {
           handleErrorChange('photo', '');
@@ -469,7 +488,11 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
         return;
       }
 
-      const newlyUploadedPaths = await handleImageUpload([file]);
+      const insertIndex = getUploadedPaths().length;
+      const newlyUploadedPaths = await handleImageUpload([croppedFile]);
+      if (originalPath) {
+        upsertOriginalPhotoAt(insertIndex, originalPath);
+      }
 
       if (newlyUploadedPaths.length > 0 && !formData.photo) {
         handleBasicInfoChange('photo', { path: newlyUploadedPaths[0] });
@@ -1014,24 +1037,21 @@ const SingleCharacterForm1 = forwardRef<SingleCharacterForm1Handle, SingleCharac
         )}
 
         {isCropperOpen && pendingPreviewUrl && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="bg-white w-full sm:w-[860px] sm:max-w-[95vw] sm:mx-auto rounded-sm overflow-hidden pt-6 pb-4 sm:px-6 max-h-[calc(100dvh-2rem)] overflow-y-auto">
-              <GiverAvatarCropper
-                resultMode="file"
-                uiVariant="personalize"
-                initialSrc={pendingPreviewUrl}
-                maxSize={1024}
-                exportMime="image/jpeg"
-                exportQuality={0.92}
-                spu={undefined}
-                page={undefined}
-                batchId={undefined}
-                onCancel={handleCropperCancel}
-                onDone={() => {}}
-                onDoneFile={handleCroppedFile}
-              />
-            </div>
-          </div>
+          <GiverAvatarCropper
+            resultMode="file"
+            uiVariant="personalize"
+            initialSrc={pendingPreviewUrl}
+            originalFile={pendingFiles[currentCropIndex] ?? pendingFiles[0]}
+            maxSize={1024}
+            exportMime="image/jpeg"
+            exportQuality={0.92}
+            spu={undefined}
+            page={undefined}
+            batchId={undefined}
+            onCancel={handleCropperCancel}
+            onDone={() => {}}
+            onDoneFile={handleCroppedFile}
+          />
         )}
 
         {(isDadBook || isMomBook) && (

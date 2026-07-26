@@ -8,6 +8,7 @@ import BookDetailSkeleton from '../../components/books/BookDetailSkeleton';
 import BookDetailStickyBar from '../../components/books/BookDetailStickyBar';
 import ReviewsSection from '../../components/reviews/Reviews';
 import BookSections from '../../components/books/BookSections';
+import { getBookCreatePath } from '@/constants/bookRoutes';
 
 interface PagePic {
   id: number;
@@ -73,7 +74,7 @@ export default function BookDetailClient({
           keywords={keywords}
           reviews={reviews}
           primaryButtonLabel={t('personalizeButton')}
-          primaryButtonHref={`/personalize?bookid=${productId}`}
+          primaryButtonHref={getBookCreatePath(productId)}
           onPrimaryClick={handlePersonalizeClick}
           availableLanguages={availableLanguages}
           bookId={productId}
@@ -90,7 +91,7 @@ export default function BookDetailClient({
         <BookDetailStickyBar
           book={book}
           primaryButtonLabel={t('personalizeButton')}
-          primaryButtonHref={`/personalize?bookid=${productId}`}
+          primaryButtonHref={getBookCreatePath(productId)}
           onPrimaryClick={handlePersonalizeClick}
           selectedLanguage={availableLanguages[0] || 'en'}
         />

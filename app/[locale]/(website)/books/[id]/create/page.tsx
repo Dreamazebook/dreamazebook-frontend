@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { usePathname, Link, useRouter } from '@/i18n/routing';
 import { IoIosArrowBack } from '@/utils/icons';
 import api from '@/utils/api';
 import { fbTrackCustom, getContentIdBySpu, trackViewItem, trackStartPersonalization, trackCreatePreview } from '@/utils/track';
-import SingleCharacterForm1, { SingleCharacterForm1Handle } from '../components/personalize/SingleCharacterForm1';
-import SingleCharacterForm2, { SingleCharacterForm2Handle } from '../components/personalize/SingleCharacterForm2';
-import SingleCharacterForm3, { SingleCharacterForm3Handle } from '../components/personalize/SingleCharacterForm3';
+import SingleCharacterForm1, { SingleCharacterForm1Handle } from '../../../components/personalize/SingleCharacterForm1';
+import SingleCharacterForm2, { SingleCharacterForm2Handle } from '../../../components/personalize/SingleCharacterForm2';
+import SingleCharacterForm3, { SingleCharacterForm3Handle } from '../../../components/personalize/SingleCharacterForm3';
 import { buildProductSchema, extractFieldOptions, resolveSkuPrice } from '@/utils/productAdapter';
 import { mapAgeStageUiToBackend } from '@/utils/mapAgeStageToBackend';
 import usePreviewStore from '@/stores/previewStore';
@@ -18,7 +18,7 @@ import { isPicbookMom } from '@/utils/isPicbookMom';
 import { isPicbookDad } from '@/utils/isPicbookDad';
 import { getPersonalizeAvatarAssetSpu } from '@/utils/personalizeAvatar';
 import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
-import { getBookPath } from '@/constants/bookRoutes';
+import { getBookPath, getPreviewPath, PENDING_PREVIEW_TOKEN, resolveBookRouteFromParam } from '@/constants/bookRoutes';
 import { buildPreviewRenderPayload } from '@/utils/previewRenderPayload';
 import {
   buildDadQuestionAttributes,
@@ -95,13 +95,17 @@ let viewContentTracked = false;
 
 export default function PersonalizeApiDrivenPage() {
   const searchParams = useSearchParams();
-  // Accept multiple identifiers: book name, spu_code, or legacy id
-  const bookId =
+  const params = useParams<{ id: string }>();
+  const routeBook = resolveBookRouteFromParam(String(params?.id || ''));
+  // Path slug is canonical; query still accepted as override for cart/KS flows.
+  const bookId = (
     searchParams.get('book') ||
     searchParams.get('name') ||
     searchParams.get('spu') ||
     searchParams.get('bookid') ||
-    '';
+    routeBook.productId ||
+    ''
+  ).toUpperCase();
   const mockParam = searchParams.get('mock');
   const useForm3 = searchParams.get('form3') === '1' || searchParams.get('form') === '3';
   const isKs = searchParams.get('ks') === '1';
@@ -618,6 +622,7 @@ export default function PersonalizeApiDrivenPage() {
     let hairColorRaw = '';
     let relationshipRaw: string | undefined;
     let photosData: string[] = [];
+    let originalPhotosData: string[] = [];
     let ageStageRaw: string | undefined;
     let fromWhomRaw = '';
 
@@ -636,6 +641,7 @@ export default function PersonalizeApiDrivenPage() {
       hairColorRaw = f.hairColor;
       relationshipRaw = (f as any).relationship;
       photosData = (f as any).photos || [];
+      originalPhotosData = (f as any).originalPhotos || [];
       ageStageRaw = f.ageStage;
       fromWhomRaw = String(f.fromWhom || '').trim();
     } else if (formType === 'SINGLE2' && (useForm3 ? !!form3Ref.current : !!form2Ref.current)) {
@@ -653,6 +659,7 @@ export default function PersonalizeApiDrivenPage() {
       hairColorRaw = f.hairColor;
       relationshipRaw = (f as any).relationship;
       photosData = (f as any).photos || [];
+      originalPhotosData = (f as any).originalPhotos || [];
       ageStageRaw = (f as any).ageStage;
       fromWhomRaw = String((f as any).fromWhom || '').trim();
     } else {
@@ -736,6 +743,7 @@ export default function PersonalizeApiDrivenPage() {
             photo:
               (isMomBookPersonalize ? photosData[1] : isDadBookPersonalize ? photosData[2] : photosData[0]) || '',
             photos: photosData,
+            original_photos: originalPhotosData,
             attributes: {
               skin_tone: mapSkinToBackend(skinColorRaw),
               hair_style: mapHairstyleToBackend(hairstyleCode),
@@ -808,7 +816,8 @@ export default function PersonalizeApiDrivenPage() {
       if (bindingType) qs.set('binding_type', bindingType);
 
       // 关键修复：从购物车的 bundle/占位条目（mode=create）进入 personalize 时，不应该在 preview 里再次新增一条购物车记录。
-      // 做法：在此处先用 regenerate-preview 把生成的 preview 绑定到原 cart item，然后带 previewid 进入 preview 页。
+      // 做法：在此处先用 regenerate-preview 把生成的 preview 绑定到原 cart item，然后带 preview token 进入 preview 页。
+      let previewToken = PENDING_PREVIEW_TOKEN;
       if (fromCartItemId && !isHideOptions) {
         try {
           const ch: any = (userData as any)?.characters?.[0] || {};
@@ -830,7 +839,7 @@ export default function PersonalizeApiDrivenPage() {
             responseData?.batch?.id ||
             resp?.batch?.batch_id ||
             resp?.batch?.id;
-          if (bid) qs.set('previewid', String(bid));
+          if (bid) previewToken = String(bid);
           if (responseData?.reused_preview === true || resp?.reused_preview === true) qs.set('skipRender', '1');
         } catch (e) {
           console.error('[CartCreateFlow] regenerate-preview failed:', e);
@@ -853,7 +862,7 @@ export default function PersonalizeApiDrivenPage() {
       }
 
       await saveCurrentDraft(true);
-      router.push(`/preview?${qs.toString()}`);
+      router.push(getPreviewPath(previewToken, qs));
     } catch (error) {
       console.error('Failed to continue:', error);
       // 发生错误时重置 loading 状态，允许用户重试

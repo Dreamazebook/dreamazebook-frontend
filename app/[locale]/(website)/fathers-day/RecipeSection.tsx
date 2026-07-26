@@ -6,6 +6,7 @@ import {
   mobileAsset,
   pcAsset,
 } from './fathersDayAssets';
+import { getBookCreatePath } from '@/constants/bookRoutes';
 
 const DAD_BOOK_ID = 'PICBOOK_DAD';
 
@@ -199,7 +200,7 @@ export default function RecipeSection() {
 
         <div className="flex w-full justify-center">
           <Link
-            href={`/personalize?book=${DAD_BOOK_ID}`}
+            href={getBookCreatePath(DAD_BOOK_ID)}
             className="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-[#222222] px-4 py-2 text-[16px] leading-[24px] tracking-[0.5px] text-[#FCF2F2] md:w-auto"
           >
             Create Your Book

@@ -13,6 +13,7 @@ export interface FormState {
   resetSent: boolean
   errorMessage: string
   successMessage: string
+  resendCodeMessage: string
   googleLoading: boolean
   facebookLoading: boolean
   showPassword: boolean
@@ -31,6 +32,7 @@ export const useLoginState = () => {
     resetSent: false,
     errorMessage: '',
     successMessage: '',
+    resendCodeMessage: '',
     googleLoading: false,
     facebookLoading: false,
     showPassword: false,
@@ -50,6 +52,7 @@ export const useLoginState = () => {
       ...prev,
       errorMessage: '',
       successMessage: '',
+      resendCodeMessage: '',
     }))
   }, [])
 
@@ -64,6 +67,7 @@ export const useLoginState = () => {
       mode: backModeMap[prev.mode] || 'codeLogin',
       code: '',
       successMessage: '',
+      resendCodeMessage: '',
       errorMessage: '',
       countdown: 0,
     }))

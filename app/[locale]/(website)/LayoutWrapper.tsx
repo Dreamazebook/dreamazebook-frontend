@@ -19,12 +19,12 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const segments = useSelectedLayoutSegments();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const isPersonalizePage = segments.includes("personalize");
+  const isPersonalizePage = segments.includes("books") && segments.includes("create");
   const isPersonalizedProductsPage = segments.includes("personalized-products");
   const isPreviewPage = segments.includes("preview");
   const isSelectBookContentPage = segments.includes("select-book-content");
   const isKickstarterConfigPage = segments.includes("kickstarter-config");
-  const isBookDetailPage = segments[0] === 'books' && segments.length > 1;
+  const isBookDetailPage = segments[0] === 'books' && segments.length === 2;
   const isFathersDayPage = pathname === '/fathers-day' || pathname?.endsWith('/fathers-day');
   const isLoginPage = pathname === '/login' || pathname?.endsWith('/login');
   const isHomePage = pathname === '/' || pathname?.endsWith('/en') || pathname?.endsWith('/fr') || pathname?.endsWith('/zh');
@@ -33,7 +33,16 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const isEmbedMode = searchParams.get('embed') === 'true';
 
   // 在组件中
-  const { fetchCurrentUser, isLoggedIn, checkKickstarterStatus, isLoginModalOpen, loginModalOptions, closeLoginModal } = useUserStore();
+  const {
+    fetchCurrentUser,
+    isLoggedIn,
+    checkKickstarterStatus,
+    isLoginModalOpen,
+    loginModalOptions,
+    closeLoginModal,
+    previewUnlockSheetSnap,
+    setPreviewUnlockSheetSnap,
+  } = useUserStore();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
 
@@ -41,6 +50,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     isLoginModalOpen &&
     loginModalOptions?.loginSource === 'preview_unlock' &&
     isMobileViewport;
+  const previewUnlockSheetState = previewUnlockSheetSnap;
 
   // 获取当前页面的滚动到顶部按钮配置
   // const scrollToTopConfig = getScrollToTopConfig(pathname);
@@ -70,6 +80,93 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     return () => mq.removeEventListener('change', sync);
   }, []);
 
+  useEffect(() => {
+    if (!isPreviewUnlockSheet || previewUnlockSheetState !== 'expanded') return undefined;
+
+    let startY: number | null = null;
+    const mask = document.querySelector(
+      '.preview-unlock-bottom-sheet-root .ant-drawer-mask',
+    ) as HTMLElement | null;
+    if (!mask) return undefined;
+
+    const collapseToHeader = () => setPreviewUnlockSheetSnap('header');
+
+    const handleTouchStart = (event: TouchEvent) => {
+      startY = event.touches[0]?.clientY ?? null;
+    };
+    const handleTouchEnd = (event: TouchEvent) => {
+      if (startY == null) return;
+      const endY = event.changedTouches[0]?.clientY ?? startY;
+      const deltaY = endY - startY;
+      // Tap or swipe-down on mask: hide mask, keep sheet in header peek
+      if (deltaY >= 24 || Math.abs(deltaY) < 12) {
+        collapseToHeader();
+      }
+      startY = null;
+    };
+    const handleTouchCancel = () => {
+      startY = null;
+    };
+    const handleClick = () => {
+      collapseToHeader();
+    };
+
+    mask.addEventListener('click', handleClick);
+    mask.addEventListener('touchstart', handleTouchStart, { passive: true });
+    mask.addEventListener('touchend', handleTouchEnd, { passive: true });
+    mask.addEventListener('touchcancel', handleTouchCancel, { passive: true });
+    return () => {
+      mask.removeEventListener('click', handleClick);
+      mask.removeEventListener('touchstart', handleTouchStart);
+      mask.removeEventListener('touchend', handleTouchEnd);
+      mask.removeEventListener('touchcancel', handleTouchCancel);
+    };
+  }, [isPreviewUnlockSheet, previewUnlockSheetState, setPreviewUnlockSheetSnap]);
+
+  // 仅在完整展开（有灰色蒙层）时锁定背景滚动；Header peek 时可继续浏览预览页
+  useEffect(() => {
+    if (!isLoginModalOpen || isLoginPage) return undefined;
+    const shouldLockBackground =
+      !isPreviewUnlockSheet || previewUnlockSheetState === 'expanded';
+    if (!shouldLockBackground) return undefined;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = body.style.overflow;
+    const prevHtmlOverscroll = html.style.overscrollBehavior;
+    const prevBodyOverscroll = body.style.overscrollBehavior;
+
+    html.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    html.style.overscrollBehavior = 'none';
+    body.style.overscrollBehavior = 'none';
+
+    const isInsideLoginSheet = (target: EventTarget | null) => {
+      const el = target instanceof Element ? target : null;
+      return Boolean(
+        el?.closest('[data-login-modal="true"]') ||
+          el?.closest('.preview-unlock-bottom-sheet') ||
+          el?.closest('.ant-drawer-content'),
+      );
+    };
+
+    const preventBackgroundTouchMove = (event: TouchEvent) => {
+      if (isInsideLoginSheet(event.target)) return;
+      event.preventDefault();
+    };
+
+    document.addEventListener('touchmove', preventBackgroundTouchMove, { passive: false });
+
+    return () => {
+      document.removeEventListener('touchmove', preventBackgroundTouchMove);
+      html.style.overflow = prevHtmlOverflow;
+      body.style.overflow = prevBodyOverflow;
+      html.style.overscrollBehavior = prevHtmlOverscroll;
+      body.style.overscrollBehavior = prevBodyOverscroll;
+    };
+  }, [isLoginModalOpen, isLoginPage, isPreviewUnlockSheet, previewUnlockSheetState]);
+
   // 登录状态变化后检查Kickstarter套餐
   useEffect(() => {
     if (isLoggedIn) {
@@ -91,6 +188,9 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
       footerNote={loginModalOptions?.footerNote}
       sendCodeButtonLabel={loginModalOptions?.sendCodeButtonLabel}
       layout={isPreviewUnlockSheet ? 'bottomSheet' : 'modal'}
+      sheetState={previewUnlockSheetState}
+      onSheetExpand={() => setPreviewUnlockSheetSnap('expanded')}
+      onSheetCollapse={() => setPreviewUnlockSheetSnap('header')}
     />
   );
 
@@ -110,27 +210,37 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
         <Drawer
           open={isLoginModalOpen}
           placement="bottom"
-          onClose={closeLoginModal}
+          onClose={() => {
+            // Mask click/ESC: hide gray mask and collapse to header peek; keep sheet mounted
+            setPreviewUnlockSheetSnap('header');
+          }}
           closable={false}
           height="auto"
           destroyOnClose
-          maskClosable
+          mask={previewUnlockSheetState === 'expanded'}
+          maskClosable={previewUnlockSheetState === 'expanded'}
           zIndex={1000}
           styles={{
-            mask: { background: 'rgba(0, 0, 0, 0.45)' },
+            mask: { background: 'rgba(0, 0, 0, 0.45)', touchAction: 'none' },
             body: {
               padding: 0,
+              height: 'auto',
               maxHeight: 'min(90dvh, 90vh)',
               overflowY: 'auto',
               overscrollBehavior: 'contain',
+              touchAction: 'pan-y',
+              background: 'transparent',
             },
             content: {
               borderRadius: '16px 16px 0 0',
               overflow: 'hidden',
+              height: 'auto',
+              background: 'transparent',
             },
             wrapper: {
               height: 'auto',
               maxHeight: 'min(90dvh, 90vh)',
+              background: 'transparent',
             },
           }}
           className="preview-unlock-bottom-sheet"

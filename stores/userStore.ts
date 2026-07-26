@@ -23,14 +23,19 @@ export type LoginModalOptions = {
   personalizeHref?: string
   /** 是否在 OAuth 按钮下方展示「Not the creator?」提示 */
   showNotCreatorPrompt?: boolean
+  /** 手机预览解锁 Sheet 的初始展示状态；触底展开 / 锁图页露出 header */
+  previewUnlockSheetState?: 'header' | 'expanded'
 }
 
 interface UserState {
   // Modal state
   isLoginModalOpen: boolean
   loginModalOptions: LoginModalOptions | null
+  /** 手机 preview_unlock bottom sheet 当前 snap（与 options 初始值分离，支持收起后再展开） */
+  previewUnlockSheetSnap: 'header' | 'expanded'
   openLoginModal: (options?: LoginModalOptions) => void
   setLoginModalOptions: (options: LoginModalOptions) => void
+  setPreviewUnlockSheetSnap: (snap: 'header' | 'expanded') => void
   closeLoginModal: () => void
   toggleLoginModal: () => void
   setLoginUserToken: (userResponse:UserResponse) => void
@@ -74,12 +79,27 @@ const useUserStore = create<UserState>((set,get) => ({
   // Modal state - initially closed
   isLoginModalOpen: false,
   loginModalOptions: null,
-  openLoginModal: (options) => set({ isLoginModalOpen: true, loginModalOptions: options ?? null }),
+  previewUnlockSheetSnap: 'expanded',
+  openLoginModal: (options) =>
+    set({
+      isLoginModalOpen: true,
+      loginModalOptions: options ?? null,
+      previewUnlockSheetSnap: options?.previewUnlockSheetState ?? 'expanded',
+    }),
   setLoginModalOptions: (options) => set({ loginModalOptions: options }),
-  closeLoginModal: () => set({ isLoginModalOpen: false, loginModalOptions: null }),
+  setPreviewUnlockSheetSnap: (snap) => set({ previewUnlockSheetSnap: snap }),
+  closeLoginModal: () =>
+    set({
+      isLoginModalOpen: false,
+      loginModalOptions: null,
+      previewUnlockSheetSnap: 'expanded',
+    }),
   toggleLoginModal: () => set((state) => ({
     isLoginModalOpen: !state.isLoginModalOpen,
     loginModalOptions: state.isLoginModalOpen ? null : state.loginModalOptions,
+    previewUnlockSheetSnap: state.isLoginModalOpen
+      ? 'expanded'
+      : state.previewUnlockSheetSnap,
   })),
   // Post-login redirect state
   

@@ -81,7 +81,7 @@ export const seoConfigs: Record<string, SEOPageConfig> = {
       'create storybook',
       'personalized photo book',
     ],
-    canonicalUrl: 'https://dreamazebook.com/en/personalize',
+    canonicalUrl: 'https://dreamazebook.com/en/books',
   },
   aboutUs: {
     title: 'About Dreamaze | Our Mission & Story',

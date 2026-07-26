@@ -34,9 +34,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
             ? 1.0
             : page === '/books'
               ? 0.9
-              : page === '/personalize'
-                ? 0.85
-                : 0.8,
+              : 0.8,
       };
     })
   );

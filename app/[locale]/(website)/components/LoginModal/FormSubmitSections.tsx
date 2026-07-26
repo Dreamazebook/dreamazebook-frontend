@@ -11,10 +11,11 @@ interface FormSubmitSectionsProps {
   resetSent: boolean
   successMessage: string
   countdown: number
+  resendCodeMessage?: string
   buttonLabel: string
   onModeChange: (newMode: LoginMode) => void
   onResetCodeFlow: () => void
-  onSendLoginCode: (email: string, isResend?: boolean) => void
+  onSendLoginCode: (email: string, options?: { isResend?: boolean }) => void
   googleLoading: boolean
   facebookLoading: boolean
   onGoogleLogin: ((...args: any[]) => any) | (() => void)
@@ -30,6 +31,9 @@ interface FormSubmitSectionsProps {
     usePasswordInstead: string
     changeEmail: string
     orContinueWith: string
+    resendCode: string
+    resendIn: string
+    codeDeliveryHint: string
   }
   email: string
   /** Use the unified preview-like login styles */
@@ -40,6 +44,8 @@ interface FormSubmitSectionsProps {
   fluid?: boolean
   /** 渲染在 OAuth 按钮下方（如 preview 非创建者引导） */
   oauthFooter?: ReactNode
+  /** 隐藏验证码登录中的密码登录入口 */
+  hidePasswordLogin?: boolean
 }
 
 export const FormSubmitSections = memo(({
@@ -49,6 +55,7 @@ export const FormSubmitSections = memo(({
   resetSent,
   successMessage,
   countdown,
+  resendCodeMessage,
   buttonLabel,
   onModeChange,
   onResetCodeFlow,
@@ -65,6 +72,7 @@ export const FormSubmitSections = memo(({
   buttonStyle,
   fluid = false,
   oauthFooter,
+  hidePasswordLogin = false,
 }: FormSubmitSectionsProps) => {
   const oauthVariant = unifiedUI ? ('labeled' as const) : ('default' as const)
   return (
@@ -169,16 +177,18 @@ export const FormSubmitSections = memo(({
           countdown={0}
           verifyButtonLabel=""
           sendButtonLabel={buttonLabel}
-          onResendCode={() => onSendLoginCode(email, true)}
+          onResendCode={() => onSendLoginCode(email, { isResend: true })}
           buttonClassName={buttonClassName}
           buttonStyle={buttonStyle}
         >
-          <CodeLoginEmailLinks
-            onLogin={() => onModeChange('login')}
-            translations={{
-              usePasswordInstead: translations.usePasswordInstead,
-            }}
-          />
+          {!hidePasswordLogin && (
+            <CodeLoginEmailLinks
+              onLogin={() => onModeChange('login')}
+              translations={{
+                usePasswordInstead: translations.usePasswordInstead,
+              }}
+            />
+          )}
           <OAuthButtons
             googleLoading={googleLoading}
             facebookLoading={facebookLoading}
@@ -202,7 +212,7 @@ export const FormSubmitSections = memo(({
           countdown={countdown}
           verifyButtonLabel={buttonLabel}
           sendButtonLabel=""
-          onResendCode={() => onSendLoginCode(email, true)}
+          onResendCode={() => onSendLoginCode(email, { isResend: true })}
           buttonClassName={buttonClassName}
           buttonStyle={buttonStyle}
         >

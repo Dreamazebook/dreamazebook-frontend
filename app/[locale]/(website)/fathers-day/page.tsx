@@ -7,6 +7,7 @@ import RecipeSection from './RecipeSection';
 import AFewPagesDadNeverForget from './AFewPagesDadNeverForget';
 import { FATHERS_DAY_BUNDLE_PROMO } from './fathersDayBundlePromo';
 import { FATHERS_DAY_MOBILE, FATHERS_DAY_PC, mobileAsset, pcAsset } from './fathersDayAssets';
+import { getBookCreatePath } from '@/constants/bookRoutes';
 
 const DAD_BOOK_ID = 'PICBOOK_DAD';
 
@@ -62,7 +63,7 @@ export default function FathersDayPage() {
 
                 <div className="w-full">
                   <Link
-                    href={`/personalize?book=${DAD_BOOK_ID}`}
+                    href={getBookCreatePath(DAD_BOOK_ID)}
                     className="w-full md:w-auto bg-[#222222] text-[#FCF2F2] text-[16px] leading-[24px] tracking-[0.5px] px-4 py-2 rounded-sm inline-flex items-center gap-2 justify-center"
                   >
                     Create Your Book
