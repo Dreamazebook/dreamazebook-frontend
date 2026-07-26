@@ -20,6 +20,7 @@ import { Gift, Mail, Sparkles, Zap } from 'lucide-react'
 import api from '@/utils/api'
 import { ApiResponse } from '@/types/api'
 import { readGuestSessionId, writeGuestSessionId } from '@/utils/api'
+import { trackLoginStart, trackCodeSent, trackLoginAttempt, trackLoginSuccess } from '@/utils/track'
 
 export default function LoginModal({
   showCloseButton = false,
@@ -402,6 +403,15 @@ export default function LoginModal({
     }
   }
 
+  const handleGoogleClick = () => {
+    trackLoginStart(
+      'google',
+      loginModalOptions?.loginSource || 'unknown',
+      loginModalOptions?.bookId,
+      loginModalOptions?.draftBookId,
+    )
+  }
+
   const handleGoogleCredentialLogin = async (credential: string) => {
     setField('googleLoading', true)
     updateState({ errorMessage: '' })
@@ -430,6 +440,12 @@ export default function LoginModal({
       }
 
       if (response.success) {
+        trackLoginSuccess(
+          'google',
+          loginModalOptions?.loginSource || 'unknown',
+          loginModalOptions?.bookId,
+          loginModalOptions?.draftBookId,
+        )
         setLoginUserToken({user: response.user, token: response.token});
         checkKickstarterStatus()
         handlePostLoginRedirect()
@@ -472,6 +488,15 @@ export default function LoginModal({
       return
     }
 
+    if (!options?.isResend) {
+      trackLoginStart(
+        'email_code',
+        loginModalOptions?.loginSource || 'unknown',
+        loginModalOptions?.bookId,
+        loginModalOptions?.draftBookId,
+      )
+    }
+
     const trimmedEmail = email.trim()
     const response = await sendLoginCode(trimmedEmail)
     if (response.success) {
@@ -512,7 +537,20 @@ export default function LoginModal({
 
   const handleVerifyLoginCode = async (email: string, code: string) => {
     const response = await verifyLoginCode(email, code)
+    const attemptResult = response?.success ? 'success' : 'failed'
+    trackLoginAttempt(
+      attemptResult,
+      loginModalOptions?.loginSource || 'unknown',
+      loginModalOptions?.bookId,
+      loginModalOptions?.draftBookId,
+    )
     if (response?.success) {
+      trackLoginSuccess(
+        'email_code',
+        loginModalOptions?.loginSource || 'unknown',
+        loginModalOptions?.bookId,
+        loginModalOptions?.draftBookId,
+      )
       checkKickstarterStatus()
       handlePostLoginRedirect()
     } else {
@@ -902,7 +940,7 @@ export default function LoginModal({
           onSendLoginCode={handleResendLoginCode}
           googleLoading={state.googleLoading}
           facebookLoading={state.facebookLoading}
-          onGoogleLogin={handleGoogleCredentialLogin}
+          onGoogleLogin={handleGoogleClick}
           onFacebookLogin={handleFacebookLogin}
           onGoogleCredential={handleGoogleCredentialLogin}
           translations={{

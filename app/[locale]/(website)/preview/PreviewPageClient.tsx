@@ -1504,6 +1504,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       sendCodeButtonLabel: t('continueWithEmailCode'),
       loginSource: 'preview_unlock',
       bookSlug: getShortBookSlug(previewBookId),
+      bookId: previewBookId,
       personalizeHref,
       showNotCreatorPrompt: isNotCreator,
     });
