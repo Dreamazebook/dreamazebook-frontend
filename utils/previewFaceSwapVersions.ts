@@ -83,9 +83,9 @@ function normalizeBatchPageCodeKey(pageCode: unknown): string {
     .replace(/^p(\d+)-p(\d+)$/, 'p$1-$2');
 }
 
-/** 从 p1-2 / p3-p4 等跨页 code 解析起始页码，用于书本阅读顺序排序 */
+/** 从 p1-2 / p3-p4 / p11-12_traits 等跨页 code 解析起始页码，用于书本阅读顺序排序 */
 export function parseSpreadStartFromPageCode(pageCode: unknown): number | null {
-  const normalized = normalizeBatchPageCodeKey(pageCode);
+  const normalized = stripPreviewPageCodeSuffix(normalizeBatchPageCodeKey(pageCode));
   const match = normalized.match(/^p(\d+)-(\d+)$/);
   if (!match) return null;
   const start = Number(match[1]);
@@ -213,15 +213,42 @@ export function pickBatchPageImageRaw(bp: Record<string, unknown> | null | undef
   );
 }
 
-/** 按书籍配置游客锁定跨页的右页码（如 12 → p11-12，14 → p13-14） */
+/**
+ * 按书籍配置游客锁定跨页的右页码（如 12 → p11-12，14 → p13-14）。
+ * Birthday 游客免费页到 p11-12_traits，锁定从 p13-14 开始（与后端 is_lock 一致）。
+ */
 export function getGuestLockedSpreadEndPageNumber(bookId?: string | null): number {
   const id = String(bookId || '')
     .trim()
     .toUpperCase();
-  if (id === 'PICBOOK_MELODY' || id === 'PICBOOK_GOODNIGHT' || id === 'PICBOOK_GOODNIGHT3') {
+  if (
+    id === 'PICBOOK_MELODY' ||
+    id === 'PICBOOK_GOODNIGHT' ||
+    id === 'PICBOOK_GOODNIGHT3' ||
+    id === 'PICBOOK_BIRTHDAY'
+  ) {
     return 14;
   }
   return 12;
+}
+
+/** Good Night preview 不展示的跨页（p11-12） */
+export function isHiddenPreviewPageCode(
+  pageCode: unknown,
+  bookId?: string | null,
+): boolean {
+  const id = String(bookId || '')
+    .trim()
+    .toUpperCase();
+  if (id !== 'PICBOOK_GOODNIGHT' && id !== 'PICBOOK_GOODNIGHT3') return false;
+  const code = normalizeBatchPageCodeKey(pageCode);
+  if (!code) return false;
+  return code === 'p11-12' || code === 'p11' || code === 'p12';
+}
+
+/** Birthday 等：p11-12_traits → p11-12；锁定识别仍用纯跨页码 */
+function stripPreviewPageCodeSuffix(pageCode: string): string {
+  return pageCode.replace(/-traits$/i, '');
 }
 
 /** 游客登录前展示的锁定页：仅底图 + 蒙版，不展示换脸结果 */
@@ -229,19 +256,19 @@ export function isGuestLockedPreviewPageCode(
   pageCode: unknown,
   bookId?: string | null,
 ): boolean {
-  const code = normalizeBatchPageCodeKey(pageCode);
+  const code = stripPreviewPageCodeSuffix(normalizeBatchPageCodeKey(pageCode));
   if (!code) return false;
   const end = getGuestLockedSpreadEndPageNumber(bookId);
   if (code === `p${end}`) return true;
   return new RegExp(`^p\\d+-${end}$`).test(code);
 }
 
-/** 从跨页 page_code 解析右页码（p11-12 → 12）；无法解析时返回 null */
+/** 从跨页 page_code 解析右页码（p11-12 / p11-12_traits → 12）；无法解析时返回 null */
 export function parsePreviewSpreadEndPageNumber(
   pageCode: unknown,
   pageNumber?: unknown,
 ): number | null {
-  const code = normalizeBatchPageCodeKey(pageCode);
+  const code = stripPreviewPageCodeSuffix(normalizeBatchPageCodeKey(pageCode));
   if (code) {
     const spread = code.match(/^p(\d+)-(\d+)$/);
     if (spread) return Math.max(Number(spread[1]), Number(spread[2]));
@@ -253,7 +280,7 @@ export function parsePreviewSpreadEndPageNumber(
   return null;
 }
 
-/** 页码是否在游客预览范围内（含锁定跨页，Good Night / Melody p13-14，其他 p11-12） */
+/** 页码是否在游客预览范围内（含锁定跨页，Good Night / Melody / Birthday p13-14，其他 p11-12） */
 export function isWithinGuestPreviewPageRange(
   page: { page_code?: unknown; page_number?: unknown } | null | undefined,
   bookId?: string | null,
