@@ -224,6 +224,20 @@ export function getGuestLockedSpreadEndPageNumber(bookId?: string | null): numbe
   return 12;
 }
 
+/** Good Night preview 不展示的跨页（p11-12） */
+export function isHiddenPreviewPageCode(
+  pageCode: unknown,
+  bookId?: string | null,
+): boolean {
+  const id = String(bookId || '')
+    .trim()
+    .toUpperCase();
+  if (id !== 'PICBOOK_GOODNIGHT' && id !== 'PICBOOK_GOODNIGHT3') return false;
+  const code = normalizeBatchPageCodeKey(pageCode);
+  if (!code) return false;
+  return code === 'p11-12' || code === 'p11' || code === 'p12';
+}
+
 /** 游客登录前展示的锁定页：仅底图 + 蒙版，不展示换脸结果 */
 export function isGuestLockedPreviewPageCode(
   pageCode: unknown,

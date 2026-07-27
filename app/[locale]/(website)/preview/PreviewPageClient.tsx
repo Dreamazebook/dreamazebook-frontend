@@ -55,6 +55,7 @@ import {
   getBatchDisplayPages,
   getGuestLockedSpreadEndPageNumber,
   isGuestLockedPreviewPageCode,
+  isHiddenPreviewPageCode,
   mapBatchPageToPreviewPage,
   parsePreviewSpreadEndPageNumber,
   pickBatchPageImageRaw,
@@ -169,9 +170,16 @@ const shouldShowInBookPreviewTab = (p: { page_code?: string; page_type?: string;
   return true;
 };
 
-/** Book preview 正文列表：始终过滤 cover_3/4 等封面页 */
-const getDisplayedPreviewPages = (pages: any[] | undefined | null): any[] => {
-  return (pages ?? []).filter((p) => shouldShowInBookPreviewTab(p));
+/** Book preview 正文列表：始终过滤 cover_3/4 等封面页；按书过滤不展示页（如 Good Night p11-12） */
+const getDisplayedPreviewPages = (
+  pages: any[] | undefined | null,
+  bookId?: string | null,
+): any[] => {
+  return (pages ?? []).filter((p) => {
+    if (!shouldShowInBookPreviewTab(p)) return false;
+    if (isHiddenPreviewPageCode(p?.page_code, bookId)) return false;
+    return true;
+  });
 };
 
 /** 按当前用户身份返回应渲染的正文页（创建者游客截断至锁定跨页；非 owner 可看全书） */
@@ -179,7 +187,7 @@ const getPreviewPagesForViewer = (
   pages: any[] | undefined | null,
   options: { isGuest: boolean; bookId?: string | null; isPreviewOwner?: boolean | null },
 ): any[] => {
-  const displayed = getDisplayedPreviewPages(pages);
+  const displayed = getDisplayedPreviewPages(pages, options.bookId);
   if (!options.isGuest || options.isPreviewOwner === false) return displayed;
   return filterGuestVisiblePreviewPages(displayed, options.bookId);
 };
@@ -226,7 +234,7 @@ const hasGuestPreviewUnlockReady = (
   bookId?: string | null,
   isPreviewOwner?: boolean | null,
 ): boolean => {
-  const displayed = getDisplayedPreviewPages(pages);
+  const displayed = getDisplayedPreviewPages(pages, bookId);
   const guestVisiblePages =
     isPreviewOwner === false
       ? displayed
@@ -7818,7 +7826,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                   // 获取bookId（spu）
                   const bookId = previewBookId;
                   // 找到显示giver的页面（通常是第二页，idx === 1）
-                  const displayedPages = getDisplayedPreviewPages(previewData?.preview_data);
+                  const displayedPages = getDisplayedPreviewPages(previewData?.preview_data, bookId);
                   const giverPage = displayedPages.length > 1 ? displayedPages[1] : displayedPages[0];
                   const pageId = giverPage?.page_id;
                   const pageNumber = giverPage?.page_number;
