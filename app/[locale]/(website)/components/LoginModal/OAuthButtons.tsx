@@ -75,6 +75,9 @@ const GooglePopupButton = memo(({
       client_id: GOOGLE_CLIENT_ID,
       ux_mode: 'popup',
       callback: (response: { credential: string }) => {
+        // Fire onGoogleClick here because GIS-rendered buttons capture clicks
+        // and prevent the wrapper div's onClick from bubbling
+        onGoogleClick?.()
         onCredential(response.credential)
       },
     })

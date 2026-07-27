@@ -303,7 +303,7 @@ export const trackLoginSuccess = (
   bookId?: string,
   draftBookId?: string,
 ): void => {
-  const dedupeKey = `login_success:${draftBookId || ''}:${loginSource}`;
+  const dedupeKey = `login_success:${draftBookId || ''}:${loginMethod}:${loginSource}`;
   if (typeof window !== 'undefined' && window.sessionStorage) {
     if (sessionStorage.getItem(dedupeKey)) return;
     sessionStorage.setItem(dedupeKey, 'true');
