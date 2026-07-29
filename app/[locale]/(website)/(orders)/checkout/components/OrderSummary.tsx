@@ -3,25 +3,47 @@
 import React from 'react';
 import { useTranslations } from 'next-intl';
 import { OrderDetail } from '@/types/order';
+import { CouponInfo } from '@/types/order-summary';
 import DisplayPrice from '../../../components/component/DisplayPrice';
 import OrderSummaryPrices from '../../../components/component/OrderSummaryPrices';
 import CouponInput from '../../shopping-cart/components/CouponInput';
-import { getFormattedCartItemTitle, getOurBookDisplayName } from '@/utils/bookNames';
+import { getFormattedCartItemTitle } from '@/utils/bookNames';
 
 interface OrderSummaryProps {
   orderDetail?: OrderDetail;
   handleApplyCoupon: (code: string) => void;
   handleRemoveCoupon?: () => void;
-  removingCoupon?: boolean;
+  couponApplying?: boolean;
+  couponError?: string;
 }
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
   handleApplyCoupon,
   handleRemoveCoupon,
-  removingCoupon,
+  couponApplying,
+  couponError,
   orderDetail,
 }) => {
   const t = useTranslations('checkoutPage');
+
+  const couponInfo: CouponInfo | undefined = orderDetail?.coupon_code
+    ? {
+        status: 'applied',
+        code: orderDetail.coupon_code,
+        discount_amount: orderDetail.discount_amount || 0,
+        type: orderDetail.discount_details?.type || 'fixed',
+        value: orderDetail.discount_details?.percentage || 0,
+        coupon_id: 0,
+        campaign_name: '',
+        created_for: null,
+        description: '',
+        subtotal_before_coupon: 0,
+        subtotal_after_coupon: 0,
+        reservation_ttl_hours: 0,
+        applied_at: '',
+      }
+    : undefined;
+
   return (
     <div className="bg-gray-50 p-6 rounded sticky top-4 right-0 z-0">
       <h3 className="text-lg font-medium mb-4">{t("summary")}</h3>
@@ -38,25 +60,14 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         ))}
       </div>
 
-      <CouponInput onApply={handleApplyCoupon}  />
+      <CouponInput
+        onApply={handleApplyCoupon}
+        onRemove={handleRemoveCoupon}
+        coupon={couponInfo}
+        couponApplying={couponApplying}
+        couponError={couponError}
+      />
 
-      {orderDetail?.coupon_code && (
-        <div className="flex items-center justify-between text-sm mb-2">
-          <p className="text-green-600">
-            {t("couponCode", {code: orderDetail?.coupon_code})}
-          </p>
-          {handleRemoveCoupon && (
-            <button
-              onClick={handleRemoveCoupon}
-              disabled={removingCoupon}
-              className="text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-xs underline"
-            >
-              {removingCoupon ? t("removing") : t("remove")}
-            </button>
-          )}
-        </div>
-      )}
-      
       {orderDetail &&
       <OrderSummaryPrices orderDetail={orderDetail} />
       }
