@@ -367,7 +367,8 @@
     "state": "État",
     "saveAsDefault": "Enregistrer comme adresse fréquemment utilisée",
     "required": "{field} est requis",
-    "invalidEmail": "Adresse email invalide"
+    "invalidEmail": "Adresse email invalide",
+    "pleaseFixErrors": "Veuillez corriger les {count, plural, one {# champ} other {# champs}} suivants :"
   },
   "addressCard": {
     "shippingAddress": "Adresse de livraison",

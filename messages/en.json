@@ -390,7 +390,8 @@
     "state": "State",
     "saveAsDefault": "Save as a frequently used address",
     "required": "{field} is required",
-    "invalidEmail": "Invalid email address"
+    "invalidEmail": "Invalid email address",
+    "pleaseFixErrors": "Please fix the following {count, plural, one {# field} other {# fields}}:"
   },
   "addressCard": {
     "shippingAddress": "Shipping Address",

@@ -391,7 +391,8 @@
     "state": "州/省",
     "saveAsDefault": "保存为常用地址",
     "required": "{field}为必填项",
-    "invalidEmail": "邮箱地址格式不正确"
+    "invalidEmail": "邮箱地址格式不正确",
+    "pleaseFixErrors": "请修正以下 {count} 个字段："
   },
   "addressCard": {
     "shippingAddress": "收货地址",
