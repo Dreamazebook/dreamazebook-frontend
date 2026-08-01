@@ -1743,14 +1743,6 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       originalPreviewIdRef.current = previewIdParam;
       console.log('[Preview] Saved original previewid:', previewIdParam);
     }
-    // 如果存在本地编辑数据，则优先走本地数据流程，跳过购物车旧数据分支
-    try {
-      const ud = localStorage.getItem('previewUserData');
-      if (ud && !shouldSkipInitialRender) {
-        console.log('检测到本地用户数据，跳过购物车预览分支');
-        return;
-      }
-    } catch {}
     (async () => {
       let recipientNameFromBatch: string | null = null;
       
@@ -1799,16 +1791,20 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                setPreviewData(initialData);
                setIsProcessing(batch.status === 'pending' || batch.status === 'processing');
                
-               // 如果未完成，启动轮询
-               if (batch.status === 'pending' || batch.status === 'processing') {
+               // URL 指向的 batch 是当前唯一批次；无论是否完成都先保存，避免路由切换后回退到其他 batch
+               if (batch.batch_id) {
                   currentBatchIdRef.current = batch.batch_id;
                   setCurrentBatchId(batch.batch_id);
                   updatePreviewIdInUrl(batch.batch_id);
+               }
+
+               // 如果未完成，启动轮询
+               if (
+                 batch.batch_id &&
+                 (batch.status === 'pending' || batch.status === 'processing')
+               ) {
                   startBatchPolling(bookIdParam, batch.batch_id);
                   subscribeToPreviewChannel(bookIdParam, batch.batch_id);
-               } else if (batch.batch_id) {
-                  // 即使已完成，也更新 URL
-                  updatePreviewIdInUrl(batch.batch_id);
                }
              }
           }
@@ -4681,16 +4677,20 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
         const userData = storeUserData ? JSON.stringify(storeUserData) : localStorage.getItem('previewUserData');
         const bookId = previewBookId || localStorage.getItem('previewBookId');
         const previewIdParam = urlPreviewId;
-        if (shouldSkipInitialRender && previewIdParam) {
-          console.log('[Preview] skip initial render for reused preview:', previewIdParam);
-          setIsProcessing(false);
+
+        // URL 已有真实 batch ID 时只加载该 batch，不再调用通用 preview/render 创建新批次。
+        // 这也覆盖 preview -> formats -> preview 的路由切换，避免组件重新挂载后 batch_id 改变。
+        if (previewIdParam) {
+          console.log('[Preview] skip initial render for existing batch:', previewIdParam);
           hasProcessedUserDataRef.current = true;
           hasPostedCreateRef.current = true;
-          try {
-            localStorage.removeItem('previewUserData');
-            localStorage.removeItem('previewBookId');
-            usePreviewStore.getState().clear();
-          } catch {}
+          if (shouldSkipInitialRender) {
+            try {
+              localStorage.removeItem('previewUserData');
+              localStorage.removeItem('previewBookId');
+              usePreviewStore.getState().clear();
+            } catch {}
+          }
           return;
         }
         
