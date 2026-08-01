@@ -278,6 +278,7 @@
     "createANewBook": "创建新书",
     "chooseCoverAndFormat": "选择封面与装帧",
     "continueToCheckout": "继续结账",
+    "continueToCart": "继续（到购物车）",
     "completeMyBook": "完成我的图书"
   },
   "LoginModal": {

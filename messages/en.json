@@ -276,7 +276,8 @@
     "createYourOwnBook": "Create your own book",
     "createANewBook": "Create a new book",
     "chooseCoverAndFormat": "Choose cover & format",
-    "continueToCheckout": "Continue to checkout",
+    "continueToCheckout": "Continue",
+    "continueToCart": "Continue to cart",
     "completeMyBook": "Complete my book"
   },
   "LoginModal": {
