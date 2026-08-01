@@ -63,7 +63,7 @@ export default function CouponInput({ onApply, onRemove, coupon, couponApplying,
     if (c.type === 'percentage') {
       return `${c.value}% discount applied`;
     }
-    return `$${c.discount_amount.toFixed(2)} discount applied`;
+    return `$${c.discount_amount} discount applied`;
   };
 
   return (

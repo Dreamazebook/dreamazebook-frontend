@@ -445,9 +445,7 @@ const AddressForm = forwardRef<
       {errorCount > 0 && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
           <p className="text-red-700 text-sm font-medium mb-1">
-            {t("pleaseFixErrors", {
-              defaultValue: `Please fix the following ${errorCount} field(s):`,
-            })}
+            {t("pleaseFixErrors", { count: errorCount })}
           </p>
           <ul className="list-disc list-inside text-red-600 text-xs space-y-0.5">
             {errorList.map((err) => (

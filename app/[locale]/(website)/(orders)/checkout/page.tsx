@@ -17,9 +17,9 @@ import { useCheckoutSteps } from "./hooks/useCheckoutSteps";
 import { useShippingAddress } from "./hooks/useShippingAddress";
 import { useShippingMethod } from "./hooks/useShippingMethod";
 import { CheckoutProvider } from "./context/CheckoutContext";
-import { fbTrack, getContentIdBySpu, trackBeginCheckout, trackAddToCart } from "@/utils/track";
+import { fbTrack, getContentIdBySpu, trackBeginCheckout } from "@/utils/track";
 import api from "@/utils/api";
-import { API_CART_CALCULATE_COST } from "@/constants/api";
+import { API_ORDER_COUPON } from "@/constants/api";
 import { ApiResponse } from "@/types/api";
 
 // Track InitiateCheckout only once per page load
@@ -133,32 +133,50 @@ function CheckoutPageContent() {
     setShowShippingForm(true);
   };
 
-  const [removingCoupon, setRemovingCoupon] = useState(false);
+  const [couponApplying, setCouponApplying] = useState(false);
+  const [couponError, setCouponError] = useState('');
 
-  const handleApplyCoupon = async (_couponCode: string) => {
-    // TODO: Implement coupon logic
+  const handleApplyCoupon = async (couponCode: string) => {
+    if (!orderDetail) return;
+    setCouponApplying(true);
+    setCouponError('');
+    try {
+      const updatedOrder = await api.put<ApiResponse>(
+        API_ORDER_COUPON(orderDetail.id),
+        { coupon_code: couponCode }
+      );
+      if (updatedOrder && updatedOrder.data) {
+        setOrderDetail(updatedOrder.data);
+      } else if (updatedOrder && updatedOrder.message) {
+        setCouponError(updatedOrder.message);
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to apply coupon';
+      setCouponError(msg);
+      console.error('Failed to apply coupon:', err);
+    } finally {
+      setCouponApplying(false);
+    }
   };
 
   const handleRemoveCoupon = async () => {
     if (!orderDetail) return;
-    setRemovingCoupon(true);
+    setCouponApplying(true);
+    setCouponError('');
     try {
-      const cartItemIds = orderDetail.items.map((item: any) => item.id);
-      const { data, success } = await api.post<ApiResponse>(
-        API_CART_CALCULATE_COST,
-        { cart_item_ids: cartItemIds }
+      const updatedOrder = await api.put<ApiResponse>(
+        API_ORDER_COUPON(orderDetail.id),
+        { coupon_code: null }
       );
-      if (success && data) {
-        setOrderDetail({
-          ...orderDetail,
-          ...data,
-          coupon_code: '',
-        });
+      if (updatedOrder && updatedOrder.data) {
+        setOrderDetail(updatedOrder.data);
       }
-    } catch (err) {
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to remove coupon';
+      setCouponError(msg);
       console.error('Failed to remove coupon:', err);
     } finally {
-      setRemovingCoupon(false);
+      setCouponApplying(false);
     }
   };
 
@@ -337,7 +355,8 @@ function CheckoutPageContent() {
               orderDetail={orderDetail}
               handleApplyCoupon={handleApplyCoupon}
               handleRemoveCoupon={handleRemoveCoupon}
-              removingCoupon={removingCoupon}
+              couponApplying={couponApplying}
+              couponError={couponError}
             />
           </div>
         </div>
