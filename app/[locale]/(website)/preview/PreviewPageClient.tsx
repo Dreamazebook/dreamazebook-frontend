@@ -28,6 +28,10 @@ import useUserStore from '@/stores/userStore';
 import usePreviewStore from '@/stores/previewStore';
 import { mapAgeStageUiToBackend } from '@/utils/mapAgeStageToBackend';
 import { buildPreviewRenderPayload } from '@/utils/previewRenderPayload';
+import {
+  createPreviewPayloadFingerprint,
+  rememberReusablePreviewBatch,
+} from '@/utils/previewBatchReuse';
 import { getApiBaseUrl } from '@/utils/apiBaseUrl';
 import { getBirthdayCoverSeasonFromCharacterLike } from '@/utils/birthdayPersonalizeHelpers';
 import toast from 'react-hot-toast';
@@ -4281,7 +4285,11 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   };
 
   // 处理 NDJSON 流事件
-  const handleNdjsonEvent = (chunk: any, spuCode: string) => {
+  const handleNdjsonEvent = (
+    chunk: any,
+    spuCode: string,
+    renderFingerprint?: string,
+  ) => {
     const { event, data } = chunk || {};
     if (!event) return;
     switch (event) {
@@ -4289,6 +4297,9 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
         setIsProcessing(true);
         const bid = extractBatchIdFromEvent({ data }) || data?.batch?.batch_id;
         if (bid) {
+          if (renderFingerprint) {
+            rememberReusablePreviewBatch(spuCode, renderFingerprint, bid);
+          }
           currentBatchIdRef.current = bid;
           setCurrentBatchId(bid);
           updatePreviewIdInUrl(bid);
@@ -4305,6 +4316,9 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
         try {
           const bid = extractBatchIdFromEvent({ data }) || data?.batch?.batch_id;
           if (bid && (!currentBatchIdRef.current || currentBatchIdRef.current !== bid)) {
+            if (renderFingerprint) {
+              rememberReusablePreviewBatch(spuCode, renderFingerprint, bid);
+            }
             currentBatchIdRef.current = bid;
             setCurrentBatchId(bid);
             updatePreviewIdInUrl(bid);
@@ -4346,6 +4360,9 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
         setIsProcessing(false);
         const batchId = data?.batch?.batch_id;
         if (batchId) {
+          if (renderFingerprint) {
+            rememberReusablePreviewBatch(spuCode, renderFingerprint, batchId);
+          }
           currentBatchIdRef.current = batchId;
           startBatchPolling(spuCode, batchId);
         }
@@ -4362,6 +4379,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   // 启动渲染：POST /products/{spu}/preview/render 并解析 NDJSON 流
   const startNdjsonRender = async (spuCode: string, payload: any) => {
     try {
+      const renderFingerprint = await createPreviewPayloadFingerprint(payload);
       // 客户端使用 /api 代理，服务器端使用完整 URL
       const apiBase = typeof window !== 'undefined' 
         ? '/api' 
@@ -4445,7 +4463,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
             if (!line) continue;
             try {
               const evt = JSON.parse(line);
-              handleNdjsonEvent(evt, spuCode);
+              handleNdjsonEvent(evt, spuCode, renderFingerprint);
             } catch (_e) {
               // 忽略单行解析错误
             }
@@ -4457,7 +4475,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       if (buffer) {
         try {
           const evt = JSON.parse(buffer);
-          handleNdjsonEvent(evt, spuCode);
+          handleNdjsonEvent(evt, spuCode, renderFingerprint);
         } catch (_e) {}
       }
       try {
