@@ -1517,28 +1517,28 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     }
   }, []);
 
+  const getPreviewPersonalizeHref = useCallback((): string | undefined => {
+    const bookIdParam = previewBookId;
+    if (!bookIdParam) return undefined;
+    const params: Record<string, string> = {};
+    const lang = searchParams.get('lang');
+    if (lang) params.language = lang;
+    if (searchParams.get('ks') === '1') params.ks = '1';
+    if (searchParams.get('hideOptions') === '1') params.hideOptions = '1';
+    const packageItemId = searchParams.get('package_item_id');
+    if (packageItemId) params.package_item_id = packageItemId;
+    const packageId = searchParams.get('package_id');
+    if (packageId) params.package_id = packageId;
+    const coverType = searchParams.get('cover_type');
+    if (coverType) params.cover_type = coverType;
+    const bindingType = searchParams.get('binding_type');
+    if (bindingType) params.binding_type = bindingType;
+    return getBookCreatePath(bookIdParam, params);
+  }, [previewBookId, searchParams]);
+
   const openPreviewUnlockLogin = useCallback(() => {
     const isNotCreator = batchIsOwnRef.current === false;
-    let personalizeHref: string | undefined;
-    if (isNotCreator) {
-      const bookIdParam = previewBookId;
-      if (bookIdParam) {
-        const params: Record<string, string> = {};
-        const lang = searchParams.get('lang');
-        if (lang) params.language = lang;
-        if (searchParams.get('ks') === '1') params.ks = '1';
-        if (searchParams.get('hideOptions') === '1') params.hideOptions = '1';
-        const packageItemId = searchParams.get('package_item_id');
-        if (packageItemId) params.package_item_id = packageItemId;
-        const packageId = searchParams.get('package_id');
-        if (packageId) params.package_id = packageId;
-        const coverType = searchParams.get('cover_type');
-        if (coverType) params.cover_type = coverType;
-        const bindingType = searchParams.get('binding_type');
-        if (bindingType) params.binding_type = bindingType;
-        personalizeHref = getBookCreatePath(bookIdParam, params);
-      }
-    }
+    const personalizeHref = isNotCreator ? getPreviewPersonalizeHref() : undefined;
     openLoginModal({
       title: isNotCreator ? t('signInToContinueTitle') : t('continueReadingTitle'),
       sendCodeButtonLabel: t('continueWithEmailCode'),
@@ -1548,20 +1548,24 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       personalizeHref,
       showNotCreatorPrompt: isNotCreator,
     });
-  }, [openLoginModal, searchParams, t, previewBookId]);
+  }, [getPreviewPersonalizeHref, openLoginModal, t, previewBookId]);
 
   const buildPreviewUnlockLoginOptions = useCallback(
     (sheetState: 'header' | 'expanded') => {
       const isNotCreator = batchIsOwnRef.current === false;
+      const personalizeHref = isNotCreator ? getPreviewPersonalizeHref() : undefined;
       return {
         title: isNotCreator ? t('signInToContinueTitle') : t('continueReadingTitle'),
         sendCodeButtonLabel: t('continueWithEmailCode'),
         loginSource: 'preview_unlock' as const,
+        bookSlug: getShortBookSlug(previewBookId),
+        bookId: previewBookId,
+        personalizeHref,
         showNotCreatorPrompt: isNotCreator,
         previewUnlockSheetState: sheetState,
       };
     },
-    [t],
+    [getPreviewPersonalizeHref, previewBookId, t],
   );
 
   /** 锁图页出现：底部 Header peek，无灰色蒙层 */
@@ -6168,7 +6172,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   const previewBottomBarClassName = hidePreviewBottomBar
     ? 'hidden'
     : isNotPreviewCreator
-      ? 'flex'
+      ? 'hidden md:flex'
       : isGuest
         ? 'hidden md:flex'
         : 'flex';
