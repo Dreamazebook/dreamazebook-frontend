@@ -46,11 +46,30 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
 
-  const isPreviewUnlockSheet =
+  const shouldRenderLoginModal =
     isLoginModalOpen &&
+    (loginModalOptions?.loginSource !== 'preview_unlock' || isPreviewPage);
+  const isPreviewUnlockSheet =
+    shouldRenderLoginModal &&
     loginModalOptions?.loginSource === 'preview_unlock' &&
     isMobileViewport;
   const previewUnlockSheetState = previewUnlockSheetSnap;
+
+  // Preview 解锁登录是页面专用 UI；离开 preview 后关闭全局状态，避免吸底登录残留在 personalize 等页面。
+  useEffect(() => {
+    if (
+      !isPreviewPage &&
+      isLoginModalOpen &&
+      loginModalOptions?.loginSource === 'preview_unlock'
+    ) {
+      closeLoginModal();
+    }
+  }, [
+    closeLoginModal,
+    isLoginModalOpen,
+    isPreviewPage,
+    loginModalOptions?.loginSource,
+  ]);
 
   // 获取当前页面的滚动到顶部按钮配置
   // const scrollToTopConfig = getScrollToTopConfig(pathname);
@@ -125,7 +144,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
   // 仅在完整展开（有灰色蒙层）时锁定背景滚动；Header peek 时可继续浏览预览页
   useEffect(() => {
-    if (!isLoginModalOpen || isLoginPage) return undefined;
+    if (!shouldRenderLoginModal || isLoginPage) return undefined;
     const shouldLockBackground =
       !isPreviewUnlockSheet || previewUnlockSheetState === 'expanded';
     if (!shouldLockBackground) return undefined;
@@ -165,7 +184,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
       html.style.overscrollBehavior = prevHtmlOverscroll;
       body.style.overscrollBehavior = prevBodyOverscroll;
     };
-  }, [isLoginModalOpen, isLoginPage, isPreviewUnlockSheet, previewUnlockSheetState]);
+  }, [shouldRenderLoginModal, isLoginPage, isPreviewUnlockSheet, previewUnlockSheetState]);
 
   // 登录状态变化后检查Kickstarter套餐
   useEffect(() => {
@@ -208,7 +227,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
       <KickstarterWelcomeModal />
       {isPreviewUnlockSheet ? (
         <Drawer
-          open={isLoginModalOpen}
+          open={shouldRenderLoginModal}
           placement="bottom"
           onClose={() => {
             // Mask click/ESC: hide gray mask and collapse to header peek; keep sheet mounted
@@ -249,7 +268,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
           {loginModal}
         </Drawer>
       ) : (
-        isLoginModalOpen && !isLoginPage && (
+        shouldRenderLoginModal && !isLoginPage && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             {loginModal}
           </div>
