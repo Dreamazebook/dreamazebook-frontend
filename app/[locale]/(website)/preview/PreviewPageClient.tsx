@@ -28,6 +28,10 @@ import useUserStore from '@/stores/userStore';
 import usePreviewStore from '@/stores/previewStore';
 import { mapAgeStageUiToBackend } from '@/utils/mapAgeStageToBackend';
 import { buildPreviewRenderPayload } from '@/utils/previewRenderPayload';
+import {
+  createPreviewPayloadFingerprint,
+  rememberReusablePreviewBatch,
+} from '@/utils/previewBatchReuse';
 import { getApiBaseUrl } from '@/utils/apiBaseUrl';
 import { getBirthdayCoverSeasonFromCharacterLike } from '@/utils/birthdayPersonalizeHelpers';
 import toast from 'react-hot-toast';
@@ -1743,14 +1747,6 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       originalPreviewIdRef.current = previewIdParam;
       console.log('[Preview] Saved original previewid:', previewIdParam);
     }
-    // 如果存在本地编辑数据，则优先走本地数据流程，跳过购物车旧数据分支
-    try {
-      const ud = localStorage.getItem('previewUserData');
-      if (ud && !shouldSkipInitialRender) {
-        console.log('检测到本地用户数据，跳过购物车预览分支');
-        return;
-      }
-    } catch {}
     (async () => {
       let recipientNameFromBatch: string | null = null;
       
@@ -1799,16 +1795,20 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                setPreviewData(initialData);
                setIsProcessing(batch.status === 'pending' || batch.status === 'processing');
                
-               // 如果未完成，启动轮询
-               if (batch.status === 'pending' || batch.status === 'processing') {
+               // URL 指向的 batch 是当前唯一批次；无论是否完成都先保存，避免路由切换后回退到其他 batch
+               if (batch.batch_id) {
                   currentBatchIdRef.current = batch.batch_id;
                   setCurrentBatchId(batch.batch_id);
                   updatePreviewIdInUrl(batch.batch_id);
+               }
+
+               // 如果未完成，启动轮询
+               if (
+                 batch.batch_id &&
+                 (batch.status === 'pending' || batch.status === 'processing')
+               ) {
                   startBatchPolling(bookIdParam, batch.batch_id);
                   subscribeToPreviewChannel(bookIdParam, batch.batch_id);
-               } else if (batch.batch_id) {
-                  // 即使已完成，也更新 URL
-                  updatePreviewIdInUrl(batch.batch_id);
                }
              }
           }
@@ -4285,7 +4285,11 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   };
 
   // 处理 NDJSON 流事件
-  const handleNdjsonEvent = (chunk: any, spuCode: string) => {
+  const handleNdjsonEvent = (
+    chunk: any,
+    spuCode: string,
+    renderFingerprint?: string,
+  ) => {
     const { event, data } = chunk || {};
     if (!event) return;
     switch (event) {
@@ -4293,6 +4297,9 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
         setIsProcessing(true);
         const bid = extractBatchIdFromEvent({ data }) || data?.batch?.batch_id;
         if (bid) {
+          if (renderFingerprint) {
+            rememberReusablePreviewBatch(spuCode, renderFingerprint, bid);
+          }
           currentBatchIdRef.current = bid;
           setCurrentBatchId(bid);
           updatePreviewIdInUrl(bid);
@@ -4309,6 +4316,9 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
         try {
           const bid = extractBatchIdFromEvent({ data }) || data?.batch?.batch_id;
           if (bid && (!currentBatchIdRef.current || currentBatchIdRef.current !== bid)) {
+            if (renderFingerprint) {
+              rememberReusablePreviewBatch(spuCode, renderFingerprint, bid);
+            }
             currentBatchIdRef.current = bid;
             setCurrentBatchId(bid);
             updatePreviewIdInUrl(bid);
@@ -4350,6 +4360,9 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
         setIsProcessing(false);
         const batchId = data?.batch?.batch_id;
         if (batchId) {
+          if (renderFingerprint) {
+            rememberReusablePreviewBatch(spuCode, renderFingerprint, batchId);
+          }
           currentBatchIdRef.current = batchId;
           startBatchPolling(spuCode, batchId);
         }
@@ -4366,6 +4379,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   // 启动渲染：POST /products/{spu}/preview/render 并解析 NDJSON 流
   const startNdjsonRender = async (spuCode: string, payload: any) => {
     try {
+      const renderFingerprint = await createPreviewPayloadFingerprint(payload);
       // 客户端使用 /api 代理，服务器端使用完整 URL
       const apiBase = typeof window !== 'undefined' 
         ? '/api' 
@@ -4449,7 +4463,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
             if (!line) continue;
             try {
               const evt = JSON.parse(line);
-              handleNdjsonEvent(evt, spuCode);
+              handleNdjsonEvent(evt, spuCode, renderFingerprint);
             } catch (_e) {
               // 忽略单行解析错误
             }
@@ -4461,7 +4475,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       if (buffer) {
         try {
           const evt = JSON.parse(buffer);
-          handleNdjsonEvent(evt, spuCode);
+          handleNdjsonEvent(evt, spuCode, renderFingerprint);
         } catch (_e) {}
       }
       try {
@@ -4681,16 +4695,20 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
         const userData = storeUserData ? JSON.stringify(storeUserData) : localStorage.getItem('previewUserData');
         const bookId = previewBookId || localStorage.getItem('previewBookId');
         const previewIdParam = urlPreviewId;
-        if (shouldSkipInitialRender && previewIdParam) {
-          console.log('[Preview] skip initial render for reused preview:', previewIdParam);
-          setIsProcessing(false);
+
+        // URL 已有真实 batch ID 时只加载该 batch，不再调用通用 preview/render 创建新批次。
+        // 这也覆盖 preview -> formats -> preview 的路由切换，避免组件重新挂载后 batch_id 改变。
+        if (previewIdParam) {
+          console.log('[Preview] skip initial render for existing batch:', previewIdParam);
           hasProcessedUserDataRef.current = true;
           hasPostedCreateRef.current = true;
-          try {
-            localStorage.removeItem('previewUserData');
-            localStorage.removeItem('previewBookId');
-            usePreviewStore.getState().clear();
-          } catch {}
+          if (shouldSkipInitialRender) {
+            try {
+              localStorage.removeItem('previewUserData');
+              localStorage.removeItem('previewBookId');
+              usePreviewStore.getState().clear();
+            } catch {}
+          }
           return;
         }
         

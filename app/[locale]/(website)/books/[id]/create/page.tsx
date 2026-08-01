@@ -21,6 +21,11 @@ import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
 import { getBookPath, getPreviewPath, PENDING_PREVIEW_TOKEN, resolveBookRouteFromParam } from '@/constants/bookRoutes';
 import { buildPreviewRenderPayload } from '@/utils/previewRenderPayload';
 import {
+  createPreviewPayloadFingerprint,
+  getReusablePreviewBatchId,
+  rememberReusablePreviewBatch,
+} from '@/utils/previewBatchReuse';
+import {
   buildDadQuestionAttributes,
   DEFAULT_DAD_QUESTIONS_PREVIEW,
   parseDadQuestionsFromProduct,
@@ -776,6 +781,12 @@ export default function PersonalizeApiDrivenPage() {
           },
         ],
       };
+      const previewRenderPayload = buildPreviewRenderPayload(
+        bookId || '',
+        (userData as any)?.characters?.[0] || {},
+      );
+      const previewPayloadFingerprint =
+        await createPreviewPayloadFingerprint(previewRenderPayload);
       // Optionally compute SKU + price for downstream steps (not altering UI)
       if (rawApi && productSchema) {
         const selections: Record<string, string> = {
@@ -818,14 +829,21 @@ export default function PersonalizeApiDrivenPage() {
       // 关键修复：从购物车的 bundle/占位条目（mode=create）进入 personalize 时，不应该在 preview 里再次新增一条购物车记录。
       // 做法：在此处先用 regenerate-preview 把生成的 preview 绑定到原 cart item，然后带 preview token 进入 preview 页。
       let previewToken = PENDING_PREVIEW_TOKEN;
+      if (!fromCartItemId) {
+        const reusableBatchId = getReusablePreviewBatchId(
+          bookId || '',
+          previewPayloadFingerprint,
+        );
+        if (reusableBatchId) {
+          previewToken = reusableBatchId;
+          console.log('[PreviewReuse] Reusing unchanged preview batch:', reusableBatchId);
+        }
+      }
       if (fromCartItemId && !isHideOptions) {
         try {
-          const ch: any = (userData as any)?.characters?.[0] || {};
-          const payload = buildPreviewRenderPayload(bookId || '', ch);
-
           const resp: any = await api.post<any>(
             `/cart/${encodeURIComponent(String(fromCartItemId))}/regenerate-preview`,
-            payload
+            previewRenderPayload
           );
           const responseData = resp?.data || {};
           const bid =
@@ -839,7 +857,14 @@ export default function PersonalizeApiDrivenPage() {
             responseData?.batch?.id ||
             resp?.batch?.batch_id ||
             resp?.batch?.id;
-          if (bid) previewToken = String(bid);
+          if (bid) {
+            previewToken = String(bid);
+            rememberReusablePreviewBatch(
+              bookId || '',
+              previewPayloadFingerprint,
+              previewToken,
+            );
+          }
           if (responseData?.reused_preview === true || resp?.reused_preview === true) qs.set('skipRender', '1');
         } catch (e) {
           console.error('[CartCreateFlow] regenerate-preview failed:', e);
