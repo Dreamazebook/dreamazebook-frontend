@@ -463,6 +463,7 @@ export function mapBatchPageToPreviewPage(bp: any, idx: number): PreviewPageWith
     queue_position: bp.queue_position,
     queue_total: bp.queue_total,
     page_type: bp.page_type,
+    is_preview_page: bp.is_preview_page,
     face_swap_logs: Array.isArray(bp.face_swap_logs) ? bp.face_swap_logs : [],
     low_res_image_url: bp.low_res_image_url,
     low_res_url: bp.low_res_url,

@@ -174,7 +174,7 @@ const shouldShowInBookPreviewTab = (p: { page_code?: string; page_type?: string;
   return true;
 };
 
-/** Book preview 正文列表：始终过滤 cover_3/4 等封面页；按书过滤不展示页（如 Good Night p11-12） */
+/** Book preview 正文列表：过滤封面及按书隐藏页（如 Good Night p11-12） */
 const getDisplayedPreviewPages = (
   pages: any[] | undefined | null,
   bookId?: string | null,
@@ -192,7 +192,10 @@ const getPreviewPagesForViewer = (
   options: { isGuest: boolean; bookId?: string | null; isPreviewOwner?: boolean | null },
 ): any[] => {
   const displayed = getDisplayedPreviewPages(pages, options.bookId);
-  if (!options.isGuest || options.isPreviewOwner === false) return displayed;
+  if (!options.isGuest) return displayed;
+  if (options.isPreviewOwner === false) {
+    return displayed.filter((p) => p?.is_preview_page !== false);
+  }
   return filterGuestVisiblePreviewPages(displayed, options.bookId);
 };
 
@@ -241,7 +244,7 @@ const hasGuestPreviewUnlockReady = (
   const displayed = getDisplayedPreviewPages(pages, bookId);
   const guestVisiblePages =
     isPreviewOwner === false
-      ? displayed
+      ? displayed.filter((p) => p?.is_preview_page !== false)
       : filterGuestVisiblePreviewPages(displayed, bookId);
   if (guestVisiblePages.length === 0) return false;
 
@@ -1537,7 +1540,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       }
     }
     openLoginModal({
-      title: t('continueReadingTitle'),
+      title: isNotCreator ? t('signInToContinueTitle') : t('continueReadingTitle'),
       sendCodeButtonLabel: t('continueWithEmailCode'),
       loginSource: 'preview_unlock',
       bookSlug: getShortBookSlug(previewBookId),
@@ -1551,7 +1554,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     (sheetState: 'header' | 'expanded') => {
       const isNotCreator = batchIsOwnRef.current === false;
       return {
-        title: t('continueReadingTitle'),
+        title: isNotCreator ? t('signInToContinueTitle') : t('continueReadingTitle'),
         sendCodeButtonLabel: t('continueWithEmailCode'),
         loginSource: 'preview_unlock' as const,
         showNotCreatorPrompt: isNotCreator,
@@ -1949,6 +1952,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   const guestLockedPreviewRef = useRef<HTMLDivElement>(null);
   const guestPreviewHasScrolledRef = useRef(false);
   const guestWasAtBottomRef = useRef(false);
+  const desktopNonCreatorPromptKeyRef = useRef<string | null>(null);
   /** 仅「用户裁剪上传 Giver」触发的上传成功后才应勾选 Opening Photo；纯提交寄语不走此项 */
   const p34UploadCompletesNameOnBookRef = useRef(false);
   const p34ComposeUploadInFlightRef = useRef(false);
@@ -5207,7 +5211,23 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   isPreviewEditingRef.current = Boolean(editField || pendingGiverFile || pendingMomDrawingFile);
 
   useEffect(() => {
-    if (!isGuest || isNotPreviewCreator || activeTab !== 'Book preview' || !guestUnlockReady) return undefined;
+    if (!isGuest || !isNotPreviewCreator) return;
+    if (!window.matchMedia('(min-width: 768px)').matches) return;
+
+    const promptKey = `${previewBookId || ''}:${urlPreviewId || ''}`;
+    if (desktopNonCreatorPromptKeyRef.current === promptKey) return;
+    desktopNonCreatorPromptKeyRef.current = promptKey;
+    openPreviewUnlockLogin();
+  }, [
+    isGuest,
+    isNotPreviewCreator,
+    openPreviewUnlockLogin,
+    previewBookId,
+    urlPreviewId,
+  ]);
+
+  useEffect(() => {
+    if (!isGuest || activeTab !== 'Book preview' || !guestUnlockReady) return undefined;
     const el = guestLockedPreviewRef.current;
     if (!el) return undefined;
 
@@ -5230,7 +5250,6 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     return () => observer.disconnect();
   }, [
     isGuest,
-    isNotPreviewCreator,
     activeTab,
     guestUnlockReady,
     previewContentLength,
@@ -5238,7 +5257,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   ]);
 
   useEffect(() => {
-    if (!isGuest || isNotPreviewCreator || activeTab !== 'Book preview') {
+    if (!isGuest || activeTab !== 'Book preview') {
       guestWasAtBottomRef.current = false;
       return undefined;
     }
@@ -5282,10 +5301,10 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       window.removeEventListener('touchmove', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
-  }, [isGuest, isNotPreviewCreator, activeTab, openPreviewUnlockExpanded, previewContentLength, guestUnlockReady]);
+  }, [isGuest, activeTab, openPreviewUnlockExpanded, previewContentLength, guestUnlockReady]);
 
   useEffect(() => {
-    if (!isGuest || isNotPreviewCreator || activeTab !== 'Book preview' || !guestUnlockReady) return undefined;
+    if (!isGuest || activeTab !== 'Book preview' || !guestUnlockReady) return undefined;
     const el = previewBottomSentinelRef.current;
     if (!el) return undefined;
 
@@ -5306,7 +5325,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [isGuest, isNotPreviewCreator, activeTab, openPreviewUnlockExpanded, previewContentLength, guestUnlockReady]);
+  }, [isGuest, activeTab, openPreviewUnlockExpanded, previewContentLength, guestUnlockReady]);
 
   useEffect(() => {
     if (!isGuest) return undefined;
@@ -6592,6 +6611,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                       isGuest &&
                       batchIsOwn !== false &&
                       isLockedSpreadPageCode;
+                    const isGuestUnlockTriggerPage = isGuest && isLockedSpreadPageCode;
                     // 游客：前一跨页（如 p9-10）完全出现后，才展示锁定的 p11-12 / p13-14
                     if (isGuestLockedPage) {
                       const prevPage = displayedPages[idx - 1];
@@ -6942,6 +6962,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                         return (
                           <div
                             key={`faceswap-${String((page as any)?.page_code || page.page_id)}`}
+                            ref={isGuestUnlockTriggerPage ? guestLockedPreviewRef : undefined}
                             className="w-full flex flex-col items-center"
                           >
                             <FaceSwapVersionCarousel
@@ -6973,7 +6994,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                       <div
                         key={getPreviewPageCodeLookupKey(pageCode) || page.page_id}
                         ref={
-                          showGuestLockOverlay
+                          isGuestUnlockTriggerPage
                             ? guestLockedPreviewRef
                             : isGiverDedicationPage
                             ? setOpeningSpreadBothRefs

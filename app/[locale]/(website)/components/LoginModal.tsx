@@ -313,7 +313,9 @@ export default function LoginModal({
 
   const previewModalStyle: React.CSSProperties = {
     width: isBottomSheet ? '100%' : 360,
-    ...(usePreviewMinHeight && !isBottomSheet ? { minHeight: 416 } : {}),
+    ...(usePreviewMinHeight && !isBottomSheet
+      ? { minHeight: showNotCreatorPrompt ? 416 : 400 }
+      : {}),
     height: 'auto',
     boxSizing: 'border-box',
   }
@@ -785,7 +787,7 @@ export default function LoginModal({
           <span className="mt-4 flex items-center justify-center gap-3">
             <Sparkles className="h-6 w-6 shrink-0 text-[#FFD45A]" strokeWidth={2} aria-hidden="true" />
             <span className="text-center text-[20px] font-semibold leading-7">
-              {tPreview('continueReadingTitle')}
+              {previewTitle}
             </span>
           </span>
         </button>
@@ -816,7 +818,7 @@ export default function LoginModal({
         <div className="mb-4 flex items-center justify-center gap-3">
           <Sparkles className="h-6 w-6 shrink-0 text-[#FFD45A]" strokeWidth={2} aria-hidden="true" />
           <h1 className="text-center text-[22px] font-semibold leading-7">
-            {tPreview('continueReadingTitle')}
+            {previewTitle}
           </h1>
         </div>
 
