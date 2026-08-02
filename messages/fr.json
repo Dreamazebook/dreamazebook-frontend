@@ -368,7 +368,20 @@
     "saveAsDefault": "Enregistrer comme adresse fréquemment utilisée",
     "required": "{field} est requis",
     "invalidEmail": "Adresse email invalide",
-    "pleaseFixErrors": "Veuillez corriger les {count, plural, one {# champ} other {# champs}} suivants :"
+    "pleaseFixErrors": "Veuillez corriger les {count, plural, one {# champ} other {# champs}} suivants :",
+    "selectAddressFromList": "Veuillez sélectionner une adresse dans la liste ou la saisir manuellement.",
+    "emailRequired": "Veuillez saisir votre adresse email.",
+    "emailInvalid": "Veuillez saisir une adresse email valide.",
+    "firstNameRequired": "Veuillez saisir votre prénom.",
+    "lastNameRequired": "Veuillez saisir votre nom.",
+    "addressNotSelected": "Veuillez sélectionner une adresse dans la liste.",
+    "addressRequired": "Veuillez saisir votre adresse.",
+    "cityRequired": "Veuillez saisir votre ville.",
+    "postalCodeRequired": "Veuillez saisir votre code postal.",
+    "countryRequired": "Veuillez saisir votre pays.",
+    "stateRequired": "Veuillez saisir votre région.",
+    "phoneRequired": "Veuillez saisir votre numéro de téléphone.",
+    "phoneInvalid": "Veuillez saisir un numéro de téléphone valide."
   },
   "addressCard": {
     "shippingAddress": "Adresse de livraison",

@@ -393,7 +393,20 @@
     "saveAsDefault": "Save as a frequently used address",
     "required": "{field} is required",
     "invalidEmail": "Invalid email address",
-    "pleaseFixErrors": "Please fix the following {count, plural, one {# field} other {# fields}}:"
+    "pleaseFixErrors": "Please fix the following {count, plural, one {# field} other {# fields}}:",
+    "selectAddressFromList": "Please select an address from the list or enter it manually.",
+    "emailRequired": "Please enter your email address.",
+    "emailInvalid": "Please enter a valid email address.",
+    "firstNameRequired": "Please enter your first name.",
+    "lastNameRequired": "Please enter your last name.",
+    "addressNotSelected": "Please select an address from the list.",
+    "addressRequired": "Please enter your address.",
+    "cityRequired": "Please enter your city.",
+    "postalCodeRequired": "Please enter your postal code.",
+    "countryRequired": "Please enter your country.",
+    "stateRequired": "Please enter your state.",
+    "phoneRequired": "Please enter your phone number.",
+    "phoneInvalid": "Please enter a valid phone number."
   },
   "addressCard": {
     "shippingAddress": "Shipping Address",

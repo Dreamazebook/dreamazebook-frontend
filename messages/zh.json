@@ -394,7 +394,20 @@
     "saveAsDefault": "保存为常用地址",
     "required": "{field}为必填项",
     "invalidEmail": "邮箱地址格式不正确",
-    "pleaseFixErrors": "请修正以下 {count} 个字段："
+    "pleaseFixErrors": "请修正以下 {count} 个字段：",
+    "selectAddressFromList": "请从列表中选择一个地址或手动输入。",
+    "emailRequired": "请输入您的邮箱地址。",
+    "emailInvalid": "请输入有效的邮箱地址。",
+    "firstNameRequired": "请输入您的名字。",
+    "lastNameRequired": "请输入您的姓氏。",
+    "addressNotSelected": "请从列表中选择一个地址。",
+    "addressRequired": "请输入您的地址。",
+    "cityRequired": "请输入您的城市。",
+    "postalCodeRequired": "请输入您的邮政编码。",
+    "countryRequired": "请输入您的国家。",
+    "stateRequired": "请输入您的州/省。",
+    "phoneRequired": "请输入您的电话号码。",
+    "phoneInvalid": "请输入有效的电话号码。"
   },
   "addressCard": {
     "shippingAddress": "收货地址",
