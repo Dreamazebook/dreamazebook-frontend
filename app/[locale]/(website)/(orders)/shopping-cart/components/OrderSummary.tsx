@@ -25,7 +25,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
 }) => {
   const t = useTranslations('ShoppingCart');
   const [promoOpen, setPromoOpen] = useState(false);
-  const [mobileExpanded, setMobileExpanded] = useState(false);
   const [needHelpOpen, setNeedHelpOpen] = useState(false);
 
   const LoadingSpinner = () => (
@@ -108,7 +107,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   const renderContent = () => (
     <>
       {/* Promo Code — collapsible */}
-      <div className={`bg-[#F8FAFC] border border-[#E3E6EA] rounded-[12px] p-4 mb-4 ${mobileExpanded ? '' : 'hidden lg:block'}`}>
+      <div className="bg-[#F8FAFC] border border-[#E3E6EA] rounded-[12px] p-4 mb-4">
       {onApplyCoupon && (
         <>
           <div
@@ -148,7 +147,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       </div>
 
       {/* Summary Card */}
-      <div className={`bg-white p-4 rounded shadow ${mobileExpanded ? '' : 'hidden lg:block'}`}>
+      <div className="bg-white p-4 rounded shadow">
         <SummaryLines />
       </div>
 
@@ -158,7 +157,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       </div>
 
       {/* Need help? — collapsible */}
-      <div className={`mt-6 border-t border-[#E5E5E5] pt-4 ${mobileExpanded ? '' : 'hidden lg:block'}`}>
+      <div className="mt-6 border-t border-[#E5E5E5] pt-4">
         <button
           type="button"
           className="flex items-center justify-between w-full cursor-pointer select-none"
@@ -241,33 +240,14 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         </div>
       </div>
 
-      {/* Mobile: fixed bottom bar, same renderContent, toggle expandable sections */}
+      {/* Mobile: fixed bottom bar with Total + Checkout buttons only */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-xl z-10 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
         <div className="max-w-screen-md mx-auto px-4 pt-3 pb-3">
-          {/* Toggle: total row is clickable to expand/collapse */}
-          <div
-            className="flex items-center justify-between cursor-pointer select-none"
-            onClick={() => setMobileExpanded((prev) => !prev)}
-          >
-            {!mobileExpanded && (
-              <div className="flex justify-between font-bold text-lg flex-1">
-                <p>{t('total')}</p>
-                <p className="text-[#165C52]">${total.toFixed(2)}</p>
-              </div>
-            )}
-            <svg
-              className={`w-5 h-5 text-[#666666] ml-auto shrink-0 transition-transform duration-200 ${mobileExpanded ? '' : 'rotate-180'}`}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M6 9l6 6 6-6" />
-            </svg>
+          <div className="flex justify-between font-bold text-lg mb-3">
+            <p>{t('total')}</p>
+            <p className="text-[#165C52]">${total.toFixed(2)}</p>
           </div>
-          {renderContent()}
+          <CheckoutButtons />
         </div>
       </div>
     </>

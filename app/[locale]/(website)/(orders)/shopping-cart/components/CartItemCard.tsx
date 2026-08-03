@@ -585,11 +585,11 @@ export default function CartItemCard({
                 } */}
                 
                 {item?.customization_data?.attributes?.gift_message &&
-                <div>
-                  <p className={`text-[#666] bg-[#f8f8f8] font-[400] p-2 rounded ${dedicationExpanded ? '' : 'line-clamp-3'}`}>{item?.customization_data?.attributes?.gift_message}</p>
+                <div className="bg-[#f8f8f8] rounded p-2">
+                  <p className={`text-[#666] font-[400] ${dedicationExpanded ? '' : 'line-clamp-3'}`}>{item?.customization_data?.attributes?.gift_message}</p>
                   <button
                     type="button"
-                    className="text-sm text-blue-600 hover:underline cursor-pointer mt-1"
+                    className="text-sm text-blue-600 hover:underline cursor-pointer mt-2 block"
                     onClick={() => setDedicationExpanded((prev) => !prev)}
                   >
                     {dedicationExpanded ? 'Show less' : 'View dedication'}

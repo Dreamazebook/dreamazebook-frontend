@@ -10,6 +10,7 @@ import ShippingForm from "./components/ShippingForm";
 import DeliveryOptions from "./components/DeliveryOptions";
 import ReviewAndPay from "./components/ReviewAndPay";
 import OrderSummary from "./components/OrderSummary";
+import MobileCheckout from "./components/MobileCheckout";
 import AddressCardListModal from "./components/AddressCardListModal";
 import useOrderStatus from "../../hooks/useOrderStatus";
 import { useOrderDetail } from "./hooks/useOrderDetail";
@@ -257,13 +258,35 @@ function CheckoutPageContent() {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen py-8">
+    <div className="bg-gray-100 min-h-screen lg:py-8">
       <Loading
         isLoading={
           isOrderLoading || isAddressLoading || isShippingMethodLoading
         }
       />
-      <div className="max-w-[1200px] mx-auto px-4">
+      {/* Mobile (new design) */}
+      {orderDetail && (
+        <MobileCheckout
+          orderDetail={orderDetail}
+          shippingAddress={shippingAddress}
+          setShippingAddress={setShippingAddress}
+          saveAddress={saveAddress}
+          handleApplyCoupon={handleApplyCoupon}
+          handleRemoveCoupon={handleRemoveCoupon}
+          couponApplying={couponApplying}
+          couponError={couponError}
+          updateOrderShippingMethod={async (option) => {
+            const updatedOrder = await updateOrderShippingMethod(option);
+            if (updatedOrder) {
+              setOrderDetail(updatedOrder);
+            }
+          }}
+          paymentMethod={paymentMethod}
+        />
+      )}
+
+      {/* Desktop (unchanged) */}
+      <div className="hidden lg:block max-w-[1200px] mx-auto px-4">
         <h1 className="text-2xl font-bold mb-8 text-center">{t("title")}</h1>
         {error && <div className="text-center text-red-500 py-4">{error}</div>}
 

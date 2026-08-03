@@ -22,7 +22,7 @@ export default function ShippingProgressBanner({ itemsCount, hasPackage }: Shipp
         href="/books"
         className="text-[#012CCE] cursor-pointer shrink-0"
       >
-        View More
+        Add another book
       </Link>
     </div>
   );

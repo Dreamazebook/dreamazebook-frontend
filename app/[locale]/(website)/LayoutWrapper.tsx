@@ -24,6 +24,8 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   const isPreviewPage = segments.includes("preview");
   const isSelectBookContentPage = segments.includes("select-book-content");
   const isKickstarterConfigPage = segments.includes("kickstarter-config");
+  const isShoppingCartPage = segments.includes("shopping-cart");
+  const isCheckoutPage = segments.includes("checkout");
   const isBookDetailPage = segments[0] === 'books' && segments.length === 2;
   const isFathersDayPage = pathname === '/fathers-day' || pathname?.endsWith('/fathers-day');
   const isLoginPage = pathname === '/login' || pathname?.endsWith('/login');
@@ -44,7 +46,10 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     setPreviewUnlockSheetSnap,
   } = useUserStore();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(() => {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(max-width: 767px)').matches;
+});
 
   const shouldRenderLoginModal =
     isLoginModalOpen &&
@@ -194,8 +199,8 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     }
   }, [isLoggedIn, checkKickstarterStatus]);
 
-  const showTopBanner = !isPreviewPage;
-  const showHeader = !(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isEmbedMode);
+  const showTopBanner = !isPreviewPage && !(isCheckoutPage && isMobileViewport);
+  const showHeader = !(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isEmbedMode || (isCheckoutPage && isMobileViewport));
   const headerIsWhite = isScrolled || !isFathersDayPage;
 
   const loginModal = (
@@ -274,7 +279,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
           </div>
         )
       )}
-      {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isKickstarterConfigPage || isEmbedMode) && <Footer />}
+      {!(isPersonalizePage || isPreviewPage || isSelectBookContentPage || isPersonalizedProductsPage || isKickstarterConfigPage || isEmbedMode || isShoppingCartPage || isCheckoutPage) && <Footer />}
       {isBookDetailPage && !isEmbedMode && <div className="h-[92px] md:hidden" aria-hidden="true" />}
       <TawkScript visible={isHomePage} />
       {/* {scrollToTopConfig.enabled && (
