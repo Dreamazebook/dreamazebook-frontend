@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import HeroSection from './components/HeroSection';
 import MeaningfulGifts from './components/MeaningfulGifts';
 import BookGrid from './components/BookGrid';
-import OurStandard from './components/OurStandard';
+import OurStandard from './components/AStoryTheySeeThemselvesIn';
 import PersonalizedBookSection from './components/PersonalizedBookSection';
 import ThatsMeSection from './components/ThatsMeSection';
 import FAQ from '@/app/[locale]/(marketing)/components/FAQ';
@@ -27,11 +27,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function PersonalizedStorybooks({ params }: { params: Promise<{ locale: string }> }) {
+export default async function PersonalizedStorybooks({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ hero?: string }>;
+}) {
   const { locale } = await params;
+  const { hero } = await searchParams;
   return (
     <main className="min-h-screen bg-[#FFF7F9]">
-      <HeroSection />
+      <HeroSection heroFilter={hero} />
       <MeaningfulGifts />
       <BookGrid locale={locale} />
       <OurStandard />

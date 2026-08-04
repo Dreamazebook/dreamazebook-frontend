@@ -1,12 +1,54 @@
-import { PERSONALIZED_STORYBOOKS } from "@/constants/cdn";
 import { Link } from "@/i18n/routing";
+import { PERSONALIZED_STORYBOOKS } from "@/constants/cdn";
+
+// ── Types ──────────────────────────────────────────────────────────────
+
+export interface HeroSlide {
+  mobileImage: string;
+  mobileImageAlt?: string;
+  desktopImage: string;
+  desktopImageAlt?: string;
+  mobileTitle: string;
+  desktopTitle: string;
+  link: string;
+}
+
+export interface HeroSectionProps {
+  heros?: HeroSlide[];
+  bgColor?: string;
+  heroFilter?: string;
+}
+
+// ── Default data ───────────────────────────────────────────────────────
+
+const BIRTHDAY_HERO: HeroSlide = {
+  mobileImage: PERSONALIZED_STORYBOOKS("hero-birthday-mobile.png"),
+  mobileImageAlt: "Child reading a personalized storybook",
+  desktopImage: PERSONALIZED_STORYBOOKS("hero-birthday-desktop.webp"),
+  desktopImageAlt: "Child reading a personalized storybook",
+  mobileTitle: "Make Your Child\nthe Hero.",
+  desktopTitle: "Their Birthday. \nTheir Story.",
+  link: "/books/happy-birthday-personalized-birthday-book",
+};
+
+const DEFAULT_HERO: HeroSlide = {
+  mobileImage: PERSONALIZED_STORYBOOKS("hero-mobile.webp"),
+  mobileImageAlt: "Child reading a personalized storybook",
+  desktopImage: PERSONALIZED_STORYBOOKS("hero-desktop.webp"),
+  desktopImageAlt: "Child reading a personalized storybook",
+  mobileTitle: "Make Your Child\nthe Hero.",
+  desktopTitle: "Where your child becomes the hero of their own story",
+  link: "/books",
+};
+
+// ── Sub-components ─────────────────────────────────────────────────────
 
 const avatars = [
-  { type: "img", src: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1" },
-  { type: "letter", label: "A", bg: "#7C3AED" },
-  { type: "img", src: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1" },
-  { type: "letter", label: "J", bg: "#D97706" },
-  { type: "img", src: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1" },
+  { type: "img" as const, src: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1" },
+  { type: "letter" as const, label: "A", bg: "#7C3AED" },
+  { type: "img" as const, src: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1" },
+  { type: "letter" as const, label: "J", bg: "#D97706" },
+  { type: "img" as const, src: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1" },
 ];
 
 function StarRating() {
@@ -92,25 +134,45 @@ function FeatureCards() {
   );
 }
 
-export default function HeroSection() {
+// ── Hero selector ──────────────────────────────────────────────────────
+
+function getHero(heroFilter?: string, heros?: HeroSlide[]): HeroSlide | null {
+  if (heros && heros.length > 0) return heros[0];
+  if (heroFilter === "birthday") return BIRTHDAY_HERO;
+  return DEFAULT_HERO;
+}
+
+// ── Component ──────────────────────────────────────────────────────────
+
+export default function HeroSection({
+  heros,
+  bgColor = "#F5F0EB",
+  heroFilter,
+}: HeroSectionProps) {
+  const hero = getHero(heroFilter, heros);
+  if (!hero) return null;
+
+  const mobileHeadlineLines = hero.mobileTitle.split("\n");
+
   return (
     <div className="font-sans antialiased">
       {/* ── MOBILE ── */}
-      <div className="md:hidden flex flex-col bg-[#F5F0EB]">
+      <div className="md:hidden flex flex-col" style={{ backgroundColor: bgColor }}>
         {/* Hero image */}
         <div className="relative w-full" style={{ paddingBottom: "100%" }}>
           <img
-            src={PERSONALIZED_STORYBOOKS("hero-mobile.webp")}
-            alt="Child reading a personalized storybook"
+            src={hero.mobileImage}
+            alt={hero.mobileImageAlt || ""}
             className="absolute inset-0 w-full h-full object-cover object-top"
           />
-          {/* Gradient overlay for text readability */}
-          {/* <div className="absolute inset-0 bg-gradient-to-t from-[#F5F0EB] via-transparent to-transparent" style={{ backgroundImage: "linear-gradient(to top, #F5F0EB 0%, #F5F0EB 8%, rgba(245,240,235,0.55) 35%, transparent 60%)" }} /> */}
-
-          {/* Headline over image */}
           <div className="absolute bottom-6 left-5 right-5">
             <h1 className="text-[36px] font-[500] text-primary leading-tight">
-              Make Your Child<br />the Hero.
+              {mobileHeadlineLines.map((line, i) => (
+                <span key={i}>
+                  {i > 0 && <br />}
+                  {line}
+                </span>
+              ))}
             </h1>
           </div>
         </div>
@@ -127,10 +189,10 @@ export default function HeroSection() {
           </div>
 
           {/* Feature cards */}
-          <FeatureCards />
+          {heroFilter !== "birthday" && <FeatureCards />}
 
           {/* CTA */}
-          <Link href="/books" className="w-full cursor-pointer bg-gray-900 hover:bg-gray-800 active:scale-[0.98] transition-all text-white text-base font-medium rounded-xl py-4 flex items-center justify-center gap-3">
+          <Link href={hero.link} className="w-full cursor-pointer bg-gray-900 hover:bg-gray-800 active:scale-[0.98] transition-all text-white text-base font-medium rounded-xl py-4 flex items-center justify-center gap-3">
             Create my preview
             <span className="text-lg">→</span>
           </Link>
@@ -138,28 +200,18 @@ export default function HeroSection() {
       </div>
 
       {/* ── DESKTOP ── */}
-      <div className="hidden md:block relative min-h-screen bg-[#F5F0EB] overflow-hidden">
-        {/* Full-bleed hero image on the right */}
+      <div className="hidden md:block relative min-h-screen overflow-hidden" style={{ backgroundColor: bgColor }}>
         <div className="absolute inset-0">
           <img
-            src={PERSONALIZED_STORYBOOKS("hero-desktop.webp")}
-            alt="Child reading a personalized storybook"
+            src={hero.desktopImage}
+            alt={hero.desktopImageAlt || ""}
             className="w-full h-full object-cover object-center"
           />
-          {/* <div
-            className="absolute inset-0"
-            style={{ background: "linear-gradient(to right, #F5F0EB 0%, #F5F0EB 28%, rgba(245,240,235,0.85) 42%, rgba(245,240,235,0.3) 58%, transparent 72%)" }}
-          /> */}
-          {/* <div
-            className="absolute inset-0"
-            style={{ background: "linear-gradient(to top, #F5F0EB 0%, transparent 25%)" }}
-          /> */}
         </div>
 
-        {/* Left content */}
         <div className="relative z-10 flex flex-col justify-center min-h-screen px-12 lg:px-20 pt-20 pb-12 max-w-4xl">
           <h1 className="text-[18px] lg:text-[64px] text-primary font-[500] leading-tight mb-7">
-            Where your child becomes the hero of their own story
+            {hero.desktopTitle}
           </h1>
 
           {/* Social proof */}
@@ -172,17 +224,18 @@ export default function HeroSection() {
           </div>
 
           {/* CTA */}
-          <Link href="/books" className="cursor-pointer self-start bg-gray-900 hover:bg-gray-800 active:scale-[0.98] transition-all text-white text-sm font-medium rounded-xl px-7 py-3.5 flex items-center gap-3 mb-10">
+          <Link href={hero.link} className="cursor-pointer self-start bg-gray-900 hover:bg-gray-800 active:scale-[0.98] transition-all text-white text-sm font-medium rounded-xl px-7 py-3.5 flex items-center gap-3 mb-10">
             Create my preview
             <span className="text-base">→</span>
           </Link>
 
           {/* Feature cards */}
-          <div className="w-full max-w-[480px]">
-            <FeatureCards />
-          </div>
+          {heroFilter !== "birthday" && (
+            <div className="w-full max-w-[480px]">
+              <FeatureCards />
+            </div>
+          )}
         </div>
-
       </div>
     </div>
   );
