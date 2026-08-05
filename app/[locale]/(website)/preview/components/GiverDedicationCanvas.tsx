@@ -155,6 +155,14 @@ function resolveDedicationPads(
   return { padLeft, padRight };
 }
 
+/**
+ * Draws the p3-4 giver photo and dedication over a preview background.
+ *
+ * Params: imageUrl must resolve to a drawable image; mode controls single- or double-page output and optional callbacks receive rendered results.
+ * Returns: responsive canvas elements and optional interaction slots after drawing completes.
+ * Side effects: loads fonts/images, draws canvases, updates visual-ready state, and may emit a JPEG data URL.
+ * Failure: image/draw/export failures are logged and leave the canvas unavailable without throwing through React.
+ */
 export default function GiverDedicationCanvas({
   imageUrl,
   mode,
@@ -261,18 +269,25 @@ export default function GiverDedicationCanvas({
   useEffect(() => {
     if (!ready) return;
 
-    // 尝试优先以 CORS 方式加载，失败则降级为非 CORS 加载（允许画布被 taint，只用于显示）
+    /**
+     * Loads a drawable image while avoiding known cross-origin console failures.
+     *
+     * Params: src must be a browser-loadable relative, HTTP(S), blob, or data URL.
+     * Returns: resolves with a loaded HTMLImageElement; known non-CORS hosts load without crossOrigin.
+     * Side effects: starts one or two browser image requests and may create a tainted display-only canvas source.
+     * Failure: rejects after both the CORS and non-CORS attempts fail.
+     */
     const loadImageWithCorsFallback = (src: string): Promise<HTMLImageElement> => {
       const shouldBypassCors = (() => {
         try {
           const u = new URL(src, window.location.href);
-          return u.hostname.endsWith('.r2.dev') || u.hostname.includes('s3-dev-dre01') || u.hostname.includes('s3-pro-dre001') || u.hostname.includes('s3-pro-dre002');
+          return u.hostname === 'huiben.com' || u.hostname.endsWith('.r2.dev') || u.hostname.includes('s3-dev-dre01') || u.hostname.includes('s3-pro-dre001') || u.hostname.includes('s3-pro-dre002');
         } catch {
           return src.includes('.r2.dev') || src.includes('s3-dev-dre01') || src.includes('s3-pro-dre001') || src.includes('s3-pro-dre002');
         }
       })();
       return new Promise((resolve, reject) => {
-        // 对于已知未开启 CORS 的源（如 r2.dev 和 s3-pro-dre001/dre002），直接跳过 crossOrigin 以避免控制台报错噪音
+        // Why: huiben/R2/S3 本地资源未返回 CORS 头；显示场景直接跳过 crossOrigin，导出场景仍会先走同源代理。
         if (shouldBypassCors) {
           const img = new Image();
           img.onload = () => resolve(img);

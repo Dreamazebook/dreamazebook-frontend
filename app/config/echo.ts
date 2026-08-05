@@ -23,7 +23,7 @@ if (typeof window !== 'undefined') {
     const wsPort = process.env.NEXT_PUBLIC_WS_PORT ? Number(process.env.NEXT_PUBLIC_WS_PORT) : undefined;
     const wssPort = process.env.NEXT_PUBLIC_WS_WSS_PORT ? Number(process.env.NEXT_PUBLIC_WS_WSS_PORT) : (process.env.NEXT_PUBLIC_WS_PORT ? Number(process.env.NEXT_PUBLIC_WS_PORT) : undefined);
     const forceTLS = process.env.NEXT_PUBLIC_WS_SECURE === 'true';
-    const wsPath = process.env.NEXT_PUBLIC_WS_PATH || '/app';
+    const wsPath = process.env.NEXT_PUBLIC_WS_PATH || '';
     const enabledTransports = forceTLS ? ['wss'] as Array<'ws' | 'wss'> : ['ws'];
 
     const headers: Record<string, string> = {

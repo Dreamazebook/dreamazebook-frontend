@@ -23,6 +23,7 @@ import {
   mapPersonalityTraitIdsToCharacterTraits,
 } from '@/utils/birthdayPersonalizeHelpers';
 import { buildPreviewRenderPayload } from '@/utils/previewRenderPayload';
+import { preparePreviewRenderPayload } from '@/utils/previewImageAssets';
 import {
   DEFAULT_DAD_QUESTIONS_PREVIEW,
   parseDadQuestionsFromProduct,
@@ -700,6 +701,14 @@ export default function EditPersonalizedProductPage() {
     );
   };
 
+  /**
+   * Validates edited personalization data and regenerates the bound cart/package preview.
+   *
+   * Params: none; reads form refs, current cart linkage, and the selected product/language state.
+   * Returns: resolves after step navigation or preview-route navigation; concurrent clicks exit early.
+   * Side effects: may upload V2 image assets, update the bound preview batch/cart item, update store state, and navigate.
+   * Failure: validation/API failures retain the editor state and clear the continuing indicator for retry.
+   */
   const handleContinue = async () => {
     if (isContinuing) return;
     setIsContinuing(true);
@@ -972,9 +981,10 @@ export default function EditPersonalizedProductPage() {
         },
       });
       const giftMessage = String((initialData as any)?.giftMessage || (initialData as any)?.gift_message || '').trim();
-      const payload = giftMessage
+      const legacyPayload = giftMessage
         ? { ...fb, attributes: { ...(fb.attributes as Record<string, unknown>), gift_message: giftMessage } }
         : fb;
+      const payload = await preparePreviewRenderPayload(bookId, legacyPayload);
 
       let nextPreviewId: string = String(previewId);
       let shouldSkipPreviewRender = false;

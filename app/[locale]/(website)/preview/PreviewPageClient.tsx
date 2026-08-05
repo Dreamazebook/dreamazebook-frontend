@@ -28,10 +28,7 @@ import useUserStore from '@/stores/userStore';
 import usePreviewStore from '@/stores/previewStore';
 import { mapAgeStageUiToBackend } from '@/utils/mapAgeStageToBackend';
 import { buildPreviewRenderPayload } from '@/utils/previewRenderPayload';
-import {
-  createPreviewPayloadFingerprint,
-  rememberReusablePreviewBatch,
-} from '@/utils/previewBatchReuse';
+import { preparePreviewRenderPayload } from '@/utils/previewImageAssets';
 import { getApiBaseUrl } from '@/utils/apiBaseUrl';
 import { getBirthdayCoverSeasonFromCharacterLike } from '@/utils/birthdayPersonalizeHelpers';
 import toast from 'react-hot-toast';
@@ -1426,6 +1423,14 @@ interface BookOptions {
   gift_box_options: Array<GiftBoxOption>;
 }
 
+/**
+ * Renders the personalized book preview and its editing/checkout interactions.
+ *
+ * Params: mode must be a supported PreviewPageMode; omitted values use the standard preview flow.
+ * Returns: the interactive preview React tree; rendering itself has no return-time failure value.
+ * Side effects: loads preview/product data, manages uploads and cart actions, and subscribes to batch updates.
+ * Failure: existing loading, validation, and error UI/logging paths handle unavailable data or failed requests.
+ */
 export default function PreviewPageClient({ mode = 'preview' }: { mode?: PreviewPageMode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -4292,22 +4297,24 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     } catch {}
   };
 
-  // 处理 NDJSON 流事件
-  const handleNdjsonEvent = (
-    chunk: any,
-    spuCode: string,
-    renderFingerprint?: string,
-  ) => {
+  /**
+   * Applies one preview/render NDJSON event to the active preview UI.
+   *
+   * Params: `chunk` must follow the backend event/data envelope; `spuCode` identifies the active preview product.
+   * Returns: nothing; unknown or malformed events are ignored.
+   * Side effects: updates React state, the URL batch token, polling, and the preview WebSocket subscription.
+   * Failure: optional event fields are tolerated so polling remains the authoritative fallback.
+   */
+  const handleNdjsonEvent = (chunk: any, spuCode: string) => {
     const { event, data } = chunk || {};
     if (!event) return;
     switch (event) {
       case 'accepted': {
-        setIsProcessing(true);
+        // Why: a server-side revision reuse may already be completed and should not flash the generation loader.
+        const acceptedStatus = String(data?.batch?.status || '').toLowerCase();
+        setIsProcessing(acceptedStatus !== 'completed' && acceptedStatus !== 'failed');
         const bid = extractBatchIdFromEvent({ data }) || data?.batch?.batch_id;
         if (bid) {
-          if (renderFingerprint) {
-            rememberReusablePreviewBatch(spuCode, renderFingerprint, bid);
-          }
           currentBatchIdRef.current = bid;
           setCurrentBatchId(bid);
           updatePreviewIdInUrl(bid);
@@ -4324,9 +4331,6 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
         try {
           const bid = extractBatchIdFromEvent({ data }) || data?.batch?.batch_id;
           if (bid && (!currentBatchIdRef.current || currentBatchIdRef.current !== bid)) {
-            if (renderFingerprint) {
-              rememberReusablePreviewBatch(spuCode, renderFingerprint, bid);
-            }
             currentBatchIdRef.current = bid;
             setCurrentBatchId(bid);
             updatePreviewIdInUrl(bid);
@@ -4368,9 +4372,6 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
         setIsProcessing(false);
         const batchId = data?.batch?.batch_id;
         if (batchId) {
-          if (renderFingerprint) {
-            rememberReusablePreviewBatch(spuCode, renderFingerprint, batchId);
-          }
           currentBatchIdRef.current = batchId;
           startBatchPolling(spuCode, batchId);
         }
@@ -4384,10 +4385,17 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     }
   };
 
-  // 启动渲染：POST /products/{spu}/preview/render 并解析 NDJSON 流
+  /**
+   * Uploads new face photos as V2 assets, starts preview rendering, and consumes its NDJSON response.
+   *
+   * Params: `spuCode` must be preview-enabled; `payload` is the complete legacy request built from personalization state.
+   * Returns: resolves after the response stream closes; callers continue through polling/WebSocket updates.
+   * Side effects: may upload image assets, create or reuse a backend batch, mutate preview state, and update the URL token.
+   * Failure: upload, HTTP, timeout, and stream errors are logged and stop the processing indicator without submitting partial assets.
+   */
   const startNdjsonRender = async (spuCode: string, payload: any) => {
     try {
-      const renderFingerprint = await createPreviewPayloadFingerprint(payload);
+      const requestPayload = await preparePreviewRenderPayload(spuCode, payload);
       // 客户端使用 /api 代理，服务器端使用完整 URL
       const apiBase = typeof window !== 'undefined' 
         ? '/api' 
@@ -4420,7 +4428,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
             ...(authHeader ? { Authorization: authHeader } : {}),
             ...(guestSessionId ? { [GUEST_SESSION_HEADER]: guestSessionId } : {}),
           },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(requestPayload),
           signal: controller.signal,
         });
       } catch (err: any) {
@@ -4471,7 +4479,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
             if (!line) continue;
             try {
               const evt = JSON.parse(line);
-              handleNdjsonEvent(evt, spuCode, renderFingerprint);
+              handleNdjsonEvent(evt, spuCode);
             } catch (_e) {
               // 忽略单行解析错误
             }
@@ -4483,7 +4491,7 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       if (buffer) {
         try {
           const evt = JSON.parse(buffer);
-          handleNdjsonEvent(evt, spuCode, renderFingerprint);
+          handleNdjsonEvent(evt, spuCode);
         } catch (_e) {}
       }
       try {
@@ -4491,6 +4499,8 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       } catch {}
     } catch (e: any) {
       console.error('预览渲染流式请求失败:', e);
+      setIsProcessing(false);
+      setPreviewError(e?.response?.data?.message || e?.message || '换脸处理失败');
     }
   };
 
@@ -4501,7 +4511,14 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     };
   }, []);
 
-  // 获取预览数据
+  /**
+   * Loads public preview metadata and restores the latest batch for the current identity when available.
+   *
+   * Params: none; reads the active SPU and optional personalization name from component/browser state.
+   * Returns: resolves after metadata/current batch initialization; missing SPU exits without a request.
+   * Side effects: performs read-only API calls and may update preview state, URL, polling, and WebSocket subscription.
+   * Failure: API errors populate `previewError`; a missing current revision falls back to static preview metadata.
+   */
   const fetchPreviewData = useCallback(async () => {
     try {
       const bookId = previewBookId;
@@ -4549,119 +4566,36 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
       isPostingCreateRef.current = true;
       // 新任务启动，清空每页完成集合
       setSwappedPageIds(new Set());
-      const response = await api.get(`/products/${bookId}/preview`) as ApiResponse<PreviewResponse>;
+      const response = await api.get(`/products/${bookId}/preview`, {
+        params: {
+          include_current_revision: 1,
+          language: character?.language || 'en',
+          ...(character?.full_name ? { recipient_name: character.full_name } : {}),
+        },
+      }) as ApiResponse<PreviewResponse>;
       
-      if (response.success) {
-        // 若后端已完成直接返回结果，直接应用
-        const status = (response as any)?.data?.status;
-        if (status === 'completed' && (Array.isArray((response as any)?.data?.preview_data) || Array.isArray((response as any)?.data?.result_images))) {
-          const merged = applyResultImagesToPreviewData((response as any).data);
-          setPreviewData(merged);
-          try {
-            const bid = (merged as any)?.batch_id || ((response as any)?.data as any)?.batch_id;
-            if (bid) {
-              currentBatchIdRef.current = bid;
-              setCurrentBatchId(bid);
-              const spu = String(previewBookId || bookId || '').toLowerCase();
-              if (spu && bid) startBatchPolling(spu, bid);
-            }
-          } catch {}
-          // 标记完成页
-          const completedIds = new Set<number>();
-          (merged?.preview_data || []).forEach((p: any) => {
-            if (p?.has_face_swap) completedIds.add(Number(p.page_id));
-          });
-          setSwappedPageIds(completedIds);
-        } else {
-          // 如果 response.data 有 preview_data 数组，设置它；否则等待轮询填充
-          console.log('[Preview] Response data structure:', {
-            hasPreviewData: !!response.data?.preview_data,
-            previewDataLength: response.data?.preview_data?.length,
-            status: (response.data as any)?.status
-          });
-          
-          if (response.data?.preview_data && Array.isArray(response.data.preview_data) && response.data.preview_data.length > 0) {
-              setPreviewData(response.data!);
-          } else {
-            // 没有preview_data，只设置顶层状态与 batch_id，让轮询来填充数据
-            console.log('[Preview] No preview_data in response, creating minimal structure for polling');
-            setPreviewData({
-              preview_id: undefined as any,
-              preview_data: [],  // 空数组，等待轮询填充
-              status: ((response.data as any)?.status) || 'processing',
-              batch_id: (response.data as any)?.batch_id,
-            } as any);
-          }
-          
-          // 记录本次任务的 batch_id，用于筛选后续广播
-          try {
-            const bid = (response.data as any)?.batch_id;
-            if (bid) {
-              currentBatchIdRef.current = bid;
-              setCurrentBatchId(bid);
-              updatePreviewIdInUrl(bid);
-              const spu = String(previewBookId || bookId || '').toLowerCase();
-              if (spu && bid) {
-                startBatchPolling(spu, bid);
-                subscribeToPreviewChannel(spu, bid);
-                // 立即从新的 batch 获取 recipient_name
-                // 注意：如果是从 personalized-product 进入的（store 中有数据），不覆盖 store 中的名字
-                try {
-                  const storeUserData = usePreviewStore.getState().userData as any;
-                  const storeName = storeUserData?.characters?.[0]?.full_name;
-                  
-                  // 只有在 store 中没有名字时，才从 batch 获取
-                  if (!storeName || !storeName.trim()) {
-                    const path = `/products/${spu}/preview/batches/${bid}`;
-                    // 客户端强制走同域 /api 代理
-                    const url = path;
-                    api.get(url).then((res: any) => {
-                      const batch = unwrapPreviewBatch(res);
-                      applyBatchIsOwn(res, batch);
-                      if (batch) {
-                        const recipientName = batch.recipient_name || batch.options?.recipient_name || batch.options?.full_name;
-                        if (recipientName && typeof recipientName === 'string' && recipientName.trim()) {
-                          setRecipient(recipientName);
-                          console.log('[Preview] Updated recipient from new batch:', recipientName);
-                        }
-                        if (batch.options) {
-                          setPreviewData((p) => (p ? { ...p, batch_options: batch.options } : p));
-                        }
-                      }
-                    }).catch(() => {});
-                  }
-                } catch {}
-              }
-            }
-          } catch {}
-        }
-        
-        // 注意：不再从 localStorage/store 获取名字，因为名字应该从最新的 batch 获取
-        // 如果 batch 中没有名字，才从 store 作为兜底
-        try {
-          // 只有在没有从 batch 获取到名字时，才从 store 获取
-          if (!recipient || recipient.trim() === '') {
-            const storeUserData = usePreviewStore.getState().userData as any;
-            const source = storeUserData || (() => {
-              try {
-                const ud = localStorage.getItem('previewUserData');
-                return ud ? JSON.parse(ud) : null;
-              } catch { return null; }
-            })();
-            if (source) {
-              const character = source.characters?.[0];
-              const fullName = character?.full_name || '';
-              if (fullName) setRecipient(fullName);
-            }
-          }
-        } catch (e) {
-          console.warn('无法获取角色名称:', e);
-        }
-        
-        console.log('预览数据获取成功:', response.data);
-      } else {
+      if (!response.success || !response.data) {
         setPreviewError(response.message || '获取预览数据失败');
+        return;
       }
+
+      const currentRevision = (response.data as any).current_revision;
+      // Why: returning/reloading users restore the server-authoritative revision instead of creating a GET-side generation.
+      if (currentRevision?.batch_id) {
+        const batchId = String(currentRevision.batch_id);
+        currentBatchIdRef.current = batchId;
+        setCurrentBatchId(batchId);
+        updatePreviewIdInUrl(batchId);
+        await refreshPreviewDataFromBatch(String(bookId), batchId, shouldIncludeFullBookInBatch());
+        startBatchPolling(String(bookId), batchId);
+        subscribeToPreviewChannel(String(bookId), batchId);
+        setIsProcessing(currentRevision.status !== 'completed' && currentRevision.status !== 'failed');
+        return;
+      }
+
+      // Edge case: a new identity has no generation revision, so GET only supplies static product/page metadata.
+      setPreviewData(normalizePreviewApi(response.data));
+      console.log('预览元数据获取成功:', response.data);
       
     } catch (error: any) {
       console.error('获取预览数据失败:', {
@@ -5026,7 +4960,14 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
     }
   };
 
-  // 点击 Continue / Checkout：更新已有购物车条目并创建订单
+  /**
+   * Validates preview options, updates the active cart item, and continues to checkout/cart.
+   *
+   * Params: none; reads current preview, option, route, and personalization state.
+   * Returns: resolves after navigation or a validation stop; duplicate clicks are guarded by loading state.
+   * Side effects: may upload V2 image assets, regenerate a package preview, update cart/order data, and navigate.
+   * Failure: incomplete sections are focused; API failures use existing logging/toast paths and do not create an order.
+   */
   const handleContinue = async () => {
     try {
       console.debug('[Checkout] Clicked');
@@ -5054,7 +4995,8 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
           })();
 
           const character = raw?.characters?.[0] || {};
-          const payload = buildPreviewRenderPayload(previewBookId || '', character);
+          const legacyPayload = buildPreviewRenderPayload(previewBookId || '', character);
+          const payload = await preparePreviewRenderPayload(previewBookId || '', legacyPayload);
 
           await api.post<any>(
             `/cart/package-items/${encodeURIComponent(String(fromCartItemId))}/regenerate-preview`,
@@ -6671,13 +6613,12 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
                         isGiverDedicationPage && hasMeaningfulFinalImage(page)
                           ? buildProtectedPreviewDisplayUrl(String((page as any).final_image_url || ''))
                           : null;
-                      // p3-4 分层模型：
-                      // - 底图：只使用 base_stage_url（后端 base stage 纯底图）。
+                      // p3-4 分层模型：优先使用纯底图；静态预览没有 base stage 时复用当前页面图。
                       const p34TemplateRaw = isGiverDedicationPage
                         ? ((page as any).base_stage_url || p34BaseImageUrlRef.current)
                         : null;
                       const p34BaseSrc = isGiverDedicationPage
-                        ? buildImageUrl(String(p34TemplateRaw || ''))
+                        ? buildImageUrl(String(p34TemplateRaw || src))
                         : src;
                       // giver 图：优先使用用户本次上传（giverImageUrl），否则用后端保存的 giver_data（URL / data URL）
                       const p34GiverOverlaySrc = isGiverDedicationPage

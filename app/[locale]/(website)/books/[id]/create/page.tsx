@@ -20,11 +20,7 @@ import { getPersonalizeAvatarAssetSpu } from '@/utils/personalizeAvatar';
 import { buildPicbookPreviewFacePayload } from '@/utils/faceImagePayload';
 import { getBookPath, getPreviewPath, PENDING_PREVIEW_TOKEN, resolveBookRouteFromParam } from '@/constants/bookRoutes';
 import { buildPreviewRenderPayload } from '@/utils/previewRenderPayload';
-import {
-  createPreviewPayloadFingerprint,
-  getReusablePreviewBatchId,
-  rememberReusablePreviewBatch,
-} from '@/utils/previewBatchReuse';
+import { preparePreviewRenderPayload } from '@/utils/previewImageAssets';
 import {
   buildDadQuestionAttributes,
   DEFAULT_DAD_QUESTIONS_PREVIEW,
@@ -599,6 +595,14 @@ export default function PersonalizeApiDrivenPage() {
     router.push(getBookPath(String(bookId)));
   };
 
+  /**
+   * Validates the current personalization step and continues to preview generation.
+   *
+   * Params: none; reads the active form refs, product configuration, and route query state.
+   * Returns: resolves after advancing a step or navigating to preview; duplicate submissions exit early.
+   * Side effects: stores draft/preview state, may upload V2 image assets for cart regeneration, tracks analytics, and navigates.
+   * Failure: validation keeps the user on the current step; API/storage errors reset submission state for retry.
+   */
   const handleContinue = async () => {
     // 防止重复提交
     if (isSubmitting) return;
@@ -785,8 +789,6 @@ export default function PersonalizeApiDrivenPage() {
         bookId || '',
         (userData as any)?.characters?.[0] || {},
       );
-      const previewPayloadFingerprint =
-        await createPreviewPayloadFingerprint(previewRenderPayload);
       // Optionally compute SKU + price for downstream steps (not altering UI)
       if (rawApi && productSchema) {
         const selections: Record<string, string> = {
@@ -828,22 +830,14 @@ export default function PersonalizeApiDrivenPage() {
 
       // 关键修复：从购物车的 bundle/占位条目（mode=create）进入 personalize 时，不应该在 preview 里再次新增一条购物车记录。
       // 做法：在此处先用 regenerate-preview 把生成的 preview 绑定到原 cart item，然后带 preview token 进入 preview 页。
+      // Why: the backend revision hash now owns reuse; the client always submits and accepts the returned reused/full action.
       let previewToken = PENDING_PREVIEW_TOKEN;
-      if (!fromCartItemId) {
-        const reusableBatchId = getReusablePreviewBatchId(
-          bookId || '',
-          previewPayloadFingerprint,
-        );
-        if (reusableBatchId) {
-          previewToken = reusableBatchId;
-          console.log('[PreviewReuse] Reusing unchanged preview batch:', reusableBatchId);
-        }
-      }
       if (fromCartItemId && !isHideOptions) {
         try {
+          const renderPayload = await preparePreviewRenderPayload(bookId || '', previewRenderPayload);
           const resp: any = await api.post<any>(
             `/cart/${encodeURIComponent(String(fromCartItemId))}/regenerate-preview`,
-            previewRenderPayload
+            renderPayload
           );
           const responseData = resp?.data || {};
           const bid =
@@ -859,11 +853,6 @@ export default function PersonalizeApiDrivenPage() {
             resp?.batch?.id;
           if (bid) {
             previewToken = String(bid);
-            rememberReusablePreviewBatch(
-              bookId || '',
-              previewPayloadFingerprint,
-              previewToken,
-            );
           }
           if (responseData?.reused_preview === true || resp?.reused_preview === true) qs.set('skipRender', '1');
         } catch (e) {
