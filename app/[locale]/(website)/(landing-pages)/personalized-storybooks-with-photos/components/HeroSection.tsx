@@ -22,7 +22,7 @@ export interface HeroSectionProps {
 // ── Default data ───────────────────────────────────────────────────────
 
 const BIRTHDAY_HERO: HeroSlide = {
-  mobileImage: PERSONALIZED_STORYBOOKS("hero-birthday-mobile.png"),
+  mobileImage: PERSONALIZED_STORYBOOKS("hero-birthday-mobile.webp"),
   mobileImageAlt: "Child reading a personalized storybook",
   desktopImage: PERSONALIZED_STORYBOOKS("hero-birthday-desktop.webp"),
   desktopImageAlt: "Child reading a personalized storybook",
@@ -192,7 +192,7 @@ export default function HeroSection({
           {heroFilter !== "birthday" && <FeatureCards />}
 
           {/* CTA */}
-          <Link href={hero.link} className="w-full cursor-pointer bg-gray-900 hover:bg-gray-800 active:scale-[0.98] transition-all text-white text-base font-medium rounded-xl py-4 flex items-center justify-center gap-3">
+          <Link href={hero.link} className="w-full cursor-pointer bg-gray-900 hover:bg-gray-800 active:scale-[0.98] transition-all text-white text-base font-medium rounded py-4 flex items-center justify-center gap-3">
             Create my preview
             <span className="text-lg">→</span>
           </Link>
@@ -209,7 +209,7 @@ export default function HeroSection({
           />
         </div>
 
-        <div className="relative z-10 flex flex-col justify-center min-h-screen px-12 lg:px-20 pt-20 pb-12 max-w-4xl">
+        <div className={`relative z-10 flex flex-col justify-center min-h-screen px-12 lg:px-20 pt-20 pb-12 ${heroFilter === "birthday" ? "mx-auto max-w-4xl" : "max-w-4xl"}`}>
           <h1 className="text-[18px] lg:text-[64px] text-primary font-[500] leading-tight mb-7">
             {hero.desktopTitle}
           </h1>
@@ -224,7 +224,7 @@ export default function HeroSection({
           </div>
 
           {/* CTA */}
-          <Link href={hero.link} className="cursor-pointer self-start bg-gray-900 hover:bg-gray-800 active:scale-[0.98] transition-all text-white text-sm font-medium rounded-xl px-7 py-3.5 flex items-center gap-3 mb-10">
+          <Link href={hero.link} className="cursor-pointer self-start bg-gray-900 hover:bg-gray-800 active:scale-[0.98] transition-all text-white text-sm font-medium rounded px-7 py-3.5 flex items-center gap-3 mb-10">
             Create my preview
             <span className="text-base">→</span>
           </Link>
