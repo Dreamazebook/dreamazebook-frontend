@@ -522,7 +522,6 @@ const AddressForm = forwardRef<
         error={errors.email}
         placeholder={t("emailPlaceholder")}
       >
-        <span className="text-[16px] text-[#999]">{t("emailHelp")}</span>
       </FormField>
 
       <FormField

@@ -363,7 +363,6 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
               }}
               placeholder={tForm("emailPlaceholder")}
             >
-              <span className="text-[12px] text-[#999]">{tForm("emailHelp")}</span>
             </FormField>
           </section>
 
@@ -423,9 +422,7 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
                 debouncedGetAddressSuggestions();
                 setShowAddressPrompt(false);
               }}
-              onPaste={(e) => {
-                const pastedValue = e.clipboardData?.getData("text") || "";
-                setShippingAddress((prev) => ({ ...prev, street: pastedValue }));
+              onPaste={() => {
                 setShowAddressPrompt(true);
                 debouncedGetAddressSuggestions();
               }}
@@ -569,15 +566,6 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
             ) : (
               <p className="text-sm text-gray-500">{t("errorLoadingOrder")}</p>
             )}
-
-            <div className="mt-3 flex items-center">
-              <div className="relative inline-block w-9 h-5">
-                <input type="checkbox" className="peer sr-only" defaultChecked />
-                <span className="absolute inset-0 rounded-full bg-primary peer-checked:bg-primary" />
-                <span className="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-white transition-transform peer-checked:translate-x-4" />
-              </div>
-              <span className="ml-2 text-[13px] text-[#222]">{t("saveMyInfo")}</span>
-            </div>
           </section>
 
           {/* Order summary */}
