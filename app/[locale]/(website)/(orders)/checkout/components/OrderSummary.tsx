@@ -8,6 +8,7 @@ import DisplayPrice from '../../../components/component/DisplayPrice';
 import OrderSummaryPrices from '../../../components/component/OrderSummaryPrices';
 import CouponInput from '../../shopping-cart/components/CouponInput';
 import { getFormattedCartItemTitle } from '@/utils/bookNames';
+import NeedHelpSection from '../../shopping-cart/components/NeedHelpSection';
 
 interface OrderSummaryProps {
   orderDetail?: OrderDetail;
@@ -60,13 +61,14 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         ))}
       </div>
 
-      <CouponInput
+      {/* <CouponInput
         onApply={handleApplyCoupon}
         onRemove={handleRemoveCoupon}
         coupon={couponInfo}
         couponApplying={couponApplying}
         couponError={couponError}
-      />
+      /> */}
+      <NeedHelpSection />
 
       {orderDetail &&
       <OrderSummaryPrices orderDetail={orderDetail} />

@@ -18,6 +18,7 @@ import { ApiResponse } from "@/types/api";
 import { useRouter } from "@/i18n/routing";
 import { ORDER_SUMMARY_URL } from "@/constants/links";
 import { fbTrackCustom, getContentIdBySpu, trackAddPaymentInfo } from "@/utils/track";
+import NeedHelpSection from "../../shopping-cart/components/NeedHelpSection";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 const PUBLIC_MAPBOX_API_KEY = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
@@ -616,13 +617,14 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
 
           {/* Coupon */}
           <section className="bg-white rounded-xl p-4">
-            <CouponInput
+            {/* <CouponInput
               onApply={handleApplyCoupon}
               onRemove={handleRemoveCoupon}
               coupon={couponInfo}
               couponApplying={couponApplying}
               couponError={couponError}
-            />
+            /> */}
+            <NeedHelpSection />
           </section>
         </div>
       )}
