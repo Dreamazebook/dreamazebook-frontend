@@ -68,6 +68,10 @@ interface UserState {
   sendLoginCode: (email: string) => Promise<ApiResponse<any>>
   verifyLoginCode: (email: string, code: string) => Promise<ApiResponse<UserResponse> | null>
 
+  // Cart item count
+  cartCount: number
+  fetchCartCount: () => Promise<void>
+
   // Kickstarter welcome modal
   showKickstarterWelcome: boolean
   ksSummary: KickstarterUserSummary | null
@@ -223,6 +227,20 @@ const useUserStore = create<UserState>((set,get) => ({
       return null;
     }
   },
+  // Cart item count
+  cartCount: 0,
+  fetchCartCount: async () => {
+    try {
+      const { data, success } = await api.get<ApiResponse<any>>(API_CART_LIST);
+      if (success && data) {
+        const items = data.items || data.cart_items || [];
+        set({ cartCount: items.length });
+      }
+    } catch (error) {
+      // Silently fail
+    }
+  },
+
   // Kickstarter welcome modal state
   showKickstarterWelcome: false,
   ksSummary: null,

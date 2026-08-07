@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Address } from "@/types/address";
-import { OrderDetail, ShippingOption, getShippingOptions } from "@/types/order";
+import { OrderDetail, ShippingOption, getShippingOptions, ShippingErrors } from "@/types/order";
 import FormField from "./FormField";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
@@ -124,6 +124,70 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
   const addressSuggestionsRef = useRef<any[]>([]);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showAddressPrompt, setShowAddressPrompt] = useState(false);
+  const [errors, setErrors] = useState<ShippingErrors>({});
+
+  const clearError = (field: keyof ShippingErrors) => {
+    if (errors[field]) {
+      const newErrors = { ...errors };
+      delete newErrors[field];
+      setErrors(newErrors);
+    }
+  };
+
+  const validateField = (field: keyof ShippingErrors, addr: Address): string | undefined => {
+    const isValidPhone = (phone: string): boolean => /^\+?\d{7,15}$/.test(phone.replace(/[\s\-()]/g, ''));
+    switch (field) {
+      case 'email':
+        if (!addr.email) return tForm('emailRequired');
+        if (!/\S+@\S+\.\S+/.test(addr.email)) return tForm('emailInvalid');
+        return undefined;
+      case 'first_name':
+        return addr.first_name ? undefined : tForm('firstNameRequired');
+      case 'last_name':
+        return addr.last_name ? undefined : tForm('lastNameRequired');
+      case 'country':
+        return addr.country ? undefined : tForm('countryRequired');
+      case 'address':
+        return addr.street ? undefined : tForm('addressRequired');
+      case 'phone':
+        if (!addr.phone) return tForm('phoneRequired');
+        if (!isValidPhone(addr.phone)) return tForm('phoneInvalid');
+        return undefined;
+      default:
+        return undefined;
+    }
+  };
+
+  const validateShippingInfo = (field?: keyof ShippingErrors, addressOverride?: Address): boolean => {
+    const addr = addressOverride || shippingAddress;
+    const newErrors: ShippingErrors = field ? { ...errors } : {};
+
+    const fields: (keyof ShippingErrors)[] = ['email', 'first_name', 'last_name', 'country', 'address', 'phone'];
+    const checks = field ? [field] : fields;
+
+    checks.forEach((f) => {
+      const msg = validateField(f, addr);
+      if (msg) newErrors[f] = msg;
+      else delete newErrors[f];
+    });
+
+    setErrors(newErrors);
+    return Object.values(newErrors).every((e) => !e);
+  };
+
+  const focusFirstError = () => {
+    setTimeout(() => {
+      const firstErrorField = Object.keys(errors).find((k) => errors[k as keyof ShippingErrors]);
+      if (firstErrorField) {
+        const domId = FIELD_IDS[firstErrorField] || firstErrorField;
+        const el = document.getElementById(domId);
+        if (el) {
+          el.focus();
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }, 100);
+  };
 
   const getAddressSuggestions = useCallback(async () => {
     const query = shippingAddress.street;
@@ -217,33 +281,9 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
   }, [mobileStep]);
 
   const handleContinueFromShipping = async () => {
-    // Validate required fields (mirroring the short mobile form)
-    const requiredFields: { field: keyof Address; key: string }[] = [
-      { field: "email", key: "emailRequired" },
-      { field: "first_name", key: "firstNameRequired" },
-      { field: "last_name", key: "lastNameRequired" },
-      { field: "country", key: "countryRequired" },
-      { field: "street", key: "addressRequired" },
-      { field: "phone", key: "phoneRequired" },
-    ];
-
-    for (const { field, key } of requiredFields) {
-      if (!shippingAddress[field]) {
-        alert(tForm(key));
-        const el = document.getElementById(FIELD_IDS[field as string]);
-        if (el) {
-          el.focus();
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-        return;
-      }
-    }
-
-    // Basic email format check
-    if (shippingAddress.email && !/\S+@\S+\.\S+/.test(shippingAddress.email)) {
-      alert(tForm("emailInvalid"));
-      const el = document.getElementById(FIELD_IDS.email);
-      if (el) el.focus();
+    // Validate all required fields
+    if (!validateShippingInfo()) {
+      focusFirstError();
       return;
     }
 
@@ -349,6 +389,15 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
       {/* Step 1: Shipping Details */}
       {mobileStep === 1 && (
         <div className="px-4 pt-4 space-y-6">
+          {/* Error summary banner */}
+          {Object.keys(errors).filter((k) => errors[k as keyof ShippingErrors]).length > 0 && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-700 text-sm font-medium mb-1">
+                {tForm("pleaseFixErrors", { count: Object.keys(errors).filter((k) => errors[k as keyof ShippingErrors]).length })}
+              </p>
+            </div>
+          )}
+
           {/* Contact information */}
           <section>
             <h2 className="text-[16px] font-bold text-[#222] mb-3">{t("contactInformation")}</h2>
@@ -361,7 +410,10 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
               value={shippingAddress.email}
               onChange={(e) => {
                 setShippingAddress((prev) => ({ ...prev, email: e.target.value }));
+                clearError("email");
               }}
+              onBlur={() => validateShippingInfo("email")}
+              error={errors.email}
               placeholder={tForm("emailPlaceholder")}
             >
             </FormField>
@@ -381,7 +433,10 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
                 value={shippingAddress.first_name}
                 onChange={(e) => {
                   setShippingAddress((prev) => ({ ...prev, first_name: e.target.value }));
+                  clearError("first_name");
                 }}
+                onBlur={() => validateShippingInfo("first_name")}
+                error={errors.first_name}
                 placeholder={tForm("firstNamePlaceholder")}
               />
               <FormField
@@ -393,7 +448,10 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
                 value={shippingAddress.last_name}
                 onChange={(e) => {
                   setShippingAddress((prev) => ({ ...prev, last_name: e.target.value }));
+                  clearError("last_name");
                 }}
+                onBlur={() => validateShippingInfo("last_name")}
+                error={errors.last_name}
                 placeholder={tForm("lastNamePlaceholder")}
               />
             </div>
@@ -407,7 +465,10 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
               value={shippingAddress.country}
               onChange={(e) => {
                 setShippingAddress((prev) => ({ ...prev, country: e.target.value }));
+                clearError("country");
               }}
+              onBlur={() => validateShippingInfo("country")}
+              error={errors.country}
               options={countryList}
             />
 
@@ -420,28 +481,35 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
               value={shippingAddress.street}
               onChange={(e) => {
                 setShippingAddress((prev) => ({ ...prev, street: e.target.value }));
+                clearError("address");
                 debouncedGetAddressSuggestions();
                 setShowAddressPrompt(false);
               }}
-              onPaste={() => {
-                setShowAddressPrompt(true);
-                debouncedGetAddressSuggestions();
+              onPaste={(e) => {
+                const pastedText = e.clipboardData?.getData('text') || '';
+                if (pastedText.length > 20) {
+                  setShowAddressPrompt(true);
+                  debouncedGetAddressSuggestions();
+                }
               }}
+              onBlur={() => validateShippingInfo("address")}
               onAutofill={(v) => {
                 setShippingAddress((prev) => ({ ...prev, street: v }));
                 setShowAddressPrompt(false);
               }}
+              error={errors.address}
               placeholder="Start typing your address..."
             >
-              <span className="text-[12px] text-[#999]">{t("addressHelp")}</span>
+              {/* Address autocomplete suggestions */}
+            {(showAddressPrompt && addressSuggestions.length > 0) ?
+              <div className="mb-2 p-2 bg-amber-50 border border-amber-200 rounded text-sm text-amber-800">
+                Please select an address from the list or enter it manually.
+              </div>
+              : <span className="text-[12px] text-[#999]">{t("addressHelp")}</span>
+            }
             </FormField>
 
-            {/* Address autocomplete suggestions */}
-            {showAddressPrompt && addressSuggestions.length > 0 && (
-              <div className="mb-2 p-2 bg-amber-50 border border-amber-200 rounded text-sm text-amber-800">
-                Select your address from the list below
-              </div>
-            )}
+            
             {shippingAddress.street && (
               <AddressSuggestions
                 addressSuggestions={addressSuggestions}
@@ -499,7 +567,10 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
               value={shippingAddress.phone}
               onChange={(e) => {
                 setShippingAddress((prev) => ({ ...prev, phone: e.target.value }));
+                clearError("phone");
               }}
+              onBlur={() => validateShippingInfo("phone")}
+              error={errors.phone}
               placeholder={tForm("phoneNumberPlaceholder")}
             >
               <span className="text-[12px] text-[#999]">{t("phoneHelp")}</span>

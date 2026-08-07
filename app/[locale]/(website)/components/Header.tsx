@@ -46,13 +46,17 @@ const Header = ({ headerIsWhite }: { headerIsWhite: boolean }) => {
   const pathname = usePathname();
   const locale = useLocale();
 
-  const { user, toggleLoginModal } = useUserStore();
+  const { user, toggleLoginModal, cartCount, fetchCartCount } = useUserStore();
   const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    fetchCartCount();
+  }, [fetchCartCount]);
 
   useEffect(() => {
     window.dispatchEvent(
@@ -327,13 +331,18 @@ const Header = ({ headerIsWhite }: { headerIsWhite: boolean }) => {
         </Link>
         <Link
           href="/shopping-cart"
-          className="text-2xl"  
+          className="text-2xl relative"  
         >
           <Image
             src={"/header/cart.svg"}
             alt="Shopping Cart"
             className={iconClassName('cursor-pointer w-[24px] h-[24px] md:w-[28px] md:h-[28px]')}
           />
+          {cartCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-[#FF3B30] text-white text-[11px] font-bold w-[18px] h-[18px] rounded-full flex items-center justify-center leading-none">
+              {cartCount > 99 ? '99+' : cartCount}
+            </span>
+          )}
         </Link>
         {mounted && user ? (
           <Link

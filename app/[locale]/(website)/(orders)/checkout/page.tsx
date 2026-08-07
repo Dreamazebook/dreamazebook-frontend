@@ -357,7 +357,7 @@ function CheckoutPageContent() {
             {/* Step 3: Review and Pay */}
             <CheckoutStep
               stepNumber={3}
-              title={""}
+              title={"Payment"}
               isOpen={openStep === 3}
               isCompleted={completedSteps.includes(3)}
               onToggle={() => toggleStep(3)}
