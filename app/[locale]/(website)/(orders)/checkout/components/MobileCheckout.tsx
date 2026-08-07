@@ -448,6 +448,47 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
               />
             )}
 
+            {/* Additional address fields shown after suggestion selection */}
+            {shippingAddress.city && (
+              <>
+                <FormField
+                  id="m_house_number"
+                  label={tForm("address2")}
+                  type="text"
+                  autoComplete="address-line2"
+                  value={shippingAddress.house_number || ""}
+                  onChange={(e) => {
+                    setShippingAddress((prev) => ({ ...prev, house_number: e.target.value }));
+                  }}
+                  placeholder={tForm("address2Placeholder")}
+                />
+                <FormField
+                  id="m_city"
+                  label={tForm("city")}
+                  type="text"
+                  required
+                  autoComplete="address-level2"
+                  value={shippingAddress.city || ""}
+                  onChange={(e) => {
+                    setShippingAddress((prev) => ({ ...prev, city: e.target.value }));
+                  }}
+                  placeholder={tForm("cityPlaceholder")}
+                />
+                <FormField
+                  id="m_post_code"
+                  label={tForm("postalCode")}
+                  type="text"
+                  required
+                  autoComplete="postal-code"
+                  value={shippingAddress.post_code || ""}
+                  onChange={(e) => {
+                    setShippingAddress((prev) => ({ ...prev, post_code: e.target.value }));
+                  }}
+                  placeholder={tForm("postalCodePlaceholder")}
+                />
+              </>
+            )}
+
             <FormField
               id={FIELD_IDS.phone}
               label={tForm("phoneNumber")}

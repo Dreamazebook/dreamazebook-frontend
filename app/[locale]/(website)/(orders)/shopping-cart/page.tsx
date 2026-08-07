@@ -20,6 +20,7 @@ import OrderSummary from './components/OrderSummary';
 import ShippingProgressBanner from './components/ShippingProgressBanner';
 import OAuthCallbackContent from './components/OAuthCallbackContent';
 import CouponInput from './components/CouponInput';
+import NeedHelpSection from './components/NeedHelpSection';
 import useUserStore from '@/stores/userStore';
 
 export default function ShoppingCartPage() {
@@ -30,7 +31,6 @@ export default function ShoppingCartPage() {
   const [confirmContent, setConfirmContent] = useState<React.ReactNode>(null);
   const [confirmNextUrl, setConfirmNextUrl] = useState<string | null>(null);
   const [flashItemId, setFlashItemId] = useState<number | null>(null);
-  const [needHelpOpen, setNeedHelpOpen] = useState(false);
   
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -416,7 +416,7 @@ export default function ShoppingCartPage() {
 
                 <ShippingProgressBanner itemsCount={selectedItems.length} hasPackage={hasPackage} />
 
-                {/* Mobile: Order Summary, Coupon, Need help inline */}
+                {/* Mobile: Order Summary, Coupon inline */}
                 <div className="lg:hidden space-y-4 mt-2">
                   {/* Coupon */}
                   {applyCoupon && (
@@ -442,6 +442,9 @@ export default function ShoppingCartPage() {
                     coupon={coupon}
                   />
                 </div>
+
+                {/* Need Help Section — visible on both mobile & desktop */}
+                <NeedHelpSection />
               </div>
             )}
           </div>
