@@ -12,6 +12,7 @@ import ReviewAndPay from "./components/ReviewAndPay";
 import OrderSummary from "./components/OrderSummary";
 import MobileCheckout from "./components/MobileCheckout";
 import AddressCardListModal from "./components/AddressCardListModal";
+import NeedHelpSection from "../shopping-cart/components/NeedHelpSection";
 import useOrderStatus from "../../hooks/useOrderStatus";
 import { useOrderDetail } from "./hooks/useOrderDetail";
 import { useCheckoutSteps } from "./hooks/useCheckoutSteps";
@@ -370,6 +371,9 @@ function CheckoutPageContent() {
                 />
               )}
             </CheckoutStep>
+
+            {/* Need Help Section — desktop below steps */}
+            <NeedHelpSection />
           </div>
 
           {/* Right column - Order summary */}

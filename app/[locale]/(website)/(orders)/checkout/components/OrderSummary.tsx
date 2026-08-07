@@ -68,7 +68,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         couponApplying={couponApplying}
         couponError={couponError}
       /> */}
-      <NeedHelpSection />
 
       {orderDetail &&
       <OrderSummaryPrices orderDetail={orderDetail} />
