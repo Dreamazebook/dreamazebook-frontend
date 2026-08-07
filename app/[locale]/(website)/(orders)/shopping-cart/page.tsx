@@ -34,7 +34,7 @@ export default function ShoppingCartPage() {
   
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { checkKickstarterStatus } = useUserStore();
+  const { checkKickstarterStatus, fetchCartCount } = useUserStore();
 
   // Check if this is an OAuth callback
   const isOAuthCallback = searchParams.get('code') !== null;
@@ -258,6 +258,8 @@ export default function ShoppingCartPage() {
         // 同时若已在选中列表中，也要移除
         setSelectedItems(prev => prev.filter(itemId => itemId !== id));
         setError('');
+        // 刷新 header 购物车数字
+        fetchCartCount();
       } else {
         setError(message || t('removeItemFailed'));
       }
@@ -441,12 +443,14 @@ export default function ShoppingCartPage() {
                     freeShipping={hasPackage || itemsCount >= 2}
                     coupon={coupon}
                   />
+                  <NeedHelpSection />
                 </div>
-
-                {/* Need Help Section — visible on both mobile & desktop */}
-                <NeedHelpSection />
               </div>
             )}
+            {/* Need Help Section — desktop: below cart items in left column */}
+            <div className="hidden lg:block pl-[120px] pr-16 pb-16">
+              <NeedHelpSection />
+            </div>
           </div>
 
           <OrderSummary

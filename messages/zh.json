@@ -370,7 +370,7 @@
     "allTransactionsSecure": "所有交易均经过加密保护",
     "completePayment": "完成付款",
     "processing": "处理中...",
-    "payNow": "立即支付 {amount}",
+    "payNow": "立即支付",
     "paymentSuccess": "付款成功！",
     "paymentProcessing": "付款处理中。我们将在收到付款后通知您。",
     "paymentFailed": "付款失败。请尝试其他付款方式。",

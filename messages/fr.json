@@ -344,7 +344,7 @@
     "allTransactionsSecure": "Toutes les transactions sont sécurisées et cryptées",
     "completePayment": "Finaliser le paiement",
     "processing": "Traitement...",
-    "payNow": "Payer {amount} maintenant",
+    "payNow": "Payer maintenant",
     "paymentSuccess": "Paiement réussi !",
     "paymentProcessing": "Paiement en cours. Nous vous informerons lors de la réception du paiement.",
     "paymentFailed": "Paiement échoué. Veuillez essayer une autre méthode de paiement.",

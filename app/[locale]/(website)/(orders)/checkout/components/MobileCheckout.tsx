@@ -124,6 +124,7 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
   const addressSuggestionsRef = useRef<any[]>([]);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showAddressPrompt, setShowAddressPrompt] = useState(false);
+  const [addressSelectedFromList, setAddressSelectedFromList] = useState(false);
   const [errors, setErrors] = useState<ShippingErrors>({});
 
   const clearError = (field: keyof ShippingErrors) => {
@@ -250,6 +251,8 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
 
     setAddressSuggestions([]);
     setShowAddressPrompt(false);
+    setAddressSelectedFromList(true);
+    clearError("address");
   };
 
   // Cleanup debounce on unmount
@@ -283,6 +286,13 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
   const handleContinueFromShipping = async () => {
     // Validate all required fields
     if (!validateShippingInfo()) {
+      focusFirstError();
+      return;
+    }
+
+    // Check if address was selected from list
+    if (!addressSelectedFromList) {
+      setErrors((prev) => ({ ...prev, address: tForm("selectAddressFromList") }));
       focusFirstError();
       return;
     }
@@ -390,13 +400,13 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
       {mobileStep === 1 && (
         <div className="px-4 pt-4 space-y-6">
           {/* Error summary banner */}
-          {Object.keys(errors).filter((k) => errors[k as keyof ShippingErrors]).length > 0 && (
+          {/* {Object.keys(errors).filter((k) => errors[k as keyof ShippingErrors]).length > 0 && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-md">
               <p className="text-red-700 text-sm font-medium mb-1">
                 {tForm("pleaseFixErrors", { count: Object.keys(errors).filter((k) => errors[k as keyof ShippingErrors]).length })}
               </p>
             </div>
-          )}
+          )} */}
 
           {/* Contact information */}
           <section>
@@ -482,11 +492,13 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
               onChange={(e) => {
                 setShippingAddress((prev) => ({ ...prev, street: e.target.value }));
                 clearError("address");
+                setAddressSelectedFromList(false);
                 debouncedGetAddressSuggestions();
                 setShowAddressPrompt(false);
               }}
               onPaste={(e) => {
                 const pastedText = e.clipboardData?.getData('text') || '';
+                setAddressSelectedFromList(false);
                 if (pastedText.length > 20) {
                   setShowAddressPrompt(true);
                   debouncedGetAddressSuggestions();
@@ -495,18 +507,21 @@ const MobileCheckout: React.FC<MobileCheckoutProps> = ({
               onBlur={() => validateShippingInfo("address")}
               onAutofill={(v) => {
                 setShippingAddress((prev) => ({ ...prev, street: v }));
+                setAddressSelectedFromList(false);
                 setShowAddressPrompt(false);
               }}
               error={errors.address}
               placeholder="Start typing your address..."
             >
-              {/* Address autocomplete suggestions */}
-            {(showAddressPrompt && addressSuggestions.length > 0) ?
-              <div className="mb-2 p-2 bg-amber-50 border border-amber-200 rounded text-sm text-amber-800">
-                Please select an address from the list or enter it manually.
+              {/* Persistent hint + paste warning */}
+              <div className="space-y-1">
+                <span className="text-[12px] text-[#999]">{tForm("selectAddressFromListHint")}</span>
+                {showAddressPrompt && addressSuggestions.length > 0 && (
+                  <div className="p-2 bg-amber-50 border border-amber-200 rounded text-sm text-amber-800">
+                    Please select an address from the list or enter it manually.
+                  </div>
+                )}
               </div>
-              : <span className="text-[12px] text-[#999]">{t("addressHelp")}</span>
-            }
             </FormField>
 
             
@@ -761,7 +776,7 @@ const PayButton: React.FC<{ total: number }> = ({ total }) => {
           <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
         </svg>
       )}
-      {isLoading ? t("processing") : t("payNow", { amount: `$${total}` })}
+      {isLoading ? t("processing") : t("payNow")}
     </button>
   );
 };

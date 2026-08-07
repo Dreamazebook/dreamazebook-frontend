@@ -478,7 +478,7 @@ const AddressForm = forwardRef<
   return (
     <div ref={formRef}>
       {/* Error summary banner — shown when there are validation errors */}
-      {errorCount > 0 && (
+      {/* {errorCount > 0 && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
           <p className="text-red-700 text-sm font-medium mb-1">
             {t("pleaseFixErrors", { count: errorCount })}
@@ -504,7 +504,7 @@ const AddressForm = forwardRef<
             ))}
           </ul>
         </div>
-      )}
+      )} */}
 
       <FormField
         id="email"
