@@ -872,7 +872,9 @@ const MobilePaymentForm: React.FC<{ orderDetail: OrderDetail; paymentMethod?: st
           defaultValues: {
             billingDetails: { email: orderDetail.shipping_address?.email },
           },
-          paymentMethodOrder: paymentMethod == "paypal" ? ["paypal", "card"] : ["card", "paypal"],
+          paymentMethodOrder: paymentMethod == "paypal" 
+            ? ["paypal", "google_pay", "apple_pay", "card"] 
+            : ["card", "paypal", "google_pay", "apple_pay"],
         } as any}
       />
       {message && (

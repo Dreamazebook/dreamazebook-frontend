@@ -153,12 +153,9 @@ const CheckoutForm: React.FC<{
         email: shipping_address?.email
       }
     },
-    defaultPaymentMethod: paymentMethod,
-    paymentMethodOrder: paymentMethod == 'paypal' ? ['paypal','card'] : ['card','paypal'],
-    // wallets: {
-    //   applePay: 'never',
-    //   googlePay: 'never'
-    // }
+    paymentMethodOrder: paymentMethod == 'paypal' 
+      ? ['paypal', 'google_pay', 'apple_pay', 'card'] 
+      : ['card', 'paypal', 'google_pay', 'apple_pay'],
   };
 
   return (
