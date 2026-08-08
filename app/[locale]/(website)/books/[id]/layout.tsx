@@ -223,6 +223,41 @@ const BOOK_SEO: Record<string, BookSeo> = {
       },
     ],
   },
+  PICBOOK_FIRST_DAY_OF_SCHOOL: {
+    name: 'Your First Day of School',
+    subtitle: 'Their first day, before the big day',
+    seoTitle: 'Your First Day of School: Personalized School Book | Dreamaze',
+    metaDescription:
+      'Explore the first day of school together through a gentle personalized story with your child at its heart. Best for ages 3+.',
+    ogTitle: 'Your First Day of School',
+    ogDescription:
+      'Explore the first day of school together, through a gentle personalized story with your child at its heart.',
+    keywords: [
+      'personalized first day of school book',
+      'first day of school story',
+      'custom school book for kids',
+      'personalized book with child photo',
+      'back to school keepsake',
+    ],
+    primaryKeyword: 'personalized first day of school book',
+    schemaDescription:
+      'Explore the first day of school together, through a gentle personalized story with your child at its heart.',
+    faqs: [
+      {
+        question: 'How is the book personalized?',
+        answer:
+          'Make them the hero by adding their name and a few personal details. Add child & mum photos to see them in the story. Make it extra special with a free custom dedication or a gift-ready cover.',
+      },
+      {
+        question: 'What age is this book suitable for?',
+        answer: 'Your First Day of School is best for ages 3+.',
+      },
+      {
+        question: 'Can I preview before printing?',
+        answer: 'Yes, you can preview every page online and make adjustments before your order goes to print.',
+      },
+    ],
+  },
   PICBOOK_BIRTHDAY: {
     name: 'Happy Birthday',
     subtitle: 'A personalized birthday book where your child becomes the star of the celebration.',

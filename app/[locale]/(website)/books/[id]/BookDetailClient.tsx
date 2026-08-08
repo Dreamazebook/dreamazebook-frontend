@@ -8,6 +8,7 @@ import BookDetailSkeleton from '../../components/books/BookDetailSkeleton';
 import BookDetailStickyBar from '../../components/books/BookDetailStickyBar';
 import ReviewsSection from '../../components/reviews/Reviews';
 import BookSections from '../../components/books/BookSections';
+import { getBookConfig } from '../../components/books/booksConfig';
 import { getBookCreatePath } from '@/constants/bookRoutes';
 
 interface PagePic {
@@ -58,6 +59,9 @@ export default function BookDetailClient({
 
   if (!book) return <BookDetailSkeleton />;
 
+  const bookConfig = getBookConfig(book, productId);
+  const hideReviews = Boolean(bookConfig?.hideReviews);
+
   const handlePersonalizeClick = (e: React.MouseEvent, lang: string) => {
     void e;
     void lang;
@@ -82,7 +86,9 @@ export default function BookDetailClient({
         />
         {!isEmbedMode && (
           <>
-            <ReviewsSection book={book} keywords={keywords} reviews={reviews} />
+            {!hideReviews && (
+              <ReviewsSection book={book} keywords={keywords} reviews={reviews} />
+            )}
             <BookSections book={book} bookId={productId} />
           </>
         )}

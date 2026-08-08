@@ -10,7 +10,7 @@ const picbookBundleMobilePng = (picbookId: string) =>
 
 // 定义书籍section的类型
 export interface BookSection {
-  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'meet-author' | 'tips' | 'custom' | 'christmas-wonder' | 'personalization-power' | 'dreamaze-special' | 'faq' | 'gift-packages'; // section类型，可以扩展
+  type: 'behind-story' | 'toddler-favorites' | 'why-personalized' | 'meet-author' | 'tips' | 'custom' | 'christmas-wonder' | 'personalization-power' | 'dreamaze-special' | 'faq' | 'gift-packages' | 'first-day-school'; // section类型，可以扩展
   title?: string; // section标题
   content?: string; // section内容
   description?: string; // section描述文字
@@ -148,6 +148,8 @@ export interface BookConfig {
   sections: BookSection[]; // 该书籍显示的sections
   specifications?: BookSpecification[]; // 该书籍的规格信息（可选，如果没有则使用默认值）
   faqs?: BookFAQ[]; // 该书籍的 FAQ 列表（可选）
+  /** 隐藏详情页默认评论区（营销区已自带证言时使用） */
+  hideReviews?: boolean;
 }
 
 const GOODNIGHT_BASE_CONFIG: Omit<BookConfig, 'id'> = {
@@ -893,6 +895,34 @@ with Mama's love, brave little moments, and cozy bedtime comfort.`,
               'We recommend using your baby’s first name. The maximum length is 13 letters to ensure the story flows beautifully.',
           },
         ],
+      },
+    ],
+  },
+
+  // Your First Day of School
+  'PICBOOK_FIRST_DAY_OF_SCHOOL': {
+    id: 'PICBOOK_FIRST_DAY_OF_SCHOOL',
+    hideReviews: true,
+    specifications: [
+      { label: 'Best for ages 3+' },
+      { label: '20 × 20 cm' },
+      { label: '32 pages' },
+      { label: 'Printed and dispatched in 2–4 working days' },
+    ],
+    faqs: [
+      {
+        question: 'How is the book personalized?',
+        answer: `@ Make them the hero
+Add their name and a few personal details.
+@ See the magic (free!)
+Add child & mum photos to see them in the story
+@ Make it extra special
+Add a free custom dedication or a gift-ready cover.`,
+      },
+    ],
+    sections: [
+      {
+        type: 'first-day-school',
       },
     ],
   },

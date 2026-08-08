@@ -55,11 +55,22 @@ export async function GET(
       ? payload
       : [];
 
-    const normalizeSrc = (src: string) => src?.replace(/^\.\//, '').replace(/^\/+/, '');
-    const buildFullUrl = (src: string) => {
-      if (!src) return null;
-      if (/^https?:\/\//i.test(src)) return src;
-      const cleaned = normalizeSrc(src);
+    const resolveSrcValue = (src: unknown): string | null => {
+      if (typeof src === 'string' && src.trim()) return src;
+      if (src && typeof src === 'object') {
+        const obj = src as Record<string, unknown>;
+        const candidate = obj.desktop ?? obj.mobile ?? obj.src ?? obj.url;
+        if (typeof candidate === 'string' && candidate.trim()) return candidate;
+      }
+      return null;
+    };
+
+    const normalizeSrc = (src: string) => src.replace(/^\.\//, '').replace(/^\/+/, '');
+    const buildFullUrl = (src: unknown) => {
+      const resolved = resolveSrcValue(src);
+      if (!resolved) return null;
+      if (/^https?:\/\//i.test(resolved)) return resolved;
+      const cleaned = normalizeSrc(resolved);
       return `${galleryBaseUrl}/${cleaned}`;
     };
 
@@ -78,7 +89,7 @@ export async function GET(
         }
 
         if (entry && typeof entry === 'object') {
-          const src = buildFullUrl(entry.src || entry.url || entry.path);
+          const src = buildFullUrl(entry.src ?? entry.url ?? entry.path);
           if (!src) return null;
           return {
             id: entry.id ?? `item-${idx}`,

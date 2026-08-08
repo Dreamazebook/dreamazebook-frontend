@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { getBookConfig, BookSection } from './booksConfig';
 import GiftPackagesSection from './GiftPackagesSection';
+import FirstDayOfSchoolSections from './FirstDayOfSchoolSections';
 import api from '@/utils/api';
 import { useRouter } from '@/i18n/routing';
 import { CartItem } from '@/types/cart';
@@ -1356,6 +1357,8 @@ const renderSection = (section: BookSection, index: number, bookId: string | num
       return <FAQSection key={index} section={section} />;
     case 'gift-packages':
       return <GiftPackagesSection key={index} section={section} />;
+    case 'first-day-school':
+      return <FirstDayOfSchoolSections key={index} bookId={bookId} />;
     case 'custom':
       // 如果有自定义渲染函数，使用它
       if (section.render) {

@@ -55,6 +55,7 @@ const BOOK_NAME_OVERRIDES: Record<string, string> = {
   PICBOOK_BIRTHDAY: 'Birthday Book for You',
   PICBOOK_MELODY: 'Your Melody',
   PICBOOK_SANTA: "Santa's Letter for You",
+  PICBOOK_FIRST_DAY_OF_SCHOOL: 'Your First Day of School',
 };
 
 const resolveBookDisplayName = (product: any, fallbackBookId: string) => {

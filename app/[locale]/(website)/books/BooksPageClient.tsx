@@ -21,6 +21,7 @@ const BOOK_NAME_OVERRIDES: Record<string, string> = {
   PICBOOK_BRAVEY: "Little One, You're Brave in Many Ways",
   PICBOOK_BIRTHDAY: 'Birthday Book for You',
   PICBOOK_SANTA: "Santa's Letter for You",
+  PICBOOK_FIRST_DAY_OF_SCHOOL: 'Your First Day of School',
 };
 
 const BOOK_DISPLAY_ORDER_RANK: Record<string, number> = {

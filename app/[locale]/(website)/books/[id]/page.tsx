@@ -64,6 +64,11 @@ const BOOK_DETAIL_OVERRIDES: Record<
       "Your Melody celebrates your baby's name in the sweetest way. Each letter turns into a gentle instrument carrying a blessing, and together they create a unique song just for them. A precious keepsake to welcome little ones and treasure their earliest years.",
     tags: [{ tname: 'Name-to-Melody' }, { tname: 'Keepsake Blessing' }],
   },
+  PICBOOK_FIRST_DAY_OF_SCHOOL: {
+    name: 'Your First Day of School',
+    description:
+      'Explore the first day of school together, through a gentle personalized story with your child at its heart.',
+  },
 };
 
 const applyBookOverride = (bookData: any, override?: { name?: string; description?: string }) => {
@@ -125,7 +130,29 @@ export default async function BookDetailPage({
         }
       } catch {}
 
-      tags = override?.tags ?? [];
+      // 标签优先用本地覆盖；否则与 Our Books 一致，取后端 marketing_tags
+      if (override?.tags?.length) {
+        tags = override.tags;
+      } else {
+        const productPayload = data?.data && typeof data.data === 'object' ? data.data : data;
+        const marketingTags =
+          productPayload?.marketing_tags ??
+          data?.marketing_tags ??
+          [];
+        if (Array.isArray(marketingTags)) {
+          tags = marketingTags
+            .map((tag: unknown) => {
+              if (typeof tag === 'string' && tag.trim()) return { tname: tag.trim() };
+              if (tag && typeof tag === 'object') {
+                const t = tag as Record<string, unknown>;
+                const name = t.tname ?? t.name ?? t.label ?? t.tag;
+                if (typeof name === 'string' && name.trim()) return { tname: name.trim() };
+              }
+              return null;
+            })
+            .filter((tag): tag is Tag => Boolean(tag));
+        }
+      }
     } catch (error) {
       console.error('Failed to fetch book details:', error);
     }
@@ -155,13 +182,25 @@ export default async function BookDetailPage({
         ? json
         : [];
 
-      const normalizeSrc = (src: string) =>
-        src?.replace(/^\.\//, '').replace(/^\/+/, '');
+      /** gallery index 里 src 可能是 string，也可能是 { desktop, mobile } */
+      const resolveSrcValue = (src: unknown): string | null => {
+        if (typeof src === 'string' && src.trim()) return src;
+        if (src && typeof src === 'object') {
+          const obj = src as Record<string, unknown>;
+          const candidate = obj.desktop ?? obj.mobile ?? obj.src ?? obj.url;
+          if (typeof candidate === 'string' && candidate.trim()) return candidate;
+        }
+        return null;
+      };
 
-      const buildFullUrl = (src: string): string | null => {
-        if (!src) return null;
-        if (/^https?:\/\//i.test(src)) return src;
-        const cleaned = normalizeSrc(src);
+      const normalizeSrc = (src: string) =>
+        src.replace(/^\.\//, '').replace(/^\/+/, '');
+
+      const buildFullUrl = (src: unknown): string | null => {
+        const resolved = resolveSrcValue(src);
+        if (!resolved) return null;
+        if (/^https?:\/\//i.test(resolved)) return resolved;
+        const cleaned = normalizeSrc(resolved);
         return `${galleryBaseUrl}/${cleaned}`;
       };
 
@@ -172,7 +211,7 @@ export default async function BookDetailPage({
           const src = buildFullUrl(entry);
           if (src) items.push({ id: `item-${idx}`, order: idx + 1, src });
         } else if (entry && typeof entry === 'object') {
-          const src = buildFullUrl(entry.src || entry.url || entry.path);
+          const src = buildFullUrl(entry.src ?? entry.url ?? entry.path);
           if (src) {
             items.push({
               id: entry.id ?? `item-${idx}`,

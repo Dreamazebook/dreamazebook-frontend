@@ -17,6 +17,12 @@ const BOOK_NAME_OVERRIDES: Record<string, string> = {
   PICBOOK_BIRTHDAY: 'Birthday Book for You',
   PICBOOK_MELODY: 'Your Melody',
   PICBOOK_SANTA: "Santa's Letter for You",
+  PICBOOK_FIRST_DAY_OF_SCHOOL: 'Your First Day of School',
+};
+
+// Our Books 列表一句话介绍
+const BOOK_DESCRIPTION_OVERRIDES: Record<string, string> = {
+  PICBOOK_FIRST_DAY_OF_SCHOOL: 'Their first day, before the big day',
 };
 
 interface BooksGridProps {
@@ -107,7 +113,11 @@ const BooksGrid: React.FC<BooksGridProps> = ({ books }) => {
         const hoverCoverUrl = getCoverUrl(String(idOrCode), true, false);
         const finalUnit = getBookDetailFinalUnitPrice(book);
         const originalUnit = getBookDetailOriginalUnitPrice(book, finalUnit);
-        const desc = (book as any)?.description ?? (book as any)?.desc ?? '';
+        const desc =
+          BOOK_DESCRIPTION_OVERRIDES[String(idOrCode)] ??
+          (book as any)?.description ??
+          (book as any)?.desc ??
+          '';
         // 仅对我们人工插入的“new-books-coming”卡片做 coming soon 判定
         // （不要用 price===0 来判断，避免误伤真实 0 元商品或数据异常）
         const isComingSoon = idOrCode === 'new-books-coming';

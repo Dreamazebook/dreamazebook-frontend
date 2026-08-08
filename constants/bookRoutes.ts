@@ -12,6 +12,7 @@ const BOOK_SLUG_BY_PRODUCT_ID: Record<string, string> = {
   PICBOOK_BIRTHDAY: 'happy-birthday-personalized-birthday-book',
   PICBOOK_BRAVEY: 'youre-brave-in-many-ways-personalized-book',
   PICBOOK_SANTA: 'santas-letter-personalized-christmas-book',
+  PICBOOK_FIRST_DAY_OF_SCHOOL: 'your-first-day-of-school-personalized-book',
 };
 
 const BOOK_PRODUCT_ID_BY_SLUG: Record<string, string> = {
@@ -22,6 +23,7 @@ const BOOK_PRODUCT_ID_BY_SLUG: Record<string, string> = {
   'happy-birthday-personalized-birthday-book': 'PICBOOK_BIRTHDAY',
   'youre-brave-in-many-ways-personalized-book': 'PICBOOK_BRAVEY',
   'santas-letter-personalized-christmas-book': 'PICBOOK_SANTA',
+  'your-first-day-of-school-personalized-book': 'PICBOOK_FIRST_DAY_OF_SCHOOL',
 };
 
 /** All canonical slugs (deduplicated) for sitemap generation. */
