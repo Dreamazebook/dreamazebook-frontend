@@ -163,7 +163,7 @@ const CheckoutForm: React.FC<{
 
   return (
     <div className="bg-white p-6 rounded shadow">
-
+{/* 
       <h3 className='text-[22px] md:text-[26px] mb-[16px]'>Order Summary</h3>
 
       {orderDetail.items.map((item) => (
@@ -172,7 +172,7 @@ const CheckoutForm: React.FC<{
 
       <h3 className='text-[22px] md:text-[26px] mb-[16px] border-t border-[#E5E5E5] pt-[16px] mt-[16px]'>Order Details</h3>
 
-      <OrderSummaryDelivery orderDetail={orderDetail} showDate={false} />
+      <OrderSummaryDelivery orderDetail={orderDetail} showDate={false} /> */}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

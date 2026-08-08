@@ -45,6 +45,7 @@ import MetaPixel from '@/app/components/MetaPixel';
 import GA4Script from '@/app/components/GA4Script';
 import ContentSquare from '@/app/components/ContentSquare';
 import GoogleGisScript from '@/app/components/GoogleGisScript';
+import ClarityScript from '@/app/components/ClarityScript';
 export const metadata: Metadata = sharedMetadata;
 
 export default async function LocaleLayout({
@@ -73,6 +74,7 @@ export default async function LocaleLayout({
         <MetaPixel />
         <ContentSquare />
         <GoogleGisScript />
+        <ClarityScript />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${roboto.variable} ${philosopher.variable} ${notoSansSC.variable} antialiased`}

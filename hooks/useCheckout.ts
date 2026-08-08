@@ -21,7 +21,7 @@ export const useCheckout = ({ selectedItems, couponCode, campaignCode }: UseChec
   const router = useRouter();
   const t = useTranslations('ShoppingCart');
 
-  const {openLoginModal, isLoggedIn} = useUserStore();
+  const {openLoginModal, isLoggedIn, fetchCartCount} = useUserStore();
   
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [paypalCheckoutLoading, setPaypalCheckoutLoading] = useState(false);
@@ -92,6 +92,8 @@ export const useCheckout = ({ selectedItems, couponCode, campaignCode }: UseChec
       
       if (success) {
         setError('');
+        // 刷新 header 购物车数字（订单创建后 cart 中对应项被移走）
+        fetchCartCount();
         router.push(ORDER_CHECKOUT_URL(data.order.id) + `&paymentMethod=${paymentMethod}`);
       } else if (code == 401) {
         // await trackCheckoutAttempt();

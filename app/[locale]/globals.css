@@ -136,3 +136,7 @@ input:not(:-webkit-autofill) {
   animation-name: onAutoFillCancel;
   animation-duration: 0.001s;
 }
+
+.p-PaymentMethodSelector {
+  display: none;
+}

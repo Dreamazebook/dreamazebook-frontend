@@ -126,6 +126,11 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
           address={address}
           setAddress={setAddress}
           orderDetail={orderDetail}
+          onFullAutofill={() => {
+            // Browser autofill completed filling all address fields —
+            // ensure the form is visible and expanded
+            setShowShippingForm(true);
+          }}
         />
       )}
 
@@ -163,6 +168,9 @@ const ShippingForm: React.FC<ShippingFormProps> = ({
           address={billingAddress}
           setAddress={setBillingAddress}
           orderDetail={orderDetail}
+          onFullAutofill={() => {
+            // Billing address autofill completed
+          }}
         />
       )}
 

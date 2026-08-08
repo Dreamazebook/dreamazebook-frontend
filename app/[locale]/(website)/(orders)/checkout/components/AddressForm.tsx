@@ -61,6 +61,8 @@ interface AddressFormProps {
   setAddress: (value: React.SetStateAction<Address>) => void;
   orderDetail: OrderDetail;
   updateShippingAddress?: (orderId: string | number) => Promise<{ success: boolean; message?: string }>;
+  /** Called when browser autofill completes filling all address fields */
+  onFullAutofill?: () => void;
 }
 
 const AddressForm = forwardRef<
@@ -70,11 +72,18 @@ const AddressForm = forwardRef<
     focusFirstError: () => void;
   },
   AddressFormProps
->(({ address, setAddress, orderDetail, updateShippingAddress }, ref) => {
+>(({ address, setAddress, orderDetail, updateShippingAddress, onFullAutofill }, ref) => {
   const { countryList, fetchCountryList } = useUserStore();
   const t = useTranslations("addressForm");
   const [errors, setErrors] = useState<ShippingErrors>({});
   const formRef = useRef<HTMLDivElement>(null);
+
+  // Track autofill count to detect full-form autofill
+  const autofillCountRef = useRef(0);
+  const autofillTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [showAddressPrompt, setShowAddressPrompt] = useState(false);
+  // Track whether the address was selected from the suggestions list
+  const addressSelectedFromListRef = useRef(false);
 
   useEffect(() => {
     fetchCountryList();
@@ -170,9 +179,22 @@ const AddressForm = forwardRef<
           return { ...prev, [addressKey]: value };
         });
         clearError(field as keyof ShippingErrors);
+
+        // Track autofill count: when browser fills multiple fields
+        // in quick succession, treat it as a full-form autofill
+        autofillCountRef.current += 1;
+
+        if (autofillTimerRef.current) clearTimeout(autofillTimerRef.current);
+        autofillTimerRef.current = setTimeout(() => {
+          // If 3+ fields were autofilled within 500ms, it's a full-form autofill
+          if (autofillCountRef.current >= 3) {
+            onFullAutofill?.();
+          }
+          autofillCountRef.current = 0;
+        }, 500);
       }
     },
-    [setAddress]
+    [setAddress, onFullAutofill]
   );
 
   const clearError = (field: keyof ShippingErrors) => {
@@ -263,11 +285,16 @@ const AddressForm = forwardRef<
       else delete newErrors[key];
     };
 
+    // Phone validation: must be 7-15 digits, optionally with + prefix
+    const isValidPhone = (phone: string): boolean => {
+      return /^\+?\d{7,15}$/.test(phone.replace(/[\s\-()]/g, ''));
+    };
+
     const checkEmail = () => {
       if (!addr.email)
-        setOrClear("email", t("required", { field: t("email") }));
+        setOrClear("email", t("emailRequired"));
       else if (!/\S+@\S+\.\S+/.test(addr.email))
-        setOrClear("email", t("invalidEmail"));
+        setOrClear("email", t("emailInvalid"));
       else setOrClear("email");
     };
 
@@ -276,49 +303,52 @@ const AddressForm = forwardRef<
       first_name: () =>
         setOrClear(
           "first_name",
-          addr.first_name
-            ? undefined
-            : t("required", { field: t("firstName") })
+          addr.first_name ? undefined : t("firstNameRequired")
         ),
       last_name: () =>
         setOrClear(
           "last_name",
-          addr.last_name
-            ? undefined
-            : t("required", { field: t("lastName") })
+          addr.last_name ? undefined : t("lastNameRequired")
         ),
-      address: () =>
-        setOrClear(
-          "address",
-          addr.street ? undefined : t("required", { field: t("address") })
-        ),
+      address: () => {
+        if (!addr.street) {
+          setOrClear("address", t("addressRequired"));
+        } else if (!addressSelectedFromListRef.current && addressSuggestionsRef.current.length > 0) {
+          // Address was typed/pasted but not selected from the suggestion list
+          setOrClear("address", t("addressNotSelected"));
+        } else {
+          setOrClear("address");
+        }
+      },
       city: () =>
         setOrClear(
           "city",
-          addr.city ? undefined : t("required", { field: t("city") })
+          addr.city ? undefined : t("cityRequired")
         ),
       post_code: () =>
         setOrClear(
           "post_code",
-          addr.post_code
-            ? undefined
-            : t("required", { field: t("postalCode") })
+          addr.post_code ? undefined : t("postalCodeRequired")
         ),
       country: () =>
         setOrClear(
           "country",
-          addr.country ? undefined : t("required", { field: t("country") })
+          addr.country ? undefined : t("countryRequired")
         ),
       state: () =>
         setOrClear(
           "state",
-          addr.state ? undefined : t("required", { field: t("state") })
+          addr.state ? undefined : t("stateRequired")
         ),
-      phone: () =>
-        setOrClear(
-          "phone",
-          addr.phone ? undefined : t("required", { field: t("phoneNumber") })
-        ),
+      phone: () => {
+        if (!addr.phone) {
+          setOrClear("phone", t("phoneRequired"));
+        } else if (!isValidPhone(addr.phone)) {
+          setOrClear("phone", t("phoneInvalid"));
+        } else {
+          setOrClear("phone");
+        }
+      },
     } as Record<string, () => void>;
 
     if (field) {
@@ -341,13 +371,15 @@ const AddressForm = forwardRef<
 
   // ── Address autocomplete ─────────────────────────────────────────────────
 
-  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const addressSuggestionsRef = useRef<any[]>([]);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
   const getAddressSuggestions = useCallback(async () => {
     if (!address?.street || address?.street.length < 3) {
       setAddressSuggestions([]);
+      addressSuggestionsRef.current = [];
       return;
     }
     try {
@@ -361,6 +393,7 @@ const AddressForm = forwardRef<
       if (response.ok) {
         const data = await response.json();
         setAddressSuggestions(data.features);
+        addressSuggestionsRef.current = data.features || [];
       }
     } catch (error) {
       console.error("Error fetching address suggestions:", error);
@@ -390,6 +423,9 @@ const AddressForm = forwardRef<
       if (item.id.includes("postcode")) post_code = item.text;
       if (item.id.includes("country")) country = item.short_code.toUpperCase();
     });
+
+    // Mark that the address was selected from the suggestions list
+    addressSelectedFromListRef.current = true;
 
     setErrors((prev) => {
       const newErrors = { ...prev };
@@ -442,12 +478,10 @@ const AddressForm = forwardRef<
   return (
     <div ref={formRef}>
       {/* Error summary banner — shown when there are validation errors */}
-      {errorCount > 0 && (
+      {/* {errorCount > 0 && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
           <p className="text-red-700 text-sm font-medium mb-1">
-            {t("pleaseFixErrors", {
-              defaultValue: `Please fix the following ${errorCount} field(s):`,
-            })}
+            {t("pleaseFixErrors", { count: errorCount })}
           </p>
           <ul className="list-disc list-inside text-red-600 text-xs space-y-0.5">
             {errorList.map((err) => (
@@ -470,7 +504,7 @@ const AddressForm = forwardRef<
             ))}
           </ul>
         </div>
-      )}
+      )} */}
 
       <FormField
         id="email"
@@ -488,7 +522,6 @@ const AddressForm = forwardRef<
         error={errors.email}
         placeholder={t("emailPlaceholder")}
       >
-        <span className="text-[16px] text-[#999]">{t("emailHelp")}</span>
       </FormField>
 
       <FormField
@@ -553,28 +586,51 @@ const AddressForm = forwardRef<
           setAddress((prev) => ({ ...prev, street: e.target.value }));
           clearError("address");
           debouncedGetAddressSuggestions();
+          // If user manually types, reset the "selected from list" flag
+          addressSelectedFromListRef.current = false;
+          // Don't show the prompt when user is typing manually
+          setShowAddressPrompt(false);
         }}
         onPaste={(e:any) => {
           // After pasting an address, browser autofill may populate other
           // fields (city, state, zip, etc.) without firing onChange events.
           // Schedule a delayed DOM sync to catch those changes.
-          setAddress((prev) => ({ ...prev, street: e.target.value }));
+          const pastedValue = e.clipboardData?.getData('text') || '';
+          setAddress((prev) => ({ ...prev, street: pastedValue }));
           clearError("address");
+          // Reset "selected from list" flag on paste
+          addressSelectedFromListRef.current = false;
+          // Show the "select from list" prompt after a paste
+          setShowAddressPrompt(true);
+          // Also trigger suggestions
           debouncedGetAddressSuggestions();
         }}
         onBlur={() => validateShippingInfo("address")}
         onAutofill={(v) => {
           handleAutofill("address", v);
-          // Also schedule a sync for related fields after autofill
+          // Autofill is a full-form event, don't show the paste prompt
+          // Autofill fills all fields, so address is effectively "selected"
+          addressSelectedFromListRef.current = true;
+          setShowAddressPrompt(false);
         }}
         error={errors.address}
         placeholder={t("addressPlaceholder")}
       />
 
+      {/* Prompt user to select from address suggestions after pasting */}
+      {showAddressPrompt && addressSuggestions.length > 0 && (
+        <div className="mb-2 p-2 bg-amber-50 border border-amber-200 rounded text-sm text-amber-800">
+          {t("selectAddressFromList")}
+        </div>
+      )}
+
       {address.street && (
         <AddressSuggestions
           addressSuggestions={addressSuggestions}
-          handleAddressSuggestionClick={handleAddressSuggestionClick}
+          handleAddressSuggestionClick={(suggestion) => {
+            handleAddressSuggestionClick(suggestion);
+            setShowAddressPrompt(false);
+          }}
         />
       )}
 

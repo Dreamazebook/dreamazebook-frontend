@@ -5115,24 +5115,8 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
         addToCartTrackedRef.current = true;
       }
 
-      // Step 2: 对已有 cart item 下单
-      const orderBody = {
-        cart_item_ids: [cartItemId],
-        payment_method: 'card' as const,
-      };
-      console.debug('[Checkout] Sending request /checkout/create-order with data:', orderBody);
-
-      const { success, code, data } = await api.post<ApiResponse<{ order: { id: number } }>>(
-        API_ORDER_CREATE,
-        orderBody
-      );
-      console.debug('[Checkout] /checkout/create-order response:', { success, code, data });
-
-      if (success) {
-        router.push(ORDER_CHECKOUT_URL(data!.order!.id) + '&paymentMethod=card');
-      } else if (code == 401) {
-        openPreviewUnlockLogin();
-      }
+      // 更新完选项后，跳转到购物车页面
+      router.push('/shopping-cart');
     } catch (error: any) {
       console.error('创建订单失败:', error);
       if (error?.status == 401 || error?.response?.status == 401) {
@@ -6161,12 +6145,12 @@ export default function PreviewPageClient({ mode = 'preview' }: { mode?: Preview
   const previewBottomButtonLabel = isGuest
     ? activeTab === 'Book preview'
       ? t('continuePreview')
-      : t('continueToCheckout')
+      : t('continueToCart')
     : hideOthers || activeTab === 'Book preview'
       ? hideOthers
         ? t('completeMyBook')
         : t('chooseCoverAndFormat')
-      : t('continueToCheckout');
+      : t('continueToCart');
 
   const hidePreviewBottomBar = editField === 'giver' || pendingMomDrawingFile;
   const previewBottomBarClassName = hidePreviewBottomBar

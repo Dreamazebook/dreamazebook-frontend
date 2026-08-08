@@ -15,7 +15,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   checkoutLoading,
   paypalCheckoutLoading,
   onCheckout,
-  couponApplied,
   couponApplying,
   couponError,
   onApplyCoupon,
@@ -24,7 +23,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
 }) => {
   const t = useTranslations('ShoppingCart');
   const [promoOpen, setPromoOpen] = useState(false);
-  const [mobileExpanded, setMobileExpanded] = useState(false);
+
 
   const LoadingSpinner = () => (
     <>
@@ -106,7 +105,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   const renderContent = () => (
     <>
       {/* Promo Code — collapsible */}
-      <div className={`bg-[#F8FAFC] border border-[#E3E6EA] rounded-[12px] p-4 mb-4 ${mobileExpanded ? '' : 'hidden lg:block'}`}>
+      <div className="bg-[#F8FAFC] border border-[#E3E6EA] rounded-[12px] p-4 mb-4">
       {onApplyCoupon && (
         <>
           <div
@@ -146,7 +145,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       </div>
 
       {/* Summary Card */}
-      <div className={`bg-white p-4 rounded shadow ${mobileExpanded ? '' : 'hidden lg:block'}`}>
+      <div className="bg-white p-4 rounded shadow">
         <SummaryLines />
       </div>
 
@@ -155,45 +154,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         <CheckoutButtons />
       </div>
 
-      {/* Bottom Trust Section */}
-      <div className={`mt-6 grid grid-cols-3 gap-2 ${mobileExpanded ? '' : 'hidden lg:grid'}`}>
-        <div className="flex items-center gap-2">
-          <svg className="w-6 h-6 text-[#222222] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0110 0v4" />
-          </svg>
-          <div>
-            <p className="text-[14px] font-medium text-[#222222] leading-tight">Secure checkout</p>
-            <p className="text-[12px] text-[#666666] leading-tight">SSL encrypted</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <svg className="w-6 h-6 text-[#222222] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
-          <div>
-            <p className="text-[14px] font-medium text-[#222222] leading-tight">Free shipping</p>
-            <p className="text-[12px] text-[#666666] leading-tight">On 2+ books</p>
-          </div>
-        </div>
-        <button
-          className="flex items-center gap-2 text-left cursor-pointer"
-          onClick={() => {
-            if (typeof window !== 'undefined' && window.Tawk_API?.maximize) {
-              window.Tawk_API.maximize();
-            }
-          }}
-        >
-          <svg className="w-6 h-6 text-[#222222] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
-          </svg>
-          <div>
-            <p className="text-[14px] font-medium text-[#222222] leading-tight whitespace-nowrap">Need help</p>
-            <p className="text-[12px] text-[#666666] leading-tight whitespace-nowrap">Contact us</p>
-          </div>
-        </button>
-      </div>
     </>
   );
 
@@ -207,33 +167,14 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         </div>
       </div>
 
-      {/* Mobile: fixed bottom bar, same renderContent, toggle expandable sections */}
+      {/* Mobile: fixed bottom bar with Total + Checkout buttons only */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-xl z-10 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
         <div className="max-w-screen-md mx-auto px-4 pt-3 pb-3">
-          {/* Toggle: total row is clickable to expand/collapse */}
-          <div
-            className="flex items-center justify-between cursor-pointer select-none"
-            onClick={() => setMobileExpanded((prev) => !prev)}
-          >
-            {!mobileExpanded && (
-              <div className="flex justify-between font-bold text-lg flex-1">
-                <p>{t('total')}</p>
-                <p className="text-[#165C52]">${total.toFixed(2)}</p>
-              </div>
-            )}
-            <svg
-              className={`w-5 h-5 text-[#666666] ml-auto shrink-0 transition-transform duration-200 ${mobileExpanded ? '' : 'rotate-180'}`}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M6 9l6 6 6-6" />
-            </svg>
+          <div className="flex justify-between font-bold text-lg mb-3">
+            <p>{t('total')}</p>
+            <p className="text-[#165C52]">${total.toFixed(2)}</p>
           </div>
-          {renderContent()}
+          <CheckoutButtons />
         </div>
       </div>
     </>

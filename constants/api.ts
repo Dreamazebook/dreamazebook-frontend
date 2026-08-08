@@ -36,6 +36,7 @@ export const API_ORDER_REMOVE = '/order/remove';
 
 export const API_ORDER_SHIPPING_METHODS = '/order/shipping-methods';
 export const API_ORDER_UPDATE_SHIPPING = (id: string | number) => `${API_ORDER_LIST}/${id}/shipping-method`;
+export const API_ORDER_COUPON = (id: string | number) => `${API_ORDER_LIST}/${id}/coupon`;
 export const API_ORDER_STRIPE_PAID = '/stripe/confirm-payment';
 
 export const API_ADDRESS_LIST = '/user/addresses';

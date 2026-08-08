@@ -248,6 +248,7 @@ export default function CartItemCard({
   const [isGiftOptionLoading, setIsGiftOptionLoading] = useState(false);
   const [isAddonLoading, setIsAddonLoading] = useState(false);
   const [countdown, setCountdown] = useState<string | null>(null);
+  const [dedicationExpanded, setDedicationExpanded] = useState(false);
   const isPackage = item.item_type === "package";
   const packageCode =
     (item as any)?.package_code || (item as any)?.package_snapshot?.code;
@@ -513,7 +514,7 @@ export default function CartItemCard({
                       <div className="hidden md:block">
                         <div className="flex items-baseline gap-2">
                           {showDiscountLabel && 
-                          <span className="bg-[#FFE5E5] py-1 rounded px-2">save 20%</span>
+                          <span className="bg-[#FFE5E5] py-1 rounded px-2">Savings</span>
                           }
                           <DisplayPrice
                             style="text-[#222222] font-bold"
@@ -559,7 +560,7 @@ export default function CartItemCard({
                         />
                       )} */}
                       {showDiscountLabel && 
-                        <span className="bg-[#FFE5E5] py-1 rounded px-2">save 20%</span>
+                        <span className="bg-[#FFE5E5] py-1 rounded px-2">Savings</span>
                       }
                     </div>
                   </div>
@@ -584,7 +585,16 @@ export default function CartItemCard({
                 } */}
                 
                 {item?.customization_data?.attributes?.gift_message &&
-                <p className={`text-[#666] bg-[#f8f8f8] font-[400] p-2 rounded`}>{item?.customization_data?.attributes?.gift_message}</p>
+                <div className="bg-[#f8f8f8] rounded p-2">
+                  <p className={`text-[#666] font-[400] ${dedicationExpanded ? '' : 'line-clamp-3'}`}>{item?.customization_data?.attributes?.gift_message}</p>
+                  <button
+                    type="button"
+                    className="text-sm text-blue-600 hover:underline cursor-pointer mt-2 block"
+                    onClick={() => setDedicationExpanded((prev) => !prev)}
+                  >
+                    {dedicationExpanded ? 'Show less' : 'View dedication'}
+                  </button>
+                </div>
                 }
 
                 {/* 额外描述合并到装订信息一行展示 */}

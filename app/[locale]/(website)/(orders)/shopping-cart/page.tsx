@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from '@/i18n/routing';
+import { useRouter, Link } from '@/i18n/routing';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import api from '@/utils/api';
@@ -19,6 +19,8 @@ import ConfirmModal from '../../components/component/ConfirmModal';
 import OrderSummary from './components/OrderSummary';
 import ShippingProgressBanner from './components/ShippingProgressBanner';
 import OAuthCallbackContent from './components/OAuthCallbackContent';
+import CouponInput from './components/CouponInput';
+import NeedHelpSection from './components/NeedHelpSection';
 import useUserStore from '@/stores/userStore';
 
 export default function ShoppingCartPage() {
@@ -32,7 +34,7 @@ export default function ShoppingCartPage() {
   
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { checkKickstarterStatus } = useUserStore();
+  const { checkKickstarterStatus, fetchCartCount } = useUserStore();
 
   // Check if this is an OAuth callback
   const isOAuthCallback = searchParams.get('code') !== null;
@@ -256,6 +258,8 @@ export default function ShoppingCartPage() {
         // 同时若已在选中列表中，也要移除
         setSelectedItems(prev => prev.filter(itemId => itemId !== id));
         setError('');
+        // 刷新 header 购物车数字
+        fetchCartCount();
       } else {
         setError(message || t('removeItemFailed'));
       }
@@ -263,6 +267,91 @@ export default function ShoppingCartPage() {
       setError(t('removeItemFailed'));
     }
   };
+
+  // Mobile inline components
+  const MobileCouponSection = ({ onApplyCoupon, onRemoveCoupon, coupon, couponApplying, couponError }: any) => {
+    const [promoOpen, setPromoOpen] = useState(false);
+    return (
+      <div className="bg-[#F8FAFC] border border-[#E3E6EA] rounded-[12px] p-4">
+        <div
+          className="flex items-center justify-between cursor-pointer select-none"
+          onClick={() => setPromoOpen((prev) => !prev)}
+        >
+          <h5 className="text-[#222222] text-[15px] font-medium">Have a promo code?</h5>
+          <svg
+            className={`w-5 h-5 text-[#666666] transition-transform duration-200 ${promoOpen ? 'rotate-180' : ''}`}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </div>
+        <div
+          className={`grid transition-all duration-200 ease-in-out ${
+            promoOpen ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0 mt-0'
+          }`}
+        >
+          <div className="overflow-hidden">
+            <CouponInput
+              onApply={onApplyCoupon}
+              onRemove={onRemoveCoupon}
+              coupon={coupon}
+              couponApplying={couponApplying}
+              couponError={couponError}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const MobileSummaryLines = ({ calculatingCost, subtotal, shipping, discountInfo, discountAmount, itemsCount, freeShipping, coupon }: any) => (
+    <div className="bg-white p-4 rounded shadow space-y-2">
+      {calculatingCost ? (
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+          </div>
+          <div className="flex justify-between">
+            <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex justify-between text-[#666666] text-sm">
+            <p>{t('subtotal')} ({itemsCount} {itemsCount && (itemsCount > 1) ? 'books' : 'book'})</p>
+            <p>${subtotal.toFixed(2)}</p>
+          </div>
+          <div className="flex justify-between text-[#666666] text-sm">
+            <p>{t('shipping')}</p>
+            {freeShipping ? (
+              <p>${shipping.toFixed(2)}</p>
+            ) : (
+              <p className="text-xs">{t('calculatedAtCheckout')}</p>
+            )}
+          </div>
+          {discountInfo?.applicable && discountAmount > 0 && (
+            <div className="flex justify-between text-[#165C52] text-sm">
+              <p>{t('savings')}</p>
+              <p className="font-bold">-${discountAmount.toFixed(2)} ({discountInfo.percentage}%)</p>
+            </div>
+          )}
+          {coupon && coupon.status === 'applied' && coupon.discount_amount > 0 && (
+            <div className="flex justify-between text-[#165C52] text-sm">
+              <p>{t('couponDiscount')} ({coupon.code})</p>
+              <p className="font-bold">-${coupon.discount_amount.toFixed(2)}</p>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
 
 
   if (loading || isOAuthCallback) {
@@ -328,8 +417,40 @@ export default function ShoppingCartPage() {
                 />
 
                 <ShippingProgressBanner itemsCount={selectedItems.length} hasPackage={hasPackage} />
+
+                {/* Mobile: Order Summary, Coupon inline */}
+                <div className="lg:hidden space-y-4 mt-2">
+                  {/* Coupon */}
+                  {applyCoupon && (
+                    <MobileCouponSection
+                      onApplyCoupon={applyCoupon}
+                      onRemoveCoupon={removeCoupon}
+                      coupon={coupon}
+                      couponApplying={couponApplying}
+                      couponError={couponError}
+                    />
+                  )}
+
+                  {/* Summary Lines */}
+                  <MobileSummaryLines
+                    calculatingCost={calculatingCost}
+                    subtotal={subtotal}
+                    shipping={shipping}
+                    discountInfo={discountInfo}
+                    discountAmount={discountAmount}
+                    total={total}
+                    itemsCount={itemsCount}
+                    freeShipping={hasPackage || itemsCount >= 2}
+                    coupon={coupon}
+                  />
+                  <NeedHelpSection />
+                </div>
               </div>
             )}
+            {/* Need Help Section — desktop: below cart items in left column */}
+            <div className="hidden lg:block pl-[120px] pr-16 pb-16">
+              <NeedHelpSection />
+            </div>
           </div>
 
           <OrderSummary
