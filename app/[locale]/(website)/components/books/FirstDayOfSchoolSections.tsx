@@ -384,7 +384,7 @@ const StoryMomentsSection: React.FC = () => (
 
 /** Fanned spreads + testimonial */
 const HeroTestimonialSection: React.FC = () => (
-  <section className="w-full bg-white pt-12 md:pt-[88px] pb-12 md:pb-11 px-4 md:px-[120px] flex flex-col items-center gap-8 md:gap-12 overflow-hidden">
+  <section className="w-full bg-white pt-12 md:pt-[88px] pb-12 md:pb-11 px-4 md:px-[120px] flex flex-col items-center gap-8 md:gap-12 overflow-x-hidden">
     <SectionHeading
       title="When they’re the hero, the story means more."
       description="Their story. Their feelings. Their Mama coming back."
@@ -455,35 +455,33 @@ const HeroTestimonialSection: React.FC = () => (
         </div>
       </div>
 
-      {/* Mobile：左下粉区内横向窄栏排版，开/闭引号 */}
-      <div className="relative md:hidden w-full aspect-[750/708] overflow-hidden">
+      {/* Mobile：文案限制在图片内，宽 1/2，底部不超出图片 */}
+      <div className="relative md:hidden w-full aspect-[750/708]">
         <Image
           src={HERO_TESTIMONIAL_MOBILE_IMAGE}
           alt=""
           fill
-          className="object-cover object-center"
+          className="object-contain object-center"
           sizes="100vw"
           unoptimized
         />
-        <div className="pointer-events-none absolute left-0 top-[36%] w-1/2">
-          <div className="relative pl-[6%] pr-[2%]">
-            <p
-              className="text-[40px] leading-none text-[rgba(1,44,206,0.4)] select-none"
-              aria-hidden
-            >
-              “
-            </p>
-            <div className="mt-1 text-[13px] font-normal leading-[18px] tracking-[0.25px] text-[#222222]">
-              <p>{TESTIMONIAL_BODY}</p>
-              <p className="mt-2">{TESTIMONIAL_ATTRIBUTION}</p>
-            </div>
-            <p
-              className="absolute right-0 top-[72%] text-[40px] leading-none text-[rgba(1,44,206,0.4)] select-none"
-              aria-hidden
-            >
-              ”
-            </p>
+        <div className="pointer-events-none absolute left-0 top-[34%] bottom-[5%] flex w-1/2 flex-col pl-[6%] pr-[3%]">
+          <p
+            className="shrink-0 text-[26px] leading-none text-[rgba(1,44,206,0.4)] select-none"
+            aria-hidden
+          >
+            “
+          </p>
+          <div className="min-h-0 flex-1 text-[11px] font-normal leading-[13px] tracking-[0.25px] text-[#222222]">
+            <p>{TESTIMONIAL_BODY}</p>
+            <p className="mt-1.5">{TESTIMONIAL_ATTRIBUTION}</p>
           </div>
+          <p
+            className="shrink-0 text-right text-[26px] leading-none text-[rgba(1,44,206,0.4)] select-none"
+            aria-hidden
+          >
+            ”
+          </p>
         </div>
       </div>
     </div>
